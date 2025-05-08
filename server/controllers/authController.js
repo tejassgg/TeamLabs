@@ -128,7 +128,7 @@ const googleLogin = async (req, res) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     
-    const { email_verified, name, email, given_name, family_name, sub } = ticket.getPayload();
+    const { email_verified, name, email, given_name, family_name, sub, picture } = ticket.getPayload();
     
     // If email is not verified by Google
     if (!email_verified) {
@@ -145,13 +145,14 @@ const googleLogin = async (req, res) => {
       
       console.log(`User ${user.username} logged in via Google at ${user.lastLogin}`);
       
-      // Return user data with token
+      // Return user data with token and Google profile image
       return res.json({
         _id: user._id,
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        profileImage: picture,
         token: generateToken(user._id),
       });
     } else {
@@ -181,6 +182,7 @@ const googleLogin = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        profileImage: picture,
         token: generateToken(user._id),
       });
     }

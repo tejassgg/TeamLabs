@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
@@ -14,6 +14,9 @@ const Register = () => {
   const router = useRouter();
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
   const password = watch('password');
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
+  const fileInputRef = useRef();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -22,11 +25,31 @@ const Register = () => {
     }
   }, [isAuthenticated, router]);
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      setProfileImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   const onSubmit = async (data) => {
     setIsLoading(true);
     setError('');
     try {
-      const result = await registerUser(data);
+      let imageUrl = '';
+      if (profileImage) {
+        // Upload image to backend
+        const formData = new FormData();
+        formData.append('image', profileImage);
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const result = await res.json();
+        imageUrl = result.url;
+      }
+      const result = await registerUser({ ...data, profileImage: imageUrl });
       if (result.success) {
         router.push('/dashboard');
       } else {
@@ -87,7 +110,27 @@ const Register = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" encType="multipart/form-data">
+              <div className="flex flex-col items-center mb-4">
+                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mb-2">
+                  {profileImagePreview ? (
+                    <img src={profileImagePreview} alt="Profile Preview" className="object-cover w-full h-full" />
+                  ) : (
+                    <span className="text-gray-400">No Image</span>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+                <button type="button" className="btn btn-google" onClick={() => fileInputRef.current.click()}>
+                  Choose Profile Image
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <input
