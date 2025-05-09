@@ -58,11 +58,28 @@ export const AuthProvider = ({ children }) => {
     try {
       const data = await authService.googleLogin(credential);
       setUser(data);
-      return { success: true };
+      return { 
+        success: true,
+        needsAdditionalDetails: data.needsAdditionalDetails || false
+      };
     } catch (error) {
       return {
         success: false,
         message: error.message || 'Failed to login with Google',
+      };
+    }
+  };
+
+  // Complete user profile
+  const completeProfile = async (profileData) => {
+    try {
+      const data = await authService.completeProfile(profileData);
+      setUser(data);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to complete profile',
       };
     }
   };
@@ -81,6 +98,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         googleLogin,
+        completeProfile,
         logout,
         isAuthenticated: !!user,
       }}

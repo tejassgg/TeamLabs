@@ -5,6 +5,11 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const teamRoutes = require('./routes/teamRoutes');
+const commonTypeRoutes = require('./routes/commonTypeRoutes');
+const teamDetailsRoutes = require('./routes/teamDetailsRoutes');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecs = require('./config/swagger');
 
 // Load environment variables
 dotenv.config();
@@ -21,9 +26,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "TeamLabs API Documentation"
+}));
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/common-types', commonTypeRoutes);
+app.use('/api/team-details', teamDetailsRoutes);
 
 // Test route
 app.get('/', (req, res) => {
@@ -40,4 +55,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
 }); 

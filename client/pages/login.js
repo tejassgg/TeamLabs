@@ -6,14 +6,16 @@ import { useForm } from 'react-hook-form';
 import { FaGoogle, FaFacebook, FaGithub, FaApple, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
+import CompleteProfileForm from '../components/CompleteProfileForm';
 
 const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, googleLogin, isAuthenticated } = useAuth();
+  const { login, googleLogin, isAuthenticated, completeProfile } = useAuth();
   const router = useRouter();
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [showPassword, setShowPassword] = useState(false);
+  const [showProfileForm, setShowProfileForm] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -40,21 +42,45 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLoginSuccess = async (credentialResponse) => {
+  const handleGoogleSuccess = async (response) => {
     try {
-      const response = await googleLogin(credentialResponse.credential);
-      if (response.success) {
-        router.push('/dashboard');
+      const result = await googleLogin(response.credential);
+      
+      if (result.success) {
+        if (result.needsAdditionalDetails) {
+          setShowProfileForm(true);
+        } else {
+          router.push('/dashboard');
+        }
+      } else {
+        setError(result.message);
       }
     } catch (error) {
-      setError('Failed to login with Google');
-      console.error(error);
+      setError(error.message);
     }
   };
 
-  const handleGoogleLoginError = () => {
-    setError('Google login failed');
+  const handleProfileComplete = async (profileData) => {
+    try {
+      const result = await completeProfile(profileData);
+      
+      if (result.success) {
+        router.push('/dashboard');
+      } else {
+        setError(result.message);
+      }
+    } catch (error) {
+      setError(error.message);
+    }
   };
+
+  if (showProfileForm) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <CompleteProfileForm onComplete={handleProfileComplete} />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -175,8 +201,8 @@ const Login = () => {
 
               <div className="mt-4">
                 <GoogleLogin
-                  onSuccess={handleGoogleLoginSuccess}
-                  onError={handleGoogleLoginError}
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError('Google login failed')}
                   useOneTap
                   theme="outline"
                   text="signin_with"

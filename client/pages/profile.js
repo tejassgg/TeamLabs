@@ -3,27 +3,199 @@ import { useTheme } from '../context/ThemeContext';
 import Head from 'next/head';
 import Layout from '../components/Layout';
 import { useState, useEffect } from 'react';
-import { authService } from '../services/api';
+import { authService, commonTypeService } from '../services/api';
+import CompleteProfileForm from '../components/CompleteProfileForm';
+import { 
+  FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaBuilding, FaCity, FaGlobe,
+  FaGithub, FaLinkedin, FaTwitter, FaFacebook, FaInstagram, FaEdit, FaHistory,
+  FaCalendarAlt, FaClock, FaCheckCircle, FaTimesCircle, FaGoogle, FaSignInAlt, FaSignOutAlt, FaUserEdit,
+  FaBuilding as FaOrganization
+} from 'react-icons/fa';
 
 const Profile = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [needsProfileUpdate, setNeedsProfileUpdate] = useState(false);
+  const [activeTab, setActiveTab] = useState('profile');
+  const [showSocialLinks, setShowSocialLinks] = useState(false);
+  const [activities, setActivities] = useState([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
+  const [organizations, setOrganizations] = useState([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 5,
+    total: 0,
+    totalPages: 0
+  });
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Add page size options
+  const pageSizeOptions = [5, 10, 15, 20];
+
+  // Add handler for page size change
+  const handlePageSizeChange = (newSize) => {
+    setPagination(prev => ({
+      ...prev,
+      limit: newSize,
+      page: 1 // Reset to first page when changing page size
+    }));
+  };
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         const userProfile = await authService.getUserProfile();
         setProfile(userProfile);
+        
+        // Check if any required fields are missing
+        const requiredFields = ['phone', 'address', 'city', 'state', 'zipCode', 'country'];
+        const hasMissingFields = requiredFields.some(field => !userProfile[field]);
+        setNeedsProfileUpdate(hasMissingFields);
       } catch (error) {
         console.error('Error fetching user profile:', error);
       } finally {
         setLoading(false);
       }
     };
+
+    const fetchUserActivities = async () => {
+      try {
+        setLoadingActivities(true);
+        const response = await authService.getUserActivities(pagination.page, pagination.limit);
+        setActivities(response.activities);
+        setPagination(response.pagination);
+      } catch (error) {
+        console.error('Error fetching user activities:', error);
+      } finally {
+        setLoadingActivities(false);
+      }
+    };
+
+    const fetchOrganizations = async () => {
+      try {
+        const response = await commonTypeService.getOrganizations();
+        setOrganizations(response);
+      } catch (error) {
+        console.error('Error fetching organizations:', error);
+      }
+    };
+
     fetchUserProfile();
-  }, []);
+    fetchUserActivities();
+    fetchOrganizations();
+  }, [pagination.page, pagination.limit]);
+
+  const handleProfileComplete = async (updatedProfile) => {
+    setProfile(updatedProfile);
+    setNeedsProfileUpdate(false);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getActivityIcon = (activity) => {
+    switch (activity.type) {
+      case 'login':
+        return activity.loginMethod === 'google' ? (
+          <FaGoogle className="text-blue-500" size={24} />
+        ) : (
+          <FaSignInAlt className="text-green-500" size={24} />
+        );
+      case 'logout':
+        return <FaSignOutAlt className="text-red-500" size={24} />;
+      case 'login_failed':
+        return <FaTimesCircle className="text-red-500" size={24} />;
+      case 'profile_update':
+        return <FaUserEdit className="text-blue-500" size={24} />;
+      default:
+        return <FaHistory className="text-gray-500" size={24} />;
+    }
+  };
+
+  const getActivityTitle = (activity) => {
+    switch (activity.type) {
+      case 'login':
+        return activity.loginMethod === 'google' 
+          ? 'Google Login' 
+          : 'Email Login';
+      case 'login_failed':
+        return activity.loginMethod === 'google'
+          ? 'Google Login Failed'
+          : 'Login Failed';
+      default:
+        return activity.type.split('_').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, page: newPage }));
+  };
+
+  const getActivityStats = (activities) => {
+    const stats = {
+      total: activities.length,
+      byType: {},
+      byStatus: {
+        success: 0,
+        failed: 0
+      },
+      byLoginMethod: {
+        email: 0,
+        google: 0
+      }
+    };
+
+    activities.forEach(activity => {
+      // Count by type
+      stats.byType[activity.type] = (stats.byType[activity.type] || 0) + 1;
+      
+      // Count by status
+      stats.byStatus[activity.status]++;
+      
+      // Count by login method (if applicable)
+      if (activity.loginMethod) {
+        stats.byLoginMethod[activity.loginMethod]++;
+      }
+    });
+
+    return stats;
+  };
+
+  const getDateRange = (activities) => {
+    if (activities.length === 0) return null;
+    
+    const dates = activities.map(a => new Date(a.timestamp));
+    const oldest = new Date(Math.min(...dates));
+    const newest = new Date(Math.max(...dates));
+    
+    return {
+      oldest: formatDate(oldest),
+      newest: formatDate(newest)
+    };
+  };
+
+  // Function to get organization name from ID
+  const getOrganizationName = (orgId) => {
+    if (!orgId) return 'Not provided';
+    // First check if we have the organization details in the profile
+    if (profile?.organization) {
+      return profile.organization.name;
+    }
+    // Fallback to searching in organizations list
+    const org = organizations.find(org => org.Code === orgId);
+    return org ? org.Value : 'Unknown Organization';
+  };
 
   if (loading) {
     return (
@@ -35,35 +207,351 @@ const Profile = () => {
     );
   }
 
+  if (needsProfileUpdate) {
+    return (
+      <Layout>
+        <Head>
+          <title>Complete Your Profile | TeamLabs</title>
+        </Head>
+        <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50'}`}>
+          <div className="max-w-2xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold mb-4">Complete Your Profile</h1>
+              <p className="text-lg text-gray-600">
+                Please provide your contact and address information to complete your profile.
+              </p>
+            </div>
+            <CompleteProfileForm onComplete={handleProfileComplete} />
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <Head>
         <title>My Profile | TeamLabs</title>
       </Head>
-      <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
-        <div className="max-w-xl mx-auto py-12">
-          <div className="flex flex-col items-center">
-            <div className="w-32 h-32 rounded-full bg-gray-200 overflow-hidden mb-4">
+      <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'} py-12 px-4 sm:px-6 lg:px-8`}>
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Profile Header and Social Links */}
+            <div className="lg:col-span-1">
+              <div className={`rounded-lg shadow-lg overflow-hidden ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className="relative h-40 bg-gradient-to-r from-blue-500 to-purple-600">
+                  <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
+                    <div className="h-24 w-24 rounded-full border-4 border-white overflow-hidden bg-white">
               <img
                 src={user?.profileImage || profile?.profileImage || '/static/default-avatar.png'}
                 alt="Profile"
-                className="object-cover w-full h-full"
+                        className="h-full w-full object-cover"
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.src = '/static/default-avatar.png';
                 }}
               />
             </div>
-            <h2 className="text-2xl font-bold mb-2">{profile?.username || user?.username}</h2>
-            <p className="mb-2">{profile?.email || user?.email}</p>
-            <div className="w-full mt-6 space-y-2">
-              <div><span className="font-semibold">Full Name:</span> {profile?.firstName} {profile?.middleName} {profile?.lastName}</div>
-              <div><span className="font-semibold">Phone:</span> {profile?.phone}</div>
-              <div><span className="font-semibold">Address:</span> {profile?.address}</div>
-              <div><span className="font-semibold">City:</span> {profile?.city}</div>
-              <div><span className="font-semibold">State:</span> {profile?.state}</div>
-              <div><span className="font-semibold">Zip Code:</span> {profile?.zipCode}</div>
-              <div><span className="font-semibold">Country:</span> {profile?.country}</div>
+                  </div>
+                </div>
+                <div className="pt-16 pb-8 px-8 text-center">
+                  <h1 className="text-2xl font-bold mb-2">
+                    {profile?.firstName} {profile?.middleName} {profile?.lastName}
+                  </h1>
+                  <p className="text-gray-500 mb-4">@{profile?.username}</p>
+                  
+                  {/* Social Media Links */}
+                  <div className="mt-6">
+                    <button
+                      onClick={() => setShowSocialLinks(!showSocialLinks)}
+                      className="text-blue-500 hover:text-blue-600 transition-colors duration-200"
+                    >
+                      {showSocialLinks ? 'Hide Social Links' : 'Show Social Links'}
+                    </button>
+                    
+                    {showSocialLinks && (
+                      <div className="mt-4 flex justify-center space-x-4">
+                        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
+                          <FaGithub size={24} />
+                        </a>
+                        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
+                          <FaLinkedin size={24} />
+                        </a>
+                        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
+                          <FaTwitter size={24} />
+                        </a>
+                        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
+                          <FaFacebook size={24} />
+                        </a>
+                        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
+                          <FaInstagram size={24} />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Profile Details and Activity */}
+            <div className="lg:col-span-2">
+              {/* Tabs */}
+              <div className="mb-6">
+                <div className="border-b border-gray-200">
+                  <nav className="-mb-px flex space-x-8">
+                    <button
+                      onClick={() => setActiveTab('profile')}
+                      className={`${
+                        activeTab === 'profile'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                    >
+                      Profile Information
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('activity')}
+                      className={`${
+                        activeTab === 'activity'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                    >
+                      Activity History
+                    </button>
+                  </nav>
+                </div>
+              </div>
+
+              {/* Profile Information Tab */}
+              {activeTab === 'profile' && (
+                <div className={`rounded-lg shadow-lg overflow-hidden ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+                  <div className="p-8">
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-xl font-semibold">Profile Information</h2>
+                      {!isEditing && (
+                        <button
+                          onClick={() => setIsEditing(true)}
+                          className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200"
+                        >
+                          <FaEdit />
+                          <span>Edit Profile</span>
+                        </button>
+                      )}
+                    </div>
+                    
+                    {isEditing ? (
+                      <div className="mt-4">
+                        <CompleteProfileForm 
+                          onComplete={(updatedProfile) => {
+                            setProfile(updatedProfile);
+                            setIsEditing(false);
+                          }}
+                          onCancel={() => setIsEditing(false)}
+                        />
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Contact Information */}
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-medium text-gray-500 mb-4">Contact Information</h3>
+                          
+                          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                            <FaEnvelope className="text-blue-500" />
+                            <div>
+                              <p className="text-sm text-gray-500">Email</p>
+                              <p className="font-medium">{profile?.email}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                            <FaPhone className="text-blue-500" />
+                            <div>
+                              <p className="text-sm text-gray-500">Phone</p>
+                              <p className="font-medium">{profile?.phone || 'Not provided'}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                            <FaOrganization className="text-blue-500" />
+                            <div>
+                              <p className="text-sm text-gray-500">Organization</p>
+                              <p className="font-medium">
+                                {profile?.organization?.name || getOrganizationName(profile?.organizationID)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Address Information */}
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-medium text-gray-500 mb-4">Address Information</h3>
+                          
+                          <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                            <FaMapMarkerAlt className="text-blue-500 mt-1" />
+                            <div>
+                              <p className="text-sm text-gray-500">Address</p>
+                              <p className="font-medium">
+                                {profile?.address || 'Not provided'}
+                                {profile?.aptNumber && `, ${profile.aptNumber}`}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                            <FaBuilding className="text-blue-500" />
+                            <div>
+                              <p className="text-sm text-gray-500">City</p>
+                              <p className="font-medium">{profile?.city || 'Not provided'}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                            <FaCity className="text-blue-500" />
+                            <div>
+                              <p className="text-sm text-gray-500">State</p>
+                              <p className="font-medium">{profile?.state || 'Not provided'}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                            <FaGlobe className="text-blue-500" />
+                            <div>
+                              <p className="text-sm text-gray-500">Country</p>
+                              <p className="font-medium">{profile?.country || 'Not provided'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Activity History Tab */}
+              {activeTab === 'activity' && (
+                <div className={`rounded-lg shadow-lg overflow-hidden ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+                  <div className="p-8">
+                    <h2 className="text-xl font-semibold mb-6">Activity History</h2>
+                    {loadingActivities ? (
+                      <div className="flex justify-center items-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                      </div>
+                    ) : activities.length > 0 ? (
+                      <>
+                        {/* Activity Statistics */}
+                        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                          <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+                            <div className="p-2 bg-white rounded-md shadow-sm">
+                              <p className="text-sm text-gray-500">Total Activities</p>
+                              <p className="text-lg font-semibold">{pagination.total}</p>
+                            </div>
+                            <div className="p-2 bg-white rounded-md shadow-sm">
+                              <p className="text-sm text-gray-500">Date Range</p>
+                              <p className="text-lg font-semibold">
+                                {getDateRange(activities) ? `${getDateRange(activities).oldest} to ${getDateRange(activities).newest}` : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Activity List */}
+                        <div className="space-y-2">
+                          {activities.map((activity) => (
+                            <div
+                              key={activity._id}
+                              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                            >
+                              <div className="flex-shrink-0">
+                                {getActivityIcon(activity)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <p className="font-medium text-sm truncate">{getActivityTitle(activity)}</p>
+                                  <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
+                                    {formatDate(activity.timestamp)}
+                                  </span>
+                                </div>
+                                {activity.details && (
+                                  <p className="text-xs text-gray-500 truncate">{activity.details}</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Pagination Information and Controls */}
+                        <div className="mt-6 space-y-4">
+                          <div className="flex justify-between items-center">
+                            <div className="p-2 bg-white rounded-md shadow-sm">
+                              <p className="text-sm text-gray-500">Showing</p>
+                              <p className="text-lg font-semibold">
+                                {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                              <label htmlFor="pageSize" className="text-sm text-gray-500">
+                                Items per page:
+                              </label>
+                              <select
+                                id="pageSize"
+                                value={pagination.limit}
+                                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                                className="block w-20 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                              >
+                                {pageSizeOptions.map(size => (
+                                  <option key={size} value={size}>
+                                    {size}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* Pagination Controls */}
+                          {pagination.totalPages > 1 && (
+                            <div className="flex justify-center items-center space-x-2">
+                              <button
+                                onClick={() => handlePageChange(pagination.page - 1)}
+                                disabled={pagination.page === 1}
+                                className={`px-3 py-1 rounded-md ${
+                                  pagination.page === 1
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                                }`}
+                              >
+                                Previous
+                              </button>
+                              
+                              <span className="text-sm text-gray-600">
+                                Page {pagination.page} of {pagination.totalPages}
+                              </span>
+                              
+                              <button
+                                onClick={() => handlePageChange(pagination.page + 1)}
+                                disabled={pagination.page === pagination.totalPages}
+                                className={`px-3 py-1 rounded-md ${
+                                  pagination.page === pagination.totalPages
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                                }`}
+                              >
+                                Next
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <FaHistory className="mx-auto mb-4" size={32} />
+                        <p>No activity history available</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

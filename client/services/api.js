@@ -70,12 +70,19 @@ export const authService = {
   },
 
   // Logout
-  logout: () => {
-    Cookies.remove('token');
-    localStorage.removeItem('user');
-    // Optionally redirect to login page
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
+  logout: async () => {
+    try {
+      // Log the logout activity before clearing the session
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.error('Error logging logout activity:', error);
+    } finally {
+      Cookies.remove('token');
+      localStorage.removeItem('user');
+      // Optionally redirect to login page
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
     }
   },
 
@@ -102,6 +109,64 @@ export const authService = {
     const token = Cookies.get('token');
     return !!token;
   },
+
+  async completeProfile(profileData) {
+    try {
+      const response = await api.put('/auth/complete-profile', profileData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to complete profile' };
+    }
+  },
+
+  getUserActivities: async (page = 1, limit = 5) => {
+    try {
+      const response = await api.get('/auth/activities', {
+        params: { page, limit }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching user activities' };
+    }
+  }
+};
+
+export const teamService = {
+  getTeams: async () => {
+    try {
+      const response = await api.get('/teams');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch teams' };
+    }
+  },
+  addTeam: async (teamData) => {
+    try {
+      const response = await api.post('/teams', teamData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to add team' };
+    }
+  }
+};
+
+export const commonTypeService = {
+  getTeamTypes: async () => {
+    try {
+      const response = await api.get('/common-types/team-types');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch team types' };
+    }
+  },
+  getOrganizations: async () => {
+    try {
+      const response = await api.get('/common-types/organizations');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch organizations' };
+    }
+  }
 };
 
 export default api; 
