@@ -84,7 +84,7 @@ const Navbar = () => {
                       </div>
                     )}
                   </div>
-                  <span className="hidden md:block">{user.firstName}</span>
+                  <span className="hidden md:block">{user.username}</span>
                   <FaChevronDown size={12} className={`transform transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 

@@ -29,12 +29,12 @@ export default function Home() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${theme === 'dark' ? 'bg-[#232323] text-white' : 'bg-gradient-to-br from-purple-100 to-blue-100 text-gray-900'}`}>
+    <div className="min-h-screen w-full flex flex-col bg-gray-100">
       <Head>
         <title>TeamLabs | Project Management Platform</title>
       </Head>
-      <header className="flex justify-between items-center px-8 py-6">
-        <span className="text-3xl font-extrabold text-primary">TeamLabs</span>
+      <header className="w-full flex justify-between items-center px-8 py-6">
+        <span className="text-3xl font-extrabold text-blue-700 tracking-tight">TeamLabs</span>
         <div className="flex items-center gap-4">
           <button
             onClick={toggleTheme}
@@ -45,52 +45,52 @@ export default function Home() {
           </button>
           {isAuthenticated ? (
             <>
-              <Link href="/dashboard" className="px-6 py-2 rounded-lg bg-primary text-white font-bold hover:bg-purple-700 transition">Go to Dashboard</Link>
-              <button onClick={handleLogout} className="px-6 py-2 rounded-lg bg-white text-primary font-bold border border-primary hover:bg-primary hover:text-white transition">Logout</button>
+              <Link href="/dashboard" className="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition">Go to Dashboard</Link>
+              <button onClick={handleLogout} className="px-6 py-2 rounded-lg bg-white text-blue-700 font-bold border border-blue-600 hover:bg-blue-600 hover:text-white transition">Logout</button>
             </>
           ) : (
             <>
-              <button onClick={openLogin} className="px-6 py-2 rounded-lg bg-white text-primary font-bold border border-primary hover:bg-primary hover:text-white transition">Login</button>
-              <button onClick={openRegister} className="px-6 py-2 rounded-lg bg-white text-primary font-bold border border-primary hover:bg-primary hover:text-white transition">Sign Up</button>
+              <button onClick={openLogin} className="px-6 py-2 rounded-lg bg-white text-blue-700 font-bold border border-blue-600 hover:bg-blue-600 hover:text-white transition">Login</button>
+              <button onClick={openRegister} className="px-6 py-2 rounded-lg bg-white text-blue-700 font-bold border border-blue-600 hover:bg-blue-600 hover:text-white transition">Sign Up</button>
             </>
           )}
         </div>
       </header>
-      <main className="flex-1 flex flex-col items-center justify-center text-center px-4">
-        <h1 className={`text-5xl md:text-6xl font-extrabold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Streamline Your Project Management</h1>
-        <p className={`text-xl md:text-2xl mb-10 max-w-2xl ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+      <main className="flex-1 flex flex-col items-center justify-center text-center px-4 w-full">
+        <h1 className="text-5xl md:text-6xl font-extrabold mb-6 text-gray-800">Streamline Your Project Management</h1>
+        <p className="text-xl md:text-2xl mb-10 max-w-2xl text-gray-600">
           TeamLabs is your all-in-one platform for managing projects, teams, and tasks. Collaborate, track progress, and achieve your goals with powerful dashboards, multi-project support, and seamless team communication.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mb-16">
-          <div className={`rounded-xl shadow p-6 ${theme === 'dark' ? 'bg-[#333] text-white' : 'bg-white text-gray-900'}`}>
-            <h3 className="text-xl font-bold mb-2 text-primary">Multi-Project Support</h3>
+          <div className="rounded-xl shadow p-6 bg-white text-gray-900">
+            <h3 className="text-xl font-bold mb-2 text-blue-700">Multi-Project Support</h3>
             <p>Manage multiple projects with ease, switch between teams, and keep everything organized in one place.</p>
           </div>
-          <div className={`rounded-xl shadow p-6 ${theme === 'dark' ? 'bg-[#333] text-white' : 'bg-white text-gray-900'}`}>
-            <h3 className="text-xl font-bold mb-2 text-primary">Dynamic Dashboards</h3>
+          <div className="rounded-xl shadow p-6 bg-white text-gray-900">
+            <h3 className="text-xl font-bold mb-2 text-blue-700">Dynamic Dashboards</h3>
             <p>Visualize your progress, deadlines, and team activity with beautiful, customizable dashboards.</p>
           </div>
-          <div className={`rounded-xl shadow p-6 ${theme === 'dark' ? 'bg-[#333] text-white' : 'bg-white text-gray-900'}`}>
-            <h3 className="text-xl font-bold mb-2 text-primary">Team Collaboration</h3>
+          <div className="rounded-xl shadow p-6 bg-white text-gray-900">
+            <h3 className="text-xl font-bold mb-2 text-blue-700">Team Collaboration</h3>
             <p>Communicate, assign tasks, and share files with your team—all in one secure platform.</p>
           </div>
         </div>
         <div>
           {isAuthenticated ? (
-            <Link href="/dashboard" className="px-10 py-4 rounded-lg bg-primary text-white font-bold text-lg hover:bg-purple-700 transition">Go to Dashboard</Link>
+            <Link href="/dashboard" className="px-10 py-4 rounded-lg bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 transition">Go to Dashboard</Link>
           ) : (
-            <button onClick={openRegister} className="px-10 py-4 rounded-lg bg-primary text-white font-bold text-lg hover:bg-purple-700 transition">Get Started Free</button>
+            <button onClick={openRegister} className="px-10 py-4 rounded-lg bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 transition">Get Started Free</button>
           )}
         </div>
       </main>
-      <footer className={`text-center py-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>&copy; {new Date().getFullYear()} TeamLabs. All rights reserved.</footer>
+      <footer className="w-full text-center py-6 text-gray-500">&copy; {new Date().getFullYear()} TeamLabs. All rights reserved.</footer>
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
         {modalType === 'login' ? (
           <>
             <LoginForm onSuccess={() => setModalOpen(false)} />
             <div className="text-center mt-4">
               <span className="text-gray-600">Don't have an account? </span>
-              <button className="text-primary font-bold hover:underline" onClick={() => setModalType('register')}>Sign Up</button>
+              <button className="text-blue-700 font-bold hover:underline" onClick={() => setModalType('register')}>Sign Up</button>
             </div>
           </>
         ) : (
@@ -98,7 +98,7 @@ export default function Home() {
             <RegisterForm onSuccess={() => setModalOpen(false)} />
             <div className="text-center mt-4">
               <span className="text-gray-600">Already have an account? </span>
-              <button className="text-primary font-bold hover:underline" onClick={() => setModalType('login')}>Login</button>
+              <button className="text-blue-700 font-bold hover:underline" onClick={() => setModalType('login')}>Login</button>
             </div>
           </>
         )}

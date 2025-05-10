@@ -90,6 +90,11 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Update user data
+  const updateUser = (updatedUserData) => {
+    setUser(updatedUserData);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -100,6 +105,7 @@ export const AuthProvider = ({ children }) => {
         googleLogin,
         completeProfile,
         logout,
+        updateUser,
         isAuthenticated: !!user,
       }}
     >

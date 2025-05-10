@@ -113,6 +113,7 @@ export const authService = {
   async completeProfile(profileData) {
     try {
       const response = await api.put('/auth/complete-profile', profileData);
+      console.log(response.data);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to complete profile' };

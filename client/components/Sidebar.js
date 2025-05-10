@@ -2,50 +2,52 @@ import { useTeams } from '../context/TeamContext';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import { FaChevronRight, FaChevronLeft } from 'react-icons/fa';
 
 const Sidebar = () => {
   const { teams, loading } = useTeams();
   const router = useRouter();
 
   useEffect(() => {
-    console.log('Sidebar teams:', teams);
-  }, [teams]);
+    teamService.getTeams()
+      .then(fetchedTeams => {
+        setTeams(fetchedTeams);
+      })
+      .catch(() => setTeams([]));
+  }, []);
 
   return (
-    <div className="...">
-      {/* ... other sidebar content ... */}
-      
-      <div className="mt-4">
-        <h3 className="px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">
-          Teams
-        </h3>
-        <div className="mt-2 space-y-1">
-          {loading ? (
-            <div className="px-4 py-2 text-sm text-gray-500">Loading teams...</div>
-          ) : teams.length === 0 ? (
-            <div className="px-4 py-2 text-sm text-gray-500">No teams found</div>
-          ) : (
-            teams.map(team => {
-              console.log('Rendering team:', team);
-              return (
-                <Link
-                  key={team.TeamID}
-                  href={`/team/${team.TeamID}`}
-                  className={`flex items-center px-4 py-2 text-sm ${
-                    router.asPath === `/team/${team.TeamID}`
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <span className="truncate">{team.TeamName}</span>
-                </Link>
-              );
-            })
-          )}
+    <div className={`h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 ${collapsed ? 'w-16' : 'w-64'} transition-all duration-300`}>
+      {/* Teams Section */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className={`text-lg font-semibold text-gray-800 dark:text-white ${collapsed ? 'hidden' : ''}`}>Teams</h2>
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
+          </button>
+        </div>
+        <div className="space-y-2">
+          {teams.map(team => (
+            <div
+              key={team._id}
+              className={`flex items-center p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                sidebarTeam?._id === team._id ? 'bg-gray-100 dark:bg-gray-700' : ''
+              }`}
+              onClick={() => setSidebarTeam(team)}
+            >
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: team.TeamColor }}>
+                {team.TeamName[0]}
+              </div>
+              {!collapsed && (
+                <span className="ml-3 text-gray-700 dark:text-gray-300">{team.TeamName}</span>
+              )}
+            </div>
+          ))}
         </div>
       </div>
-      
-      {/* ... other sidebar content ... */}
     </div>
   );
 };

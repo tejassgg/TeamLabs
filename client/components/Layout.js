@@ -15,6 +15,7 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
   const [teams, setTeams] = useState([]);
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userOrgId, setUserOrgId] = useState(null);
   // Mock data for demonstration
   const projects = [
     { id: 1, name: 'Website Redesign' },
@@ -33,8 +34,23 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
 
   useEffect(() => {
+    // Fetch user profile to get organization ID
+    authService.getUserProfile()
+      .then(profile => {
+        setUserOrgId(profile.organizationID);
+      })
+      .catch(error => {
+        console.error('Error fetching user profile:', error);
+      });
+
     // Fetch teams from backend on mount
-    teamService.getTeams().then(setTeams).catch(() => setTeams([]));
+    teamService.getTeams()
+      .then(fetchedTeams => {
+        // Filter teams based on user's organization ID
+        const filteredTeams = fetchedTeams.filter(team => team.organizationID === userOrgId);
+        setTeams(filteredTeams);
+      })
+      .catch(() => setTeams([]));
     
     // Fetch user organizations
     authService.getUserOrganizations()
@@ -46,11 +62,10 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
         setOrganizations([]);
         setLoading(false);
       });
-  }, []);
+  }, [userOrgId]); // Add userOrgId as dependency
 
   const handleAddTeam = async (teamData) => {
     try {
-      console.log(teamData);
       const newTeam = await teamService.addTeam(teamData);
       setTeams(prev => [...prev, newTeam]);
     } catch (err) {

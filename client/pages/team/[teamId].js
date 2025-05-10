@@ -4,7 +4,6 @@ import api, { authService } from '../../services/api';
 import Layout from '../../components/Layout';
 import { FaUser, FaEnvelope, FaIdCard, FaCog, FaUserMinus, FaUserCheck, FaTrash, FaCircle } from 'react-icons/fa';
 import { useTeams } from '../../context/TeamContext';
-import LoadingScreen from '../../components/LoadingScreen';
 
 const TeamDetailsPage = () => {
   const router = useRouter();
@@ -27,6 +26,7 @@ const TeamDetailsPage = () => {
     TeamName: '',
     TeamDescription: '',
     TeamType: '',
+    TeamColor: '',
   });
   const [savingSettings, setSavingSettings] = useState(false);
   const [teamTypes, setTeamTypes] = useState([]);
@@ -39,6 +39,8 @@ const TeamDetailsPage = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
   const [userToAdd, setUserToAdd] = useState(null);
+  const [showInactiveMemberDialog, setShowInactiveMemberDialog] = useState(false);
+  const [selectedInactiveMember, setSelectedInactiveMember] = useState(null);
 
   const teamColors = [
     { value: '#3B82F6', name: 'Blue' },
@@ -55,30 +57,25 @@ const TeamDetailsPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!teamId) return;
-    setLoading(true);
-    api.get(`/team-details/${teamId}`)
-      .then(res => {
-        console.log('Team data received:', res.data.team);
-        setTeam(res.data.team);
-        setMembers(res.data.members);
-        setOrgUsers(res.data.orgUsers);
-        setError('');
-      })
-      .catch(() => setError('Failed to load team details'))
-      .finally(() => setLoading(false));
-  }, [teamId]);
-
-  useEffect(() => {
-    if (team) {
-      console.log('Setting form with team data:', team);
-      setSettingsForm({
-        TeamName: team.TeamName || '',
-        TeamDescription: team.TeamDescription || '',
-        TeamType: team.TeamType || '',
-      });
+    if (teamId) {
+      api.get(`/team-details/${teamId}`)
+        .then(res => {
+          setTeam(res.data.team);
+          setMembers(res.data.members);
+          setOrgUsers(res.data.orgUsers);
+          setSettingsForm({
+            TeamName: res.data.team.TeamName,
+            TeamType: res.data.team.TeamType,
+            TeamColor: res.data.team.TeamColor
+          });
+        })
+        .catch(err => {
+          console.error('Error fetching team:', err);
+          router.push('/dashboard');
+        })
+        .finally(() => setLoading(false));
     }
-  }, [team]);
+  }, [teamId, router]);
 
   useEffect(() => {
     console.log('Current settings form state:', settingsForm);
@@ -212,21 +209,37 @@ const TeamDetailsPage = () => {
     setSavingSettings(true);
     setError('');
     try {
-      const response = await api.patch(`/team-details/${teamId}`, {
+      const res = await api.patch(`/team-details/${teamId}`, {
         TeamName: settingsForm.TeamName,
         TeamDescription: settingsForm.TeamDescription,
         TeamType: settingsForm.TeamType,
+        TeamColor: settingsForm.TeamColor,
         OwnerID: team.OwnerID
       });
       
       // Refresh team data
-      const res = await api.get(`/team-details/${teamId}`);
       setTeam(res.data.team);
       setShowSettingsModal(false);
     } catch (err) {
-      setError(err?.response?.data?.error || 'Failed to update team settings');
+      console.error('Error updating team:', err);
     } finally {
       setSavingSettings(false);
+    }
+  };
+
+  const handleMemberAction = (member, action) => {
+    if (!member.IsMemberActive) {
+      setSelectedInactiveMember(member);
+      setShowInactiveMemberDialog(true);
+      return;
+    }
+
+    if (action === 'revoke') {
+      setSelectedMember(member);
+      setShowRevokeDialog(true);
+    } else if (action === 'remove') {
+      setSelectedMember(member);
+      setShowRemoveDialog(true);
     }
   };
 
@@ -234,7 +247,9 @@ const TeamDetailsPage = () => {
     <Layout>
       <div className="max-w-7xl mx-auto py-8">
         {loading ? (
-          <LoadingScreen />
+          <div className="flex items-center justify-center min-h-[200px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
         ) : error ? (
           <div className="text-center text-red-500">{error}</div>
         ) : (
@@ -316,10 +331,7 @@ const TeamDetailsPage = () => {
                                   ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200' 
                                   : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'
                               } ${toggling === member.MemberID ? 'opacity-50 cursor-not-allowed' : ''}`}
-                              onClick={() => {
-                                setSelectedMember(member);
-                                setShowRevokeDialog(true);
-                              }}
+                              onClick={() => handleMemberAction(member, 'revoke')}
                               disabled={toggling === member.MemberID}
                             >
                               <span className={`w-2 h-2 rounded-full ${
@@ -329,10 +341,7 @@ const TeamDetailsPage = () => {
                             </button>
                             <button
                               className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200"
-                              onClick={() => {
-                                setSelectedMember(member);
-                                setShowRemoveDialog(true);
-                              }}
+                              onClick={() => handleMemberAction(member, 'remove')}
                               title="Remove Member"
                             >
                               <FaTrash size={14} />
@@ -675,6 +684,45 @@ const TeamDetailsPage = () => {
                       disabled={adding}
                     >
                       {adding ? 'Adding...' : 'Confirm'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Inactive Member Dialog */}
+            {showInactiveMemberDialog && selectedInactiveMember && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                    <h3 className="text-lg font-semibold">
+                      Inactive Member
+                    </h3>
+                  </div>
+                  <p className="text-gray-600 mb-6">
+                    {selectedInactiveMember.name} is currently inactive in the team. You must activate the member before performing any actions.
+                  </p>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => {
+                        setShowInactiveMemberDialog(false);
+                        setSelectedInactiveMember(null);
+                      }}
+                      className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                    >
+                      Close
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowInactiveMemberDialog(false);
+                        setSelectedInactiveMember(null);
+                        setSelectedMember(selectedInactiveMember);
+                        setShowRevokeDialog(true);
+                      }}
+                      className="px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                    >
+                      Activate Member
                     </button>
                   </div>
                 </div>

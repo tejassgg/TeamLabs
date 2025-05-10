@@ -5,7 +5,6 @@ import Layout from '../components/Layout';
 import { useState, useEffect } from 'react';
 import { authService, commonTypeService } from '../services/api';
 import CompleteProfileForm from '../components/CompleteProfileForm';
-import LoadingScreen from '../components/LoadingScreen';
 import { 
   FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaBuilding, FaCity, FaGlobe,
   FaGithub, FaLinkedin, FaTwitter, FaFacebook, FaInstagram, FaEdit, FaHistory,
@@ -14,7 +13,7 @@ import {
 } from 'react-icons/fa';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { theme } = useTheme();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -89,8 +88,18 @@ const Profile = () => {
   }, [pagination.page, pagination.limit]);
 
   const handleProfileComplete = async (updatedProfile) => {
-    setProfile(updatedProfile);
-    setNeedsProfileUpdate(false);
+    try {
+      // Update the profile state
+      setProfile(updatedProfile);
+      setNeedsProfileUpdate(false);
+      
+      // Update the user's organization ID in the auth context
+      if (updatedProfile.organizationID) {
+        updateUser({ ...user, organizationID: updatedProfile.organizationID });
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -200,9 +209,9 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <Layout>
-        <LoadingScreen fullScreen />
-      </Layout>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
@@ -212,15 +221,19 @@ const Profile = () => {
         <Head>
           <title>Complete Your Profile | TeamLabs</title>
         </Head>
-        <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50'}`}>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
           <div className="max-w-2xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold mb-4">Complete Your Profile</h1>
+              <h1 className="text-3xl font-bold mb-4 text-gray-700">Complete Your Profile</h1>
               <p className="text-lg text-gray-600">
                 Please provide your contact and address information to complete your profile.
               </p>
             </div>
-            <CompleteProfileForm onComplete={handleProfileComplete} />
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="p-8">
+                <CompleteProfileForm onComplete={handleProfileComplete} />
+              </div>
+            </div>
           </div>
         </div>
       </Layout>
@@ -232,57 +245,58 @@ const Profile = () => {
       <Head>
         <title>My Profile | TeamLabs</title>
       </Head>
-      <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'} py-12 px-4 sm:px-6 lg:px-8`}>
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Profile Header and Social Links */}
             <div className="lg:col-span-1">
-              <div className={`rounded-lg shadow-lg overflow-hidden ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-                <div className="relative h-40 bg-gradient-to-r from-blue-500 to-purple-600">
+              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="relative h-40 bg-gradient-to-br from-gray-50 to-blue-50">
                   <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
-                    <div className="h-24 w-24 rounded-full border-4 border-white overflow-hidden bg-white">
-              <img
-                src={user?.profileImage || profile?.profileImage || '/static/default-avatar.png'}
-                alt="Profile"
+                    <div className="h-24 w-24 rounded-full border-4 border-white overflow-hidden bg-white shadow-lg">
+                      <img
+                        src={user?.profileImage || profile?.profileImage || '/static/default-avatar.png'}
+                        alt="Profile"
                         className="h-full w-full object-cover"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = '/static/default-avatar.png';
-                }}
-              />
-            </div>
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '/static/default-avatar.png';
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="pt-16 pb-8 px-8 text-center">
-                  <h1 className="text-2xl font-bold mb-2">
+                  <h1 className="text-2xl font-bold mb-2 text-gray-700">
                     {profile?.firstName} {profile?.middleName} {profile?.lastName}
                   </h1>
-                  <p className="text-gray-500 mb-4">@{profile?.username}</p>
+                  <p className="text-gray-500 mb-4">{profile?.username}</p>
                   
                   {/* Social Media Links */}
                   <div className="mt-6">
                     <button
                       onClick={() => setShowSocialLinks(!showSocialLinks)}
-                      className="text-blue-500 hover:text-blue-600 transition-colors duration-200"
+                      className="text-blue-500 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center mx-auto space-x-2"
                     >
-                      {showSocialLinks ? 'Hide Social Links' : 'Show Social Links'}
+                      <span>{showSocialLinks ? 'Hide Social Links' : 'Show Social Links'}</span>
+                      <FaGlobe className="text-sm" />
                     </button>
                     
                     {showSocialLinks && (
                       <div className="mt-4 flex justify-center space-x-4">
-                        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
+                        <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-200">
                           <FaGithub size={24} />
                         </a>
-                        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
+                        <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-200">
                           <FaLinkedin size={24} />
                         </a>
-                        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
+                        <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-200">
                           <FaTwitter size={24} />
                         </a>
-                        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
+                        <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-200">
                           <FaFacebook size={24} />
                         </a>
-                        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
+                        <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-200">
                           <FaInstagram size={24} />
                         </a>
                       </div>
@@ -324,14 +338,14 @@ const Profile = () => {
 
               {/* Profile Information Tab */}
               {activeTab === 'profile' && (
-                <div className={`rounded-lg shadow-lg overflow-hidden ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                   <div className="p-8">
                     <div className="flex justify-between items-center mb-6">
                       <h2 className="text-xl font-semibold">Profile Information</h2>
                       {!isEditing && (
                         <button
                           onClick={() => setIsEditing(true)}
-                          className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200"
+                          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm"
                         >
                           <FaEdit />
                           <span>Edit Profile</span>
@@ -353,71 +367,107 @@ const Profile = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Contact Information */}
                         <div className="space-y-4">
-                          <h3 className="text-lg font-medium text-gray-500 mb-4">Contact Information</h3>
+                          <h3 className="text-lg font-medium text-gray-500 mb-4 flex items-center gap-2">
+                            <FaUser className="text-blue-500" />
+                            <span>Contact Details</span>
+                          </h3>
                           
-                          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                            <FaEnvelope className="text-blue-500" />
-                            <div>
-                              <p className="text-sm text-gray-500">Email</p>
-                              <p className="font-medium">{profile?.email}</p>
+                          <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 space-y-3">
+                            <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                              <FaEnvelope className="text-blue-500 flex-shrink-0" />
+                              <div>
+                                <p className="text-sm text-gray-500">Email Address</p>
+                                <p className="font-medium text-gray-700">{profile?.email}</p>
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                            <FaPhone className="text-blue-500" />
-                            <div>
-                              <p className="text-sm text-gray-500">Phone</p>
-                              <p className="font-medium">{profile?.phone || 'Not provided'}</p>
+                            <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                              <FaPhone className="text-blue-500 flex-shrink-0" />
+                              <div>
+                                <p className="text-sm text-gray-500">Phone Number</p>
+                                <p className="font-medium">
+                                  {profile?.phone ? (
+                                    <span className="text-gray-700">{profile.phone}</span>
+                                  ) : (
+                                    <span className="text-gray-400 italic">Not provided</span>
+                                  )}
+                                </p>
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                            <FaOrganization className="text-blue-500" />
-                            <div>
-                              <p className="text-sm text-gray-500">Organization</p>
-                              <p className="font-medium">
-                                {profile?.organization?.name || getOrganizationName(profile?.organizationID)}
-                              </p>
+                            <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                              <FaOrganization className="text-blue-500 flex-shrink-0" />
+                              <div>
+                                <p className="text-sm text-gray-500">Organization</p>
+                                <p className="font-medium">
+                                  {profile?.organization?.name || getOrganizationName(profile?.organizationID) ? (
+                                    <span className="text-gray-700">
+                                      {profile?.organization?.name || getOrganizationName(profile?.organizationID)}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400 italic">Not provided</span>
+                                  )}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>
 
                         {/* Address Information */}
                         <div className="space-y-4">
-                          <h3 className="text-lg font-medium text-gray-500 mb-4">Address Information</h3>
+                          <h3 className="text-lg font-medium text-gray-500 mb-4 flex items-center gap-2">
+                            <FaMapMarkerAlt className="text-blue-500" />
+                            <span>Location Details</span>
+                          </h3>
                           
-                          <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                            <FaMapMarkerAlt className="text-blue-500 mt-1" />
-                            <div>
-                              <p className="text-sm text-gray-500">Address</p>
-                              <p className="font-medium">
-                                {profile?.address || 'Not provided'}
-                                {profile?.aptNumber && `, ${profile.aptNumber}`}
-                              </p>
+                          <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 space-y-3">
+                            <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                              <FaMapMarkerAlt className="text-blue-500 mt-1 flex-shrink-0" />
+                              <div>
+                                <p className="text-sm text-gray-500">Street Address</p>
+                                <p className="font-medium text-gray-700">
+                                  {profile?.address || 'Not provided'}
+                                  {profile?.aptNumber && (
+                                    <span className="text-gray-600 ml-1">#{profile.aptNumber}</span>
+                                  )}
+                                </p>
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                            <FaBuilding className="text-blue-500" />
-                            <div>
-                              <p className="text-sm text-gray-500">City</p>
-                              <p className="font-medium">{profile?.city || 'Not provided'}</p>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                                <FaBuilding className="text-blue-500 flex-shrink-0" />
+                                <div>
+                                  <p className="text-sm text-gray-500">City</p>
+                                  <p className="font-medium text-gray-700">{profile?.city || 'Not provided'}</p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                                <FaCity className="text-blue-500 flex-shrink-0" />
+                                <div>
+                                  <p className="text-sm text-gray-500">State</p>
+                                  <p className="font-medium text-gray-700">{profile?.state || 'Not provided'}</p>
+                                </div>
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                            <FaCity className="text-blue-500" />
-                            <div>
-                              <p className="text-sm text-gray-500">State</p>
-                              <p className="font-medium">{profile?.state || 'Not provided'}</p>
-                            </div>
-                          </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                                <FaGlobe className="text-blue-500 flex-shrink-0" />
+                                <div>
+                                  <p className="text-sm text-gray-500">Country</p>
+                                  <p className="font-medium text-gray-700">{profile?.country || 'Not provided'}</p>
+                                </div>
+                              </div>
 
-                          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                            <FaGlobe className="text-blue-500" />
-                            <div>
-                              <p className="text-sm text-gray-500">Country</p>
-                              <p className="font-medium">{profile?.country || 'Not provided'}</p>
+                              <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                                <FaMapMarkerAlt className="text-blue-500 flex-shrink-0" />
+                                <div>
+                                  <p className="text-sm text-gray-500">ZIP Code</p>
+                                  <p className="font-medium text-gray-700">{profile?.zipCode || 'Not provided'}</p>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -429,21 +479,23 @@ const Profile = () => {
 
               {/* Activity History Tab */}
               {activeTab === 'activity' && (
-                <div className={`rounded-lg shadow-lg overflow-hidden ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                   <div className="p-8">
                     <h2 className="text-xl font-semibold mb-6">Activity History</h2>
                     {loadingActivities ? (
-                      <LoadingScreen size="md" />
+                      <div className="flex items-center justify-center py-8">
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                      </div>
                     ) : activities.length > 0 ? (
                       <>
                         {/* Activity Statistics */}
-                        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <div className="mb-6 p-4 bg-gray-50 rounded-xl">
                           <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-                            <div className="p-2 bg-white rounded-md shadow-sm">
+                            <div className="p-4 bg-white rounded-xl shadow-sm">
                               <p className="text-sm text-gray-500">Total Activities</p>
                               <p className="text-lg font-semibold">{pagination.total}</p>
                             </div>
-                            <div className="p-2 bg-white rounded-md shadow-sm">
+                            <div className="p-4 bg-white rounded-xl shadow-sm">
                               <p className="text-sm text-gray-500">Date Range</p>
                               <p className="text-lg font-semibold">
                                 {getDateRange(activities) ? `${getDateRange(activities).oldest} to ${getDateRange(activities).newest}` : 'N/A'}
@@ -457,7 +509,7 @@ const Profile = () => {
                           {activities.map((activity) => (
                             <div
                               key={activity._id}
-                              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                              className="flex items-center space-x-3 p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                             >
                               <div className="flex-shrink-0">
                                 {getActivityIcon(activity)}
@@ -480,7 +532,7 @@ const Profile = () => {
                         {/* Pagination Information and Controls */}
                         <div className="mt-6 space-y-4">
                           <div className="flex justify-between items-center">
-                            <div className="p-2 bg-white rounded-md shadow-sm">
+                            <div className="p-4 bg-white rounded-xl shadow-sm">
                               <p className="text-sm text-gray-500">Showing</p>
                               <p className="text-lg font-semibold">
                                 {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)}
@@ -495,7 +547,7 @@ const Profile = () => {
                                 id="pageSize"
                                 value={pagination.limit}
                                 onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                                className="block w-20 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                className="block w-20 rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                               >
                                 {pageSizeOptions.map(size => (
                                   <option key={size} value={size}>
@@ -512,10 +564,10 @@ const Profile = () => {
                               <button
                                 onClick={() => handlePageChange(pagination.page - 1)}
                                 disabled={pagination.page === 1}
-                                className={`px-3 py-1 rounded-md ${
+                                className={`px-4 py-2 rounded-xl ${
                                   pagination.page === 1
                                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                                    : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700'
                                 }`}
                               >
                                 Previous
@@ -528,10 +580,10 @@ const Profile = () => {
                               <button
                                 onClick={() => handlePageChange(pagination.page + 1)}
                                 disabled={pagination.page === pagination.totalPages}
-                                className={`px-3 py-1 rounded-md ${
+                                className={`px-4 py-2 rounded-xl ${
                                   pagination.page === pagination.totalPages
                                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                                    : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700'
                                 }`}
                               >
                                 Next
