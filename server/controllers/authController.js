@@ -350,6 +350,41 @@ const getUserActivities = async (req, res) => {
   }
 };
 
+// @desc    Get user organizations
+// @route   GET /api/auth/organizations
+// @access  Private
+const getUserOrganizations = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('organizationID');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // If user has an organization ID, fetch the organization details
+    if (user.organizationID) {
+      const CommonType = require('../models/CommonType');
+      const organization = await CommonType.findOne({
+        Code: user.organizationID,
+        MasterType: 'Organization'
+      });
+
+      if (organization) {
+        return res.json([{
+          _id: organization._id,
+          name: organization.Value,
+          code: organization.Code
+        }]);
+      }
+    }
+
+    res.json([]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -357,5 +392,6 @@ module.exports = {
   getUserProfile,
   completeUserProfile,
   getUserActivities,
-  logoutUser
+  logoutUser,
+  getUserOrganizations
 }; 

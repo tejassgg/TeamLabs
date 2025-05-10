@@ -7,7 +7,8 @@ const {
   getUserProfile,
   completeUserProfile,
   getUserActivities,
-  logoutUser
+  logoutUser,
+  getUserOrganizations
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -185,6 +186,24 @@ router.put('/complete-profile', protect, completeUserProfile);
  *         description: User not found
  */
 router.get('/activities', protect, getUserActivities);
+
+/**
+ * @swagger
+ * /auth/organizations:
+ *   get:
+ *     summary: Get user organizations
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User organizations retrieved successfully
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: User not found
+ */
+router.get('/organizations', protect, getUserOrganizations);
 
 /**
  * @swagger

@@ -6,12 +6,15 @@ import { FaPlus, FaChevronLeft, FaChevronRight, FaFolder, FaBookOpen, FaTasks, F
 import { useRouter } from 'next/router';
 import AddTeamModal from './AddTeamModal';
 import { teamService } from '../services/api';
+import { authService } from '../services/api';
 
 const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
   const { theme } = useTheme();
   const router = useRouter();
   const [isAddTeamOpen, setIsAddTeamOpen] = useState(false);
   const [teams, setTeams] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
+  const [loading, setLoading] = useState(true);
   // Mock data for demonstration
   const projects = [
     { id: 1, name: 'Website Redesign' },
@@ -32,6 +35,17 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
   useEffect(() => {
     // Fetch teams from backend on mount
     teamService.getTeams().then(setTeams).catch(() => setTeams([]));
+    
+    // Fetch user organizations
+    authService.getUserOrganizations()
+      .then(orgs => {
+        setOrganizations(orgs);
+        setLoading(false);
+      })
+      .catch(() => {
+        setOrganizations([]);
+        setLoading(false);
+      });
   }, []);
 
   const handleAddTeam = async (teamData) => {
@@ -57,51 +71,61 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
         >
           {collapsed ? '→' : '←'}
         </button>
-        {/* Organization Cover Section - moved above padding */}
+        {/* Organization Cover Section */}
         {!collapsed && (
-          <div className="relative" style={{ minHeight: '180px' }}>
+          <div className="relative mb-6" style={{ minHeight: '180px' }}>
             <img
               src="/static/default-org-cover.jpeg"
               alt="Organization Cover"
-              className="absolute top-0 left-0 w-full h-full object-cover"
+              className="absolute top-0 left-0 w-full h-full object-cover rounded-xl"
               style={{ zIndex: 0 }}
               onError={e => { e.target.onerror = null; e.target.src = '/static/default-org-cover.jpeg'; }}
             />
             <div className="absolute left-0 top-0 w-full h-full flex flex-col items-center justify-center" style={{ zIndex: 1 }}>
-              <div className="w-14 h-14 rounded-full bg-gray-400 flex items-center justify-center text-lg font-bold text-white border-4 border-white shadow-lg mb-2 mt-2">OG</div>
-              <select
-                className="bg-white bg-opacity-80 text-black font-semibold rounded px-2 py-1 focus:outline-none shadow"
-                value={sidebarTeam}
-                onChange={e => setSidebarOrg(e.target.value)}
-                style={{ maxWidth: '80%' }}
-              >
-                <option>Olanthroxx Org</option>
-                <option>+ Add an Organization</option>
-              </select>
+              <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-lg font-bold text-blue-600 border-4 border-white shadow-lg mb-2 mt-2">
+                {organizations[0]?.name?.split(' ').map(n => n[0]).join('') || 'OG'}
+              </div>
+              {!loading && organizations.length > 1 ? (
+                <select
+                  className="bg-white bg-opacity-90 text-gray-900 font-semibold rounded-xl px-3 py-2 focus:outline-none shadow-sm border border-gray-200"
+                  value={sidebarTeam}
+                  onChange={e => setSidebarOrg(e.target.value)}
+                  style={{ maxWidth: '80%' }}
+                >
+                  {organizations.map(org => (
+                    <option key={org._id} value={org._id}>{org.name}</option>
+                  ))}
+                  <option value="add">+ Add an Organization</option>
+                </select>
+              ) : (
+                <div className="bg-white bg-opacity-90 text-gray-900 font-semibold rounded-xl px-3 py-2 shadow-sm border border-gray-200" style={{ maxWidth: '80%' }}>
+                  {organizations[0]?.name || 'No Organization'}
+                </div>
+              )}
             </div>
           </div>
         )}
         <div className="flex-1 flex flex-col p-4">
           {/* Sidebar Lists - always show icons and plus, only show text/lists when expanded */}
           <div className="space-y-6">
-            {/* Teams (NEW SECTION) */}
+            {/* Teams Section */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <button
-                  className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-white/60 rounded transition cursor-pointer"
+                  className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-gray-50 rounded-xl transition cursor-pointer"
                   style={{ minHeight: 32 }}
                   tabIndex={0}
                   aria-label="Go to Teams"
                 >
-                  <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-white group-hover:shadow-md" style={{ width: 28, height: 28 }}>
-                    <FaUsers className="text-primary" size={20} />
+                  <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-gray-100 group-hover:shadow-sm" style={{ width: 28, height: 28 }}>
+                    <FaUsers className="text-blue-600" size={20} />
                   </span>
                   {!collapsed && (
                     <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Teams</h3>
                   )}
                 </button>
                 <button
-                  className="p-1 rounded hover:bg-primary hover:text-white transition text-xs cursor-pointer ml-2"
+                  className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
                   aria-label="Add Team"
                   onClick={() => setIsAddTeamOpen(true)}
                 >
@@ -118,10 +142,10 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
                       return (
                         <li
                           key={team.TeamID || team._id}
-                          className={`pl-2 py-1 rounded cursor-pointer transition ${
+                          className={`pl-2 py-1.5 rounded-xl cursor-pointer transition ${
                             isActive
-                              ? 'bg-primary text-white font-bold shadow'
-                              : 'hover:bg-primary hover:text-white'
+                              ? 'bg-blue-50 text-blue-600 font-medium'
+                              : 'hover:bg-gray-50 hover:text-gray-900'
                           }`}
                           onClick={() => router.push(`/team/${team.TeamID || team._id}`)}
                         >
@@ -133,25 +157,25 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
                 )
               )}
             </div>
-            {/* Projects */}
+            {/* Projects Section */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <button
-                  className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-white/60 rounded transition cursor-pointer"
+                  className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-gray-50 rounded-xl transition cursor-pointer"
                   style={{ minHeight: 32 }}
                   onClick={() => router.push('/projects')}
                   tabIndex={0}
                   aria-label="Go to Projects"
                 >
-                  <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-white group-hover:shadow-md" style={{ width: 28, height: 28 }}>
-                    <FaFolder className="text-primary" size={20} />
+                  <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-gray-100 group-hover:shadow-sm" style={{ width: 28, height: 28 }}>
+                    <FaFolder className="text-blue-600" size={20} />
                   </span>
                   {!collapsed && (
                     <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Projects</h3>
                   )}
                 </button>
                 <button
-                  className="p-1 rounded hover:bg-primary hover:text-white transition text-xs cursor-pointer ml-2"
+                  className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
                   aria-label="Add Project"
                   onClick={() => alert('Add new Project (modal coming soon!)')}
                 >
@@ -161,32 +185,32 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
               {!collapsed && (
                 <ul className="space-y-1">
                   {projects.map(project => (
-                    <li key={project.id} className="pl-2 py-1 rounded hover:bg-primary hover:text-white cursor-pointer transition">
+                    <li key={project.id} className="pl-2 py-1.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 cursor-pointer transition">
                       {project.name}
                     </li>
                   ))}
                 </ul>
               )}
             </div>
-            {/* User Stories */}
+            {/* User Stories Section */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <button
-                  className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-white/60 rounded transition cursor-pointer"
+                  className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-gray-50 rounded-xl transition cursor-pointer"
                   style={{ minHeight: 32 }}
                   onClick={() => router.push('/userstories')}
                   tabIndex={0}
                   aria-label="Go to UserStories"
                 >
-                  <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-white group-hover:shadow-md" style={{ width: 28, height: 28 }}>
-                    <FaBookOpen className="text-primary" size={20} />
+                  <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-gray-100 group-hover:shadow-sm" style={{ width: 28, height: 28 }}>
+                    <FaBookOpen className="text-blue-600" size={20} />
                   </span>
                   {!collapsed && (
                     <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">UserStories</h3>
                   )}
                 </button>
                 <button
-                  className="p-1 rounded hover:bg-primary hover:text-white transition text-xs cursor-pointer ml-2"
+                  className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
                   aria-label="Add User Story"
                   onClick={() => alert('Add new User Story (modal coming soon!)')}
                 >
@@ -196,32 +220,32 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
               {!collapsed && (
                 <ul className="space-y-1">
                   {userStories.map(story => (
-                    <li key={story.id} className="pl-2 py-1 rounded hover:bg-primary hover:text-white cursor-pointer transition">
+                    <li key={story.id} className="pl-2 py-1.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 cursor-pointer transition">
                       {story.name}
                     </li>
                   ))}
                 </ul>
               )}
             </div>
-            {/* Tasks (placeholder) */}
+            {/* Tasks Section */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <button
-                  className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-white/60 rounded transition cursor-pointer"
+                  className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-gray-50 rounded-xl transition cursor-pointer"
                   style={{ minHeight: 32 }}
                   onClick={() => router.push('/tasks')}
                   tabIndex={0}
                   aria-label="Go to Tasks"
                 >
-                  <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-white group-hover:shadow-md" style={{ width: 28, height: 28 }}>
-                    <FaTasks className="text-primary" size={20} />
+                  <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-gray-100 group-hover:shadow-sm" style={{ width: 28, height: 28 }}>
+                    <FaTasks className="text-blue-600" size={20} />
                   </span>
                   {!collapsed && (
                     <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Tasks</h3>
                   )}
                 </button>
                 <button
-                  className="p-1 rounded hover:bg-primary hover:text-white transition text-xs cursor-pointer ml-2"
+                  className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
                   aria-label="Add Task"
                   onClick={() => alert('Add new Task (modal coming soon!)')}
                 >
@@ -230,7 +254,7 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
               </div>
               {!collapsed && (
                 <ul className="space-y-1">
-                  <li className="pl-2 py-1 text-gray-400">No tasks listed</li>
+                  <li className="pl-2 py-1.5 text-gray-400">No tasks listed</li>
                 </ul>
               )}
             </div>

@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import api, { authService } from '../../services/api';
 import Layout from '../../components/Layout';
-import { FaUser, FaEnvelope, FaIdCard, FaEdit } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaIdCard, FaCog, FaUserMinus, FaUserCheck, FaTrash, FaCircle } from 'react-icons/fa';
 import { useTeams } from '../../context/TeamContext';
+import LoadingScreen from '../../components/LoadingScreen';
 
 const TeamDetailsPage = () => {
   const router = useRouter();
@@ -15,14 +16,39 @@ const TeamDetailsPage = () => {
   const [error, setError] = useState('');
   const [orgUsers, setOrgUsers] = useState([]);
   const [search, setSearch] = useState('');
+  const [showAllUsers, setShowAllUsers] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [adding, setAdding] = useState(false);
   const [toggling, setToggling] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [newTeamName, setNewTeamName] = useState('');
-  const [renaming, setRenaming] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settingsForm, setSettingsForm] = useState({
+    TeamName: '',
+    TeamDescription: '',
+    TeamType: '',
+  });
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [teamTypes, setTeamTypes] = useState([]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [togglingTeam, setTogglingTeam] = useState('');
+  const [showRevokeDialog, setShowRevokeDialog] = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [removing, setRemoving] = useState('');
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
+  const [userToAdd, setUserToAdd] = useState(null);
+
+  const teamColors = [
+    { value: '#3B82F6', name: 'Blue' },
+    { value: '#10B981', name: 'Green' },
+    { value: '#F59E0B', name: 'Amber' },
+    { value: '#EF4444', name: 'Red' },
+    { value: '#8B5CF6', name: 'Purple' },
+    { value: '#EC4899', name: 'Pink' },
+    { value: '#6B7280', name: 'Gray' },
+  ];
 
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
@@ -33,6 +59,7 @@ const TeamDetailsPage = () => {
     setLoading(true);
     api.get(`/team-details/${teamId}`)
       .then(res => {
+        console.log('Team data received:', res.data.team);
         setTeam(res.data.team);
         setMembers(res.data.members);
         setOrgUsers(res.data.orgUsers);
@@ -42,33 +69,67 @@ const TeamDetailsPage = () => {
       .finally(() => setLoading(false));
   }, [teamId]);
 
+  useEffect(() => {
+    if (team) {
+      console.log('Setting form with team data:', team);
+      setSettingsForm({
+        TeamName: team.TeamName || '',
+        TeamDescription: team.TeamDescription || '',
+        TeamType: team.TeamType || '',
+      });
+    }
+  }, [team]);
+
+  useEffect(() => {
+    console.log('Current settings form state:', settingsForm);
+  }, [settingsForm]);
+
+  useEffect(() => {
+    // Fetch team types from CommonTypes
+    api.get('/common-types/team-types')
+      .then(res => {
+        setTeamTypes(res.data);
+      })
+      .catch(err => {
+        console.error('Failed to fetch team types:', err);
+      });
+  }, []);
+
   const isOwner = currentUser && team && currentUser._id === team.OwnerID;
 
   // Filter users as search changes
   useEffect(() => {
-    if (!search) {
+    if (!isInputFocused) {
       setFilteredUsers([]);
       return;
     }
+
+    if (!search) {
+      // When search is empty, show first 10 users by default
+      const memberIds = new Set(members.map(m => m.MemberID));
+      const availableUsers = orgUsers.filter(u => !memberIds.has(u._id));
+      setFilteredUsers(showAllUsers ? availableUsers : availableUsers.slice(0, 10));
+      return;
+    }
+
     const s = search.toLowerCase();
     // Exclude users who are already members
     const memberIds = new Set(members.map(m => m.MemberID));
-    setFilteredUsers(
-      orgUsers.filter(u =>
-        !memberIds.has(u._id) && (
-          (u.firstName && u.firstName.toLowerCase().includes(s)) ||
-          (u.lastName && u.lastName.toLowerCase().includes(s)) ||
-          (u.email && u.email.toLowerCase().includes(s)) ||
-          (u.username && u.username.toLowerCase().includes(s)) ||
-          (u._id && u._id.toLowerCase().includes(s))
-        )
+    const matchingUsers = orgUsers.filter(u =>
+      !memberIds.has(u._id) && (
+        (u.firstName && u.firstName.toLowerCase().includes(s)) ||
+        (u.lastName && u.lastName.toLowerCase().includes(s)) ||
+        (u.email && u.email.toLowerCase().includes(s)) ||
+        (u.username && u.username.toLowerCase().includes(s)) ||
+        (u._id && u._id.toLowerCase().includes(s))
       )
     );
-  }, [search, orgUsers, members]);
+    setFilteredUsers(showAllUsers ? matchingUsers : matchingUsers.slice(0, 10));
+  }, [search, orgUsers, members, showAllUsers, isInputFocused]);
 
   const handleAddMember = async (e) => {
     e.preventDefault();
-    if (!selectedUser) {
+    if (!userToAdd) {
       setError('Please select a user to add');
       return;
     }
@@ -76,12 +137,14 @@ const TeamDetailsPage = () => {
     setError('');
     try {
       await api.post(`/team-details/${teamId}/add-member`, {
-        UserID: selectedUser._id,
+        UserID: userToAdd._id,
         OwnerID: team.OwnerID
       });
       setSearch('');
       setSelectedUser(null);
       setFilteredUsers([]);
+      setShowAddMemberDialog(false);
+      setUserToAdd(null);
       // Refresh members
       const res = await api.get(`/team-details/${teamId}`);
       setMembers(res.data.members);
@@ -100,6 +163,8 @@ const TeamDetailsPage = () => {
       // Refresh members
       const res = await api.get(`/team-details/${teamId}`);
       setMembers(res.data.members);
+      setShowRevokeDialog(false);
+      setSelectedMember(null);
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to update status');
     } finally {
@@ -107,186 +172,513 @@ const TeamDetailsPage = () => {
     }
   };
 
-  const handleRename = async (e) => {
-    e.preventDefault();
-    if (!newTeamName.trim()) return;
-    
-    setRenaming(true);
+  const handleToggleTeamStatus = async () => {
+    setTogglingTeam(true);
     setError('');
     try {
-      await api.patch(`/team-details/${teamId}`, {
-        TeamName: newTeamName.trim(),
+      await api.patch(`/team-details/${teamId}/toggle-status`, {OwnerID: team.OwnerID});
+      // Refresh team data
+      const res = await api.get(`/team-details/${teamId}`);
+      setTeam(res.data.team);
+      setShowConfirmDialog(false);
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Failed to update team status');
+    } finally {
+      setTogglingTeam(false);
+    }
+  };
+
+  const handleRemoveMember = async (memberId) => {
+    setRemoving(memberId);
+    setError('');
+    try {
+      await api.delete(`/team-details/${teamId}/member/${memberId}`, {
+        data: { OwnerID: team.OwnerID }
+      });
+      // Refresh members
+      const res = await api.get(`/team-details/${teamId}`);
+      setMembers(res.data.members);
+      setShowRemoveDialog(false);
+      setSelectedMember(null);
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Failed to remove member');
+    } finally {
+      setRemoving('');
+    }
+  };
+
+  const handleSettingsSave = async (e) => {
+    e.preventDefault();
+    setSavingSettings(true);
+    setError('');
+    try {
+      const response = await api.patch(`/team-details/${teamId}`, {
+        TeamName: settingsForm.TeamName,
+        TeamDescription: settingsForm.TeamDescription,
+        TeamType: settingsForm.TeamType,
         OwnerID: team.OwnerID
       });
       
-      // Update local state
-      setTeam(prev => ({ ...prev, TeamName: newTeamName.trim() }));
-      
-      setIsEditing(false);
+      // Refresh team data
+      const res = await api.get(`/team-details/${teamId}`);
+      setTeam(res.data.team);
+      setShowSettingsModal(false);
     } catch (err) {
-      setError(err?.response?.data?.error || 'Failed to rename team');
+      setError(err?.response?.data?.error || 'Failed to update team settings');
     } finally {
-      setRenaming(false);
+      setSavingSettings(false);
     }
   };
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto py-8">
+      <div className="max-w-7xl mx-auto py-8">
         {loading ? (
-          <div className="text-center">Loading...</div>
+          <LoadingScreen />
         ) : error ? (
           <div className="text-center text-red-500">{error}</div>
         ) : (
           <>
-            <div className="flex items-center gap-3 mb-2">
-              {isEditing ? (
-                <form onSubmit={handleRename} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={newTeamName}
-                    onChange={(e) => setNewTeamName(e.target.value)}
-                    className="text-3xl font-bold border rounded px-2 py-1"
-                    placeholder="Enter new team name"
-                    autoFocus
-                  />
-                  <button
-                    type="submit"
-                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-                    disabled={renaming || !newTeamName.trim()}
-                  >
-                    {renaming ? 'Saving...' : 'Save'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsEditing(false);
-                      setNewTeamName('');
-                    }}
-                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                </form>
-              ) : (
-                <>
-                  <h1 className="text-3xl font-bold">{team.TeamName}</h1>
-                  {isOwner && (
-                    <button
-                      onClick={() => {
-                        setIsEditing(true);
-                        setNewTeamName(team.TeamName);
-                      }}
-                      className="p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors"
-                      title="Rename team"
-                    >
-                      <FaEdit size={16} />
-                    </button>
-                  )}
-                </>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold">{team.TeamName}</h1>
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
+                  team.IsActive 
+                    ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200' 
+                    : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full ${
+                    team.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                  }`}></span>
+                  {team.IsActive ? 'Active' : 'Inactive'}
+                </div>
+              </div>
+              {isOwner && (
+                <button
+                  onClick={() => setShowSettingsModal(true)}
+                  className="p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors"
+                  title="Team Settings"
+                >
+                  <FaCog size={20} />
+                </button>
               )}
             </div>
-            <p className="mb-4 text-gray-600">{team.TeamDescription}</p>
+            <div className="flex items-center gap-4 mb-4">
+              <p className="text-gray-600">{team.TeamDescription}</p>
+              {team.teamTypeValue && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200">
+                  {team.teamTypeValue}
+                </div>
+              )}
+            </div>
+            
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-2">Team Members</h2>
-              <table className="w-full border rounded">
+              <table className="w-full border rounded-xl overflow-hidden shadow-sm">
                 <thead>
-                  <tr className="bg-gray-100">
-                    <th className="py-2 px-4 text-left w-[250px]">Member ID</th>
-                    <th className="py-2 px-4 text-left w-[250px]">Name</th>
-                    <th className="py-2 px-4 text-left w-[300px]">Email</th>
-                    <th className="py-2 px-4 text-left w-[120px]">Status</th>
-                    {isOwner && <th className="py-2 px-4 w-[180px]">Actions</th>}
+                  <tr className="bg-gray-50">
+                    <th className="py-3 px-4 text-left w-[300px]">Name</th>
+                    <th className="py-3 px-4 text-left w-[300px]">Email</th>
+                    <th className="py-3 px-4 text-left w-[120px]">Status</th>
+                    {isOwner && <th className="py-3 px-4 text-center w-[250px]">Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {members.map(member => (
-                    <tr key={member.TeamDetailsID} className="border-t">
-                      <td className="py-2 px-4 font-mono text-sm">{member.MemberID}</td>
-                      <td className="py-2 px-4 font-medium">{member.name}</td>
-                      <td className="py-2 px-4">{member.email}</td>
-                      <td className="py-2 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs ${member.IsMemberActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    <tr key={member.TeamDetailsID} className="border-t hover:bg-gray-50 transition-colors">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                            {member.name.split(' ').map(n => n[0]).join('')}
+                          </div>
+                          <span className="font-medium">{member.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">{member.email}</td>
+                      <td className="py-3 px-4">
+                        <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
+                          member.IsMemberActive 
+                            ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200' 
+                            : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
+                        }`}>
+                          <span className={`w-2 h-2 rounded-full ${
+                            member.IsMemberActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                          }`}></span>
                           {member.IsMemberActive ? 'Active' : 'Inactive'}
-                        </span>
+                        </div>
                       </td>
                       {isOwner && (
-                        <td className="py-2 px-4">
-                          <button
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 ${
-                              member.IsMemberActive 
-                                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
-                                : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-                            } ${toggling === member.MemberID ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            onClick={() => handleToggleStatus(member.MemberID)}
-                            disabled={toggling === member.MemberID}
-                          >
-                            {toggling === member.MemberID ? (
-                              'Updating...'
-                            ) : member.IsMemberActive ? (
-                              'Deactivate Member'
-                            ) : (
-                              'Activate Member'
-                            )}
-                          </button>
+                        <td className="py-3 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${
+                                member.IsMemberActive 
+                                  ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200' 
+                                  : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'
+                              } ${toggling === member.MemberID ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              onClick={() => {
+                                setSelectedMember(member);
+                                setShowRevokeDialog(true);
+                              }}
+                              disabled={toggling === member.MemberID}
+                            >
+                              <span className={`w-2 h-2 rounded-full ${
+                                member.IsMemberActive ? 'bg-red-500' : 'bg-green-500'
+                              }`}></span>
+                              {toggling === member.MemberID ? 'Updating...' : member.IsMemberActive ? 'Revoke Access' : 'Grant Access'}
+                            </button>
+                            <button
+                              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200"
+                              onClick={() => {
+                                setSelectedMember(member);
+                                setShowRemoveDialog(true);
+                              }}
+                              title="Remove Member"
+                            >
+                              <FaTrash size={14} />
+                            </button>
+                          </div>
                         </td>
                       )}
                     </tr>
                   ))}
                   {members.length === 0 && (
-                    <tr><td colSpan={isOwner ? 5 : 4} className="text-center py-4 text-gray-400">No members</td></tr>
+                    <tr><td colSpan={isOwner ? 4 : 3} className="text-center py-4 text-gray-400">No members</td></tr>
                   )}
                 </tbody>
               </table>
             </div>
             {isOwner && (
               <form onSubmit={handleAddMember} className="mb-4 flex flex-col gap-2 items-start">
-                <label className="block text-gray-700 font-semibold mb-1">Add Member (search by name, email, or UserID)</label>
+                <label className="block text-gray-700 font-semibold mb-1">Search for a Member (search by name, email, or UserID)</label>
                 <input
                   type="text"
-                  className="border rounded px-3 py-2 w-full md:w-96"
+                  className="border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   value={search}
                   onChange={e => {
                     setSearch(e.target.value);
                     setSelectedUser(null);
+                    setShowAllUsers(false);
+                  }}
+                  onFocus={() => {
+                    setIsInputFocused(true);
+                    if (!search) {
+                      const memberIds = new Set(members.map(m => m.MemberID));
+                      const availableUsers = orgUsers.filter(u => !memberIds.has(u._id));
+                      setFilteredUsers(availableUsers.slice(0, 10));
+                    }
+                  }}
+                  onBlur={() => {
+                    setTimeout(() => {
+                      setIsInputFocused(false);
+                    }, 200);
                   }}
                   placeholder="Type to search..."
                   autoComplete="off"
                 />
-                {search && filteredUsers.length > 0 && (
-                  <ul className="border rounded-lg bg-white w-full md:w-96 max-h-48 overflow-y-auto z-10 shadow-md">
-                    {filteredUsers.map((user, index) => (
-                      <li
-                        key={`${user._id}-${index}`}
-                        className={`px-4 py-2.5 cursor-pointer hover:bg-blue-50 border-b last:border-b-0 transition-colors duration-150 ${selectedUser && selectedUser._id === user._id ? 'bg-blue-100' : ''}`}
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setSearch(user.firstName + ' ' + user.lastName + ' (' + user.email + ')');
-                        }}
+                {isInputFocused && filteredUsers.length > 0 && (
+                  <div className="w-full md:w-96">
+                    <ul className="border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md">
+                      {filteredUsers.map((user, index) => (
+                        <li
+                          key={`${user._id}-${index}`}
+                          className="px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setSearch(user.firstName + ' ' + user.lastName + ' (' + user.email + ')');
+                                setIsInputFocused(false);
+                              }}
+                            >
+                              <div className="flex flex-col">
+                                <div className="font-medium text-gray-900">
+                                  {user.firstName} {user.lastName}
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                  {user.email}
+                                </div>
+                                <div className="text-xs text-gray-400 mt-0.5">
+                                  ID: {user._id}
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setUserToAdd(user);
+                                setShowAddMemberDialog(true);
+                              }}
+                              className="ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    {!showAllUsers && orgUsers.length > 10 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllUsers(true)}
+                        className="w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200"
                       >
-                        <div className="flex flex-col">
-                          <div className="font-medium text-gray-900">
-                            {user.firstName} {user.lastName}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {user.email}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-0.5">
-                            ID: {user._id}
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                        Show All Users ({orgUsers.length})
+                      </button>
+                    )}
+                  </div>
                 )}
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold mt-2"
-                  disabled={adding}
-                >
-                  {adding ? 'Adding...' : 'Add Member'}
-                </button>
               </form>
+            )}
+
+            {/* Member Access Confirmation Dialog */}
+            {showRevokeDialog && selectedMember && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className={`w-3 h-3 rounded-full ${
+                      selectedMember.IsMemberActive ? 'bg-red-500' : 'bg-green-500'
+                    }`}></span>
+                    <h3 className="text-lg font-semibold">
+                      {selectedMember.IsMemberActive ? 'Revoke Access' : 'Grant Access'}
+                    </h3>
+                  </div>
+                  <p className="text-gray-600 mb-6">
+                    {selectedMember.IsMemberActive 
+                      ? `Are you sure you want to revoke access for ${selectedMember.name}? This will prevent them from accessing team resources.`
+                      : `Are you sure you want to grant access for ${selectedMember.name}? This will allow them to access team resources.`}
+                  </p>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => {
+                        setShowRevokeDialog(false);
+                        setSelectedMember(null);
+                      }}
+                      className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => handleToggleStatus(selectedMember.MemberID)}
+                      className={`px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 ${
+                        selectedMember.IsMemberActive 
+                          ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' 
+                          : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                      }`}
+                      disabled={toggling === selectedMember.MemberID}
+                    >
+                      {toggling === selectedMember.MemberID ? 'Updating...' : 'Confirm'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Remove Member Confirmation Dialog */}
+            {showRemoveDialog && selectedMember && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                    <h3 className="text-lg font-semibold">
+                      Remove Member
+                    </h3>
+                  </div>
+                  <p className="text-gray-600 mb-6">
+                    Are you sure you want to remove {selectedMember.name} from the team? This action cannot be undone.
+                  </p>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => {
+                        setShowRemoveDialog(false);
+                        setSelectedMember(null);
+                      }}
+                      className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => handleRemoveMember(selectedMember.MemberID)}
+                      className="px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                      disabled={removing === selectedMember.MemberID}
+                    >
+                      {removing === selectedMember.MemberID ? 'Removing...' : 'Remove'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Team Settings Modal */}
+            {showSettingsModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 shadow-lg border border-gray-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-semibold">Team Settings</h3>
+                    <button
+                      onClick={() => setShowSettingsModal(false)}
+                      className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <form onSubmit={handleSettingsSave} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Team Name
+                      </label>
+                      <input
+                        type="text"
+                        value={settingsForm.TeamName}
+                        onChange={(e) => setSettingsForm(prev => ({ ...prev, TeamName: e.target.value }))}
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Team Description
+                      </label>
+                      <textarea
+                        value={settingsForm.TeamDescription}
+                        onChange={(e) => setSettingsForm(prev => ({ ...prev, TeamDescription: e.target.value }))}
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                        rows="3"
+                      />
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Team Type
+                        </label>
+                        <select
+                          value={settingsForm.TeamType}
+                          onChange={(e) => setSettingsForm(prev => ({ ...prev, TeamType: e.target.value }))}
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                        >
+                          <option value="">Select Team Type</option>
+                          {teamTypes.map((type) => (
+                            <option key={type.Code} value={type.Code}>
+                              {type.Value}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {isOwner && (
+                        <div className="flex items-end">
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmDialog(true)}
+                            className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 ${
+                              team.IsActive 
+                                ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200' 
+                                : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'
+                            } ${togglingTeam ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={togglingTeam}
+                          >
+                            <span className={`w-2 h-2 rounded-full ${
+                              team.IsActive ? 'bg-red-500' : 'bg-green-500'
+                            }`}></span>
+                            {togglingTeam ? 'Updating...' : team.IsActive ? 'Deactivate Team' : 'Activate Team'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowSettingsModal(false)}
+                        className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200"
+                        disabled={savingSettings}
+                      >
+                        {savingSettings ? 'Saving...' : 'Save Changes'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Team Status Confirmation Dialog */}
+            {showConfirmDialog && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className={`w-3 h-3 rounded-full ${
+                      team.IsActive ? 'bg-red-500' : 'bg-green-500'
+                    }`}></span>
+                    <h3 className="text-lg font-semibold">
+                      {team.IsActive ? 'Deactivate Team' : 'Activate Team'}
+                    </h3>
+                  </div>
+                  <p className="text-gray-600 mb-6">
+                    {team.IsActive 
+                      ? 'Are you sure you want to deactivate this team? This will prevent members from accessing team resources.'
+                      : 'Are you sure you want to activate this team? This will allow members to access team resources.'}
+                  </p>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setShowConfirmDialog(false)}
+                      className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleToggleTeamStatus}
+                      className={`px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 ${
+                        team.IsActive 
+                          ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' 
+                          : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                      }`}
+                      disabled={togglingTeam}
+                    >
+                      {togglingTeam ? 'Updating...' : 'Confirm'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Add Member Confirmation Dialog */}
+            {showAddMemberDialog && userToAdd && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+                    <h3 className="text-lg font-semibold">
+                      Add Team Member
+                    </h3>
+                  </div>
+                  <p className="text-gray-600 mb-6">
+                    Are you sure you want to add {userToAdd.firstName} {userToAdd.lastName} to the team?
+                  </p>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => {
+                        setShowAddMemberDialog(false);
+                        setUserToAdd(null);
+                      }}
+                      className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleAddMember}
+                      className="px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                      disabled={adding}
+                    >
+                      {adding ? 'Adding...' : 'Confirm'}
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </>
         )}

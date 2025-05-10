@@ -5,6 +5,7 @@ import Layout from '../components/Layout';
 import { useState, useEffect } from 'react';
 import { authService, commonTypeService } from '../services/api';
 import CompleteProfileForm from '../components/CompleteProfileForm';
+import LoadingScreen from '../components/LoadingScreen';
 import { 
   FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaBuilding, FaCity, FaGlobe,
   FaGithub, FaLinkedin, FaTwitter, FaFacebook, FaInstagram, FaEdit, FaHistory,
@@ -200,9 +201,7 @@ const Profile = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
+        <LoadingScreen fullScreen />
       </Layout>
     );
   }
@@ -434,9 +433,7 @@ const Profile = () => {
                   <div className="p-8">
                     <h2 className="text-xl font-semibold mb-6">Activity History</h2>
                     {loadingActivities ? (
-                      <div className="flex justify-center items-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                      </div>
+                      <LoadingScreen size="md" />
                     ) : activities.length > 0 ? (
                       <>
                         {/* Activity Statistics */}

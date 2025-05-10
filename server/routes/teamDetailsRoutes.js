@@ -3,12 +3,14 @@ const router = express.Router();
 const Team = require('../models/Team');
 const TeamDetails = require('../models/TeamDetails');
 const User = require('../models/User');
+const CommonType = require('../models/CommonType');
 
 // Middleware to check if requester is the team owner
 async function checkOwner(req, res, next) {
   const team = await Team.findOne({ TeamID: req.params.teamId });
   if (!team) return res.status(404).json({ error: 'Team not found' });
   if (req.body.OwnerID !== team.OwnerID) return res.status(403).json({ error: 'Only the team owner can perform this action' });
+  
   req.team = team;
   next();
 }
@@ -19,6 +21,12 @@ router.get('/:teamId', async (req, res) => {
     const teamId = req.params.teamId;
     const team = await Team.findOne({ TeamID: teamId });
     if (!team) return res.status(404).json({ error: 'Team not found' });
+
+    // Fetch team type value from CommonTypes
+    const teamType = await CommonType.findOne({ 
+      MasterType: 'TeamType',
+      Code: team.TeamType 
+    });
 
     // Fetch team members with their details
     const teamDetails = await TeamDetails.find({ TeamID_FK: teamId });
@@ -46,7 +54,10 @@ router.get('/:teamId', async (req, res) => {
     const orgUsers = await User.find({ organizationID: owner.organizationID });
 
     res.json({
-      team,
+      team: {
+        ...team.toObject(),
+        teamTypeValue: teamType ? teamType.Value : null
+      },
       members,
       orgUsers
     });
@@ -59,7 +70,7 @@ router.get('/:teamId', async (req, res) => {
 // POST /api/team-details/:teamId/add-member - Add member by UserID or email (owner only)
 router.post('/:teamId/add-member', checkOwner, async (req, res) => {
   try {
-    let { UserID, email, OwnerID } = req.body;
+    let { UserID, email } = req.body;
     if (!UserID && !email) return res.status(400).json({ error: 'UserID or email required' });
     if (!UserID && email) {
       const user = await User.findOne({ email });
@@ -98,10 +109,10 @@ router.patch('/:teamId/member/:memberId/toggle', checkOwner, async (req, res) =>
   }
 });
 
-// PATCH /api/team-details/:teamId - Update team name
+// PATCH /api/team-details/:teamId - Update team details
 router.patch('/:teamId', checkOwner, async (req, res) => {
   try {
-    const { TeamName, OwnerID } = req.body;
+    const { TeamName, TeamDescription, TeamType, OwnerID } = req.body;
     if (!TeamName) return res.status(400).json({ error: 'Team name is required' });
     if (!OwnerID) return res.status(400).json({ error: 'Owner ID is required' });
 
@@ -110,18 +121,65 @@ router.patch('/:teamId', checkOwner, async (req, res) => {
 
     // Verify the requester is the owner
     if (team.OwnerID !== OwnerID) {
-      return res.status(403).json({ error: 'Only the team owner can update the team name' });
+      return res.status(403).json({ error: 'Only the team owner can update the team details' });
     }
 
+    // Update team fields
     team.TeamName = TeamName;
+    team.TeamDescription = TeamDescription || team.TeamDescription;
+    team.TeamType = TeamType || team.TeamType;
     team.ModifiedDate = new Date();
     team.ModifiedBy = OwnerID;
     await team.save();
 
     res.json(team);
   } catch (err) {
-    console.error('Error updating team name:', err);
-    res.status(500).json({ error: 'Failed to update team name' });
+    console.error('Error updating team details:', err);
+    res.status(500).json({ error: 'Failed to update team details' });
+  }
+});
+
+// PATCH /api/team-details/:teamId/toggle-status - Toggle team active/inactive (owner only)
+router.patch('/:teamId/toggle-status', checkOwner, async (req, res) => {
+  try {
+    const team = await Team.findOne({ TeamID: req.params.teamId });
+    if (!team) return res.status(404).json({ error: 'Team not found' });
+
+    team.IsActive = !team.IsActive;
+    team.ModifiedDate = new Date();
+    team.ModifiedBy = req.body.OwnerID;
+    await team.save();
+
+    res.json(team);
+  } catch (err) {
+    console.error('Error toggling team status:', err);
+    res.status(500).json({ error: 'Failed to update team status' });
+  }
+});
+
+// DELETE /api/team-details/:teamId/member/:memberId - Remove member from team (owner only)
+router.delete('/:teamId/member/:memberId', checkOwner, async (req, res) => {
+  try {
+    const member = await TeamDetails.findOne({ 
+      TeamID_FK: req.params.teamId, 
+      MemberID: req.params.memberId 
+    });
+    
+    if (!member) {
+      return res.status(404).json({ error: 'Member not found in team' });
+    }
+
+    // Prevent removing the team owner
+    const team = await Team.findOne({ TeamID: req.params.teamId });
+    if (req.params.memberId === team.OwnerID) {
+      return res.status(400).json({ error: 'Cannot remove the team owner' });
+    }
+
+    await member.deleteOne();
+    res.json({ message: 'Member removed successfully' });
+  } catch (err) {
+    console.error('Error removing member:', err);
+    res.status(500).json({ error: 'Failed to remove member' });
   }
 });
 

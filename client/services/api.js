@@ -128,7 +128,16 @@ export const authService = {
     } catch (error) {
       throw error.response?.data || { message: 'Error fetching user activities' };
     }
-  }
+  },
+
+  getUserOrganizations: async () => {
+    try {
+      const response = await api.get('/auth/organizations');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch user organizations' };
+    }
+  },
 };
 
 export const teamService = {

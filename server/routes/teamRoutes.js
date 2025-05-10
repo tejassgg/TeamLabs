@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
       TeamType,
       OwnerID,
       organizationID: user.organizationID || '',
-      IsActive: true,
+      IsActive: false,
       CreatedDate: new Date()
     });
     await newTeam.save();

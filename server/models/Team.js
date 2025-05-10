@@ -20,6 +20,11 @@ const TeamSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  TeamColor: {
+    type: String,
+    enum: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6B7280'],
+    default: '#3B82F6'
+  },
   OwnerID: {
     type: String,
     required: true
