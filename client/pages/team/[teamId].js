@@ -8,7 +8,6 @@ import { useTeams } from '../../context/TeamContext';
 const TeamDetailsPage = () => {
   const router = useRouter();
   const { teamId } = router.query;
-  const { updateTeam, fetchTeams } = useTeams();
   const [team, setTeam] = useState(null);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +40,7 @@ const TeamDetailsPage = () => {
   const [userToAdd, setUserToAdd] = useState(null);
   const [showInactiveMemberDialog, setShowInactiveMemberDialog] = useState(false);
   const [selectedInactiveMember, setSelectedInactiveMember] = useState(null);
+  const [activeProjects, setActiveProjects] = useState([]);
 
   const teamColors = [
     { value: '#3B82F6', name: 'Blue' },
@@ -68,6 +68,8 @@ const TeamDetailsPage = () => {
             TeamType: res.data.team.TeamType,
             TeamColor: res.data.team.TeamColor
           });
+          // Set active projects from the main response
+          setActiveProjects(res.data.activeProjects || []);
         })
         .catch(err => {
           console.error('Error fetching team:', err);
@@ -76,10 +78,6 @@ const TeamDetailsPage = () => {
         .finally(() => setLoading(false));
     }
   }, [teamId, router]);
-
-  useEffect(() => {
-    console.log('Current settings form state:', settingsForm);
-  }, [settingsForm]);
 
   useEffect(() => {
     // Fetch team types from CommonTypes
@@ -289,6 +287,89 @@ const TeamDetailsPage = () => {
             
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-2">Team Members</h2>
+              {isOwner && (
+                <form onSubmit={handleAddMember} className="mb-4 flex flex-col gap-2">
+                  <label className="block text-gray-700 font-semibold mb-1">Search for a Member (search by name, email, or UserID)</label>
+                  <input
+                    type="text"
+                    className="border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    value={search}
+                    onChange={e => {
+                      setSearch(e.target.value);
+                      setSelectedUser(null);
+                      setShowAllUsers(false);
+                    }}
+                    onFocus={() => {
+                      setIsInputFocused(true);
+                      if (!search) {
+                        const memberIds = new Set(members.map(m => m.MemberID));
+                        const availableUsers = orgUsers.filter(u => !memberIds.has(u._id));
+                        setFilteredUsers(availableUsers.slice(0, 10));
+                      }
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => {
+                        setIsInputFocused(false);
+                      }, 200);
+                    }}
+                    placeholder="Type to search..."
+                    autoComplete="off"
+                  />
+                  {isInputFocused && filteredUsers.length > 0 && (
+                    <div className="w-full md:w-96">
+                      <ul className="border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md">
+                        {filteredUsers.map((user, index) => (
+                          <li
+                            key={`${user._id}-${index}`}
+                            className="px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2"
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setSearch(user.firstName + ' ' + user.lastName + ' (' + user.email + ')');
+                                  setIsInputFocused(false);
+                                }}
+                              >
+                                <div className="flex flex-col">
+                                  <div className="font-medium text-gray-900">
+                                    {user.firstName} {user.lastName}
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    {user.email}
+                                  </div>
+                                  <div className="text-xs text-gray-400 mt-0.5">
+                                    ID: {user._id}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setUserToAdd(user);
+                                  setShowAddMemberDialog(true);
+                                }}
+                                className="ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                      {!showAllUsers && orgUsers.length > 10 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowAllUsers(true)}
+                          className="w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200"
+                        >
+                          Show All Users ({orgUsers.length})
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </form>
+              )}
               <table className="w-full border rounded-xl overflow-hidden shadow-sm">
                 <thead>
                   <tr className="bg-gray-50">
@@ -357,89 +438,6 @@ const TeamDetailsPage = () => {
                 </tbody>
               </table>
             </div>
-            {isOwner && (
-              <form onSubmit={handleAddMember} className="mb-4 flex flex-col gap-2 items-start">
-                <label className="block text-gray-700 font-semibold mb-1">Search for a Member (search by name, email, or UserID)</label>
-                <input
-                  type="text"
-                  className="border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                  value={search}
-                  onChange={e => {
-                    setSearch(e.target.value);
-                    setSelectedUser(null);
-                    setShowAllUsers(false);
-                  }}
-                  onFocus={() => {
-                    setIsInputFocused(true);
-                    if (!search) {
-                      const memberIds = new Set(members.map(m => m.MemberID));
-                      const availableUsers = orgUsers.filter(u => !memberIds.has(u._id));
-                      setFilteredUsers(availableUsers.slice(0, 10));
-                    }
-                  }}
-                  onBlur={() => {
-                    setTimeout(() => {
-                      setIsInputFocused(false);
-                    }, 200);
-                  }}
-                  placeholder="Type to search..."
-                  autoComplete="off"
-                />
-                {isInputFocused && filteredUsers.length > 0 && (
-                  <div className="w-full md:w-96">
-                    <ul className="border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md">
-                      {filteredUsers.map((user, index) => (
-                        <li
-                          key={`${user._id}-${index}`}
-                          className="px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2"
-                              onClick={() => {
-                                setSelectedUser(user);
-                                setSearch(user.firstName + ' ' + user.lastName + ' (' + user.email + ')');
-                                setIsInputFocused(false);
-                              }}
-                            >
-                              <div className="flex flex-col">
-                                <div className="font-medium text-gray-900">
-                                  {user.firstName} {user.lastName}
-                                </div>
-                                <div className="text-sm text-gray-600">
-                                  {user.email}
-                                </div>
-                                <div className="text-xs text-gray-400 mt-0.5">
-                                  ID: {user._id}
-                                </div>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setUserToAdd(user);
-                                setShowAddMemberDialog(true);
-                              }}
-                              className="ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm"
-                            >
-                              Add
-                            </button>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                    {!showAllUsers && orgUsers.length > 10 && (
-                      <button
-                        type="button"
-                        onClick={() => setShowAllUsers(true)}
-                        className="w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200"
-                      >
-                        Show All Users ({orgUsers.length})
-                      </button>
-                    )}
-                  </div>
-                )}
-              </form>
-            )}
 
             {/* Member Access Confirmation Dialog */}
             {showRevokeDialog && selectedMember && (
@@ -728,6 +726,61 @@ const TeamDetailsPage = () => {
                 </div>
               </div>
             )}
+
+            {/* Projects Table */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-2">Projects</h2>
+              {activeProjects.length > 0 ? (
+                <table className="w-full border rounded-xl overflow-hidden shadow-sm">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="py-3 px-4 text-left">Project Name</th>
+                      <th className="py-3 px-4 text-left">Assigned Date</th>
+                      <th className="py-3 px-4 text-left">Deadline</th>
+                      <th className="py-3 px-4 text-left">Project Status</th>
+                      <th className="py-3 px-4 text-left">Team Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activeProjects.map(proj => (
+                      <tr key={proj.ProjectID} className="border-t hover:bg-gray-50 transition-colors">
+                        <td className="py-3 px-4 font-medium">{proj.Name}</td>
+                        <td className="py-3 px-4">{proj.AssignedDate ? new Date(proj.AssignedDate).toLocaleDateString() : '-'}</td>
+                        <td className="py-3 px-4">{proj.FinishDate ? new Date(proj.FinishDate).toLocaleDateString() : '-'}</td>
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
+                            proj.IsActive
+                              ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
+                              : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
+                          }`}>
+                            <span className={`w-2 h-2 rounded-full ${
+                              proj.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                            }`}></span>
+                            {proj.IsActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
+                            proj.TeamIsActive
+                              ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
+                              : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
+                          }`}>
+                            <span className={`w-2 h-2 rounded-full ${
+                              proj.TeamIsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                            }`}></span>
+                            {proj.TeamIsActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="text-center py-8 text-gray-400 border rounded-xl bg-gray-50">
+                  No Projects
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>

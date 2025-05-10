@@ -4,6 +4,8 @@ const Team = require('../models/Team');
 const TeamDetails = require('../models/TeamDetails');
 const User = require('../models/User');
 const CommonType = require('../models/CommonType');
+const ProjectDetails = require('../models/ProjectDetails');
+const Project = require('../models/Project');
 
 // Middleware to check if requester is the team owner
 async function checkOwner(req, res, next) {
@@ -15,7 +17,7 @@ async function checkOwner(req, res, next) {
   next();
 }
 
-// GET /api/team-details/:teamId - Get team details with members
+// GET /api/team-details/:teamId - Get team details with members and active projects
 router.get('/:teamId', async (req, res) => {
   try {
     const teamId = req.params.teamId;
@@ -53,13 +55,31 @@ router.get('/:teamId', async (req, res) => {
 
     const orgUsers = await User.find({ organizationID: owner.organizationID });
 
+    // Fetch all projects for this team
+    const assignments = await ProjectDetails.find({ TeamID: teamId });
+    const projectIds = assignments.map(a => a.ProjectID);
+    const projects = await Project.find({ ProjectID: { $in: projectIds } });
+    const teamProjects = assignments.map(a => {
+      const proj = projects.find(p => p.ProjectID === a.ProjectID);
+      if (!proj) return null;
+      return {
+        ProjectID: proj.ProjectID,
+        Name: proj.Name,
+        AssignedDate: a.CreatedDate,
+        FinishDate: proj.FinishDate,
+        IsActive: proj.IsActive,
+        TeamIsActive: a.IsActive
+      };
+    }).filter(Boolean);
+
     res.json({
       team: {
         ...team.toObject(),
         teamTypeValue: teamType ? teamType.Value : null
       },
       members,
-      orgUsers
+      orgUsers,
+      activeProjects: teamProjects
     });
   } catch (err) {
     console.error('Error fetching team details:', err);
@@ -180,6 +200,34 @@ router.delete('/:teamId/member/:memberId', checkOwner, async (req, res) => {
   } catch (err) {
     console.error('Error removing member:', err);
     res.status(500).json({ error: 'Failed to remove member' });
+  }
+});
+
+// GET /api/team-details/:teamId/active-projects - List all projects for a team
+router.get('/:teamId/active-projects', async (req, res) => {
+  try {
+    const teamId = req.params.teamId;
+    // Find all project assignments for this team
+    const assignments = await ProjectDetails.find({ TeamID: teamId });
+    const projectIds = assignments.map(a => a.ProjectID);
+    // Fetch project info for each assignment
+    const projects = await Project.find({ ProjectID: { $in: projectIds } });
+    // Map to include assigned date from ProjectDetails
+    const result = assignments.map(a => {
+      const proj = projects.find(p => p.ProjectID === a.ProjectID);
+      if (!proj) return null;
+      return {
+        ProjectID: proj.ProjectID,
+        Name: proj.Name,
+        AssignedDate: a.CreatedDate,
+        FinishDate: proj.FinishDate,
+        IsActive: proj.IsActive,
+        TeamIsActive: a.IsActive
+      };
+    }).filter(Boolean);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch projects for team' });
   }
 });
 

@@ -179,4 +179,23 @@ export const commonTypeService = {
   }
 };
 
+export const projectService = {
+  getProjects: async (userId) => {
+    try {
+      const response = await api.get(`/projects/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch projects' };
+    }
+  },
+  addProject: async (projectData) => {
+    try {
+      const response = await api.post('/projects', projectData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to add project' };
+    }
+  }
+};
+
 export default api; 

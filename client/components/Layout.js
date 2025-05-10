@@ -7,8 +7,10 @@ import { useRouter } from 'next/router';
 import AddTeamModal from './AddTeamModal';
 import { teamService } from '../services/api';
 import { authService } from '../services/api';
+import { projectService } from '../services/api';
+import AddProjectModal from './AddProjectModal';
 
-const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
+const Sidebar = ({ sidebarTeam, setSidebarOrg }) => {
   const { theme } = useTheme();
   const router = useRouter();
   const [isAddTeamOpen, setIsAddTeamOpen] = useState(false);
@@ -16,12 +18,10 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userOrgId, setUserOrgId] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
+  const [userId, setUserId] = useState(null);
   // Mock data for demonstration
-  const projects = [
-    { id: 1, name: 'Website Redesign' },
-    { id: 2, name: 'Mobile App Launch' },
-    { id: 3, name: 'API Integration' },
-  ];
   const userStories = [
     { id: 1, name: 'User can register an account' },
     { id: 2, name: 'User can reset password' },
@@ -38,6 +38,7 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
     authService.getUserProfile()
       .then(profile => {
         setUserOrgId(profile.organizationID);
+        setUserId(profile._id);
       })
       .catch(error => {
         console.error('Error fetching user profile:', error);
@@ -62,6 +63,16 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
         setOrganizations([]);
         setLoading(false);
       });
+
+    // Fetch projects allocated to the user
+    projectService.getProjects(userId)
+      .then(fetchedProjects => {
+        console.log(fetchedProjects);
+        setProjects(fetchedProjects);
+      })
+      .catch(() => {
+        setProjects([]);
+      });
   }, [userOrgId]); // Add userOrgId as dependency
 
   const handleAddTeam = async (teamData) => {
@@ -73,55 +84,56 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
     }
   };
 
+  const handleAddProject = async (projectData) => {
+    try {
+      projectData.OrganizationID = userOrgId;
+      projectData.ProjectOwner = userId;
+      const newProject = await projectService.addProject(projectData);
+      setProjects(prev => [...prev, newProject]);
+    } catch (err) {
+      alert('Failed to add project');
+    }
+  };
+
   return (
     <>
       <aside
-        className={`fixed top-0 left-0 h-full z-40 transition-all duration-300 ${collapsed ? 'w-20' : 'w-78'} ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'} p-4 flex flex-col`}
-        style={{ minHeight: '100vh' }}
+        className={`fixed top-0 left-0 h-full z-40 transition-all duration-300 w-78 ${theme === 'dark' ? 'bg-[#232E3C] text-[#F3F6FA]' : 'bg-gray-200 text-gray-900'} p-4 flex flex-col`}
+        style={{ minHeight: '100vh', width: 300 }}
       >
-        <button
-          className={`mb-6 p-2 rounded ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-700'} hover:bg-primary hover:text-white transition cursor-pointer`}
-          onClick={() => setCollapsed((c) => !c)}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? '→' : '←'}
-        </button>
         {/* Organization Cover Section */}
-        {!collapsed && (
-          <div className="relative mb-6" style={{ minHeight: '180px' }}>
-            <img
-              src="/static/default-org-cover.jpeg"
-              alt="Organization Cover"
-              className="absolute top-0 left-0 w-full h-full object-cover rounded-xl"
-              style={{ zIndex: 0 }}
-              onError={e => { e.target.onerror = null; e.target.src = '/static/default-org-cover.jpeg'; }}
-            />
-            <div className="absolute left-0 top-0 w-full h-full flex flex-col items-center justify-center" style={{ zIndex: 1 }}>
-              <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-lg font-bold text-blue-600 border-4 border-white shadow-lg mb-2 mt-2">
-                {organizations[0]?.name?.split(' ').map(n => n[0]).join('') || 'OG'}
-              </div>
-              {!loading && organizations.length > 1 ? (
-                <select
-                  className="bg-white bg-opacity-90 text-gray-900 font-semibold rounded-xl px-3 py-2 focus:outline-none shadow-sm border border-gray-200"
-                  value={sidebarTeam}
-                  onChange={e => setSidebarOrg(e.target.value)}
-                  style={{ maxWidth: '80%' }}
-                >
-                  {organizations.map(org => (
-                    <option key={org._id} value={org._id}>{org.name}</option>
-                  ))}
-                  <option value="add">+ Add an Organization</option>
-                </select>
-              ) : (
-                <div className="bg-white bg-opacity-90 text-gray-900 font-semibold rounded-xl px-3 py-2 shadow-sm border border-gray-200" style={{ maxWidth: '80%' }}>
-                  {organizations[0]?.name || 'No Organization'}
-                </div>
-              )}
+        <div className="relative mb-6" style={{ minHeight: '180px' }}>
+          <img
+            src="/static/default-org-cover.jpeg"
+            alt="Organization Cover"
+            className="absolute top-0 left-0 w-full h-full object-cover rounded-xl"
+            style={{ zIndex: 0 }}
+            onError={e => { e.target.onerror = null; e.target.src = '/static/default-org-cover.jpeg'; }}
+          />
+          <div className="absolute left-0 top-0 w-full h-full flex flex-col items-center justify-center" style={{ zIndex: 1 }}>
+            <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-lg font-bold text-blue-600 border-4 border-white shadow-lg mb-2 mt-2">
+              {organizations[0]?.name?.split(' ').map(n => n[0]).join('') || 'OG'}
             </div>
+            {!loading && organizations.length > 1 ? (
+              <select
+                className="bg-white bg-opacity-90 text-gray-900 font-semibold rounded-xl px-3 py-2 focus:outline-none shadow-sm border border-gray-200"
+                value={sidebarTeam}
+                onChange={e => setSidebarOrg(e.target.value)}
+                style={{ maxWidth: '80%' }}
+              >
+                {organizations.map(org => (
+                  <option key={org._id} value={org._id}>{org.name}</option>
+                ))}
+                <option value="add">+ Add an Organization</option>
+              </select>
+            ) : (
+              <div className="bg-white bg-opacity-90 text-gray-900 font-semibold rounded-xl px-3 py-2 shadow-sm border border-gray-200" style={{ maxWidth: '80%' }}>
+                {organizations[0]?.name || 'No Organization'}
+              </div>
+            )}
           </div>
-        )}
+        </div>
         <div className="flex-1 flex flex-col p-4">
-          {/* Sidebar Lists - always show icons and plus, only show text/lists when expanded */}
           <div className="space-y-6">
             {/* Teams Section */}
             <div>
@@ -135,9 +147,7 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
                   <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-gray-100 group-hover:shadow-sm" style={{ width: 28, height: 28 }}>
                     <FaUsers className="text-blue-600" size={20} />
                   </span>
-                  {!collapsed && (
-                    <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Teams</h3>
-                  )}
+                  <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Teams</h3>
                 </button>
                 <button
                   className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
@@ -147,29 +157,27 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
                   <FaPlus size={12} />
                 </button>
               </div>
-              {!collapsed && (
-                teams.length === 0 ? (
-                  <div className="pl-2 py-1 text-gray-400 italic">No Teams</div>
-                ) : (
-                  <ul className="space-y-1">
-                    {teams.map((team) => {
-                      const isActive = activeTeamId === (team.TeamID || team._id);
-                      return (
-                        <li
-                          key={team.TeamID || team._id}
-                          className={`pl-2 py-1.5 rounded-xl cursor-pointer transition ${
-                            isActive
-                              ? 'bg-blue-50 text-blue-600 font-medium'
-                              : 'hover:bg-gray-50 hover:text-gray-900'
-                          }`}
-                          onClick={() => router.push(`/team/${team.TeamID || team._id}`)}
-                        >
-                          {team.TeamName}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )
+              {teams.length === 0 ? (
+                <div className="pl-2 py-1 text-gray-400 italic">No Teams</div>
+              ) : (
+                <ul className="space-y-1">
+                  {teams.map((team) => {
+                    const isActive = activeTeamId === (team.TeamID || team._id);
+                    return (
+                      <li
+                        key={team.TeamID || team._id}
+                        className={`pl-2 py-1.5 rounded-xl cursor-pointer transition ${
+                          isActive
+                            ? 'bg-blue-50 text-blue-600 font-medium'
+                            : 'hover:bg-gray-50 hover:text-gray-900'
+                        }`}
+                        onClick={() => router.push(`/team/${team.TeamID || team._id}`)}
+                      >
+                        {team.TeamName}
+                      </li>
+                    );
+                  })}
+                </ul>
               )}
             </div>
             {/* Projects Section */}
@@ -185,27 +193,36 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
                   <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-gray-100 group-hover:shadow-sm" style={{ width: 28, height: 28 }}>
                     <FaFolder className="text-blue-600" size={20} />
                   </span>
-                  {!collapsed && (
-                    <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Projects</h3>
-                  )}
+                  <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Projects</h3>
                 </button>
                 <button
                   className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
                   aria-label="Add Project"
-                  onClick={() => alert('Add new Project (modal coming soon!)')}
+                  onClick={() => setIsAddProjectOpen(true)}
                 >
                   <FaPlus size={12} />
                 </button>
               </div>
-              {!collapsed && (
+              {projects.length === 0 ? (
+                <div className="pl-2 py-1 text-gray-400 italic">No Projects</div>
+              ) : (
                 <ul className="space-y-1">
                   {projects.map(project => (
-                    <li key={project.id} className="pl-2 py-1.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 cursor-pointer transition">
-                      {project.name}
+                    <li
+                      key={project.ProjectID || project._id}
+                      className="pl-2 py-1.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 cursor-pointer transition"
+                      onClick={() => router.push(`/project/${project.ProjectID || project._id}`)}
+                    >
+                      {project.Name}
                     </li>
                   ))}
                 </ul>
               )}
+              <AddProjectModal
+                isOpen={isAddProjectOpen}
+                onClose={() => setIsAddProjectOpen(false)}
+                onAddProject={handleAddProject}
+              />
             </div>
             {/* User Stories Section */}
             <div>
@@ -220,9 +237,7 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
                   <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-gray-100 group-hover:shadow-sm" style={{ width: 28, height: 28 }}>
                     <FaBookOpen className="text-blue-600" size={20} />
                   </span>
-                  {!collapsed && (
-                    <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">UserStories</h3>
-                  )}
+                  <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">UserStories</h3>
                 </button>
                 <button
                   className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
@@ -232,15 +247,13 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
                   <FaPlus size={12} />
                 </button>
               </div>
-              {!collapsed && (
-                <ul className="space-y-1">
-                  {userStories.map(story => (
-                    <li key={story.id} className="pl-2 py-1.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 cursor-pointer transition">
-                      {story.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <ul className="space-y-1">
+                {userStories.map(story => (
+                  <li key={story.id} className="pl-2 py-1.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 cursor-pointer transition">
+                    {story.name}
+                  </li>
+                ))}
+              </ul>
             </div>
             {/* Tasks Section */}
             <div>
@@ -255,9 +268,7 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
                   <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-gray-100 group-hover:shadow-sm" style={{ width: 28, height: 28 }}>
                     <FaTasks className="text-blue-600" size={20} />
                   </span>
-                  {!collapsed && (
-                    <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Tasks</h3>
-                  )}
+                  <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Tasks</h3>
                 </button>
                 <button
                   className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
@@ -267,11 +278,9 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg, collapsed, setCollapsed }) => {
                   <FaPlus size={12} />
                 </button>
               </div>
-              {!collapsed && (
-                <ul className="space-y-1">
-                  <li className="pl-2 py-1.5 text-gray-400">No tasks listed</li>
-                </ul>
-              )}
+              <ul className="space-y-1">
+                <li className="pl-2 py-1.5 text-gray-400">No tasks listed</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -289,18 +298,17 @@ const Layout = ({ children }) => {
   const { theme, toggleTheme } = useTheme();
   const { logout } = useAuth();
   const [sidebarOrg, setSidebarOrg] = useState('Olanthroxx Org');
-  const [collapsed, setCollapsed] = useState(false);
-  const sidebarWidth = collapsed ? 80 : 300; // px
+  const sidebarWidth = 300;
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
-      <Sidebar sidebarOrg={sidebarOrg} setSidebarOrg={setSidebarOrg} collapsed={collapsed} setCollapsed={setCollapsed} />
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#181F2A] text-[#F3F6FA]' : 'bg-white text-gray-900'}`}>
+      <Sidebar sidebarOrg={sidebarOrg} setSidebarOrg={setSidebarOrg} />
       <div style={{ marginLeft: sidebarWidth, transition: 'margin-left 0.3s' }}>
         <div className="flex justify-center">
           <div style={{ width: '98%' }}>
             <Navbar theme={theme} toggleTheme={toggleTheme} onLogout={logout} />
           </div>
         </div>
-        <main className="p-8 overflow-y-auto min-h-[calc(100vh-80px)]">{children}</main>
+        <main className={`p-8 overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#181F2A] text-[#F3F6FA]' : ''}`}>{children}</main>
       </div>
     </div>
   );

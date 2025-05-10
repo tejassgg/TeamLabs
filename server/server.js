@@ -8,6 +8,8 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const commonTypeRoutes = require('./routes/commonTypeRoutes');
 const teamDetailsRoutes = require('./routes/teamDetailsRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const projectDetailsRoutes = require('./routes/projectDetailsRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
 
@@ -39,6 +41,8 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/common-types', commonTypeRoutes);
 app.use('/api/team-details', teamDetailsRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/project-details', projectDetailsRoutes);
 
 // Test route
 app.get('/', (req, res) => {

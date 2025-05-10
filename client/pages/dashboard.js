@@ -38,7 +38,7 @@ const Dashboard = () => {
       <div className="max-w-3xl mx-auto">
         <h2 className="text-2xl font-bold mb-6">Weekly Activity</h2>
         {/* Simple SVG Bar Graph */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-8">
+        {/* <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-8">
           <svg width="100%" height="180" viewBox="0 0 350 180">
             {data.map((value, i) => (
               <rect
@@ -64,7 +64,7 @@ const Dashboard = () => {
               </text>
             ))}
           </svg>
-        </div>
+        </div> */}
         <div className="flex gap-4">
           <button className="btn btn-primary">Add Task</button>
           <button className="btn btn-primary">View Reports</button>
