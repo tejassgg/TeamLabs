@@ -1,26 +1,25 @@
 import Navbar from './Navbar';
 import { useTheme } from '../context/ThemeContext';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FaPlus, FaChevronLeft, FaChevronRight, FaFolder, FaBookOpen, FaTasks, FaUsers } from 'react-icons/fa';
+import { FaPlus, FaChevronRight, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import AddTeamModal from './AddTeamModal';
 import { teamService } from '../services/api';
-import { authService } from '../services/api';
 import { projectService } from '../services/api';
 import AddProjectModal from './AddProjectModal';
+import { useGlobal } from '../context/GlobalContext';
 
-const Sidebar = ({ sidebarTeam, setSidebarOrg }) => {
+const Sidebar = () => {
   const { theme } = useTheme();
   const router = useRouter();
   const [isAddTeamOpen, setIsAddTeamOpen] = useState(false);
-  const [teams, setTeams] = useState([]);
-  const [organizations, setOrganizations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [userOrgId, setUserOrgId] = useState(null);
-  const [projects, setProjects] = useState([]);
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
-  const [userId, setUserId] = useState(null);
+  const [isTeamsCollapsed, setIsTeamsCollapsed] = useState(false);
+  const [isProjectsCollapsed, setIsProjectsCollapsed] = useState(false);
+  const { teams, projects, organizations, loading, userDetails, setProjects, setTeams } = useGlobal();
+  
+  const canManageTeamsAndProjects = userDetails?.role === 'Admin' || userDetails?.role === 'Owner';
   // Mock data for demonstration
   const userStories = [
     { id: 1, name: 'User can register an account' },
@@ -33,65 +32,25 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg }) => {
 
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
 
-  useEffect(() => {
-    // Fetch user profile to get organization ID
-    authService.getUserProfile()
-      .then(profile => {
-        setUserOrgId(profile.organizationID);
-        setUserId(profile._id);
-      })
-      .catch(error => {
-        console.error('Error fetching user profile:', error);
-      });
-
-    // Fetch teams from backend on mount
-    teamService.getTeams()
-      .then(fetchedTeams => {
-        // Filter teams based on user's organization ID
-        const filteredTeams = fetchedTeams.filter(team => team.organizationID === userOrgId);
-        setTeams(filteredTeams);
-      })
-      .catch(() => setTeams([]));
-    
-    // Fetch user organizations
-    authService.getUserOrganizations()
-      .then(orgs => {
-        setOrganizations(orgs);
-        setLoading(false);
-      })
-      .catch(() => {
-        setOrganizations([]);
-        setLoading(false);
-      });
-
-    // Fetch projects allocated to the user
-    projectService.getProjects(userId)
-      .then(fetchedProjects => {
-        console.log(fetchedProjects);
-        setProjects(fetchedProjects);
-      })
-      .catch(() => {
-        setProjects([]);
-      });
-  }, [userOrgId]); // Add userOrgId as dependency
-
   const handleAddTeam = async (teamData) => {
     try {
       const newTeam = await teamService.addTeam(teamData);
-      setTeams(prev => [...prev, newTeam]);
+      setTeams(prevTeams => [...prevTeams, newTeam]);
+      return newTeam;
     } catch (err) {
       alert('Failed to add team');
+      throw err;
     }
   };
 
   const handleAddProject = async (projectData) => {
     try {
-      projectData.OrganizationID = userOrgId;
-      projectData.ProjectOwner = userId;
       const newProject = await projectService.addProject(projectData);
-      setProjects(prev => [...prev, newProject]);
+      setProjects(prevProjects => [...prevProjects, newProject]);
+      return newProject;
     } catch (err) {
       alert('Failed to add project');
+      throw err;
     }
   };
 
@@ -117,8 +76,11 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg }) => {
             {!loading && organizations.length > 1 ? (
               <select
                 className="bg-white bg-opacity-90 text-gray-900 font-semibold rounded-xl px-3 py-2 focus:outline-none shadow-sm border border-gray-200"
-                value={sidebarTeam}
-                onChange={e => setSidebarOrg(e.target.value)}
+                value={userDetails?.organizationID || ''}
+                onChange={e => {
+                  // Handle organization change if needed
+                  console.log('Organization changed to:', e.target.value);
+                }}
                 style={{ maxWidth: '80%' }}
               >
                 {organizations.map(org => (
@@ -135,94 +97,149 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg }) => {
         </div>
         <div className="flex-1 flex flex-col p-4">
           <div className="space-y-6">
+            {/* Dashboard Button */}
+            <div>
+              <button
+                className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-gray-50 rounded-xl transition cursor-pointer w-full"
+                style={{ minHeight: 32 }}
+                onClick={() => router.push('/dashboard')}
+                tabIndex={0}
+                aria-label="Go to Dashboard"
+              >
+                <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-gray-100 group-hover:shadow-sm" style={{ width: 28, height: 28 }}>
+                  <FaHome className="text-blue-600" size={20} />
+                </span>
+                <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Dashboard</h3>
+              </button>
+            </div>
+
             {/* Teams Section */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <button
                   className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-gray-50 rounded-xl transition cursor-pointer"
                   style={{ minHeight: 32 }}
+                  onClick={() => setIsTeamsCollapsed(!isTeamsCollapsed)}
                   tabIndex={0}
-                  aria-label="Go to Teams"
+                  aria-label="Toggle Teams Section"
                 >
                   <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-gray-100 group-hover:shadow-sm" style={{ width: 28, height: 28 }}>
                     <FaUsers className="text-blue-600" size={20} />
                   </span>
                   <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Teams</h3>
+                  {isTeamsCollapsed ? <FaChevronRight size={12} /> : <FaChevronDown size={12} />}
                 </button>
-                <button
-                  className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
-                  aria-label="Add Team"
-                  onClick={() => setIsAddTeamOpen(true)}
-                >
-                  <FaPlus size={12} />
-                </button>
+                {canManageTeamsAndProjects ? (
+                  <button
+                    className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
+                    aria-label="Add Team"
+                    onClick={() => setIsAddTeamOpen(true)}
+                  >
+                    <FaPlus size={12} />
+                  </button>
+                ) : (
+                  <div className="relative group">
+                    <button
+                      className="p-1.5 rounded-full text-gray-400 cursor-not-allowed ml-2"
+                      aria-label="Add Team (Restricted)"
+                      disabled
+                    >
+                      <FaPlus size={12} />
+                    </button>
+                    <div className="absolute left-0 bottom-full mb-2 w-48 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                      Only Admin/Owner can create teams
+                      <div className="absolute left-1/2 -bottom-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                    </div>
+                  </div>
+                )}
               </div>
-              {teams.length === 0 ? (
-                <div className="pl-2 py-1 text-gray-400 italic">No Teams</div>
-              ) : (
-                <ul className="space-y-1">
-                  {teams.map((team) => {
-                    const isActive = activeTeamId === (team.TeamID || team._id);
-                    return (
-                      <li
-                        key={team.TeamID || team._id}
-                        className={`pl-2 py-1.5 rounded-xl cursor-pointer transition ${
-                          isActive
-                            ? 'bg-blue-50 text-blue-600 font-medium'
-                            : 'hover:bg-gray-50 hover:text-gray-900'
-                        }`}
-                        onClick={() => router.push(`/team/${team.TeamID || team._id}`)}
-                      >
-                        {team.TeamName}
-                      </li>
-                    );
-                  })}
-                </ul>
+              {!isTeamsCollapsed && (
+                <>
+                  {teams.length === 0 ? (
+                    <div className="pl-2 py-1 text-gray-400 italic">No Teams</div>
+                  ) : (
+                    <ul className="space-y-1">
+                      {teams.map((team) => {
+                        const isActive = activeTeamId === (team.TeamID || team._id);
+                        return (
+                          <li
+                            key={team.TeamID || team._id}
+                            className={`pl-2 py-1.5 rounded-xl cursor-pointer transition ${
+                              isActive
+                                ? 'bg-blue-50 text-blue-600 font-medium'
+                                : 'hover:bg-gray-50 hover:text-gray-900'
+                            }`}
+                            onClick={() => router.push(`/team/${team.TeamID || team._id}`)}
+                          >
+                            {team.TeamName}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </>
               )}
             </div>
+
             {/* Projects Section */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <button
                   className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-gray-50 rounded-xl transition cursor-pointer"
                   style={{ minHeight: 32 }}
-                  onClick={() => router.push('/projects')}
+                  onClick={() => setIsProjectsCollapsed(!isProjectsCollapsed)}
                   tabIndex={0}
-                  aria-label="Go to Projects"
+                  aria-label="Toggle Projects Section"
                 >
                   <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-gray-100 group-hover:shadow-sm" style={{ width: 28, height: 28 }}>
                     <FaFolder className="text-blue-600" size={20} />
                   </span>
                   <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Projects</h3>
+                  {isProjectsCollapsed ? <FaChevronRight size={12} /> : <FaChevronDown size={12} />}
                 </button>
-                <button
-                  className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
-                  aria-label="Add Project"
-                  onClick={() => setIsAddProjectOpen(true)}
-                >
-                  <FaPlus size={12} />
-                </button>
-              </div>
-              {projects.length === 0 ? (
-                <div className="pl-2 py-1 text-gray-400 italic">No Projects</div>
-              ) : (
-                <ul className="space-y-1">
-                  {projects.map(project => (
-                    <li
-                      key={project.ProjectID || project._id}
-                      className="pl-2 py-1.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 cursor-pointer transition"
-                      onClick={() => router.push(`/project/${project.ProjectID || project._id}`)}
+                {canManageTeamsAndProjects ? (
+                  <button
+                    className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
+                    aria-label="Add Project"
+                    onClick={() => setIsAddProjectOpen(true)}
+                  >
+                    <FaPlus size={12} />
+                  </button>
+                ) : (
+                  <div className="relative group">
+                    <button
+                      className="p-1.5 rounded-full text-gray-400 cursor-not-allowed ml-2"
+                      aria-label="Add Project (Restricted)"
+                      disabled
                     >
-                      {project.Name}
-                    </li>
-                  ))}
-                </ul>
+                      <FaPlus size={12} />
+                    </button>
+                    <div className="absolute left-0 bottom-full mb-2 w-48 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                      Only Admin/Owner can create projects
+                      <div className="absolute left-1/2 -bottom-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {!isProjectsCollapsed && (
+                <>
+                  {projects.length === 0 ? (
+                    <div className="pl-2 py-1 text-gray-400 italic">No Projects</div>
+                  ) : (
+                    <ul className="space-y-1">
+                      {projects.map(project => (
+                        <li
+                          key={project.ProjectID || project._id}
+                          className="pl-2 py-1.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 cursor-pointer transition"
+                          onClick={() => router.push(`/project/${project.ProjectID || project._id}`)}
+                        >
+                          {project.Name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
               )}
-              <AddProjectModal
-                isOpen={isAddProjectOpen}
-                onClose={() => setIsAddProjectOpen(false)}
-                onAddProject={handleAddProject}
-              />
             </div>
             {/* User Stories Section */}
             <div>
@@ -285,11 +302,22 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg }) => {
           </div>
         </div>
       </aside>
-      <AddTeamModal
-        isOpen={isAddTeamOpen}
-        onClose={() => setIsAddTeamOpen(false)}
-        onAddTeam={handleAddTeam}
-      />
+      {canManageTeamsAndProjects && (
+        <>
+          <AddTeamModal
+            isOpen={isAddTeamOpen}
+            onClose={() => setIsAddTeamOpen(false)}
+            onAddTeam={handleAddTeam}
+          />
+          <AddProjectModal
+            isOpen={isAddProjectOpen}
+            onClose={() => setIsAddProjectOpen(false)}
+            onAddProject={handleAddProject}
+            organizationId = {userDetails?.organizationID}
+            projectOwner = {userDetails?._id}
+          />
+        </>
+      )}
     </>
   );
 };
@@ -297,11 +325,10 @@ const Sidebar = ({ sidebarTeam, setSidebarOrg }) => {
 const Layout = ({ children }) => {
   const { theme, toggleTheme } = useTheme();
   const { logout } = useAuth();
-  const [sidebarOrg, setSidebarOrg] = useState('Olanthroxx Org');
   const sidebarWidth = 300;
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#181F2A] text-[#F3F6FA]' : 'bg-white text-gray-900'}`}>
-      <Sidebar sidebarOrg={sidebarOrg} setSidebarOrg={setSidebarOrg} />
+      <Sidebar />
       <div style={{ marginLeft: sidebarWidth, transition: 'margin-left 0.3s' }}>
         <div className="flex justify-center">
           <div style={{ width: '98%' }}>

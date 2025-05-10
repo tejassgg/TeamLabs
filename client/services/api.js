@@ -180,9 +180,9 @@ export const commonTypeService = {
 };
 
 export const projectService = {
-  getProjects: async (userId) => {
+  getProjects: async (userId, type) => {
     try {
-      const response = await api.get(`/projects/${userId}`);
+      const response = await api.get(`/projects/${userId}`, { params: { type } });
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch projects' };

@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import api, { authService } from '../../services/api';
 import Layout from '../../components/Layout';
-import { FaUser, FaEnvelope, FaIdCard, FaCog, FaUserMinus, FaUserCheck, FaTrash, FaCircle } from 'react-icons/fa';
-import { useTeams } from '../../context/TeamContext';
-
+import { FaCog, FaTrash } from 'react-icons/fa';
+import LoadingScreen from '../../components/LoadingScreen';
 const TeamDetailsPage = () => {
   const router = useRouter();
   const { teamId } = router.query;
@@ -245,9 +244,7 @@ const TeamDetailsPage = () => {
     <Layout>
       <div className="max-w-7xl mx-auto py-8">
         {loading ? (
-          <div className="flex items-center justify-center min-h-[200px]">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          </div>
+          <LoadingScreen />
         ) : error ? (
           <div className="text-center text-red-500">{error}</div>
         ) : (

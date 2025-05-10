@@ -167,6 +167,10 @@ const UserSchema = new mongoose.Schema({
   organizationID: {
     type: String,
     default: ''
+  },
+  role: {
+    type: String,
+    default: ''
   }
 });
 

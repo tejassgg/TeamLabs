@@ -10,6 +10,7 @@ const commonTypeRoutes = require('./routes/commonTypeRoutes');
 const teamDetailsRoutes = require('./routes/teamDetailsRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const projectDetailsRoutes = require('./routes/projectDetailsRoutes');
+const dashboardDetailsRoute = require('./routes/dashboardDetailsRoute');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
 
@@ -43,6 +44,7 @@ app.use('/api/common-types', commonTypeRoutes);
 app.use('/api/team-details', teamDetailsRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/project-details', projectDetailsRoutes);
+app.use('/api/dashboard', dashboardDetailsRoute);
 
 // Test route
 app.get('/', (req, res) => {

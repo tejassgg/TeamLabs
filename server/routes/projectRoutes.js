@@ -9,14 +9,21 @@ const ProjectDetails = require('../models/ProjectDetails');
 router.get('/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
-    // // 1. Find all TeamIDs where user is a member
-    // const teamDetails = await TeamDetails.find({ MemberID: userId, IsMemberActive: true });
-    // const teamIds = teamDetails.map(td => td.TeamID_FK);
-    // // 2. Find all ProjectIDs from ProjectDetails where TeamID is in that list
-    // const projectDetails = await ProjectDetails.find({ TeamID: { $in: teamIds }, IsActive: true });
-    // const projectIds = projectDetails.map(pd => pd.ProjectID);
-    // 3. Return only those projects
-    const projects = await Project.find({ ProjectOwner: userId});
+    let  projects = [];
+    if (req.body?.params?.type === "fetchForUser") {
+      // 1. Find all TeamIDs where user is a member
+      const teamDetails = await TeamDetails.find({ MemberID: userId, IsMemberActive: true });
+      const teamIds = teamDetails.map(td => td.TeamID_FK);
+      // 2. Find all ProjectIDs from ProjectDetails where TeamID is in that list
+      const projectDetails = await ProjectDetails.find({ TeamID: { $in: teamIds }, IsActive: true });
+      const projectIds = projectDetails.map(pd => pd.ProjectID);
+      // 3. Return only those projects
+      projects = await Project.find({ ProjectID: { $in: projectIds } });
+    }
+    else {
+      projects = await Project.find({ ProjectOwner: userId });
+    }
+
     res.json(projects);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch projects' });
@@ -27,7 +34,6 @@ router.get('/:userId', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { Name, Description, ProjectOwner, OrganizationID, FinishDate } = req.body;
-    console.log(req.body);
     if (!Name) return res.status(400).json({ error: 'Project Name is required' });
     if (!OrganizationID) return res.status(400).json({ error: 'OrganisationID is required' });
     if (!ProjectOwner) return res.status(401).json({ error: 'Unauthorized: ProjectOwner not found' });

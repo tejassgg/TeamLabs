@@ -70,6 +70,7 @@ const registerUser = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        organizationID: user.organizationID,
         token: generateToken(user._id),
       });
     } else {
@@ -106,6 +107,7 @@ const loginUser = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        organizationID: user.organizationID,
         token: generateToken(user._id),
       });
     } else {
@@ -178,6 +180,7 @@ const googleLogin = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        organizationID: user.organizationID,
         profileImage: picture,
         token: generateToken(user._id),
         needsAdditionalDetails: false
@@ -306,7 +309,7 @@ const getUserProfile = async (req, res) => {
           name: organization.Value,
           code: organization.Code
         } : null;
-
+        userProfile.organizationID = user.organizationID;
         res.json(userProfile);
       } else {
         res.json(user);

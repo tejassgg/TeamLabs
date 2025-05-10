@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import api, { authService } from '../../services/api';
 import Layout from '../../components/Layout';
-import { FaUsers, FaPlus, FaTrash, FaCheckCircle, FaTimesCircle, FaCog, FaTimes } from 'react-icons/fa';
+import { FaTrash, FaCog, FaTimes } from 'react-icons/fa';
+import LoadingScreen from '../../components/LoadingScreen';
 
 const ProjectDetailsPage = () => {
   const router = useRouter();
@@ -91,10 +92,7 @@ const ProjectDetailsPage = () => {
           clearInterval(interval);
         } else {
           const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-          const minutes = Math.floor((diff / (1000 * 60)) % 60);
-          const seconds = Math.floor((diff / 1000) % 60);
-          setDeadline(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+          setDeadline(`${days} ${days === 1 ? 'Day' : 'Days'} Left`);
         }
       }, 1000);
       return () => clearInterval(interval);
@@ -102,6 +100,55 @@ const ProjectDetailsPage = () => {
       setDeadline('No Deadline');
     }
   }, [project]);
+
+  // Helper function to get deadline status and styling
+  const getDeadlineStatus = (deadlineText) => {
+    if (deadlineText === 'Deadline Passed') {
+      return {
+        text: 'Deadline Passed',
+        bgColor: 'from-red-50 to-red-100',
+        textColor: 'text-red-700',
+        borderColor: 'border-red-200',
+        dotColor: 'bg-red-500'
+      };
+    }
+    if (deadlineText === 'No Deadline') {
+      return {
+        text: 'No Deadline',
+        bgColor: 'from-gray-50 to-gray-100',
+        textColor: 'text-gray-700',
+        borderColor: 'border-gray-200',
+        dotColor: 'bg-gray-500'
+      };
+    }
+
+    const daysLeft = parseInt(deadlineText);
+    if (daysLeft <= 3) {
+      return {
+        text: deadlineText,
+        bgColor: 'from-red-50 to-red-100',
+        textColor: 'text-red-700',
+        borderColor: 'border-red-200',
+        dotColor: 'bg-red-500'
+      };
+    } else if (daysLeft <= 7) {
+      return {
+        text: deadlineText,
+        bgColor: 'from-yellow-50 to-yellow-100',
+        textColor: 'text-yellow-700',
+        borderColor: 'border-yellow-200',
+        dotColor: 'bg-yellow-500'
+      };
+    } else {
+      return {
+        text: deadlineText,
+        bgColor: 'from-green-50 to-green-100',
+        textColor: 'text-green-700',
+        borderColor: 'border-green-200',
+        dotColor: 'bg-green-500'
+      };
+    }
+  };
 
   useEffect(() => {
     if (project) {
@@ -208,7 +255,9 @@ const ProjectDetailsPage = () => {
   };
 
   if (loading) {
-    return <Layout><div className="p-8">Loading...</div></Layout>;
+    return <Layout>
+      <LoadingScreen />
+    </Layout>;
   }
 
   if (!project) {
@@ -221,14 +270,12 @@ const ProjectDetailsPage = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold">{project.Name}</h1>
-            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
-              project.IsActive
+            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${project.IsActive
                 ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
                 : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-            }`}>
-              <span className={`w-2 h-2 rounded-full ${
-                project.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-              }`}></span>
+              }`}>
+              <span className={`w-2 h-2 rounded-full ${project.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                }`}></span>
               {project.IsActive ? 'Active' : 'Inactive'}
             </div>
           </div>
@@ -247,78 +294,21 @@ const ProjectDetailsPage = () => {
           {project.FinishDate && (
             <div className="ml-auto flex items-center gap-2">
               <span className="font-semibold text-gray-700">Deadline:</span>
-              <span className={deadline === 'Deadline Passed' ? 'text-red-600 font-bold' : 'text-blue-600 font-mono font-bold'}>{deadline}</span>
+              {(() => {
+                const status = getDeadlineStatus(deadline);
+                return (
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
+                    <span className={`w-2 h-2 rounded-full ${status.dotColor} ${deadline !== 'Deadline Passed' && deadline !== 'No Deadline' ? 'animate-pulse' : ''}`}></span>
+                    {status.text}
+                  </span>
+                );
+              })()}
             </div>
           )}
         </div>
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">Teams Assigned</h2>
-          <table className="w-full border rounded-xl overflow-hidden shadow-sm">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="py-3 px-4 text-left w-[300px]">Team Name</th>
-                <th className="py-3 px-4 text-left w-[120px]">Status</th>
-                <th className="py-3 px-4 text-left w-[180px]">Assigned Date</th>
-                {isOwner && <th className="py-3 px-4 text-center w-[250px]">Actions</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {teams.map(team => (
-                <tr key={team.TeamID} className="border-t hover:bg-gray-50 transition-colors">
-                  <td className="py-3 px-4">{orgTeams.find(t => t.TeamID === team.TeamID)?.TeamName || team.TeamID}</td>
-                  <td className="py-3 px-4">
-                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
-                      team.IsActive
-                        ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
-                        : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                    }`}>
-                      <span className={`w-2 h-2 rounded-full ${
-                        team.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                      }`}></span>
-                      {team.IsActive ? 'Active' : 'Inactive'}
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">{team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString() : '-'}</td>
-                  {isOwner && (
-                    <td className="py-3 px-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${
-                            team.IsActive
-                              ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200'
-                              : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'
-                          } ${toggling === team.TeamID ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          onClick={() => handleToggleTeamStatus(team.TeamID)}
-                          disabled={toggling === team.TeamID}
-                        >
-                          <span className={`w-2 h-2 rounded-full ${
-                            team.IsActive ? 'bg-red-500' : 'bg-green-500'
-                          }`}></span>
-                          {toggling === team.TeamID ? 'Updating...' : team.IsActive ? 'Deactivate' : 'Activate'}
-                        </button>
-                        <button
-                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200"
-                          onClick={() => {
-                            setRemovingTeam(team);
-                            setShowRemoveDialog(true);
-                          }}
-                          title="Remove Team"
-                        >
-                          <FaTrash size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))}
-              {teams.length === 0 && (
-                <tr><td colSpan={isOwner ? 4 : 3} className="text-center py-4 text-gray-400">No teams assigned to this project.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+
         {isOwner && (
-          <div className="mb-4 flex flex-col gap-2">
+          <div className="mb-6 flex flex-col gap-2">
             <label className="block text-gray-700 font-semibold mb-1">Search for a Team (search by name, description, or TeamID)</label>
             <input
               type="text"
@@ -383,6 +373,69 @@ const ProjectDetailsPage = () => {
             )}
           </div>
         )}
+
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">Teams Assigned</h2>
+          <table className="w-full border rounded-xl overflow-hidden shadow-sm">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="py-3 px-4 text-left w-[300px]">Team Name</th>
+                <th className="py-3 px-4 text-left w-[120px]">Status</th>
+                <th className="py-3 px-4 text-left w-[180px]">Assigned Date</th>
+                {isOwner && <th className="py-3 px-4 text-center w-[250px]">Actions</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {teams.map(team => (
+                <tr key={team.TeamID} className="border-t hover:bg-gray-50 transition-colors">
+                  <td className="py-3 px-4">{orgTeams.find(t => t.TeamID === team.TeamID)?.TeamName || team.TeamID}</td>
+                  <td className="py-3 px-4">
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${team.IsActive
+                        ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
+                        : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
+                      }`}>
+                      <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                        }`}></span>
+                      {team.IsActive ? 'Active' : 'Inactive'}
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">{team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString() : '-'}</td>
+                  {isOwner && (
+                    <td className="py-3 px-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
+                              ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200'
+                              : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'
+                            } ${toggling === team.TeamID ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          onClick={() => handleToggleTeamStatus(team.TeamID)}
+                          disabled={toggling === team.TeamID}
+                        >
+                          <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-red-500' : 'bg-green-500'
+                            }`}></span>
+                          {toggling === team.TeamID ? 'Updating...' : team.IsActive ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button
+                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200"
+                          onClick={() => {
+                            setRemovingTeam(team);
+                            setShowRemoveDialog(true);
+                          }}
+                          title="Remove Team"
+                        >
+                          <FaTrash size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
+              {teams.length === 0 && (
+                <tr><td colSpan={isOwner ? 4 : 3} className="text-center py-4 text-gray-400">No teams assigned to this project.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
         {showSettingsModal && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">

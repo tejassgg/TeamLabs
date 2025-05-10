@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { authService } from '../services/api';
 
-const AddProjectModal = ({ isOpen, onClose, onAddProject }) => {
+const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projectOwner }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [finishDate, setFinishDate] = useState('');
@@ -18,8 +18,8 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject }) => {
       Name: name.trim(),
       Description: description.trim(),
       FinishDate: finishDate ? new Date(finishDate) : null,
-      ProjectOwner: "",
-      OrganizationID: "",
+      ProjectOwner: projectOwner,
+      OrganizationID: organizationId,
       IsActive: false
     });
     setName('');
