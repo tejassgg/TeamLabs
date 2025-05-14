@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { authService, commonTypeService } from '../services/api';
@@ -16,9 +16,13 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
     city: '',
     state: '',
     country: '',
-    organizationID: ''
+    organizationID: '',
+    role: '',
+    phoneExtension: ''
   });
   const [orgOptions, setOrgOptions] = useState([]);
+  const [roleOptions, setRoleOptions] = useState([]);
+  const [phoneExtensions, setPhoneExtensions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -36,7 +40,9 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
           city: profile.city || '',
           state: profile.state || '',
           country: profile.country || '',
-          organizationID: profile.organizationID || ''
+          organizationID: profile.organizationID || '',
+          role: profile.role || 'User',
+          phoneExtension: profile.phoneExtension || ''
         });
       } catch (err) {
         console.error('Error fetching user profile:', err);
@@ -46,15 +52,34 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
     fetchUserProfile();
   }, []);
 
-  // Fetch organizations for dropdown
+  // Fetch organizations and roles for dropdowns
   useEffect(() => {
-    commonTypeService.getOrganizations()
-      .then(setOrgOptions)
-      .catch(() => setOrgOptions([]));
-  }, []);
+
+    Promise.all([
+      commonTypeService.getOrganizations(),
+      commonTypeService.getUserRoles(),
+      commonTypeService.getPhoneExtensions()
+    ])
+      .then(([orgs, roles, extensions]) => {
+        setOrgOptions(orgs);
+        // Filter out Admin role if user is not an admin
+        const filteredRoles = roles.filter(role => {
+          // If user is not an admin, hide the Admin role
+          if (user?.role !== 'Admin' && role.Value === 'Admin') {
+            return false;
+          }
+          return true;
+        });
+        setRoleOptions(filteredRoles);
+        setPhoneExtensions(extensions);
+      })
+      .catch(() => {
+        setOrgOptions([]);
+        setRoleOptions([]);
+      });
+  }, [user?.role]);
 
   const totalSteps = 3;
-  const progress = (currentStep / totalSteps) * 100;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,16 +107,34 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
         return (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                required
-                placeholder="+1 (555) 555-5555"
-              />
+              <div className="flex gap-4">
+                <div className="w-[25%]">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Ext</label>
+                  <select
+                    name="phoneExtension"
+                    value={formData.phoneExtension}
+                    onChange={e => setFormData({ ...formData, phoneExtension: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    required
+                  >
+                    {phoneExtensions.map(ext => (
+                      <option key={ext.Code} value={ext.Value}>{ext.Value}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    required
+                    placeholder="+1 (555) 555-5555"
+                  />
+                </div>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Middle Name</label>
@@ -103,6 +146,21 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 placeholder="Optional"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={e => setFormData({ ...formData, role: e.target.value })}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                required
+              >
+                <option value="">Select Role</option>
+                {roleOptions.map(role => (
+                  <option key={role.Code} value={role.Value}>{role.Value}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Organization</label>
@@ -211,6 +269,18 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
                   <p className="text-sm font-medium text-gray-500">Middle Name</p>
                   <p className="mt-1 text-gray-700">{formData.middleName || 'Not provided'}</p>
                 </div>
+                <div className="bg-white/50 backdrop-blur-sm p-4 rounded-xl">
+                  <p className="text-sm font-medium text-gray-500">Role</p>
+                  <p className="mt-1 text-gray-700">
+                    {roleOptions.find(role => role.Code === formData.role)?.Value || 'Not provided'}
+                  </p>
+                </div>
+                <div className="bg-white/50 backdrop-blur-sm p-4 rounded-xl">
+                  <p className="text-sm font-medium text-gray-500">Organization</p>
+                  <p className="mt-1 text-gray-700">
+                    {orgOptions.find(org => org.Code === formData.organizationID)?.Value || 'Not provided'}
+                  </p>
+                </div>
                 <div className="col-span-2 bg-white/50 backdrop-blur-sm p-4 rounded-xl">
                   <p className="text-sm font-medium text-gray-500">Address</p>
                   <p className="mt-1 text-gray-700">
@@ -277,7 +347,7 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
             disabled={loading}
             className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-sm hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
-            {loading ? 'Saving...' : 'Save Changes'}
+            {loading ? 'Saving...' : currentStep < totalSteps ? 'Next' : 'Save Changes'}
           </button>
         </div>
       </form>

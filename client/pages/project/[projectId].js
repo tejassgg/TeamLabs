@@ -23,12 +23,19 @@ const ProjectDetailsPage = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [deadline, setDeadline] = useState('');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [settingsForm, setSettingsForm] = useState({ Name: '', Description: '', FinishDate: '' });
+  const [projectStatuses, setProjectStatuses] = useState([]);
+  const [settingsForm, setSettingsForm] = useState({
+    Name: '',
+    Description: '',
+    FinishDate: '',
+    ProjectStatusID: 1 // Default to 'Not Assigned'
+  });
   const [savingSettings, setSavingSettings] = useState(false);
   const [togglingStatus, setTogglingStatus] = useState(false);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [removingTeam, setRemovingTeam] = useState(null);
   const [removing, setRemoving] = useState(false);
+  const [currentProjectStatus, setCurrentProjectStatus] = useState(null);
 
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
@@ -155,7 +162,8 @@ const ProjectDetailsPage = () => {
       setSettingsForm({
         Name: project.Name || '',
         Description: project.Description || '',
-        FinishDate: project.FinishDate ? new Date(project.FinishDate).toISOString().slice(0, 10) : ''
+        FinishDate: project.FinishDate ? new Date(project.FinishDate).toISOString().slice(0, 10) : '',
+        ProjectStatusID: project.ProjectStatusID || 1
       });
     }
   }, [project]);
@@ -210,6 +218,7 @@ const ProjectDetailsPage = () => {
         Name: settingsForm.Name,
         Description: settingsForm.Description,
         FinishDate: settingsForm.FinishDate,
+        ProjectStatusID: settingsForm.ProjectStatusID,
         ModifiedBy: currentUser._id,
         ModifiedDate: new Date()
       });
@@ -254,6 +263,35 @@ const ProjectDetailsPage = () => {
     }
   };
 
+  // Add useEffect to fetch project statuses
+  useEffect(() => {
+    const fetchProjectStatuses = async () => {
+      try {
+        const response = await api.get('/common-types/project-statuses');
+        setProjectStatuses(response.data);
+      } catch (err) {
+        console.error('Failed to fetch project statuses:', err);
+      }
+    };
+    fetchProjectStatuses();
+  }, []);
+
+  // Add useEffect to fetch current project status
+  useEffect(() => {
+    const fetchCurrentProjectStatus = async () => {
+      if (project?.ProjectStatusID) {
+        try {
+          const response = await api.get('/common-types/project-statuses');
+          const status = response.data.find(s => s.Code === project.ProjectStatusID);
+          setCurrentProjectStatus(status);
+        } catch (err) {
+          console.error('Failed to fetch project status:', err);
+        }
+      }
+    };
+    fetchCurrentProjectStatus();
+  }, [project?.ProjectStatusID]);
+
   if (loading) {
     return <Layout>
       <LoadingScreen />
@@ -269,7 +307,16 @@ const ProjectDetailsPage = () => {
       <div className="max-w-7xl mx-auto py-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold">{project.Name}</h1>
+            <h1 className="text-3xl font-bold pr-8">{project.Name}</h1>
+            {currentProjectStatus && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border border-blue-200">
+                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                {currentProjectStatus.Value}
+              </div>
+            )}
+          </div>
+          {isOwner && (
+            <div className="flex items-center gap-2">
             <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${project.IsActive
                 ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
                 : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
@@ -278,8 +325,6 @@ const ProjectDetailsPage = () => {
                 }`}></span>
               {project.IsActive ? 'Active' : 'Inactive'}
             </div>
-          </div>
-          {isOwner && (
             <button
               className="p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors"
               title="Project Settings"
@@ -287,6 +332,7 @@ const ProjectDetailsPage = () => {
             >
               <FaCog size={20} />
             </button>
+            </div>
           )}
         </div>
         <div className="flex items-center gap-4 mb-4">
@@ -380,48 +426,65 @@ const ProjectDetailsPage = () => {
             <thead>
               <tr className="bg-gray-50">
                 <th className="py-3 px-4 text-left w-[300px]">Team Name</th>
-                <th className="py-3 px-4 text-left w-[120px]">Status</th>
-                <th className="py-3 px-4 text-left w-[180px]">Assigned Date</th>
-                {isOwner && <th className="py-3 px-4 text-center w-[250px]">Actions</th>}
+                <th className="py-3 px-4 text-left w-[200px]">Date Added</th>
+                <th className="py-3 px-4 text-center w-[150px]">Status</th>
+                {isOwner && <th className="py-3 px-4 text-center w-[150px]">Actions</th>}
               </tr>
             </thead>
             <tbody>
-              {teams.map(team => (
+              {teams.map(team => {
+                const teamDetails = orgTeams.find(t => t.TeamID === team.TeamID);
+                return (
                 <tr key={team.TeamID} className="border-t hover:bg-gray-50 transition-colors">
-                  <td className="py-3 px-4">{orgTeams.find(t => t.TeamID === team.TeamID)?.TeamName || team.TeamID}</td>
                   <td className="py-3 px-4">
-                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${team.IsActive
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                          {teamDetails?.TeamName.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{teamDetails?.TeamName || team.TeamID}</span>
+                          {teamDetails?.TeamDescription && (
+                            <span className="text-sm text-gray-500">{teamDetails.TeamDescription}</span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">{team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
+                    <td className="py-3 px-4 text-center">
+                      <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
+                        team.IsActive 
                         ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
                         : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
                       }`}>
-                      <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                        <span className={`w-2 h-2 rounded-full ${
+                          team.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
                         }`}></span>
                       {team.IsActive ? 'Active' : 'Inactive'}
                     </div>
                   </td>
-                  <td className="py-3 px-4">{team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString() : '-'}</td>
                   {isOwner && (
                     <td className="py-3 px-4 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
-                              ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200'
-                              : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'
-                            } ${toggling === team.TeamID ? 'opacity-50 cursor-not-allowed' : ''}`}
                           onClick={() => handleToggleTeamStatus(team.TeamID)}
+                            className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${
+                              team.IsActive
+                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                : 'bg-green-100 text-green-700 hover:bg-green-200'
+                            }`}
+                            title={team.IsActive ? 'Revoke Access' : 'Grant Access'}
                           disabled={toggling === team.TeamID}
                         >
-                          <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-red-500' : 'bg-green-500'
-                            }`}></span>
-                          {toggling === team.TeamID ? 'Updating...' : team.IsActive ? 'Deactivate' : 'Activate'}
+                            <FaCog size={14} />
                         </button>
                         <button
-                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200"
                           onClick={() => {
                             setRemovingTeam(team);
                             setShowRemoveDialog(true);
                           }}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200"
                           title="Remove Team"
+                            disabled={removing}
                         >
                           <FaTrash size={14} />
                         </button>
@@ -429,7 +492,8 @@ const ProjectDetailsPage = () => {
                     </td>
                   )}
                 </tr>
-              ))}
+                );
+              })}
               {teams.length === 0 && (
                 <tr><td colSpan={isOwner ? 4 : 3} className="text-center py-4 text-gray-400">No teams assigned to this project.</td></tr>
               )}
@@ -437,15 +501,15 @@ const ProjectDetailsPage = () => {
           </table>
         </div>
         {showSettingsModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Edit Project Settings</h3>
+                <h3 className="text-lg font-semibold">Project Settings</h3>
                 <button
                   onClick={() => setShowSettingsModal(false)}
-                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                  className="text-gray-400 hover:text-gray-500"
                 >
-                  <FaTimes />
+                  <FaTimes size={20} />
                 </button>
               </div>
               <form onSubmit={handleSettingsSave} className="space-y-4">
@@ -479,6 +543,20 @@ const ProjectDetailsPage = () => {
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Project Status</label>
+                  <select
+                    value={settingsForm.ProjectStatusID}
+                    onChange={e => setSettingsForm(f => ({ ...f, ProjectStatusID: Number(e.target.value) }))}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  >
+                    {projectStatuses.map(status => (
+                      <option key={status.Code} value={status.Code}>
+                        {status.Value}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="flex justify-between items-center pt-4">
                   <button
                     type="button"
@@ -486,7 +564,7 @@ const ProjectDetailsPage = () => {
                     className={`px-4 py-2.5 rounded-xl font-medium transition-all duration-200 ${project.IsActive ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
                     disabled={togglingStatus}
                   >
-                    {togglingStatus ? 'Updating...' : project.IsActive ? 'Deactivate Project' : 'Activate Project'}
+                    {togglingStatus ? 'Updating...' : project.IsActive ? 'Mark In Active' : 'Mark Active'}
                   </button>
                   <button
                     type="submit"

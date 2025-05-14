@@ -23,7 +23,8 @@ const registerUser = async (req, res) => {
       firstName, 
       lastName, 
       middleName, 
-      phone, 
+      phone,
+      phoneExtension,
       email, 
       password,
       address,
@@ -48,6 +49,7 @@ const registerUser = async (req, res) => {
       lastName,
       middleName,
       phone,
+      phoneExtension: phoneExtension || '+1', // Use provided extension or default
       email,
       password,
       address,
@@ -56,6 +58,8 @@ const registerUser = async (req, res) => {
       city,
       state,
       country,
+      role: 'User',
+      organizationID: null,
       lastLogin: new Date(),
     });
 
@@ -70,7 +74,10 @@ const registerUser = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        phone: user.phone,
+        phoneExtension: user.phoneExtension,
         organizationID: user.organizationID,
+        role: user.role,
         token: generateToken(user._id),
       });
     } else {
@@ -87,10 +94,15 @@ const registerUser = async (req, res) => {
 // @access  Public
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { usernameOrEmail, password } = req.body;
 
-    // Find user by email
-    const user = await User.findOne({ email });
+    // Find user by username or email
+    const user = await User.findOne({
+      $or: [
+        { email: usernameOrEmail.toLowerCase() },
+        { username: usernameOrEmail }
+      ]
+    });
 
     // Check if user exists and password is correct
     if (user && (await user.comparePassword(password))) {
@@ -107,6 +119,7 @@ const loginUser = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        role: user.role,
         organizationID: user.organizationID,
         token: generateToken(user._id),
       });
@@ -118,7 +131,7 @@ const loginUser = async (req, res) => {
         // Log failed login attempt for non-existent user
         await logActivity(null, 'login_failed', 'failed', 'User not found', req, 'email');
       }
-      res.status(401).json({ message: 'Invalid email or password' });
+      res.status(401).json({ message: 'Invalid username/email or password' });
     }
   } catch (error) {
     console.error(error);
@@ -183,6 +196,7 @@ const googleLogin = async (req, res) => {
         organizationID: user.organizationID,
         profileImage: picture,
         token: generateToken(user._id),
+        role: user.role,
         needsAdditionalDetails: false
       });
     } else {
@@ -209,7 +223,8 @@ const googleLogin = async (req, res) => {
         zipCode: null,
         city: null,
         state: null,
-        country: null
+        country: null,
+        role: 'User'
       });
       
       // Log successful Google login for new user
@@ -224,6 +239,7 @@ const googleLogin = async (req, res) => {
         profileImage: picture,
         token: generateToken(user._id),
         needsAdditionalDetails: true,
+        role: user.role,
         message: 'Please complete your profile with additional details'
       });
     }
@@ -240,7 +256,19 @@ const googleLogin = async (req, res) => {
 // @access  Private
 const completeUserProfile = async (req, res) => {
   try {
-    const { phone, middleName, address, aptNumber, zipCode, city, state, country, organizationID } = req.body;
+    const { 
+      phone, 
+      phoneExtension,
+      middleName, 
+      address, 
+      aptNumber, 
+      zipCode, 
+      city, 
+      state, 
+      country, 
+      organizationID, 
+      role 
+    } = req.body;
     
     const user = await User.findById(req.user._id);
     
@@ -250,6 +278,7 @@ const completeUserProfile = async (req, res) => {
     
     // Update user profile with additional details
     user.phone = phone;
+    user.phoneExtension = phoneExtension || user.phoneExtension; // Keep existing if not provided
     user.middleName = middleName;
     user.address = address;
     user.aptNumber = aptNumber;
@@ -258,6 +287,19 @@ const completeUserProfile = async (req, res) => {
     user.state = state;
     user.country = country;
     user.organizationID = organizationID;
+
+    if (role) {
+      // Verify that the role exists in CommonTypes
+      const CommonType = require('../models/CommonType');
+      const roleExists = await CommonType.findOne({
+        MasterType: 'UserRole',
+        Value: role
+      });
+      if (!roleExists) {
+        return res.status(400).json({ message: 'Invalid role' });
+      }
+      user.role = role;
+    }
     
     await user.save();
 
@@ -271,6 +313,7 @@ const completeUserProfile = async (req, res) => {
       lastName: user.lastName,
       email: user.email,
       phone: user.phone,
+      phoneExtension: user.phoneExtension,
       middleName: user.middleName,
       address: user.address,
       aptNumber: user.aptNumber,
@@ -279,7 +322,8 @@ const completeUserProfile = async (req, res) => {
       state: user.state,
       country: user.country,
       organizationID: user.organizationID,
-      needsAdditionalDetails: false
+      needsAdditionalDetails: false,
+      role: user.role
     });
   } catch (error) {
     console.error(error);

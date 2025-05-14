@@ -6,6 +6,7 @@ const User = require('../models/User');
 const CommonType = require('../models/CommonType');
 const ProjectDetails = require('../models/ProjectDetails');
 const Project = require('../models/Project');
+const UserActivity = require('../models/UserActivity');
 
 // Middleware to check if requester is the team owner
 async function checkOwner(req, res, next) {
@@ -35,6 +36,22 @@ router.get('/:teamId', async (req, res) => {
     const memberIds = teamDetails.map(detail => detail.MemberID);
     const users = await User.find({ _id: { $in: memberIds } });
 
+    // Get last login timestamps for all members
+    const lastLogins = await UserActivity.find({
+      user: { $in: memberIds },
+      type: 'login',
+      status: 'success'
+    }).sort({ timestamp: -1 });
+
+    // Create a map of user's last login
+    const lastLoginMap = {};
+    lastLogins.forEach(login => {
+      if (!lastLoginMap[login.user.toString()] || 
+          new Date(login.timestamp) > new Date(lastLoginMap[login.user.toString()])) {
+        lastLoginMap[login.user.toString()] = login.timestamp;
+      }
+    });
+
     // Combine team details with user information
     const members = teamDetails.map(detail => {
       const user = users.find(u => u._id.toString() === detail.MemberID);
@@ -44,6 +61,7 @@ router.get('/:teamId', async (req, res) => {
         IsMemberActive: detail.IsMemberActive,
         name: user ? `${user.firstName} ${user.lastName}` : 'Unknown User',
         email: user ? user.email : '',
+        lastLogin: lastLoginMap[detail.MemberID] || null,
         CreatedDate: detail.CreatedDate,
         ModifiedDate: detail.ModifiedDate
       };
@@ -228,6 +246,46 @@ router.get('/:teamId/active-projects', async (req, res) => {
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch projects for team' });
+  }
+});
+
+// DELETE /api/team-details/:teamId - delete a team
+router.delete('/:teamId', checkOwner, async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const { userId } = req.body; // Get userId from request body
+
+    // Find the team and verify ownership
+    const team = await Team.findOne({ TeamID: teamId });
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    // Start a session for transaction
+    const session = await Team.startSession();
+    session.startTransaction();
+
+    try {
+      // Delete team details (members)
+      await TeamDetails.deleteMany({ TeamID_FK: teamId }, { session });
+      
+      // Delete the team
+      await Team.deleteOne({ TeamID: teamId }, { session });
+
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+
+      res.json({ message: 'Team deleted successfully' });
+    } catch (error) {
+      // If an error occurs, abort the transaction
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+  } catch (err) {
+    console.error('Error deleting team:', err);
+    res.status(500).json({ error: 'Failed to delete team' });
   }
 });
 

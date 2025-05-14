@@ -27,10 +27,10 @@ api.interceptors.request.use(
 
 // Authentication services
 export const authService = {
-  // Login with email and password
-  login: async (email, password) => {
+  // Login with username/email and password
+  login: async (usernameOrEmail, password) => {
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', { usernameOrEmail, password });
       if (response.data.token) {
         Cookies.set('token', response.data.token, { expires: 30 });
         localStorage.setItem('user', JSON.stringify(response.data));
@@ -113,7 +113,16 @@ export const authService = {
   async completeProfile(profileData) {
     try {
       const response = await api.put('/auth/complete-profile', profileData);
-      console.log(response.data);
+      // Update localStorage with the new user data
+      const currentUser = JSON.parse(localStorage.getItem('user'));
+      if (currentUser) {
+        const updatedUser = {
+          ...currentUser,
+          ...response.data,
+          token: currentUser.token // Preserve the token
+        };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to complete profile' };
@@ -142,9 +151,9 @@ export const authService = {
 };
 
 export const teamService = {
-  getTeams: async () => {
+  getTeams: async (role, userId) => {
     try {
-      const response = await api.get('/teams');
+      const response = await api.get(`/teams/${role}/${userId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch teams' };
@@ -156,6 +165,14 @@ export const teamService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to add team' };
+    }
+  },
+  deleteTeam: async (teamId, userId) => {
+    try {
+      const response = await api.delete(`/teams/${teamId}`, { data: { userId } });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to delete team' };
     }
   }
 };
@@ -176,13 +193,29 @@ export const commonTypeService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch organizations' };
     }
+  },
+  getUserRoles: async () => {
+    try {
+      const response = await api.get('/common-types/user-roles');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch user roles' };
+    }
+  },
+  getPhoneExtensions: async () => {
+    try {
+      const response = await api.get('/common-types/phone-extensions');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch phone extensions' };
+    }
   }
 };
 
 export const projectService = {
   getProjects: async (userId, type) => {
     try {
-      const response = await api.get(`/projects/${userId}`, { params: { type } });
+      const response = await api.get(`/projects/${userId}/${type}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch projects' };

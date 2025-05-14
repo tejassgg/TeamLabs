@@ -32,7 +32,7 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
 
   // Add page size options
-  const pageSizeOptions = [5, 10, 15, 20];
+  const pageSizeOptions = [5, 10, 15];
 
   // Add handler for page size change
   const handlePageSizeChange = (newSize) => {
@@ -150,36 +150,6 @@ const Profile = () => {
 
   const handlePageChange = (newPage) => {
     setPagination(prev => ({ ...prev, page: newPage }));
-  };
-
-  const getActivityStats = (activities) => {
-    const stats = {
-      total: activities.length,
-      byType: {},
-      byStatus: {
-        success: 0,
-        failed: 0
-      },
-      byLoginMethod: {
-        email: 0,
-        google: 0
-      }
-    };
-
-    activities.forEach(activity => {
-      // Count by type
-      stats.byType[activity.type] = (stats.byType[activity.type] || 0) + 1;
-      
-      // Count by status
-      stats.byStatus[activity.status]++;
-      
-      // Count by login method (if applicable)
-      if (activity.loginMethod) {
-        stats.byLoginMethod[activity.loginMethod]++;
-      }
-    });
-
-    return stats;
   };
 
   const getDateRange = (activities) => {

@@ -2,10 +2,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import api, { authService } from '../../services/api';
 import Layout from '../../components/Layout';
-import { FaCog, FaTrash } from 'react-icons/fa';
+import { FaCog, FaTrash, FaTimes } from 'react-icons/fa';
 import LoadingScreen from '../../components/LoadingScreen';
+import { useAuth } from '../../context/AuthContext';
+import { useGlobal } from '../../context/GlobalContext';
+
 const TeamDetailsPage = () => {
   const router = useRouter();
+  const { user } = useAuth();
   const { teamId } = router.query;
   const [team, setTeam] = useState(null);
   const [members, setMembers] = useState([]);
@@ -40,6 +44,9 @@ const TeamDetailsPage = () => {
   const [showInactiveMemberDialog, setShowInactiveMemberDialog] = useState(false);
   const [selectedInactiveMember, setSelectedInactiveMember] = useState(null);
   const [activeProjects, setActiveProjects] = useState([]);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingTeam, setDeletingTeam] = useState(false);
+  const { teams, setTeams } = useGlobal();
 
   const teamColors = [
     { value: '#3B82F6', name: 'Blue' },
@@ -153,7 +160,7 @@ const TeamDetailsPage = () => {
     setToggling(memberId);
     setError('');
     try {
-      await api.patch(`/team-details/${teamId}/member/${memberId}/toggle`, {OwnerID: team.OwnerID});
+      await api.patch(`/team-details/${teamId}/member/${memberId}/toggle`, { OwnerID: team.OwnerID });
       // Refresh members
       const res = await api.get(`/team-details/${teamId}`);
       setMembers(res.data.members);
@@ -170,7 +177,7 @@ const TeamDetailsPage = () => {
     setTogglingTeam(true);
     setError('');
     try {
-      await api.patch(`/team-details/${teamId}/toggle-status`, {OwnerID: team.OwnerID});
+      await api.patch(`/team-details/${teamId}/toggle-status`, { OwnerID: team.OwnerID });
       // Refresh team data
       const res = await api.get(`/team-details/${teamId}`);
       setTeam(res.data.team);
@@ -211,9 +218,9 @@ const TeamDetailsPage = () => {
         TeamDescription: settingsForm.TeamDescription,
         TeamType: settingsForm.TeamType,
         TeamColor: settingsForm.TeamColor,
-        OwnerID: team.OwnerID
+        OwnerID: user?._id
       });
-      
+
       // Refresh team data
       setTeam(res.data.team);
       setShowSettingsModal(false);
@@ -224,19 +231,21 @@ const TeamDetailsPage = () => {
     }
   };
 
-  const handleMemberAction = (member, action) => {
-    if (!member.IsMemberActive) {
-      setSelectedInactiveMember(member);
-      setShowInactiveMemberDialog(true);
-      return;
-    }
-
-    if (action === 'revoke') {
-      setSelectedMember(member);
-      setShowRevokeDialog(true);
-    } else if (action === 'remove') {
-      setSelectedMember(member);
-      setShowRemoveDialog(true);
+  const handleDeleteTeam = async () => {
+    setDeletingTeam(true);
+    setError('');
+    console.table(teams);
+    try {
+      const res = await api.delete(`/team-details/${teamId}`, {
+        data: { OwnerID: user?._id }
+      });
+      setTeams(teams.filter(t => t.TeamID !== teamId));
+      router.push('/dashboard');
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Failed to delete team');
+      setShowDeleteDialog(false);
+    } finally {
+      setDeletingTeam(false);
     }
   };
 
@@ -252,25 +261,25 @@ const TeamDetailsPage = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold">{team.TeamName}</h1>
-                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
-                  team.IsActive 
-                    ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200' 
-                    : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                }`}>
-                  <span className={`w-2 h-2 rounded-full ${
-                    team.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                  }`}></span>
-                  {team.IsActive ? 'Active' : 'Inactive'}
-                </div>
               </div>
               {isOwner && (
-                <button
-                  onClick={() => setShowSettingsModal(true)}
-                  className="p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors"
-                  title="Team Settings"
-                >
-                  <FaCog size={20} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${team.IsActive
+                    ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
+                    : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
+                    }`}>
+                    <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                      }`}></span>
+                    {team.IsActive ? 'Active' : 'InActive'}
+                  </div>
+                  <button
+                    onClick={() => setShowSettingsModal(true)}
+                    className="p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors"
+                    title="Team Settings"
+                  >
+                    <FaCog size={20} />
+                  </button>
+                </div>
               )}
             </div>
             <div className="flex items-center gap-4 mb-4">
@@ -281,7 +290,7 @@ const TeamDetailsPage = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-2">Team Members</h2>
               {isOwner && (
@@ -370,10 +379,11 @@ const TeamDetailsPage = () => {
               <table className="w-full border rounded-xl overflow-hidden shadow-sm">
                 <thead>
                   <tr className="bg-gray-50">
-                    <th className="py-3 px-4 text-left w-[300px]">Name</th>
-                    <th className="py-3 px-4 text-left w-[300px]">Email</th>
-                    <th className="py-3 px-4 text-left w-[120px]">Status</th>
-                    {isOwner && <th className="py-3 px-4 text-center w-[250px]">Actions</th>}
+                    <th className="py-3 px-4 text-left w-[300px]">Member</th>
+                    <th className="py-3 px-4 text-left w-[200px]">Date Added</th>
+                    <th className="py-3 px-4 text-left w-[200px]">Last Active</th>
+                    <th className="py-3 px-4 text-center w-[150px]">Status</th>
+                    {isOwner && <th className="py-3 px-4 text-center w-[150px]">Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -384,19 +394,34 @@ const TeamDetailsPage = () => {
                           <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
                             {member.name.split(' ').map(n => n[0]).join('')}
                           </div>
-                          <span className="font-medium">{member.name}</span>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{member.name}</span>
+                            <span className="text-sm text-gray-500">{member.email}</span>
+                          </div>
                         </div>
                       </td>
-                      <td className="py-3 px-4">{member.email}</td>
+                      <td className="py-3 px-4">{new Date(member.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
                       <td className="py-3 px-4">
-                        <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
-                          member.IsMemberActive 
-                            ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200' 
-                            : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                        }`}>
-                          <span className={`w-2 h-2 rounded-full ${
-                            member.IsMemberActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                          }`}></span>
+                        {member.lastLogin ? (
+                          <div className="flex flex-col">
+                            <span className="text-sm text-gray-900">
+                              {new Date(member.lastLogin).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
+                              <span className="text-xs text-gray-500">
+                                &nbsp; {new Date(member.lastLogin).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400">Never</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${member.IsMemberActive
+                          ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
+                          : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
+                          }`}>
+                          <span className={`w-2 h-2 rounded-full ${member.IsMemberActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                            }`}></span>
                           {member.IsMemberActive ? 'Active' : 'Inactive'}
                         </div>
                       </td>
@@ -404,23 +429,37 @@ const TeamDetailsPage = () => {
                         <td className="py-3 px-4 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
-                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${
-                                member.IsMemberActive 
-                                  ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200' 
-                                  : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'
-                              } ${toggling === member.MemberID ? 'opacity-50 cursor-not-allowed' : ''}`}
-                              onClick={() => handleMemberAction(member, 'revoke')}
-                              disabled={toggling === member.MemberID}
+                              onClick={() => {
+                                if (!member.IsMemberActive) {
+                                  setSelectedInactiveMember(member);
+                                  setShowInactiveMemberDialog(true);
+                                  return;
+                                }
+                                setSelectedMember(member);
+                                setShowRevokeDialog(true);
+                              }}
+                              className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${member.IsMemberActive
+                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                }`}
+                              title={member.IsMemberActive ? 'Revoke Access' : 'Grant Access'}
+                              disabled={toggling === member.TeamDetailsID}
                             >
-                              <span className={`w-2 h-2 rounded-full ${
-                                member.IsMemberActive ? 'bg-red-500' : 'bg-green-500'
-                              }`}></span>
-                              {toggling === member.MemberID ? 'Updating...' : member.IsMemberActive ? 'Revoke Access' : 'Grant Access'}
+                              <FaCog size={14} />
                             </button>
                             <button
-                              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200"
-                              onClick={() => handleMemberAction(member, 'remove')}
+                              onClick={() => {
+                                if (!member.IsMemberActive) {
+                                  setSelectedInactiveMember(member);
+                                  setShowInactiveMemberDialog(true);
+                                  return;
+                                }
+                                setSelectedMember(member);
+                                setShowRemoveDialog(true);
+                              }}
+                              className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200"
                               title="Remove Member"
+                              disabled={removing === member.TeamDetailsID}
                             >
                               <FaTrash size={14} />
                             </button>
@@ -430,7 +469,7 @@ const TeamDetailsPage = () => {
                     </tr>
                   ))}
                   {members.length === 0 && (
-                    <tr><td colSpan={isOwner ? 4 : 3} className="text-center py-4 text-gray-400">No members</td></tr>
+                    <tr><td colSpan={isOwner ? 5 : 4} className="text-center py-4 text-gray-400">No members</td></tr>
                   )}
                 </tbody>
               </table>
@@ -441,15 +480,14 @@ const TeamDetailsPage = () => {
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className={`w-3 h-3 rounded-full ${
-                      selectedMember.IsMemberActive ? 'bg-red-500' : 'bg-green-500'
-                    }`}></span>
+                    <span className={`w-3 h-3 rounded-full ${selectedMember.IsMemberActive ? 'bg-red-500' : 'bg-green-500'
+                      }`}></span>
                     <h3 className="text-lg font-semibold">
                       {selectedMember.IsMemberActive ? 'Revoke Access' : 'Grant Access'}
                     </h3>
                   </div>
                   <p className="text-gray-600 mb-6">
-                    {selectedMember.IsMemberActive 
+                    {selectedMember.IsMemberActive
                       ? `Are you sure you want to revoke access for ${selectedMember.name}? This will prevent them from accessing team resources.`
                       : `Are you sure you want to grant access for ${selectedMember.name}? This will allow them to access team resources.`}
                   </p>
@@ -465,11 +503,10 @@ const TeamDetailsPage = () => {
                     </button>
                     <button
                       onClick={() => handleToggleStatus(selectedMember.MemberID)}
-                      className={`px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 ${
-                        selectedMember.IsMemberActive 
-                          ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' 
-                          : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
-                      }`}
+                      className={`px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 ${selectedMember.IsMemberActive
+                        ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
+                        : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                        }`}
                       disabled={toggling === selectedMember.MemberID}
                     >
                       {toggling === selectedMember.MemberID ? 'Updating...' : 'Confirm'}
@@ -574,36 +611,48 @@ const TeamDetailsPage = () => {
                           <button
                             type="button"
                             onClick={() => setShowConfirmDialog(true)}
-                            className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 ${
-                              team.IsActive 
-                                ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200' 
-                                : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'
-                            } ${togglingTeam ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
+                              ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200'
+                              : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'
+                              } ${togglingTeam ? 'opacity-50 cursor-not-allowed' : ''}`}
                             disabled={togglingTeam}
                           >
-                            <span className={`w-2 h-2 rounded-full ${
-                              team.IsActive ? 'bg-red-500' : 'bg-green-500'
-                            }`}></span>
+                            <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-red-500' : 'bg-green-500'
+                              }`}></span>
                             {togglingTeam ? 'Updating...' : team.IsActive ? 'Deactivate Team' : 'Activate Team'}
                           </button>
                         </div>
                       )}
                     </div>
-                    <div className="flex justify-end gap-3 pt-4">
-                      <button
-                        type="button"
-                        onClick={() => setShowSettingsModal(false)}
-                        className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200"
-                        disabled={savingSettings}
-                      >
-                        {savingSettings ? 'Saving...' : 'Save Changes'}
-                      </button>
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200 mt-6">
+                      <div className="flex gap-3">
+                        {isOwner && (
+                          <button
+                            type="button"
+                            onClick={() => setShowDeleteDialog(true)}
+                            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200 transition-all duration-200"
+                          >
+                            <FaTrash className="w-4 h-4" />
+                            Delete Team
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowSettingsModal(false)}
+                          className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200"
+                          disabled={savingSettings}
+                        >
+                          {savingSettings ? 'Saving...' : 'Save Changes'}
+                        </button>
+                      </div>
                     </div>
                   </form>
                 </div>
@@ -615,15 +664,14 @@ const TeamDetailsPage = () => {
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className={`w-3 h-3 rounded-full ${
-                      team.IsActive ? 'bg-red-500' : 'bg-green-500'
-                    }`}></span>
+                    <span className={`w-3 h-3 rounded-full ${team.IsActive ? 'bg-red-500' : 'bg-green-500'
+                      }`}></span>
                     <h3 className="text-lg font-semibold">
                       {team.IsActive ? 'Deactivate Team' : 'Activate Team'}
                     </h3>
                   </div>
                   <p className="text-gray-600 mb-6">
-                    {team.IsActive 
+                    {team.IsActive
                       ? 'Are you sure you want to deactivate this team? This will prevent members from accessing team resources.'
                       : 'Are you sure you want to activate this team? This will allow members to access team resources.'}
                   </p>
@@ -636,11 +684,10 @@ const TeamDetailsPage = () => {
                     </button>
                     <button
                       onClick={handleToggleTeamStatus}
-                      className={`px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 ${
-                        team.IsActive 
-                          ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' 
-                          : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
-                      }`}
+                      className={`px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 ${team.IsActive
+                        ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
+                        : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                        }`}
                       disabled={togglingTeam}
                     >
                       {togglingTeam ? 'Updating...' : 'Confirm'}
@@ -726,46 +773,40 @@ const TeamDetailsPage = () => {
 
             {/* Projects Table */}
             <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-2">Projects</h2>
+              <h2 className="text-xl font-semibold mb-2">Projects Assigned</h2>
               {activeProjects.length > 0 ? (
                 <table className="w-full border rounded-xl overflow-hidden shadow-sm">
                   <thead>
                     <tr className="bg-gray-50">
                       <th className="py-3 px-4 text-left">Project Name</th>
-                      <th className="py-3 px-4 text-left">Assigned Date</th>
+                      <th className="py-3 px-4 text-left">Date Assigned</th>
                       <th className="py-3 px-4 text-left">Deadline</th>
-                      <th className="py-3 px-4 text-left">Project Status</th>
-                      <th className="py-3 px-4 text-left">Team Status</th>
+                      <th className="py-3 px-4 text-center">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {activeProjects.map(proj => (
                       <tr key={proj.ProjectID} className="border-t hover:bg-gray-50 transition-colors">
                         <td className="py-3 px-4 font-medium">{proj.Name}</td>
-                        <td className="py-3 px-4">{proj.AssignedDate ? new Date(proj.AssignedDate).toLocaleDateString() : '-'}</td>
-                        <td className="py-3 px-4">{proj.FinishDate ? new Date(proj.FinishDate).toLocaleDateString() : '-'}</td>
-                        <td className="py-3 px-4">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
-                            proj.IsActive
-                              ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
-                              : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                          }`}>
-                            <span className={`w-2 h-2 rounded-full ${
-                              proj.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                            }`}></span>
-                            {proj.IsActive ? 'Active' : 'Inactive'}
+                        <td className="py-3 px-4">{proj.AssignedDate ? new Date(proj.AssignedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
+                        <td className="py-3 px-4">{proj.FinishDate ? new Date(proj.FinishDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
+                        <td className="py-3 px-4 text-center">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${proj.IsActive
+                            ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
+                            : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
+                            }`}>
+                            <span className={`w-2 h-2 rounded-full ${proj.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                              }`}></span>
+                            {proj.IsActive ? 'Project' : 'Inactive'}
                           </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
-                            proj.TeamIsActive
-                              ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
-                              : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                          }`}>
-                            <span className={`w-2 h-2 rounded-full ${
-                              proj.TeamIsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                            }`}></span>
-                            {proj.TeamIsActive ? 'Active' : 'Inactive'}
+                          <span className="ml-2"></span>
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${proj.TeamIsActive
+                            ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
+                            : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
+                            }`}>
+                            <span className={`w-2 h-2 rounded-full ${proj.TeamIsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                              }`}></span>
+                            {proj.TeamIsActive ? 'Team' : 'Inactive'}
                           </span>
                         </td>
                       </tr>
@@ -778,6 +819,36 @@ const TeamDetailsPage = () => {
                 </div>
               )}
             </div>
+
+            {/* Delete Team Confirmation Dialog */}
+            {showDeleteDialog && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                    <h3 className="text-lg font-semibold">Delete Team</h3>
+                  </div>
+                  <p className="text-gray-600 mb-6">
+                    Are you sure you want to delete this team? This action cannot be undone and will remove all team members and associated data.
+                  </p>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setShowDeleteDialog(false)}
+                      className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleDeleteTeam}
+                      className="px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                      disabled={deletingTeam}
+                    >
+                      {deletingTeam ? 'Deleting...' : 'Delete Team'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>

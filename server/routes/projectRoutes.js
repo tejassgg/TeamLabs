@@ -6,11 +6,16 @@ const TeamDetails = require('../models/TeamDetails');
 const ProjectDetails = require('../models/ProjectDetails');
 
 // GET /api/projects - fetch all projects the user is allocated to
-router.get('/:userId', async (req, res) => {
+router.get('/:userId/:type', async (req, res) => {
   try {
     const userId = req.params.userId;
-    let  projects = [];
-    if (req.body?.params?.type === "fetchForUser") {
+    const type = req.params.type;
+
+    let projects = [];
+    if (type === "Admin") {
+      projects = await Project.find({ ProjectOwner: userId });
+    }
+    else {
       // 1. Find all TeamIDs where user is a member
       const teamDetails = await TeamDetails.find({ MemberID: userId, IsMemberActive: true });
       const teamIds = teamDetails.map(td => td.TeamID_FK);
@@ -19,9 +24,6 @@ router.get('/:userId', async (req, res) => {
       const projectIds = projectDetails.map(pd => pd.ProjectID);
       // 3. Return only those projects
       projects = await Project.find({ ProjectID: { $in: projectIds } });
-    }
-    else {
-      projects = await Project.find({ ProjectOwner: userId });
     }
 
     res.json(projects);
@@ -44,7 +46,8 @@ router.post('/', async (req, res) => {
       ProjectOwner,
       OrganizationID,
       FinishDate: new Date(FinishDate),
-      IsActive: true
+      IsActive: true,
+      ProjectStatusID: 1
     });
     await newProject.save();
     res.status(201).json(newProject);
@@ -57,12 +60,13 @@ router.post('/', async (req, res) => {
 // PATCH /api/projects/:projectId - update project info
 router.patch('/:projectId', async (req, res) => {
   try {
-    const { Name, Description, FinishDate } = req.body;
+    const { Name, Description, FinishDate, ProjectStatusID } = req.body;
     const project = await Project.findOne({ ProjectID: req.params.projectId });
     if (!project) return res.status(404).json({ error: 'Project not found' });
     if (Name) project.Name = Name;
     if (Description !== undefined) project.Description = Description;
     if (FinishDate !== undefined) project.FinishDate = FinishDate ? new Date(FinishDate) : null;
+    if (ProjectStatusID !== undefined) project.ProjectStatusID = ProjectStatusID;
     project.ModifiedDate = new Date();
     await project.save();
     res.json(project);

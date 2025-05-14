@@ -1,20 +1,21 @@
-import { useTeams } from '../context/TeamContext';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useAuth } from '../context/AuthContext';
+import { useGlobal } from '../context/GlobalContext';
+import { FaHome, FaUsers, FaProjectDiagram, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import Link from 'next/link';
 import { useEffect } from 'react';
 import { FaChevronRight, FaChevronLeft } from 'react-icons/fa';
 
 const Sidebar = () => {
-  const { teams, loading } = useTeams();
-  const router = useRouter();
+  const { teams } = useGlobal();
 
-  useEffect(() => {
-    teamService.getTeams()
-      .then(fetchedTeams => {
-        setTeams(fetchedTeams);
-      })
-      .catch(() => setTeams([]));
-  }, []);
+  // useEffect(() => {
+  //   teamService.getTeams()
+  //     .then(fetchedTeams => {
+  //       setTeams(fetchedTeams);
+  //     })
+  //     .catch(() => setTeams([]));
+  // }, []);
 
   return (
     <div className={`h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 ${collapsed ? 'w-16' : 'w-64'} transition-all duration-300`}>

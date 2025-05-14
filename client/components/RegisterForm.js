@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { FaGoogle, FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
+import { commonTypeService } from '../services/api';
 
 const RegisterForm = () => {
   const [error, setError] = useState('');
@@ -15,7 +16,30 @@ const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState(null);
+  const [roleOptions, setRoleOptions] = useState([]);
+  const [phoneExtensions, setPhoneExtensions] = useState([]);
   const fileInputRef = useRef();
+
+  // Fetch user roles and phone extensions when component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [roles, extensions] = await Promise.all([
+          commonTypeService.getUserRoles(),
+          commonTypeService.getPhoneExtensions()
+        ]);
+        
+        // Filter out Admin role for non-admin users
+        const filteredRoles = roles.filter(role => role.Value !== 'Admin');
+        setRoleOptions(filteredRoles);
+        setPhoneExtensions(extensions);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load form data');
+      }
+    };
+    fetchData();
+  }, []);
 
   // Use a single form for both steps, but validate fields per step
   const { register, handleSubmit, watch, trigger, formState: { errors }, getValues } = useForm();
@@ -208,26 +232,52 @@ const RegisterForm = () => {
                 <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
               )}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-              <input
-                type="tel"
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                {...register("phone")}
-              />
+            <div className="grid grid-cols-1 gap-4">
+              <div className="flex gap-4">
+                <div className="w-[18%]">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Ext</label>
+                  <select
+                    className="w-full px-2 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    {...register("phoneExtension", { required: "Country code is required" })}
+                    defaultValue="+1"
+                  >
+                    {phoneExtensions.map(ext => (
+                      <option key={ext.Code} value={ext.Code}>
+                        {ext.Code} ({ext.Value})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                  <input
+                    type="tel"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    {...register("phone", { 
+                      required: "Phone number is required",
+                      pattern: {
+                        value: /^[0-9-+() ]{10,15}$/,
+                        message: "Invalid phone number format"
+                      }
+                    })}
+                    placeholder="(123) 456-7890"
+                  />
+                  {errors.phone && (
+                    <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                  )}
+                </div>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
               <select
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 {...register("role", { required: "Role is required" })}
-                defaultValue="User"
               >
-                <option value="User">User</option>
-                <option value="Developer">Developer</option>
-                <option value="Business Analyst">Business Analyst</option>
-                <option value="Quality Analyst">Quality Analyst</option>
-                <option value="Support Engineer">Support Engineer</option>
+                <option value="">Select Role</option>
+                {roleOptions.map(role => 
+                  <option key={role.Code} value={role.Value}>{role.Value}</option>
+                )}
               </select>
               {errors.role && (
                 <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>

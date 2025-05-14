@@ -19,17 +19,19 @@ router.get('/:organizationId', async (req, res) => {
     // Get all users in the organization
     const users = await User.find({ organizationID: organizationId });
 
-    // Calculate upcoming deadlines (projects due in next 7 days)
-    const today = new Date();
-    const nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+    // Calculate upcoming deadlines (projects due today or in the future)
+    const now = new Date();
+    
     const upcomingDeadlines = projects.filter(project => {
       if (!project.FinishDate) return false;
-      const deadline = new Date(project.FinishDate);
-      return deadline >= today && deadline <= nextMonth;
+      const finish = new Date(project.FinishDate);
+      const diff = finish - now;
+      return diff > 0; // Only include projects that haven't passed their deadline
     });
 
     // Get organization details
     const organization = await CommonType.findOne({MasterType: 'Organization', Code: organizationId});
+    const projStatus = await CommonType.find({MasterType: 'ProjectStatus'});
 
     // Prepare dashboard statistics
     const dashboardStats = {
@@ -42,19 +44,35 @@ router.get('/:organizationId', async (req, res) => {
         id: project._id,
         name: project.Name,
         deadline: project.FinishDate,
-        status: project.IsActive ? 'Active' : 'Inactive'
+        isActive: project.IsActive ,
+        projectStatus: projStatus.find(item => item.Code ===  project.ProjectStatusID)?.Value || 'Unknown Status'
       })),
       recentTeams: teams.slice(0, 5).map(team => ({
         id: team._id,
         name: team.TeamName,
         memberCount: team.members?.length || 0
       })),
-      deadlineDetails: upcomingDeadlines.map(project => ({
-        id: project._id,
-        name: project.Name,
-        deadline: project.FinishDate,
-        daysRemaining: Math.ceil((new Date(project.FinishDate) - today) / (1000 * 60 * 60 * 24))
-      }))
+      deadlineDetails: upcomingDeadlines.map(project => {
+        const finish = new Date(project.FinishDate);
+        const diff = finish - now;
+        const daysRemaining = Math.floor(diff / (1000 * 60 * 60 * 24));
+        return {
+          id: project._id,
+          name: project.Name,
+          deadline: project.FinishDate,
+          daysRemaining: daysRemaining
+        };
+      }),
+      members: users.map(user => {
+        return {
+          id: user._id,
+          name: `${user.firstName} ${user.lastName}`.trim(),
+          email: user.email || 'No email',
+          isActive: user.isActive || false,
+          role: user.role || 'User',
+          initials: `${user.firstName[0] || ''}${user.lastName[0] || ''}`.toUpperCase() || 'U'
+        };
+      })
     };
 
     res.json(dashboardStats);

@@ -18,7 +18,7 @@ const LoginForm = ({ onSuccess }) => {
     setIsLoading(true);
     setError('');
     try {
-      const result = await login(data.email, data.password);
+      const result = await login(data.usernameOrEmail, data.password);
       if (result.success) {
         if (onSuccess) onSuccess();
         router.push('/dashboard');
@@ -60,21 +60,17 @@ const LoginForm = ({ onSuccess }) => {
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Username or Email Address</label>
           <input
-            type="email"
-            placeholder="Enter your email"
+            type="text"
+            placeholder="Enter your username or email"
             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-            {...register("email", {
-              required: "Email is required",
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: "Invalid email address"
-              }
+            {...register("usernameOrEmail", {
+              required: "Username or email is required"
             })}
           />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+          {errors.usernameOrEmail && (
+            <p className="mt-1 text-sm text-red-600">{errors.usernameOrEmail.message}</p>
           )}
         </div>
 
@@ -157,13 +153,6 @@ const LoginForm = ({ onSuccess }) => {
           <span className="text-sm font-medium text-gray-700">GitHub</span>
         </button>
       </div>
-
-      <p className="text-center text-sm text-gray-600">
-        Don't have an account?{' '}
-        <Link href="/register" className="text-blue-500 hover:text-blue-600 transition-colors duration-200">
-          Sign up
-        </Link>
-      </p>
     </div>
   );
 };

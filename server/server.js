@@ -11,6 +11,7 @@ const teamDetailsRoutes = require('./routes/teamDetailsRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const projectDetailsRoutes = require('./routes/projectDetailsRoutes');
 const dashboardDetailsRoute = require('./routes/dashboardDetailsRoute');
+const userRoutes = require('./routes/userRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
 
@@ -45,6 +46,7 @@ app.use('/api/team-details', teamDetailsRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/project-details', projectDetailsRoutes);
 app.use('/api/dashboard', dashboardDetailsRoute);
+app.use('/api/users', userRoutes);
 
 // Test route
 app.get('/', (req, res) => {

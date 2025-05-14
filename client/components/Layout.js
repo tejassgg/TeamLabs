@@ -35,7 +35,7 @@ const Sidebar = () => {
   const handleAddTeam = async (teamData) => {
     try {
       const newTeam = await teamService.addTeam(teamData);
-      setTeams(prevTeams => [...prevTeams, newTeam]);
+      setTeams(prevTeams => [...prevTeams, newTeam.team]);
       return newTeam;
     } catch (err) {
       alert('Failed to add team');

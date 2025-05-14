@@ -29,6 +29,9 @@ const bcrypt = require('bcryptjs');
  *         phone:
  *           type: string
  *           description: User's phone number
+ *         phoneExtension:
+ *           type: string
+ *           description: User's phone extension
  *         email:
  *           type: string
  *           format: email
@@ -102,6 +105,11 @@ const UserSchema = new mongoose.Schema({
   phone: {
     type: String,
     trim: true
+  },
+  phoneExtension: {
+    type: String,
+    trim: true,
+    default: '+1' // Default to US/Canada
   },
   email: {
     type: String,

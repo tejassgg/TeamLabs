@@ -19,7 +19,7 @@ router.get('/:projectId', async (req, res) => {
     
     // Get member counts for each team
     const teamMemberCounts = await Promise.all(orgTeams.map(async (team) => {
-      const count = await TeamDetails.countDocuments({ TeamID_FK: team.TeamID, IsMemberActive: true });
+      const count = await TeamDetails.countDocuments({ TeamID_FK: team.TeamID });
       return {
         ...team.toObject(),
         memberCount: count

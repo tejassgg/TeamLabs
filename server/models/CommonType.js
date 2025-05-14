@@ -12,6 +12,10 @@ const CommonTypeSchema = new mongoose.Schema({
   MasterType: {
     type: String,
     required: true
+  },
+  Description: {
+    type: String,
+    required: true
   }
 });
 

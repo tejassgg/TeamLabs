@@ -35,9 +35,9 @@ export const GlobalProvider = ({ children }) => {
   };
 
   // Fetch teams
-  const fetchTeams = async (orgId) => {
+  const fetchTeams = async (orgId, role, userId) => {
     try {
-      const fetchedTeams = await teamService.getTeams();
+      const fetchedTeams = await teamService.getTeams(role, userId);
       const filteredTeams = fetchedTeams.filter(team => team.organizationID === orgId);
       setTeams(filteredTeams);
       return filteredTeams;
@@ -49,9 +49,9 @@ export const GlobalProvider = ({ children }) => {
   };
 
   // Fetch projects
-  const fetchProjects = async (userId) => {
+  const fetchProjects = async (userId, role) => {
     try {
-      const fetchedProjects = await projectService.getProjects(userId, "fetchForUser");
+      const fetchedProjects = await projectService.getProjects(userId, role);
       console.log(fetchedProjects);
       setProjects(fetchedProjects);
       return fetchedProjects;
@@ -83,8 +83,8 @@ export const GlobalProvider = ({ children }) => {
         const profile = await fetchUserDetails();
         if (profile) {
           await Promise.all([
-            fetchTeams(profile.organizationID),
-            fetchProjects(profile._id),
+            fetchTeams(profile.organizationID, profile.role, profile._id),
+            fetchProjects(profile._id, profile.role),
             fetchOrganizations()
           ]);
         }
@@ -110,8 +110,8 @@ export const GlobalProvider = ({ children }) => {
       const profile = await fetchUserDetails();
       if (profile) {
         await Promise.all([
-          fetchTeams(profile.organizationID),
-          fetchProjects(profile._id),
+          fetchTeams(profile.organizationID, profile.role, profile._id),
+          fetchProjects(profile._id, profile.role),
           fetchOrganizations()
         ]);
       }

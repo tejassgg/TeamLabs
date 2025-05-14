@@ -28,6 +28,10 @@ const ProjectSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  ProjectStatusID: {
+    type: Number,
+    default: 1 // Default to 'Not Assigned'
+  },
   FinishDate: {
     type: Date
   },

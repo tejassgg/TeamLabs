@@ -2,12 +2,29 @@ const express = require('express');
 const router = express.Router();
 const Team = require('../models/Team');
 const User = require('../models/User');
+const TeamDetails = require('../models/TeamDetails');
 
 // GET /api/teams - fetch all teams
-router.get('/', async (req, res) => {
+router.get('/:role/:userId', async (req, res) => {
   try {
-    const teams = await Team.find();
-    res.json(teams);
+    const role = req.params.role;
+    const userId = req.params.userId;
+    if (role === "Admin") {
+      const teams = await Team.find();
+      res.json(teams);
+    }
+    else {
+      const teamDetails = await TeamDetails.find({
+        MemberID: userId,
+        IsMemberActive: true
+      });
+      const teamIds = teamDetails.map(td => td.TeamID_FK);
+      const teams = await Team.find({
+        TeamID: { $in: teamIds }
+      });
+      res.json(teams);
+    }
+
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch teams' });
   }
@@ -25,17 +42,47 @@ router.post('/', async (req, res) => {
     const user = await User.findById(OwnerID);
     if (!user) return res.status(401).json({ error: 'Unauthorized: User not found' });
 
-    const newTeam = new Team({
-      TeamName,
-      TeamDescription,
-      TeamType,
-      OwnerID,
-      organizationID: user.organizationID || '',
-      IsActive: false,
-      CreatedDate: new Date()
-    });
-    await newTeam.save();
-    res.status(201).json(newTeam);
+    // Start a session for transaction
+    const session = await Team.startSession();
+    session.startTransaction();
+
+    try {
+      // Create the new team
+      const newTeam = new Team({
+        TeamName,
+        TeamDescription,
+        TeamType,
+        OwnerID,
+        organizationID: user.organizationID || '',
+        IsActive: false,
+        CreatedDate: new Date()
+      });
+      await newTeam.save({ session });
+
+      // Add the owner as a member
+      const newMember = new TeamDetails({
+        TeamID_FK: newTeam.TeamID,
+        MemberID: OwnerID,
+        IsMemberActive: true,
+        CreatedDate: new Date(),
+        ModifiedBy: OwnerID
+      });
+      await newMember.save({ session });
+
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+
+      res.status(201).json({
+        team: newTeam,
+        message: 'Team created successfully with owner as member'
+      });
+    } catch (error) {
+      // If an error occurs, abort the transaction
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   } catch (err) {
     console.error('Error creating team:', err);
     res.status(500).json({ error: 'Failed to create team' });
