@@ -376,103 +376,114 @@ const TeamDetailsPage = () => {
                   )}
                 </form>
               )}
-              <table className="w-full border rounded-xl overflow-hidden shadow-sm">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="py-3 px-4 text-left w-[300px]">Member</th>
-                    <th className="py-3 px-4 text-left w-[200px]">Date Added</th>
-                    <th className="py-3 px-4 text-left w-[200px]">Last Active</th>
-                    <th className="py-3 px-4 text-center w-[150px]">Status</th>
-                    {isOwner && <th className="py-3 px-4 text-center w-[150px]">Actions</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {members.map(member => (
-                    <tr key={member.TeamDetailsID} className="border-t hover:bg-gray-50 transition-colors">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
-                            {member.name.split(' ').map(n => n[0]).join('')}
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{member.name}</span>
-                            <span className="text-sm text-gray-500">{member.email}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">{new Date(member.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
-                      <td className="py-3 px-4">
-                        {member.lastLogin ? (
-                          <div className="flex flex-col">
-                            <span className="text-sm text-gray-900">
-                              {new Date(member.lastLogin).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
-                              <span className="text-xs text-gray-500">
-                                &nbsp; {new Date(member.lastLogin).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">Never</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${member.IsMemberActive
-                          ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
-                          : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                          }`}>
-                          <span className={`w-2 h-2 rounded-full ${member.IsMemberActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                            }`}></span>
-                          {member.IsMemberActive ? 'Active' : 'Inactive'}
-                        </div>
-                      </td>
-                      {isOwner && (
-                        <td className="py-3 px-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => {
-                                if (!member.IsMemberActive) {
-                                  setSelectedInactiveMember(member);
-                                  setShowInactiveMemberDialog(true);
-                                  return;
-                                }
-                                setSelectedMember(member);
-                                setShowRevokeDialog(true);
-                              }}
-                              className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${member.IsMemberActive
-                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                : 'bg-green-100 text-green-700 hover:bg-green-200'
-                                }`}
-                              title={member.IsMemberActive ? 'Revoke Access' : 'Grant Access'}
-                              disabled={toggling === member.TeamDetailsID}
-                            >
-                              <FaCog size={14} />
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (!member.IsMemberActive) {
-                                  setSelectedInactiveMember(member);
-                                  setShowInactiveMemberDialog(true);
-                                  return;
-                                }
-                                setSelectedMember(member);
-                                setShowRemoveDialog(true);
-                              }}
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200"
-                              title="Remove Member"
-                              disabled={removing === member.TeamDetailsID}
-                            >
-                              <FaTrash size={14} />
-                            </button>
-                          </div>
-                        </td>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div className="p-4 border-b border-gray-200">
+                  <h2 className="text-xl font-semibold text-gray-900">Team Members</h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        <th className="py-3 px-4 text-left w-[300px]">Member</th>
+                        <th className="py-3 px-4 text-left w-[200px]">Date Added</th>
+                        <th className="py-3 px-4 text-left w-[200px]">Last Active</th>
+                        <th className="py-3 px-4 text-center w-[150px]">Status</th>
+                        {isOwner && <th className="py-3 px-4 text-center w-[150px]">Actions</th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {members.map(member => (
+                        <tr key={member.TeamDetailsID} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                                {member.name.split(' ').map(n => n[0]).join('')}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{member.name}</span>
+                                <span className="text-sm text-gray-500">{member.email}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">{new Date(member.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
+                          <td className="py-3 px-4">
+                            {member.lastLogin ? (
+                              <div className="flex flex-col">
+                                <span className="text-sm text-gray-900">
+                                  {new Date(member.lastLogin).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
+                                  <span className="text-xs text-gray-500">
+                                    &nbsp; {new Date(member.lastLogin).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-sm text-gray-400">Never</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${member.IsMemberActive
+                              ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
+                              : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
+                              }`}>
+                              <span className={`w-2 h-2 rounded-full ${member.IsMemberActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                                }`}></span>
+                              {member.IsMemberActive ? 'Active' : 'Inactive'}
+                            </div>
+                          </td>
+                          {isOwner && (
+                            <td className="py-3 px-4 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    if (!member.IsMemberActive) {
+                                      setSelectedInactiveMember(member);
+                                      setShowInactiveMemberDialog(true);
+                                      return;
+                                    }
+                                    setSelectedMember(member);
+                                    setShowRevokeDialog(true);
+                                  }}
+                                  className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${member.IsMemberActive
+                                    ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                    }`}
+                                  title={member.IsMemberActive ? 'Revoke Access' : 'Grant Access'}
+                                  disabled={toggling === member.TeamDetailsID}
+                                >
+                                  <FaCog size={14} />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (!member.IsMemberActive) {
+                                      setSelectedInactiveMember(member);
+                                      setShowInactiveMemberDialog(true);
+                                      return;
+                                    }
+                                    setSelectedMember(member);
+                                    setShowRemoveDialog(true);
+                                  }}
+                                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200"
+                                  title="Remove Member"
+                                  disabled={removing === member.TeamDetailsID}
+                                >
+                                  <FaTrash size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                      {members.length === 0 && (
+                        <tr>
+                          <td colSpan={isOwner ? 5 : 4} className="text-center py-8 text-gray-400 bg-gray-50">
+                            No members in this team
+                          </td>
+                        </tr>
                       )}
-                    </tr>
-                  ))}
-                  {members.length === 0 && (
-                    <tr><td colSpan={isOwner ? 5 : 4} className="text-center py-4 text-gray-400">No members</td></tr>
-                  )}
-                </tbody>
-              </table>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
 
             {/* Member Access Confirmation Dialog */}
@@ -772,52 +783,56 @@ const TeamDetailsPage = () => {
             )}
 
             {/* Projects Table */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-2">Projects Assigned</h2>
-              {activeProjects.length > 0 ? (
-                <table className="w-full border rounded-xl overflow-hidden shadow-sm">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="py-3 px-4 text-left">Project Name</th>
-                      <th className="py-3 px-4 text-left">Date Assigned</th>
-                      <th className="py-3 px-4 text-left">Deadline</th>
-                      <th className="py-3 px-4 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activeProjects.map(proj => (
-                      <tr key={proj.ProjectID} className="border-t hover:bg-gray-50 transition-colors">
-                        <td className="py-3 px-4 font-medium">{proj.Name}</td>
-                        <td className="py-3 px-4">{proj.AssignedDate ? new Date(proj.AssignedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
-                        <td className="py-3 px-4">{proj.FinishDate ? new Date(proj.FinishDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
-                        <td className="py-3 px-4 text-center">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${proj.IsActive
-                            ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
-                            : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                            }`}>
-                            <span className={`w-2 h-2 rounded-full ${proj.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                              }`}></span>
-                            {proj.IsActive ? 'Project' : 'Inactive'}
-                          </span>
-                          <span className="ml-2"></span>
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${proj.TeamIsActive
-                            ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
-                            : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                            }`}>
-                            <span className={`w-2 h-2 rounded-full ${proj.TeamIsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                              }`}></span>
-                            {proj.TeamIsActive ? 'Team' : 'Inactive'}
-                          </span>
-                        </td>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-6">
+              <div className="p-4 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-900">Projects Assigned</h2>
+              </div>
+              <div className="overflow-x-auto">
+                {activeProjects.length > 0 ? (
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        <th className="py-3 px-4 text-left">Project Name</th>
+                        <th className="py-3 px-4 text-left">Date Assigned</th>
+                        <th className="py-3 px-4 text-left">Deadline</th>
+                        <th className="py-3 px-4 text-center">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="text-center py-8 text-gray-400 border rounded-xl bg-gray-50">
-                  No Projects
-                </div>
-              )}
+                    </thead>
+                    <tbody>
+                      {activeProjects.map(proj => (
+                        <tr key={proj.ProjectID} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
+                          <td className="py-3 px-4 font-medium">{proj.Name}</td>
+                          <td className="py-3 px-4">{proj.AssignedDate ? new Date(proj.AssignedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
+                          <td className="py-3 px-4">{proj.FinishDate ? new Date(proj.FinishDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${proj.IsActive
+                              ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
+                              : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
+                              }`}>
+                              <span className={`w-2 h-2 rounded-full ${proj.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                                }`}></span>
+                              {proj.IsActive ? 'Project' : 'Inactive'}
+                            </span>
+                            <span className="ml-2"></span>
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${proj.TeamIsActive
+                              ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
+                              : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
+                              }`}>
+                              <span className={`w-2 h-2 rounded-full ${proj.TeamIsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                                }`}></span>
+                              {proj.TeamIsActive ? 'Team' : 'Inactive'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="text-center py-8 text-gray-400 bg-gray-50">
+                    No Projects Assigned
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Delete Team Confirmation Dialog */}

@@ -14,8 +14,7 @@ const CommonTypeSchema = new mongoose.Schema({
     required: true
   },
   Description: {
-    type: String,
-    required: true
+    type: String
   }
 });
 

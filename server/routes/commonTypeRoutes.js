@@ -51,4 +51,14 @@ router.get('/phone-extensions', async (req, res) => {
   }
 });
 
+// GET /api/common-types/task-types - Get all Task Type
+router.get('/task-types', async (req, res) => {
+  try {
+    const roles = await CommonType.find({ MasterType: 'TaskType' }).sort({ Code: 1 });
+    res.json(roles);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch user roles' });
+  }
+});
+
 module.exports = router; 

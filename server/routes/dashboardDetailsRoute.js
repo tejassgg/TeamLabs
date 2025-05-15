@@ -4,6 +4,7 @@ const Project = require('../models/Project');
 const Team = require('../models/Team');
 const User = require('../models/User');
 const CommonType = require('../models/CommonType');
+const UserActivity = require('../models/UserActivity');
 
 // Get dashboard statistics
 router.get('/:organizationId', async (req, res) => {
@@ -18,6 +19,22 @@ router.get('/:organizationId', async (req, res) => {
     
     // Get all users in the organization
     const users = await User.find({ organizationID: organizationId });
+
+    // Get last login timestamps for all users
+    const lastLogins = await UserActivity.find({
+      user: { $in: users.map(u => u._id) },
+      type: 'login',
+      status: 'success'
+    }).sort({ timestamp: -1 });
+
+    // Create a map of user's last login
+    const lastLoginMap = {};
+    lastLogins.forEach(login => {
+      if (!lastLoginMap[login.user.toString()] || 
+          new Date(login.timestamp) > new Date(lastLoginMap[login.user.toString()])) {
+        lastLoginMap[login.user.toString()] = login.timestamp;
+      }
+    });
 
     // Calculate upcoming deadlines (projects due today or in the future)
     const now = new Date();
@@ -44,8 +61,8 @@ router.get('/:organizationId', async (req, res) => {
         id: project._id,
         name: project.Name,
         deadline: project.FinishDate,
-        isActive: project.IsActive ,
-        projectStatus: projStatus.find(item => item.Code ===  project.ProjectStatusID)?.Value || 'Unknown Status'
+        isActive: project.IsActive,
+        projectStatus: projStatus.find(item => item.Code === project.ProjectStatusID)?.Value || 'Unknown Status'
       })),
       recentTeams: teams.slice(0, 5).map(team => ({
         id: team._id,
@@ -70,7 +87,8 @@ router.get('/:organizationId', async (req, res) => {
           email: user.email || 'No email',
           isActive: user.isActive || false,
           role: user.role || 'User',
-          initials: `${user.firstName[0] || ''}${user.lastName[0] || ''}`.toUpperCase() || 'U'
+          initials: `${user.firstName[0] || ''}${user.lastName[0] || ''}`.toUpperCase() || 'U',
+          lastLogin: lastLoginMap[user._id.toString()] || null
         };
       })
     };

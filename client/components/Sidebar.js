@@ -3,11 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import { useGlobal } from '../context/GlobalContext';
 import { FaHome, FaUsers, FaProjectDiagram, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { FaChevronRight, FaChevronLeft } from 'react-icons/fa';
 
 const Sidebar = () => {
   const { teams } = useGlobal();
+  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
 
   // useEffect(() => {
   //   teamService.getTeams()

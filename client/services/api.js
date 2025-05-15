@@ -209,6 +209,14 @@ export const commonTypeService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch phone extensions' };
     }
+  },
+  getTaskTypes: async () => {
+    try {
+      const response = await api.get('/common-types/task-types');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch task types' };
+    }
   }
 };
 
@@ -227,6 +235,25 @@ export const projectService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to add project' };
+    }
+  }
+};
+
+export const taskService = {
+  addTaskDetails: async (taskData, mode) => {
+    try {
+      const response = await api.post('/task-details', { taskDetail: taskData, mode: mode });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to add task' };
+    }
+  },
+  getAllTaskDetails: async () => {
+    try {
+      const response = await api.get('/task-details');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch tasks' };
     }
   }
 };

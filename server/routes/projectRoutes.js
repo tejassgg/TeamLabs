@@ -87,6 +87,6 @@ router.patch('/:projectId/toggle-status', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to update project status' });
   }
-});
+}); 
 
 module.exports = router; 

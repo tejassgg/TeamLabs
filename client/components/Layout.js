@@ -9,6 +9,11 @@ import { teamService } from '../services/api';
 import { projectService } from '../services/api';
 import AddProjectModal from './AddProjectModal';
 import { useGlobal } from '../context/GlobalContext';
+import AddTaskModal from './AddTaskModal';
+import { taskService } from '../services/api';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 const Sidebar = () => {
   const { theme } = useTheme();
@@ -17,8 +22,9 @@ const Sidebar = () => {
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [isTeamsCollapsed, setIsTeamsCollapsed] = useState(false);
   const [isProjectsCollapsed, setIsProjectsCollapsed] = useState(false);
-  const { teams, projects, organizations, loading, userDetails, setProjects, setTeams } = useGlobal();
-  
+  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+  const { teams, projects, tasksDetails, organizations, loading, userDetails, setProjects, setTeams, setTasksDetails } = useGlobal();
+
   const canManageTeamsAndProjects = userDetails?.role === 'Admin' || userDetails?.role === 'Owner';
   // Mock data for demonstration
   const userStories = [
@@ -36,9 +42,10 @@ const Sidebar = () => {
     try {
       const newTeam = await teamService.addTeam(teamData);
       setTeams(prevTeams => [...prevTeams, newTeam.team]);
+      toast.success('Team added successfully!');
       return newTeam;
     } catch (err) {
-      alert('Failed to add team');
+      toast.error('Failed to add team');
       throw err;
     }
   };
@@ -47,10 +54,21 @@ const Sidebar = () => {
     try {
       const newProject = await projectService.addProject(projectData);
       setProjects(prevProjects => [...prevProjects, newProject]);
+      toast.success('Project added successfully!');
       return newProject;
     } catch (err) {
-      alert('Failed to add project');
+      toast.error('Failed to add project');
       throw err;
+    }
+  };
+
+  const handleAddTask = async (taskData) => {
+    try {
+      const newTask = await taskService.addTaskDetails(taskData, 'fromSideBar');
+      setTasksDetails(prevTasks => [...prevTasks, newTask]);
+      toast.success('Task added successfully!');
+    } catch (err) {
+      toast.error('Failed to add task');
     }
   };
 
@@ -164,11 +182,10 @@ const Sidebar = () => {
                         return (
                           <li
                             key={team.TeamID || team._id}
-                            className={`pl-2 py-1.5 rounded-xl cursor-pointer transition ${
-                              isActive
-                                ? 'bg-blue-50 text-blue-600 font-medium'
-                                : 'hover:bg-gray-50 hover:text-gray-900'
-                            }`}
+                            className={`pl-2 py-1.5 rounded-xl cursor-pointer transition ${isActive
+                              ? 'bg-blue-50 text-blue-600 font-medium'
+                              : 'hover:bg-gray-50 hover:text-gray-900'
+                              }`}
                             onClick={() => router.push(`/team/${team.TeamID || team._id}`)}
                           >
                             {team.TeamName}
@@ -259,44 +276,22 @@ const Sidebar = () => {
                 <button
                   className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
                   aria-label="Add User Story"
-                  onClick={() => alert('Add new User Story (modal coming soon!)')}
+                  onClick={() => setIsAddTaskOpen(true)}
                 >
                   <FaPlus size={12} />
                 </button>
               </div>
-              <ul className="space-y-1">
-                {userStories.map(story => (
-                  <li key={story.id} className="pl-2 py-1.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 cursor-pointer transition">
-                    {story.name}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            {/* Tasks Section */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <button
-                  className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-gray-50 rounded-xl transition cursor-pointer"
-                  style={{ minHeight: 32 }}
-                  onClick={() => router.push('/tasks')}
-                  tabIndex={0}
-                  aria-label="Go to Tasks"
-                >
-                  <span className="flex items-center justify-center rounded-full transition bg-transparent group-hover:bg-gray-100 group-hover:shadow-sm" style={{ width: 28, height: 28 }}>
-                    <FaTasks className="text-blue-600" size={20} />
-                  </span>
-                  <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Tasks</h3>
-                </button>
-                <button
-                  className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
-                  aria-label="Add Task"
-                  onClick={() => alert('Add new Task (modal coming soon!)')}
-                >
-                  <FaPlus size={12} />
-                </button>
-              </div>
-              <ul className="space-y-1">
-                <li className="pl-2 py-1.5 text-gray-400">No tasks listed</li>
+              {/* List of user stories from tasksDetails */}
+              <ul className="space-y-1 mt-2">
+                {tasksDetails.filter(task => task.Type === 'User Story').length === 0 ? (
+                  <li className="pl-2 py-1.5 text-gray-400">No user stories</li>
+                ) : (
+                  tasksDetails.filter(task => task.Type === 'User Story').map(task => (
+                    <li key={task._id} className="pl-2 py-1.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 cursor-pointer transition">
+                      {task.Name}
+                    </li>
+                  ))
+                )}
               </ul>
             </div>
           </div>
@@ -313,8 +308,14 @@ const Sidebar = () => {
             isOpen={isAddProjectOpen}
             onClose={() => setIsAddProjectOpen(false)}
             onAddProject={handleAddProject}
-            organizationId = {userDetails?.organizationID}
-            projectOwner = {userDetails?._id}
+            organizationId={userDetails?.organizationID}
+            projectOwner={userDetails?._id}
+          />
+          <AddTaskModal
+            isOpen={isAddTaskOpen}
+            onClose={() => setIsAddTaskOpen(false)}
+            onAddTask={handleAddTask}
+            mode="fromSideBar"
           />
         </>
       )}
@@ -323,7 +324,7 @@ const Sidebar = () => {
 };
 
 const Layout = ({ children }) => {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, resolvedTheme } = useTheme();
   const { logout } = useAuth();
   const sidebarWidth = 300;
   return (
@@ -336,6 +337,17 @@ const Layout = ({ children }) => {
           </div>
         </div>
         <main className={`p-8 overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#181F2A] text-[#F3F6FA]' : ''}`}>{children}</main>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
+        />
       </div>
     </div>
   );

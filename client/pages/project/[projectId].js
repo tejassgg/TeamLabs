@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import api, { authService } from '../../services/api';
+import api, { authService, taskService } from '../../services/api';
 import Layout from '../../components/Layout';
-import { FaTrash, FaCog, FaTimes } from 'react-icons/fa';
+import { FaTrash, FaCog, FaTimes, FaClock, FaUserCheck, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle } from 'react-icons/fa';
 import LoadingScreen from '../../components/LoadingScreen';
+import AddTaskModal from '../../components/AddTaskModal';
+import { toast } from 'react-toastify';
 
 const ProjectDetailsPage = () => {
   const router = useRouter();
@@ -36,6 +38,9 @@ const ProjectDetailsPage = () => {
   const [removingTeam, setRemovingTeam] = useState(null);
   const [removing, setRemoving] = useState(false);
   const [currentProjectStatus, setCurrentProjectStatus] = useState(null);
+  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+  const [taskList, setTaskList] = useState([]);
+  const [userStories, setUserStories] = useState([]);
 
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
@@ -49,6 +54,9 @@ const ProjectDetailsPage = () => {
           setProject(res.data.project);
           setTeams(res.data.teams);
           setOrgTeams(res.data.orgTeams);
+          setTaskList(res.data.taskList);
+          setUserStories(res.data.userStories);
+          console.log(res.data.taskList);
         })
         .catch(err => {
           setError('Failed to fetch project');
@@ -292,6 +300,113 @@ const ProjectDetailsPage = () => {
     fetchCurrentProjectStatus();
   }, [project?.ProjectStatusID]);
 
+  const fetchProjectTasks = async () => {
+    try {
+      const allTasks = await taskService.getTaskDetails();
+      setUserStories(allTasks.filter(task => task.ProjectID_FK === projectId && task.Type === 'User Story'));
+      setTaskList(allTasks.filter(task => task.ProjectID_FK === projectId && task.Type !== 'User Story'));
+    } catch (err) {
+      // Optionally handle error
+    }
+  };
+
+  useEffect(() => {
+    if (projectId) {
+      fetchProjectTasks();
+    }
+  }, [projectId]);
+
+  const handleAddTask = async (taskData) => {
+    try {
+      // Set ParentID to selected user story
+      const data = await taskService.addTaskDetails(taskData, 'fromProject');
+      setTaskList([...projectTasks, data]);
+      toast.success('Task added successfully!');
+      fetchProjectTasks(); // Refresh the list
+    } catch (err) {
+      toast.error('Failed to add task');
+    }
+  };
+
+  // Helper function to get task status styles
+  const getTaskStatusStyle = (statusCode) => {
+    const styles = {
+      1: { // Not Assigned
+        bgColor: 'from-gray-50 to-gray-100',
+        textColor: 'text-gray-700',
+        borderColor: 'border-gray-200',
+        icon: FaTimes,
+        iconColor: 'text-gray-500'
+      },
+      2: { // Assigned
+        bgColor: 'from-blue-50 to-blue-100',
+        textColor: 'text-blue-700',
+        borderColor: 'border-blue-200',
+        icon: FaCheckCircle,
+        iconColor: 'text-blue-500'
+      },
+      3: { // In Progress
+        bgColor: 'from-yellow-50 to-yellow-100',
+        textColor: 'text-yellow-700',
+        borderColor: 'border-yellow-200',
+        icon: FaClock,
+        iconColor: 'text-yellow-500'
+      },
+      4: { // Development
+        bgColor: 'from-purple-50 to-purple-100',
+        textColor: 'text-purple-700',
+        borderColor: 'border-purple-200',
+        icon: FaCode,
+        iconColor: 'text-purple-500'
+      },
+      5: { // Testing
+        bgColor: 'from-orange-50 to-orange-100',
+        textColor: 'text-orange-700',
+        borderColor: 'border-orange-200',
+        icon: FaVial,
+        iconColor: 'text-orange-500'
+      },
+      6: { // Quality Assurance
+        bgColor: 'from-indigo-50 to-indigo-100',
+        textColor: 'text-indigo-700',
+        borderColor: 'border-indigo-200',
+        icon: FaShieldAlt,
+        iconColor: 'text-indigo-500'
+      },
+      7: { // Deployment
+        bgColor: 'from-pink-50 to-pink-100',
+        textColor: 'text-pink-700',
+        borderColor: 'border-pink-200',
+        icon: FaRocket,
+        iconColor: 'text-pink-500'
+      },
+      8: { // Completed
+        bgColor: 'from-green-50 to-green-100',
+        textColor: 'text-green-700',
+        borderColor: 'border-green-200',
+        icon: FaCheckCircle,
+        iconColor: 'text-green-500'
+      }
+    };
+
+    return styles[statusCode] || styles[1]; // Default to Not Assigned if status not found
+  };
+
+  // Helper function to get task status text
+  const getTaskStatusText = (statusCode) => {
+    const statusTexts = {
+      1: 'Not Assigned',
+      2: 'Assigned',
+      3: 'In Progress',
+      4: 'Development',
+      5: 'Testing',
+      6: 'Quality Assurance',
+      7: 'Deployment',
+      8: 'Completed'
+    };
+    return statusTexts[statusCode] || 'Unknown';
+  };
+
   if (loading) {
     return <Layout>
       <LoadingScreen />
@@ -350,6 +465,14 @@ const ProjectDetailsPage = () => {
                 );
               })()}
             </div>
+          )}
+          {userStories.length > 0 && (
+            <button
+              className="ml-4 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200"
+              onClick={() => setIsAddTaskOpen(true)}
+            >
+              + Add Task
+            </button>
           )}
         </div>
 
@@ -420,11 +543,16 @@ const ProjectDetailsPage = () => {
           </div>
         )}
 
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">Teams Assigned</h2>
-          <table className="w-full border rounded-xl overflow-hidden shadow-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Teams Assigned Table */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Teams Assigned</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
             <thead>
-              <tr className="bg-gray-50">
+                  <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="py-3 px-4 text-left w-[300px]">Team Name</th>
                 <th className="py-3 px-4 text-left w-[200px]">Date Added</th>
                 <th className="py-3 px-4 text-center w-[150px]">Status</th>
@@ -435,7 +563,7 @@ const ProjectDetailsPage = () => {
               {teams.map(team => {
                 const teamDetails = orgTeams.find(t => t.TeamID === team.TeamID);
                 return (
-                <tr key={team.TeamID} className="border-t hover:bg-gray-50 transition-colors">
+                      <tr key={team.TeamID} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
                   <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
@@ -451,13 +579,11 @@ const ProjectDetailsPage = () => {
                     </td>
                     <td className="py-3 px-4">{team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
                     <td className="py-3 px-4 text-center">
-                      <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
-                        team.IsActive 
+                          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${team.IsActive
                         ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
                         : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
                       }`}>
-                        <span className={`w-2 h-2 rounded-full ${
-                          team.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                            <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
                         }`}></span>
                       {team.IsActive ? 'Active' : 'Inactive'}
                     </div>
@@ -467,8 +593,7 @@ const ProjectDetailsPage = () => {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleToggleTeamStatus(team.TeamID)}
-                            className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${
-                              team.IsActive
+                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
                                 ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                                 : 'bg-green-100 text-green-700 hover:bg-green-200'
                             }`}
@@ -495,11 +620,211 @@ const ProjectDetailsPage = () => {
                 );
               })}
               {teams.length === 0 && (
-                <tr><td colSpan={isOwner ? 4 : 3} className="text-center py-4 text-gray-400">No teams assigned to this project.</td></tr>
+                    <tr>
+                      <td colSpan={isOwner ? 4 : 3} className="text-center py-8 text-gray-400 bg-gray-50">
+                        No teams assigned to this project.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* User Stories Table */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">User Stories</h2>
+            </div>
+            <div className="overflow-x-auto">
+              {userStories.length === 0 ? (
+                <div className="text-center py-8 text-gray-400 bg-gray-50">
+                  No user stories for this project.
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="py-3 px-4 text-left w-[300px]">Name</th>
+                      <th className="py-3 px-4 text-left w-[200px]">Date Created</th>
+                      <th className="py-3 px-4 text-center w-[150px]">Status</th>
+                      <th className="py-3 px-4 text-center w-[150px]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {userStories.map(story => (
+                      <tr key={story._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{story.Name}</span>
+                              {story.Description && (
+                                <span className="text-sm text-gray-500">{story.Description}</span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          {new Date(story.CreatedDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: '2-digit',
+                            year: 'numeric'
+                          })}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {(() => {
+                            const status = getTaskStatusStyle(story.Status);
+                            const StatusIcon = status.icon;
+                            return (
+                              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
+                                <StatusIcon className={status.iconColor} size={14} />
+                                {getTaskStatusText(story.Status)}
+                              </span>
+                            );
+                          })()}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => {/* TODO: Implement edit */}}
+                              className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200"
+                              title="Edit User Story"
+                            >
+                              <FaCog size={14} />
+                            </button>
+                            <button
+                              onClick={() => {/* TODO: Implement delete */}}
+                              className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-red-100 text-red-700 hover:bg-red-200"
+                              title="Delete User Story"
+                            >
+                              <FaTrash size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Tasks Table - Keep it full width below */}
+        <div className="mb-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Tasks</h2>
+            </div>
+            <div className="overflow-x-auto">
+              {taskList.length === 0 ? (
+                <div className="text-center py-8 text-gray-400 bg-gray-50">
+                  No tasks for this project.
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="py-3 px-4 text-left">Name</th>
+                      <th className="py-3 px-4 text-left">Assigned To</th>
+                      <th className="py-3 px-4 text-left">Assignee</th>
+                      <th className="py-3 px-4 text-center">Date Assigned</th>
+                      <th className="py-3 px-4 text-center">Status</th>
+                      <th className="py-3 px-4 text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {taskList.map(task => (
+                      <tr key={task._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
+                        <td className="py-3 px-4">
+                          <div className="flex flex-col">
+                            <span className="font-medium">{task.Name}</span>
+                            <span className="text-xs text-gray-500">{task.Description}</span>
+                            {/* <span className="text-xs text-blue-600">{task.Type}</span> */}
+                          </div>
+                        </td>
+                        {task.AssignedTo && (
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                                {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{task.AssignedToDetails.fullName}</span>
+                                {/* {task.AssignedToDetails.email && (
+                                  <span className="text-sm text-gray-500">{task.AssignedToDetails.email}</span>
+                                )} */}
+                                {task.AssignedToDetails.teamName && (
+                                  <span className="text-sm text-gray-500">{task.AssignedToDetails.teamName}</span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        )}
+                        {task.Assignee && (
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                                {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{task.AssigneeDetails.fullName}</span>
+                                {/* {task.AssigneeDetails.email && (
+                                  <span className="text-sm text-gray-500">{task.AssigneeDetails.email}</span>
+                                )} */}
+                                {task.AssigneeDetails.teamName && (
+                                  <span className="text-sm text-gray-500">{task.AssigneeDetails.teamName}</span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        )}
+                        <td className="py-3 px-4 text-center">
+                          {task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          }) : '-'}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {(() => {
+                            const status = getTaskStatusStyle(task.Status);
+                            const StatusIcon = status.icon;
+                            return (
+                              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
+                                <StatusIcon className={status.iconColor} size={14} />
+                                {getTaskStatusText(task.Status)}
+                              </span>
+                            );
+                          })()}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => {/* TODO: Implement edit */ }}
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Edit Task"
+                            >
+                              <FaCog size={16} />
+                            </button>
+                            <button
+                              onClick={() => {/* TODO: Implement delete */ }}
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Task"
+                            >
+                              <FaTrash size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
             </tbody>
           </table>
+              )}
+            </div>
+          </div>
         </div>
+
         {showSettingsModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
@@ -612,6 +937,14 @@ const ProjectDetailsPage = () => {
             </div>
           </div>
         )}
+        <AddTaskModal
+          isOpen={isAddTaskOpen}
+          onClose={() => setIsAddTaskOpen(false)}
+          onAddTask={handleAddTask}
+          mode="fromProject"
+          projectIdDefault={projectId}
+          userStories={userStories}
+        />
       </div>
     </Layout>
   );

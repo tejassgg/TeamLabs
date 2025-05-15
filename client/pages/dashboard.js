@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
-import { FaProjectDiagram, FaUsers, FaClock, FaUserFriends, FaTrash, FaCheckCircle, FaPauseCircle, FaExclamationCircle, FaTimes, FaCode, FaVial, FaShieldAlt, FaRocket, FaQuestionCircle } from 'react-icons/fa';
+import { FaProjectDiagram, FaUsers, FaClock, FaUserFriends, FaTrash, FaCheckCircle, FaPauseCircle, FaExclamationCircle, FaTimes, FaCode, FaVial, FaShieldAlt, FaRocket, FaQuestionCircle, FaCog } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import api from '../services/api';
 
@@ -212,98 +212,109 @@ const Dashboard = () => {
         {/* Recent Activity Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Recent Projects */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900">Recent Projects</h2>
-            <div className="space-y-4">
-              {stats?.recentProjects?.map(project => {
-                const statusStyle = getProjectStatusStyle(project.projectStatus);
-                const IconComponent = {
-                  FaTimes,
-                  FaCheckCircle,
-                  FaClock,
-                  FaCode,
-                  FaVial,
-                  FaShieldAlt,
-                  FaRocket,
-                  FaQuestionCircle
-                }[statusStyle.icon];
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Recent Projects</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <div className="space-y-4 p-4">
+                {stats?.recentProjects?.map(project => {
+                  const statusStyle = getProjectStatusStyle(project.projectStatus);
+                  const IconComponent = {
+                    FaTimes,
+                    FaCheckCircle,
+                    FaClock,
+                    FaCode,
+                    FaVial,
+                    FaShieldAlt,
+                    FaRocket,
+                    FaQuestionCircle
+                  }[statusStyle.icon];
 
-                return (
+                  return (
+                    <div
+                      key={project.id}
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 border-b border-gray-100 last:border-b-0"
+                      onClick={() => router.push(`/project/${project.id}`)}
+                    >
+                      <div>
+                        <p className="font-medium text-gray-900">{project.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.textColor} border ${statusStyle.borderColor}`}>
+                          <IconComponent className={statusStyle.iconColor} size={14} />
+                          <span>{project.projectStatus}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {(!stats?.recentProjects || stats.recentProjects.length === 0) && (
+                  <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg">
+                    No Recent Projects
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Upcoming Deadlines */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Upcoming Deadlines</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <div className="space-y-4 p-4">
+                {stats?.deadlineDetails?.map(project => (
                   <div
                     key={project.id}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200"
+                    className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 border-b border-gray-100 last:border-b-0"
                     onClick={() => router.push(`/project/${project.id}`)}
                   >
                     <div>
                       <p className="font-medium text-gray-900">{project.name}</p>
                       <p className="text-sm text-gray-500">
-                        {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'}
+                        Due: {new Date(project.deadline).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.textColor} border ${statusStyle.borderColor}`}>
-                        <IconComponent className={statusStyle.iconColor} />
-                        <span>{project.projectStatus}</span>
-                      </div>
-                    </div>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-700 border border-yellow-200">
+                      <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+                      {project.daysRemaining} days left
+                    </span>
                   </div>
-                );
-              })}
-              {(!stats?.recentProjects || stats.recentProjects.length === 0) && (
-                <div className="text-center py-8 text-gray-400 border rounded-xl bg-gray-50">
-                  No Recent Projects
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Upcoming Deadlines */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900">Upcoming Deadlines</h2>
-            <div className="space-y-4">
-              {stats?.deadlineDetails?.map(project => (
-                <div
-                  key={project.id}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200"
-                  onClick={() => router.push(`/project/${project.id}`)}
-                >
-                  <div>
-                    <p className="font-medium text-gray-900">{project.name}</p>
-                    <p className="text-sm text-gray-500">
-                      Due: {new Date(project.deadline).toLocaleDateString()}
-                    </p>
+                ))}
+                {(!stats?.deadlineDetails || stats.deadlineDetails.length === 0) && (
+                  <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg">
+                    No Upcoming Deadlines
                   </div>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-700 border border-yellow-200">
-                    <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
-                    {project.daysRemaining} days left
-                  </span>
-                </div>
-              ))}
-              {(!stats?.deadlineDetails || stats.deadlineDetails.length === 0) && (
-                <div className="text-center py-8 text-gray-400 border rounded-xl bg-gray-50">
-                  No Upcoming Deadlines
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Organization Members Table */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">Organization Members</h2>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">Organization Members</h2>
+          </div>
           <div className="overflow-x-auto">
-            <table className="w-full border rounded-xl overflow-hidden shadow-sm">
+            <table className="w-full">
               <thead>
-                <tr className="bg-gray-50">
+                <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="py-3 px-4 text-left">Member</th>
                   <th className="py-3 px-4 text-left">Email</th>
+                  <th className="py-3 px-4 text-left">Last Login</th>
                   <th className="py-3 px-4 text-left">Status</th>
                   {user.role === 'Admin' && user.organizationID && <th className="py-3 px-4 text-center">Actions</th>}
                 </tr>
               </thead>
               <tbody>
                 {stats?.members?.map(member => (
-                  <tr key={member.id} className="border-t hover:bg-gray-50 transition-colors">
+                  <tr key={member.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm">
@@ -314,35 +325,55 @@ const Dashboard = () => {
                     </td>
                     <td className="py-3 px-4 text-gray-600">{member.email}</td>
                     <td className="py-3 px-4">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${member.isActive
+                      {member.lastLogin ? (
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-900">
+                            {new Date(member.lastLogin).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
+                            <span className="text-xs text-gray-500">
+                              &nbsp; {new Date(member.lastLogin).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">Never</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
+                        member.isActive 
                           ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
                           : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                        }`}>
-                        <span className={`w-2 h-2 rounded-full ${member.isActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                          }`}></span>
+                      }`}>
+                        <span className={`w-2 h-2 rounded-full ${member.isActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
                         {member.isActive ? 'Active' : 'Inactive'}
-                      </span>
+                      </div>
                     </td>
-                    {user.role === 'Admin' && user.organizationID && user._id !== member.id && (
+                    {user.role === 'Admin' && user.organizationID && (
                       <td className="py-3 px-4 text-center">
-                        <button
-                          onClick={() => {
-                            setRemovingUser(member);
-                            setShowRemoveDialog(true);
-                          }}
-                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200"
-                          title="Remove Member"
-                        >
-                          <FaTrash size={14} />
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => {/* TODO: Implement edit */}}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200"
+                            title="Edit Member"
+                          >
+                            <FaCog size={14} />
+                          </button>
+                          <button
+                            onClick={() => {/* TODO: Implement delete */}}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-red-100 text-red-700 hover:bg-red-200"
+                            title="Delete Member"
+                          >
+                            <FaTrash size={14} />
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>
                 ))}
                 {(!stats?.members || stats.members.length === 0) && (
                   <tr>
-                    <td colSpan={user.role === 'Admin' && user.organizationID ? 4 : 3} className="text-center py-4 text-gray-400">
-                      No members found in the organization.
+                    <td colSpan={user.role === 'Admin' && user.organizationID ? 5 : 4} className="text-center py-8 text-gray-400 bg-gray-50">
+                      No members found
                     </td>
                   </tr>
                 )}

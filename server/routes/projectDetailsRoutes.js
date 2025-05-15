@@ -4,6 +4,8 @@ const ProjectDetails = require('../models/ProjectDetails');
 const Project = require('../models/Project');
 const Team = require('../models/Team');
 const TeamDetails = require('../models/TeamDetails');
+const TaskDetails = require('../models/TaskDetails');
+const User = require('../models/User');
 
 // GET /api/project-details/:projectId - Get all teams for a project
 router.get('/:projectId', async (req, res) => {
@@ -16,7 +18,7 @@ router.get('/:projectId', async (req, res) => {
     const projectDetails = await ProjectDetails.find({ ProjectID: projectId });
     // Fetch all teams in the same organization
     const orgTeams = await Team.find({ organizationID: project.OrganizationID });
-    
+
     // Get member counts for each team
     const teamMemberCounts = await Promise.all(orgTeams.map(async (team) => {
       const count = await TeamDetails.countDocuments({ TeamID_FK: team.TeamID });
@@ -26,10 +28,54 @@ router.get('/:projectId', async (req, res) => {
       };
     }));
 
+    const userStories = await TaskDetails.find({ ProjectID_FK: projectId, Type: "User Story" });
+    const taskListss = await TaskDetails.find({ ProjectID_FK: projectId, Type: { $ne: "User Story" } });
+    
+    // Use Promise.all to properly wait for all user details to be fetched
+    const newTaskList = await Promise.all(taskListss.map(async (task) => {
+      const newTask = task.toObject();
+      
+      // Fetch assignee details if exists
+      if (newTask.Assignee) {
+        const assignee = await User.findById(task.Assignee);
+        if (assignee) {
+          const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
+          const team = await Team.findOne({TeamID: teamDetails.TeamID_FK}).select('TeamName');
+          newTask.AssigneeDetails = {
+            _id: assignee._id,
+            username: assignee.username,
+            fullName: assignee.firstName + " " + assignee.lastName,
+            email: assignee.email,
+            teamName: team.TeamName
+          };
+        }
+      }
+
+      // Fetch assignedTo details if exists
+      if (newTask.AssignedTo) {
+        const assignedTo = await User.findById(task.AssignedTo);
+        if (assignedTo) {
+          const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
+          const team = await Team.findOne({TeamID: teamDetails.TeamID_FK}).select('TeamName');
+          newTask.AssignedToDetails = {
+            _id: assignedTo._id,
+            username: assignedTo.username,
+            fullName: assignedTo.firstName + " " + assignedTo.lastName,
+            email: assignedTo.email,
+            teamName: team.TeamName
+          };
+        }
+      }
+
+      return newTask;
+    }));
+
     res.json({
       project,
       teams: projectDetails,
-      orgTeams: teamMemberCounts
+      orgTeams: teamMemberCounts,
+      userStories: userStories,
+      taskList: newTaskList
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch project details' });
@@ -79,11 +125,11 @@ router.patch('/:projectId/team/:teamId/toggle', async (req, res) => {
 router.delete('/:projectId/team/:teamId', async (req, res) => {
   try {
     const { ModifiedBy } = req.body;
-    const projectDetail = await ProjectDetails.findOne({ 
-      ProjectID: req.params.projectId, 
-      TeamID: req.params.teamId 
+    const projectDetail = await ProjectDetails.findOne({
+      ProjectID: req.params.projectId,
+      TeamID: req.params.teamId
     });
-    
+
     if (!projectDetail) {
       return res.status(404).json({ error: 'Team not found in project' });
     }

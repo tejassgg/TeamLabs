@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { teamService, projectService, authService } from '../services/api';
+import { teamService, projectService, authService, taskService } from '../services/api';
 
 const GlobalContext = createContext();
 
@@ -17,6 +17,7 @@ export const GlobalProvider = ({ children }) => {
   const [userDetails, setUserDetails] = useState(null);
   const [teams, setTeams] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [tasksDetails, setTasksDetails] = useState([]);
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -52,7 +53,6 @@ export const GlobalProvider = ({ children }) => {
   const fetchProjects = async (userId, role) => {
     try {
       const fetchedProjects = await projectService.getProjects(userId, role);
-      console.log(fetchedProjects);
       setProjects(fetchedProjects);
       return fetchedProjects;
     } catch (err) {
@@ -75,6 +75,19 @@ export const GlobalProvider = ({ children }) => {
     }
   };
 
+  // Fetch tasks details
+  const fetchTasksDetails = async () => {
+    try {
+      const fetchedTasks = await taskService.getAllTaskDetails();
+      setTasksDetails(fetchedTasks);
+      return fetchedTasks;
+    } catch (err) {
+      setError('Failed to fetch tasks');
+      console.error('Error fetching tasks:', err);
+      return [];
+    }
+  };
+
   // Initial data fetch
   useEffect(() => {
     const initializeData = async () => {
@@ -85,7 +98,8 @@ export const GlobalProvider = ({ children }) => {
           await Promise.all([
             fetchTeams(profile.organizationID, profile.role, profile._id),
             fetchProjects(profile._id, profile.role),
-            fetchOrganizations()
+            fetchOrganizations(),
+            fetchTasksDetails()
           ]);
         }
       } catch (err) {
@@ -126,13 +140,15 @@ export const GlobalProvider = ({ children }) => {
     userDetails,
     teams,
     projects,
+    tasksDetails,
     organizations,
     loading,
     error,
     refreshOrganizations,
     refreshAll,
     setProjects,
-    setTeams
+    setTeams,
+    setTasksDetails
   };
 
   return (
