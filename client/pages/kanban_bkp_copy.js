@@ -366,7 +366,7 @@ const KanbanBoard = () => {
       <Head>
         <title>Kanban Board | TeamLabs</title>
       </Head>
-      <div className="mx-auto py-8">
+      <div className="mx-auto">
         {/* Breadcrumb Navigation */}
         <div className="flex items-center text-sm text-gray-500 mb-4">
           <Link href="/dashboard" className="hover:text-blue-600 transition-colors">

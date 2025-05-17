@@ -238,7 +238,7 @@ const KanbanColumn = React.memo(({ statusCode, statusName, icon, bgColor, tasks,
 
   return (
     <div
-      className={`flex flex-col h-[600px] ${!isLast ? 'border-r border-gray-300 dark:border-gray-700' : ''}`}
+      className={`flex flex-col h-[750px] ${!isLast ? 'border-r border-gray-300 dark:border-gray-700' : ''}`}
       onDragOver={(e) => e.preventDefault()}
       onDrop={() => handleDrop(statusCode)}
     >
@@ -491,7 +491,7 @@ const KanbanBoard = () => {
       <Head>
         <title>Kanban Board | TeamLabs</title>
       </Head>
-      <div className="mx-auto py-8">
+      <div className="mx-auto">
         {/* Breadcrumb Navigation */}
         <div className="flex items-center text-sm text-gray-500 mb-4">
           <Link href="/dashboard" className="hover:text-blue-600 transition-colors">

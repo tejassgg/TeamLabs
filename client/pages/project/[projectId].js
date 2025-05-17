@@ -117,6 +117,9 @@ const ProjectDetailsPage = () => {
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [taskList, setTaskList] = useState([]);
   const [userStories, setUserStories] = useState([]);
+  const [deletingTask, setDeletingTask] = useState(false);
+  const [showDeleteTaskDialog, setShowDeleteTaskDialog] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
 
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
@@ -482,6 +485,33 @@ const ProjectDetailsPage = () => {
     return statusTexts[statusCode] || 'Unknown';
   };
 
+  // Function to handle task deletion
+  const handleDeleteTask = async () => {
+    if (!taskToDelete) return;
+    
+    setDeletingTask(true);
+    try {
+      await taskService.deleteTask(taskToDelete.TaskID);
+      
+      // Update local state by removing the deleted task
+      setTaskList(prevTasks => prevTasks.filter(task => task.TaskID !== taskToDelete.TaskID));
+      
+      toast.success('Task deleted successfully');
+      setShowDeleteTaskDialog(false);
+      setTaskToDelete(null);
+    } catch (err) {
+      toast.error('Failed to delete task: ' + (err.message || 'Unknown error'));
+    } finally {
+      setDeletingTask(false);
+    }
+  };
+
+  // Function to open the delete task confirmation dialog
+  const confirmDeleteTask = (task) => {
+    setTaskToDelete(task);
+    setShowDeleteTaskDialog(true);
+  };
+
   if (loading) {
     return <Layout>
       <LoadingScreen />
@@ -497,7 +527,7 @@ const ProjectDetailsPage = () => {
       <Head>
         <title>Project - {project?.Name || 'Loading...'} | TeamLabs</title>
       </Head>
-      <div className="mx-auto py-8">
+      <div className="mx-auto">
         {/* Breadcrumb Navigation */}
         <div className="flex items-center text-sm text-gray-500 mb-4">
           <Link href="/dashboard" className="hover:text-blue-600 transition-colors">
@@ -895,14 +925,7 @@ const ProjectDetailsPage = () => {
                         <td className="py-3 px-4 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
-                              onClick={() => {/* TODO: Implement edit */ }}
-                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Edit Task"
-                            >
-                              <FaCog size={16} />
-                            </button>
-                            <button
-                              onClick={() => {/* TODO: Implement delete */ }}
+                              onClick={() => confirmDeleteTask(task)}
                               className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete Task"
                             >
@@ -1051,6 +1074,63 @@ const ProjectDetailsPage = () => {
           projectIdDefault={projectId}
           userStories={userStories}
         />
+
+        {/* Delete Task Confirmation Dialog */}
+        {showDeleteTaskDialog && taskToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                <h3 className="text-lg font-semibold">
+                  Delete Task
+                </h3>
+              </div>
+              <div className="mb-6">
+                <p className="text-gray-600 mb-4">
+                  Are you sure you want to delete this task? This action cannot be undone.
+                </p>
+                <div className="bg-red-50 border border-red-100 rounded-lg p-4">
+                  <h4 className="font-medium text-red-800 mb-1">{taskToDelete.Name}</h4>
+                  <p className="text-sm text-red-700">{taskToDelete.Description}</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <TaskTypeBadge type={taskToDelete.Type} />
+                    <span className="text-xs text-red-600">
+                      {getTaskStatusText(taskToDelete.Status)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteTaskDialog(false);
+                    setTaskToDelete(null);
+                  }}
+                  className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteTask}
+                  className="px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 flex items-center gap-2"
+                  disabled={deletingTask}
+                >
+                  {deletingTask ? (
+                    <>
+                      <span className="animate-spin h-4 w-4 border-t-2 border-b-2 border-white rounded-full"></span>
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaTrash size={14} />
+                      <span>Delete Task</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
