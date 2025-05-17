@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import Head from 'next/head';
 import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
-import { FaProjectDiagram, FaUsers, FaClock, FaUserFriends, FaTrash, FaCheckCircle, FaPauseCircle, FaExclamationCircle, FaTimes, FaCode, FaVial, FaShieldAlt, FaRocket, FaQuestionCircle, FaCog } from 'react-icons/fa';
-import { useRouter } from 'next/router';
+import { FaProjectDiagram, FaUsers, FaClock, FaUserFriends, FaTrash, FaCheckCircle, FaPauseCircle, FaExclamationCircle, FaTimes, FaCode, FaVial, FaShieldAlt, FaRocket, FaQuestionCircle, FaCog, FaCalendarAlt, FaTasks, FaChevronRight } from 'react-icons/fa';
 import api from '../services/api';
 
 const getProjectStatusStyle = (status) => {
@@ -47,7 +49,7 @@ const getProjectStatusStyle = (status) => {
         icon: 'FaVial',
         iconColor: 'text-orange-500'
       };
-    case 'Quality Assurance':
+    case 'QA':
       return {
         bgColor: 'from-indigo-50 to-indigo-100',
         textColor: 'text-indigo-700',
@@ -146,11 +148,19 @@ const Dashboard = () => {
 
   return (
     <Layout>
+      <Head>
+        <title>Dashboard | TeamLabs</title>
+      </Head>
       <div className="max-w-7xl mx-auto py-8">
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center text-sm text-gray-500 mb-4">
+          <span className="text-gray-700 font-medium">Dashboard</span>
+        </div>
+
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{stats?.organizationName}</h1>
-            <p className="text-lg text-gray-600 mt-1">Dashboard</p>
+            <p className="text-lg text-gray-600 mt-1">Welcome to your workspace</p>
           </div>
         </div>
 

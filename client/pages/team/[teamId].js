@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
+import Head from 'next/head';
 import api, { authService } from '../../services/api';
 import Layout from '../../components/Layout';
-import { FaCog, FaTrash, FaTimes } from 'react-icons/fa';
+import { FaCog, FaTrash, FaTimes, FaChevronRight } from 'react-icons/fa';
 import LoadingScreen from '../../components/LoadingScreen';
 import { useAuth } from '../../context/AuthContext';
 import { useGlobal } from '../../context/GlobalContext';
@@ -251,7 +253,23 @@ const TeamDetailsPage = () => {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto py-8">
+      <Head>
+        <title>Team - {team?.TeamName || 'Loading...'} | TeamLabs</title>
+      </Head>
+      <div className="mx-auto py-8">
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center text-sm text-gray-500 mb-4">
+          <Link href="/dashboard" className="hover:text-blue-600 transition-colors">
+            Dashboard
+          </Link>
+          <FaChevronRight className="mx-2" size={12} />
+          <Link href="/teams" className="hover:text-blue-600 transition-colors">
+            Teams
+          </Link>
+          <FaChevronRight className="mx-2" size={12} />
+          <span className="text-gray-700 font-medium">Team Details</span>
+        </div>
+
         {loading ? (
           <LoadingScreen />
         ) : error ? (

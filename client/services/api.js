@@ -255,6 +255,46 @@ export const taskService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch tasks' };
     }
+  },
+  getTaskDetails: async (projectId) => {
+    try {
+      const response = await api.get(`/task-details/project/${projectId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch project tasks' };
+    }
+  },
+  updateTaskStatus: async (taskId, newStatus) => {
+    try {
+      const response = await api.patch(`/task-details/${taskId}/status`, { Status: newStatus });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to update task status' };
+    }
+  },
+  getTeamMembersByProject: async (projectId) => {
+    try {
+      const response = await api.get(`/task-details/project/${projectId}/team-members`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch team members' };
+    }
+  },
+  assignTask: async (taskId, userId) => {
+    try {
+      const response = await api.patch(`/task-details/${taskId}/assign`, { AssignedTo: userId, AssignedDate: new Date() });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to assign task' };
+    }
+  },
+  deleteTask: async (taskId) => {
+    try {
+      const response = await api.delete(`/task-details/${taskId}/delete`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to remove task' };
+    }
   }
 };
 

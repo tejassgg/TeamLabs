@@ -9,11 +9,9 @@ const ProjectStatuses = [
   { Value: 'Not Assigned', Code: 1, MasterType: 'ProjectStatus' },
   { Value: 'Assigned', Code: 2, MasterType: 'ProjectStatus' },
   { Value: 'In Progress', Code: 3, MasterType: 'ProjectStatus' },
-  { Value: 'Development', Code: 4, MasterType: 'ProjectStatus' },
-  { Value: 'Testing', Code: 5, MasterType: 'ProjectStatus' },
-  { Value: 'Quality Assurance', Code: 6, MasterType: 'ProjectStatus' },
-  { Value: 'Deployment', Code: 7, MasterType: 'ProjectStatus' },
-  { Value: 'Completed', Code: 8, MasterType: 'ProjectStatus' }
+  { Value: 'QA', Code: 4, MasterType: 'ProjectStatus' },
+  { Value: 'Deployment', Code: 5, MasterType: 'ProjectStatus' },
+  { Value: 'Completed', Code: 6, MasterType: 'ProjectStatus' }
 ];
 
 (async () => {

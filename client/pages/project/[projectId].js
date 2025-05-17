@@ -1,11 +1,87 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
+import Link from 'next/link';
 import api, { authService, taskService } from '../../services/api';
 import Layout from '../../components/Layout';
-import { FaTrash, FaCog, FaTimes, FaClock, FaUserCheck, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle } from 'react-icons/fa';
+import { FaTrash, FaCog, FaTimes, FaClock, FaUserCheck, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaChevronRight, FaInfoCircle } from 'react-icons/fa';
 import LoadingScreen from '../../components/LoadingScreen';
 import AddTaskModal from '../../components/AddTaskModal';
 import { toast } from 'react-toastify';
+
+// Task Type Badge component for reuse
+const TaskTypeBadge = ({ type }) => {
+  const typeStyles = {
+    'Bug': {
+      bgColor: 'bg-gradient-to-r from-red-50 to-red-100',
+      textColor: 'text-red-700',
+      borderColor: 'border-red-200',
+      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 17V7.00001C8 5.20202 8 4.30302 8.43597 3.66606C8.81947 3.10068 9.40173 2.67724 10.0858 2.4636C10.8449 2.22222 11.7476 2.45386 13.553 2.91712L18.553 4.19381C19.6884 4.47175 20.2562 4.61072 20.628 4.9568C20.9552 5.26041 21.1613 5.66725 21.2204 6.10576C21.2873 6.61029 21.0513 7.19377 20.5794 8.36072C20.2881 9.05932 20 10.1937 20 11.5V13.5C20 14.8063 20.2881 15.9407 20.5794 16.6393C21.0513 17.8062 21.2873 18.3897 21.2204 18.8942C21.1613 19.3328 20.9552 19.7396 20.628 20.0432C20.2562 20.3893 19.6884 20.5283 18.553 20.8062L13.553 22.0829C11.7476 22.5461 10.8449 22.7778 10.0858 22.5364C9.40173 22.3228 8.81947 21.8993 8.43597 21.3339C8 20.697 8 19.798 8 18.0001V17ZM17 12H12M17.5 16H12M17.5 8H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    },
+    'Feature': {
+      bgColor: 'bg-gradient-to-r from-blue-50 to-blue-100',
+      textColor: 'text-blue-700',
+      borderColor: 'border-blue-200',
+      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.0784 19.0784L16.25 16.25M19.0784 4.99994L16.25 7.82838M4.92157 19.0784L7.75 16.25M4.92157 4.99994L7.75 7.82838" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    },
+    'Improvement': {
+      bgColor: 'bg-gradient-to-r from-green-50 to-green-100',
+      textColor: 'text-green-700',
+      borderColor: 'border-green-200',
+      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M12 17V11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M12 8V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    },
+    'Documentation': {
+      bgColor: 'bg-gradient-to-r from-indigo-50 to-indigo-100',
+      textColor: 'text-indigo-700',
+      borderColor: 'border-indigo-200',
+      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    },
+    'Maintenance': {
+      bgColor: 'bg-gradient-to-r from-yellow-50 to-yellow-100',
+      textColor: 'text-yellow-700',
+      borderColor: 'border-yellow-200',
+      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    },
+    'User Story': {
+      bgColor: 'bg-gradient-to-r from-purple-50 to-purple-100',
+      textColor: 'text-purple-700',
+      borderColor: 'border-purple-200',
+      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.74" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    }
+  };
+
+  const defaultStyle = {
+    bgColor: 'bg-gradient-to-r from-gray-50 to-gray-100',
+    textColor: 'text-gray-700', 
+    borderColor: 'border-gray-200',
+    icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9 11L12 14L22 4M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  };
+
+  const style = typeStyles[type] || defaultStyle;
+  
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${style.bgColor} ${style.textColor} border ${style.borderColor} shadow-sm transition-all duration-200`}>
+      {style.icon}
+      {type || 'Task'}
+    </span>
+  );
+};
 
 const ProjectDetailsPage = () => {
   const router = useRouter();
@@ -56,7 +132,6 @@ const ProjectDetailsPage = () => {
           setOrgTeams(res.data.orgTeams);
           setTaskList(res.data.taskList);
           setUserStories(res.data.userStories);
-          console.log(res.data.taskList);
         })
         .catch(err => {
           setError('Failed to fetch project');
@@ -319,11 +394,11 @@ const ProjectDetailsPage = () => {
   const handleAddTask = async (taskData) => {
     try {
       // Set ParentID to selected user story
-      const data = await taskService.addTaskDetails(taskData, 'fromProject');
-      setTaskList([...projectTasks, data]);
+      const newTask = await taskService.addTaskDetails(taskData, 'fromProject');
+      setTaskList(prevTasks => [...prevTasks, newTask]);
       toast.success('Task added successfully!');
-      fetchProjectTasks(); // Refresh the list
     } catch (err) {
+      console.log(err);
       toast.error('Failed to add task');
     }
   };
@@ -366,7 +441,7 @@ const ProjectDetailsPage = () => {
         icon: FaVial,
         iconColor: 'text-orange-500'
       },
-      6: { // Quality Assurance
+      6: { // QA
         bgColor: 'from-indigo-50 to-indigo-100',
         textColor: 'text-indigo-700',
         borderColor: 'border-indigo-200',
@@ -400,7 +475,7 @@ const ProjectDetailsPage = () => {
       3: 'In Progress',
       4: 'Development',
       5: 'Testing',
-      6: 'Quality Assurance',
+      6: 'QA',
       7: 'Deployment',
       8: 'Completed'
     };
@@ -419,10 +494,28 @@ const ProjectDetailsPage = () => {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto py-8">
+      <Head>
+        <title>Project - {project?.Name || 'Loading...'} | TeamLabs</title>
+      </Head>
+      <div className="mx-auto py-8">
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center text-sm text-gray-500 mb-4">
+          <Link href="/dashboard" className="hover:text-blue-600 transition-colors">
+            Dashboard
+          </Link>
+          <FaChevronRight className="mx-2" size={12} />
+          <Link href="/projects" className="hover:text-blue-600 transition-colors">
+            Projects
+          </Link>
+          <FaChevronRight className="mx-2" size={12} />
+          <span className="text-gray-700 font-medium">Project Details</span>
+        </div>
+
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold pr-8">{project.Name}</h1>
+            <div>
+              <h2 className="text-3xl font-bold pr-8">{project.Name}</h2>
+            </div>
             {currentProjectStatus && (
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border border-blue-200">
                 <span className="w-2 h-2 rounded-full bg-blue-500"></span>
@@ -432,21 +525,14 @@ const ProjectDetailsPage = () => {
           </div>
           {isOwner && (
             <div className="flex items-center gap-2">
-            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${project.IsActive
-                ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
-                : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-              }`}>
-              <span className={`w-2 h-2 rounded-full ${project.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                }`}></span>
-              {project.IsActive ? 'Active' : 'Inactive'}
-            </div>
-            <button
-              className="p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors"
-              title="Project Settings"
-              onClick={() => setShowSettingsModal(true)}
-            >
-              <FaCog size={20} />
-            </button>
+              
+              <button
+                className="p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors"
+                title="Project Settings"
+                onClick={() => setShowSettingsModal(true)}
+              >
+                <FaCog size={20} />
+              </button>
             </div>
           )}
         </div>
@@ -551,75 +637,75 @@ const ProjectDetailsPage = () => {
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-            <thead>
+                <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="py-3 px-4 text-left w-[300px]">Team Name</th>
-                <th className="py-3 px-4 text-left w-[200px]">Date Added</th>
-                <th className="py-3 px-4 text-center w-[150px]">Status</th>
-                {isOwner && <th className="py-3 px-4 text-center w-[150px]">Actions</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {teams.map(team => {
-                const teamDetails = orgTeams.find(t => t.TeamID === team.TeamID);
-                return (
+                    <th className="py-3 px-4 text-left w-[300px]">Team Name</th>
+                    <th className="py-3 px-4 text-left w-[200px]">Date Added</th>
+                    <th className="py-3 px-4 text-center w-[150px]">Status</th>
+                    {isOwner && <th className="py-3 px-4 text-center w-[150px]">Actions</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {teams.map(team => {
+                    const teamDetails = orgTeams.find(t => t.TeamID === team.TeamID);
+                    return (
                       <tr key={team.TeamID} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
-                  <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
-                          {teamDetails?.TeamName.split(' ').map(n => n[0]).join('')}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{teamDetails?.TeamName || team.TeamID}</span>
-                          {teamDetails?.TeamDescription && (
-                            <span className="text-sm text-gray-500">{teamDetails.TeamDescription}</span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">{team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
-                    <td className="py-3 px-4 text-center">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                              {teamDetails?.TeamName.split(' ').map(n => n[0]).join('')}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{teamDetails?.TeamName || team.TeamID}</span>
+                              {teamDetails?.TeamDescription && (
+                                <span className="text-sm text-gray-500">{teamDetails.TeamDescription}</span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">{team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
+                        <td className="py-3 px-4 text-center">
                           <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${team.IsActive
-                        ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
-                        : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                      }`}>
+                            ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
+                            : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
+                            }`}>
                             <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                        }`}></span>
-                      {team.IsActive ? 'Active' : 'Inactive'}
-                    </div>
-                  </td>
-                  {isOwner && (
-                    <td className="py-3 px-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleToggleTeamStatus(team.TeamID)}
+                              }`}></span>
+                            {team.IsActive ? 'Active' : 'Inactive'}
+                          </div>
+                        </td>
+                        {isOwner && (
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => handleToggleTeamStatus(team.TeamID)}
                                 className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
-                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                : 'bg-green-100 text-green-700 hover:bg-green-200'
-                            }`}
-                            title={team.IsActive ? 'Revoke Access' : 'Grant Access'}
-                          disabled={toggling === team.TeamID}
-                        >
-                            <FaCog size={14} />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setRemovingTeam(team);
-                            setShowRemoveDialog(true);
-                          }}
-                            className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200"
-                          title="Remove Team"
-                            disabled={removing}
-                        >
-                          <FaTrash size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-                );
-              })}
-              {teams.length === 0 && (
+                                  ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                  }`}
+                                title={team.IsActive ? 'Revoke Access' : 'Grant Access'}
+                                disabled={toggling === team.TeamID}
+                              >
+                                <FaCog size={14} />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setRemovingTeam(team);
+                                  setShowRemoveDialog(true);
+                                }}
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200"
+                                title="Remove Team"
+                                disabled={removing}
+                              >
+                                <FaTrash size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                  {teams.length === 0 && (
                     <tr>
                       <td colSpan={isOwner ? 4 : 3} className="text-center py-8 text-gray-400 bg-gray-50">
                         No teams assigned to this project.
@@ -686,14 +772,14 @@ const ProjectDetailsPage = () => {
                         <td className="py-3 px-4 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
-                              onClick={() => {/* TODO: Implement edit */}}
+                              onClick={() => {/* TODO: Implement edit */ }}
                               className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200"
                               title="Edit User Story"
                             >
                               <FaCog size={14} />
                             </button>
                             <button
-                              onClick={() => {/* TODO: Implement delete */}}
+                              onClick={() => {/* TODO: Implement delete */ }}
                               className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-red-100 text-red-700 hover:bg-red-200"
                               title="Delete User Story"
                             >
@@ -729,6 +815,7 @@ const ProjectDetailsPage = () => {
                       <th className="py-3 px-4 text-left">Assigned To</th>
                       <th className="py-3 px-4 text-left">Assignee</th>
                       <th className="py-3 px-4 text-center">Date Assigned</th>
+                      <th className="py-3 px-4 text-left">Type</th>
                       <th className="py-3 px-4 text-center">Status</th>
                       <th className="py-3 px-4 text-center">Actions</th>
                     </tr>
@@ -740,51 +827,58 @@ const ProjectDetailsPage = () => {
                           <div className="flex flex-col">
                             <span className="font-medium">{task.Name}</span>
                             <span className="text-xs text-gray-500">{task.Description}</span>
-                            {/* <span className="text-xs text-blue-600">{task.Type}</span> */}
                           </div>
                         </td>
-                        {task.AssignedTo && (
-                          <td className="py-3 px-4">
+                        <td className="py-3 px-4">
+                          {task.AssignedTo && task.AssignedToDetails ? (
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm">
                                 {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
                               </div>
                               <div className="flex flex-col">
                                 <span className="font-medium">{task.AssignedToDetails.fullName}</span>
-                                {/* {task.AssignedToDetails.email && (
-                                  <span className="text-sm text-gray-500">{task.AssignedToDetails.email}</span>
-                                )} */}
                                 {task.AssignedToDetails.teamName && (
                                   <span className="text-sm text-gray-500">{task.AssignedToDetails.teamName}</span>
                                 )}
                               </div>
                             </div>
-                          </td>
-                        )}
-                        {task.Assignee && (
-                          <td className="py-3 px-4">
+                          ) : (
+                            <div className="flex items-center">
+                              <span className="text-gray-500">Not Assigned</span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          {task.Assignee && task.AssigneeDetails ? (
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm">
                                 {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
                               </div>
                               <div className="flex flex-col">
                                 <span className="font-medium">{task.AssigneeDetails.fullName}</span>
-                                {/* {task.AssigneeDetails.email && (
-                                  <span className="text-sm text-gray-500">{task.AssigneeDetails.email}</span>
-                                )} */}
                                 {task.AssigneeDetails.teamName && (
                                   <span className="text-sm text-gray-500">{task.AssigneeDetails.teamName}</span>
                                 )}
                               </div>
                             </div>
-                          </td>
-                        )}
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm">
+                                <span>NA</span>
+                              </div>
+                              <span className="text-gray-500">Not Assigned</span>
+                            </div>
+                          )}
+                        </td>
                         <td className="py-3 px-4 text-center">
                           {task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric'
                           }) : '-'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <TaskTypeBadge type={task.Type} />
                         </td>
                         <td className="py-3 px-4 text-center">
                           {(() => {
@@ -818,8 +912,8 @@ const ProjectDetailsPage = () => {
                         </td>
                       </tr>
                     ))}
-            </tbody>
-          </table>
+                  </tbody>
+                </table>
               )}
             </div>
           </div>
@@ -828,7 +922,7 @@ const ProjectDetailsPage = () => {
         {showSettingsModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-semibold">Project Settings</h3>
                 <button
                   onClick={() => setShowSettingsModal(false)}
@@ -837,6 +931,18 @@ const ProjectDetailsPage = () => {
                   <FaTimes size={20} />
                 </button>
               </div>
+              {project.ModifiedDate && (
+                <div className="text-sm text-gray-500 mb-4 flex items-center gap-1">
+                  <FaInfoCircle size={14} />
+                  <span>Last Modified: {new Date(project.ModifiedDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}</span>
+                </div>
+              )}
               <form onSubmit={handleSettingsSave} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>

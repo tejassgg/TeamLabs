@@ -30,17 +30,17 @@ router.get('/:projectId', async (req, res) => {
 
     const userStories = await TaskDetails.find({ ProjectID_FK: projectId, Type: "User Story" });
     const taskListss = await TaskDetails.find({ ProjectID_FK: projectId, Type: { $ne: "User Story" } });
-    
+
     // Use Promise.all to properly wait for all user details to be fetched
     const newTaskList = await Promise.all(taskListss.map(async (task) => {
       const newTask = task.toObject();
-      
+
       // Fetch assignee details if exists
       if (newTask.Assignee) {
         const assignee = await User.findById(task.Assignee);
         if (assignee) {
           const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
-          const team = await Team.findOne({TeamID: teamDetails.TeamID_FK}).select('TeamName');
+          const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
           newTask.AssigneeDetails = {
             _id: assignee._id,
             username: assignee.username,
@@ -49,21 +49,20 @@ router.get('/:projectId', async (req, res) => {
             teamName: team.TeamName
           };
         }
-      }
-
-      // Fetch assignedTo details if exists
-      if (newTask.AssignedTo) {
-        const assignedTo = await User.findById(task.AssignedTo);
-        if (assignedTo) {
-          const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
-          const team = await Team.findOne({TeamID: teamDetails.TeamID_FK}).select('TeamName');
-          newTask.AssignedToDetails = {
-            _id: assignedTo._id,
-            username: assignedTo.username,
-            fullName: assignedTo.firstName + " " + assignedTo.lastName,
-            email: assignedTo.email,
-            teamName: team.TeamName
-          };
+        // Fetch assignedTo details if exists
+        if (newTask.AssignedTo) {
+          const assignedTo = await User.findById(task.AssignedTo);
+          if (assignedTo) {
+            const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
+            const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+            newTask.AssignedToDetails = {
+              _id: assignedTo._id,
+              username: assignedTo.username,
+              fullName: assignedTo.firstName + " " + assignedTo.lastName,
+              email: assignedTo.email,
+              teamName: team.TeamName
+            };
+          }
         }
       }
 

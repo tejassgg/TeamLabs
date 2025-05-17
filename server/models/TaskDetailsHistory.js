@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
 
 const TaskDetailsHistorySchema = new mongoose.Schema({
+  TaskID: {
+    type: String,
+    required: true
+  },
   ParentID: {
     type: String,
     default: null
@@ -41,6 +45,10 @@ const TaskDetailsHistorySchema = new mongoose.Schema({
   },
   CreatedBy: {
     type: String
+  },
+  HistoryDate: {
+    type: Date,
+    default: Date.now
   }
 });
 

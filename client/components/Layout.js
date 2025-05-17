@@ -37,6 +37,8 @@ const Sidebar = () => {
   ];
 
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
+  const activeProjectId = router.pathname.startsWith('/project/') ? router.query.projectId : null;
+  const activeDashboardItem = router.pathname === '/kanban' ? 'kanban' : (router.pathname === '/query' ? 'query' : null);
 
   const handleAddTeam = async (teamData) => {
     try {
@@ -62,7 +64,7 @@ const Sidebar = () => {
     }
   };
 
-  const handleAddTask = async (taskData) => {
+  const handleAddUserStory = async (taskData) => {
     try {
       const newTask = await taskService.addTaskDetails(taskData, 'fromSideBar');
       setTasksDetails(prevTasks => [...prevTasks, newTask]);
@@ -129,6 +131,20 @@ const Sidebar = () => {
                 </span>
                 <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Dashboard</h3>
               </button>
+              <ul className="space-y-1">
+                <li
+                  className={`pl-2 py-1.5 rounded-xl cursor-pointer transition ${activeDashboardItem === 'kanban' ? 'bg-blue-50 text-blue-600 font-medium' : 'hover:bg-gray-50 hover:text-gray-900'}`}
+                  onClick={() => router.push('/kanban')}
+                >
+                  Kanban Board
+                </li>
+                <li
+                  className={`pl-2 py-1.5 rounded-xl cursor-pointer transition ${activeDashboardItem === 'query' ? 'bg-blue-50 text-blue-600 font-medium' : 'hover:bg-gray-50 hover:text-gray-900'}`}
+                  onClick={() => router.push('/query')}
+                >
+                  Query Board
+                </li>
+              </ul>
             </div>
 
             {/* Teams Section */}
@@ -244,15 +260,21 @@ const Sidebar = () => {
                     <div className="pl-2 py-1 text-gray-400 italic">No Projects</div>
                   ) : (
                     <ul className="space-y-1">
-                      {projects.map(project => (
-                        <li
-                          key={project.ProjectID || project._id}
-                          className="pl-2 py-1.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 cursor-pointer transition"
-                          onClick={() => router.push(`/project/${project.ProjectID || project._id}`)}
-                        >
-                          {project.Name}
-                        </li>
-                      ))}
+                      {projects.map((project) => {
+                        const isActive = activeProjectId === (project.ProjectID || project._id);
+                        return (
+                          <li
+                            key={project.ProjectID || project._id}
+                            className={`pl-2 py-1.5 rounded-xl cursor-pointer transition ${isActive
+                              ? 'bg-blue-50 text-blue-600 font-medium'
+                              : 'hover:bg-gray-50 hover:text-gray-900'
+                              }`}
+                            onClick={() => router.push(`/project/${project.ProjectID || project._id}`)}
+                          >
+                            {project.Name}
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </>
@@ -314,7 +336,7 @@ const Sidebar = () => {
           <AddTaskModal
             isOpen={isAddTaskOpen}
             onClose={() => setIsAddTaskOpen(false)}
-            onAddTask={handleAddTask}
+            onAddTask={handleAddUserStory}
             mode="fromSideBar"
           />
         </>

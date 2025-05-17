@@ -12,7 +12,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projec
   const [assignee, setAssignee] = useState(userDetails?._id || '');
   const [assignedTo, setAssignedTo] = useState('');
   const [projectId, setProjectId] = useState(projectIdDefault || '');
-  const [parentId, setParentId] = useState(null);
+  const [parentId, setParentId] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [createdDate] = useState(new Date());
   const [assignedDate] = useState('');
@@ -118,7 +118,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projec
         </div>
         {mode === 'fromSideBar' && (
           <div>
-            <label className="block text-sm font-medium mb-1">User Story<span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium mb-1">Project<span className="text-red-500">*</span></label>
             <select
               value={projectId}
               onChange={e => setProjectId(e.target.value)}
@@ -127,7 +127,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projec
             >
               <option value="">Select Project</option>
               {projects.map(proj => (
-                <option key={proj.ProjectID || proj._id} value={proj.ProjectID || proj._id}>{proj.Name}</option>
+                <option key={proj._id} value={proj.ProjectID}>{proj.Name}</option>
               ))}
             </select>
           </div>
