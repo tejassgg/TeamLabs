@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { teamService, projectService, authService, taskService } from '../services/api';
+import { teamService, projectService, authService, taskService, commonTypeService } from '../services/api';
+import { getProjectStatusStyle, getProjectStatusBadge } from '../components/ProjectStatusBadge';
+import { getTaskTypeStyle, getTaskTypeBadge } from '../components/TaskTypeBadge';
+import { getDeadlineStatus, calculateDeadlineText } from '../components/DeadlineStatusBadge';
 
 const GlobalContext = createContext();
 
@@ -19,6 +22,7 @@ export const GlobalProvider = ({ children }) => {
   const [projects, setProjects] = useState([]);
   const [tasksDetails, setTasksDetails] = useState([]);
   const [organizations, setOrganizations] = useState([]);
+  const [projectStatuses, setProjectStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -88,6 +92,65 @@ export const GlobalProvider = ({ children }) => {
     }
   };
 
+  // Fetch project statuses
+  const fetchProjectStatuses = async () => {
+    try {
+      const statuses = await commonTypeService.getProjectStatuses();
+      setProjectStatuses(statuses);
+      return statuses;
+    } catch (err) {
+      setError('Failed to fetch project statuses');
+      console.error('Error fetching project statuses:', err);
+      return [];
+    }
+  };
+
+  // Get project status by code
+  const getProjectStatus = (statusCode) => {
+    return projectStatuses.find(status => status.Code === statusCode) || { Value: 'Not Assigned', Code: 1 };
+  };
+
+  // Get project status badge component
+  const getProjectStatusBadgeComponent = (statusCode, showTooltip = true) => {
+    const status = getProjectStatus(statusCode);
+    return getProjectStatusBadge(status, showTooltip);
+  };
+
+  // Get task type style
+  const getTaskTypeStyleComponent = (type) => {
+    return getTaskTypeStyle(type);
+  };
+
+  // Get task type badge component
+  const getTaskTypeBadgeComponent = (type) => {
+    return getTaskTypeBadge(type);
+  };
+
+  // Get task status text
+  const getTaskStatusText = (statusCode) => {
+    const statusTexts = {
+      1: 'Not Assigned',
+      2: 'Assigned',
+      3: 'In Progress',
+      4: 'Development',
+      5: 'Testing',
+      6: 'QA',
+      7: 'Deployment',
+      8: 'Completed'
+    };
+    return statusTexts[statusCode] || 'Unknown';
+  };
+
+  // Get deadline status component
+  const getDeadlineStatusComponent = (deadlineText) => {
+    return getDeadlineStatus(deadlineText);
+  };
+
+  // Calculate deadline text component
+  const calculateDeadlineTextComponent = (finishDate) => {
+    return calculateDeadlineText(finishDate);
+  };
+
   // Initial data fetch
   useEffect(() => {
     const initializeData = async () => {
@@ -99,7 +162,8 @@ export const GlobalProvider = ({ children }) => {
             fetchTeams(profile.organizationID, profile.role, profile._id),
             fetchProjects(profile._id, profile.role),
             fetchOrganizations(),
-            fetchTasksDetails()
+            fetchTasksDetails(),
+            fetchProjectStatuses()
           ]);
         }
       } catch (err) {
@@ -142,13 +206,22 @@ export const GlobalProvider = ({ children }) => {
     projects,
     tasksDetails,
     organizations,
+    projectStatuses,
     loading,
     error,
     refreshOrganizations,
     refreshAll,
     setProjects,
     setTeams,
-    setTasksDetails
+    setTasksDetails,
+    getProjectStatus,
+    getProjectStatusStyle,
+    getProjectStatusBadgeComponent,
+    getTaskTypeStyleComponent,
+    getTaskTypeBadgeComponent,
+    getTaskStatusText,
+    getDeadlineStatusComponent,
+    calculateDeadlineTextComponent,
   };
 
   return (

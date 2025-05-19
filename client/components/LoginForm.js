@@ -27,7 +27,6 @@ const LoginForm = ({ onSuccess }) => {
       }
     } catch (err) {
       setError('An error occurred during login');
-      console.error(err);
     } finally {
       setIsLoading(false);
     }

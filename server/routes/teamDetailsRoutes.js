@@ -86,7 +86,8 @@ router.get('/:teamId', async (req, res) => {
         AssignedDate: a.CreatedDate,
         FinishDate: proj.FinishDate,
         IsActive: proj.IsActive,
-        TeamIsActive: a.IsActive
+        TeamIsActive: a.IsActive,
+        ProjectStatusID: proj.ProjectStatusID
       };
     }).filter(Boolean);
 

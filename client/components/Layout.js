@@ -1,8 +1,8 @@
 import Navbar from './Navbar';
 import { useTheme } from '../context/ThemeContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FaPlus, FaChevronRight, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown } from 'react-icons/fa';
+import { FaPlus, FaChevronRight, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaBars, FaTimes } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import AddTeamModal from './AddTeamModal';
 import { teamService } from '../services/api';
@@ -15,7 +15,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { toast } from 'react-toastify';
 
-const Sidebar = () => {
+const Sidebar = ({ isMobile, isOpen, setIsOpen }) => {
   const { theme } = useTheme();
   const router = useRouter();
   const [isAddTeamOpen, setIsAddTeamOpen] = useState(false);
@@ -74,12 +74,33 @@ const Sidebar = () => {
     }
   };
 
+  // Close mobile sidebar when navigating
+  const handleNavigation = (path) => {
+    router.push(path);
+    if (isMobile) {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <>
       <aside
-        className={`fixed top-0 left-0 h-full z-40 transition-all duration-300 w-78 ${theme === 'dark' ? 'bg-[#232E3C] text-[#F3F6FA]' : 'bg-gray-200 text-gray-900'} p-4 flex flex-col`}
-        style={{ minHeight: '100vh', width: 300 }}
+        className={`fixed top-0 left-0 h-full z-40 transition-all duration-300 
+        ${theme === 'dark' ? 'bg-[#232E3C] text-[#F3F6FA]' : 'bg-gray-200 text-gray-900'} 
+        p-4 flex flex-col ${isMobile ? 
+          `w-[280px] transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} shadow-2xl` : 
+          'w-78'}`}
+        style={{ minHeight: '100vh', width: isMobile ? 280 : 300 }}
       >
+        {isMobile && (
+          <button 
+            className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 z-50"
+            onClick={() => setIsOpen(false)}
+          >
+            <FaTimes size={24} />
+          </button>
+        )}
+      
         {/* Organization Cover Section */}
         <div className="relative mb-6" style={{ minHeight: '180px' }}>
           <img
@@ -122,7 +143,7 @@ const Sidebar = () => {
               <button
                 className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-gray-50 rounded-xl transition cursor-pointer w-full"
                 style={{ minHeight: 32 }}
-                onClick={() => router.push('/dashboard')}
+                onClick={() => handleNavigation('/dashboard')}
                 tabIndex={0}
                 aria-label="Go to Dashboard"
               >
@@ -130,17 +151,20 @@ const Sidebar = () => {
                   <FaHome className="text-blue-600" size={20} />
                 </span>
                 <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Dashboard</h3>
+                <span className="ml-auto bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">
+                  {tasksDetails.length}
+                </span>
               </button>
               <ul className="space-y-1">
                 <li
                   className={`pl-2 py-1.5 rounded-xl cursor-pointer transition ${activeDashboardItem === 'kanban' ? 'bg-blue-50 text-blue-600 font-medium' : 'hover:bg-gray-50 hover:text-gray-900'}`}
-                  onClick={() => router.push('/kanban')}
+                  onClick={() => handleNavigation('/kanban')}
                 >
                   Kanban Board
                 </li>
                 <li
                   className={`pl-2 py-1.5 rounded-xl cursor-pointer transition ${activeDashboardItem === 'query' ? 'bg-blue-50 text-blue-600 font-medium' : 'hover:bg-gray-50 hover:text-gray-900'}`}
-                  onClick={() => router.push('/query')}
+                  onClick={() => handleNavigation('/query')}
                 >
                   Query Board
                 </li>
@@ -161,6 +185,9 @@ const Sidebar = () => {
                     <FaUsers className="text-blue-600" size={20} />
                   </span>
                   <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Teams</h3>
+                  <span className="ml-auto bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">
+                    {teams.length}
+                  </span>
                   {isTeamsCollapsed ? <FaChevronRight size={12} /> : <FaChevronDown size={12} />}
                 </button>
                 {canManageTeamsAndProjects ? (
@@ -202,7 +229,7 @@ const Sidebar = () => {
                               ? 'bg-blue-50 text-blue-600 font-medium'
                               : 'hover:bg-gray-50 hover:text-gray-900'
                               }`}
-                            onClick={() => router.push(`/team/${team.TeamID || team._id}`)}
+                            onClick={() => handleNavigation(`/team/${team.TeamID || team._id}`)}
                           >
                             {team.TeamName}
                           </li>
@@ -228,6 +255,9 @@ const Sidebar = () => {
                     <FaFolder className="text-blue-600" size={20} />
                   </span>
                   <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Projects</h3>
+                  <span className="ml-auto bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">
+                    {projects.length}
+                  </span>
                   {isProjectsCollapsed ? <FaChevronRight size={12} /> : <FaChevronDown size={12} />}
                 </button>
                 {canManageTeamsAndProjects ? (
@@ -269,7 +299,7 @@ const Sidebar = () => {
                               ? 'bg-blue-50 text-blue-600 font-medium'
                               : 'hover:bg-gray-50 hover:text-gray-900'
                               }`}
-                            onClick={() => router.push(`/project/${project.ProjectID || project._id}`)}
+                            onClick={() => handleNavigation(`/project/${project.ProjectID || project._id}`)}
                           >
                             {project.Name}
                           </li>
@@ -286,7 +316,7 @@ const Sidebar = () => {
                 <button
                   className="flex items-center gap-2 group focus:outline-none bg-transparent border-0 p-0 m-0 hover:bg-gray-50 rounded-xl transition cursor-pointer"
                   style={{ minHeight: 32 }}
-                  onClick={() => router.push('/userstories')}
+                  onClick={() => handleNavigation('/userstories')}
                   tabIndex={0}
                   aria-label="Go to UserStories"
                 >
@@ -294,6 +324,9 @@ const Sidebar = () => {
                     <FaBookOpen className="text-blue-600" size={20} />
                   </span>
                   <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">UserStories</h3>
+                  <span className="ml-auto bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">
+                    {tasksDetails.filter(task => task.Type === 'User Story').length}
+                  </span>
                 </button>
                 <button
                   className="p-1.5 rounded-full hover:bg-blue-50 hover:text-blue-600 transition text-xs cursor-pointer ml-2"
@@ -309,7 +342,8 @@ const Sidebar = () => {
                   <li className="pl-2 py-1.5 text-gray-400">No user stories</li>
                 ) : (
                   tasksDetails.filter(task => task.Type === 'User Story').map(task => (
-                    <li key={task._id} className="pl-2 py-1.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 cursor-pointer transition">
+                    <li key={task._id} className="pl-2 py-1.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 cursor-pointer transition"
+                        onClick={() => handleNavigation(`/task/${task._id}`)}>
                       {task.Name}
                     </li>
                   ))
@@ -348,17 +382,76 @@ const Sidebar = () => {
 const Layout = ({ children }) => {
   const { theme, toggleTheme, resolvedTheme } = useTheme();
   const { logout } = useAuth();
-  const sidebarWidth = 300;
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    
+    // Initial check
+    checkIsMobile();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkIsMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
+  // Close sidebar when clicking outside on mobile
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const sidebar = document.getElementById('mobile-sidebar');
+      if (isMobile && isMobileSidebarOpen && sidebar && !sidebar.contains(event.target) && 
+          !event.target.closest('.sidebar-toggle')) {
+        setIsMobileSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMobile, isMobileSidebarOpen]);
+
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#181F2A] text-[#F3F6FA]' : 'bg-white text-gray-900'}`}>
-      <Sidebar />
-      <div style={{ marginLeft: sidebarWidth, transition: 'margin-left 0.3s' }}>
-        <div className="flex justify-center">
-          <div style={{ width: '98%' }}>
-            <Navbar theme={theme} toggleTheme={toggleTheme} onLogout={logout} />
+      <div id="mobile-sidebar">
+        <Sidebar isMobile={isMobile} isOpen={isMobileSidebarOpen} setIsOpen={setIsMobileSidebarOpen} />
+      </div>
+      
+      {/* Mobile Navbar with Hamburger */}
+      <div className={`lg:hidden fixed top-0 left-0 right-0 z-30 ${theme === 'dark' ? 'bg-[#232E3C]' : 'bg-gray-200'} shadow-md`}>
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button 
+              className="sidebar-toggle p-2 rounded-lg text-gray-600 hover:bg-gray-300 transition-colors"
+              onClick={() => setIsMobileSidebarOpen(true)}
+              aria-label="Open sidebar"
+            >
+              <FaBars size={22} />
+            </button>
+            <div className="text-lg font-bold ml-1">TeamLabs</div>
+          </div>
+          <div>
+            <Navbar isMobile={true} theme={theme} toggleTheme={toggleTheme} onLogout={logout} />
           </div>
         </div>
-        <main className={`p-8 overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#181F2A] text-[#F3F6FA]' : ''}`}>{children}</main>
+      </div>
+
+      {/* Main Content */}
+      <div className={`transition-all duration-300 ${isMobile ? 'ml-0 pt-14' : 'ml-[300px]'}`}>
+        {!isMobile && (
+          <div className="flex justify-center">
+            <div style={{ width: '98%' }}>
+              <Navbar theme={theme} toggleTheme={toggleTheme} onLogout={logout} />
+            </div>
+          </div>
+        )}
+        <main className={`p-4 md:p-8 overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#181F2A] text-[#F3F6FA]' : ''}`}>
+          {children}
+        </main>
         <ToastContainer
           position="top-right"
           autoClose={3000}
@@ -371,6 +464,14 @@ const Layout = ({ children }) => {
           theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
         />
       </div>
+
+      {/* Overlay for mobile when sidebar is open */}
+      {isMobile && isMobileSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        ></div>
+      )}
     </div>
   );
 };

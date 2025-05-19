@@ -13,6 +13,7 @@ const TeamDetailsPage = () => {
   const router = useRouter();
   const { user } = useAuth();
   const { teamId } = router.query;
+  const { teams, setTeams, getProjectStatusBadgeComponent, getProjectStatusStyle, getProjectStatus } = useGlobal();
   const [team, setTeam] = useState(null);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +49,6 @@ const TeamDetailsPage = () => {
   const [activeProjects, setActiveProjects] = useState([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingTeam, setDeletingTeam] = useState(false);
-  const { teams, setTeams } = useGlobal();
 
   const teamColors = [
     { value: '#3B82F6', name: 'Blue' },
@@ -76,7 +76,6 @@ const TeamDetailsPage = () => {
             TeamType: res.data.team.TeamType,
             TeamColor: res.data.team.TeamColor
           });
-          // Set active projects from the main response
           setActiveProjects(res.data.activeProjects || []);
         })
         .catch(err => {
@@ -254,7 +253,7 @@ const TeamDetailsPage = () => {
   return (
     <Layout>
       <Head>
-        <title>Team - {team?.TeamName || 'Loading...'} | TeamLabs</title>
+        <title>{`Team - ${team?.TeamName || 'Loading...'} | TeamLabs`}</title>
       </Head>
       <div className="mx-auto">
         {/* Breadcrumb Navigation */}
@@ -309,91 +308,93 @@ const TeamDetailsPage = () => {
               )}
             </div>
 
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-2">Team Members</h2>
-              {isOwner && (
-                <form onSubmit={handleAddMember} className="mb-4 flex flex-col gap-2">
-                  <label className="block text-gray-700 font-semibold mb-1">Search for a Member (search by name, email, or UserID)</label>
-                  <input
-                    type="text"
-                    className="border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    value={search}
-                    onChange={e => {
-                      setSearch(e.target.value);
-                      setSelectedUser(null);
-                      setShowAllUsers(false);
-                    }}
-                    onFocus={() => {
-                      setIsInputFocused(true);
-                      if (!search) {
-                        const memberIds = new Set(members.map(m => m.MemberID));
-                        const availableUsers = orgUsers.filter(u => !memberIds.has(u._id));
-                        setFilteredUsers(availableUsers.slice(0, 10));
-                      }
-                    }}
-                    onBlur={() => {
-                      setTimeout(() => {
-                        setIsInputFocused(false);
-                      }, 200);
-                    }}
-                    placeholder="Type to search..."
-                    autoComplete="off"
-                  />
-                  {isInputFocused && filteredUsers.length > 0 && (
-                    <div className="w-full md:w-96">
-                      <ul className="border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md">
-                        {filteredUsers.map((user, index) => (
-                          <li
-                            key={`${user._id}-${index}`}
-                            className="px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2"
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setSearch(user.firstName + ' ' + user.lastName + ' (' + user.email + ')');
-                                  setIsInputFocused(false);
-                                }}
-                              >
-                                <div className="flex flex-col">
-                                  <div className="font-medium text-gray-900">
-                                    {user.firstName} {user.lastName}
-                                  </div>
-                                  <div className="text-sm text-gray-600">
-                                    {user.email}
-                                  </div>
-                                  <div className="text-xs text-gray-400 mt-0.5">
-                                    ID: {user._id}
-                                  </div>
+            {isOwner && (
+              <form onSubmit={handleAddMember} className="mb-4 flex flex-col gap-2">
+                <label className="block text-gray-700 font-semibold mb-1">Search for a Member (search by name, email, or UserID)</label>
+                <input
+                  type="text"
+                  className="border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  value={search}
+                  onChange={e => {
+                    setSearch(e.target.value);
+                    setSelectedUser(null);
+                    setShowAllUsers(false);
+                  }}
+                  onFocus={() => {
+                    setIsInputFocused(true);
+                    if (!search) {
+                      const memberIds = new Set(members.map(m => m.MemberID));
+                      const availableUsers = orgUsers.filter(u => !memberIds.has(u._id));
+                      setFilteredUsers(availableUsers.slice(0, 10));
+                    }
+                  }}
+                  onBlur={() => {
+                    setTimeout(() => {
+                      setIsInputFocused(false);
+                    }, 200);
+                  }}
+                  placeholder="Type to search..."
+                  autoComplete="off"
+                />
+                {isInputFocused && filteredUsers.length > 0 && (
+                  <div className="w-full md:w-96">
+                    <ul className="border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md">
+                      {filteredUsers.map((user, index) => (
+                        <li
+                          key={`${user._id}-${index}`}
+                          className="px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setSearch(user.firstName + ' ' + user.lastName + ' (' + user.email + ')');
+                                setIsInputFocused(false);
+                              }}
+                            >
+                              <div className="flex flex-col">
+                                <div className="font-medium text-gray-900">
+                                  {user.firstName} {user.lastName}
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                  {user.email}
+                                </div>
+                                <div className="text-xs text-gray-400 mt-0.5">
+                                  ID: {user._id}
                                 </div>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setUserToAdd(user);
-                                  setShowAddMemberDialog(true);
-                                }}
-                                className="ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm"
-                              >
-                                Add
-                              </button>
                             </div>
-                          </li>
-                        ))}
-                      </ul>
-                      {!showAllUsers && orgUsers.length > 10 && (
-                        <button
-                          type="button"
-                          onClick={() => setShowAllUsers(true)}
-                          className="w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200"
-                        >
-                          Show All Users ({orgUsers.length})
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </form>
-              )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setUserToAdd(user);
+                                setShowAddMemberDialog(true);
+                              }}
+                              className="ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    {!showAllUsers && orgUsers.length > 10 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllUsers(true)}
+                        className="w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200"
+                      >
+                        Show All Users ({orgUsers.length})
+                      </button>
+                    )}
+                  </div>
+                )}
+              </form>
+            )}
+
+            {/* Team Members and Projects Tables Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Team Members Table */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200">
                 <div className="p-4 border-b border-gray-200">
                   <h2 className="text-xl font-semibold text-gray-900">Team Members</h2>
@@ -403,9 +404,9 @@ const TeamDetailsPage = () => {
                     <thead>
                       <tr className="bg-gray-50 border-b border-gray-200">
                         <th className="py-3 px-4 text-left w-[300px]">Member</th>
-                        <th className="py-3 px-4 text-left w-[200px]">Date Added</th>
+                        <th className="hidden md:table-cell py-3 px-4 text-left w-[200px]">Date Added</th>
                         <th className="py-3 px-4 text-left w-[200px]">Last Active</th>
-                        <th className="py-3 px-4 text-center w-[150px]">Status</th>
+                        <th className="hidden md:table-cell py-3 px-4 text-center w-[150px]">Status</th>
                         {isOwner && <th className="py-3 px-4 text-center w-[150px]">Actions</th>}
                       </tr>
                     </thead>
@@ -420,10 +421,20 @@ const TeamDetailsPage = () => {
                               <div className="flex flex-col">
                                 <span className="font-medium">{member.name}</span>
                                 <span className="text-sm text-gray-500">{member.email}</span>
+                                {/* Show status badge on mobile inline with name */}
+                                <div className="md:hidden mt-1">
+                                  <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${member.IsMemberActive
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-red-100 text-red-700'
+                                    }`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${member.IsMemberActive ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                                    {member.IsMemberActive ? 'Active' : 'Inactive'}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </td>
-                          <td className="py-3 px-4">{new Date(member.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
+                          <td className="hidden md:table-cell py-3 px-4">{new Date(member.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
                           <td className="py-3 px-4">
                             {member.lastLogin ? (
                               <div className="flex flex-col">
@@ -438,7 +449,7 @@ const TeamDetailsPage = () => {
                               <span className="text-sm text-gray-400">Never</span>
                             )}
                           </td>
-                          <td className="py-3 px-4 text-center">
+                          <td className="hidden md:table-cell py-3 px-4 text-center">
                             <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${member.IsMemberActive
                               ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
                               : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
@@ -500,6 +511,48 @@ const TeamDetailsPage = () => {
                       )}
                     </tbody>
                   </table>
+                </div>
+              </div>
+
+              {/* Projects Table */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div className="p-4 border-b border-gray-200">
+                  <h2 className="text-xl font-semibold text-gray-900">Projects Assigned</h2>
+                </div>
+                <div className="overflow-x-auto">
+                  {activeProjects.length > 0 ? (
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <th className="py-3 px-4 text-left">Project Name</th>
+                          <th className="py-3 px-4 text-left">Date Assigned</th>
+                          <th className="py-3 px-4 text-left">Deadline</th>
+                          <th className="py-3 px-4 text-center">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activeProjects.map(proj => {
+                          const projectStatus = getProjectStatus(proj.ProjectStatusID);
+                          const statusStyle = getProjectStatusStyle(projectStatus.Code);
+
+                          return (
+                            <tr key={proj.ProjectID} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
+                              <td className="py-3 px-4 font-medium">{proj.Name}</td>
+                              <td className="py-3 px-4">{proj.AssignedDate ? new Date(proj.AssignedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
+                              <td className="py-3 px-4">{proj.FinishDate ? new Date(proj.FinishDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
+                              <td className="py-3 px-4 text-center">
+                                {getProjectStatusBadgeComponent(proj.ProjectStatusID)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="text-center py-8 text-gray-400 bg-gray-50">
+                      No Projects Assigned
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -799,59 +852,6 @@ const TeamDetailsPage = () => {
                 </div>
               </div>
             )}
-
-            {/* Projects Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-6">
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900">Projects Assigned</h2>
-              </div>
-              <div className="overflow-x-auto">
-                {activeProjects.length > 0 ? (
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="py-3 px-4 text-left">Project Name</th>
-                        <th className="py-3 px-4 text-left">Date Assigned</th>
-                        <th className="py-3 px-4 text-left">Deadline</th>
-                        <th className="py-3 px-4 text-center">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {activeProjects.map(proj => (
-                        <tr key={proj.ProjectID} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
-                          <td className="py-3 px-4 font-medium">{proj.Name}</td>
-                          <td className="py-3 px-4">{proj.AssignedDate ? new Date(proj.AssignedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
-                          <td className="py-3 px-4">{proj.FinishDate ? new Date(proj.FinishDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
-                          <td className="py-3 px-4 text-center">
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${proj.IsActive
-                              ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
-                              : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                              }`}>
-                              <span className={`w-2 h-2 rounded-full ${proj.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                                }`}></span>
-                              {proj.IsActive ? 'Project' : 'Inactive'}
-                            </span>
-                            <span className="ml-2"></span>
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${proj.TeamIsActive
-                              ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
-                              : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                              }`}>
-                              <span className={`w-2 h-2 rounded-full ${proj.TeamIsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                                }`}></span>
-                              {proj.TeamIsActive ? 'Team' : 'Inactive'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <div className="text-center py-8 text-gray-400 bg-gray-50">
-                    No Projects Assigned
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* Delete Team Confirmation Dialog */}
             {showDeleteDialog && (

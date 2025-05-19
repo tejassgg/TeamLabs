@@ -316,9 +316,8 @@ const Dashboard = () => {
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="py-3 px-4 text-left">Member</th>
-                  <th className="py-3 px-4 text-left">Email</th>
+                  <th className="hidden md:table-cell py-3 px-4 text-left">Email</th>
                   <th className="py-3 px-4 text-left">Last Login</th>
-                  <th className="py-3 px-4 text-left">Status</th>
                   {user.role === 'Admin' && user.organizationID && <th className="py-3 px-4 text-center">Actions</th>}
                 </tr>
               </thead>
@@ -327,51 +326,49 @@ const Dashboard = () => {
                   <tr key={member.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm">
-                          {member.initials}
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                          {member.name.split(' ').map(n => n[0]).join('')}
                         </div>
-                        <span className="font-medium text-gray-900">{member.name}</span>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{member.name}</span>
+                          <span className="md:hidden text-xs text-gray-500">{member.email}</span>
+                          {/* Show status on mobile */}
+                          <div className="md:hidden mt-1">
+                            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${member.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${member.status === 'Active' ? 'bg-green-500' : 'bg-gray-500'}`}></span>
+                              {member.status}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-gray-600">{member.email}</td>
+                    <td className="hidden md:table-cell py-3 px-4">
+                      <span className="text-gray-600">{member.email}</span>
+                    </td>
                     <td className="py-3 px-4">
                       {member.lastLogin ? (
                         <div className="flex flex-col">
                           <span className="text-sm text-gray-900">
-                            {new Date(member.lastLogin).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
-                            <span className="text-xs text-gray-500">
-                              &nbsp; {new Date(member.lastLogin).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                            </span>
+                            {new Date(member.lastLogin).toLocaleDateString()}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(member.lastLogin).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                       ) : (
                         <span className="text-sm text-gray-400">Never</span>
                       )}
                     </td>
-                    <td className="py-3 px-4">
-                      <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
-                        member.isActive 
-                          ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
-                          : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                      }`}>
-                        <span className={`w-2 h-2 rounded-full ${member.isActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
-                        {member.isActive ? 'Active' : 'Inactive'}
-                      </div>
-                    </td>
                     {user.role === 'Admin' && user.organizationID && (
                       <td className="py-3 px-4 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button
-                            onClick={() => {/* TODO: Implement edit */}}
-                            className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200"
-                            title="Edit Member"
-                          >
-                            <FaCog size={14} />
-                          </button>
-                          <button
-                            onClick={() => {/* TODO: Implement delete */}}
-                            className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-red-100 text-red-700 hover:bg-red-200"
-                            title="Delete Member"
+                            onClick={() => {
+                              setRemovingUser(member);
+                              setShowRemoveDialog(true);
+                            }}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition"
+                            title="Remove Member"
                           >
                             <FaTrash size={14} />
                           </button>

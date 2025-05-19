@@ -217,6 +217,14 @@ export const commonTypeService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch task types' };
     }
+  },
+  getProjectStatuses: async () => {
+    try {
+      const response = await api.get('/common-types/project-statuses');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch project statuses' };
+    }
   }
 };
 
