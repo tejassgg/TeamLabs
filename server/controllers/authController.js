@@ -18,14 +18,14 @@ const generateToken = (id) => {
 // @access  Public
 const registerUser = async (req, res) => {
   try {
-    const { 
-      username, 
-      firstName, 
-      lastName, 
-      middleName, 
+    const {
+      username,
+      firstName,
+      lastName,
+      middleName,
       phone,
       phoneExtension,
-      email, 
+      email,
       password,
       address,
       aptNumber,
@@ -36,7 +36,7 @@ const registerUser = async (req, res) => {
     } = req.body;
 
     // Check if user already exists
-    const userExists = await User.findOne({ $or: [{ email }, { username }, {phone}] });
+    const userExists = await User.findOne({ $or: [{ email }, { username }, { phone }] });
 
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
@@ -109,7 +109,7 @@ const loginUser = async (req, res) => {
       // Update last login
       user.lastLogin = new Date();
       await user.save();
-      
+
       // Log successful login
       await logActivity(user._id, 'login', 'success', 'User logged in successfully', req, 'email');
 
@@ -146,7 +146,7 @@ const logoutUser = async (req, res) => {
   try {
     // Log the logout activity
     await logActivity(req.user._id, 'logout', 'success', 'User logged out successfully', req);
-    
+
     res.json({ message: 'Logged out successfully' });
   } catch (error) {
     console.error(error);
@@ -160,32 +160,32 @@ const logoutUser = async (req, res) => {
 const googleLogin = async (req, res) => {
   try {
     const { credential } = req.body;
-    
+
     // Verify Google token
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
-    
+
     const { email_verified, name, email, given_name, family_name, sub, picture } = ticket.getPayload();
-    
+
     // If email is not verified by Google
     if (!email_verified) {
       await logActivity(null, 'login_failed', 'failed', 'Email not verified by Google', req, 'google');
       return res.status(400).json({ message: 'Email not verified by Google' });
     }
-    
+
     // Check if user exists
     let user = await User.findOne({ email });
-    
+
     if (user) {
       // If user exists, update last login
       user.lastLogin = new Date();
       await user.save();
-      
+
       // Log successful Google login
       await logActivity(user._id, 'login', 'success', 'User logged in via Google', req, 'google');
-      
+
       // Return user data with token and Google profile image
       return res.json({
         _id: user._id,
@@ -203,10 +203,10 @@ const googleLogin = async (req, res) => {
       // If user doesn't exist, create new user with partial profile
       // Generate username from email
       const username = email.split('@')[0] + Math.floor(Math.random() * 1000);
-      
+
       // Create random password for Google users
       const password = Math.random().toString(36).slice(-8);
-      
+
       user = await User.create({
         username,
         firstName: given_name || name.split(' ')[0],
@@ -226,10 +226,10 @@ const googleLogin = async (req, res) => {
         country: null,
         role: 'User'
       });
-      
+
       // Log successful Google login for new user
       await logActivity(user._id, 'login', 'success', 'New user registered and logged in via Google', req, 'google');
-      
+
       res.status(201).json({
         _id: user._id,
         username: user.username,
@@ -256,26 +256,26 @@ const googleLogin = async (req, res) => {
 // @access  Private
 const completeUserProfile = async (req, res) => {
   try {
-    const { 
-      phone, 
+    const {
+      phone,
       phoneExtension,
-      middleName, 
-      address, 
-      aptNumber, 
-      zipCode, 
-      city, 
-      state, 
-      country, 
-      organizationID, 
-      role 
+      middleName,
+      address,
+      aptNumber,
+      zipCode,
+      city,
+      state,
+      country,
+      organizationID,
+      role
     } = req.body;
-    
+
     const user = await User.findById(req.user._id);
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     // Update user profile with additional details
     user.phone = phone;
     user.phoneExtension = phoneExtension || user.phoneExtension; // Keep existing if not provided
@@ -300,12 +300,12 @@ const completeUserProfile = async (req, res) => {
       }
       user.role = role;
     }
-    
+
     await user.save();
 
     // Log profile update
     await logActivity(user._id, 'profile_update', 'success', 'Profile updated successfully', req);
-    
+
     res.json({
       _id: user._id,
       username: user.username,
@@ -337,7 +337,7 @@ const completeUserProfile = async (req, res) => {
 const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
-    
+
     if (user) {
       // If user has an organization ID, fetch the organization details
       if (user.organizationID) {
@@ -375,7 +375,10 @@ const getUserActivities = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
 
-    const result = await UserActivity.find({ user: req.user._id })
+
+    let types = ['team_create', 'team_update', 'team_delete', 'team_join', 'team_leave', 'team_status_toggle', 'project_create', 'project_update', 'task_create', 'task_update', 'task_complete', 'task_assign', 'user_story_create', 'user_story_update', 'user_story_delete', 'error'];
+
+    const result = await UserActivity.find({ user: req.user._id, type: { $in: types } })
       .sort({ timestamp: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
@@ -403,7 +406,7 @@ const getUserActivities = async (req, res) => {
 const getUserOrganizations = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('organizationID');
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }

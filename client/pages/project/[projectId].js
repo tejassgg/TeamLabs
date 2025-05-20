@@ -9,10 +9,12 @@ import LoadingScreen from '../../components/LoadingScreen';
 import AddTaskModal from '../../components/AddTaskModal';
 import { toast } from 'react-toastify';
 import { useGlobal } from '../../context/GlobalContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const ProjectDetailsPage = () => {
   const router = useRouter();
   const { projectId } = router.query;
+  const { theme } = useTheme();
   const { 
     getProjectStatus, 
     getProjectStatusBadgeComponent,
@@ -252,69 +254,106 @@ const ProjectDetailsPage = () => {
     }
   };
 
-  // Helper function to get task status styles
+  // Update the getTaskStatusStyle function to use theme
   const getTaskStatusStyle = (statusCode) => {
+    const isDark = theme === 'dark';
     const styles = {
       1: { // Not Assigned
-        bgColor: 'from-gray-50 to-gray-100',
-        textColor: 'text-gray-700',
-        borderColor: 'border-gray-200',
+        bgColor: isDark ? 'from-gray-800/50 to-gray-700/50' : 'from-gray-50 to-gray-100',
+        textColor: isDark ? 'text-gray-300' : 'text-gray-700',
+        borderColor: isDark ? 'border-gray-700' : 'border-gray-200',
         icon: FaTimes,
-        iconColor: 'text-gray-500'
+        iconColor: isDark ? 'text-gray-400' : 'text-gray-500'
       },
       2: { // Assigned
-        bgColor: 'from-blue-50 to-blue-100',
-        textColor: 'text-blue-700',
-        borderColor: 'border-blue-200',
+        bgColor: isDark ? 'from-blue-900/50 to-blue-800/50' : 'from-blue-50 to-blue-100',
+        textColor: isDark ? 'text-blue-300' : 'text-blue-700',
+        borderColor: isDark ? 'border-blue-700' : 'border-blue-200',
         icon: FaCheckCircle,
-        iconColor: 'text-blue-500'
+        iconColor: isDark ? 'text-blue-400' : 'text-blue-500'
       },
       3: { // In Progress
-        bgColor: 'from-yellow-50 to-yellow-100',
-        textColor: 'text-yellow-700',
-        borderColor: 'border-yellow-200',
+        bgColor: isDark ? 'from-yellow-900/50 to-yellow-800/50' : 'from-yellow-50 to-yellow-100',
+        textColor: isDark ? 'text-yellow-300' : 'text-yellow-700',
+        borderColor: isDark ? 'border-yellow-700' : 'border-yellow-200',
         icon: FaClock,
-        iconColor: 'text-yellow-500'
+        iconColor: isDark ? 'text-yellow-400' : 'text-yellow-500'
       },
       4: { // Development
-        bgColor: 'from-purple-50 to-purple-100',
-        textColor: 'text-purple-700',
-        borderColor: 'border-purple-200',
+        bgColor: isDark ? 'from-purple-900/50 to-purple-800/50' : 'from-purple-50 to-purple-100',
+        textColor: isDark ? 'text-purple-300' : 'text-purple-700',
+        borderColor: isDark ? 'border-purple-700' : 'border-purple-200',
         icon: FaCode,
-        iconColor: 'text-purple-500'
+        iconColor: isDark ? 'text-purple-400' : 'text-purple-500'
       },
       5: { // Testing
-        bgColor: 'from-orange-50 to-orange-100',
-        textColor: 'text-orange-700',
-        borderColor: 'border-orange-200',
+        bgColor: isDark ? 'from-orange-900/50 to-orange-800/50' : 'from-orange-50 to-orange-100',
+        textColor: isDark ? 'text-orange-300' : 'text-orange-700',
+        borderColor: isDark ? 'border-orange-700' : 'border-orange-200',
         icon: FaVial,
-        iconColor: 'text-orange-500'
+        iconColor: isDark ? 'text-orange-400' : 'text-orange-500'
       },
       6: { // QA
-        bgColor: 'from-indigo-50 to-indigo-100',
-        textColor: 'text-indigo-700',
-        borderColor: 'border-indigo-200',
+        bgColor: isDark ? 'from-indigo-900/50 to-indigo-800/50' : 'from-indigo-50 to-indigo-100',
+        textColor: isDark ? 'text-indigo-300' : 'text-indigo-700',
+        borderColor: isDark ? 'border-indigo-700' : 'border-indigo-200',
         icon: FaShieldAlt,
-        iconColor: 'text-indigo-500'
+        iconColor: isDark ? 'text-indigo-400' : 'text-indigo-500'
       },
       7: { // Deployment
-        bgColor: 'from-pink-50 to-pink-100',
-        textColor: 'text-pink-700',
-        borderColor: 'border-pink-200',
+        bgColor: isDark ? 'from-pink-900/50 to-pink-800/50' : 'from-pink-50 to-pink-100',
+        textColor: isDark ? 'text-pink-300' : 'text-pink-700',
+        borderColor: isDark ? 'border-pink-700' : 'border-pink-200',
         icon: FaRocket,
-        iconColor: 'text-pink-500'
+        iconColor: isDark ? 'text-pink-400' : 'text-pink-500'
       },
       8: { // Completed
-        bgColor: 'from-green-50 to-green-100',
-        textColor: 'text-green-700',
-        borderColor: 'border-green-200',
+        bgColor: isDark ? 'from-green-900/50 to-green-800/50' : 'from-green-50 to-green-100',
+        textColor: isDark ? 'text-green-300' : 'text-green-700',
+        borderColor: isDark ? 'border-green-700' : 'border-green-200',
         icon: FaCheckCircle,
-        iconColor: 'text-green-500'
+        iconColor: isDark ? 'text-green-400' : 'text-green-500'
       }
     };
 
-    return styles[statusCode] || styles[1]; // Default to Not Assigned if status not found
+    return styles[statusCode] || styles[1];
   };
+
+  // Helper function to get theme-aware classes
+  const getThemeClasses = (baseClasses, darkClasses) => {
+    return `${baseClasses} ${theme === 'dark' ? darkClasses : ''}`;
+  };
+
+  // Update the table container classes
+  const tableContainerClasses = getThemeClasses(
+    'bg-white rounded-xl shadow-sm border border-gray-200',
+    'dark:bg-gray-800 dark:border-gray-700'
+  );
+
+  const tableHeaderClasses = getThemeClasses(
+    'bg-gray-50 border-b border-gray-200',
+    'dark:bg-gray-700/50 dark:border-gray-700'
+  );
+
+  const tableHeaderTextClasses = getThemeClasses(
+    'text-gray-900',
+    'dark:text-gray-100'
+  );
+
+  const tableRowClasses = getThemeClasses(
+    'border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0',
+    'dark:border-gray-700 dark:hover:bg-gray-700/50'
+  );
+
+  const tableTextClasses = getThemeClasses(
+    'text-gray-900',
+    'dark:text-gray-100'
+  );
+
+  const tableSecondaryTextClasses = getThemeClasses(
+    'text-gray-500',
+    'dark:text-gray-400'
+  );
 
   // Function to handle task deletion
   const handleDeleteTask = async () => {
@@ -414,7 +453,10 @@ const ProjectDetailsPage = () => {
           )}
           {userStories.length > 0 && (
             <button
-              className="ml-4 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200"
+              className={getThemeClasses(
+                'ml-4 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200',
+                'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
+              )}
               onClick={() => setIsAddTaskOpen(true)}
             >
               + Add Task
@@ -424,10 +466,16 @@ const ProjectDetailsPage = () => {
 
         {isOwner && (
           <div className="mb-6 flex flex-col gap-2">
-            <label className="block text-gray-700 font-semibold mb-1">Search for a Team (search by name, description, or TeamID)</label>
+            <label className={getThemeClasses(
+              'block text-gray-700 font-semibold mb-1',
+              'dark:text-gray-200'
+            )}>Search for a Team (search by name, description, or TeamID)</label>
             <input
               type="text"
-              className="border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+              className={getThemeClasses(
+                'border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200',
+                'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400'
+              )}
               value={search}
               onChange={e => {
                 setSearch(e.target.value);
@@ -450,14 +498,23 @@ const ProjectDetailsPage = () => {
             />
             {isInputFocused && filteredTeams.length > 0 && (
               <div className="w-full md:w-96">
-                <ul className="border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md">
+                <ul className={getThemeClasses(
+                  'border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md',
+                  'dark:bg-gray-800 dark:border-gray-700'
+                )}>
                   {filteredTeams.map((team, index) => (
                     <li
                       key={`${team.TeamID}-${index}`}
-                      className="px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150"
+                      className={getThemeClasses(
+                        'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150',
+                        'dark:border-gray-700'
+                      )}
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2"
+                        <div className={getThemeClasses(
+                          'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2',
+                          'dark:hover:bg-blue-900/30'
+                        )}
                           onClick={() => {
                             setSelectedTeam(team.TeamID);
                             setSearch(team.TeamName);
@@ -465,9 +522,18 @@ const ProjectDetailsPage = () => {
                           }}
                         >
                           <div className="flex flex-col">
-                            <div className="font-medium text-gray-900">{team.TeamName}</div>
-                            <div className="text-sm text-gray-600">{team.TeamDescription}</div>
-                            <div className="text-xs text-gray-500 mt-1">
+                            <div className={getThemeClasses(
+                              'font-medium text-gray-900',
+                              'dark:text-gray-100'
+                            )}>{team.TeamName}</div>
+                            <div className={getThemeClasses(
+                              'text-sm text-gray-600',
+                              'dark:text-gray-400'
+                            )}>{team.TeamDescription}</div>
+                            <div className={getThemeClasses(
+                              'text-xs text-gray-500 mt-1',
+                              'dark:text-gray-500'
+                            )}>
                               {team.memberCount || 0} {team.memberCount === 1 ? 'member' : 'members'}
                             </div>
                           </div>
@@ -475,7 +541,10 @@ const ProjectDetailsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleAddTeam(team.TeamID)}
-                          className="ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm"
+                          className={getThemeClasses(
+                            'ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm',
+                            'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
+                          )}
                           disabled={adding}
                         >
                           {adding ? 'Adding...' : 'Add'}
@@ -491,46 +560,61 @@ const ProjectDetailsPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Teams Assigned Table */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Teams Assigned</h2>
+          <div className={tableContainerClasses}>
+            <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
+              <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Teams Assigned</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="py-3 px-4 text-left w-[300px]">Team Name</th>
-                    <th className="hidden md:table-cell py-3 px-4 text-left w-[200px]">Date Added</th>
-                    <th className="py-3 px-4 text-center w-[150px]">Status</th>
-                    {isOwner && <th className="py-3 px-4 text-center w-[150px]">Actions</th>}
+                  <tr className={tableHeaderClasses}>
+                    <th className={`py-3 px-4 text-left w-[300px] ${tableHeaderTextClasses}`}>Team Name</th>
+                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Date Added</th>
+                    <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Status</th>
+                    {isOwner && <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {teams.map(team => {
                     const teamDetails = orgTeams.find(t => t.TeamID === team.TeamID);
                     return (
-                      <tr key={team.TeamID} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
+                      <tr key={team.TeamID} className={tableRowClasses}>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                            <div className={getThemeClasses(
+                              'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium',
+                              'dark:bg-blue-900/50 dark:text-blue-300'
+                            )}>
                               {teamDetails?.TeamName.split(' ').map(n => n[0]).join('')}
                             </div>
                             <div className="flex flex-col">
-                              <span className="font-medium">{teamDetails?.TeamName || team.TeamID}</span>
+                              <span className={tableTextClasses}>{teamDetails?.TeamName || team.TeamID}</span>
                               {teamDetails?.TeamDescription && (
-                                <span className="text-sm text-gray-500">{teamDetails.TeamDescription}</span>
+                                <span className={tableSecondaryTextClasses}>{teamDetails.TeamDescription}</span>
                               )}
                             </div>
                           </div>
                         </td>
-                        <td className="hidden md:table-cell py-3 px-4">{team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
+                        <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
+                          {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
+                        </td>
                         <td className="py-3 px-4 text-center">
-                          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${team.IsActive
-                            ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
-                            : 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200'
-                            }`}>
-                            <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                              }`}></span>
+                          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
+                            team.IsActive
+                              ? getThemeClasses(
+                                  'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200',
+                                  'dark:from-green-900/50 dark:to-green-800/50 dark:text-green-300 dark:border-green-700'
+                                )
+                              : getThemeClasses(
+                                  'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200',
+                                  'dark:from-red-900/50 dark:to-red-800/50 dark:text-red-300 dark:border-red-700'
+                                )
+                          }`}>
+                            <span className={`w-2 h-2 rounded-full ${
+                              team.IsActive
+                                ? getThemeClasses('bg-green-500 animate-pulse', 'dark:bg-green-400')
+                                : getThemeClasses('bg-red-500', 'dark:bg-red-400')
+                            }`}></span>
                             {team.IsActive ? 'Active' : 'Inactive'}
                           </div>
                         </td>
@@ -539,10 +623,17 @@ const ProjectDetailsPage = () => {
                             <div className="flex items-center justify-center gap-2">
                               <button
                                 onClick={() => handleToggleTeamStatus(team.TeamID)}
-                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
-                                  ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                  : 'bg-green-100 text-green-700 hover:bg-green-200'
-                                  }`}
+                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${
+                                  team.IsActive
+                                    ? getThemeClasses(
+                                        'bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                        'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
+                                      )
+                                    : getThemeClasses(
+                                        'bg-green-100 text-green-700 hover:bg-green-200',
+                                        'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-800/50'
+                                      )
+                                }`}
                                 title={team.IsActive ? 'Revoke Access' : 'Grant Access'}
                                 disabled={toggling === team.TeamID}
                               >
@@ -553,7 +644,10 @@ const ProjectDetailsPage = () => {
                                   setRemovingTeam(team);
                                   setShowRemoveDialog(true);
                                 }}
-                                className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200"
+                                className={getThemeClasses(
+                                  'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                  'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
+                                )}
                                 title="Remove Team"
                                 disabled={removing}
                               >
@@ -567,7 +661,10 @@ const ProjectDetailsPage = () => {
                   })}
                   {teams.length === 0 && (
                     <tr>
-                      <td colSpan={isOwner ? 4 : 3} className="text-center py-8 text-gray-400 bg-gray-50">
+                      <td colSpan={isOwner ? 4 : 3} className={getThemeClasses(
+                        'text-center py-8 text-gray-400 bg-gray-50',
+                        'dark:text-gray-500 dark:bg-gray-700/50'
+                      )}>
                         No teams assigned to this project.
                       </td>
                     </tr>
@@ -578,39 +675,42 @@ const ProjectDetailsPage = () => {
           </div>
 
           {/* User Stories Table */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">User Stories</h2>
+          <div className={tableContainerClasses}>
+            <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
+              <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>User Stories</h2>
             </div>
             <div className="overflow-x-auto">
               {userStories.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 bg-gray-50">
+                <div className={getThemeClasses(
+                  'text-center py-8 text-gray-400 bg-gray-50',
+                  'dark:text-gray-500 dark:bg-gray-700/50'
+                )}>
                   No user stories for this project.
                 </div>
               ) : (
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="py-3 px-4 text-left w-[300px]">Name</th>
-                      <th className="hidden md:table-cell py-3 px-4 text-left w-[200px]">Date Created</th>
-                      <th className="py-3 px-4 text-center w-[150px]">Status</th>
-                      <th className="py-3 px-4 text-center w-[150px]">Actions</th>
+                    <tr className={tableHeaderClasses}>
+                      <th className={`py-3 px-4 text-left w-[300px] ${tableHeaderTextClasses}`}>Name</th>
+                      <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Date Created</th>
+                      <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Status</th>
+                      <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {userStories.map(story => (
-                      <tr key={story._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
+                      <tr key={story._id} className={tableRowClasses}>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
                             <div className="flex flex-col">
-                              <span className="font-medium">{story.Name}</span>
+                              <span className={tableTextClasses}>{story.Name}</span>
                               {story.Description && (
-                                <span className="text-sm text-gray-500">{story.Description}</span>
+                                <span className={tableSecondaryTextClasses}>{story.Description}</span>
                               )}
                             </div>
                           </div>
                         </td>
-                        <td className="hidden md:table-cell py-3 px-4">
+                        <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
                           {new Date(story.CreatedDate).toLocaleDateString('en-US', {
                             month: 'short',
                             day: '2-digit',
@@ -633,14 +733,20 @@ const ProjectDetailsPage = () => {
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => {/* TODO: Implement edit */ }}
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200"
+                              className={getThemeClasses(
+                                'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
+                              )}
                               title="Edit User Story"
                             >
                               <FaCog size={14} />
                             </button>
                             <button
                               onClick={() => {/* TODO: Implement delete */ }}
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-red-100 text-red-700 hover:bg-red-200"
+                              className={getThemeClasses(
+                                'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-red-100 text-red-700 hover:bg-red-200',
+                                'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-800/50'
+                              )}
                               title="Delete User Story"
                             >
                               <FaTrash size={14} />
@@ -658,42 +764,51 @@ const ProjectDetailsPage = () => {
 
         {/* Tasks Table - Keep it full width below */}
         <div className="mb-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Tasks</h2>
+          <div className={tableContainerClasses}>
+            <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
+              <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Tasks</h2>
             </div>
             <div className="overflow-x-auto">
               {taskList.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 bg-gray-50">
+                <div className={getThemeClasses(
+                  'text-center py-8 text-gray-400 bg-gray-50',
+                  'dark:text-gray-500 dark:bg-gray-700/50'
+                )}>
                   No tasks for this project.
                 </div>
               ) : (
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="py-3 px-4 text-left">Name</th>
-                      <th className="hidden md:table-cell py-3 px-4 text-left">Assigned To</th>
-                      <th className="hidden md:table-cell py-3 px-4 text-left">Assignee</th>
-                      <th className="hidden md:table-cell py-3 px-4 text-center">Date Assigned</th>
-                      <th className="hidden md:table-cell py-3 px-4 text-left">Type</th>
-                      <th className="py-3 px-4 text-center">Status</th>
-                      <th className="py-3 px-4 text-center">Actions</th>
+                    <tr className={tableHeaderClasses}>
+                      <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Name</th>
+                      <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Assigned To</th>
+                      <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Assignee</th>
+                      <th className={`hidden md:table-cell py-3 px-4 text-center ${tableHeaderTextClasses}`}>Date Assigned</th>
+                      <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Type</th>
+                      <th className={`py-3 px-4 text-center ${tableHeaderTextClasses}`}>Status</th>
+                      <th className={`py-3 px-4 text-center ${tableHeaderTextClasses}`}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {taskList.map(task => (
-                      <tr key={task._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
+                      <tr key={task._id} className={tableRowClasses}>
                         <td className="py-3 px-4">
                           <div className="flex flex-col">
-                            <span className="font-medium">{task.Name}</span>
-                            <span className="text-xs text-gray-500">{task.Description}</span>
+                            <span className={tableTextClasses}>{task.Name}</span>
+                            <span className={getThemeClasses(
+                              'text-xs text-gray-500',
+                              'dark:text-gray-400'
+                            )}>{task.Description}</span>
                             {/* Show type badge on mobile */}
                             <div className="md:hidden mt-1">
                               {getTaskTypeBadgeComponent(task.Type)}
                             </div>
                             {/* Show assigned to on mobile if available */}
                             {task.AssignedTo && task.AssignedToDetails && (
-                              <div className="md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600">
+                              <div className={getThemeClasses(
+                                'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600',
+                                'dark:text-gray-300'
+                              )}>
                                 <span className="font-medium">Assigned to:</span>
                                 <span>{task.AssignedToDetails.fullName}</span>
                               </div>
@@ -703,45 +818,54 @@ const ProjectDetailsPage = () => {
                         <td className="hidden md:table-cell py-3 px-4">
                           {task.AssignedTo && task.AssignedToDetails ? (
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm">
+                              <div className={getThemeClasses(
+                                'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
+                                'dark:from-blue-600 dark:to-blue-700'
+                              )}>
                                 {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
                               </div>
                               <div className="flex flex-col">
-                                <span className="font-medium">{task.AssignedToDetails.fullName}</span>
+                                <span className={tableTextClasses}>{task.AssignedToDetails.fullName}</span>
                                 {task.AssignedToDetails.teamName && (
-                                  <span className="text-sm text-gray-500">{task.AssignedToDetails.teamName}</span>
+                                  <span className={tableSecondaryTextClasses}>{task.AssignedToDetails.teamName}</span>
                                 )}
                               </div>
                             </div>
                           ) : (
                             <div className="flex items-center">
-                              <span className="text-gray-500">Not Assigned</span>
+                              <span className={tableSecondaryTextClasses}>Not Assigned</span>
                             </div>
                           )}
                         </td>
                         <td className="hidden md:table-cell py-3 px-4">
                           {task.Assignee && task.AssigneeDetails ? (
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm">
+                              <div className={getThemeClasses(
+                                'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
+                                'dark:from-blue-600 dark:to-blue-700'
+                              )}>
                                 {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
                               </div>
                               <div className="flex flex-col">
-                                <span className="font-medium">{task.AssigneeDetails.fullName}</span>
+                                <span className={tableTextClasses}>{task.AssigneeDetails.fullName}</span>
                                 {task.AssigneeDetails.teamName && (
-                                  <span className="text-sm text-gray-500">{task.AssigneeDetails.teamName}</span>
+                                  <span className={tableSecondaryTextClasses}>{task.AssigneeDetails.teamName}</span>
                                 )}
                               </div>
                             </div>
                           ) : (
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm">
+                              <div className={getThemeClasses(
+                                'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm',
+                                'dark:bg-gray-700 dark:text-gray-400'
+                              )}>
                                 <span>NA</span>
                               </div>
-                              <span className="text-gray-500">Not Assigned</span>
+                              <span className={tableSecondaryTextClasses}>Not Assigned</span>
                             </div>
                           )}
                         </td>
-                        <td className="hidden md:table-cell py-3 px-4 text-center">
+                        <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
                           {task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',
@@ -768,7 +892,10 @@ const ProjectDetailsPage = () => {
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => confirmDeleteTask(task)}
-                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className={getThemeClasses(
+                                'p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors',
+                                'dark:text-red-400 dark:hover:bg-red-900/30'
+                              )}
                               title="Delete Task"
                             >
                               <FaTrash size={16} />

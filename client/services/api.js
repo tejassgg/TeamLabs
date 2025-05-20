@@ -110,7 +110,7 @@ export const authService = {
     return !!token;
   },
 
-  async completeProfile(profileData) {
+   completeProfile: async (profileData) => {
     try {
       const response = await api.put('/auth/complete-profile', profileData);
       // Update localStorage with the new user data
@@ -129,14 +129,13 @@ export const authService = {
     }
   },
 
-  getUserActivities: async (page = 1, limit = 5) => {
+  getUserActivities: async (page = 1, limit = 10) => {
     try {
-      const response = await api.get('/auth/activities', {
-        params: { page, limit }
-      });
+      const response = await api.get(`/auth/activities?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Error fetching user activities' };
+      console.error('Error fetching user activities:', error);
+      throw error;
     }
   },
 

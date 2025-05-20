@@ -8,12 +8,25 @@ const userActivitySchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['login', 'logout', 'login_failed', 'profile_update', 'password_change', 'email_verification']
+    enum: [
+      // Authentication activities
+      'login', 'logout', 'login_failed', 'profile_update', 'password_change', 'email_verification',
+      // Team activities
+      'team_create', 'team_update', 'team_delete', 'team_join', 'team_leave', 'team_status_toggle',
+      // Project activities
+      'project_create', 'project_update', 'project_delete', 'project_settings_update',
+      // Task activities
+      'task_create', 'task_update', 'task_delete', 'task_complete', 'task_assign',
+      // User Story activities
+      'user_story_create', 'user_story_update', 'user_story_delete',
+      // Error activities
+      'error'
+    ]
   },
   status: {
     type: String,
     required: true,
-    enum: ['success', 'failed']
+    enum: ['success', 'error', 'warning', 'info']
   },
   loginMethod: {
     type: String,
@@ -23,6 +36,11 @@ const userActivitySchema = new mongoose.Schema({
   details: {
     type: String,
     default: ''
+  },
+  metadata: {
+    type: Map,
+    of: mongoose.Schema.Types.Mixed,
+    default: {}
   },
   ipAddress: {
     type: String
@@ -39,6 +57,9 @@ const userActivitySchema = new mongoose.Schema({
 // Index for faster queries
 userActivitySchema.index({ user: 1, timestamp: -1 });
 userActivitySchema.index({ type: 1, loginMethod: 1 });
+userActivitySchema.index({ 'metadata.teamId': 1 });
+userActivitySchema.index({ 'metadata.projectId': 1 });
+userActivitySchema.index({ 'metadata.taskId': 1 });
 
 const UserActivity = mongoose.model('UserActivity', userActivitySchema);
 

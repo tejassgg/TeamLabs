@@ -6,6 +6,7 @@ const TeamDetails = require('../models/TeamDetails');
 const Team = require('../models/Team');
 const ProjectDetails = require('../models/ProjectDetails');
 const TaskDetailsHistory = require('../models/TaskDetailsHistory');
+const { logActivity } = require('../services/activityService');
 
 
 // POST /api/task-details - Create a new task
@@ -60,8 +61,43 @@ router.post('/', async (req, res) => {
             }
         }
 
+        // Log the activity
+        await logActivity(
+            taskData.CreatedBy,
+            taskData.Type === 'User Story' ? 'user_story_create' : 'task_create',
+            'success',
+            `Created new ${taskData.Type.toLowerCase()} "${taskData.Name}"`,
+            req,
+            {
+                taskId: newTask.TaskID,
+                taskName: taskData.Name,
+                taskType: taskData.Type,
+                projectId: taskData.ProjectID_FK,
+                status: taskData.Status,
+                assignee: taskData.Assignee
+            }
+        );
+
         res.status(201).json(newTask);
-    } catch (error) {
+    } catch (err) {
+        console.error('Error creating task:', err);
+        // Log the error activity
+        try {
+            await logActivity(
+                req.body.taskDetail?.CreatedBy,
+                req.body.taskDetail?.Type === 'User Story' ? 'user_story_create' : 'task_create',
+                'error',
+                `Failed to create ${req.body.taskDetail?.Type?.toLowerCase() || 'task'}: ${err.message}`,
+                req,
+                {
+                    taskName: req.body.taskDetail?.Name,
+                    taskType: req.body.taskDetail?.Type,
+                    error: err.message
+                }
+            );
+        } catch (logError) {
+            console.error('Failed to log error activity:', logError);
+        }
         res.status(500).json({ error: 'Failed to create task' });
     }
 });
@@ -178,6 +214,8 @@ router.patch('/:taskId/status', async (req, res) => {
         const task = await TaskDetails.findOne({ TaskID: taskId });
         if (!task) return res.status(404).json({ error: 'Task not found' });
 
+        const oldStatus = task.Status;
+
         // Save task history before updating
         const taskHistory = new TaskDetailsHistory({
             TaskID: task.TaskID,
@@ -202,9 +240,43 @@ router.patch('/:taskId/status', async (req, res) => {
         task.Status = Status;
         await task.save();
 
+        // Log the activity
+        await logActivity(
+            task.CreatedBy,
+            task.Type == 'User Story' ? 'user_story_update' : 'task_update',
+            'success',
+            `Updated ${task.Type.toLowerCase()} "${task.Name}" status from ${oldStatus} to ${Status}`,
+            req,
+            {
+                taskId: task.TaskID,
+                taskName: task.Name,
+                taskType: task.Type,
+                oldStatus,
+                newStatus: Status,
+                projectId: task.ProjectID_FK
+            }
+        );
+
         res.json(task);
     } catch (error) {
         console.error('Error updating task status:', error);
+        // Log the error activity
+        try {
+            const task = await TaskDetails.findOne({ TaskID: req.params.taskId });
+            await logActivity(
+                task?.CreatedBy,
+                task.Type == 'User Story' ? 'user_story_update' : 'task_update',
+                'error',
+                `Failed to update task status: ${error.message}`,
+                req,
+                {
+                    taskId: req.params.taskId,
+                    error: error.message
+                }
+            );
+        } catch (logError) {
+            console.error('Failed to log error activity:', logError);
+        }
         res.status(500).json({ error: 'Failed to update task status' });
     }
 });
@@ -217,6 +289,7 @@ router.patch('/:taskId/assign', async (req, res) => {
 
         const task = await TaskDetails.findOne({ TaskID: taskId });
         if (!task) return res.status(404).json({ error: 'Task not found' });
+        const oldStatus = task.Status;
 
         // Save task history before updating
         const taskHistory = new TaskDetailsHistory({
@@ -269,9 +342,34 @@ router.patch('/:taskId/assign', async (req, res) => {
         const taskWithDetails = task.toObject();
         taskWithDetails.AssignedToDetails = assignedToDetails;
 
+        // Log the activity
+        await logActivity(
+            task.CreatedBy,
+            task.Type == 'User Story' ? 'user_story_update' : 'task_update',
+            'success',
+            `Updated ${task.Type.toLowerCase()} "${task.Name}" status from ${oldStatus}.`,
+        );
+
         res.json(taskWithDetails);
     } catch (error) {
         console.error('Error assigning task:', error);
+        // Log the error activity
+        try {
+            const task = await TaskDetails.findOne({ TaskID: req.params.taskId });
+            await logActivity(
+                task?.CreatedBy,
+                task.Type == 'User Story' ? 'user_story_update' : 'task_update',
+                'error',
+                `Failed to assign task: ${error.message}`,
+                req,
+                {
+                    taskId: req.params.taskId,
+                    error: error.message
+                }
+            );
+        } catch (logError) {
+            console.error('Failed to log error activity:', logError);
+        }
         res.status(500).json({ error: 'Failed to assign task' });
     }
 });
@@ -304,12 +402,45 @@ router.delete('/:taskId/delete', async (req, res) => {
         
         await taskHistory.save();
 
+        // Log the activity before deleting
+        await logActivity(
+            task.CreatedBy,
+            task.Type == 'User Story' ? 'user_story_delete' : 'task_delete',
+            'success',
+            `Deleted ${task.Type.toLowerCase()} "${task.Name}"`,
+            req,
+            {
+                taskId: task.TaskID,
+                taskName: task.Name,
+                taskType: task.Type,
+                projectId: task.ProjectID_FK,
+                status: task.Status
+            }
+        );
+
         // Hard delete the task
         await task.deleteOne();
 
         res.json({ success: true, message: 'Task Deleted Successfully' });
     } catch (error) {
         console.error('Error deleting task:', error);
+        // Log the error activity
+        try {
+            const task = await TaskDetails.findOne({ TaskID: req.params.taskId });
+            await logActivity(
+                task?.CreatedBy,
+                task.Type == 'User Story' ? 'user_story_delete' : 'task_delete',
+                'error',
+                `Failed to delete task: ${error.message}`,
+                req,
+                {
+                    taskId: req.params.taskId,
+                    error: error.message
+                }
+            );
+        } catch (logError) {
+            console.error('Failed to log error activity:', logError);
+        }
         res.status(500).json({ error: 'Failed to delete task' });
     }
 });

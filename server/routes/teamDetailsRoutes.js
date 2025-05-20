@@ -7,6 +7,7 @@ const CommonType = require('../models/CommonType');
 const ProjectDetails = require('../models/ProjectDetails');
 const Project = require('../models/Project');
 const UserActivity = require('../models/UserActivity');
+const { logActivity } = require('../services/activityService');
 
 // Middleware to check if requester is the team owner
 async function checkOwner(req, res, next) {
@@ -184,14 +185,46 @@ router.patch('/:teamId/toggle-status', checkOwner, async (req, res) => {
     const team = await Team.findOne({ TeamID: req.params.teamId });
     if (!team) return res.status(404).json({ error: 'Team not found' });
 
+    const oldStatus = team.IsActive;
     team.IsActive = !team.IsActive;
     team.ModifiedDate = new Date();
     team.ModifiedBy = req.body.OwnerID;
     await team.save();
 
+    // Log the activity
+    await logActivity(
+      req.body.OwnerID,
+      'team_status_update',
+      'success',
+      `${team.IsActive ? 'Activated' : 'Deactivated'} team "${team.TeamName}"`,
+      req,
+      {
+        teamId: team.TeamID,
+        teamName: team.TeamName,
+        oldStatus,
+        newStatus: team.IsActive
+      }
+    );
+
     res.json(team);
   } catch (err) {
     console.error('Error toggling team status:', err);
+    // Log the error activity
+    try {
+      await logActivity(
+        req.body.OwnerID,
+        'team_status_update',
+        'error',
+        `Failed to update team status: ${err.message}`,
+        req,
+        {
+          teamId: req.params.teamId,
+          error: err.message
+        }
+      );
+    } catch (logError) {
+      console.error('Failed to log error activity:', logError);
+    }
     res.status(500).json({ error: 'Failed to update team status' });
   }
 });
@@ -254,7 +287,7 @@ router.get('/:teamId/active-projects', async (req, res) => {
 router.delete('/:teamId', checkOwner, async (req, res) => {
   try {
     const { teamId } = req.params;
-    const { userId } = req.body; // Get userId from request body
+    const { userId } = req.body;
 
     // Find the team and verify ownership
     const team = await Team.findOne({ TeamID: teamId });
@@ -273,6 +306,20 @@ router.delete('/:teamId', checkOwner, async (req, res) => {
       // Delete the team
       await Team.deleteOne({ TeamID: teamId }, { session });
 
+      // Log the activity
+      await logActivity(
+        userId,
+        'team_delete',
+        'success',
+        `Deleted team "${team.TeamName}"`,
+        req,
+        {
+          teamId: team.TeamID,
+          teamName: team.TeamName,
+          teamType: team.TeamType
+        }
+      );
+
       // Commit the transaction
       await session.commitTransaction();
       session.endSession();
@@ -286,6 +333,22 @@ router.delete('/:teamId', checkOwner, async (req, res) => {
     }
   } catch (err) {
     console.error('Error deleting team:', err);
+    // Log the error activity
+    try {
+      await logActivity(
+        req.body.userId,
+        'team_delete',
+        'error',
+        `Failed to delete team: ${err.message}`,
+        req,
+        {
+          teamId: req.params.teamId,
+          error: err.message
+        }
+      );
+    } catch (logError) {
+      console.error('Failed to log error activity:', logError);
+    }
     res.status(500).json({ error: 'Failed to delete team' });
   }
 });

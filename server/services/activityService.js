@@ -1,11 +1,12 @@
 const UserActivity = require('../models/UserActivity');
 
-const logActivity = async (userId, type, status, details = '', req = null, loginMethod = null) => {
+const logActivity = async (userId, type, status, details = '', req = null, metadata = {}, loginMethod = null) => {
   try {
     const activityData = {
       type,
       status,
-      details
+      details,
+      metadata
     };
 
     // Only add user ID if it exists
@@ -24,13 +25,34 @@ const logActivity = async (userId, type, status, details = '', req = null, login
       activityData.userAgent = req.headers['user-agent'];
     }
 
-    await UserActivity.create(activityData);
+    const activity = await UserActivity.create(activityData);
+    return activity;
   } catch (error) {
     console.error('Error logging user activity:', error);
+    // Log the error activity itself
+    try {
+      await UserActivity.create({
+        type: 'error',
+        status: 'error',
+        details: `Failed to log activity: ${error.message}`,
+        metadata: {
+          originalType: type,
+          originalStatus: status,
+          originalDetails: details,
+          error: error.message
+        },
+        user: userId,
+        ipAddress: req?.ip || req?.connection?.remoteAddress,
+        userAgent: req?.headers?.['user-agent']
+      });
+    } catch (logError) {
+      console.error('Failed to log error activity:', logError);
+    }
+    throw error;
   }
 };
 
-const getUserActivities = async (userId, page = 1, limit = 5) => {
+const getUserActivities = async (userId, page = 1, limit = 10) => {
   try {
     const skip = (page - 1) * limit;
     
@@ -54,15 +76,7 @@ const getUserActivities = async (userId, page = 1, limit = 5) => {
     };
   } catch (error) {
     console.error('Error fetching user activities:', error);
-    return {
-      activities: [],
-      pagination: {
-        total: 0,
-        page: 1,
-        limit,
-        totalPages: 0
-      }
-    };
+    throw error;
   }
 };
 

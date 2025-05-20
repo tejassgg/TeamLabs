@@ -13,12 +13,15 @@ import {
   FaChevronDown,
   FaBell
 } from 'react-icons/fa';
+import ActivityNotifications from './ActivityNotifications';
 
 const Navbar = ({ isMobile, theme, toggleTheme, onLogout }) => {
   const { user } = useAuth();
   const router = useRouter();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [mobileScreen, setMobileScreen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -36,6 +39,21 @@ const Navbar = ({ isMobile, theme, toggleTheme, onLogout }) => {
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
 
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isUserMenuOpen && !event.target.closest('.user-menu-container')) {
+        setIsUserMenuOpen(false);
+      }
+      if (isNotificationsOpen && !event.target.closest('.notifications-container')) {
+        setIsNotificationsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isUserMenuOpen, isNotificationsOpen]);
+
   const handleLogout = async () => {
     try {
       await authService.logout();
@@ -48,36 +66,49 @@ const Navbar = ({ isMobile, theme, toggleTheme, onLogout }) => {
 
   const toggleUserMenu = () => {
     setIsUserMenuOpen(!isUserMenuOpen);
+    if (isNotificationsOpen) setIsNotificationsOpen(false);
   };
 
-  // Close user menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isUserMenuOpen && !event.target.closest('.user-menu-container')) {
-        setIsUserMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isUserMenuOpen]);
+  const toggleNotifications = () => {
+    setIsNotificationsOpen(!isNotificationsOpen);
+    if (isUserMenuOpen) setIsUserMenuOpen(false);
+  };
 
   // If in mobile navbar, show only the user profile button
   if (isMobile) {
     return (
       <div className="flex items-center gap-1.5">
         {/* Notification Button */}
-        <button className="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition-all duration-200 relative">
-          <FaBell size={18} />
-          <span className="absolute top-0 right-0 h-3.5 w-3.5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-            <span className="text-[10px]">3</span>
-          </span>
-        </button>
+        <div className="notifications-container relative">
+          <button 
+            onClick={toggleNotifications}
+            className={`p-1.5 rounded-lg transition-all duration-200 relative ${
+              theme === 'dark' 
+                ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700' 
+                : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            <FaBell size={18} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+          <ActivityNotifications 
+            isOpen={isNotificationsOpen} 
+            onClose={() => setIsNotificationsOpen(false)} 
+          />
+        </div>
         
         {/* Theme Toggle Button */}
         <button
           onClick={toggleTheme}
-          className="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition-all duration-200"
+          className={`p-1.5 rounded-lg transition-all duration-200 ${
+            theme === 'dark' 
+              ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700' 
+              : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
+          }`}
         >
           {theme === 'dark' ? <FaMoon size={18} /> : <FaSun size={18} />}
         </button>
@@ -87,7 +118,11 @@ const Navbar = ({ isMobile, theme, toggleTheme, onLogout }) => {
           <div className="relative user-menu-container z-50">
             <button
               onClick={toggleUserMenu}
-              className="flex items-center space-x-1 p-1.5 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200"
+              className={`flex items-center space-x-1 p-1.5 rounded-lg transition-all duration-200 ${
+                theme === 'dark' 
+                  ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700' 
+                  : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
+              }`}
               aria-label="User profile menu"
             >
               <div className="w-8 h-8 rounded-full overflow-hidden shadow-sm bg-gradient-to-r from-blue-50 to-blue-100">
@@ -107,22 +142,50 @@ const Navbar = ({ isMobile, theme, toggleTheme, onLogout }) => {
 
             {/* Dropdown Menu */}
             {isUserMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 w-48 rounded-xl shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <p className="font-medium text-sm">{user.username || user.email}</p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+              <div className={`absolute right-0 top-full mt-1 w-48 rounded-xl shadow-lg py-1 ${
+                theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+              } ring-1 ring-black ring-opacity-5 focus:outline-none z-50`}>
+                <div className={`px-4 py-2 border-b ${
+                  theme === 'dark' ? 'border-gray-700' : 'border-gray-100'
+                }`}>
+                  <p className={`font-medium text-sm ${
+                    theme === 'dark' ? 'text-gray-100' : 'text-gray-900'
+                  }`}>{user.username || user.email}</p>
+                  <p className={`text-xs ${
+                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                  } truncate`}>{user.email}</p>
                 </div>
-                <Link href="/profile" className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200">
+                <Link 
+                  href="/profile" 
+                  className={`flex items-center space-x-2 px-4 py-2 ${
+                    theme === 'dark' 
+                      ? 'text-gray-300 hover:bg-gray-700 hover:text-gray-100' 
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  } transition-all duration-200`}
+                >
                   <FaUser size={16} />
                   <span>Profile</span>
                 </Link>
-                <Link href="/settings" className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200">
+                <Link 
+                  href="/settings" 
+                  className={`flex items-center space-x-2 px-4 py-2 ${
+                    theme === 'dark' 
+                      ? 'text-gray-300 hover:bg-gray-700 hover:text-gray-100' 
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  } transition-all duration-200`}
+                >
                   <FaCog size={16} />
                   <span>Settings</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 border-t border-gray-100"
+                  className={`w-full flex items-center space-x-2 px-4 py-2 ${
+                    theme === 'dark' 
+                      ? 'text-gray-300 hover:bg-gray-700 hover:text-gray-100' 
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  } transition-all duration-200 border-t ${
+                    theme === 'dark' ? 'border-gray-700' : 'border-gray-100'
+                  }`}
                 >
                   <FaSignOutAlt size={16} />
                   <span>Logout</span>
@@ -139,7 +202,7 @@ const Navbar = ({ isMobile, theme, toggleTheme, onLogout }) => {
     <nav className={`${theme === 'dark' ? 'bg-[#232E3C] text-[#F3F6FA]' : 'bg-gray-200 text-gray-900'} shadow-sm rounded-xl mt-4`}>
       <div className="mx-auto">
         <div className="flex justify-between items-center h-16">
-          {/* Left side - Logo (hidden on mobile as it's in the mobile navbar) */}
+          {/* Left side - Logo */}
           <div className="flex-shrink-0 ml-4 lg:ml-12">
             <Link href="/" className="flex items-center">
               <span className="text-2xl lg:text-3xl font-extrabold text-gray-900">
@@ -151,17 +214,36 @@ const Navbar = ({ isMobile, theme, toggleTheme, onLogout }) => {
           {/* Right side - User menu and Theme toggle */}
           <div className="flex items-center pr-4 lg:pr-8 space-x-2 lg:space-x-6">
             {/* Notifications */}
-            <button className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 relative">
-              <FaBell size={mobileScreen ? 18 : 20} />
-              <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                3
-              </span>
-            </button>
+            <div className="notifications-container relative">
+              <button 
+                onClick={toggleNotifications}
+                className={`p-2 rounded-full transition-all duration-200 relative ${
+                  theme === 'dark' 
+                    ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700' 
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <FaBell size={mobileScreen ? 18 : 20} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              <ActivityNotifications 
+                isOpen={isNotificationsOpen} 
+                onClose={() => setIsNotificationsOpen(false)} 
+              />
+            </div>
             
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200"
+              className={`p-2 rounded-full transition-all duration-200 ${
+                theme === 'dark' 
+                  ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700' 
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
             >
               {theme === 'dark' ? <FaMoon size={mobileScreen ? 18 : 20} /> : <FaSun size={mobileScreen ? 18 : 20} />}
             </button>
@@ -171,7 +253,11 @@ const Navbar = ({ isMobile, theme, toggleTheme, onLogout }) => {
               <div className="relative user-menu-container">
                 <button
                   onClick={toggleUserMenu}
-                  className="flex items-center space-x-2 px-2 lg:px-3 py-2 rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200"
+                  className={`flex items-center space-x-2 px-2 lg:px-3 py-2 rounded-xl transition-all duration-200 ${
+                    theme === 'dark' 
+                      ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700' 
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
                 >
                   <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-r from-blue-50 to-blue-100">
                     {user.profileImage ? (
@@ -192,18 +278,38 @@ const Navbar = ({ isMobile, theme, toggleTheme, onLogout }) => {
 
                 {/* Dropdown Menu */}
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-xl shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                    <Link href="/profile" className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200">
+                  <div className={`absolute right-0 mt-2 w-48 rounded-xl shadow-lg py-1 ${
+                    theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                  } ring-1 ring-black ring-opacity-5 focus:outline-none z-50`}>
+                    <Link 
+                      href="/profile" 
+                      className={`flex items-center space-x-2 px-4 py-2 ${
+                        theme === 'dark' 
+                          ? 'text-gray-300 hover:bg-gray-700 hover:text-gray-100' 
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      } transition-all duration-200`}
+                    >
                       <FaUser size={16} />
                       <span>Profile</span>
                     </Link>
-                    <Link href="/settings" className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200">
+                    <Link 
+                      href="/settings" 
+                      className={`flex items-center space-x-2 px-4 py-2 ${
+                        theme === 'dark' 
+                          ? 'text-gray-300 hover:bg-gray-700 hover:text-gray-100' 
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      } transition-all duration-200`}
+                    >
                       <FaCog size={16} />
                       <span>Settings</span>
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200"
+                      className={`w-full flex items-center space-x-2 px-4 py-2 ${
+                        theme === 'dark' 
+                          ? 'text-gray-300 hover:bg-gray-700 hover:text-gray-100' 
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      } transition-all duration-200`}
                     >
                       <FaSignOutAlt size={16} />
                       <span>Logout</span>

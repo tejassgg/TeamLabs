@@ -3,6 +3,7 @@ const router = express.Router();
 const Team = require('../models/Team');
 const User = require('../models/User');
 const TeamDetails = require('../models/TeamDetails');
+const { logActivity } = require('../services/activityService');
 
 // GET /api/teams - fetch all teams
 router.get('/:role/:userId', async (req, res) => {
@@ -69,6 +70,20 @@ router.post('/', async (req, res) => {
       });
       await newMember.save({ session });
 
+      // Log the activity
+      await logActivity(
+        OwnerID,
+        'team_create',
+        'success',
+        `Created new team "${TeamName}"`,
+        req,
+        {
+          teamId: newTeam.TeamID,
+          teamName: TeamName,
+          teamType: TeamType
+        }
+      );
+
       // Commit the transaction
       await session.commitTransaction();
       session.endSession();
@@ -85,6 +100,22 @@ router.post('/', async (req, res) => {
     }
   } catch (err) {
     console.error('Error creating team:', err);
+    // Log the error activity
+    try {
+      await logActivity(
+        req.body.OwnerID,
+        'team_create',
+        'error',
+        `Failed to create team: ${err.message}`,
+        req,
+        {
+          teamName: req.body.TeamName,
+          error: err.message
+        }
+      );
+    } catch (logError) {
+      console.error('Failed to log error activity:', logError);
+    }
     res.status(500).json({ error: 'Failed to create team' });
   }
 });

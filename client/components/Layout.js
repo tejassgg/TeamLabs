@@ -70,7 +70,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen }) => {
       setTasksDetails(prevTasks => [...prevTasks, newTask]);
       toast.success('Task added successfully!');
     } catch (err) {
-      toast.error('Failed to add task');
+      toast.error('Failed to add user story');
     }
   };
 
@@ -151,9 +151,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen }) => {
                   <FaHome className="text-blue-600" size={20} />
                 </span>
                 <h3 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">Dashboard</h3>
-                <span className="ml-auto bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">
-                  {tasksDetails.length}
-                </span>
               </button>
               <ul className="space-y-1">
                 <li

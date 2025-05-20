@@ -9,6 +9,18 @@ import { taskService } from '../services/api';
 import { toast } from 'react-toastify';
 import React from 'react';
 import AssignTaskModal from '../components/AssignTaskModal';
+import { useTheme } from '../context/ThemeContext';
+
+// Custom hook for theme-aware classes
+const useThemeClasses = () => {
+  const { theme } = useTheme();
+  
+  const getThemeClasses = (lightClasses, darkClasses) => {
+    return theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
+  };
+
+  return getThemeClasses;
+};
 
 // Status mapping
 const statusMap = {
@@ -30,20 +42,64 @@ const statusIcons = {
   8: <FaCheckCircle className="text-green-500" />
 };
 
-// Status background color mapping
+// Update the status background color mapping to include dark mode variants
 const statusColors = {
-  1: 'bg-gray-50',
-  2: 'bg-blue-50',
-  3: 'bg-yellow-50',
-  6: 'bg-indigo-50',
-  7: 'bg-pink-50',
-  8: 'bg-green-50'
+  1: {
+    light: 'bg-gray-50',
+    dark: 'bg-gray-800/50',
+    textLight: 'text-gray-700',
+    textDark: 'text-gray-300',
+    borderLight: 'border-gray-200',
+    borderDark: 'border-gray-700'
+  },
+  2: {
+    light: 'bg-blue-50',
+    dark: 'bg-blue-900/30',
+    textLight: 'text-blue-700',
+    textDark: 'text-blue-300',
+    borderLight: 'border-blue-200',
+    borderDark: 'border-blue-800/50'
+  },
+  3: {
+    light: 'bg-yellow-50',
+    dark: 'bg-yellow-900/30',
+    textLight: 'text-yellow-700',
+    textDark: 'text-yellow-300',
+    borderLight: 'border-yellow-200',
+    borderDark: 'border-yellow-800/50'
+  },
+  6: {
+    light: 'bg-indigo-50',
+    dark: 'bg-indigo-900/30',
+    textLight: 'text-indigo-700',
+    textDark: 'text-indigo-300',
+    borderLight: 'border-indigo-200',
+    borderDark: 'border-indigo-800/50'
+  },
+  7: {
+    light: 'bg-pink-50',
+    dark: 'bg-pink-900/30',
+    textLight: 'text-pink-700',
+    textDark: 'text-pink-300',
+    borderLight: 'border-pink-200',
+    borderDark: 'border-pink-800/50'
+  },
+  8: {
+    light: 'bg-green-50',
+    dark: 'bg-green-900/30',
+    textLight: 'text-green-700',
+    textDark: 'text-green-300',
+    borderLight: 'border-green-200',
+    borderDark: 'border-green-800/50'
+  }
 };
 
 // Create a memoized TaskCard component to prevent unnecessary re-renders
 const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd, isTaskAssignedToUser, bgColor }) => {
-  const canMove = isTaskAssignedToUser(task);
+  const { theme } = useTheme();
+  const getThemeClasses = useThemeClasses();
   const cardRef = useRef(null);
+  const canMove = isTaskAssignedToUser(task);
 
   // Helper function to get initials from name
   const getInitials = (name) => {
@@ -168,10 +224,10 @@ const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd,
     <div
       ref={cardRef}
       key={task.TaskID}
-      className={`bg-white p-3 rounded-lg shadow-sm mb-2 border ${canMove
-        ? `border-${bgColor.replace('bg-', '')}-200 cursor-grab`
-        : 'border-gray-200 cursor-not-allowed opacity-80'
-        }`}
+      className={getThemeClasses(
+        `bg-white p-3 rounded-lg shadow-sm mb-2 border ${canMove ? `border-${bgColor.replace('bg-', '')}-200 cursor-grab` : 'border-gray-200 cursor-not-allowed opacity-80'}`,
+        `dark:bg-gray-800 dark:border-gray-700 ${canMove ? 'dark:hover:bg-gray-700/50' : ''}`
+      )}
       draggable={canMove}
       onDragStart={onDragStart}
       onDragEnd={handleDragEnd}
@@ -181,8 +237,11 @@ const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd,
       {/* Team Name Banner with Task Type Badge */}
       <div className="flex items-center justify-between mb-2 -mt-0.5 -mx-0.5">
         {task.AssignedTo && task.AssignedToDetails?.teamName && (
-          <div className="px-2 py-1 bg-purple-50 text-purple-700 border-b border-purple-100 rounded-tl-lg text-xs font-medium flex items-center gap-1">
-            <svg className="w-3 h-3 text-purple-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <div className={getThemeClasses(
+            'px-2 py-1 bg-purple-50 text-purple-700 border-b border-purple-100 rounded-tl-lg text-xs font-medium flex items-center gap-1',
+            'dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700/50'
+          )}>
+            <svg className="w-3 h-3 text-purple-500 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
               <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
             </svg>
             {task.AssignedToDetails.teamName}
@@ -190,40 +249,47 @@ const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd,
         )}
         
         {/* Task Type Badge */}
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium ${typeDetails.bgColor} ${typeDetails.textColor} border ${typeDetails.borderColor} shadow-sm flex-shrink-0`}>
+        <span className={getThemeClasses(
+          `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium ${typeDetails.bgColor} ${typeDetails.textColor} border ${typeDetails.borderColor} shadow-sm flex-shrink-0`,
+          `dark:${typeDetails.bgColor.replace('bg-', 'bg-')}/30 dark:${typeDetails.textColor.replace('text-', 'text-')}/90 dark:${typeDetails.borderColor.replace('border-', 'border-')}/50`
+        )}>
           {typeDetails.icon}
           {task.Type}
         </span>
       </div>
 
-      <div className="flex items-start gap-2">
-        <div className="flex-1 min-w-0">
-          {/* Header with task name */}
-          <div className="flex items-start justify-between">
-            <h3 className="font-medium text-gray-800 break-words pr-2">{task.Name}</h3>
-            <div className="flex items-center flex-shrink-0">
-              {!canMove && (
-                <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">
-                  Locked
-                </span>
-              )}
-            </div>
-          </div>
+      <div className={getThemeClasses(
+        'text-gray-900',
+        'dark:text-gray-100'
+      )}>
+        <h4 className="font-medium mb-1">{task.Name}</h4>
+        {task.Description && (
+          <p className={getThemeClasses(
+            'text-sm text-gray-600',
+            'dark:text-gray-400'
+          )}>
+            {task.Description}
+          </p>
+        )}
+      </div>
 
-          {/* Task description - full text */}
-          <div className="mt-2 mb-3 text-sm text-gray-600 whitespace-pre-line">{task.Description}</div>
-
-          {/* Footer with assignee initials at bottom left */}
-          <div className="flex justify-between items-center mt-auto pt-2 border-t border-gray-100">
-            {/* AssignedTo Badge with Initials */}
-            {task.AssignedTo && task.AssignedToDetails && (
-              <div className="flex items-center gap-1.5">
-                <span className="flex items-center justify-center bg-blue-500 text-white rounded-full w-5 h-5 text-xs font-medium">
-                  {getInitials(task.AssignedToDetails.fullName)}
-                </span>
+      {/* Task Footer */}
+      <div className="mt-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {task.AssignedToDetails && (
+            <div className={getThemeClasses(
+              'flex items-center gap-1.5 text-xs text-gray-600',
+              'dark:text-gray-400'
+            )}>
+              <div className={getThemeClasses(
+                'w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-medium',
+                'dark:from-blue-600 dark:to-blue-700'
+              )}>
+                {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
               </div>
-            )}
-          </div>
+              <span>{task.AssignedToDetails.fullName}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -234,22 +300,47 @@ TaskCard.displayName = 'TaskCard';
 
 // Create a memoized column component
 const KanbanColumn = React.memo(({ statusCode, statusName, icon, bgColor, tasks, handleDragStart, handleDragEnd, handleDrop, isTaskAssignedToUser, isLast }) => {
+  const { theme } = useTheme();
+  const getThemeClasses = useThemeClasses();
   const tasksInStatus = tasks.filter(task => task.Status === statusCode);
+  const statusStyle = statusColors[statusCode];
 
   return (
     <div
-      className={`flex flex-col h-[750px] ${!isLast ? 'border-r border-gray-300 dark:border-gray-700' : ''}`}
+      className={getThemeClasses(
+        `flex flex-col h-[750px] ${!isLast ? `border-r ${statusStyle.borderLight}` : ''}`,
+        `dark:${!isLast ? statusStyle.borderDark : ''}`
+      )}
       onDragOver={(e) => e.preventDefault()}
       onDrop={() => handleDrop(statusCode)}
     >
-      <div className={`px-4 py-3 border-b border-gray-200 flex items-center gap-2 sticky top-0 ${bgColor}`}>
-        {icon}
-        <h3 className={`font-semibold text-${bgColor.replace('bg-', '')}-700`}>{statusName}</h3>
-        <span className={`ml-auto px-2 py-1 bg-${bgColor.replace('bg-', '')}-200 text-${bgColor.replace('bg-', '')}-700 text-xs rounded-full`}>
+      <div className={getThemeClasses(
+        `px-4 py-3 border-b ${statusStyle.borderLight} flex items-center gap-2 sticky top-0 ${statusStyle.light}`,
+        `dark:${statusStyle.borderDark} dark:${statusStyle.dark}`
+      )}>
+        <div className={getThemeClasses(
+          statusStyle.textLight,
+          `dark:${statusStyle.textDark}`
+        )}>
+          {icon}
+        </div>
+        <h3 className={getThemeClasses(
+          `font-semibold ${statusStyle.textLight}`,
+          `dark:${statusStyle.textDark}`
+        )}>
+          {statusName}
+        </h3>
+        <span className={getThemeClasses(
+          `ml-auto px-2 py-1 ${statusStyle.light} ${statusStyle.textLight} text-xs rounded-full border ${statusStyle.borderLight}`,
+          `dark:${statusStyle.dark} dark:${statusStyle.textDark} dark:${statusStyle.borderDark}`
+        )}>
           {tasksInStatus.length}
         </span>
       </div>
-      <div className="p-3 flex-1 overflow-y-auto">
+      <div className={getThemeClasses(
+        'p-3 flex-1 overflow-y-auto',
+        'dark:bg-gray-800/50'
+      )}>
         {tasksInStatus.map(task => (
           <TaskCard
             key={task.TaskID}
@@ -258,11 +349,14 @@ const KanbanColumn = React.memo(({ statusCode, statusName, icon, bgColor, tasks,
             handleDragStart={handleDragStart}
             handleDragEnd={handleDragEnd}
             isTaskAssignedToUser={isTaskAssignedToUser}
-            bgColor={bgColor}
+            bgColor={statusStyle.light}
           />
         ))}
         {tasksInStatus.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400">
+          <div className={getThemeClasses(
+            'flex flex-col items-center justify-center h-full text-gray-400',
+            'dark:text-gray-500'
+          )}>
             <FaTasks className="mb-2" size={24} />
             <p className="text-sm">No tasks</p>
           </div>
@@ -287,6 +381,8 @@ const KanbanBoard = () => {
   const [showDeleteArea, setShowDeleteArea] = useState(false);
   const [isOverDeleteArea, setIsOverDeleteArea] = useState(false);
   const [draggedCardDimensions, setDraggedCardDimensions] = useState(null);
+  const { theme } = useTheme();
+  const getThemeClasses = useThemeClasses();
 
   // Initialize with first project when projects are loaded
   useEffect(() => {
@@ -493,21 +589,36 @@ const KanbanBoard = () => {
       </Head>
       <div className="mx-auto">
         {/* Breadcrumb Navigation */}
-        <div className="flex items-center text-sm text-gray-500 mb-4">
-          <Link href="/dashboard" className="hover:text-blue-600 transition-colors">
+        <div className={getThemeClasses(
+          'flex items-center text-sm text-gray-500 mb-4',
+          'dark:text-gray-400'
+        )}>
+          <Link href="/dashboard" className={getThemeClasses(
+            'hover:text-blue-600 transition-colors',
+            'dark:hover:text-blue-400'
+          )}>
             Dashboard
           </Link>
           <FaChevronRight className="mx-2" size={12} />
-          <span className="text-gray-700 font-medium">Kanban Board</span>
+          <span className={getThemeClasses(
+            'text-gray-700 font-medium',
+            'dark:text-gray-300'
+          )}>Kanban Board</span>
         </div>
 
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Kanban Board</h1>
+          <h1 className={getThemeClasses(
+            'text-2xl font-bold text-gray-900',
+            'dark:text-gray-100'
+          )}>Kanban Board</h1>
           <div className="flex items-center gap-4">
             <select
               value={selectedProject || ''}
               onChange={handleProjectChange}
-              className="border border-gray-300 rounded-xl px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className={getThemeClasses(
+                'border border-gray-300 rounded-xl px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+                'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
+              )}
             >
               {projects.length === 0 ? (
                 <option value="">No projects available</option>
@@ -523,32 +634,56 @@ const KanbanBoard = () => {
         </div>
 
         {/* Project Info Banner */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 flex items-center gap-3 border border-blue-100">
-          <FaInfoCircle className="text-blue-500" size={20} />
+        <div className={getThemeClasses(
+          'bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 flex items-center gap-3 border border-blue-100',
+          'dark:from-blue-900/30 dark:to-indigo-900/30 dark:border-blue-800/50'
+        )}>
+          <FaInfoCircle className={getThemeClasses(
+            'text-blue-500',
+            'dark:text-blue-400'
+          )} size={20} />
           <div>
-            <p className="text-gray-700">
+            <p className={getThemeClasses(
+              'text-gray-700',
+              'dark:text-gray-300'
+            )}>
               Currently viewing: <span className="font-semibold">{getCurrentProjectName()}</span>
             </p>
-            <p className="text-sm text-gray-600">Drag and drop tasks to update their status</p>
+            <p className={getThemeClasses(
+              'text-sm text-gray-600',
+              'dark:text-gray-400'
+            )}>Drag and drop tasks to update their status</p>
           </div>
         </div>
 
         {loading && tasks.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <div className={getThemeClasses(
+              'animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500',
+              'dark:border-blue-400'
+            )}></div>
           </div>
         ) : error && tasks.length === 0 ? (
-          <div className="text-center py-16 text-red-500 flex flex-col items-center">
+          <div className={getThemeClasses(
+            'text-center py-16 text-red-500 flex flex-col items-center',
+            'dark:text-red-400'
+          )}>
             <FaExclamationCircle size={48} className="mb-4" />
             <p>{error}</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 divide-x divide-gray-200">
+          <div className={getThemeClasses(
+            'bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden',
+            'dark:bg-gray-800 dark:border-gray-700'
+          )}>
+            <div className={getThemeClasses(
+              'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 divide-x divide-gray-200',
+              'dark:divide-gray-700'
+            )}>
               {Object.entries(statusMap).map(([statusCode, statusName], index, arr) => {
                 const status = parseInt(statusCode);
                 const icon = statusIcons[status];
-                const bgColor = statusColors[status];
+                const statusStyle = statusColors[status];
                 const isLast = index === arr.length - 1;
 
                 return (
@@ -557,7 +692,7 @@ const KanbanBoard = () => {
                     statusCode={status}
                     statusName={statusName}
                     icon={icon}
-                    bgColor={bgColor}
+                    bgColor={statusStyle.light}
                     tasks={tasks}
                     handleDragStart={handleDragStart}
                     handleDragEnd={handleDragEnd}
@@ -763,14 +898,26 @@ const KanbanBoard = () => {
         />
 
         {/* Instructions */}
-        <div className="mt-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
-          <h3 className="font-semibold mb-2 text-gray-800">How to use the Kanban Board:</h3>
-          <ul className="list-disc ml-5 text-gray-700 space-y-1">
+        <div className={getThemeClasses(
+          'mt-8 p-4 bg-gray-50 rounded-xl border border-gray-200',
+          'dark:bg-gray-800/50 dark:border-gray-700'
+        )}>
+          <h3 className={getThemeClasses(
+            'font-semibold mb-2 text-gray-800',
+            'dark:text-gray-200'
+          )}>How to use the Kanban Board:</h3>
+          <ul className={getThemeClasses(
+            'list-disc ml-5 text-gray-700 space-y-1',
+            'dark:text-gray-300'
+          )}>
             <li>Select a project from the dropdown menu</li>
             <li>Drag tasks between columns to update their status</li>
             <li>Click on a task to view more details</li>
           </ul>
-          <div className="mt-4 text-sm text-gray-500">
+          <div className={getThemeClasses(
+            'mt-4 text-sm text-gray-500',
+            'dark:text-gray-400'
+          )}>
             <p>Note: This Kanban board uses native HTML5 drag and drop functionality. For enhanced UI experience, you may need to install react-beautiful-dnd or similar packages.</p>
           </div>
         </div>

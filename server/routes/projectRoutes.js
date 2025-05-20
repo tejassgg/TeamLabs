@@ -4,6 +4,7 @@ const Project = require('../models/Project');
 const User = require('../models/User');
 const TeamDetails = require('../models/TeamDetails');
 const ProjectDetails = require('../models/ProjectDetails');
+const { logActivity } = require('../services/activityService');
 
 // GET /api/projects - fetch all projects the user is allocated to
 router.get('/:userId/:type', async (req, res) => {
@@ -50,9 +51,41 @@ router.post('/', async (req, res) => {
       ProjectStatusID: 1
     });
     await newProject.save();
+
+    // Log the activity
+    await logActivity(
+      ProjectOwner,
+      'project_create',
+      'success',
+      `Created new project "${Name}"`,
+      req,
+      {
+        projectId: newProject.ProjectID,
+        projectName: Name,
+        organizationId: OrganizationID,
+        finishDate: FinishDate
+      }
+    );
+
     res.status(201).json(newProject);
   } catch (err) {
     console.error('Error creating project:', err);
+    // Log the error activity
+    try {
+      await logActivity(
+        req.body.ProjectOwner,
+        'project_create',
+        'error',
+        `Failed to create project: ${err.message}`,
+        req,
+        {
+          projectName: req.body.Name,
+          error: err.message
+        }
+      );
+    } catch (logError) {
+      console.error('Failed to log error activity:', logError);
+    }
     res.status(500).json({ error: 'Failed to create project' });
   }
 });
@@ -63,14 +96,61 @@ router.patch('/:projectId', async (req, res) => {
     const { Name, Description, FinishDate, ProjectStatusID } = req.body;
     const project = await Project.findOne({ ProjectID: req.params.projectId });
     if (!project) return res.status(404).json({ error: 'Project not found' });
+
+    const oldValues = {
+      name: project.Name,
+      description: project.Description,
+      finishDate: project.FinishDate,
+      statusId: project.ProjectStatusID
+    };
+
     if (Name) project.Name = Name;
     if (Description !== undefined) project.Description = Description;
     if (FinishDate !== undefined) project.FinishDate = FinishDate ? new Date(FinishDate) : null;
     if (ProjectStatusID !== undefined) project.ProjectStatusID = ProjectStatusID;
     project.ModifiedDate = new Date();
     await project.save();
+
+    // Log the activity
+    await logActivity(
+      project.ProjectOwner,
+      'project_update',
+      'success',
+      `Updated project "${project.Name}"`,
+      req,
+      {
+        projectId: project.ProjectID,
+        projectName: project.Name,
+        oldValues,
+        newValues: {
+          name: project.Name,
+          description: project.Description,
+          finishDate: project.FinishDate,
+          statusId: project.ProjectStatusID
+        }
+      }
+    );
+
     res.json(project);
   } catch (err) {
+    console.error('Error updating project:', err);
+    // Log the error activity
+    try {
+      const project = await Project.findOne({ ProjectID: req.params.projectId });
+      await logActivity(
+        project?.ProjectOwner,
+        'project_update',
+        'error',
+        `Failed to update project: ${err.message}`,
+        req,
+        {
+          projectId: req.params.projectId,
+          error: err.message
+        }
+      );
+    } catch (logError) {
+      console.error('Failed to log error activity:', logError);
+    }
     res.status(500).json({ error: 'Failed to update project' });
   }
 });
