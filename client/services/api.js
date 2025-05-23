@@ -305,4 +305,29 @@ export const taskService = {
   }
 };
 
+export const chatbotService = {
+  // Send a message to the chatbot
+  sendMessage: async (message, isAuthenticated = false) => {
+    try {
+      const endpoint = isAuthenticated ? '/chatbot' : '/chatbot/greet';
+      const response = await api.post(endpoint, { message });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to send message to chatbot' };
+    }
+  },
+
+  // Get conversation history
+  getConversationHistory: async (page = 1, limit = 5) => {
+    try {
+      const response = await api.get('/chatbot/history', {
+        params: { page, limit }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch conversation history' };
+    }
+  }
+};
+
 export default api; 

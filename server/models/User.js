@@ -179,6 +179,21 @@ const UserSchema = new mongoose.Schema({
   role: {
     type: String,
     default: ''
+  },
+  twoFactorSecret: {
+    type: String,
+    select: false // Don't include in queries by default
+  },
+  twoFactorEnabled: {
+    type: Boolean,
+    default: false
+  },
+  tempTwoFactorSecret: {
+    type: String,
+    select: false
+  },
+  tempTwoFactorSecretCreatedAt: {
+    type: Date
   }
 });
 
@@ -201,6 +216,17 @@ UserSchema.pre('save', async function(next) {
 // Method to compare password
 UserSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Method to check if 2FA is enabled
+UserSchema.methods.isTwoFactorEnabled = function() {
+  return this.twoFactorEnabled;
+};
+
+// Method to get 2FA secret (only when explicitly selected)
+UserSchema.methods.getTwoFactorSecret = async function() {
+  if (!this.twoFactorSecret) return null;
+  return this.twoFactorSecret;
 };
 
 const User = mongoose.model('User', UserSchema);

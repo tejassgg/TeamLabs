@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Head from 'next/head';
 import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { FaProjectDiagram, FaUsers, FaClock, FaUserFriends, FaTrash, FaCheckCircle, FaPauseCircle, FaExclamationCircle, FaTimes, FaCode, FaVial, FaShieldAlt, FaRocket, FaQuestionCircle, FaCog, FaCalendarAlt, FaTasks, FaChevronRight } from 'react-icons/fa';
 import api from '../services/api';
 
@@ -86,6 +87,7 @@ const getProjectStatusStyle = (status) => {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const router = useRouter();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -151,69 +153,69 @@ const Dashboard = () => {
       <Head>
         <title>Dashboard | TeamLabs</title>
       </Head>
-      <div className="max-w-7xl mx-auto py-8">
+      <div className="mx-auto py-8">
         {/* Breadcrumb Navigation */}
-        <div className="flex items-center text-sm text-gray-500 mb-4">
-          <span className="text-gray-700 font-medium">Dashboard</span>
+        <div className={`flex items-center text-sm mb-4 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>
+          <span className={theme === 'dark' ? 'text-[#F3F6FA] font-medium' : 'text-gray-700 font-medium'}>Dashboard</span>
         </div>
 
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{stats?.organizationName}</h1>
-            <p className="text-lg text-gray-600 mt-1">Welcome to your workspace</p>
+            <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.organizationName}</h1>
+            <p className={`text-lg mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>Welcome to your workspace</p>
           </div>
         </div>
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Projects Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all duration-200`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Total Projects</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{stats?.totalProjects || 0}</p>
+                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total Projects</p>
+                <p className={`text-2xl font-bold mt-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalProjects || 0}</p>
               </div>
-              <div className="p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
-                <FaProjectDiagram className="text-blue-500" size={24} />
+              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-blue-50 to-blue-100'}`}>
+                <FaProjectDiagram className={theme === 'dark' ? 'text-blue-400' : 'text-blue-500'} size={24} />
               </div>
             </div>
           </div>
 
           {/* Teams Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all duration-200`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Total Teams</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{stats?.totalTeams || 0}</p>
+                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total Teams</p>
+                <p className={`text-2xl font-bold mt-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalTeams || 0}</p>
               </div>
-              <div className="p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg">
-                <FaUsers className="text-green-500" size={24} />
+              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-green-50 to-green-100'}`}>
+                <FaUsers className={theme === 'dark' ? 'text-green-400' : 'text-green-500'} size={24} />
               </div>
             </div>
           </div>
 
           {/* Deadlines Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all duration-200`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Upcoming Deadlines</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{stats?.upcomingDeadlines || 0}</p>
+                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Upcoming Deadlines</p>
+                <p className={`text-2xl font-bold mt-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.upcomingDeadlines || 0}</p>
               </div>
-              <div className="p-3 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg">
-                <FaClock className="text-yellow-500" size={24} />
+              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-yellow-50 to-yellow-100'}`}>
+                <FaClock className={theme === 'dark' ? 'text-yellow-300' : 'text-yellow-500'} size={24} />
               </div>
             </div>
           </div>
 
           {/* People Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all duration-200`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Total People</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{stats?.totalUsers || 0}</p>
+                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total People</p>
+                <p className={`text-2xl font-bold mt-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalUsers || 0}</p>
               </div>
-              <div className="p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
-                <FaUserFriends className="text-purple-500" size={24} />
+              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-purple-50 to-purple-100'}`}>
+                <FaUserFriends className={theme === 'dark' ? 'text-purple-300' : 'text-purple-500'} size={24} />
               </div>
             </div>
           </div>
@@ -222,9 +224,9 @@ const Dashboard = () => {
         {/* Recent Activity Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Recent Projects */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Recent Projects</h2>
+          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border`}>
+            <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
+              <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Recent Projects</h2>
             </div>
             <div className="overflow-x-auto">
               <div className="space-y-4 p-4">
@@ -244,18 +246,18 @@ const Dashboard = () => {
                   return (
                     <div
                       key={project.id}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 border-b border-gray-100 last:border-b-0"
+                      className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 border-b last:border-b-0 ${theme === 'dark' ? 'hover:bg-[#232323] border-[#424242]' : 'hover:bg-gray-50 border-gray-100'}`}
                       onClick={() => router.push(`/project/${project.id}`)}
                     >
                       <div>
-                        <p className="font-medium text-gray-900">{project.name}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{project.name}</p>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>
                           {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.textColor} border ${statusStyle.borderColor}`}>
-                          <IconComponent className={statusStyle.iconColor} size={14} />
+                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm border ${theme === 'dark' ? 'bg-[#232323] text-[#F3F6FA] border-[#424242]' : `bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.textColor} border ${statusStyle.borderColor}`}`}>
+                          <IconComponent className={theme === 'dark' ? 'text-blue-400' : statusStyle.iconColor} size={14} />
                           <span>{project.projectStatus}</span>
                         </div>
                       </div>
@@ -263,7 +265,7 @@ const Dashboard = () => {
                   );
                 })}
                 {(!stats?.recentProjects || stats.recentProjects.length === 0) && (
-                  <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg">
+                  <div className={`text-center py-8 rounded-lg ${theme === 'dark' ? 'text-[#B0B8C1] bg-[#232323]' : 'text-gray-400 bg-gray-50'}`}>
                     No Recent Projects
                   </div>
                 )}
@@ -272,32 +274,32 @@ const Dashboard = () => {
           </div>
 
           {/* Upcoming Deadlines */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Upcoming Deadlines</h2>
+          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border`}>
+            <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
+              <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Upcoming Deadlines</h2>
             </div>
             <div className="overflow-x-auto">
               <div className="space-y-4 p-4">
                 {stats?.deadlineDetails?.map(project => (
                   <div
                     key={project.id}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 border-b border-gray-100 last:border-b-0"
+                    className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 border-b last:border-b-0 ${theme === 'dark' ? 'hover:bg-[#232323] border-[#424242]' : 'hover:bg-gray-50 border-gray-100'}`}
                     onClick={() => router.push(`/project/${project.id}`)}
                   >
                     <div>
-                      <p className="font-medium text-gray-900">{project.name}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{project.name}</p>
+                      <p className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>
                         Due: {new Date(project.deadline).toLocaleDateString()}
                       </p>
                     </div>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-700 border border-yellow-200">
-                      <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm border ${theme === 'dark' ? 'bg-[#232323] text-yellow-200 border-[#424242]' : 'bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-700 border border-yellow-200'}`}>
+                      <span className={`w-2 h-2 rounded-full ${theme === 'dark' ? 'bg-yellow-400' : 'bg-yellow-500'} animate-pulse`}></span>
                       {project.daysRemaining} days left
                     </span>
                   </div>
                 ))}
                 {(!stats?.deadlineDetails || stats.deadlineDetails.length === 0) && (
-                  <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg">
+                  <div className={`text-center py-8 rounded-lg ${theme === 'dark' ? 'text-[#B0B8C1] bg-[#232323]' : 'text-gray-400 bg-gray-50'}`}>
                     No Upcoming Deadlines
                   </div>
                 )}
@@ -307,14 +309,14 @@ const Dashboard = () => {
         </div>
 
         {/* Organization Members Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Organization Members</h2>
+        <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border`}>
+          <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
+            <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Organization Members</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
+                <tr className={`${theme === 'dark' ? 'bg-[#232323] border-[#424242]' : 'bg-gray-50 border-gray-200'}`}>
                   <th className="py-3 px-4 text-left">Member</th>
                   <th className="hidden md:table-cell py-3 px-4 text-left">Email</th>
                   <th className="py-3 px-4 text-left">Last Login</th>
@@ -323,40 +325,42 @@ const Dashboard = () => {
               </thead>
               <tbody>
                 {stats?.members?.map(member => (
-                  <tr key={member.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0">
+                  <tr key={member.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-[#424242] hover:bg-[#232323]' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-600'}`}> 
                           {member.name.split(' ').map(n => n[0]).join('')}
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-medium">{member.name}</span>
-                          <span className="md:hidden text-xs text-gray-500">{member.email}</span>
+                          <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : ''}`}>{member.name}</span>
+                          <span className={`md:hidden text-xs ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>{member.email}</span>
                           {/* Show status on mobile */}
                           <div className="md:hidden mt-1">
-                            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${member.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${member.status === 'Active' ? 'bg-green-500' : 'bg-gray-500'}`}></span>
+                            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${member.status === 'Active'
+                              ? (theme === 'dark' ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700')
+                              : (theme === 'dark' ? 'bg-[#232323] text-[#B0B8C1]' : 'bg-gray-100 text-gray-700')}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${member.status === 'Active' ? (theme === 'dark' ? 'bg-green-400' : 'bg-green-500') : (theme === 'dark' ? 'bg-[#B0B8C1]' : 'bg-gray-500')}`}></span>
                               {member.status}
                             </div>
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="hidden md:table-cell py-3 px-4">
-                      <span className="text-gray-600">{member.email}</span>
+                    <td className={`hidden md:table-cell py-3 px-4 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}> 
+                      {member.email}
                     </td>
                     <td className="py-3 px-4">
                       {member.lastLogin ? (
                         <div className="flex flex-col">
-                          <span className="text-sm text-gray-900">
+                          <span className={`text-sm ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>
                             {new Date(member.lastLogin).toLocaleDateString()}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className={`text-xs ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>
                             {new Date(member.lastLogin).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-sm text-gray-400">Never</span>
+                        <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-400'}`}>Never</span>
                       )}
                     </td>
                     {user.role === 'Admin' && user.organizationID && (
@@ -367,7 +371,7 @@ const Dashboard = () => {
                               setRemovingUser(member);
                               setShowRemoveDialog(true);
                             }}
-                            className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition"
+                            className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition shadow-sm ${theme === 'dark' ? 'text-red-300 bg-[#424242] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
                             title="Remove Member"
                           >
                             <FaTrash size={14} />
@@ -379,7 +383,7 @@ const Dashboard = () => {
                 ))}
                 {(!stats?.members || stats.members.length === 0) && (
                   <tr>
-                    <td colSpan={user.role === 'Admin' && user.organizationID ? 5 : 4} className="text-center py-8 text-gray-400 bg-gray-50">
+                    <td colSpan={user.role === 'Admin' && user.organizationID ? 5 : 4} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-[#232323]' : 'text-gray-400 bg-gray-50'}`}>
                       No members found
                     </td>
                   </tr>
@@ -391,28 +395,26 @@ const Dashboard = () => {
 
         {/* Remove Member Confirmation Dialog */}
         {showRemoveDialog && removingUser && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
+          <div className={`fixed inset-0 flex items-center justify-center z-50 ${theme === 'dark' ? 'bg-black bg-opacity-70' : 'bg-black bg-opacity-50'}`}>
+            <div className={`rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border ${theme === 'dark' ? 'bg-[#232323] border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-100'}`}>
               <div className="flex items-center gap-3 mb-4">
                 <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                <h3 className="text-lg font-semibold">Remove Member</h3>
+                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : ''}`}>Remove Member</h3>
               </div>
-              <p className="text-gray-600 mb-6">
-                Are you sure you want to remove {removingUser.name} from the organization? They will no longer have access to organization resources.
-              </p>
+              <p className={`mb-6 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>Are you sure you want to remove {removingUser.name} from the organization? They will no longer have access to organization resources.</p>
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => {
                     setShowRemoveDialog(false);
                     setRemovingUser(null);
                   }}
-                  className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                  className={`px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark' ? 'text-[#B0B8C1] border-[#424242] hover:bg-[#232323]' : 'text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleRemoveUser(removingUser.id)}
-                  className="px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                  className={`px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r ${theme === 'dark' ? 'from-red-700 to-red-900 hover:from-red-800 hover:to-red-900' : 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'}`}
                   disabled={removingUser === removingUser?.id}
                 >
                   {removingUser === removingUser?.id ? 'Removing...' : 'Remove from Organization'}

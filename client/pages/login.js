@@ -1,9 +1,31 @@
 import { useTheme } from '../context/ThemeContext';
 import Head from 'next/head';
 import LoginForm from '../components/LoginForm';
+import { useAuth } from '../context/AuthContext';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 
 const Login = () => {
   const { theme } = useTheme();
+  const { isAuthenticated, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to dashboard if user is authenticated
+    if (!loading && isAuthenticated) {
+      router.replace('/dashboard');
+    }
+  }, [isAuthenticated, loading, router]);
+
+  // Show nothing while checking authentication
+  if (loading) {
+    return null;
+  }
+
+  // Don't render if user is authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <>

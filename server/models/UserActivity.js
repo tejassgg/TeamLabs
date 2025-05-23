@@ -20,7 +20,9 @@ const userActivitySchema = new mongoose.Schema({
       // User Story activities
       'user_story_create', 'user_story_update', 'user_story_delete',
       // Error activities
-      'error'
+      'error',
+      // Chatbot activities
+      'chatbot_interaction'
     ]
   },
   status: {

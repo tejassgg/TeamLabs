@@ -126,10 +126,10 @@ const loginUser = async (req, res) => {
     } else {
       // Log failed login attempt
       if (user) {
-        await logActivity(user._id, 'login_failed', 'failed', 'Invalid password', req, 'email');
+        await logActivity(user._id, 'login_failed', 'error', 'Invalid password', req, 'email');
       } else {
         // Log failed login attempt for non-existent user
-        await logActivity(null, 'login_failed', 'failed', 'User not found', req, 'email');
+        await logActivity(null, 'login_failed', 'error', 'User not found', req, 'email');
       }
       res.status(401).json({ message: 'Invalid username/email or password' });
     }
@@ -171,7 +171,7 @@ const googleLogin = async (req, res) => {
 
     // If email is not verified by Google
     if (!email_verified) {
-      await logActivity(null, 'login_failed', 'failed', 'Email not verified by Google', req, 'google');
+      await logActivity(null, 'login_failed', 'error', 'Email not verified by Google', req, 'google');
       return res.status(400).json({ message: 'Email not verified by Google' });
     }
 
@@ -184,7 +184,7 @@ const googleLogin = async (req, res) => {
       await user.save();
 
       // Log successful Google login
-      await logActivity(user._id, 'login', 'success', 'User logged in via Google', req, 'google');
+      await logActivity(user._id, 'login', 'success', 'User logged in via Google', req, { provider: 'google' });
 
       // Return user data with token and Google profile image
       return res.json({
@@ -228,7 +228,7 @@ const googleLogin = async (req, res) => {
       });
 
       // Log successful Google login for new user
-      await logActivity(user._id, 'login', 'success', 'New user registered and logged in via Google', req, 'google');
+      await logActivity(user._id, 'login', 'success', 'New user registered and logged in via Google', req, { provider: 'google' });
 
       res.status(201).json({
         _id: user._id,
@@ -246,7 +246,7 @@ const googleLogin = async (req, res) => {
   } catch (error) {
     console.error(error);
     // Log failed Google login attempt
-    await logActivity(null, 'login_failed', 'failed', 'Google login failed: ' + error.message, req, 'google');
+    await logActivity(null, 'login_failed', 'error', 'Google login failed: ' + error.message, req, { provider: 'google' });
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -376,7 +376,7 @@ const getUserActivities = async (req, res) => {
     const limit = parseInt(req.query.limit) || 5;
 
 
-    let types = ['team_create', 'team_update', 'team_delete', 'team_join', 'team_leave', 'team_status_toggle', 'project_create', 'project_update', 'task_create', 'task_update', 'task_complete', 'task_assign', 'user_story_create', 'user_story_update', 'user_story_delete', 'error'];
+    let types = ['team_create', 'team_update', 'team_delete', 'team_join', 'team_leave', 'team_status_toggle', 'project_create', 'project_update', 'task_create', 'task_update', 'task_complete', 'task_assign', 'user_story_create', 'user_story_update', 'user_story_delete'];
 
     const result = await UserActivity.find({ user: req.user._id, type: { $in: types } })
       .sort({ timestamp: -1 })

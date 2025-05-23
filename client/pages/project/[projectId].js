@@ -327,7 +327,7 @@ const ProjectDetailsPage = () => {
   // Update the table container classes
   const tableContainerClasses = getThemeClasses(
     'bg-white rounded-xl shadow-sm border border-gray-200',
-    'dark:bg-gray-800 dark:border-gray-700'
+    'dark:bg-[#1F1F1F] dark:border-[#424242]'
   );
 
   const tableHeaderClasses = getThemeClasses(

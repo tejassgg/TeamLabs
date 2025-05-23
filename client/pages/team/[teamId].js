@@ -474,7 +474,7 @@ const TeamDetailsPage = () => {
               {/* Team Members Table */}
               <div className={getThemeClasses(
                 'bg-white rounded-xl shadow-sm border border-gray-200',
-                'dark:bg-gray-800 dark:border-gray-700'
+                'dark:bg-[#1F1F1F] dark:border-[#424242]'
               )}>
                 <div className={getThemeClasses(
                   'p-4 border-b border-gray-200',
@@ -670,7 +670,7 @@ const TeamDetailsPage = () => {
               {/* Projects Table */}
               <div className={getThemeClasses(
                 'bg-white rounded-xl shadow-sm border border-gray-200',
-                'dark:bg-gray-800 dark:border-gray-700'
+                'dark:bg-[#1F1F1F] dark:border-[#424242]'
               )}>
                 <div className={getThemeClasses(
                   'p-4 border-b border-gray-200',
