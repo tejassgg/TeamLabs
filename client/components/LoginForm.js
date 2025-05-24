@@ -5,12 +5,15 @@ import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GoogleLogin } from '@react-oauth/google';
+import { toast } from 'react-toastify';
 
 const LoginForm = ({ onSuccess }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { login, googleLogin } = useAuth();
+  const [show2FA, setShow2FA] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const { login, verifyLogin2FA, googleLogin } = useAuth();
   const router = useRouter();
   const { register, handleSubmit, formState: { errors } } = useForm();
 
@@ -20,13 +23,41 @@ const LoginForm = ({ onSuccess }) => {
     try {
       const result = await login(data.usernameOrEmail, data.password);
       if (result.success) {
+        if (result.twoFactorEnabled) {
+          setShow2FA(true);
+        } else {
+          if (onSuccess) onSuccess();
+          router.push('/dashboard');
+        }
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError('An error occurred during login');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handle2FASubmit = async (e) => {
+    e.preventDefault();
+    if (!verificationCode || verificationCode.length !== 6) {
+      setError('Please enter a valid 6-digit code');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await verifyLogin2FA(verificationCode);
+      if (result.success) {
         if (onSuccess) onSuccess();
         router.push('/dashboard');
       } else {
         setError(result.message);
       }
     } catch (err) {
-      setError('An error occurred during login');
+      setError('Failed to verify 2FA code');
     } finally {
       setIsLoading(false);
     }
@@ -48,6 +79,52 @@ const LoginForm = ({ onSuccess }) => {
   const handleGoogleLoginError = () => {
     setError('Google login failed');
   };
+
+  if (show2FA) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-gray-700 mb-2">Two-Factor Authentication</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Please enter the 6-digit code from your authenticator app
+          </p>
+        </div>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+            {error}
+          </div>
+        )}
+        <form onSubmit={handle2FASubmit} className="space-y-5">
+          <div>
+            <input
+              type="text"
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="Enter 6-digit code"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-center tracking-widest"
+              maxLength={6}
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShow2FA(false)}
+              className="w-1/2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+            >
+              Back
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading || verificationCode.length !== 6}
+              className="w-1/2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-sm hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            >
+              {isLoading ? 'Verifying...' : 'Verify'}
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

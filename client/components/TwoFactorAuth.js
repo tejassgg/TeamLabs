@@ -2,6 +2,9 @@ import { useState } from 'react';
 import QRCode from 'react-qr-code';
 import { toast } from 'react-toastify';
 import { FaTimes, FaCheck, FaExclamationTriangle } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
+import { authService } from '../services/api';
 
 export default function TwoFactorAuth({ 
   mode = 'setup', // 'setup' or 'verify'
@@ -10,6 +13,7 @@ export default function TwoFactorAuth({
   userId,
   email
 }) {
+  const { user } = useAuth();
   const [step, setStep] = useState('initial');
   const [secret, setSecret] = useState('');
   const [qrCode, setQrCode] = useState('');
@@ -17,46 +21,24 @@ export default function TwoFactorAuth({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Get JWT token from localStorage
-  const getAuthToken = () => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('token');
-    }
-    return null;
-  };
-
   const startSetup = async () => {
     try {
       setLoading(true);
       setError('');
-      
-      const token = getAuthToken();
-      if (!token) {
-        throw new Error('No authentication token found');
+
+      if (!user) {
+        throw new Error('No active session found');
       }
 
-      const response = await fetch('/api/auth/2fa', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ action: 'generate' })
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to start 2FA setup');
-      }
-
-      const data = await response.json();
+      const data = await authService.generate2FA(user._id);
       setSecret(data.secret);
       setQrCode(data.qrCode);
-      setStep('verify');
+      console.log(data.qrCode);
+      setStep('qr');
     } catch (error) {
       console.error('2FA Setup Error:', error);
-      setError(error.message || 'Failed to start 2FA setup');
-      toast.error(error.message || 'Failed to start 2FA setup');
+      setError(error.response?.data?.error || 'Failed to start 2FA setup');
+      toast.error(error.response?.data?.error || 'Failed to start 2FA setup');
     } finally {
       setLoading(false);
     }
@@ -71,39 +53,39 @@ export default function TwoFactorAuth({
         throw new Error('Please enter a valid 6-digit code');
       }
 
-      const token = getAuthToken();
-      if (!token) {
-        throw new Error('No authentication token found');
+      if (!user) {
+        throw new Error('No active session found');
       }
 
-      const response = await fetch('/api/auth/2fa', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          action: mode === 'setup' ? 'verify' : 'disable',
-          token: verificationCode
-        })
-      });
+      const data = await authService.verify2FA(verificationCode);
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Verification failed');
-      }
-
-      const data = await response.json();
       if (data.success) {
+        // Update user data in localStorage
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (mode === 'setup') {
+          // For setup mode, enable 2FA
+          userData.twoFactorEnabled = true;
+        } else if (mode === 'verify') {
+          // For verify mode (disable), remove 2FA
+          userData.twoFactorEnabled = false;
+        }
+        
+        localStorage.setItem('user', JSON.stringify(userData));
+
+        // Call onComplete callback
+        if (typeof onComplete === 'function') {
+          onComplete();
+        }
+
         toast.success(mode === 'setup' ? '2FA enabled successfully!' : '2FA disabled successfully!');
-        onComplete();
       } else {
         throw new Error('Verification failed');
       }
     } catch (error) {
       console.error('2FA Verification Error:', error);
-      setError(error.message || 'Verification failed');
-      toast.error(error.message || 'Verification failed');
+      setError(error.response?.data?.error || 'Verification failed');
+      toast.error(error.response?.data?.error || 'Verification failed');
     } finally {
       setLoading(false);
     }
@@ -118,39 +100,31 @@ export default function TwoFactorAuth({
         throw new Error('Please enter a valid 6-digit code');
       }
 
-      const token = getAuthToken();
-      if (!token) {
-        throw new Error('No authentication token found');
+      if (!user) {
+        throw new Error('No active session found');
       }
 
-      const response = await fetch('/api/auth/2fa', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          action: 'disable',
-          token: verificationCode
-        })
-      });
+      const data = await authService.disable2FA(verificationCode);
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to disable 2FA');
-      }
-
-      const data = await response.json();
       if (data.success) {
+        // Update user data in localStorage
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        userData.twoFactorEnabled = false;
+        localStorage.setItem('user', JSON.stringify(userData));
+
+        // Call onComplete callback
+        if (typeof onComplete === 'function') {
+          onComplete();
+        }
+
         toast.success('2FA disabled successfully!');
-        onComplete();
       } else {
         throw new Error('Failed to disable 2FA');
       }
     } catch (error) {
       console.error('2FA Disable Error:', error);
-      setError(error.message || 'Failed to disable 2FA');
-      toast.error(error.message || 'Failed to disable 2FA');
+      setError(error.response?.data?.error || 'Failed to disable 2FA');
+      toast.error(error.response?.data?.error || 'Failed to disable 2FA');
     } finally {
       setLoading(false);
     }
@@ -221,9 +195,11 @@ export default function TwoFactorAuth({
           <p className="mt-2 text-sm text-gray-500">
             Scan this QR code with Google Authenticator app
           </p>
-          <div className="mt-4 p-4 bg-white rounded-lg inline-block">
-            <QRCode value={qrCode} size={200} />
-          </div>
+          {qrCode && (
+            <div className="mt-4 p-4 bg-white rounded-lg inline-block">
+              <img src={qrCode} alt="2FA QR Code" className="w-48 h-48" />
+            </div>
+          )}
           <div className="mt-4">
             <p className="text-sm font-medium">Backup Code:</p>
             <code className="mt-1 block p-2 bg-gray-100 rounded select-all">

@@ -6,38 +6,32 @@ import { useState, useEffect } from 'react';
 import { FaMoon, FaSun, FaDesktop, FaShieldAlt, FaSignOutAlt, FaCheck, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import TwoFactorAuth from '../components/TwoFactorAuth';
-import { useSession } from 'next-auth/react';
+import Breadcrumb from '../components/Breadcrumb';
+import authService from '../services/api';
 
 const Settings = () => {
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const { logout } = useAuth();
-  const { data: session } = useSession();
+  const { logout, user } = useAuth();
   const [activeTab, setActiveTab] = useState('appearance');
   const [loading, setLoading] = useState(false);
   const [show2FASetup, setShow2FASetup] = useState(false);
   const [show2FADisable, setShow2FADisable] = useState(false);
   const [securitySettings, setSecuritySettings] = useState({
-    twoFactorEnabled: false,
-    sessionTimeout: 30,
-    loginNotifications: true
+    twoFactorEnabled: user?.twoFactorEnabled || false,
+    sessionTimeout: user?.sessionTimeout || 30,
+    loginNotifications: user?.loginNotifications !== false
   });
 
-  // Fetch security settings on component mount
+  // Update security settings when user data changes
   useEffect(() => {
-    const fetchSecuritySettings = async () => {
-      try {
-        const res = await fetch('/api/auth/security-settings');
-        if (res.ok) {
-          const data = await res.json();
-          setSecuritySettings(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch security settings:', err);
-      }
-    };
-
-    fetchSecuritySettings();
-  }, []);
+    if (user) {
+      setSecuritySettings({
+        twoFactorEnabled: user.twoFactorEnabled || false,
+        sessionTimeout: user.sessionTimeout || 30,
+        loginNotifications: user.loginNotifications !== false
+      });
+    }
+  }, [user]);
 
   // Save theme to localStorage whenever it changes
   useEffect(() => {
@@ -52,11 +46,22 @@ const Settings = () => {
   const handleSecuritySave = async () => {
     setLoading(true);
     try {
-      // Save security settings to localStorage for now
-      localStorage.setItem('securitySettings', JSON.stringify(securitySettings));
-      toast.success('Security settings updated');
+      securitySettings.userId = user._id;
+      console.table(securitySettings);
+      const response = await authService.updateSecuritySettings(securitySettings);
+
+      if (response.status === 200) {
+        // Update user data in localStorage
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        userData.sessionTimeout = securitySettings.sessionTimeout;
+        userData.loginNotifications = securitySettings.loginNotifications;
+        localStorage.setItem('user', JSON.stringify(userData));
+
+        toast.success('Security settings updated successfully');
+      }
     } catch (err) {
-      toast.error('Failed to update security settings');
+      console.error('Failed to update security settings:', err);
+      toast.error(err.response?.data?.error || 'Failed to update security settings');
     } finally {
       setLoading(false);
     }
@@ -72,14 +77,17 @@ const Settings = () => {
       <Head>
         <title>Settings | TeamLabs</title>
       </Head>
-      <div className="mx-auto max-w-5xl py-8 px-4 sm:px-6 lg:px-8">
+      <Breadcrumb type="settings" />
+      <div className="mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Settings</h1>
+          <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            Settings
+          </h1>
           <button
             onClick={logout}
             className={`flex items-center gap-2 px-4 py-2 transition-colors ${theme === 'dark'
-              ? 'text-red-400 hover:text-red-300'
-              : 'text-red-600 hover:text-red-700'
+                ? 'text-red-400 hover:text-red-300'
+                : 'text-red-600 hover:text-red-700'
               }`}
           >
             <FaSignOutAlt />
@@ -220,11 +228,9 @@ const Settings = () => {
               <div className={`p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
                 <div className="space-y-6">
                   {/* Two-Factor Authentication */}
-                  <div className={`flex items-center justify-between p-4 rounded-xl ${
-                    theme === 'dark' ? 'bg-gray-800/50' : 'bg-white'
-                  } border ${
-                    theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-                  }`}>
+                  <div className={`flex items-center justify-between p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white'
+                    } border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+                    }`}>
                     <div>
                       <h3 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                         Two-Factor Authentication
@@ -242,22 +248,20 @@ const Settings = () => {
                     {!securitySettings.twoFactorEnabled ? (
                       <button
                         onClick={() => setShow2FASetup(true)}
-                        className={`px-4 py-2 rounded-lg transition-colors ${
-                          theme === 'dark'
+                        className={`px-4 py-2 rounded-lg transition-colors ${theme === 'dark'
                             ? 'bg-blue-600 hover:bg-blue-700 text-white'
                             : 'bg-blue-600 hover:bg-blue-700 text-white'
-                        }`}
+                          }`}
                       >
                         Enable 2FA
                       </button>
                     ) : (
                       <button
                         onClick={() => setShow2FADisable(true)}
-                        className={`px-4 py-2 rounded-lg transition-colors ${
-                          theme === 'dark'
+                        className={`px-4 py-2 rounded-lg transition-colors ${theme === 'dark'
                             ? 'bg-red-600 hover:bg-red-700 text-white'
                             : 'bg-red-600 hover:bg-red-700 text-white'
-                        }`}
+                          }`}
                       >
                         Disable 2FA
                       </button>
@@ -331,9 +335,8 @@ const Settings = () => {
       {/* 2FA Setup Modal */}
       {show2FASetup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`max-w-md w-full mx-4 rounded-xl shadow-lg ${
-            theme === 'dark' ? 'bg-[#1F1F1F]' : 'bg-white'
-          }`}>
+          <div className={`max-w-2xl w-full mx-4 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#1F1F1F]' : 'bg-white'
+            }`}>
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -341,9 +344,8 @@ const Settings = () => {
                 </h3>
                 <button
                   onClick={() => setShow2FASetup(false)}
-                  className={`p-2 rounded-lg hover:bg-opacity-10 ${
-                    theme === 'dark' ? 'hover:bg-white text-white' : 'hover:bg-gray-900 text-gray-900'
-                  }`}
+                  className={`p-2 rounded-lg hover:bg-opacity-10 ${theme === 'dark' ? 'hover:bg-white text-white' : 'hover:bg-gray-900 text-gray-900'
+                    }`}
                 >
                   <FaTimes className="w-5 h-5" />
                 </button>
@@ -352,12 +354,17 @@ const Settings = () => {
                 mode="setup"
                 onComplete={() => {
                   setShow2FASetup(false);
+                  // Update user data in localStorage
+                  const userData = JSON.parse(localStorage.getItem('user') || '{}');
+                  userData.twoFactorEnabled = true;
+                  localStorage.setItem('user', JSON.stringify(userData));
+                  // Update local state
                   setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: true }));
                   toast.success('Two-factor authentication enabled successfully');
                 }}
                 onCancel={() => setShow2FASetup(false)}
-                userId={session?.user?.id}
-                email={session?.user?.email}
+                userId={user?._id}
+                email={user?.email}
               />
             </div>
           </div>
@@ -367,9 +374,8 @@ const Settings = () => {
       {/* 2FA Disable Modal */}
       {show2FADisable && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`max-w-md w-full mx-4 rounded-xl shadow-lg ${
-            theme === 'dark' ? 'bg-[#1F1F1F]' : 'bg-white'
-          }`}>
+          <div className={`max-w-md w-full mx-4 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#1F1F1F]' : 'bg-white'
+            }`}>
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -377,9 +383,8 @@ const Settings = () => {
                 </h3>
                 <button
                   onClick={() => setShow2FADisable(false)}
-                  className={`p-2 rounded-lg hover:bg-opacity-10 ${
-                    theme === 'dark' ? 'hover:bg-white text-white' : 'hover:bg-gray-900 text-gray-900'
-                  }`}
+                  className={`p-2 rounded-lg hover:bg-opacity-10 ${theme === 'dark' ? 'hover:bg-white text-white' : 'hover:bg-gray-900 text-gray-900'
+                    }`}
                 >
                   <FaTimes className="w-5 h-5" />
                 </button>
@@ -388,12 +393,17 @@ const Settings = () => {
                 mode="verify"
                 onComplete={() => {
                   setShow2FADisable(false);
+                  // Update user data in localStorage
+                  const userData = JSON.parse(localStorage.getItem('user') || '{}');
+                  userData.twoFactorEnabled = false;
+                  localStorage.setItem('user', JSON.stringify(userData));
+                  // Update local state
                   setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: false }));
                   toast.success('Two-factor authentication disabled successfully');
                 }}
                 onCancel={() => setShow2FADisable(false)}
-                userId={session?.user?.id}
-                email={session?.user?.email}
+                userId={user?._id}
+                email={user?.email}
               />
             </div>
           </div>

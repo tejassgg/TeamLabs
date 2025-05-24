@@ -153,7 +153,7 @@ const Dashboard = () => {
       <Head>
         <title>Dashboard | TeamLabs</title>
       </Head>
-      <div className="mx-auto py-8">
+      <div className="mx-auto">
         {/* Breadcrumb Navigation */}
         <div className={`flex items-center text-sm mb-4 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>
           <span className={theme === 'dark' ? 'text-[#F3F6FA] font-medium' : 'text-gray-700 font-medium'}>Dashboard</span>

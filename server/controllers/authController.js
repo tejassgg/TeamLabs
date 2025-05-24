@@ -3,6 +3,8 @@ const User = require('../models/User');
 const { OAuth2Client } = require('google-auth-library');
 const { logActivity } = require('../services/activityService');
 const UserActivity = require('../models/UserActivity');
+const speakeasy = require('speakeasy');
+const QRCode = require('qrcode');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -99,7 +101,7 @@ const loginUser = async (req, res) => {
     // Find user by username or email
     const user = await User.findOne({
       $or: [
-        { email: usernameOrEmail.toLowerCase() },
+        { email: usernameOrEmail },
         { username: usernameOrEmail }
       ]
     });
@@ -111,9 +113,16 @@ const loginUser = async (req, res) => {
       await user.save();
 
       // Log successful login
-      await logActivity(user._id, 'login', 'success', 'User logged in successfully', req, 'email');
+      await logActivity(user._id, 'login', 'success', 'User logged in successfully', req, {}, 'email');
 
-      res.json({
+      if(user.twoFactorEnabled) {
+        return res.status(200).json({
+          twoFactorEnabled: true,
+          userId: user._id
+        });
+      }
+      
+      return res.status(200).json({
         _id: user._id,
         username: user.username,
         firstName: user.firstName,
@@ -122,14 +131,18 @@ const loginUser = async (req, res) => {
         role: user.role,
         organizationID: user.organizationID,
         token: generateToken(user._id),
+        // Include security settings in login response
+        twoFactorEnabled: user.twoFactorEnabled || false,
+        sessionTimeout: user.sessionTimeout || 30,
+        loginNotifications: user.loginNotifications !== false // default to true if not set
       });
     } else {
       // Log failed login attempt
       if (user) {
-        await logActivity(user._id, 'login_failed', 'error', 'Invalid password', req, 'email');
+        await logActivity(user._id, 'login_failed', 'error', 'Invalid password', req, {}, 'email');
       } else {
         // Log failed login attempt for non-existent user
-        await logActivity(null, 'login_failed', 'error', 'User not found', req, 'email');
+        await logActivity(null, 'login_failed', 'error', 'User not found', req, {}, 'email');
       }
       res.status(401).json({ message: 'Invalid username/email or password' });
     }
@@ -197,7 +210,11 @@ const googleLogin = async (req, res) => {
         profileImage: picture,
         token: generateToken(user._id),
         role: user.role,
-        needsAdditionalDetails: false
+        needsAdditionalDetails: false,
+        // Include security settings in login response
+        twoFactorEnabled: user.twoFactorEnabled || false,
+        sessionTimeout: user.sessionTimeout || 30,
+        loginNotifications: user.loginNotifications !== false // default to true if not set
       });
     } else {
       // If user doesn't exist, create new user with partial profile
@@ -224,7 +241,11 @@ const googleLogin = async (req, res) => {
         city: null,
         state: null,
         country: null,
-        role: 'User'
+        role: 'User',
+        // Set default security settings
+        twoFactorEnabled: false,
+        sessionTimeout: 30,
+        loginNotifications: true
       });
 
       // Log successful Google login for new user
@@ -240,7 +261,11 @@ const googleLogin = async (req, res) => {
         token: generateToken(user._id),
         needsAdditionalDetails: true,
         role: user.role,
-        message: 'Please complete your profile with additional details'
+        message: 'Please complete your profile with additional details',
+        // Include security settings in login response
+        twoFactorEnabled: false,
+        sessionTimeout: 30,
+        loginNotifications: true
       });
     }
   } catch (error) {
@@ -435,6 +460,197 @@ const getUserOrganizations = async (req, res) => {
   }
 };
 
+// @desc    Generate 2FA
+// @route   POST /api/auth/2fa/generate
+// @access  Private
+const generate2FA = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = await User.findById(userId);
+
+    // Generate new secret
+    const secret = speakeasy.generateSecret({
+      name: `TeamLabs:${user.email}`,
+      issuer: 'TeamLabs'
+    });
+
+    // Generate QR code
+    const qrCode = await QRCode.toDataURL(secret.otpauth_url);
+
+    // Store temporary secret in database
+    user.tempTwoFactorSecret = secret.base32;
+    user.tempTwoFactorSecretCreatedAt = new Date();
+    await user.save();
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    return res.json({ 
+      secret: secret.base32,
+      qrCode,
+      otpauth_url: secret.otpauth_url
+    });
+  } catch (error) {
+    console.error('2FA Generation Error:', error);
+    return res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+};
+
+// @desc    Verify 2FA
+// @route   POST /api/auth/2fa/verify
+// @access  Private
+const verify2FA = async (req, res) => {
+  try {
+    const { token } = req.body;
+    const user = await User.findById(req.user.id).select('+tempTwoFactorSecret');
+    
+    if (!user || !user.tempTwoFactorSecret) {
+      return res.status(400).json({ error: 'No temporary secret found. Please generate a new one.' });
+    }
+
+    // Verify the token
+    const verified = speakeasy.totp.verify({
+      secret: user.tempTwoFactorSecret,
+      encoding: 'base32',
+      token: token
+    });
+
+    if (!verified) {
+      return res.status(400).json({ error: 'Invalid verification code' });
+    }
+
+    // Move temporary secret to permanent secret and enable 2FA
+    await User.findByIdAndUpdate(req.user.id, {
+      twoFactorSecret: user.tempTwoFactorSecret,
+      twoFactorEnabled: true,
+      $unset: { tempTwoFactorSecret: 1, tempTwoFactorSecretCreatedAt: 1 }
+    });
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('2FA Verification Error:', error);
+    return res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+};
+
+// @desc    Disable 2FA
+// @route   POST /api/auth/2fa/disable
+// @access  Private
+const disable2FA = async (req, res) => {
+  try {
+    const { token } = req.body;
+    const user = await User.findById(req.user.id).select('+twoFactorSecret');
+    
+    if (!user || !user.twoFactorSecret) {
+      return res.status(400).json({ error: '2FA is not enabled' });
+    }
+
+    // Verify the token before disabling
+    const verified = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: 'base32',
+      token: token
+    });
+
+    if (!verified) {
+      return res.status(400).json({ error: 'Invalid verification code' });
+    }
+
+    // Disable 2FA
+    await User.findByIdAndUpdate(req.user.id, {
+      twoFactorEnabled: false,
+      $unset: { twoFactorSecret: 1 }
+    });
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('2FA Disable Error:', error);
+    return res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+};
+
+// @desc    Verify Login 2FA
+// @route   POST /api/auth/2fa/verify-login
+// @access  Private
+const verifyLogin2FA = async (req, res) => {
+  try {
+    const { code, userId } = req.body;
+    const user = await User.findById(userId).select('+twoFactorSecret');
+    
+    if (!user || !user.twoFactorSecret || !user.twoFactorEnabled) {
+      return res.status(400).json({ error: '2FA is not enabled' });
+    }
+
+    // Verify the token
+    const verified = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: 'base32',
+      token: code
+    });
+
+    if (!verified) {
+      return res.status(400).json({ error: 'Invalid verification code' });
+    }
+    return res.status(200).json({
+      _id: user._id,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      organizationID: user.organizationID,
+      token: generateToken(user._id),
+      // Include security settings in login response
+      twoFactorEnabled: user.twoFactorEnabled || false,
+      sessionTimeout: user.sessionTimeout || 30,
+      loginNotifications: user.loginNotifications !== false // default to true if not set
+    });
+  } catch (error) {
+    console.error('2FA Login Verification Error:', error);
+    return res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+};
+
+// @desc    Get Security Settings
+// @route   GET /api/auth/security-settings
+// @access  Private
+const getSecuritySettings = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('twoFactorEnabled sessionTimeout loginNotifications');
+    
+    return res.json({
+      twoFactorEnabled: user?.twoFactorEnabled || false,
+      sessionTimeout: user?.sessionTimeout || 30,
+      loginNotifications: user?.loginNotifications || true
+    });
+  } catch (error) {
+    console.error('Security Settings Error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// @desc    Update Security Settings
+// @route   PUT /api/auth/security-settings
+// @access  Private
+const updateSecuritySettings = async (req, res) => {
+  try {
+    const { sessionTimeout, loginNotifications, userId } = req.body;
+    
+    await User.findByIdAndUpdate(userId, {
+      $set: {
+        sessionTimeout: Number(sessionTimeout),
+        loginNotifications: Boolean(loginNotifications)
+      }
+    });
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Security Settings Update Error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -443,5 +659,11 @@ module.exports = {
   completeUserProfile,
   getUserActivities,
   logoutUser,
-  getUserOrganizations
+  getUserOrganizations,
+  generate2FA,
+  verify2FA,
+  disable2FA,
+  verifyLogin2FA,
+  getSecuritySettings,
+  updateSecuritySettings
 }; 

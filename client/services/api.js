@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 
 const API_URL = process.env.API_URL || 'http://localhost:5000/api';
 
-// Create axios instance
+// Create axios instance for authenticated requests
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -11,7 +11,15 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to add auth token
+// Create axios instance for public endpoints (like 2FA verification)
+const publicApi = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add request interceptor to add auth token only for authenticated requests
 api.interceptors.request.use(
   (config) => {
     const token = Cookies.get('token');
@@ -30,7 +38,16 @@ export const authService = {
   // Login with username/email and password
   login: async (usernameOrEmail, password) => {
     try {
+      usernameOrEmail = usernameOrEmail.toLowerCase();
       const response = await api.post('/auth/login', { usernameOrEmail, password });
+      // Don't set token or user data yet if 2FA is required
+      if (response.data.twoFactorEnabled) {
+        return {
+          twoFactorEnabled: response.data.twoFactorEnabled,
+          userId: response.data.userId
+        };
+      }
+      // If no 2FA required, proceed with normal login
       if (response.data.token) {
         Cookies.set('token', response.data.token, { expires: 30 });
         localStorage.setItem('user', JSON.stringify(response.data));
@@ -38,6 +55,24 @@ export const authService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'An error occurred during login' };
+    }
+  },
+
+  // Verify 2FA code during login - using publicApi to avoid token requirement
+  verifyLogin2FA: async (code, userId) => {
+    try {
+      const response = await api.post('/auth/2fa/verify-login', { code, userId });
+
+      if (response.status === 200) {
+        if (response.data.token) {
+          Cookies.set('token', response.data.token, { expires: 30 });
+          localStorage.setItem('user', JSON.stringify(response.data));
+        }
+      }
+      return response.data;
+
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to verify 2FA code' };
     }
   },
 
@@ -61,6 +96,7 @@ export const authService = {
       const response = await api.post('/auth/google', { credential });
       if (response.data.token) {
         Cookies.set('token', response.data.token, { expires: 30 });
+        // Store user data including security settings from login response
         localStorage.setItem('user', JSON.stringify(response.data));
       }
       return response.data;
@@ -110,7 +146,7 @@ export const authService = {
     return !!token;
   },
 
-   completeProfile: async (profileData) => {
+  completeProfile: async (profileData) => {
     try {
       const response = await api.put('/auth/complete-profile', profileData);
       // Update localStorage with the new user data
@@ -147,6 +183,42 @@ export const authService = {
       throw error.response?.data || { message: 'Failed to fetch user organizations' };
     }
   },
+
+  generate2FA: async (userId) => {
+    try {
+      const response = await api.post('/auth/2fa/generate', { userId: userId });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to generate 2FA' };
+    }
+  },
+
+  verify2FA: async (token) => {
+    try {
+      const response = await api.post('/auth/2fa/verify', { token });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to verify 2FA' };
+    }
+  },
+
+  disable2FA: async () => {
+    try {
+      const response = await api.post('/auth/2fa/disable');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to disable 2FA' };
+    }
+  },
+
+  updateSecuritySettings: async (securitySettings) => {
+    try {
+      const response = await api.put('/auth/security-settings', securitySettings);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to update security settings' };
+    }
+  }  
 };
 
 export const teamService = {

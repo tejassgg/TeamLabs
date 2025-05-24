@@ -1,14 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const { 
-  registerUser, 
-  loginUser, 
-  googleLogin, 
+const {
+  registerUser,
+  loginUser,
+  googleLogin,
   getUserProfile,
   completeUserProfile,
   getUserActivities,
   logoutUser,
-  getUserOrganizations
+  getUserOrganizations,
+  generate2FA,
+  verify2FA,
+  disable2FA,
+  verifyLogin2FA,
+  getSecuritySettings,
+  updateSecuritySettings
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -220,5 +226,15 @@ router.get('/organizations', protect, getUserOrganizations);
  *         description: Not authorized
  */
 router.post('/logout', protect, logoutUser);
+
+// 2FA routes
+router.post('/2fa/generate', protect, generate2FA);
+router.post('/2fa/verify', protect, verify2FA);
+router.post('/2fa/disable', protect, disable2FA);
+router.post('/2fa/verify-login', verifyLogin2FA);
+
+// Security settings routes
+router.get('/security-settings', protect, getSecuritySettings);
+router.post('/security-settings', protect, updateSecuritySettings);
 
 module.exports = router; 

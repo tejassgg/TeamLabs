@@ -6,6 +6,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [tempAuthData, setTempAuthData] = useState(null);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -29,6 +30,16 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const data = await authService.login(email, password);
+      if (data.twoFactorEnabled) {
+        // Store temporary auth data for 2FA verification
+        setTempAuthData({
+          userId: data.userId
+        });
+        return { 
+          success: true, 
+          twoFactorEnabled: true 
+        };
+      }
       setUser(data);
       return { success: true };
     } catch (error) {
@@ -36,6 +47,24 @@ export const AuthProvider = ({ children }) => {
       return {
         success: false,
         message: error.message || 'Failed to login',
+      };
+    }
+  };
+
+  // Verify 2FA during login
+  const verifyLogin2FA = async (code) => {
+    try {
+      if (!tempAuthData) {
+        throw new Error('No pending 2FA verification');
+      }
+      const data = await authService.verifyLogin2FA(code, tempAuthData.userId);
+      setUser(data);
+      setTempAuthData(null);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to verify 2FA code',
       };
     }
   };
@@ -102,12 +131,14 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         login,
+        verifyLogin2FA,
         register,
         googleLogin,
         completeProfile,
         logout,
         updateUser,
         isAuthenticated: !!user,
+        tempAuthData,
       }}
     >
       {children}
