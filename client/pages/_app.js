@@ -5,8 +5,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import Head from 'next/head';
 import { GlobalProvider } from '../context/GlobalContext';
 import { SessionProvider } from 'next-auth/react';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastProvider } from '../context/ToastContext';
 
 function AppContainer({ Component, pageProps }) {
   const { theme } = useTheme();
@@ -17,34 +16,19 @@ function AppContainer({ Component, pageProps }) {
   );
 }
 
-function MyApp({ Component, pageProps: { session, ...pageProps } }) {
+function MyApp({ Component, pageProps }) {
   return (
-    <SessionProvider session={session}>
-      <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID}>
-        <AuthProvider>
-          <ThemeProvider>
+    <SessionProvider>
+      <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
+        <ThemeProvider>
+          <AuthProvider>
             <GlobalProvider>
-              <Head>
-                <title>TeamLabs - Project Management</title>
-                <meta name="description" content="TeamLabs - Streamline your project management" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-              </Head>
-              <AppContainer Component={Component} pageProps={pageProps} />
-              <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="colored"
-              />
+              <ToastProvider>
+                <AppContainer Component={Component} pageProps={pageProps} />
+              </ToastProvider>
             </GlobalProvider>
-          </ThemeProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </GoogleOAuthProvider>
     </SessionProvider>
   );

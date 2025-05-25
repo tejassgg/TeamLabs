@@ -22,7 +22,10 @@ const userActivitySchema = new mongoose.Schema({
       // Error activities
       'error',
       // Chatbot activities
-      'chatbot_interaction'
+      'chatbot_interaction',
+      // Team Member activities
+      'team_members_remove','team_projects_remove', 'project_team_add'
+      
     ]
   },
   status: {

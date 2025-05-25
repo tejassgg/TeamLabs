@@ -353,4 +353,173 @@ router.delete('/:teamId', checkOwner, async (req, res) => {
   }
 });
 
+// DELETE /api/team-details/:teamId/members/remove-members - Remove multiple members from team (owner only)
+router.delete('/:teamId/members/remove-members', checkOwner, async (req, res) => {
+  try {
+    const { memberIds } = req.body;
+    if (!Array.isArray(memberIds) || memberIds.length === 0) {
+      return res.status(400).json({ error: 'Member IDs array is required' });
+    }
+
+    const team = await Team.findOne({ TeamID: req.params.teamId });
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    // Prevent removing the team owner
+    if (memberIds.includes(team.OwnerID)) {
+      return res.status(400).json({ error: 'Cannot remove the team owner' });
+    }
+
+    // Remove all specified members
+    const result = await TeamDetails.deleteMany({
+      TeamID_FK: req.params.teamId,
+      MemberID: { $in: memberIds }
+    });
+
+    // Log the activity
+    await logActivity(
+      req.body.OwnerID,
+      'team_members_remove',
+      'success',
+      `Removed ${result.deletedCount} members from team "${team.TeamName}"`,
+      req,
+      {
+        teamId: team.TeamID,
+        teamName: team.TeamName,
+        removedCount: result.deletedCount
+      }
+    );
+
+    res.json({ 
+      message: `Successfully removed ${result.deletedCount} members`,
+      removedCount: result.deletedCount
+    });
+  } catch (err) {
+    console.error('Error removing members:', err);
+    // Log the error activity
+    try {
+      await logActivity(
+        req.body.OwnerID,
+        'team_members_remove',
+        'error',
+        `Failed to remove members: ${err.message}`,
+        req,
+        {
+          teamId: req.params.teamId,
+          error: err.message
+        }
+      );
+    } catch (logError) {
+      console.error('Failed to log error activity:', logError);
+    }
+    res.status(500).json({ error: 'Failed to remove members' });
+  }
+});
+
+// DELETE /api/team-details/:teamId/projects/remove-projects - Remove multiple projects from team (owner only)
+router.delete('/:teamId/projects/remove-projects', checkOwner, async (req, res) => {
+  try {
+    const { projectIds } = req.body;
+    if (!Array.isArray(projectIds) || projectIds.length === 0) {
+      return res.status(400).json({ error: 'Project IDs array is required' });
+    }
+
+    const team = await Team.findOne({ TeamID: req.params.teamId });
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+
+    // Start a session for transaction
+    const session = await ProjectDetails.startSession();
+    session.startTransaction();
+
+    try {
+      // Remove all specified projects from this team
+      const result = await ProjectDetails.deleteMany({
+        TeamID: req.params.teamId,
+        ProjectID: { $in: projectIds }
+      }, { session });
+
+      // For each removed project, check if it has any remaining teams
+      const projectsToUpdate = [];
+      for (const projectId of projectIds) {
+        const remainingTeams = await ProjectDetails.countDocuments({
+          ProjectID: projectId
+        }, { session });
+
+        // If no teams are assigned, update project status to 1 (Unassigned)
+        if (remainingTeams === 0) {
+          projectsToUpdate.push(projectId);
+        }
+      }
+
+      // Update status of projects with no teams
+      if (projectsToUpdate.length > 0) {
+        await Project.updateMany(
+          { ProjectID: { $in: projectsToUpdate } },
+          { 
+            $set: { 
+              ProjectStatusID: 1, // Set to Unassigned status
+              ModifiedDate: new Date(),
+              ModifiedBy: req.body.OwnerID
+            }
+          },
+          { session }
+        );
+      }
+
+      // Log the activity
+      await logActivity(
+        req.body.OwnerID,
+        'team_projects_remove',
+        'success',
+        `Removed ${result.deletedCount} projects from team "${team.TeamName}"${projectsToUpdate.length > 0 ? ` and updated ${projectsToUpdate.length} project(s) to unassigned status` : ''}`,
+        req,
+        {
+          teamId: team.TeamID,
+          teamName: team.TeamName,
+          removedCount: result.deletedCount,
+          updatedToUnassigned: projectsToUpdate.length
+        }
+      );
+
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+
+      res.json({ 
+        message: `Successfully removed ${result.deletedCount} projects${projectsToUpdate.length > 0 ? ` and updated ${projectsToUpdate.length} project(s) to unassigned status` : ''}`,
+        removedCount: result.deletedCount,
+        updatedToUnassigned: projectsToUpdate.length
+      });
+    } catch (error) {
+      // If an error occurs, abort the transaction
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+  } catch (err) {
+    console.error('Error removing projects:', err);
+    // Log the error activity
+    try {
+      await logActivity(
+        req.body.OwnerID,
+        'team_projects_remove',
+        'error',
+        `Failed to remove projects: ${err.message}`,
+        req,
+        {
+          teamId: req.params.teamId,
+          error: err.message
+        }
+      );
+    } catch (logError) {
+      console.error('Failed to log error activity:', logError);
+    }
+    res.status(500).json({ error: 'Failed to remove projects' });
+  }
+});
+
 module.exports = router; 

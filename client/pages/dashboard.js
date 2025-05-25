@@ -167,55 +167,55 @@ const Dashboard = () => {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
           {/* Projects Card */}
-          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all duration-200`}>
+          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-4 md:p-6 border transition-all duration-200`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total Projects</p>
-                <p className={`text-2xl font-bold mt-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalProjects || 0}</p>
+                <p className={`text-xs md:text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total Projects</p>
+                <p className={`text-xl md:text-2xl font-bold mt-1 md:mt-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalProjects || 0}</p>
               </div>
-              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-blue-50 to-blue-100'}`}>
-                <FaProjectDiagram className={theme === 'dark' ? 'text-blue-400' : 'text-blue-500'} size={24} />
+              <div className={`p-2 md:p-3 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-blue-50 to-blue-100'}`}>
+                <FaProjectDiagram className={theme === 'dark' ? 'text-blue-400' : 'text-blue-500'} size={20} />
               </div>
             </div>
           </div>
 
           {/* Teams Card */}
-          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all duration-200`}>
+          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-4 md:p-6 border transition-all duration-200`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total Teams</p>
-                <p className={`text-2xl font-bold mt-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalTeams || 0}</p>
+                <p className={`text-xs md:text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total Teams</p>
+                <p className={`text-xl md:text-2xl font-bold mt-1 md:mt-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalTeams || 0}</p>
               </div>
-              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-green-50 to-green-100'}`}>
-                <FaUsers className={theme === 'dark' ? 'text-green-400' : 'text-green-500'} size={24} />
+              <div className={`p-2 md:p-3 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-green-50 to-green-100'}`}>
+                <FaUsers className={theme === 'dark' ? 'text-green-400' : 'text-green-500'} size={20} />
               </div>
             </div>
           </div>
 
           {/* Deadlines Card */}
-          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all duration-200`}>
+          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-4 md:p-6 border transition-all duration-200`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Upcoming Deadlines</p>
-                <p className={`text-2xl font-bold mt-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.upcomingDeadlines || 0}</p>
+                <p className={`text-xs md:text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Upcoming Deadlines</p>
+                <p className={`text-xl md:text-2xl font-bold mt-1 md:mt-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.upcomingDeadlines || 0}</p>
               </div>
-              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-yellow-50 to-yellow-100'}`}>
-                <FaClock className={theme === 'dark' ? 'text-yellow-300' : 'text-yellow-500'} size={24} />
+              <div className={`p-2 md:p-3 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-yellow-50 to-yellow-100'}`}>
+                <FaClock className={theme === 'dark' ? 'text-yellow-300' : 'text-yellow-500'} size={20} />
               </div>
             </div>
           </div>
 
           {/* People Card */}
-          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all duration-200`}>
+          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-4 md:p-6 border transition-all duration-200`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total People</p>
-                <p className={`text-2xl font-bold mt-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalUsers || 0}</p>
+                <p className={`text-xs md:text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total People</p>
+                <p className={`text-xl md:text-2xl font-bold mt-1 md:mt-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalUsers || 0}</p>
               </div>
-              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-purple-50 to-purple-100'}`}>
-                <FaUserFriends className={theme === 'dark' ? 'text-purple-300' : 'text-purple-500'} size={24} />
+              <div className={`p-2 md:p-3 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-purple-50 to-purple-100'}`}>
+                <FaUserFriends className={theme === 'dark' ? 'text-purple-300' : 'text-purple-500'} size={20} />
               </div>
             </div>
           </div>

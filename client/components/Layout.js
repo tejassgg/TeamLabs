@@ -11,9 +11,7 @@ import AddProjectModal from './AddProjectModal';
 import { useGlobal } from '../context/GlobalContext';
 import AddTaskModal from './AddTaskModal';
 import { taskService } from '../services/api';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { toast } from 'react-toastify';
+import { useToast } from '../context/ToastContext';
 import ChatBot from './ChatBot';
 import TooltipPortal from './TooltipPortal';
 
@@ -380,6 +378,7 @@ const Layout = ({ children }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -401,6 +400,37 @@ const Layout = ({ children }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobile, isMobileSidebarOpen]);
+
+  const handleAddTeam = async (teamData) => {
+    try {
+      const newTeam = await teamService.addTeam(teamData);
+      showToast('Team added successfully!', 'success');
+      return newTeam;
+    } catch (err) {
+      showToast('Failed to add team', 'error');
+      throw err;
+    }
+  };
+
+  const handleAddProject = async (projectData) => {
+    try {
+      const newProject = await projectService.addProject(projectData);
+      showToast('Project added successfully!', 'success');
+      return newProject;
+    } catch (err) {
+      showToast('Failed to add project', 'error');
+      throw err;
+    }
+  };
+
+  const handleAddUserStory = async (taskData) => {
+    try {
+      const newTask = await taskService.addTask(taskData);
+      showToast('Task added successfully!', 'success');
+    } catch (err) {
+      showToast('Failed to add user story', 'error');
+    }
+  };
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900'}`}>
@@ -440,17 +470,6 @@ const Layout = ({ children }) => {
         <main className={`p-4 md:p-8 overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : ''}`}>
           {children}
         </main>
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
-        />
         <ChatBot />
       </div>
       {/* Overlay for mobile when sidebar is open */}

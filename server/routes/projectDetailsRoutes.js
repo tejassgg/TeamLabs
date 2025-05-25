@@ -6,6 +6,7 @@ const Team = require('../models/Team');
 const TeamDetails = require('../models/TeamDetails');
 const TaskDetails = require('../models/TaskDetails');
 const User = require('../models/User');
+const {logActivity} = require('../services/activityService');
 
 // GET /api/project-details/:projectId - Get all teams for a project
 router.get('/:projectId', async (req, res) => {
@@ -87,19 +88,105 @@ router.post('/:projectId/add-team', async (req, res) => {
     const { TeamID, ModifiedBy } = req.body;
     if (!TeamID) return res.status(400).json({ error: 'TeamID is required' });
     const projectId = req.params.projectId;
-    // Prevent duplicate
-    const exists = await ProjectDetails.findOne({ ProjectID: projectId, TeamID });
-    if (exists) return res.status(400).json({ error: 'Team already added to project' });
-    const newProjectDetail = new ProjectDetails({
-      ProjectID: projectId,
-      TeamID,
-      IsActive: true,
-      CreatedDate: new Date(),
-      ModifiedBy
-    });
-    await newProjectDetail.save();
-    res.status(201).json(newProjectDetail);
+
+    // Start a session for transaction
+    const session = await ProjectDetails.startSession();
+    session.startTransaction();
+
+    try {
+      // Check if team is already added
+      const exists = await ProjectDetails.findOne({ ProjectID: projectId, TeamID });
+      if (exists) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(400).json({ error: 'Team already added to project' });
+      }
+
+      // Check if this is the first team being added
+      const existingTeams = await ProjectDetails.countDocuments({ ProjectID: projectId }, { session });
+      const project = await Project.findOne({ ProjectID: projectId });
+      
+      if (!project) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      // Create new project detail
+      const newProjectDetail = new ProjectDetails({
+        ProjectID: projectId,
+        TeamID,
+        IsActive: true,
+        CreatedDate: new Date(),
+        ModifiedBy
+      });
+      await newProjectDetail.save({ session });
+
+      // If this is the first team and project status is 1 (Unassigned), update to 2 (Assigned)
+      if (existingTeams === 0 && project.ProjectStatusID === 1) {
+        await Project.updateOne(
+          { ProjectID: projectId },
+          { 
+            $set: { 
+              ProjectStatusID: 2, // Set to Assigned status
+              ModifiedDate: new Date(),
+              ModifiedBy
+            }
+          },
+          { session }
+        );
+      }
+
+      // Log the activity
+      await logActivity(
+        ModifiedBy,
+        'project_team_add',
+        'success',
+        `Added team to project "${project.Name}"${existingTeams === 0 ? ' and updated project status to Assigned' : ''}`,
+        req,
+        {
+          projectId: project.ProjectID,
+          projectName: project.Name,
+          teamId: TeamID,
+          isFirstTeam: existingTeams === 0,
+          oldStatus: project.ProjectStatusID,
+          newStatus: existingTeams === 0 ? 2 : project.ProjectStatusID
+        }
+      );
+
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+
+      res.status(201).json({
+        ...newProjectDetail.toObject(),
+        statusUpdated: existingTeams === 0 && project.ProjectStatusID === 1
+      });
+    } catch (error) {
+      // If an error occurs, abort the transaction
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   } catch (err) {
+    console.error('Error adding team to project:', err);
+    // Log the error activity
+    try {
+      await logActivity(
+        req.body.ModifiedBy,
+        'project_team_add',
+        'error',
+        `Failed to add team to project: ${err.message}`,
+        req,
+        {
+          projectId: req.params.projectId,
+          teamId: req.body.TeamID,
+          error: err.message
+        }
+      );
+    } catch (logError) {
+      console.error('Failed to log error activity:', logError);
+    }
     res.status(500).json({ error: 'Failed to add team to project' });
   }
 });

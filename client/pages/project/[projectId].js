@@ -7,7 +7,7 @@ import Layout from '../../components/Layout';
 import { FaTrash, FaCog, FaTimes, FaClock, FaUserCheck, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaChevronRight, FaInfoCircle } from 'react-icons/fa';
 import LoadingScreen from '../../components/LoadingScreen';
 import AddTaskModal from '../../components/AddTaskModal';
-import { toast } from 'react-toastify';
+import { useToast } from '../../context/ToastContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -23,6 +23,7 @@ const ProjectDetailsPage = () => {
     getDeadlineStatusComponent,
     calculateDeadlineTextComponent
   } = useGlobal();
+  const { showToast } = useToast();
   const [project, setProject] = useState(null);
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -138,13 +139,21 @@ const ProjectDetailsPage = () => {
     setAdding(true);
     setError('');
     try {
-      await api.post(`/project-details/${projectId}/add-team`, {
+      const res = await api.post(`/project-details/${projectId}/add-team`, {
         TeamID: teamId,
         ModifiedBy: currentUser._id
       });
-      // Refresh teams
-      const res = await api.get(`/project-details/${projectId}`);
-      setTeams(res.data.teams);
+
+      // Refresh teams and project data
+      const projectRes = await api.get(`/project-details/${projectId}`);
+      setTeams(projectRes.data.teams);
+      // Update project state if status was changed
+      if (res.data.statusUpdated) {
+        setProject(prev => ({
+          ...prev,
+          ProjectStatusID: 2 // Update to Assigned status
+        }));
+      }
       setShowAddTeamDialog(false);
       setSelectedTeam(null);
       setSearch('');
@@ -244,13 +253,12 @@ const ProjectDetailsPage = () => {
 
   const handleAddTask = async (taskData) => {
     try {
-      // Set ParentID to selected user story
-      const newTask = await taskService.addTaskDetails(taskData, 'fromProject');
-      setTaskList(prevTasks => [...prevTasks, newTask]);
-      toast.success('Task added successfully!');
+      await taskService.addTask(taskData);
+      showToast('Task added successfully!', 'success');
+      // Refresh tasks
+      fetchProjectTasks();
     } catch (err) {
-      console.log(err);
-      toast.error('Failed to add task');
+      showToast('Failed to add task', 'error');
     }
   };
 
@@ -356,23 +364,14 @@ const ProjectDetailsPage = () => {
   );
 
   // Function to handle task deletion
-  const handleDeleteTask = async () => {
-    if (!taskToDelete) return;
-    
-    setDeletingTask(true);
+  const handleDeleteTask = async (taskId) => {
     try {
-      await taskService.deleteTask(taskToDelete.TaskID);
-      
-      // Update local state by removing the deleted task
-      setTaskList(prevTasks => prevTasks.filter(task => task.TaskID !== taskToDelete.TaskID));
-      
-      toast.success('Task deleted successfully');
-      setShowDeleteTaskDialog(false);
-      setTaskToDelete(null);
+      await taskService.deleteTask(taskId);
+      showToast('Task deleted successfully', 'success');
+      // Refresh tasks
+      fetchProjectTasks();
     } catch (err) {
-      toast.error('Failed to delete task: ' + (err.message || 'Unknown error'));
-    } finally {
-      setDeletingTask(false);
+      showToast('Failed to delete task: ' + (err.message || 'Unknown error'), 'error');
     }
   };
 
@@ -1083,7 +1082,7 @@ const ProjectDetailsPage = () => {
                   Cancel
                 </button>
                 <button
-                  onClick={handleDeleteTask}
+                  onClick={() => handleDeleteTask(taskToDelete.TaskID)}
                   className="px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 flex items-center gap-2"
                   disabled={deletingTask}
                 >

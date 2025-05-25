@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GoogleLogin } from '@react-oauth/google';
-import { toast } from 'react-toastify';
+import { useToast } from '../context/ToastContext';
 
 const LoginForm = ({ onSuccess }) => {
   const [error, setError] = useState('');
@@ -16,6 +16,7 @@ const LoginForm = ({ onSuccess }) => {
   const { login, verifyLogin2FA, googleLogin } = useAuth();
   const router = useRouter();
   const { register, handleSubmit, formState: { errors } } = useForm();
+  const { showToast } = useToast();
 
   const onSubmit = async (data) => {
     setIsLoading(true);

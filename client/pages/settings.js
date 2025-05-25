@@ -4,7 +4,7 @@ import Head from 'next/head';
 import Layout from '../components/Layout';
 import { useState, useEffect } from 'react';
 import { FaMoon, FaSun, FaDesktop, FaShieldAlt, FaSignOutAlt, FaCheck, FaTimes } from 'react-icons/fa';
-import { toast } from 'react-toastify';
+import { useToast } from '../context/ToastContext';
 import TwoFactorAuth from '../components/TwoFactorAuth';
 import Breadcrumb from '../components/Breadcrumb';
 import authService from '../services/api';
@@ -21,6 +21,7 @@ const Settings = () => {
     sessionTimeout: user?.sessionTimeout || 30,
     loginNotifications: user?.loginNotifications !== false
   });
+  const { showToast } = useToast();
 
   // Update security settings when user data changes
   useEffect(() => {
@@ -40,7 +41,7 @@ const Settings = () => {
 
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
-    toast.success(`Theme changed to ${newTheme}`);
+    showToast(`Theme changed to ${newTheme}`, 'success');
   };
 
   const handleSecuritySave = async () => {
@@ -57,13 +58,31 @@ const Settings = () => {
         userData.loginNotifications = securitySettings.loginNotifications;
         localStorage.setItem('user', JSON.stringify(userData));
 
-        toast.success('Security settings updated successfully');
+        showToast('Security settings updated successfully', 'success');
       }
     } catch (err) {
       console.error('Failed to update security settings:', err);
-      toast.error(err.response?.data?.error || 'Failed to update security settings');
+      showToast(err.response?.data?.error || 'Failed to update security settings', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEnable2FA = async () => {
+    try {
+      await authService.enableTwoFactorAuth();
+      showToast('Two-factor authentication enabled successfully', 'success');
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Failed to enable 2FA', 'error');
+    }
+  };
+
+  const handleDisable2FA = async () => {
+    try {
+      await authService.disableTwoFactorAuth();
+      showToast('Two-factor authentication disabled successfully', 'success');
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Failed to disable 2FA', 'error');
     }
   };
 
@@ -360,7 +379,7 @@ const Settings = () => {
                   localStorage.setItem('user', JSON.stringify(userData));
                   // Update local state
                   setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: true }));
-                  toast.success('Two-factor authentication enabled successfully');
+                  showToast('Two-factor authentication enabled successfully', 'success');
                 }}
                 onCancel={() => setShow2FASetup(false)}
                 userId={user?._id}
@@ -399,7 +418,7 @@ const Settings = () => {
                   localStorage.setItem('user', JSON.stringify(userData));
                   // Update local state
                   setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: false }));
-                  toast.success('Two-factor authentication disabled successfully');
+                  showToast('Two-factor authentication disabled successfully', 'success');
                 }}
                 onCancel={() => setShow2FADisable(false)}
                 userId={user?._id}

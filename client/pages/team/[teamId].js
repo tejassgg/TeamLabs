@@ -63,6 +63,12 @@ const TeamDetailsPage = () => {
   const [activeProjects, setActiveProjects] = useState([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingTeam, setDeletingTeam] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState([]);
+  const [bulkRemoving, setBulkRemoving] = useState(false);
+  const [showBulkRemoveDialog, setShowBulkRemoveDialog] = useState(false);
+  const [selectedProjects, setSelectedProjects] = useState([]);
+  const [bulkRemovingProjects, setBulkRemovingProjects] = useState(false);
+  const [showBulkRemoveProjectsDialog, setShowBulkRemoveProjectsDialog] = useState(false);
 
   const teamColors = [
     { value: '#3B82F6', name: 'Blue' },
@@ -261,6 +267,90 @@ const TeamDetailsPage = () => {
       setShowDeleteDialog(false);
     } finally {
       setDeletingTeam(false);
+    }
+  };
+
+  const handleBulkRemove = async () => {
+    if (selectedMembers.length === 0) return;
+    setBulkRemoving(true);
+    setError('');
+    try {
+      await api.delete(`/team-details/${teamId}/members/remove-members`, {
+        data: { 
+          memberIds: selectedMembers,
+          OwnerID: user?._id
+        }
+      });
+      // Refresh members
+      const res = await api.get(`/team-details/${teamId}`);
+      setMembers(res.data.members);
+      setSelectedMembers([]);
+      setShowBulkRemoveDialog(false);
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Failed to remove members');
+    } finally {
+      setBulkRemoving(false);
+    }
+  };
+
+  const handleSelectMember = (memberId) => {
+    setSelectedMembers(prev => {
+      if (prev.includes(memberId)) {
+        return prev.filter(id => id !== memberId);
+      }
+      return [...prev, memberId];
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedMembers.length === members.length) {
+      setSelectedMembers([]);
+    } else {
+      // Don't include the team owner in selection
+      const selectableMembers = members
+        .filter(m => m.MemberID !== team.OwnerID)
+        .map(m => m.MemberID);
+      setSelectedMembers(selectableMembers);
+    }
+  };
+
+  const handleBulkRemoveProjects = async () => {
+    if (selectedProjects.length === 0) return;
+    setBulkRemovingProjects(true);
+    setError('');
+    try {
+      await api.delete(`/team-details/${teamId}/projects/remove-projects`, {
+        data: { 
+          projectIds: selectedProjects,
+          OwnerID: user?._id
+        }
+      });
+      // Refresh projects
+      const res = await api.get(`/team-details/${teamId}`);
+      setActiveProjects(res.data.activeProjects);
+      setSelectedProjects([]);
+      setShowBulkRemoveProjectsDialog(false);
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Failed to remove projects');
+    } finally {
+      setBulkRemovingProjects(false);
+    }
+  };
+
+  const handleSelectProject = (projectId) => {
+    setSelectedProjects(prev => {
+      if (prev.includes(projectId)) {
+        return prev.filter(id => id !== projectId);
+      }
+      return [...prev, projectId];
+    });
+  };
+
+  const handleSelectAllProjects = () => {
+    if (selectedProjects.length === activeProjects.length) {
+      setSelectedProjects([]);
+    } else {
+      setSelectedProjects(activeProjects.map(p => p.ProjectID));
     }
   };
 
@@ -480,10 +570,41 @@ const TeamDetailsPage = () => {
                   'p-4 border-b border-gray-200',
                   'dark:border-gray-700'
                 )}>
-                  <h2 className={getThemeClasses(
-                    'text-xl font-semibold text-gray-900',
-                    'dark:text-gray-100'
-                  )}>Team Members</h2>
+                  <div className="flex items-center justify-between">
+                    <h2 className={getThemeClasses(
+                      'text-xl font-semibold text-gray-900',
+                      'dark:text-gray-100'
+                    )}>Team Members</h2>
+                    {selectedMembers.length > 0 && (
+                      <div className="flex items-center gap-3">
+                        <div className={getThemeClasses(
+                          'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
+                          'dark:bg-blue-900/30 dark:text-blue-300'
+                        )}>
+                          <span className="text-sm font-medium">{selectedMembers.length} selected</span>
+                          <button
+                            onClick={() => setSelectedMembers([])}
+                            className={getThemeClasses(
+                              'p-1 hover:bg-blue-100 rounded-full transition-colors',
+                              'dark:hover:bg-blue-900/50'
+                            )}
+                          >
+                            <FaTimes size={14} />
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => setShowBulkRemoveDialog(true)}
+                          className={getThemeClasses(
+                            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors',
+                            'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
+                          )}
+                        >
+                          <FaTrash size={14} />
+                          Remove Selected
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -492,6 +613,19 @@ const TeamDetailsPage = () => {
                         'bg-gray-50 border-b border-gray-200',
                         'dark:bg-gray-700/50 dark:border-gray-700'
                       )}>
+                        {isOwner && (
+                          <th className="py-3 px-4 text-center w-[50px]">
+                            <input
+                              type="checkbox"
+                              checked={selectedMembers.length === members.filter(m => m.MemberID !== team.OwnerID).length}
+                              onChange={handleSelectAll}
+                              className={getThemeClasses(
+                                'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                                'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                              )}
+                            />
+                          </th>
+                        )}
                         <th className={getThemeClasses(
                           'py-3 px-4 text-left w-[300px] text-gray-700',
                           'dark:text-gray-300'
@@ -520,6 +654,21 @@ const TeamDetailsPage = () => {
                           'border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0',
                           'dark:border-gray-700 dark:hover:bg-gray-700/50'
                         )}>
+                          {isOwner && (
+                            <td className="py-3 px-4 text-center">
+                              {member.MemberID !== team.OwnerID && (
+                                <input
+                                  type="checkbox"
+                                  checked={selectedMembers.includes(member.MemberID)}
+                                  onChange={() => handleSelectMember(member.MemberID)}
+                                  className={getThemeClasses(
+                                    'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                                    'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                                  )}
+                                />
+                              )}
+                            </td>
+                          )}
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-3">
                               <div className={getThemeClasses(
@@ -676,10 +825,41 @@ const TeamDetailsPage = () => {
                   'p-4 border-b border-gray-200',
                   'dark:border-gray-700'
                 )}>
-                  <h2 className={getThemeClasses(
-                    'text-xl font-semibold text-gray-900',
-                    'dark:text-gray-100'
-                  )}>Projects Assigned</h2>
+                  <div className="flex items-center justify-between">
+                    <h2 className={getThemeClasses(
+                      'text-xl font-semibold text-gray-900',
+                      'dark:text-gray-100'
+                    )}>Projects Assigned</h2>
+                    {selectedProjects.length > 0 && (
+                      <div className="flex items-center gap-3">
+                        <div className={getThemeClasses(
+                          'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
+                          'dark:bg-blue-900/30 dark:text-blue-300'
+                        )}>
+                          <span className="text-sm font-medium">{selectedProjects.length} selected</span>
+                          <button
+                            onClick={() => setSelectedProjects([])}
+                            className={getThemeClasses(
+                              'p-1 hover:bg-blue-100 rounded-full transition-colors',
+                              'dark:hover:bg-blue-900/50'
+                            )}
+                          >
+                            <FaTimes size={14} />
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => setShowBulkRemoveProjectsDialog(true)}
+                          className={getThemeClasses(
+                            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors',
+                            'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
+                          )}
+                        >
+                          <FaTrash size={14} />
+                          Remove Selected
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="overflow-x-auto">
                   {activeProjects.length > 0 ? (
@@ -689,6 +869,19 @@ const TeamDetailsPage = () => {
                           'bg-gray-50 border-b border-gray-200',
                           'dark:bg-gray-700/50 dark:border-gray-700'
                         )}>
+                          {isOwner && (
+                            <th className="py-3 px-4 text-center w-[50px]">
+                              <input
+                                type="checkbox"
+                                checked={selectedProjects.length === activeProjects.length}
+                                onChange={handleSelectAllProjects}
+                                className={getThemeClasses(
+                                  'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                                  'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                                )}
+                              />
+                            </th>
+                          )}
                           <th className={getThemeClasses(
                             'py-3 px-4 text-left text-gray-700',
                             'dark:text-gray-300'
@@ -717,6 +910,19 @@ const TeamDetailsPage = () => {
                               'border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0',
                               'dark:border-gray-700 dark:hover:bg-gray-700/50'
                             )}>
+                              {isOwner && (
+                                <td className="py-3 px-4 text-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedProjects.includes(proj.ProjectID)}
+                                    onChange={() => handleSelectProject(proj.ProjectID)}
+                                    className={getThemeClasses(
+                                      'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                                      'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                                    )}
+                                  />
+                                </td>
+                              )}
                               <td className={getThemeClasses(
                                 'py-3 px-4 font-medium text-gray-900',
                                 'dark:text-gray-100'
@@ -1190,6 +1396,51 @@ const TeamDetailsPage = () => {
                       disabled={deletingTeam}
                     >
                       {deletingTeam ? 'Deleting...' : 'Delete Team'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Bulk Remove Projects Confirmation Dialog */}
+            {showBulkRemoveProjectsDialog && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className={getThemeClasses(
+                  'bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100',
+                  'dark:bg-gray-800 dark:border-gray-700'
+                )}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                    <h3 className={getThemeClasses(
+                      'text-lg font-semibold',
+                      'dark:text-gray-100'
+                    )}>Remove Selected Projects</h3>
+                  </div>
+                  <p className={getThemeClasses(
+                    'text-gray-600 mb-6',
+                    'dark:text-gray-400'
+                  )}>
+                    Are you sure you want to remove {selectedProjects.length} selected project{selectedProjects.length !== 1 ? 's' : ''} from the team? This action cannot be undone.
+                  </p>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setShowBulkRemoveProjectsDialog(false)}
+                      className={getThemeClasses(
+                        'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
+                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                      )}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleBulkRemoveProjects}
+                      className={getThemeClasses(
+                        'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
+                        'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
+                      )}
+                      disabled={bulkRemovingProjects}
+                    >
+                      {bulkRemovingProjects ? 'Removing...' : 'Remove Projects'}
                     </button>
                   </div>
                 </div>

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { taskService } from '../services/api';
-import { toast } from 'react-toastify';
+import { useToast } from '../context/ToastContext';
 
 const AssignTaskModal = ({ isOpen, onClose, task, projectId, onAssignTask }) => {
+  const { showToast } = useToast();
   const [teamMembers, setTeamMembers] = useState([]);
   const [selectedMember, setSelectedMember] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ const AssignTaskModal = ({ isOpen, onClose, task, projectId, onAssignTask }) => 
         })
         .catch(err => {
           setError('Failed to load team members');
-          toast.error('Failed to load team members');
+          showToast('Failed to load team members', 'error');
         })
         .finally(() => {
           setLoading(false);
@@ -42,12 +43,12 @@ const AssignTaskModal = ({ isOpen, onClose, task, projectId, onAssignTask }) => 
     try {
       setLoading(true);
       const updatedTask = await taskService.assignTask(task.TaskID, selectedMember);
+      showToast('Task assigned successfully', 'success');
       onAssignTask(updatedTask);
       onClose();
-      toast.success('Task assigned successfully');
     } catch (err) {
       setError('Failed to assign task');
-      toast.error('Failed to assign task');
+      showToast('Failed to assign task', 'error');
     } finally {
       setLoading(false);
     }

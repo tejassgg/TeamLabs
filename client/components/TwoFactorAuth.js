@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import QRCode from 'react-qr-code';
-import { toast } from 'react-toastify';
 import { FaTimes, FaCheck, FaExclamationTriangle } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { authService } from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 export default function TwoFactorAuth({ 
   mode = 'setup', // 'setup' or 'verify'
@@ -20,6 +20,7 @@ export default function TwoFactorAuth({
   const [verificationCode, setVerificationCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { showToast } = useToast();
 
   const startSetup = async () => {
     try {
@@ -38,7 +39,7 @@ export default function TwoFactorAuth({
     } catch (error) {
       console.error('2FA Setup Error:', error);
       setError(error.response?.data?.error || 'Failed to start 2FA setup');
-      toast.error(error.response?.data?.error || 'Failed to start 2FA setup');
+      showToast(error.response?.data?.error || 'Failed to start 2FA setup', 'error');
     } finally {
       setLoading(false);
     }
@@ -78,14 +79,14 @@ export default function TwoFactorAuth({
           onComplete();
         }
 
-        toast.success(mode === 'setup' ? '2FA enabled successfully!' : '2FA disabled successfully!');
+        showToast(mode === 'setup' ? '2FA enabled successfully!' : '2FA disabled successfully!', 'success');
       } else {
         throw new Error('Verification failed');
       }
     } catch (error) {
       console.error('2FA Verification Error:', error);
       setError(error.response?.data?.error || 'Verification failed');
-      toast.error(error.response?.data?.error || 'Verification failed');
+      showToast(error.response?.data?.error || 'Verification failed', 'error');
     } finally {
       setLoading(false);
     }
@@ -117,14 +118,14 @@ export default function TwoFactorAuth({
           onComplete();
         }
 
-        toast.success('2FA disabled successfully!');
+        showToast('2FA disabled successfully!', 'success');
       } else {
         throw new Error('Failed to disable 2FA');
       }
     } catch (error) {
       console.error('2FA Disable Error:', error);
       setError(error.response?.data?.error || 'Failed to disable 2FA');
-      toast.error(error.response?.data?.error || 'Failed to disable 2FA');
+      showToast(error.response?.data?.error || 'Failed to disable 2FA', 'error');
     } finally {
       setLoading(false);
     }

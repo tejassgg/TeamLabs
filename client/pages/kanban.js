@@ -6,7 +6,7 @@ import Layout from '../components/Layout';
 import { FaChevronRight, FaInfoCircle, FaTasks, FaExclamationCircle, FaTimes, FaCheckCircle, FaClock, FaCode, FaVial, FaShieldAlt, FaRocket, FaTrashAlt } from 'react-icons/fa';
 import { useGlobal } from '../context/GlobalContext';
 import { taskService } from '../services/api';
-import { toast } from 'react-toastify';
+import { useToast } from '../context/ToastContext';
 import React from 'react';
 import AssignTaskModal from '../components/AssignTaskModal';
 import { useTheme } from '../context/ThemeContext';
@@ -371,6 +371,7 @@ KanbanColumn.displayName = 'KanbanColumn';
 const KanbanBoard = () => {
   const router = useRouter();
   const { projects, userDetails } = useGlobal();
+  const { showToast } = useToast();
   const [selectedProject, setSelectedProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -413,7 +414,7 @@ const KanbanBoard = () => {
         setTasks(mappedTasks);
       } catch (err) {
         setError('Failed to fetch tasks');
-        toast.error('Failed to fetch tasks');
+        showToast('Failed to fetch tasks', 'error');
       } finally {
         setLoading(false);
       }
@@ -435,7 +436,7 @@ const KanbanBoard = () => {
     return task.Assignee === userDetails?._id;
   };
 
-  // Function to handle starting dragging a task - allow any user to move unassigned tasks
+  // Function to handle starting dragging a task
   const handleDragStart = (task, event, dimensions = null) => {
     // Allow moving unassigned tasks (Status 1) for any user
     if (task.Status === 1 || isTaskAssignedToUser(task)) {
@@ -453,7 +454,7 @@ const KanbanBoard = () => {
       }
     } else {
       event.preventDefault();
-      toast.warning("You can only move tasks assigned to you");
+      showToast("You can only move tasks assigned to you", 'warning');
       return;
     }
   };
@@ -499,9 +500,9 @@ const KanbanBoard = () => {
       const updatedTasks = tasks.filter(task => task.TaskID !== draggingTask.TaskID);
       setTasks(updatedTasks);
       
-      toast.success('Task removed successfully');
+      showToast('Task removed successfully', 'success');
     } catch (err) {
-      toast.error('Failed to remove task');
+      showToast('Failed to remove task', 'error');
     }
 
     setDraggingTask(null);
@@ -533,7 +534,7 @@ const KanbanBoard = () => {
     try {
       // Call API to update task status
       await taskService.updateTaskStatus(task.TaskID, statusCode);
-      toast.success(`Task moved to ${statusMap[statusCode]}`);
+      showToast(`Task moved to ${statusMap[statusCode]}`, 'success');
     } catch (err) {
       // Revert changes if API call fails
       const originalTasks = tasks.map(t =>
@@ -542,7 +543,7 @@ const KanbanBoard = () => {
           : t
       );
       setTasks(originalTasks);
-      toast.error('Failed to update task status');
+      showToast('Failed to update task status', 'error');
     }
 
     setDraggingTask(null);
@@ -550,7 +551,6 @@ const KanbanBoard = () => {
 
   // Handle task assignment and status update
   const handleAssignTask = (updatedTask) => {
-    // Update the task in the local state
     const updatedTasks = tasks.map(task =>
       task.TaskID === updatedTask.TaskID
         ? {
@@ -564,10 +564,10 @@ const KanbanBoard = () => {
     // Update the status after assignment is complete
     taskService.updateTaskStatus(updatedTask.TaskID, targetStatus)
       .then(() => {
-        toast.success(`Task assigned and moved to ${statusMap[targetStatus]}`);
+        showToast(`Task assigned and moved to ${statusMap[targetStatus]}`, 'success');
       })
       .catch((err) => {
-        toast.error('Failed to update task status');
+        showToast('Failed to update task status', 'error');
       });
 
     // Reset state
