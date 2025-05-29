@@ -22,31 +22,31 @@ const responses = {
         },
         teams: {
             text: "Teams are groups of users working together on projects. You can create a team, join existing teams, or manage team members through the Teams section.",
-            links: [{ text: "Go to Teams", url: "/dashboard/teams", type: "action" }]
+            links: [{ text: "Go to Teams", url: "/teams", type: "action" }]
         },
         projects: {
             text: "Projects help organize your work. You can create projects, assign tasks, and track progress. Each project can have multiple tasks and team members.",
-            links: [{ text: "View Projects", url: "/dashboard/projects", type: "action" }]
+            links: [{ text: "View Projects", url: "/projects", type: "action" }]
         },
         tasks: {
             text: "Tasks are individual work items within a project. You can create tasks, assign them to team members, set deadlines, and update their status.",
-            links: [{ text: "View Tasks", url: "/dashboard/tasks", type: "action" }]
+            links: [{ text: "View Tasks", url: "/tasks", type: "action" }]
         },
         profile: {
             text: "You can update your profile by clicking on your profile picture/name in the top right corner and selecting 'Profile'. Here you can update your personal information and preferences.",
-            links: [{ text: "Update Profile", url: "/dashboard/profile", type: "action" }]
+            links: [{ text: "Update Profile", url: "/profile", type: "action" }]
         },
         kanban: {
             text: "The Kanban board helps you visualize your workflow. You can drag and drop tasks between different status columns (To Do, In Progress, Done) to track progress.",
-            links: [{ text: "Open Kanban Board", url: "/dashboard/kanban", type: "action" }]
+            links: [{ text: "Open Kanban Board", url: "/kanban", type: "action" }]
         },
         query: {
             text: "The Query board allows you to search and filter tasks based on various criteria like status, assignee, due date, and more.",
-            links: [{ text: "Open Query Board", url: "/dashboard/query", type: "action" }]
+            links: [{ text: "Open Query Board", url: "/query", type: "action" }]
         },
         userStories: {
             text: "User stories help capture requirements from a user's perspective. You can create user stories, link them to tasks, and track their implementation status.",
-            links: [{ text: "View User Stories", url: "/dashboard/user-stories", type: "action" }]
+            links: [{ text: "View User Stories", url: "/user-stories", type: "action" }]
         },
         dashboard: {
             text: "The dashboard is your central hub for managing teams, projects, and tasks. You can access all your important information and tools from here.",

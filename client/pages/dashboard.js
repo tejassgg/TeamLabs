@@ -5,7 +5,7 @@ import Head from 'next/head';
 import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { FaProjectDiagram, FaUsers, FaClock, FaUserFriends, FaTrash, FaCheckCircle, FaPauseCircle, FaExclamationCircle, FaTimes, FaCode, FaVial, FaShieldAlt, FaRocket, FaQuestionCircle, FaCog, FaCalendarAlt, FaTasks, FaChevronRight } from 'react-icons/fa';
+import { FaProjectDiagram, FaUsers, FaClock, FaUserFriends, FaTrash, FaCheckCircle, FaPauseCircle, FaExclamationCircle, FaTimes, FaCode, FaVial, FaShieldAlt, FaRocket, FaQuestionCircle, FaCog, FaCalendarAlt, FaTasks, FaChevronRight, FaVideo, FaChalkboardTeacher, FaCoffee, FaPowerOff, FaUserSlash } from 'react-icons/fa';
 import api from '../services/api';
 
 const getProjectStatusStyle = (status) => {
@@ -85,6 +85,48 @@ const getProjectStatusStyle = (status) => {
   }
 };
 
+const getStatusConfig = (status) => {
+  const config = {
+    'Active': {
+      color: 'text-green-500',
+      bgColor: 'bg-green-500/10',
+      icon: FaCheckCircle,
+      label: 'Active'
+    },
+    'In a Meeting': {
+      color: 'text-blue-500',
+      bgColor: 'bg-blue-500/10',
+      icon: FaVideo,
+      label: 'In a Meeting'
+    },
+    'Presenting': {
+      color: 'text-purple-500',
+      bgColor: 'bg-purple-500/10',
+      icon: FaChalkboardTeacher,
+      label: 'Presenting'
+    },
+    'Away': {
+      color: 'text-yellow-500',
+      bgColor: 'bg-yellow-500/10',
+      icon: FaCoffee,
+      label: 'Away'
+    },
+    'Busy': {
+      color: 'text-red-500',
+      bgColor: 'bg-red-500/10',
+      icon: FaUserSlash,
+      label: 'Busy'
+    },
+    'Offline': {
+      color: 'text-gray-500',
+      bgColor: 'bg-gray-500/10',
+      icon: FaPowerOff,
+      label: 'Offline'
+    }
+  };
+  return config[status] || config['Offline'];
+};
+
 const Dashboard = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
@@ -94,7 +136,7 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [removingUser, setRemovingUser] = useState(null);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
-
+  const [isAdmin, setIsAdmin] = useState(false);
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
@@ -111,6 +153,11 @@ const Dashboard = () => {
     if (user?.organizationID) {
       fetchDashboardStats();
     }
+
+    if (user?.role === 'Admin') {
+      setIsAdmin(true);
+    }
+
   }, [user]);
 
   const handleRemoveUser = async (userId) => {
@@ -252,7 +299,7 @@ const Dashboard = () => {
                       <div>
                         <p className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{project.name}</p>
                         <p className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>
-                          {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'}
+                          {project.deadline ? 'Due: ' + new Date(project.deadline).toLocaleDateString() : 'No deadline'}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -273,125 +320,115 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Upcoming Deadlines */}
+          {/* Organization Members Table */}
           <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border`}>
             <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
-              <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Upcoming Deadlines</h2>
+              <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Organization Members</h2>
             </div>
             <div className="overflow-x-auto">
-              <div className="space-y-4 p-4">
-                {stats?.deadlineDetails?.map(project => (
-                  <div
-                    key={project.id}
-                    className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 border-b last:border-b-0 ${theme === 'dark' ? 'hover:bg-[#232323] border-[#424242]' : 'hover:bg-gray-50 border-gray-100'}`}
-                    onClick={() => router.push(`/project/${project.id}`)}
-                  >
-                    <div>
-                      <p className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{project.name}</p>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>
-                        Due: {new Date(project.deadline).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm border ${theme === 'dark' ? 'bg-[#232323] text-yellow-200 border-[#424242]' : 'bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-700 border border-yellow-200'}`}>
-                      <span className={`w-2 h-2 rounded-full ${theme === 'dark' ? 'bg-yellow-400' : 'bg-yellow-500'} animate-pulse`}></span>
-                      {project.daysRemaining} days left
-                    </span>
-                  </div>
-                ))}
-                {(!stats?.deadlineDetails || stats.deadlineDetails.length === 0) && (
-                  <div className={`text-center py-8 rounded-lg ${theme === 'dark' ? 'text-[#B0B8C1] bg-[#232323]' : 'text-gray-400 bg-gray-50'}`}>
-                    No Upcoming Deadlines
-                  </div>
-                )}
-              </div>
+              <table className="w-full">
+                <thead>
+                  <tr className={`${theme === 'dark' ? 'bg-[#232323] border-[#424242]' : 'bg-gray-50 border-gray-200'}`}>
+                    <th className="py-3 px-4 text-left">Member</th>
+                    <th className="py-3 px-4 text-left">Status</th>
+                    <th className="py-3 px-4 text-left">Role</th>
+                    {isAdmin && <th className="py-3 px-4 text-left">Last Login</th>}
+                    {isAdmin && user.organizationID && <th className="py-3 px-4 text-center">Actions</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats?.members?.map(member => {
+                    const statusConfig = getStatusConfig(member.status);
+                    const StatusIcon = statusConfig.icon;
+
+                    return (
+                      <tr key={member.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-[#424242] hover:bg-[#232323]' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-600'}`}>
+                              {member.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>
+                                {member.name}
+                              </span>
+                              <div className="flex flex-col gap-0.5">
+                                <span className={`text-xs ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>
+                                  <strong>{member.username}</strong> | {member.email}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium
+                          ${theme === 'dark'
+                              ? 'bg-[#232323] border border-[#424242]'
+                              : 'bg-white border border-gray-200'}`}
+                          >
+                            <StatusIcon className={`${statusConfig.color} text-sm`} />
+                            <span className={theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-700'}>
+                              {statusConfig.label}
+                            </span>
+                            {member.status === 'Active' && (
+                              <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.color.replace('text', 'bg')} animate-pulse`}></span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`text-sm ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>
+                            {member.role}
+                          </span>
+                        </td>
+                        {isAdmin && (
+                          <td className="py-3 px-4">
+                            {member.lastLogin ? (
+                              <div className="flex flex-col">
+                                <span className={`text-sm ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>
+                                  {new Date(member.lastLogin).toLocaleDateString()}
+                                </span>
+                                <span className={`text-xs ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>
+                                  {new Date(member.lastLogin).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-400'}`}>Never</span>
+                            )}
+                          </td>
+                        )}
+                        {isAdmin && user.organizationID && (
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => {
+                                  setRemovingUser(member);
+                                  setShowRemoveDialog(true);
+                                }}
+                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition shadow-sm ${theme === 'dark' ? 'text-red-300 bg-[#424242] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
+                                title="Remove Member"
+                              >
+                                <FaTrash size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                  {(!stats?.members || stats.members.length === 0) && (
+                    <tr>
+                      <td colSpan={isAdmin && user.organizationID ? 4 : 3} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-[#232323]' : 'text-gray-400 bg-gray-50'}`}>
+                        No members found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
 
-        {/* Organization Members Table */}
-        <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border`}>
-          <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
-            <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Organization Members</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className={`${theme === 'dark' ? 'bg-[#232323] border-[#424242]' : 'bg-gray-50 border-gray-200'}`}>
-                  <th className="py-3 px-4 text-left">Member</th>
-                  <th className="hidden md:table-cell py-3 px-4 text-left">Email</th>
-                  <th className="py-3 px-4 text-left">Last Login</th>
-                  {user.role === 'Admin' && user.organizationID && <th className="py-3 px-4 text-center">Actions</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {stats?.members?.map(member => (
-                  <tr key={member.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-[#424242] hover:bg-[#232323]' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-600'}`}> 
-                          {member.name.split(' ').map(n => n[0]).join('')}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : ''}`}>{member.name}</span>
-                          <span className={`md:hidden text-xs ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>{member.email}</span>
-                          {/* Show status on mobile */}
-                          <div className="md:hidden mt-1">
-                            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${member.status === 'Active'
-                              ? (theme === 'dark' ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700')
-                              : (theme === 'dark' ? 'bg-[#232323] text-[#B0B8C1]' : 'bg-gray-100 text-gray-700')}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${member.status === 'Active' ? (theme === 'dark' ? 'bg-green-400' : 'bg-green-500') : (theme === 'dark' ? 'bg-[#B0B8C1]' : 'bg-gray-500')}`}></span>
-                              {member.status}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className={`hidden md:table-cell py-3 px-4 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}> 
-                      {member.email}
-                    </td>
-                    <td className="py-3 px-4">
-                      {member.lastLogin ? (
-                        <div className="flex flex-col">
-                          <span className={`text-sm ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>
-                            {new Date(member.lastLogin).toLocaleDateString()}
-                          </span>
-                          <span className={`text-xs ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>
-                            {new Date(member.lastLogin).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-400'}`}>Never</span>
-                      )}
-                    </td>
-                    {user.role === 'Admin' && user.organizationID && (
-                      <td className="py-3 px-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => {
-                              setRemovingUser(member);
-                              setShowRemoveDialog(true);
-                            }}
-                            className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition shadow-sm ${theme === 'dark' ? 'text-red-300 bg-[#424242] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
-                            title="Remove Member"
-                          >
-                            <FaTrash size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-                {(!stats?.members || stats.members.length === 0) && (
-                  <tr>
-                    <td colSpan={user.role === 'Admin' && user.organizationID ? 5 : 4} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-[#232323]' : 'text-gray-400 bg-gray-50'}`}>
-                      No members found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+
 
         {/* Remove Member Confirmation Dialog */}
         {showRemoveDialog && removingUser && (

@@ -1,8 +1,8 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_URL = process.env.API_URL || 'http://localhost:5000/api';
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+``
 // Create axios instance for authenticated requests
 const api = axios.create({
   baseURL: API_URL,
@@ -218,7 +218,16 @@ export const authService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to update security settings' };
     }
-  }  
+  },
+
+  updateUserStatus: async (status, userId) => {
+    try {
+      const response = await api.put('/auth/status', { status, userId});
+      return response;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to update user status' };
+    }
+  }
 };
 
 export const teamService = {

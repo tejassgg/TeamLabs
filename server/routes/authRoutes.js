@@ -14,7 +14,8 @@ const {
   disable2FA,
   verifyLogin2FA,
   getSecuritySettings,
-  updateSecuritySettings
+  updateSecuritySettings,
+  updateUserStatus
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -227,6 +228,10 @@ router.get('/organizations', protect, getUserOrganizations);
  */
 router.post('/logout', protect, logoutUser);
 
+//Update user status route
+router.put('/status', protect, updateUserStatus);
+
+
 // 2FA routes
 router.post('/2fa/generate', protect, generate2FA);
 router.post('/2fa/verify', protect, verify2FA);
@@ -236,5 +241,8 @@ router.post('/2fa/verify-login', verifyLogin2FA);
 // Security settings routes
 router.get('/security-settings', protect, getSecuritySettings);
 router.post('/security-settings', protect, updateSecuritySettings);
+
+// User status route
+router.put('/status', protect, updateUserStatus);
 
 module.exports = router; 

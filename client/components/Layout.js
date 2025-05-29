@@ -2,7 +2,7 @@ import Navbar from './Navbar';
 import { useTheme } from '../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FaPlus, FaChevronRight, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun } from 'react-icons/fa';
+import { FaPlus, FaChevronRight, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaCircle } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import AddTeamModal from './AddTeamModal';
 import { teamService } from '../services/api';
@@ -374,7 +374,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
 
 const Layout = ({ children }) => {
   const { theme, toggleTheme, resolvedTheme } = useTheme();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

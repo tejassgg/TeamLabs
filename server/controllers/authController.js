@@ -108,8 +108,9 @@ const loginUser = async (req, res) => {
 
     // Check if user exists and password is correct
     if (user && (await user.comparePassword(password))) {
-      // Update last login
+      // Update last login and set status to Active
       user.lastLogin = new Date();
+      user.status = 'Active';
       await user.save();
 
       // Log successful login
@@ -160,10 +161,13 @@ const logoutUser = async (req, res) => {
     // Log the logout activity
     await logActivity(req.user._id, 'logout', 'success', 'User logged out successfully', req);
 
+    // Update user status to Offline
+    await User.findByIdAndUpdate(req.user._id, { status: 'Offline' });
+
     res.json({ message: 'Logged out successfully' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Logout error:', error);
+    res.status(500).json({ message: 'Error during logout' });
   }
 };
 
@@ -172,7 +176,10 @@ const logoutUser = async (req, res) => {
 // @access  Public
 const googleLogin = async (req, res) => {
   try {
+    
     const { credential } = req.body;
+
+    console.log(credential, process.env.GOOGLE_CLIENT_ID);
 
     // Verify Google token
     const ticket = await client.verifyIdToken({
@@ -651,6 +658,37 @@ const updateSecuritySettings = async (req, res) => {
   }
 };
 
+// @desc    Update User Status
+// @route   PUT /api/auth/status
+// @access  Private
+const updateUserStatus = async (req, res) => {
+  try {
+
+    const { status, userId } = req.body;
+
+    // Validate status
+    const validStatuses = ['Active', 'In a Meeting', 'Presenting', 'Away', 'Offline', 'Busy'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { status },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'Status updated successfully', status: user.status });
+  } catch (error) {
+    console.error('Error updating user status:', error);
+    res.status(500).json({ message: 'Error updating status' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -665,5 +703,6 @@ module.exports = {
   disable2FA,
   verifyLogin2FA,
   getSecuritySettings,
-  updateSecuritySettings
+  updateSecuritySettings,
+  updateUserStatus
 }; 
