@@ -31,6 +31,14 @@ const TaskDetailsSchema = new mongoose.Schema({
     enum: ['Task', 'Bug', 'User Story', 'Feature', 'Improvement', 'Documentation', 'Maintenance'],
     required: true
   },
+  Priority: {
+    type: String,
+    enum: ['High', 'Medium', 'Low'],
+    default: 'Medium',
+    required: function() {
+      return this.Type !== 'User Story';
+    }
+  },
   Assignee: {
     type: String,
     required: false

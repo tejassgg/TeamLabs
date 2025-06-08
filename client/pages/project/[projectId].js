@@ -235,7 +235,7 @@ const ProjectDetailsPage = () => {
     }
   };
 
-  const fetchProjectTasks = async () => {
+  const fetchProjectTasks = async (projectId) => {
     try {
       const allTasks = await taskService.getTaskDetails();
       setUserStories(allTasks.filter(task => task.ProjectID_FK === projectId && task.Type === 'User Story'));
@@ -247,16 +247,16 @@ const ProjectDetailsPage = () => {
 
   useEffect(() => {
     if (projectId) {
-      fetchProjectTasks();
+      fetchProjectTasks(projectId);
     }
   }, [projectId]);
 
   const handleAddTask = async (taskData) => {
     try {
-      await taskService.addTask(taskData);
+      await taskService.addTaskDetails(taskData);
       showToast('Task added successfully!', 'success');
       // Refresh tasks
-      fetchProjectTasks();
+      fetchProjectTasks(projectId);
     } catch (err) {
       showToast('Failed to add task', 'error');
     }
@@ -379,6 +379,38 @@ const ProjectDetailsPage = () => {
   const confirmDeleteTask = (task) => {
     setTaskToDelete(task);
     setShowDeleteTaskDialog(true);
+  };
+
+  // Helper function to get styles for priority
+  const getPriorityStyle = (priority) => {
+    const styles = {
+      'High': {
+        bgColor: 'bg-red-50',
+        textColor: 'text-red-700',
+        borderColor: 'border-red-200',
+        icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      },
+      'Medium': {
+        bgColor: 'bg-yellow-50',
+        textColor: 'text-yellow-700',
+        borderColor: 'border-yellow-200',
+        icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      },
+      'Low': {
+        bgColor: 'bg-green-50',
+        textColor: 'text-green-700',
+        borderColor: 'border-green-200',
+        icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      }
+    };
+
+    return styles[priority] || styles['Medium']; // Default to Medium if priority not found
   };
 
   if (loading) {
@@ -783,7 +815,7 @@ const ProjectDetailsPage = () => {
                       <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Assigned To</th>
                       <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Assignee</th>
                       <th className={`hidden md:table-cell py-3 px-4 text-center ${tableHeaderTextClasses}`}>Date Assigned</th>
-                      <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Type</th>
+                      <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Type & Priority</th>
                       <th className={`py-3 px-4 text-center ${tableHeaderTextClasses}`}>Status</th>
                       <th className={`py-3 px-4 text-center ${tableHeaderTextClasses}`}>Actions</th>
                     </tr>
@@ -872,7 +904,23 @@ const ProjectDetailsPage = () => {
                           }) : '-'}
                         </td>
                         <td className="hidden md:table-cell py-3 px-4">
-                          {getTaskTypeBadgeComponent(task.Type)}
+                          <div className="flex items-center gap-1.5">
+                            {getTaskTypeBadgeComponent(task.Type)}
+                            {task.Type !== 'User Story' && task.Priority && (
+                              (() => {
+                                const priorityDetails = getPriorityStyle(task.Priority);
+                                return (
+                                  <span className={getThemeClasses(
+                                    `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium ${priorityDetails.bgColor} ${priorityDetails.textColor} border ${priorityDetails.borderColor} shadow-sm`,
+                                    `dark:${priorityDetails.bgColor.replace('bg-', 'bg-')}/30 dark:${priorityDetails.textColor.replace('text-', 'text-')}/90 dark:${priorityDetails.borderColor.replace('border-', 'border-')}/50`
+                                  )}>
+                                    {priorityDetails.icon}
+                                    {task.Priority}
+                                  </span>
+                                );
+                              })()
+                            )}
+                          </div>
                         </td>
                         <td className="py-3 px-4 text-center">
                           {(() => {

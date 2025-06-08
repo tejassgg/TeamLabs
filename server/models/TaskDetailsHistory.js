@@ -25,6 +25,10 @@ const TaskDetailsHistorySchema = new mongoose.Schema({
     type: String,
     enum: ['Task', 'Bug', 'User Story', 'Feature', 'Improvement', 'Documentation', 'Maintenance']
   },
+  Priority: {
+    type: String,
+    enum: ['High', 'Medium', 'Low']
+  },
   Old_Assignee: {
     type: String
   },

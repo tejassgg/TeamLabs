@@ -14,7 +14,7 @@ import { useTheme } from '../context/ThemeContext';
 // Custom hook for theme-aware classes
 const useThemeClasses = () => {
   const { theme } = useTheme();
-  
+
   const getThemeClasses = (lightClasses, darkClasses) => {
     return theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
   };
@@ -197,11 +197,44 @@ const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd,
     }
   };
 
+  // Helper function to get styles for priority
+  const getPriorityStyle = (priority) => {
+    const styles = {
+      'High': {
+        bgColor: 'bg-red-50',
+        textColor: 'text-red-700',
+        borderColor: 'border-red-200',
+        icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      },
+      'Medium': {
+        bgColor: 'bg-yellow-50',
+        textColor: 'text-yellow-700',
+        borderColor: 'border-yellow-200',
+        icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      },
+      'Low': {
+        bgColor: 'bg-green-50',
+        textColor: 'text-green-700',
+        borderColor: 'border-green-200',
+        icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      }
+    };
+
+    return styles[priority] || styles['Medium']; // Default to Medium if priority not found
+  };
+
   const typeDetails = getTaskTypeDetails(task.Type);
+  const priorityDetails = task.Type !== 'User Story' ? getPriorityStyle(task.Priority) : null;
 
   const onDragStart = (e) => {
     if (!canMove) return;
-    
+
     // Set task card dimensions to use for the placeholder
     if (cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect();
@@ -213,7 +246,7 @@ const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd,
     } else {
       handleDragStart(task, e);
     }
-    
+
     // This helps with drag image in some browsers
     if (e.dataTransfer.setDragImage && cardRef.current) {
       e.dataTransfer.setDragImage(cardRef.current, 20, 20);
@@ -234,7 +267,7 @@ const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd,
       title={canMove ? "Drag to change status" : "You can only move tasks assigned to you"}
       data-task-id={task.TaskID}
     >
-      {/* Team Name Banner with Task Type Badge */}
+      {/* Team Name Banner with Task Type and Priority Badges */}
       <div className="flex items-center justify-between mb-2 -mt-0.5 -mx-0.5">
         {task.AssignedTo && task.AssignedToDetails?.teamName && (
           <div className={getThemeClasses(
@@ -247,7 +280,7 @@ const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd,
             {task.AssignedToDetails.teamName}
           </div>
         )}
-        
+
         {/* Task Type Badge */}
         <span className={getThemeClasses(
           `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium ${typeDetails.bgColor} ${typeDetails.textColor} border ${typeDetails.borderColor} shadow-sm flex-shrink-0`,
@@ -256,6 +289,7 @@ const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd,
           {typeDetails.icon}
           {task.Type}
         </span>
+
       </div>
 
       <div className={getThemeClasses(
@@ -291,6 +325,23 @@ const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd,
             </div>
           )}
         </div>
+        {/* Priority Badge - Only show for non-User Story tasks */}
+        {task.Type !== 'User Story' && task.Priority && (
+          <div className="flex items-center gap-1.5">
+            {(() => {
+              const priorityDetails = getPriorityStyle(task.Priority);
+              return (
+                <span className={getThemeClasses(
+                  `inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${priorityDetails.bgColor} ${priorityDetails.textColor} border ${priorityDetails.borderColor}`,
+                  `dark:${priorityDetails.bgColor.replace('bg-', 'bg-')}/30 dark:${priorityDetails.textColor.replace('text-', 'text-')}/90 dark:${priorityDetails.borderColor.replace('border-', 'border-')}/50`
+                )}>
+                  {priorityDetails.icon}
+                  {task.Priority}
+                </span>
+              );
+            })()}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -442,7 +493,7 @@ const KanbanBoard = () => {
     if (task.Status === 1 || isTaskAssignedToUser(task)) {
       setDraggingTask(task);
       setShowDeleteArea(true);
-      
+
       // Store dimensions for placeholder
       if (dimensions) {
         const rect = event.currentTarget.getBoundingClientRect();
@@ -495,11 +546,11 @@ const KanbanBoard = () => {
     try {
       // Call API deleting the task
       await taskService.deleteTask(draggingTask.TaskID);
-      
+
       // Update local state by removing the task
       const updatedTasks = tasks.filter(task => task.TaskID !== draggingTask.TaskID);
       setTasks(updatedTasks);
-      
+
       showToast('Task removed successfully', 'success');
     } catch (err) {
       showToast('Failed to remove task', 'error');
@@ -554,9 +605,9 @@ const KanbanBoard = () => {
     const updatedTasks = tasks.map(task =>
       task.TaskID === updatedTask.TaskID
         ? {
-            ...updatedTask,
-            Status: targetStatus // Use the target status that was set when dropping
-          }
+          ...updatedTask,
+          Status: targetStatus // Use the target status that was set when dropping
+        }
         : task
     );
     setTasks(updatedTasks);
@@ -716,7 +767,7 @@ const KanbanBoard = () => {
         {/* Dragging card placeholder - only visible when a card is being dragged */}
         {draggingTask && draggedCardDimensions && (
           <div className="pointer-events-none fixed top-0 left-0 w-full h-full z-40">
-            <div 
+            <div
               className="absolute transition-all duration-200"
               style={{
                 width: `${draggedCardDimensions.width}px`,
@@ -726,7 +777,7 @@ const KanbanBoard = () => {
                 transform: 'scale(0.98)'
               }}
             >
-              <div 
+              <div
                 className="w-full h-full rounded-lg border-2 border-dashed border-blue-300 bg-blue-50/50 flex flex-col items-center justify-center overflow-hidden"
               >
                 <div className="flex items-center justify-center flex-1 w-full">
@@ -741,15 +792,15 @@ const KanbanBoard = () => {
 
         {/* Delete Area - visible only when dragging */}
         {showDeleteArea && (
-          <div 
+          <div
             className="fixed bottom-0 left-0 right-0 transition-all duration-500 flex items-center justify-center z-50 overflow-hidden"
             style={{
               height: isOverDeleteArea ? '10rem' : '8rem',
-              background: isOverDeleteArea 
-                ? 'linear-gradient(to top, #dc2626, #ef4444, #fee2e2)' 
+              background: isOverDeleteArea
+                ? 'linear-gradient(to top, #dc2626, #ef4444, #fee2e2)'
                 : 'linear-gradient(to top, #ef4444, #fca5a5, #fef2f2)',
-              boxShadow: isOverDeleteArea 
-                ? '0 -10px 30px -5px rgba(220, 38, 38, 0.3)' 
+              boxShadow: isOverDeleteArea
+                ? '0 -10px 30px -5px rgba(220, 38, 38, 0.3)'
                 : '0 -5px 15px -5px rgba(220, 38, 38, 0.15)'
             }}
             onDragOver={handleDeleteDragOver}
@@ -776,9 +827,9 @@ const KanbanBoard = () => {
                   const left = Math.random() * 100;
                   const delay = Math.random() * 2;
                   const duration = Math.random() * 3 + 2;
-                  
+
                   return (
-                    <div 
+                    <div
                       key={i}
                       className="absolute bg-white rounded-full opacity-40"
                       style={{
@@ -792,17 +843,17 @@ const KanbanBoard = () => {
                   );
                 })}
               </div>
-              
+
               {/* Background light effect */}
-              <div 
+              <div
                 className="absolute inset-0 transition-opacity duration-500"
-                style={{ 
+                style={{
                   background: 'radial-gradient(circle at center, rgba(254, 202, 202, 0.2) 0%, transparent 70%)',
                   opacity: isOverDeleteArea ? 1 : 0.5
                 }}
               />
             </div>
-            
+
             {/* Ripple animation when hovering */}
             {isOverDeleteArea && (
               <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -811,35 +862,35 @@ const KanbanBoard = () => {
                 <span className="absolute inline-flex h-16 w-16 animate-ping rounded-full bg-red-600 opacity-20" style={{ animationDuration: '2.2s', animationDelay: '0.4s' }}></span>
               </div>
             )}
-            
-            <div 
+
+            <div
               className="relative flex flex-col items-center justify-center transition-all duration-500"
-              style={{ 
+              style={{
                 transform: isOverDeleteArea ? 'scale(1.15)' : 'scale(1)',
                 filter: isOverDeleteArea ? 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))' : 'none'
               }}
             >
-              <div 
+              <div
                 className="relative flex items-center justify-center rounded-full mb-3 transition-all duration-300"
                 style={{
                   width: isOverDeleteArea ? '4rem' : '3.5rem',
                   height: isOverDeleteArea ? '4rem' : '3.5rem',
-                  background: isOverDeleteArea ? 
-                    'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)' : 
+                  background: isOverDeleteArea ?
+                    'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)' :
                     'linear-gradient(135deg, #f87171 0%, #ef4444 100%)',
-                  boxShadow: isOverDeleteArea ? 
-                    '0 0 20px rgba(220, 38, 38, 0.7), inset 0 0 10px rgba(254, 202, 202, 0.3)' : 
+                  boxShadow: isOverDeleteArea ?
+                    '0 0 20px rgba(220, 38, 38, 0.7), inset 0 0 10px rgba(254, 202, 202, 0.3)' :
                     '0 0 10px rgba(220, 38, 38, 0.3), inset 0 0 5px rgba(254, 202, 202, 0.1)'
                 }}
               >
-                <FaTrashAlt 
-                  className="text-white transition-all" 
-                  style={{ 
+                <FaTrashAlt
+                  className="text-white transition-all"
+                  style={{
                     fontSize: isOverDeleteArea ? '1.75rem' : '1.5rem',
                     filter: isOverDeleteArea ? 'drop-shadow(0 0 3px rgba(255, 255, 255, 0.5))' : 'none'
-                  }} 
+                  }}
                 />
-                
+
                 {/* Pulsing indicator */}
                 {isOverDeleteArea && (
                   <span className="absolute -top-1 -right-1 flex h-5 w-5">
@@ -848,11 +899,11 @@ const KanbanBoard = () => {
                   </span>
                 )}
               </div>
-              
+
               <div className="text-center flex flex-col items-center">
-                <span 
+                <span
                   className="font-semibold tracking-wide transition-all text-white"
-                  style={{ 
+                  style={{
                     fontSize: isOverDeleteArea ? '1.25rem' : '1.125rem',
                     letterSpacing: isOverDeleteArea ? '0.05em' : 'normal',
                     textShadow: isOverDeleteArea ? '0 0 10px rgba(254, 202, 202, 0.5)' : 'none'
@@ -860,9 +911,9 @@ const KanbanBoard = () => {
                 >
                   Drop to Delete
                 </span>
-                <span 
+                <span
                   className="text-xs text-white mt-1 transition-all"
-                  style={{ 
+                  style={{
                     opacity: isOverDeleteArea ? 1 : 0.8,
                     maxHeight: isOverDeleteArea ? '30px' : '20px',
                     transform: isOverDeleteArea ? 'translateY(0)' : 'translateY(-5px)'

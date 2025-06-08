@@ -9,6 +9,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projec
   const [description, setDescription] = useState('');
   const [type, setType] = useState('');
   const [typeOptions, setTypeOptions] = useState([]);
+  const [priority, setPriority] = useState('Medium');
   const [assignee, setAssignee] = useState(userDetails?._id || '');
   const [assignedTo, setAssignedTo] = useState('');
   const [projectId, setProjectId] = useState(projectIdDefault || '');
@@ -58,6 +59,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projec
       Name: name.trim(),
       Description: description.trim(),
       Type: type,
+      Priority: type !== 'User Story' ? priority : undefined,
       Assignee: assignee,
       ProjectID_FK: projectId,
       ParentID: mode === 'fromProject' ? parentId : null,
@@ -66,6 +68,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projec
     setName('');
     setDescription('');
     setType(typeOptions[0]?.Value || '');
+    setPriority('Medium');
     setAssignee(userDetails?._id || '');
     setAssignedTo('');
     setProjectId('');
@@ -102,19 +105,36 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projec
             rows={3}
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Type<span className="text-red-500">*</span></label>
-          <select
-            value={type}
-            onChange={e => setType(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            required
-            disabled={mode === 'fromSideBar'}
-          >
-            {typeOptions.map(opt => (
-              <option key={opt._id} value={opt.Value}>{opt.Value}</option>
-            ))}
-          </select>
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <label className="block text-sm font-medium mb-1">Type<span className="text-red-500">*</span></label>
+            <select
+              value={type}
+              onChange={e => setType(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+              disabled={mode === 'fromSideBar'}
+            >
+              {typeOptions.map(opt => (
+                <option key={opt._id} value={opt.Value}>{opt.Value}</option>
+              ))}
+            </select>
+          </div>
+          {type !== 'User Story' && (
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">Priority<span className="text-red-500">*</span></label>
+              <select
+                value={priority}
+                onChange={e => setPriority(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              >
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+          )}
         </div>
         {mode === 'fromSideBar' && (
           <div>

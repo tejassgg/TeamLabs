@@ -135,7 +135,8 @@ const loginUser = async (req, res) => {
         // Include security settings in login response
         twoFactorEnabled: user.twoFactorEnabled || false,
         sessionTimeout: user.sessionTimeout || 30,
-        loginNotifications: user.loginNotifications !== false // default to true if not set
+        loginNotifications: user.loginNotifications !== false, // default to true if not set
+        status: user.status,
       });
     } else {
       // Log failed login attempt
@@ -201,6 +202,7 @@ const googleLogin = async (req, res) => {
     if (user) {
       // If user exists, update last login
       user.lastLogin = new Date();
+      user.status = 'Active';
       await user.save();
 
       // Log successful Google login
@@ -221,7 +223,8 @@ const googleLogin = async (req, res) => {
         // Include security settings in login response
         twoFactorEnabled: user.twoFactorEnabled || false,
         sessionTimeout: user.sessionTimeout || 30,
-        loginNotifications: user.loginNotifications !== false // default to true if not set
+        loginNotifications: user.loginNotifications !== false, // default to true if not set
+        status: user.status
       });
     } else {
       // If user doesn't exist, create new user with partial profile
@@ -252,7 +255,8 @@ const googleLogin = async (req, res) => {
         // Set default security settings
         twoFactorEnabled: false,
         sessionTimeout: 30,
-        loginNotifications: true
+        loginNotifications: true,
+        status: 'Offline'
       });
 
       // Log successful Google login for new user
@@ -272,7 +276,8 @@ const googleLogin = async (req, res) => {
         // Include security settings in login response
         twoFactorEnabled: false,
         sessionTimeout: 30,
-        loginNotifications: true
+        loginNotifications: true,
+        status: 'Offline'
       });
     }
   } catch (error) {
@@ -611,7 +616,8 @@ const verifyLogin2FA = async (req, res) => {
       // Include security settings in login response
       twoFactorEnabled: user.twoFactorEnabled || false,
       sessionTimeout: user.sessionTimeout || 30,
-      loginNotifications: user.loginNotifications !== false // default to true if not set
+      loginNotifications: user.loginNotifications !== false, // default to true if not set
+      status: user.status
     });
   } catch (error) {
     console.error('2FA Login Verification Error:', error);

@@ -76,4 +76,49 @@ export const getTaskTypeBadge = (type) => {
       {type || 'Task'}
     </span>
   );
+};
+
+// Priority styles and utilities
+export const getPriorityStyle = (priority) => {
+  const styles = {
+    'High': {
+      bgColor: 'bg-gradient-to-r from-red-50 to-red-100',
+      textColor: 'text-red-700',
+      borderColor: 'border-red-200',
+      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    },
+    'Medium': {
+      bgColor: 'bg-gradient-to-r from-yellow-50 to-yellow-100',
+      textColor: 'text-yellow-700',
+      borderColor: 'border-yellow-200',
+      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    },
+    'Low': {
+      bgColor: 'bg-gradient-to-r from-green-50 to-green-100',
+      textColor: 'text-green-700',
+      borderColor: 'border-green-200',
+      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    }
+  };
+
+  return styles[priority] || styles['Medium'];
+};
+
+export const getPriorityBadge = (priority) => {
+  if (!priority) return null;
+  
+  const style = getPriorityStyle(priority);
+  
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${style.bgColor} ${style.textColor} border ${style.borderColor} shadow-sm transition-all duration-200`}>
+      {style.icon}
+      {priority}
+    </span>
+  );
 }; 
