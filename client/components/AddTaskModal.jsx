@@ -3,7 +3,7 @@ import Modal from './Modal';
 import { commonTypeService } from '../services/api';
 import { useGlobal } from '../context/GlobalContext';
 
-const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projectIdDefault, userStories }) => {
+const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSideBar', projectIdDefault, userStories, editingTask = null }) => {
   const { projects, userDetails } = useGlobal();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -20,7 +20,34 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projec
   const [createdBy] = useState(userDetails?._id || '');
   const [error, setError] = useState('');
 
+  // Check if we're in edit mode
+  const isEditMode = !!editingTask;
 
+  // Load editing task data when modal opens
+  useEffect(() => {
+    if (isOpen && editingTask) {
+      setName(editingTask.Name || '');
+      setDescription(editingTask.Description || '');
+      setType(editingTask.Type || '');
+      setPriority(editingTask.Priority || 'Medium');
+      setAssignee(editingTask.Assignee || userDetails?._id || '');
+      setAssignedTo(editingTask.AssignedTo || '');
+      setProjectId(editingTask.ProjectID_FK || projectIdDefault || '');
+      setParentId(editingTask.ParentID || '');
+      setIsActive(editingTask.IsActive !== undefined ? editingTask.IsActive : true);
+    } else if (isOpen && !editingTask) {
+      // Reset form for add mode
+      setName('');
+      setDescription('');
+      setType('');
+      setPriority('Medium');
+      setAssignee(userDetails?._id || '');
+      setAssignedTo('');
+      setProjectId(projectIdDefault || '');
+      setParentId('');
+      setIsActive(true);
+    }
+  }, [isOpen, editingTask, projectIdDefault, userDetails]);
 
   useEffect(() => {
     if (isOpen) {
@@ -29,17 +56,17 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projec
           if (mode === 'fromSideBar') {
             const fromSideBarType = types.find(t => t.Value === 'User Story');
             setTypeOptions(fromSideBarType ? [fromSideBarType] : []);
-            if (fromSideBarType) setType(fromSideBarType.Value);
+            if (fromSideBarType && !isEditMode) setType(fromSideBarType.Value);
           } else {
             const filtered = types.filter(t => t.Value !== 'User Story');
             setTypeOptions(filtered);
-            if (filtered.length > 0) setType(filtered[0].Value);
+            if (filtered.length > 0 && !isEditMode) setType(filtered[0].Value);
           }
         })
         .catch(() => setTypeOptions([]));
-      if (projectIdDefault) setProjectId(projectIdDefault);
+      if (projectIdDefault && !isEditMode) setProjectId(projectIdDefault);
     }
-  }, [isOpen, mode, projectIdDefault]);
+  }, [isOpen, mode, projectIdDefault, isEditMode]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -55,7 +82,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projec
       setError('Project is required');
       return;
     }
-    onAddTask({
+
+    const taskData = {
       Name: name.trim(),
       Description: description.trim(),
       Type: type,
@@ -64,7 +92,17 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projec
       ProjectID_FK: projectId,
       ParentID: mode === 'fromProject' ? parentId : null,
       CreatedBy: createdBy
-    });
+    };
+
+    if (isEditMode) {
+      // Call update function
+      onUpdateTask(editingTask.TaskID, taskData);
+    } else {
+      // Call add function
+      onAddTask(taskData);
+    }
+
+    // Reset form
     setName('');
     setDescription('');
     setType(typeOptions[0]?.Value || '');
@@ -82,7 +120,12 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projec
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <h3 className="text-xl font-semibold mb-4">{mode === 'fromSideBar' ? 'Add User Story' : 'Add New Task'}</h3>
+      <h3 className="text-xl font-semibold mb-4">
+        {isEditMode 
+          ? (mode === 'fromSideBar' ? 'Edit User Story' : 'Edit Task')
+          : (mode === 'fromSideBar' ? 'Add User Story' : 'Add New Task')
+        }
+      </h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Task Name<span className="text-red-500">*</span></label>
@@ -183,7 +226,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, mode = 'fromSideBar', projec
             type="submit"
             className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium"
           >
-            Add Task
+            {isEditMode ? 'Update Task' : 'Add Task'}
           </button>
         </div>
       </form>

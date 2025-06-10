@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-``
+
 // Create axios instance for authenticated requests
 const api = axios.create({
   baseURL: API_URL,
@@ -382,6 +382,22 @@ export const taskService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to remove task' };
+    }
+  },
+  updateTask: async (taskId, taskData) => {
+    try {
+      const response = await api.patch(`/task-details/${taskId}`, taskData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to update task' };
+    }
+  },
+  bulkDeleteTasks: async (taskIds) => {
+    try {
+      const response = await api.delete('/task-details/bulk-delete', { data: { taskIds } });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to delete tasks' };
     }
   }
 };

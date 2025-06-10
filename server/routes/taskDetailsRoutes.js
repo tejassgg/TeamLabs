@@ -445,4 +445,201 @@ router.delete('/:taskId/delete', async (req, res) => {
     }
 });
 
+// PATCH /api/task-details/:taskId - Update task details
+router.patch('/:taskId', async (req, res) => {
+    try {
+        const taskId = req.params.taskId;
+        const updateData = req.body;
+
+        const task = await TaskDetails.findOne({ TaskID: taskId });
+        if (!task) return res.status(404).json({ error: 'Task not found' });
+
+        // Save task history before updating
+        const taskHistory = new TaskDetailsHistory({
+            TaskID: task.TaskID,
+            ParentID: task.ParentID,
+            Name: task.Name,
+            Description: task.Description,
+            OldStatus: task.Status,
+            Type: task.Type,
+            Priority: task.Priority,
+            Old_Assignee: task.Assignee,
+            Old_AssignedTo: task.AssignedTo,
+            ProjectID_FK: task.ProjectID_FK,
+            IsActive: task.IsActive,
+            CreatedDate: task.CreatedDate,
+            AssignedDate: task.AssignedDate,
+            CreatedBy: task.CreatedBy,
+            HistoryDate: new Date()
+        });
+
+        await taskHistory.save();
+
+        // Update task fields
+        if (updateData.Name !== undefined) task.Name = updateData.Name;
+        if (updateData.Description !== undefined) task.Description = updateData.Description;
+        if (updateData.Type !== undefined) task.Type = updateData.Type;
+        if (updateData.Priority !== undefined) task.Priority = updateData.Priority;
+        if (updateData.ParentID !== undefined) task.ParentID = updateData.ParentID;
+        if (updateData.IsActive !== undefined) task.IsActive = updateData.IsActive;
+
+        await task.save();
+
+        const updatedTask = task.toObject();
+
+        // Fetch assignee details if exists
+        if (updatedTask.Assignee) {
+            const assignee = await User.findById(updatedTask.Assignee);
+            if (assignee) {
+                const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
+                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                updatedTask.AssigneeDetails = {
+                    _id: assignee._id,
+                    username: assignee.username,
+                    fullName: assignee.firstName + " " + assignee.lastName,
+                    email: assignee.email,
+                    teamName: team.TeamName
+                };
+            }
+        }
+
+        // Fetch assignedTo details if exists
+        if (updatedTask.AssignedTo) {
+            const assignedTo = await User.findById(updatedTask.AssignedTo);
+            if (assignedTo) {
+                const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
+                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                updatedTask.AssignedToDetails = {
+                    _id: assignedTo._id,
+                    username: assignedTo.username,
+                    fullName: assignedTo.firstName + " " + assignedTo.lastName,
+                    email: assignedTo.email,
+                    teamName: team.TeamName
+                };
+            }
+        }
+
+        // Log the activity
+        await logActivity(
+            task.CreatedBy,
+            task.Type === 'User Story' ? 'user_story_update' : 'task_update',
+            'success',
+            `Updated ${task.Type.toLowerCase()} "${task.Name}"`,
+            req,
+            {
+                taskId: task.TaskID,
+                taskName: task.Name,
+                taskType: task.Type,
+                projectId: task.ProjectID_FK,
+                status: task.Status
+            }
+        );
+
+        res.json(updatedTask);
+    } catch (error) {
+        console.error('Error updating task:', error);
+        // Log the error activity
+        try {
+            const task = await TaskDetails.findOne({ TaskID: req.params.taskId });
+            await logActivity(
+                task?.CreatedBy,
+                task.Type === 'User Story' ? 'user_story_update' : 'task_update',
+                'error',
+                `Failed to update task: ${error.message}`,
+                req,
+                {
+                    taskId: req.params.taskId,
+                    error: error.message
+                }
+            );
+        } catch (logError) {
+            console.error('Failed to log error activity:', logError);
+        }
+        res.status(500).json({ error: 'Failed to update task' });
+    }
+});
+
+// DELETE /api/task-details/bulk-delete - Delete multiple tasks
+router.delete('/bulk-delete', async (req, res) => {
+    try {
+        const { taskIds } = req.body;
+        if (!Array.isArray(taskIds) || taskIds.length === 0) {
+            return res.status(400).json({ error: 'Task IDs array is required' });
+        }
+
+        // Find all tasks to be deleted
+        const tasksToDelete = await TaskDetails.find({ TaskID: { $in: taskIds } });
+        if (tasksToDelete.length === 0) {
+            return res.status(404).json({ error: 'No tasks found to delete' });
+        }
+
+        // Save task history for all tasks before deleting
+        const taskHistories = tasksToDelete.map(task => new TaskDetailsHistory({
+            TaskID: task.TaskID,
+            ParentID: task.ParentID,
+            Name: task.Name,
+            Description: task.Description,
+            OldStatus: task.Status,
+            Type: task.Type,
+            Priority: task.Priority,
+            Old_Assignee: task.Assignee,
+            Old_AssignedTo: task.AssignedTo,
+            ProjectID_FK: task.ProjectID_FK,
+            IsActive: task.IsActive,
+            CreatedDate: task.CreatedDate,
+            AssignedDate: task.AssignedDate,
+            CreatedBy: task.CreatedBy,
+            HistoryDate: new Date()
+        }));
+
+        await TaskDetailsHistory.insertMany(taskHistories);
+
+        // Log activities for each task
+        for (const task of tasksToDelete) {
+            await logActivity(
+                task.CreatedBy,
+                task.Type === 'User Story' ? 'user_story_delete' : 'task_delete',
+                'success',
+                `Deleted ${task.Type.toLowerCase()} "${task.Name}"`,
+                req,
+                {
+                    taskId: task.TaskID,
+                    taskName: task.Name,
+                    taskType: task.Type,
+                    projectId: task.ProjectID_FK,
+                    status: task.Status
+                }
+            );
+        }
+
+        // Delete all tasks
+        const result = await TaskDetails.deleteMany({ TaskID: { $in: taskIds } });
+
+        res.json({ 
+            success: true, 
+            message: `Successfully deleted ${result.deletedCount} tasks`,
+            deletedCount: result.deletedCount
+        });
+    } catch (error) {
+        console.error('Error deleting tasks:', error);
+        // Log the error activity
+        try {
+            await logActivity(
+                req.body.CreatedBy || 'unknown',
+                'task_bulk_delete',
+                'error',
+                `Failed to delete tasks: ${error.message}`,
+                req,
+                {
+                    taskIds: req.body.taskIds,
+                    error: error.message
+                }
+            );
+        } catch (logError) {
+            console.error('Failed to log error activity:', logError);
+        }
+        res.status(500).json({ error: 'Failed to delete tasks' });
+    }
+});
+
 module.exports = router; 

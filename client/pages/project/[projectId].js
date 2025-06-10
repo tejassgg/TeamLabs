@@ -15,8 +15,8 @@ const ProjectDetailsPage = () => {
   const router = useRouter();
   const { projectId } = router.query;
   const { theme } = useTheme();
-  const { 
-    getProjectStatus, 
+  const {
+    getProjectStatus,
     getProjectStatusBadgeComponent,
     getTaskTypeBadgeComponent,
     getTaskStatusText,
@@ -56,6 +56,10 @@ const ProjectDetailsPage = () => {
   const [deletingTask, setDeletingTask] = useState(false);
   const [showDeleteTaskDialog, setShowDeleteTaskDialog] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
+  const [editingTask, setEditingTask] = useState(null);
+  const [selectedTasks, setSelectedTasks] = useState([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
 
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
@@ -253,12 +257,37 @@ const ProjectDetailsPage = () => {
 
   const handleAddTask = async (taskData) => {
     try {
-      await taskService.addTaskDetails(taskData);
+      const newTask = await taskService.addTaskDetails(taskData);
       showToast('Task added successfully!', 'success');
-      // Refresh tasks
-      fetchProjectTasks(projectId);
+      
+      // Update task list directly instead of refetching
+      if (newTask.Type === 'User Story') {
+        setUserStories(prev => [...prev, newTask]);
+      } else {
+        setTaskList(prev => [...prev, newTask]);
+      }
     } catch (err) {
       showToast('Failed to add task', 'error');
+    }
+  };
+
+  const handleUpdateTask = async (taskId, taskData) => {
+    try {
+      const updatedTask = await taskService.updateTask(taskId, taskData);
+      showToast('Task updated successfully!', 'success');
+      
+      // Update task list directly instead of refetching
+      if (updatedTask.Type === 'User Story') {
+        setUserStories(prev => prev.map(task => 
+          task.TaskID === taskId ? updatedTask : task
+        ));
+      } else {
+        setTaskList(prev => prev.map(task => 
+          task.TaskID === taskId ? updatedTask : task
+        ));
+      }
+    } catch (err) {
+      showToast('Failed to update task', 'error');
     }
   };
 
@@ -381,6 +410,50 @@ const ProjectDetailsPage = () => {
     setShowDeleteTaskDialog(true);
   };
 
+  // Function to open edit task modal
+  const handleEditTask = (task) => {
+    setEditingTask(task);
+    setIsAddTaskOpen(true);
+  };
+
+  // Function to handle task selection
+  const handleSelectTask = (taskId) => {
+    setSelectedTasks(prev => {
+      if (prev.includes(taskId)) {
+        return prev.filter(id => id !== taskId);
+      }
+      return [...prev, taskId];
+    });
+  };
+
+  // Function to handle select all tasks
+  const handleSelectAllTasks = () => {
+    if (selectedTasks.length === taskList.length) {
+      setSelectedTasks([]);
+    } else {
+      setSelectedTasks(taskList.map(task => task.TaskID));
+    }
+  };
+
+  // Function to handle bulk delete tasks
+  const handleBulkDeleteTasks = async () => {
+    if (selectedTasks.length === 0) return;
+    setBulkDeleting(true);
+    try {
+      await taskService.bulkDeleteTasks(selectedTasks);
+      showToast(`Successfully deleted ${selectedTasks.length} tasks`, 'success');
+      
+      // Update task list by removing deleted tasks
+      setTaskList(prev => prev.filter(task => !selectedTasks.includes(task.TaskID)));
+      setSelectedTasks([]);
+      setShowBulkDeleteDialog(false);
+    } catch (err) {
+      showToast('Failed to delete tasks: ' + (err.message || 'Unknown error'), 'error');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   // Helper function to get styles for priority
   const getPriorityStyle = (priority) => {
     const styles = {
@@ -389,7 +462,7 @@ const ProjectDetailsPage = () => {
         textColor: 'text-red-700',
         borderColor: 'border-red-200',
         icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       },
       'Medium': {
@@ -397,7 +470,7 @@ const ProjectDetailsPage = () => {
         textColor: 'text-yellow-700',
         borderColor: 'border-yellow-200',
         icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       },
       'Low': {
@@ -405,7 +478,7 @@ const ProjectDetailsPage = () => {
         textColor: 'text-green-700',
         borderColor: 'border-green-200',
         icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       }
     };
@@ -455,7 +528,7 @@ const ProjectDetailsPage = () => {
           </div>
           {isOwner && (
             <div className="flex items-center gap-2">
-              
+
               <button
                 className="p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors"
                 title="Project Settings"
@@ -630,22 +703,20 @@ const ProjectDetailsPage = () => {
                           {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
                         </td>
                         <td className="py-3 px-4 text-center">
-                          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${
-                            team.IsActive
+                          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${team.IsActive
                               ? getThemeClasses(
-                                  'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200',
-                                  'dark:from-green-900/50 dark:to-green-800/50 dark:text-green-300 dark:border-green-700'
-                                )
+                                'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200',
+                                'dark:from-green-900/50 dark:to-green-800/50 dark:text-green-300 dark:border-green-700'
+                              )
                               : getThemeClasses(
-                                  'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200',
-                                  'dark:from-red-900/50 dark:to-red-800/50 dark:text-red-300 dark:border-red-700'
-                                )
-                          }`}>
-                            <span className={`w-2 h-2 rounded-full ${
-                              team.IsActive
+                                'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200',
+                                'dark:from-red-900/50 dark:to-red-800/50 dark:text-red-300 dark:border-red-700'
+                              )
+                            }`}>
+                            <span className={`w-2 h-2 rounded-full ${team.IsActive
                                 ? getThemeClasses('bg-green-500 animate-pulse', 'dark:bg-green-400')
                                 : getThemeClasses('bg-red-500', 'dark:bg-red-400')
-                            }`}></span>
+                              }`}></span>
                             {team.IsActive ? 'Active' : 'Inactive'}
                           </div>
                         </td>
@@ -654,17 +725,16 @@ const ProjectDetailsPage = () => {
                             <div className="flex items-center justify-center gap-2">
                               <button
                                 onClick={() => handleToggleTeamStatus(team.TeamID)}
-                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${
-                                  team.IsActive
+                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
                                     ? getThemeClasses(
-                                        'bg-blue-100 text-blue-700 hover:bg-blue-200',
-                                        'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
-                                      )
+                                      'bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                      'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
+                                    )
                                     : getThemeClasses(
-                                        'bg-green-100 text-green-700 hover:bg-green-200',
-                                        'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-800/50'
-                                      )
-                                }`}
+                                      'bg-green-100 text-green-700 hover:bg-green-200',
+                                      'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-800/50'
+                                    )
+                                  }`}
                                 title={team.IsActive ? 'Revoke Access' : 'Grant Access'}
                                 disabled={toggling === team.TeamID}
                               >
@@ -763,7 +833,7 @@ const ProjectDetailsPage = () => {
                         <td className="py-3 px-4 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
-                              onClick={() => {/* TODO: Implement edit */ }}
+                              onClick={() => handleEditTask(story)}
                               className={getThemeClasses(
                                 'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
                                 'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
@@ -797,7 +867,38 @@ const ProjectDetailsPage = () => {
         <div className="mb-6">
           <div className={tableContainerClasses}>
             <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
-              <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Tasks</h2>
+              <div className="flex items-center justify-between">
+                <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Tasks</h2>
+                {selectedTasks.length > 0 && (
+                  <div className="flex items-center gap-3">
+                    <div className={getThemeClasses(
+                      'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
+                      'dark:bg-blue-900/30 dark:text-blue-300'
+                    )}>
+                      <span className="text-sm font-medium">{selectedTasks.length} selected</span>
+                      <button
+                        onClick={() => setSelectedTasks([])}
+                        className={getThemeClasses(
+                          'p-1 hover:bg-blue-100 rounded-full transition-colors',
+                          'dark:hover:bg-blue-900/50'
+                        )}
+                      >
+                        <FaTimes size={14} />
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setShowBulkDeleteDialog(true)}
+                      className={getThemeClasses(
+                        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors',
+                        'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
+                      )}
+                    >
+                      <FaTrash size={14} />
+                      Delete Selected
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="overflow-x-auto">
               {taskList.length === 0 ? (
@@ -811,29 +912,50 @@ const ProjectDetailsPage = () => {
                 <table className="w-full">
                   <thead>
                     <tr className={tableHeaderClasses}>
+                      <th className="py-3 px-4 text-center w-[50px]">
+                        <input
+                          type="checkbox"
+                          checked={selectedTasks.length === taskList.length && taskList.length > 0}
+                          onChange={handleSelectAllTasks}
+                          className={getThemeClasses(
+                            'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                            'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                          )}
+                        />
+                      </th>
                       <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Name</th>
                       <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Assigned To</th>
                       <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Assignee</th>
                       <th className={`hidden md:table-cell py-3 px-4 text-center ${tableHeaderTextClasses}`}>Date Assigned</th>
-                      <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Type & Priority</th>
-                      <th className={`py-3 px-4 text-center ${tableHeaderTextClasses}`}>Status</th>
-                      <th className={`py-3 px-4 text-center ${tableHeaderTextClasses}`}>Actions</th>
+                      <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Priority</th>
+                      <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Status</th>
+                      <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {taskList.map(task => (
                       <tr key={task._id} className={tableRowClasses}>
+                        <td className="py-3 px-4 text-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedTasks.includes(task.TaskID)}
+                            onChange={() => handleSelectTask(task.TaskID)}
+                            className={getThemeClasses(
+                              'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                              'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                            )}
+                          />
+                        </td>
                         <td className="py-3 px-4">
                           <div className="flex flex-col">
-                            <span className={tableTextClasses}>{task.Name}</span>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={tableTextClasses}>{task.Name}</span>
+                              {getTaskTypeBadgeComponent(task.Type)}
+                            </div>
                             <span className={getThemeClasses(
                               'text-xs text-gray-500',
                               'dark:text-gray-400'
                             )}>{task.Description}</span>
-                            {/* Show type badge on mobile */}
-                            <div className="md:hidden mt-1">
-                              {getTaskTypeBadgeComponent(task.Type)}
-                            </div>
                             {/* Show assigned to on mobile if available */}
                             {task.AssignedTo && task.AssignedToDetails && (
                               <div className={getThemeClasses(
@@ -872,8 +994,8 @@ const ProjectDetailsPage = () => {
                           {task.Assignee && task.AssigneeDetails ? (
                             <div className="flex items-center gap-3">
                               <div className={getThemeClasses(
-                                'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
-                                'dark:from-blue-600 dark:to-blue-700'
+                                'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm',
+                                'dark:from-green-600 dark:to-green-700'
                               )}>
                                 {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
                               </div>
@@ -905,7 +1027,6 @@ const ProjectDetailsPage = () => {
                         </td>
                         <td className="hidden md:table-cell py-3 px-4">
                           <div className="flex items-center gap-1.5">
-                            {getTaskTypeBadgeComponent(task.Type)}
                             {task.Type !== 'User Story' && task.Priority && (
                               (() => {
                                 const priorityDetails = getPriorityStyle(task.Priority);
@@ -922,7 +1043,7 @@ const ProjectDetailsPage = () => {
                             )}
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="py-3 px-4 text-left">
                           {(() => {
                             const status = getTaskStatusStyle(task.Status);
                             const StatusIcon = status.icon;
@@ -935,17 +1056,28 @@ const ProjectDetailsPage = () => {
                             );
                           })()}
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="py-3 px-4 text-left">
                           <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleEditTask(task)}
+                              className={getThemeClasses(
+                                'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
+                              )}
+                              title="Edit Task"
+                            >
+                              <FaCog size={14} />
+                            </button>
                             <button
                               onClick={() => confirmDeleteTask(task)}
                               className={getThemeClasses(
-                                'p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors',
-                                'dark:text-red-400 dark:hover:bg-red-900/30'
+                                'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
                               )}
                               title="Delete Task"
+                              disabled={removing}
                             >
-                              <FaTrash size={16} />
+                              <FaTrash size={14} />
                             </button>
                           </div>
                         </td>
@@ -1087,11 +1219,16 @@ const ProjectDetailsPage = () => {
         )}
         <AddTaskModal
           isOpen={isAddTaskOpen}
-          onClose={() => setIsAddTaskOpen(false)}
+          onClose={() => {
+            setIsAddTaskOpen(false);
+            setEditingTask(null);
+          }}
           onAddTask={handleAddTask}
+          onUpdateTask={handleUpdateTask}
           mode="fromProject"
           projectIdDefault={projectId}
           userStories={userStories}
+          editingTask={editingTask}
         />
 
         {/* Delete Task Confirmation Dialog */}
@@ -1143,6 +1280,67 @@ const ProjectDetailsPage = () => {
                     <>
                       <FaTrash size={14} />
                       <span>Delete Task</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Bulk Delete Tasks Confirmation Dialog */}
+        {showBulkDeleteDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                <h3 className="text-lg font-semibold">
+                  Delete Selected Tasks
+                </h3>
+              </div>
+              <div className="mb-6">
+                <p className="text-gray-600 mb-4">
+                  Are you sure you want to delete {selectedTasks.length} selected task{selectedTasks.length !== 1 ? 's' : ''}? This action cannot be undone.
+                </p>
+                <div className="bg-red-50 border border-red-100 rounded-lg p-4 max-h-32 overflow-y-auto">
+                  <h4 className="font-medium text-red-800 mb-2">Tasks to be deleted:</h4>
+                  {taskList
+                    .filter(task => selectedTasks.includes(task.TaskID))
+                    .slice(0, 5)
+                    .map(task => (
+                      <div key={task.TaskID} className="text-sm text-red-700 mb-1">
+                        • {task.Name}
+                      </div>
+                    ))}
+                  {selectedTasks.length > 5 && (
+                    <div className="text-sm text-red-600 italic">
+                      ... and {selectedTasks.length - 5} more
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowBulkDeleteDialog(false);
+                  }}
+                  className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkDeleteTasks}
+                  className="px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 flex items-center gap-2"
+                  disabled={bulkDeleting}
+                >
+                  {bulkDeleting ? (
+                    <>
+                      <span className="animate-spin h-4 w-4 border-t-2 border-b-2 border-white rounded-full"></span>
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaTrash size={14} />
+                      <span>Delete Tasks</span>
                     </>
                   )}
                 </button>
