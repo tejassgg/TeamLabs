@@ -5,6 +5,7 @@ const Team = require('../models/Team');
 const User = require('../models/User');
 const CommonType = require('../models/CommonType');
 const UserActivity = require('../models/UserActivity');
+const TaskDetails = require('../models/TaskDetails');
 
 // Get dashboard statistics
 router.get('/:organizationId', async (req, res) => {
@@ -19,6 +20,11 @@ router.get('/:organizationId', async (req, res) => {
     
     // Get all users in the organization
     const users = await User.find({ organizationID: organizationId });
+
+    // Get all tasks in the organization
+    const tasks = await TaskDetails.find({ 
+      ProjectID_FK: { $in: projects.map(p => p.ProjectID) }
+    });
 
     // Get last login timestamps for all users
     const lastLogins = await UserActivity.find({
@@ -50,6 +56,75 @@ router.get('/:organizationId', async (req, res) => {
     const organization = await CommonType.findOne({MasterType: 'Organization', Code: organizationId});
     const projStatus = await CommonType.find({MasterType: 'ProjectStatus'});
 
+    // Calculate project status distribution
+    const projectStatusDistribution = {};
+    projects.forEach(project => {
+      const status = projStatus.find(item => item.Code === project.ProjectStatusID)?.Value || 'Unknown Status';
+      projectStatusDistribution[status] = (projectStatusDistribution[status] || 0) + 1;
+    });
+
+    // Calculate task type distribution
+    const taskTypeDistribution = {};
+    tasks.forEach(task => {
+      taskTypeDistribution[task.Type] = (taskTypeDistribution[task.Type] || 0) + 1;
+    });
+
+    // Calculate monthly activity (last 12 months)
+    const monthlyActivity = {
+      projectsCreated: Array(12).fill(0),
+      tasksCompleted: Array(12).fill(0)
+    };
+
+    const currentYear = new Date().getFullYear();
+    projects.forEach(project => {
+      const createdDate = new Date(project.CreatedDate);
+      if (createdDate.getFullYear() === currentYear) {
+        const month = createdDate.getMonth();
+        monthlyActivity.projectsCreated[month]++;
+      }
+    });
+
+    // Get completed tasks (assuming status 5 or higher means completed)
+    const completedTasks = tasks.filter(task => task.Status >= 5);
+    completedTasks.forEach(task => {
+      const createdDate = new Date(task.CreatedDate);
+      if (createdDate.getFullYear() === currentYear) {
+        const month = createdDate.getMonth();
+        monthlyActivity.tasksCompleted[month]++;
+      }
+    });
+
+    // Calculate team performance metrics
+    const teamPerformance = teams.map(team => {
+      const teamProjects = projects.filter(project => 
+        project.ProjectOwner === team.OwnerID || 
+        project.OrganizationID === team.organizationID
+      );
+      
+      return {
+        teamId: team.TeamID,
+        teamName: team.TeamName,
+        memberCount: team.members?.length || 0,
+        activeProjects: teamProjects.filter(p => p.IsActive).length,
+        totalProjects: teamProjects.length
+      };
+    });
+
+    // Get recent activity (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const recentActivity = await UserActivity.find({
+      user: { $in: users.map(u => u._id) },
+      timestamp: { $gte: thirtyDaysAgo }
+    }).sort({ timestamp: -1 }).limit(50);
+
+    // Calculate activity by type
+    const activityByType = {};
+    recentActivity.forEach(activity => {
+      activityByType[activity.type] = (activityByType[activity.type] || 0) + 1;
+    });
+
     // Prepare dashboard statistics
     const dashboardStats = {
       totalProjects: projects.length,
@@ -62,6 +137,7 @@ router.get('/:organizationId', async (req, res) => {
         name: project.Name,
         deadline: project.FinishDate,
         isActive: project.IsActive,
+        projectStatusId: project.ProjectStatusID,
         projectStatus: projStatus.find(item => item.Code === project.ProjectStatusID)?.Value || 'Unknown Status'
       })),
       recentTeams: teams.slice(0, 5).map(team => ({
@@ -92,7 +168,18 @@ router.get('/:organizationId', async (req, res) => {
           status: user.status || 'Offline',
           username: user.username || 'No username'
         };
-      })
+      }),
+      // Chart data
+      charts: {
+        projectStatusDistribution,
+        taskTypeDistribution,
+        monthlyActivity,
+        teamPerformance,
+        activityByType,
+        totalTasks: tasks.length,
+        completedTasks: completedTasks.length,
+        activeTasks: tasks.filter(task => task.Status < 5).length
+      }
     };
 
     res.json(dashboardStats);

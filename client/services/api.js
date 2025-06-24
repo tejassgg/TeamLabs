@@ -324,6 +324,14 @@ export const projectService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to add project' };
     }
+  },
+  updateProject: async (projectId, updateData) => {
+    try {
+      const response = await api.patch(`/projects/${projectId}`, updateData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to update project' };
+    }
   }
 };
 

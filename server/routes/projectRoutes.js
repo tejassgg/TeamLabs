@@ -94,7 +94,13 @@ router.post('/', async (req, res) => {
 router.patch('/:projectId', async (req, res) => {
   try {
     const { Name, Description, FinishDate, ProjectStatusID } = req.body;
-    const project = await Project.findOne({ ProjectID: req.params.projectId });
+    
+    // Try to find project by _id first, then by ProjectID
+    let project = await Project.findById(req.params.projectId);
+    if (!project) {
+      project = await Project.findOne({ ProjectID: req.params.projectId });
+    }
+    
     if (!project) return res.status(404).json({ error: 'Project not found' });
 
     const oldValues = {
@@ -136,7 +142,10 @@ router.patch('/:projectId', async (req, res) => {
     console.error('Error updating project:', err);
     // Log the error activity
     try {
-      const project = await Project.findOne({ ProjectID: req.params.projectId });
+      let project = await Project.findById(req.params.projectId);
+      if (!project) {
+        project = await Project.findOne({ ProjectID: req.params.projectId });
+      }
       await logActivity(
         project?.ProjectOwner,
         'project_update',
@@ -158,7 +167,12 @@ router.patch('/:projectId', async (req, res) => {
 // PATCH /api/projects/:projectId/toggle-status - toggle IsActive
 router.patch('/:projectId/toggle-status', async (req, res) => {
   try {
-    const project = await Project.findOne({ ProjectID: req.params.projectId });
+    // Try to find project by _id first, then by ProjectID
+    let project = await Project.findById(req.params.projectId);
+    if (!project) {
+      project = await Project.findOne({ ProjectID: req.params.projectId });
+    }
+    
     if (!project) return res.status(404).json({ error: 'Project not found' });
     project.IsActive = !project.IsActive;
     project.ModifiedDate = new Date();
