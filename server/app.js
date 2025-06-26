@@ -14,6 +14,7 @@ const dashboardDetailsRoute = require('./routes/dashboardDetailsRoute');
 const userRoutes = require('./routes/userRoutes');
 const taskRoutes = require('./routes/taskDetailsRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
 
@@ -59,6 +60,7 @@ app.use('/api/dashboard', dashboardDetailsRoute);
 app.use('/api/users', userRoutes);
 app.use('/api/task-details', taskRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Test route
 app.get('/', (req, res) => {

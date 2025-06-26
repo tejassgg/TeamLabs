@@ -241,20 +241,6 @@ const Dashboard = () => {
     );
   }
 
-  const TabButton = ({ id, label, icon, isActive, onClick }) => (
-    <button
-      onClick={() => onClick(id)}
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-        isActive
-          ? `${theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700'}`
-          : `${theme === 'dark' ? 'text-[#B0B8C1] hover:bg-[#232323]' : 'text-gray-600 hover:bg-gray-100'}`
-      }`}
-    >
-      {icon}
-      {label}
-    </button>
-  );
-
   return (
     <Layout>
       <Head>
@@ -274,21 +260,39 @@ const Dashboard = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className={`flex gap-2 mb-6 p-1 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gray-100'}`}>
-          <TabButton
-            id="metrics"
-            label="Metrics & Analytics"
-            icon={<FaChartBar />}
-            isActive={activeTab === 'metrics'}
-            onClick={setActiveTab}
-          />
-          <TabButton
-            id="manage"
-            label="Manage Organization"
-            icon={<FaProjectDiagram />}
-            isActive={activeTab === 'manage'}
-            onClick={setActiveTab}
-          />
+        <div className="mb-6">
+          <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('metrics')}
+                className={`${activeTab === 'metrics'
+                  ? theme === 'dark'
+                    ? 'border-blue-400 text-blue-400'
+                    : 'border-blue-600 text-blue-600'
+                  : theme === 'dark'
+                    ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+              >
+                <FaChartBar size={16} />
+                <span>Metrics & Analytics</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('manage')}
+                className={`${activeTab === 'manage'
+                  ? theme === 'dark'
+                    ? 'border-blue-400 text-blue-400'
+                    : 'border-blue-600 text-blue-600'
+                  : theme === 'dark'
+                    ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+              >
+                <FaProjectDiagram size={16} />
+                <span>Manage Organization</span>
+              </button>
+            </nav>
+          </div>
         </div>
 
         {/* Tab Content */}
@@ -505,4 +509,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

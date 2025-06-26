@@ -61,4 +61,28 @@ router.get('/task-types', async (req, res) => {
   }
 });
 
+// GET /api/common-types/subscription-features - Get subscription features by plan type
+router.get('/subscription-features/:planType', async (req, res) => {
+  try {
+    const { planType } = req.params;
+    const features = await CommonType.find({ 
+      MasterType: 'SubscriptionFeatures', 
+      Description: planType 
+    }).sort({ Code: 1 });
+    res.json(features);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch subscription features' });
+  }
+});
+
+// GET /api/common-types/subscription-features - Get all subscription features
+router.get('/subscription-features', async (req, res) => {
+  try {
+    const features = await CommonType.find({ MasterType: 'SubscriptionFeatures' }).sort({ Code: 1 });
+    res.json(features);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch subscription features' });
+  }
+});
+
 module.exports = router; 

@@ -3,11 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import Head from 'next/head';
 import Layout from '../components/Layout';
 import { useState, useEffect } from 'react';
-import { FaMoon, FaSun, FaDesktop, FaShieldAlt, FaSignOutAlt, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaMoon, FaSun, FaDesktop, FaShieldAlt, FaSignOutAlt, FaCheck, FaTimes, FaCrown, FaInfinity, FaUsers, FaRocket, FaStar, FaCheckCircle } from 'react-icons/fa';
 import { useToast } from '../context/ToastContext';
 import TwoFactorAuth from '../components/TwoFactorAuth';
 import Breadcrumb from '../components/Breadcrumb';
 import authService from '../services/api';
+import { useRouter } from 'next/router';
 
 const Settings = () => {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -22,6 +23,15 @@ const Settings = () => {
     loginNotifications: user?.loginNotifications !== false
   });
   const { showToast } = useToast();
+  const router = useRouter();
+  const [subscriptionData, setSubscriptionData] = useState(null);
+  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [loadingSubscription, setLoadingSubscription] = useState(false);
+  const [subscriptionFeatures, setSubscriptionFeatures] = useState({
+    free: [],
+    monthly: [],
+    annual: []
+  });
 
   // Update security settings when user data changes
   useEffect(() => {
@@ -38,6 +48,68 @@ const Settings = () => {
   useEffect(() => {
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Fetch subscription data when subscription tab is active
+  useEffect(() => {
+    if (activeTab === 'subscription' && user?.organizationID) {
+      fetchSubscriptionData();
+      fetchSubscriptionFeatures();
+    }
+  }, [activeTab, user?.organizationID]);
+
+  // Fetch subscription features
+  const fetchSubscriptionFeatures = async () => {
+    try {
+      const [freeFeatures, monthlyFeatures, annualFeatures] = await Promise.all([
+        authService.get('/common-types/subscription-features/free'),
+        authService.get('/common-types/subscription-features/monthly'),
+        authService.get('/common-types/subscription-features/annual')
+      ]);
+      
+      setSubscriptionFeatures({
+        free: freeFeatures.data || [],
+        monthly: monthlyFeatures.data || [],
+        annual: annualFeatures.data || []
+      });
+    } catch (error) {
+      console.error('Error fetching subscription features:', error);
+    }
+  };
+
+  // Helper function to get icon for feature
+  const getFeatureIcon = (feature) => {
+    const featureText = feature.Value.toLowerCase();
+    if (featureText.includes('unlimited')) {
+      return <FaInfinity className="text-sm text-white" />;
+    } else if (featureText.includes('analytics')) {
+      return <FaRocket className="text-sm text-white" />;
+    } else if (featureText.includes('support')) {
+      return <FaStar className="text-sm text-white" />;
+    } else if (featureText.includes('members')) {
+      return <FaUsers className="text-sm text-white" />;
+    } else if (featureText.includes('discount')) {
+      return <FaCheckCircle className="text-sm text-white" />;
+    } else {
+      return <FaCheck className="text-sm text-white" />;
+    }
+  };
+
+  const fetchSubscriptionData = async () => {
+    setLoadingSubscription(true);
+    try {
+      const [subscriptionResponse, historyResponse] = await Promise.all([
+        authService.get(`/payment/subscription/${user.organizationID}`),
+        authService.get(`/payment/history/${user.organizationID}`)
+      ]);
+      
+      setSubscriptionData(subscriptionResponse.data.data);
+      setPaymentHistory(historyResponse.data.data.payments || []);
+    } catch (error) {
+      console.error('Error fetching subscription data:', error);
+    } finally {
+      setLoadingSubscription(false);
+    }
+  };
 
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
@@ -86,9 +158,50 @@ const Settings = () => {
     }
   };
 
+  // Helper function to get current plan
+  const getCurrentPlan = () => {
+    if (!subscriptionData?.hasActiveSubscription) return 'free';
+    if (subscriptionData.subscription?.plan === 'monthly') return 'monthly';
+    if (subscriptionData.subscription?.plan === 'annual') return 'annual';
+    return 'free';
+  };
+
+  // Helper function to get button text and state
+  const getPlanButtonInfo = (planType) => {
+    const currentPlan = getCurrentPlan();
+    const planOrder = { free: 0, monthly: 1, annual: 2 };
+    
+    if (planType === currentPlan) {
+      return {
+        text: 'Current Plan',
+        disabled: true,
+        className: theme === 'dark' 
+          ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
+          : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+      };
+    } else if (planOrder[planType] > planOrder[currentPlan]) {
+      return {
+        text: 'Upgrade',
+        disabled: false,
+        className: planType === 'monthly'
+          ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+          : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+      };
+    } else {
+      return {
+        text: 'Downgrade',
+        disabled: false,
+        className: theme === 'dark'
+          ? 'bg-gray-600 hover:bg-gray-500 text-white'
+          : 'bg-gray-500 hover:bg-gray-600 text-white'
+      };
+    }
+  };
+
   const tabs = [
     { id: 'appearance', label: 'Appearance', icon: resolvedTheme === 'dark' ? FaMoon : FaSun },
-    { id: 'security', label: 'Security', icon: FaShieldAlt }
+    { id: 'security', label: 'Security', icon: FaShieldAlt },
+    { id: 'subscription', label: 'Subscription', icon: FaCrown }
   ];
 
   return (
@@ -346,6 +459,400 @@ const Settings = () => {
                   <span>{loading ? 'Saving...' : 'Save Security Settings'}</span>
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Subscription Settings */}
+          {activeTab === 'subscription' && (
+            <div className={`p-6 ${theme === 'dark' ? 'bg-[#1F1F1F]' : 'bg-white'}`}>
+              <div className="mb-8">
+                <h2 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  Subscription Plans
+                </h2>
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Choose the perfect plan for your organization's needs
+                </p>
+              </div>
+
+              {/* Current Plan Status */}
+              <div className={`mb-8 p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      Current Plan: {subscriptionData?.hasActiveSubscription ? 'Premium' : 'Free'}
+                    </h3>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
+                      {subscriptionData?.hasActiveSubscription 
+                        ? `Active until ${new Date(subscriptionData.subscription.subscriptionEndDate).toLocaleDateString()}`
+                        : 'Limited to 3 projects, 3 user stories, and 20 tasks per user story'
+                      }
+                    </p>
+                    {subscriptionData?.hasActiveSubscription && (
+                      <p className={`text-sm ${theme === 'dark' ? 'text-green-400' : 'text-green-600'} mt-1`}>
+                        {subscriptionData.premiumUsersCount} members have premium access
+                      </p>
+                    )}
+                  </div>
+                  <div className={`px-4 py-2 rounded-full text-sm font-medium ${
+                    subscriptionData?.hasActiveSubscription
+                      ? theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700'
+                      : theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
+                  }`}>
+                    {subscriptionData?.hasActiveSubscription ? 'Premium Plan' : 'Free Plan'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Subscription Cards */}
+              <div className="w-4/5 mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {/* Free Plan */}
+                  <div className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
+                    theme === 'dark' 
+                      ? 'bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-600 hover:border-gray-500' 
+                      : 'bg-gradient-to-br from-gray-50 to-white border-gray-200 hover:border-gray-300 shadow-lg hover:shadow-xl'
+                  }`}>
+                    {/* Current Plan Badge */}
+                    {getCurrentPlan() === 'free' && (
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <div className={`px-4 py-2 rounded-full text-xs font-bold ${theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white'} shadow-lg`}>
+                          ✓ CURRENT PLAN
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Background Pattern */}
+                    <div className={`absolute inset-0 rounded-2xl opacity-5 ${theme === 'dark' ? 'bg-white' : 'bg-gray-900'}`} 
+                         style={{
+                           backgroundImage: `radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px),
+                                           radial-gradient(circle at 75% 75%, currentColor 1px, transparent 1px)`,
+                           backgroundSize: '20px 20px'
+                         }}>
+                    </div>
+                    
+                    <div className="relative z-10 flex flex-col h-full">
+                      <div className="text-center mb-8">
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 group-hover:scale-110 ${
+                          theme === 'dark' ? 'bg-gradient-to-br from-gray-700 to-gray-800' : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                        }`}>
+                          <FaUsers className={`text-2xl ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
+                        </div>
+                        <h3 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Free</h3>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Perfect for small teams</p>
+                      </div>
+                      
+                      <div className="text-center mb-8">
+                        <div className="flex items-center justify-center gap-1 mb-2">
+                          <span className={`text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>$0</span>
+                          <span className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>/month</span>
+                        </div>
+                        <div className={`w-16 h-0.5 mx-auto rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+                      </div>
+
+                      <div className="flex-grow">
+                        <ul className="space-y-4 mb-8">
+                          {subscriptionFeatures.free.map((feature) => (
+                            <li key={feature.Code} className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-green-600/20' : 'bg-green-100'}`}>
+                                {getFeatureIcon(feature)}
+                              </div>
+                              <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                {feature.Value}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <button
+                        disabled={getPlanButtonInfo('free').disabled}
+                        onClick={() => {
+                          if (getCurrentPlan() !== 'free') {
+                            // Handle downgrade to free
+                            showToast('Contact support to downgrade your plan', 'info');
+                          }
+                        }}
+                        className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${getPlanButtonInfo('free').className}`}
+                      >
+                        {getPlanButtonInfo('free').text}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Monthly Premium */}
+                  <div className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
+                    theme === 'dark'
+                      ? 'bg-gradient-to-br from-blue-900/30 via-purple-900/20 to-indigo-900/30 border-blue-500/50 hover:border-blue-400'
+                      : 'bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 border-blue-500 hover:border-blue-400 shadow-lg hover:shadow-xl'
+                  }`}>
+                    {/* Current Plan Badge */}
+                    {getCurrentPlan() === 'monthly' && (
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <div className={`px-4 py-2 rounded-full text-xs font-bold ${theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white'} shadow-lg`}>
+                          ✓ CURRENT PLAN
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Popular Badge */}
+                    {getCurrentPlan() !== 'monthly' && (
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <div className={`px-4 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg`}>
+                          ⭐ POPULAR
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Background Pattern */}
+                    <div className={`absolute inset-0 rounded-2xl opacity-10 ${theme === 'dark' ? 'bg-white' : 'bg-blue-900'}`} 
+                         style={{
+                           backgroundImage: `radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px),
+                                           radial-gradient(circle at 75% 75%, currentColor 1px, transparent 1px)`,
+                           backgroundSize: '20px 20px'
+                         }}>
+                    </div>
+                    
+                    <div className="relative z-10 flex flex-col h-full">
+                      <div className="text-center mb-8">
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 group-hover:scale-110 bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg`}>
+                          <FaCrown className="text-2xl text-white" />
+                        </div>
+                        <h3 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Premium Monthly</h3>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>For growing organizations</p>
+                      </div>
+                      
+                      <div className="text-center mb-8">
+                        <div className="flex items-center justify-center gap-1 mb-2">
+                          <span className={`text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>$99</span>
+                          <span className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>/month</span>
+                        </div>
+                        <div className="w-16 h-0.5 mx-auto rounded-full bg-gradient-to-r from-blue-600 to-purple-600"></div>
+                      </div>
+
+                      <div className="flex-grow">
+                        <ul className="space-y-4 mb-8">
+                          {subscriptionFeatures.monthly.map((feature) => (
+                            <li key={feature.Code} className="flex items-center gap-3">
+                              <div className="w-6 h-6 rounded-full flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600">
+                                {getFeatureIcon(feature)}
+                              </div>
+                              <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                {feature.Value}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <button
+                        disabled={getPlanButtonInfo('monthly').disabled}
+                        onClick={() => {
+                          if (getCurrentPlan() !== 'monthly') {
+                            router.push(`/payment?plan=monthly&amount=99`);
+                          }
+                        }}
+                        className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${getPlanButtonInfo('monthly').className}`}
+                      >
+                        {getPlanButtonInfo('monthly').text}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Annual Premium */}
+                  <div className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
+                    theme === 'dark'
+                      ? 'bg-gradient-to-br from-purple-900/30 via-pink-900/20 to-indigo-900/30 border-purple-500/50 hover:border-purple-400'
+                      : 'bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 border-purple-500 hover:border-purple-400 shadow-lg hover:shadow-xl'
+                  }`}>
+                    {/* Current Plan Badge */}
+                    {getCurrentPlan() === 'annual' && (
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <div className={`px-4 py-2 rounded-full text-xs font-bold ${theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white'} shadow-lg`}>
+                          ✓ CURRENT PLAN
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Best Value Badge */}
+                    {getCurrentPlan() !== 'annual' && (
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <div className={`px-4 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg`}>
+                          🏆 BEST VALUE
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Background Pattern */}
+                    <div className={`absolute inset-0 rounded-2xl opacity-10 ${theme === 'dark' ? 'bg-white' : 'bg-purple-900'}`} 
+                         style={{
+                           backgroundImage: `radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px),
+                                           radial-gradient(circle at 75% 75%, currentColor 1px, transparent 1px)`,
+                           backgroundSize: '20px 20px'
+                         }}>
+                    </div>
+                    
+                    <div className="relative z-10 flex flex-col h-full">
+                      <div className="text-center mb-8">
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 group-hover:scale-110 bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg`}>
+                          <FaStar className="text-2xl text-white" />
+                        </div>
+                        <h3 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Premium Annual</h3>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Save 40% with annual billing</p>
+                      </div>
+                      
+                      <div className="text-center mb-8">
+                        <div className="flex items-center justify-center gap-1 mb-2">
+                          <span className={`text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent`}>$59</span>
+                          <span className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>/month</span>
+                        </div>
+                        <div className="flex items-center justify-center gap-1 mb-2">
+                          <span className={`text-lg font-semibold ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`}>$708</span>
+                          <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>/year</span>
+                        </div>
+                        <div className={`mt-2 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white`}>
+                          Save $480/year
+                        </div>
+                        <div className="w-16 h-0.5 mx-auto rounded-full bg-gradient-to-r from-purple-600 to-pink-600 mt-2"></div>
+                      </div>
+
+                      <div className="flex-grow">
+                        <ul className="space-y-4 mb-8">
+                          {subscriptionFeatures.annual.map((feature) => (
+                            <li key={feature.Code} className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                                feature.Value.toLowerCase().includes('discount') 
+                                  ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                                  : 'bg-gradient-to-r from-purple-600 to-pink-600'
+                              }`}>
+                                {getFeatureIcon(feature)}
+                              </div>
+                              <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                {feature.Value}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <button
+                        disabled={getPlanButtonInfo('annual').disabled}
+                        onClick={() => {
+                          if (getCurrentPlan() !== 'annual') {
+                            router.push(`/payment?plan=annual&amount=708`);
+                          }
+                        }}
+                        className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${getPlanButtonInfo('annual').className}`}
+                      >
+                        {getPlanButtonInfo('annual').text}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transaction History */}
+              {subscriptionData?.hasActiveSubscription && (
+                <div className={`mt-8 rounded-xl shadow-sm border ${theme === 'dark' ? 'bg-[#1F1F1F] border-gray-700' : 'bg-white border-gray-200'}`}>
+                  <div className={`p-6 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <h3 className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      Transaction History
+                    </h3>
+                  </div>
+                  
+                  <div className="overflow-x-auto">
+                    {loadingSubscription ? (
+                      <div className="p-6 text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                        <p className={`mt-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                          Loading transactions...
+                        </p>
+                      </div>
+                    ) : paymentHistory.length > 0 ? (
+                      <table className="w-full">
+                        <thead>
+                          <tr className={`${theme === 'dark' ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'} border-b`}>
+                            <th className="py-3 px-4 text-left">Date</th>
+                            <th className="py-3 px-4 text-left">Amount</th>
+                            <th className="py-3 px-4 text-left">Plan</th>
+                            <th className="py-3 px-4 text-left">Status</th>
+                            <th className="py-3 px-4 text-left">Payment Method</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paymentHistory.map((payment) => (
+                            <tr key={payment._id} className={`border-b ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-800/50' : 'border-gray-100 hover:bg-gray-50'}`}>
+                              <td className="py-3 px-4">
+                                <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                  {new Date(payment.createdAt).toLocaleDateString()}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  ${payment.amount}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                  {payment.plan === 'monthly' ? 'Monthly' : 'Annual'}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  payment.status === 'completed'
+                                    ? theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700'
+                                    : payment.status === 'pending'
+                                    ? theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'
+                                    : theme === 'dark' ? 'bg-red-600/20 text-red-400' : 'bg-red-100 text-red-700'
+                                }`}>
+                                  {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                  {payment.paymentMethod === 'card' ? 'Credit Card' : 'Bank Transfer'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <div className="p-6 text-center">
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                          No transactions found
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Additional Information */}
+                  <div className={`mt-8 p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <h3 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      What's included in Premium?
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className={`font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Unlimited Resources</h4>
+                        <ul className={`space-y-1 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                          <li>• Create unlimited projects</li>
+                          <li>• Unlimited user stories per project</li>
+                          <li>• Unlimited tasks per user story</li>
+                          <li>• No storage limits</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className={`font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Premium Features</h4>
+                        <ul className={`space-y-1 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                          <li>• Advanced analytics & reporting</li>
+                          <li>• Priority customer support</li>
+                          <li>• All team members get premium access</li>
+                          <li>• Early access to new features</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

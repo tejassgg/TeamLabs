@@ -199,6 +199,68 @@ const UserSchema = new mongoose.Schema({
   },
   tempTwoFactorSecretCreatedAt: {
     type: Date
+  },
+  
+  // Subscription Properties
+  subscriptionStatus: {
+    type: String,
+    enum: ['free', 'premium'],
+    default: 'free'
+  },
+  subscriptionPlan: {
+    type: String,
+    enum: [null,'monthly', 'annual'],
+    default: null
+  },
+  subscriptionStartDate: {
+    type: Date,
+    default: null
+  },
+  subscriptionEndDate: {
+    type: Date,
+    default: null
+  },
+  isPremiumMember: {
+    type: Boolean,
+    default: false
+  },
+  
+  // Payment Method (encrypted)
+  savedPaymentMethod: {
+    type: {
+      type: String,
+      enum: [null, 'card', 'bank'],
+      default: null
+    },
+    cardDetails: {
+      last4: String,
+      brand: String,
+      expiryMonth: String,
+      expiryYear: String,
+      cardHolderName: String
+    },
+    bankDetails: {
+      bankName: String,
+      accountLast4: String,
+      routingNumber: String,
+      accountHolderName: String
+    }
+  },
+  
+  // Usage Limits (for free plan)
+  usageLimits: {
+    projectsCreated: {
+      type: Number,
+      default: 0
+    },
+    userStoriesCreated: {
+      type: Number,
+      default: 0
+    },
+    tasksCreated: {
+      type: Number,
+      default: 0
+    }
   }
 });
 
@@ -232,6 +294,90 @@ UserSchema.methods.isTwoFactorEnabled = function() {
 UserSchema.methods.getTwoFactorSecret = async function() {
   if (!this.twoFactorSecret) return null;
   return this.twoFactorSecret;
+};
+
+// Subscription Methods
+UserSchema.methods.isSubscriptionActive = function() {
+  if (!this.isPremiumMember) return false;
+  if (!this.subscriptionEndDate) return false;
+  return new Date() <= this.subscriptionEndDate;
+};
+
+UserSchema.methods.getDaysUntilExpiry = function() {
+  if (!this.subscriptionEndDate) return 0;
+  const now = new Date();
+  const end = new Date(this.subscriptionEndDate);
+  const diffTime = end - now;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(0, diffDays);
+};
+
+UserSchema.methods.canCreateProject = function() {
+  if (this.isPremiumMember && this.isSubscriptionActive()) {
+    return true; // Unlimited for premium
+  }
+  return this.usageLimits.projectsCreated < 3; // Free plan limit
+};
+
+UserSchema.methods.canCreateUserStory = function() {
+  if (this.isPremiumMember && this.isSubscriptionActive()) {
+    return true; // Unlimited for premium
+  }
+  return this.usageLimits.userStoriesCreated < 3; // Free plan limit
+};
+
+UserSchema.methods.canCreateTask = function() {
+  if (this.isPremiumMember && this.isSubscriptionActive()) {
+    return true; // Unlimited for premium
+  }
+  return this.usageLimits.tasksCreated < 20; // Free plan limit per user story
+};
+
+UserSchema.methods.incrementUsage = function(type) {
+  if (type === 'project') {
+    this.usageLimits.projectsCreated += 1;
+  } else if (type === 'userStory') {
+    this.usageLimits.userStoriesCreated += 1;
+  } else if (type === 'task') {
+    this.usageLimits.tasksCreated += 1;
+  }
+  return this.save();
+};
+
+UserSchema.methods.activatePremium = function(plan, startDate, endDate) {
+  this.isPremiumMember = true;
+  this.subscriptionStatus = 'premium';
+  this.subscriptionPlan = plan;
+  this.subscriptionStartDate = startDate;
+  this.subscriptionEndDate = endDate;
+  return this.save();
+};
+
+UserSchema.methods.deactivatePremium = function() {
+  this.isPremiumMember = false;
+  this.subscriptionStatus = 'free';
+  this.subscriptionPlan = null;
+  this.subscriptionStartDate = null;
+  this.subscriptionEndDate = null;
+  return this.save();
+};
+
+// Static method to get all premium users in an organization
+UserSchema.statics.getPremiumUsers = function(organizationId) {
+  return this.find({
+    organizationID: organizationId,
+    isPremiumMember: true,
+    subscriptionEndDate: { $gte: new Date() }
+  });
+};
+
+// Static method to check if organization has active premium subscription
+UserSchema.statics.hasActivePremiumSubscription = function(organizationId) {
+  return this.findOne({
+    organizationID: organizationId,
+    isPremiumMember: true,
+    subscriptionEndDate: { $gte: new Date() }
+  });
 };
 
 const User = mongoose.model('User', UserSchema);
