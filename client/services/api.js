@@ -332,6 +332,14 @@ export const projectService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to update project' };
     }
+  },
+  getProjectDetails: async (projectId) => {
+    try {
+      const response = await api.get(`/project-details/${projectId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch project details' };
+    }
   }
 };
 

@@ -5,11 +5,12 @@ import Link from 'next/link';
 import Layout from '../components/Layout';
 import { FaChevronRight, FaInfoCircle, FaTasks, FaExclamationCircle, FaTimes, FaCheckCircle, FaClock, FaCode, FaVial, FaShieldAlt, FaRocket, FaTrashAlt } from 'react-icons/fa';
 import { useGlobal } from '../context/GlobalContext';
-import { taskService } from '../services/api';
+import { taskService, projectService } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import React from 'react';
 import AssignTaskModal from '../components/AssignTaskModal';
 import { useTheme } from '../context/ThemeContext';
+import AddTaskModal from '../components/AddTaskModal';
 
 // Custom hook for theme-aware classes
 const useThemeClasses = () => {
@@ -350,11 +351,17 @@ const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd,
 TaskCard.displayName = 'TaskCard';
 
 // Create a memoized column component
-const KanbanColumn = React.memo(({ statusCode, statusName, icon, bgColor, tasks, handleDragStart, handleDragEnd, handleDrop, isTaskAssignedToUser, isLast }) => {
+const KanbanColumn = React.memo(({ statusCode, statusName, icon, bgColor, tasks, handleDragStart, handleDragEnd, handleDrop, isTaskAssignedToUser, isLast, addTaskButton }) => {
   const { theme } = useTheme();
   const getThemeClasses = useThemeClasses();
   const tasksInStatus = tasks.filter(task => task.Status === statusCode);
   const statusStyle = statusColors[statusCode];
+
+  // Only show vertical scrollbar if there are tasks in Not Assigned column
+  const columnScrollClass =
+    statusCode === 1 && tasksInStatus.length === 0
+      ? 'overflow-y-hidden'
+      : 'overflow-y-auto';
 
   return (
     <div
@@ -389,7 +396,7 @@ const KanbanColumn = React.memo(({ statusCode, statusName, icon, bgColor, tasks,
         </span>
       </div>
       <div className={getThemeClasses(
-        'p-3 flex-1 overflow-y-auto',
+        `p-3 flex-1 ${columnScrollClass}`,
         'dark:bg-gray-800/50'
       )}>
         {tasksInStatus.map(task => (
@@ -403,6 +410,8 @@ const KanbanColumn = React.memo(({ statusCode, statusName, icon, bgColor, tasks,
             bgColor={statusStyle.light}
           />
         ))}
+        {/* Add New Task button just after the last Not Assigned card */}
+        {addTaskButton}
         {tasksInStatus.length === 0 && (
           <div className={getThemeClasses(
             'flex flex-col items-center justify-center h-full text-gray-400',
@@ -433,6 +442,8 @@ const KanbanBoard = () => {
   const [showDeleteArea, setShowDeleteArea] = useState(false);
   const [isOverDeleteArea, setIsOverDeleteArea] = useState(false);
   const [draggedCardDimensions, setDraggedCardDimensions] = useState(null);
+  const [userStories, setUserStories] = useState([]);
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const { theme } = useTheme();
   const getThemeClasses = useThemeClasses();
 
@@ -443,26 +454,23 @@ const KanbanBoard = () => {
     }
   }, [projects, selectedProject]);
 
-  // Fetch tasks when a project is selected
+  // Fetch tasks and user stories when a project is selected
   useEffect(() => {
-    const fetchTasks = async () => {
+    const fetchTasksAndUserStories = async () => {
       if (!selectedProject) return;
-
       setLoading(true);
       try {
         const fetchedTasks = await taskService.getTaskDetails(selectedProject);
-
-        // Map any tasks with removed statuses to appropriate fallback statuses
         const mappedTasks = fetchedTasks.map(task => {
-          // Map Development (4) and Testing (5) to In Progress (3)
           if (task.Status === 4 || task.Status === 5) {
             return { ...task, Status: 3 };
           }
           return task;
         });
-
-        // Smooth transition: fade out old tasks, then update with new ones
         setTasks(mappedTasks);
+        // Fetch user stories for the project
+        const projectDetails = await projectService.getProjectDetails(selectedProject);
+        setUserStories(projectDetails.userStories || []);
       } catch (err) {
         setError('Failed to fetch tasks');
         showToast('Failed to fetch tasks', 'error');
@@ -470,8 +478,7 @@ const KanbanBoard = () => {
         setLoading(false);
       }
     };
-
-    fetchTasks();
+    fetchTasksAndUserStories();
   }, [selectedProject]);
 
   // Handle project selection change
@@ -736,7 +743,20 @@ const KanbanBoard = () => {
                 const icon = statusIcons[status];
                 const statusStyle = statusColors[status];
                 const isLast = index === arr.length - 1;
-
+                // Only for Not Assigned column (status 1), pass the Add New Task button as a prop
+                const addTaskButton = status === 1 ? (
+                  <div className="mt-2">
+                    <button
+                      className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-white border border-gray-200 rounded-lg shadow-sm text-gray-500 font-semibold text-base transition hover:bg-gray-50 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      style={{ minHeight: '64px' }}
+                      onClick={() => setShowAddTaskModal(true)}
+                    >
+                      <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>Add New Task
+                    </button>
+                  </div>
+                ) : null;
                 return (
                   <KanbanColumn
                     key={statusCode}
@@ -750,6 +770,7 @@ const KanbanBoard = () => {
                     handleDrop={handleDrop}
                     isTaskAssignedToUser={isTaskAssignedToUser}
                     isLast={isLast}
+                    addTaskButton={addTaskButton}
                   />
                 );
               })}
@@ -946,6 +967,26 @@ const KanbanBoard = () => {
           task={draggingTask}
           projectId={selectedProject}
           onAssignTask={handleAssignTask}
+        />
+
+        {/* AddTaskModal for Not Assigned column */}
+        <AddTaskModal
+          isOpen={showAddTaskModal}
+          onClose={() => setShowAddTaskModal(false)}
+          onAddTask={async (taskData) => {
+            // Add the new task to the Not Assigned column
+            try {
+              const newTask = await taskService.addTaskDetails(taskData, 'fromProject');
+              setTasks(prev => [...prev, newTask]);
+              setShowAddTaskModal(false);
+              showToast('Task added successfully', 'success');
+            } catch (err) {
+              showToast('Failed to add task', 'error');
+            }
+          }}
+          mode="fromProject"
+          projectIdDefault={selectedProject}
+          userStories={userStories}
         />
 
         {/* Instructions */}
