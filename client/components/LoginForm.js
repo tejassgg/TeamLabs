@@ -65,7 +65,6 @@ const LoginForm = ({ onSuccess }) => {
   };
 
   const handleGoogleLoginSuccess = async (credentialResponse) => {
-    console.log(credentialResponse);
     try {
       const response = await googleLogin(credentialResponse.credential);
       if (response.success) {

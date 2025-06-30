@@ -34,7 +34,6 @@ export default function TwoFactorAuth({
       const data = await authService.generate2FA(user._id);
       setSecret(data.secret);
       setQrCode(data.qrCode);
-      console.log(data.qrCode);
       setStep('qr');
     } catch (error) {
       console.error('2FA Setup Error:', error);

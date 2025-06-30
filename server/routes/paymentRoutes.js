@@ -4,7 +4,10 @@ const {
   processPayment, 
   getPaymentHistory, 
   getSubscriptionStatus, 
-  cancelSubscription 
+  cancelSubscription,
+  downgradeSubscription,
+  calculateDowngradeRefund,
+  upgradeSubscription
 } = require('../controllers/paymentController');
 const { protect } = require('../middleware/auth');
 
@@ -19,5 +22,14 @@ router.get('/subscription/:organizationID', protect, getSubscriptionStatus);
 
 // Cancel subscription
 router.post('/cancel/:organizationID', protect, cancelSubscription);
+
+// Downgrade subscription
+router.post('/downgrade/:organizationID', protect, downgradeSubscription);
+
+// Calculate refund amount for downgrade
+router.get('/calculate-refund/:organizationID', protect, calculateDowngradeRefund);
+
+// Upgrade subscription
+router.post('/upgrade/:organizationID', protect, upgradeSubscription);
 
 module.exports = router; 

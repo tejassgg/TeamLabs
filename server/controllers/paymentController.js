@@ -243,6 +243,310 @@ const cancelSubscription = async (req, res) => {
   }
 };
 
+// Downgrade subscription
+const downgradeSubscription = async (req, res) => {
+  try {
+    const { organizationID } = req.params;
+    const { newPlan, userId } = req.body;
+
+    // Validate new plan
+    if (!['monthly', 'free'].includes(newPlan)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid new plan. Must be "monthly" or "free"'
+      });
+    }
+
+    // Find active subscription
+    const activeSubscription = await Payment.getActiveSubscription(organizationID);
+    
+    if (!activeSubscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'No active subscription found'
+      });
+    }
+
+    let refundResult = null;
+
+    // Process refund for downgrade to free plan (any plan to free)
+    if (newPlan === 'free') {
+      // Check if eligible for refund (any active plan can be refunded when downgrading to free)
+      if (activeSubscription.status !== 'completed') {
+        return res.status(400).json({
+          success: false,
+          message: 'Subscription is not eligible for refund. Must be an active completed subscription.'
+        });
+      }
+
+      // Check if subscription is still active
+      const now = new Date();
+      if (now >= activeSubscription.subscriptionEndDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'Subscription has already expired.'
+        });
+      }
+
+      // Check if there are at least 1 day remaining (minimum refund period)
+      const remainingDays = Math.ceil((activeSubscription.subscriptionEndDate - now) / (1000 * 60 * 60 * 24));
+      if (remainingDays < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Subscription is not eligible for refund. Must have at least 1 day remaining.'
+        });
+      }
+
+      try {
+        refundResult = await Payment.createDowngradeRefund(activeSubscription, newPlan, userId);
+      } catch (refundError) {
+        console.error('Refund processing error:', refundError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to process refund. Please contact support.'
+        });
+      }
+    }
+    // Process refund for annual to monthly downgrade
+    else if (newPlan === 'monthly' && activeSubscription.plan === 'annual') {
+      // Check if eligible for refund
+      if (!Payment.isEligibleForDowngradeRefund(activeSubscription)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Subscription is not eligible for downgrade refund. Must have at least 7 days remaining.'
+        });
+      }
+
+      try {
+        refundResult = await Payment.createDowngradeRefund(activeSubscription, newPlan, userId);
+      } catch (refundError) {
+        console.error('Refund processing error:', refundError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to process refund. Please contact support.'
+        });
+      }
+    }
+
+    // Update subscription based on new plan
+    if (newPlan === 'monthly') {
+      // Create new monthly subscription
+      const monthlyPayment = new Payment({
+        paymentId: `MONTHLY_${Date.now()}`,
+        amount: 99, // Monthly plan price
+        currency: 'USD',
+        status: 'completed',
+        plan: 'monthly',
+        billingCycle: 'monthly',
+        paymentMethod: activeSubscription.paymentMethod,
+        organizationID: organizationID,
+        userId: userId,
+        subscriptionStartDate: new Date(),
+        subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        autoRenew: true,
+        savePaymentMethod: activeSubscription.savePaymentMethod,
+        transactionId: `MONTHLY_${Date.now()}`,
+        gatewayResponse: {
+          downgradeFrom: activeSubscription.plan,
+          originalPaymentId: activeSubscription.paymentId,
+          refundAmount: refundResult?.refundAmount || 0
+        },
+        originalPaymentId: activeSubscription.paymentId
+      });
+
+      await monthlyPayment.save();
+      
+      // Activate monthly premium for organization
+      await activateOrganizationPremium(organizationID, 'monthly');
+    } else if (newPlan === 'free') {
+      // Deactivate premium for all users in organization
+      await deactivateOrganizationPremium(organizationID);
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully downgraded to ${newPlan} plan`,
+      data: {
+        newPlan,
+        refundAmount: refundResult?.refundAmount || 0,
+        remainingDays: refundResult?.remainingDays || 0,
+        refundPaymentId: refundResult?.refundPayment?.paymentId,
+        originalPlan: activeSubscription.plan
+      }
+    });
+  } catch (error) {
+    console.error('Downgrade subscription error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Calculate refund amount for downgrade (without processing)
+const calculateDowngradeRefund = async (req, res) => {
+  try {
+    const { organizationID } = req.params;
+    const { newPlan } = req.query;
+
+    // Validate new plan
+    if (!['monthly', 'free'].includes(newPlan)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid new plan. Must be "monthly" or "free"'
+      });
+    }
+
+    // Find active subscription
+    const activeSubscription = await Payment.getActiveSubscription(organizationID);
+    
+    if (!activeSubscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'No active subscription found'
+      });
+    }
+
+    // Check eligibility based on downgrade type
+    if (newPlan === 'free') {
+      // For downgrade to free, any active plan is eligible
+      if (activeSubscription.status !== 'completed') {
+        return res.status(400).json({
+          success: false,
+          message: 'Subscription is not eligible for refund. Must be an active completed subscription.'
+        });
+      }
+
+      // Check if subscription is still active
+      const now = new Date();
+      if (now >= activeSubscription.subscriptionEndDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'Subscription has already expired.'
+        });
+      }
+
+      // Check if there are at least 1 day remaining (minimum refund period)
+      const remainingDays = Math.ceil((activeSubscription.subscriptionEndDate - now) / (1000 * 60 * 60 * 24));
+      if (remainingDays < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Subscription is not eligible for refund. Must have at least 1 day remaining.'
+        });
+      }
+    } else if (newPlan === 'monthly') {
+      // For downgrade to monthly, only annual plans are eligible
+      if (activeSubscription.plan !== 'annual') {
+        return res.status(400).json({
+          success: false,
+          message: 'Downgrade refunds are only available for annual plans'
+        });
+      }
+
+      // Check if eligible for refund
+      if (!Payment.isEligibleForDowngradeRefund(activeSubscription)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Subscription is not eligible for downgrade refund. Must have at least 7 days remaining.'
+        });
+      }
+    }
+
+    // Calculate refund amount
+    const now = new Date();
+    const originalEndDate = new Date(activeSubscription.subscriptionEndDate);
+    const totalDays = Math.ceil((originalEndDate - activeSubscription.subscriptionStartDate) / (1000 * 60 * 60 * 24));
+    const remainingDays = Math.ceil((originalEndDate - now) / (1000 * 60 * 60 * 24));
+    const refundAmount = Math.round((activeSubscription.amount / totalDays) * remainingDays);
+
+    res.json({
+      success: true,
+      data: {
+        refundAmount,
+        remainingDays,
+        totalDays,
+        originalAmount: activeSubscription.amount,
+        newPlan,
+        originalPlan: activeSubscription.plan
+      }
+    });
+  } catch (error) {
+    console.error('Calculate refund error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Upgrade subscription
+const upgradeSubscription = async (req, res) => {
+  try {
+    const { organizationID } = req.params;
+    const { newPlan, userId } = req.body;
+
+    // Validate new plan
+    if (newPlan !== 'annual') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid new plan. Must be "annual"'
+      });
+    }
+
+    // Find active subscription
+    const activeSubscription = await Payment.getActiveSubscription(organizationID);
+    
+    if (!activeSubscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'No active subscription found'
+      });
+    }
+
+    // Create new annual subscription
+    const annualPayment = new Payment({
+      paymentId: `ANNUAL_${Date.now()}`,
+      amount: 708, // Annual plan price
+      currency: 'USD',
+      status: 'completed',
+      plan: 'annual',
+      billingCycle: 'annual',
+      paymentMethod: activeSubscription.paymentMethod,
+      organizationID: organizationID,
+      userId: userId,
+      subscriptionStartDate: new Date(),
+      subscriptionEndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 365 days
+      autoRenew: true,
+      savePaymentMethod: activeSubscription.savePaymentMethod,
+      transactionId: `ANNUAL_${Date.now()}`,
+      gatewayResponse: {
+        upgradeFrom: activeSubscription.plan,
+        originalPaymentId: activeSubscription.paymentId
+      },
+      originalPaymentId: activeSubscription.paymentId
+    });
+
+    await annualPayment.save();
+    
+    // Activate annual premium for organization
+    await activateOrganizationPremium(organizationID, 'annual');
+
+    res.json({
+      success: true,
+      message: 'Successfully upgraded to annual plan',
+      data: {
+        newPlan
+      }
+    });
+  } catch (error) {
+    console.error('Upgrade subscription error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
 // Helper functions
 const simulatePaymentProcessing = async (paymentData) => {
   // Simulate payment gateway processing
@@ -308,8 +612,6 @@ const activateOrganizationPremium = async (organizationID, plan) => {
     );
     
     await Promise.all(updatePromises);
-    
-    console.log(`Premium activated for ${users.length} users in organization ${organizationID}`);
   } catch (error) {
     console.error('Error activating organization premium:', error);
     throw error;
@@ -327,8 +629,7 @@ const deactivateOrganizationPremium = async (organizationID) => {
     );
     
     await Promise.all(updatePromises);
-    
-    console.log(`Premium deactivated for ${users.length} users in organization ${organizationID}`);
+
   } catch (error) {
     console.error('Error deactivating organization premium:', error);
     throw error;
@@ -355,5 +656,8 @@ module.exports = {
   processPayment,
   getPaymentHistory,
   getSubscriptionStatus,
-  cancelSubscription
+  cancelSubscription,
+  downgradeSubscription,
+  calculateDowngradeRefund,
+  upgradeSubscription
 }; 

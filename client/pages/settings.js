@@ -32,6 +32,13 @@ const Settings = () => {
     monthly: [],
     annual: []
   });
+  const [showDowngradeModal, setShowDowngradeModal] = useState(false);
+  const [downgradeInfo, setDowngradeInfo] = useState({
+    fromPlan: '',
+    toPlan: '',
+    refundAmount: 0,
+    remainingDays: 0
+  });
 
   // Update security settings when user data changes
   useEffect(() => {
@@ -43,6 +50,20 @@ const Settings = () => {
       });
     }
   }, [user]);
+
+  // Set active tab based on URL query parameter
+  // This allows direct navigation to specific tabs via URL (e.g., /settings?tab=subscription)
+  useEffect(() => {
+    if (router.query.tab) {
+      const validTabs = ['appearance', 'security', 'subscription'];
+      if (validTabs.includes(router.query.tab)) {
+        setActiveTab(router.query.tab);
+      }
+    } else if (router.isReady) {
+      // Default to appearance tab if no tab parameter is provided
+      setActiveTab('appearance');
+    }
+  }, [router.query.tab, router.isReady]);
 
   // Save theme to localStorage whenever it changes
   useEffect(() => {
@@ -56,6 +77,13 @@ const Settings = () => {
       fetchSubscriptionFeatures();
     }
   }, [activeTab, user?.organizationID]);
+
+  // Refresh subscription data when user changes
+  useEffect(() => {
+    if (user?.organizationID) {
+      fetchSubscriptionData();
+    }
+  }, [user?.organizationID]);
 
   // Fetch subscription features
   const fetchSubscriptionFeatures = async () => {
@@ -116,6 +144,15 @@ const Settings = () => {
     showToast(`Theme changed to ${newTheme}`, 'success');
   };
 
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    // Update URL without page reload
+    router.push({
+      pathname: router.pathname,
+      query: { ...router.query, tab: tabId }
+    }, undefined, { shallow: true });
+  };
+
   const handleSecuritySave = async () => {
     setLoading(true);
     try {
@@ -158,11 +195,143 @@ const Settings = () => {
     }
   };
 
+  // Handle downgrade to free
+  const handleDowngradeToFree = async () => {
+    try {
+      const response = await authService.post(`/payment/downgrade/${user.organizationID}`, {
+        newPlan: 'free',
+        userId: user._id
+      });
+      
+      if (response.data.success) {
+        showToast(`Successfully downgraded to free plan`, 'success');
+        fetchSubscriptionData(); // Refresh subscription data
+        setShowDowngradeModal(false);
+      } else {
+        showToast(response.data.message || 'Failed to downgrade', 'error');
+      }
+    } catch (error) {
+      console.error('Downgrade error:', error);
+      showToast(error.response?.data?.message || 'Failed to downgrade. Please try again.', 'error');
+    }
+  };
+
+  // Handle upgrade to annual
+  const handleUpgradeToAnnual = async () => {
+    try {
+      const response = await authService.post(`/payment/upgrade/${user.organizationID}`, {
+        newPlan: 'annual',
+        userId: user._id
+      });
+      
+      if (response.data.success) {
+        showToast(`Successfully upgraded to annual plan`, 'success');
+        fetchSubscriptionData(); // Refresh subscription data
+      } else {
+        showToast(response.data.message || 'Failed to upgrade', 'error');
+      }
+    } catch (error) {
+      console.error('Upgrade error:', error);
+      showToast(error.response?.data?.message || 'Failed to upgrade. Please try again.', 'error');
+    }
+  };
+
+  // Handle downgrade to monthly
+  const handleDowngradeToMonthly = async () => {
+    try {
+      const response = await authService.post(`/payment/downgrade/${user.organizationID}`, {
+        newPlan: 'monthly',
+        userId: user._id
+      });
+      
+      if (response.data.success) {
+        const originalPlan = response.data.data.originalPlan;
+        showToast(`Successfully downgraded from ${originalPlan} to monthly plan. Refund amount: $${response.data.data.refundAmount}`, 'success');
+        
+        // Close modal first
+        setShowDowngradeModal(false);
+        
+        // Add a small delay to ensure backend processing is complete
+        setTimeout(() => {
+          fetchSubscriptionData(); // Refresh subscription data
+        }, 500);
+      } else {
+        showToast(response.data.message || 'Failed to downgrade', 'error');
+      }
+    } catch (error) {
+      console.error('Downgrade error:', error);
+      showToast(error.response?.data?.message || 'Failed to downgrade. Please try again.', 'error');
+    }
+  };
+
+  // Show downgrade confirmation modal
+  const showDowngradeConfirmation = async (toPlan) => {
+    const currentPlan = getCurrentPlan();
+    
+    // Handle downgrade to free (any plan to free)
+    if (toPlan === 'free' && currentPlan !== 'free') {
+      try {
+        // Get actual refund amount from backend
+        const response = await authService.get(`/payment/calculate-refund/${user.organizationID}?newPlan=${toPlan}`);
+        
+        if (response.data.success) {
+          setDowngradeInfo({
+            fromPlan: currentPlan,
+            toPlan: toPlan,
+            refundAmount: response.data.data.refundAmount,
+            remainingDays: response.data.data.remainingDays
+          });
+          setShowDowngradeModal(true);
+        } else {
+          showToast(response.data.message || 'Failed to calculate refund', 'error');
+        }
+      } catch (error) {
+        console.error('Error calculating refund:', error);
+        showToast(error.response?.data?.message || 'Failed to calculate refund. Please try again.', 'error');
+      }
+    }
+    // Handle downgrade from annual to monthly
+    else if (currentPlan === 'annual' && toPlan === 'monthly') {
+      try {
+        // Get actual refund amount from backend
+        const response = await authService.get(`/payment/calculate-refund/${user.organizationID}?newPlan=${toPlan}`);
+        
+        if (response.data.success) {
+          setDowngradeInfo({
+            fromPlan: currentPlan,
+            toPlan: toPlan,
+            refundAmount: response.data.data.refundAmount,
+            remainingDays: response.data.data.remainingDays
+          });
+          setShowDowngradeModal(true);
+        } else {
+          showToast(response.data.message || 'Failed to calculate refund', 'error');
+        }
+      } catch (error) {
+        console.error('Error calculating refund:', error);
+        showToast(error.response?.data?.message || 'Failed to calculate refund. Please try again.', 'error');
+      }
+    } else {
+      // Direct downgrade without refund
+      if (toPlan === 'free') {
+        handleDowngradeToFree();
+      } else if (toPlan === 'monthly') {
+        handleDowngradeToMonthly();
+      }
+    }
+  };
+
   // Helper function to get current plan
   const getCurrentPlan = () => {
-    if (!subscriptionData?.hasActiveSubscription) return 'free';
-    if (subscriptionData.subscription?.plan === 'monthly') return 'monthly';
-    if (subscriptionData.subscription?.plan === 'annual') return 'annual';
+    if (!subscriptionData?.hasActiveSubscription) {
+      return 'free';
+    }
+    if (subscriptionData.subscription?.plan === 'monthly') {
+      return 'monthly';
+    }
+    if (subscriptionData.subscription?.plan === 'annual') {
+      return 'annual';
+    }
     return 'free';
   };
 
@@ -236,7 +405,7 @@ const Settings = () => {
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => handleTabChange(tab.id)}
                     className={`${activeTab === tab.id
                       ? theme === 'dark'
                         ? 'border-blue-400 text-blue-400'
@@ -493,12 +662,28 @@ const Settings = () => {
                       </p>
                     )}
                   </div>
-                  <div className={`px-4 py-2 rounded-full text-sm font-medium ${
-                    subscriptionData?.hasActiveSubscription
-                      ? theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700'
-                      : theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
-                  }`}>
-                    {subscriptionData?.hasActiveSubscription ? 'Premium Plan' : 'Free Plan'}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={fetchSubscriptionData}
+                      disabled={loadingSubscription}
+                      className={`p-2 rounded-lg transition-colors ${
+                        theme === 'dark' 
+                          ? 'hover:bg-gray-700 text-gray-400 hover:text-white' 
+                          : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'
+                      }`}
+                      title="Refresh subscription data"
+                    >
+                      <svg className={`w-5 h-5 ${loadingSubscription ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    </button>
+                    <div className={`px-4 py-2 rounded-full text-sm font-medium ${
+                      subscriptionData?.hasActiveSubscription
+                        ? theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700'
+                        : theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
+                    }`}>
+                      {subscriptionData?.hasActiveSubscription ? 'Premium Plan' : 'Free Plan'}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -569,7 +754,7 @@ const Settings = () => {
                         onClick={() => {
                           if (getCurrentPlan() !== 'free') {
                             // Handle downgrade to free
-                            showToast('Contact support to downgrade your plan', 'info');
+                            showDowngradeConfirmation('free');
                           }
                         }}
                         className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${getPlanButtonInfo('free').className}`}
@@ -647,7 +832,11 @@ const Settings = () => {
                       <button
                         disabled={getPlanButtonInfo('monthly').disabled}
                         onClick={() => {
-                          if (getCurrentPlan() !== 'monthly') {
+                          if (getCurrentPlan() === 'annual') {
+                            // Handle downgrade from annual to monthly
+                            showDowngradeConfirmation('monthly');
+                          } else if (getCurrentPlan() !== 'monthly') {
+                            // Handle upgrade to monthly
                             router.push(`/payment?plan=monthly&amount=99`);
                           }
                         }}
@@ -737,8 +926,15 @@ const Settings = () => {
                       <button
                         disabled={getPlanButtonInfo('annual').disabled}
                         onClick={() => {
-                          if (getCurrentPlan() !== 'annual') {
+                          if (getCurrentPlan() === 'monthly') {
+                            // Handle upgrade from monthly to annual
+                            handleUpgradeToAnnual();
+                          } else if (getCurrentPlan() === 'free') {
+                            // Handle direct upgrade from free to annual
                             router.push(`/payment?plan=annual&amount=708`);
+                          } else if (getCurrentPlan() !== 'annual') {
+                            // Handle upgrade to annual
+                            handleUpgradeToAnnual();
                           }
                         }}
                         className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${getPlanButtonInfo('annual').className}`}
@@ -751,7 +947,7 @@ const Settings = () => {
               </div>
 
               {/* Transaction History */}
-              {subscriptionData?.hasActiveSubscription && (
+              {paymentHistory.length > 0 && (
                 <div className={`mt-8 rounded-xl shadow-sm border ${theme === 'dark' ? 'bg-[#1F1F1F] border-gray-700' : 'bg-white border-gray-200'}`}>
                   <div className={`p-6 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                     <h3 className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -767,13 +963,14 @@ const Settings = () => {
                           Loading transactions...
                         </p>
                       </div>
-                    ) : paymentHistory.length > 0 ? (
+                    ) : (
                       <table className="w-full">
                         <thead>
                           <tr className={`${theme === 'dark' ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'} border-b`}>
                             <th className="py-3 px-4 text-left">Date</th>
                             <th className="py-3 px-4 text-left">Amount</th>
                             <th className="py-3 px-4 text-left">Plan</th>
+                            <th className="py-3 px-4 text-left">Type</th>
                             <th className="py-3 px-4 text-left">Status</th>
                             <th className="py-3 px-4 text-left">Payment Method</th>
                           </tr>
@@ -783,17 +980,40 @@ const Settings = () => {
                             <tr key={payment._id} className={`border-b ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-800/50' : 'border-gray-100 hover:bg-gray-50'}`}>
                               <td className="py-3 px-4">
                                 <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                  {new Date(payment.createdAt).toLocaleDateString()}
+                                  {new Date(payment.createdAt).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit'
+                                  })}
                                 </span>
                               </td>
                               <td className="py-3 px-4">
-                                <span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                  ${payment.amount}
+                                <span className={`font-medium ${payment.amount < 0 ? 'text-red-500' : theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {payment.amount < 0 ? '-' : ''}${Math.abs(payment.amount)}
                                 </span>
                               </td>
                               <td className="py-3 px-4">
                                 <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                  {payment.plan === 'monthly' ? 'Monthly' : 'Annual'}
+                                  {payment.plan === 'monthly' ? 'Monthly' : payment.plan === 'annual' ? 'Annual' : 'Free'}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  payment.paymentId?.startsWith('CREDIT_')
+                                    ? theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'
+                                    : payment.paymentId?.startsWith('REFUND_')
+                                    ? theme === 'dark' ? 'bg-orange-600/20 text-orange-400' : 'bg-orange-100 text-orange-700'
+                                    : payment.paymentId?.startsWith('ANNUAL_') || payment.paymentId?.startsWith('MONTHLY_')
+                                    ? theme === 'dark' ? 'bg-purple-600/20 text-purple-400' : 'bg-purple-100 text-purple-700'
+                                    : theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {payment.paymentId?.startsWith('CREDIT_') ? 'Credit' :
+                                   payment.paymentId?.startsWith('REFUND_') ? 'Refund' :
+                                   payment.paymentId?.startsWith('ANNUAL_') ? 'Upgrade' :
+                                   payment.paymentId?.startsWith('MONTHLY_') ? 'Downgrade' : 'Payment'}
                                 </span>
                               </td>
                               <td className="py-3 px-4">
@@ -802,6 +1022,8 @@ const Settings = () => {
                                     ? theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700'
                                     : payment.status === 'pending'
                                     ? theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'
+                                    : payment.status === 'refunded'
+                                    ? theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'
                                     : theme === 'dark' ? 'bg-red-600/20 text-red-400' : 'bg-red-100 text-red-700'
                                 }`}>
                                   {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
@@ -816,43 +1038,37 @@ const Settings = () => {
                           ))}
                         </tbody>
                       </table>
-                    ) : (
-                      <div className="p-6 text-center">
-                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                          No transactions found
-                        </p>
-                      </div>
                     )}
-                  </div>
-
-                  {/* Additional Information */}
-                  <div className={`mt-8 p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                    <h3 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                      What's included in Premium?
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className={`font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Unlimited Resources</h4>
-                        <ul className={`space-y-1 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                          <li>• Create unlimited projects</li>
-                          <li>• Unlimited user stories per project</li>
-                          <li>• Unlimited tasks per user story</li>
-                          <li>• No storage limits</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <h4 className={`font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Premium Features</h4>
-                        <ul className={`space-y-1 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                          <li>• Advanced analytics & reporting</li>
-                          <li>• Priority customer support</li>
-                          <li>• All team members get premium access</li>
-                          <li>• Early access to new features</li>
-                        </ul>
-                      </div>
-                    </div>
                   </div>
                 </div>
               )}
+
+              {/* Additional Information */}
+              <div className={`mt-8 p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                <h3 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  What's included in Premium?
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className={`font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Unlimited Resources</h4>
+                    <ul className={`space-y-1 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                      <li>• Create unlimited projects</li>
+                      <li>• Unlimited user stories per project</li>
+                      <li>• Unlimited tasks per user story</li>
+                      <li>• No storage limits</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className={`font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Premium Features</h4>
+                    <ul className={`space-y-1 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                      <li>• Advanced analytics & reporting</li>
+                      <li>• Priority customer support</li>
+                      <li>• All team members get premium access</li>
+                      <li>• Early access to new features</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -931,6 +1147,69 @@ const Settings = () => {
                 userId={user?._id}
                 email={user?.email}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Downgrade Confirmation Modal */}
+      {showDowngradeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`max-w-md w-full mx-4 p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-2xl`}>
+            <div className="text-center mb-6">
+              <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-yellow-600/20' : 'bg-yellow-100'}`}>
+                <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className={`text-xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                Confirm Downgrade
+              </h3>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                You're about to downgrade from {downgradeInfo.fromPlan} to {downgradeInfo.toPlan} plan
+              </p>
+            </div>
+
+            <div className={`p-4 rounded-lg mb-6 ${theme === 'dark' ? 'bg-green-600/20 border border-green-600/30' : 'bg-green-50 border border-green-200'}`}>
+              <div className="flex items-center justify-between">
+                <span className={`text-sm font-medium ${theme === 'dark' ? 'text-green-400' : 'text-green-700'}`}>
+                  Estimated Refund:
+                </span>
+                <span className={`text-lg font-bold ${theme === 'dark' ? 'text-green-400' : 'text-green-700'}`}>
+                  ${downgradeInfo.refundAmount}
+                </span>
+              </div>
+              <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-green-300' : 'text-green-600'}`}>
+                Based on remaining subscription time ({downgradeInfo.remainingDays} days left)
+              </p>
+              <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-green-300' : 'text-green-600'}`}>
+                From {downgradeInfo.fromPlan} plan to {downgradeInfo.toPlan} plan
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  if (downgradeInfo.toPlan === 'free') {
+                    handleDowngradeToFree();
+                  } else if (downgradeInfo.toPlan === 'monthly') {
+                    handleDowngradeToMonthly();
+                  }
+                }}
+                className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors duration-200"
+              >
+                Confirm Downgrade
+              </button>
+              <button
+                onClick={() => setShowDowngradeModal(false)}
+                className={`w-full py-3 px-4 border rounded-lg font-semibold transition-colors duration-200 ${
+                  theme === 'dark' 
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

@@ -24,12 +24,12 @@ const paymentSchema = new mongoose.Schema({
   // Subscription Details
   plan: {
     type: String,
-    enum: ['monthly', 'annual'],
+    enum: ['free', 'monthly', 'annual'],
     required: true
   },
   billingCycle: {
     type: String,
-    enum: ['monthly', 'annual'],
+    enum: ['free', 'monthly', 'annual'],
     required: true
   },
   
@@ -101,6 +101,16 @@ const paymentSchema = new mongoose.Schema({
   transactionId: String,
   gatewayResponse: Object,
   
+  // Refund tracking
+  originalPaymentId: {
+    type: String,
+    ref: 'Payment'
+  },
+  refundedPaymentId: {
+    type: String,
+    ref: 'Payment'
+  },
+  
   // Timestamps
   createdAt: {
     type: Date,
@@ -169,6 +179,86 @@ paymentSchema.statics.getPaymentHistory = function(organizationID, limit = 10) {
   .sort({ createdAt: -1 })
   .limit(limit)
   .populate('userId', 'name email');
+};
+
+// Static method to create downgrade refund
+paymentSchema.statics.createDowngradeRefund = async function(originalPayment, newPlan, userId) {
+  try {
+    // Calculate refund amount based on remaining time
+    const now = new Date();
+    const originalEndDate = new Date(originalPayment.subscriptionEndDate);
+    const totalDays = Math.ceil((originalEndDate - originalPayment.subscriptionStartDate) / (1000 * 60 * 60 * 24));
+    const remainingDays = Math.ceil((originalEndDate - now) / (1000 * 60 * 60 * 24));
+    
+    // Calculate refund amount (proportional to remaining time)
+    const refundAmount = Math.round((originalPayment.amount / totalDays) * remainingDays);
+    
+    // Create refund payment record
+    const refundPayment = new this({
+      paymentId: `REFUND_${originalPayment.paymentId}_${Date.now()}`,
+      amount: -refundAmount, // Negative amount to indicate refund
+      currency: originalPayment.currency,
+      status: 'refunded',
+      plan: originalPayment.plan,
+      billingCycle: originalPayment.billingCycle,
+      paymentMethod: originalPayment.paymentMethod,
+      organizationID: originalPayment.organizationID,
+      userId: userId,
+      subscriptionStartDate: now,
+      subscriptionEndDate: originalPayment.subscriptionEndDate, // Keep original end date
+      autoRenew: false,
+      savePaymentMethod: false,
+      transactionId: `REFUND_${originalPayment.transactionId}`,
+      gatewayResponse: {
+        refundReason: 'downgrade',
+        originalPaymentId: originalPayment.paymentId,
+        newPlan: newPlan,
+        refundAmount: refundAmount,
+        remainingDays: remainingDays
+      },
+      originalPaymentId: originalPayment.paymentId,
+      refundedPaymentId: originalPayment.paymentId
+    });
+
+    await refundPayment.save();
+    
+    // Update original payment to mark as refunded
+    originalPayment.status = 'refunded';
+    originalPayment.gatewayResponse = {
+      ...originalPayment.gatewayResponse,
+      refundedAt: now,
+      refundAmount: refundAmount,
+      downgradeTo: newPlan
+    };
+    await originalPayment.save();
+
+    return {
+      refundPayment,
+      refundAmount,
+      remainingDays
+    };
+  } catch (error) {
+    console.error('Error creating downgrade refund:', error);
+    throw error;
+  }
+};
+
+// Static method to check if downgrade is eligible for refund
+paymentSchema.statics.isEligibleForDowngradeRefund = function(payment) {
+  // Only annual plans are eligible for refund on downgrade
+  if (payment.plan !== 'annual' || payment.status !== 'completed') {
+    return false;
+  }
+  
+  // Check if subscription is still active
+  const now = new Date();
+  if (now >= payment.subscriptionEndDate) {
+    return false;
+  }
+  
+  // Check if there are at least 7 days remaining (minimum refund period)
+  const remainingDays = Math.ceil((payment.subscriptionEndDate - now) / (1000 * 60 * 60 * 24));
+  return remainingDays >= 7;
 };
 
 module.exports = mongoose.model('Payment', paymentSchema); 

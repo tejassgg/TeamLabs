@@ -67,9 +67,6 @@ const registerUser = async (req, res) => {
 
     if (user) {
       // Log the user creation and last login
-      console.log(`New user registered: ${user.username}`);
-      console.log(`User last logged in @ ${user.lastLogin}`);
-
       res.status(201).json({
         _id: user._id,
         username: user.username,
@@ -179,8 +176,6 @@ const googleLogin = async (req, res) => {
   try {
     
     const { credential } = req.body;
-
-    console.log(credential, process.env.GOOGLE_CLIENT_ID);
 
     // Verify Google token
     const ticket = await client.verifyIdToken({
