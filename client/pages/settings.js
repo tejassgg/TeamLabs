@@ -74,7 +74,6 @@ const Settings = () => {
   useEffect(() => {
     if (activeTab === 'subscription' && user?.organizationID) {
       fetchSubscriptionData();
-      fetchSubscriptionFeatures();
     }
   }, [activeTab, user?.organizationID]);
 
@@ -85,24 +84,7 @@ const Settings = () => {
     }
   }, [user?.organizationID]);
 
-  // Fetch subscription features
-  const fetchSubscriptionFeatures = async () => {
-    try {
-      const [freeFeatures, monthlyFeatures, annualFeatures] = await Promise.all([
-        authService.get('/common-types/subscription-features/free'),
-        authService.get('/common-types/subscription-features/monthly'),
-        authService.get('/common-types/subscription-features/annual')
-      ]);
-      
-      setSubscriptionFeatures({
-        free: freeFeatures.data || [],
-        monthly: monthlyFeatures.data || [],
-        annual: annualFeatures.data || []
-      });
-    } catch (error) {
-      console.error('Error fetching subscription features:', error);
-    }
-  };
+
 
   // Helper function to get icon for feature
   const getFeatureIcon = (feature) => {
@@ -125,13 +107,15 @@ const Settings = () => {
   const fetchSubscriptionData = async () => {
     setLoadingSubscription(true);
     try {
-      const [subscriptionResponse, historyResponse] = await Promise.all([
-        authService.get(`/payment/subscription/${user.organizationID}`),
-        authService.get(`/payment/history/${user.organizationID}`)
-      ]);
+      const response = await authService.get(`/payment/organization/${user.organizationID}`);
       
-      setSubscriptionData(subscriptionResponse.data.data);
-      setPaymentHistory(historyResponse.data.data.payments || []);
+      setSubscriptionData(response.data.data.subscription);
+      setPaymentHistory(response.data.data.paymentHistory.payments || []);
+      setSubscriptionFeatures(response.data.data.subscriptionFeatures || {
+        free: [],
+        monthly: [],
+        annual: []
+      });
     } catch (error) {
       console.error('Error fetching subscription data:', error);
     } finally {

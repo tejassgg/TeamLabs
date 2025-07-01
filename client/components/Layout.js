@@ -183,7 +183,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
     <>
       <aside
         className={`fixed top-0 left-0 h-screen z-40 transition-all duration-300
-          ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900'}
+          ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'}
           flex flex-col justify-between shadow-2xl
           ${isMobile ?
             `w-[${collapsed ? '80px' : '280px'}] transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}` :
@@ -192,7 +192,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
         style={{ minHeight: '100vh', width: isMobile ? (collapsed ? 80 : 280) : (collapsed ? 80 : 288), overflow: 'visible' }}
       >
         {/* Top: Logo & Collapse Button */}
-        <div className={`flex items-center justify-between p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'} bg-transparent`}>
+        <div className={`flex items-center justify-between p-4 border-b ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
           <div className="flex items-center gap-2">
             {/* Dynamic Org Initials */}
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}> 
@@ -300,7 +300,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
         </nav>
 
         {/* Bottom: Logout & Theme Switch */}
-        <div className={`flex flex-col gap-2 p-4 border-t ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'} bg-transparent`}>
+        <div className={`flex flex-col gap-2 p-4 border-t ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
           <SidebarButton
             icon={<FaSignOutAlt className={theme === 'dark' ? 'text-red-400' : 'text-red-600'} />}
             label="Logout"
@@ -433,12 +433,12 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900'}`}>
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'}`}>
       <div id="mobile-sidebar">
         <Sidebar isMobile={isMobile} isOpen={isMobileSidebarOpen} setIsOpen={setIsMobileSidebarOpen} setSidebarCollapsed={setSidebarCollapsed} />
       </div>
       {/* Mobile Navbar with Hamburger */}
-      <div className={`lg:hidden fixed top-0 left-0 right-0 z-30 ${theme === 'dark' ? 'bg-[#424242]' : 'bg-gray-200'} shadow-md`}>
+      <div className={`lg:hidden fixed top-0 left-0 right-0 z-30 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gray-200'} shadow-md`}>
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
@@ -467,7 +467,7 @@ const Layout = ({ children }) => {
             </div>
           </div>
         )}
-        <main className={`p-4 md:p-8 overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : ''}`}>
+        <main className={`p-4 md:p-8 overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#18181b] text-white' : ''}`}>
           {children}
         </main>
         <ChatBot />

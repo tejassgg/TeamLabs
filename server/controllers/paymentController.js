@@ -1,5 +1,6 @@
 const Payment = require('../models/Payment');
 const User = require('../models/User');
+const CommonType = require('../models/CommonType');
 
 // Generate unique payment ID
 const generatePaymentId = () => {
@@ -652,6 +653,67 @@ const saveUserPaymentMethod = async (userId, paymentMethod, details) => {
   }
 };
 
+// Get all payment data for organization (subscription status + payment history + subscription features)
+const getOrganizationPaymentData = async (req, res) => {
+  try {
+    const { organizationID } = req.params;
+    const { limit = 10, page = 1 } = req.query;
+
+    const skip = (page - 1) * limit;
+    
+    // Get subscription status
+    const activeSubscription = await Payment.getActiveSubscription(organizationID);
+    const premiumUsers = await User.getPremiumUsers(organizationID);
+
+    // Get payment history
+    const payments = await Payment.getPaymentHistory(organizationID, parseInt(limit));
+    const total = await Payment.countDocuments({ organizationID });
+
+    // Get subscription features
+    const allFeatures = await CommonType.find({ MasterType: 'SubscriptionFeatures' }).sort({ Code: 1 });
+    
+    // Group features by plan type
+    const subscriptionFeatures = {
+      free: allFeatures.filter(feature => feature.Description === 'free'),
+      monthly: allFeatures.filter(feature => feature.Description === 'monthly'),
+      annual: allFeatures.filter(feature => feature.Description === 'annual')
+    };
+
+    res.json({
+      success: true,
+      data: {
+        subscription: {
+          hasActiveSubscription: !!activeSubscription,
+          subscription: activeSubscription,
+          premiumUsersCount: premiumUsers.length,
+          premiumUsers: premiumUsers.map(user => ({
+            id: user._id,
+            name: `${user.firstName} ${user.lastName}`,
+            email: user.email,
+            subscriptionEndDate: user.subscriptionEndDate
+          }))
+        },
+        paymentHistory: {
+          payments,
+          pagination: {
+            current: parseInt(page),
+            total: Math.ceil(total / limit),
+            hasNext: skip + payments.length < total,
+            hasPrev: page > 1
+          }
+        },
+        subscriptionFeatures
+      }
+    });
+  } catch (error) {
+    console.error('Get organization payment data error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   processPayment,
   getPaymentHistory,
@@ -659,5 +721,6 @@ module.exports = {
   cancelSubscription,
   downgradeSubscription,
   calculateDowngradeRefund,
-  upgradeSubscription
+  upgradeSubscription,
+  getOrganizationPaymentData
 }; 

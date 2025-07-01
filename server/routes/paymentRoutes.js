@@ -7,7 +7,8 @@ const {
   cancelSubscription,
   downgradeSubscription,
   calculateDowngradeRefund,
-  upgradeSubscription
+  upgradeSubscription,
+  getOrganizationPaymentData
 } = require('../controllers/paymentController');
 const { protect } = require('../middleware/auth');
 
@@ -19,6 +20,9 @@ router.get('/history/:organizationID', protect, getPaymentHistory);
 
 // Get subscription status
 router.get('/subscription/:organizationID', protect, getSubscriptionStatus);
+
+// Get all payment data for organization (subscription + history)
+router.get('/organization/:organizationID', protect, getOrganizationPaymentData);
 
 // Cancel subscription
 router.post('/cancel/:organizationID', protect, cancelSubscription);

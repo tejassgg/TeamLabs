@@ -324,7 +324,7 @@ const Navbar = ({ isMobile, theme, onLogout }) => {
   }
 
   return (
-    <nav className={`${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} shadow-sm rounded-xl mt-4 border`}>
+    <nav className={`${theme === 'dark' ? 'bg-[#18181b] text-white border-[#232323]' : 'bg-white text-gray-900 border-gray-200'} shadow-sm rounded-xl mt-4 border`}>
       <div className="mx-auto">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo */}
