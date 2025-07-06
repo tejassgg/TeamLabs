@@ -124,6 +124,43 @@ export const AuthProvider = ({ children }) => {
     setUser(updatedUserData);
   };
 
+  // Forgot password
+  const forgotPassword = async (usernameOrEmail) => {
+    try {
+      const data = await authService.forgotPassword(usernameOrEmail);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to send reset link',
+      };
+    }
+  };
+
+  // Reset password
+  const resetPassword = async (key, newPassword) => {
+    try {
+      const res = await authService.resetPassword(key, newPassword);
+      return res;
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to reset password',
+      };
+    }
+  };
+
+  // Verify reset password
+  const verifyResetPassword = async (key) => {
+    try {
+      const res = await authService.verifyResetPassword(key);
+      return res;
+    } catch (error) {
+      console.error(error);
+      return { success: false, message: 'Server error' };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -136,6 +173,9 @@ export const AuthProvider = ({ children }) => {
         completeProfile,
         logout,
         updateUser,
+        forgotPassword,
+        resetPassword,
+        verifyResetPassword,
         isAuthenticated: !!user,
         tempAuthData,
       }}

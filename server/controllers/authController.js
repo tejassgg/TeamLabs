@@ -5,6 +5,11 @@ const { logActivity } = require('../services/activityService');
 const UserActivity = require('../models/UserActivity');
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
+const ForgotPasswordHistory = require('../models/ForgotPasswordHistory');
+const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -14,6 +19,40 @@ const generateToken = (id) => {
     expiresIn: '30d',
   });
 };
+
+// Helper to send reset email
+async function sendResetEmail(to, username, link) {
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    secure: false,
+    port: 587,
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_PASS
+    },
+  });
+
+  const html = `
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fb; padding: 40px 0;">
+      <div style="max-width: 480px; margin: auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #e3e8ee; padding: 32px;">
+        <div style=\"text-align:center;margin-bottom:24px;\"><span style=\"font-size:2rem;font-weight:800;color:#2563eb;letter-spacing:1px;font-family:Segoe UI,Arial,sans-serif;\">TeamLabs</span></div>
+        <h2 style="color: #2563eb; margin-bottom: 12px;">Reset Your Password</h2>
+        <p style="color: #444; font-size: 16px;">Hi <b>${username}</b>,</p>
+        <p style="color: #444; font-size: 15px; margin-bottom: 24px;">We received a request to reset your password. Click the button below to set a new password. This link is valid for 24 hours.</p>
+        <a href="${link}" style="display: inline-block; background: linear-gradient(90deg, #2563eb, #1e40af); color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 600; margin-bottom: 24px;">Reset Password</a>
+        <p style="color: #888; font-size: 13px; margin-top: 32px;">If you did not request this, you can safely ignore this email.<br/>For security, this link will expire in 24 hours.</p>
+        <div style="margin-top: 32px; text-align: center; color: #b0b0b0; font-size: 12px;">&copy; ${new Date().getFullYear()} TeamLabs</div>
+      </div>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: process.env.GMAIL_USER,
+    to,
+    subject: 'Reset your TeamLabs password',
+    html
+  });
+}
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -113,13 +152,13 @@ const loginUser = async (req, res) => {
       // Log successful login
       await logActivity(user._id, 'login', 'success', 'User logged in successfully', req, {}, 'email');
 
-      if(user.twoFactorEnabled) {
+      if (user.twoFactorEnabled) {
         return res.status(200).json({
           twoFactorEnabled: true,
           userId: user._id
         });
       }
-      
+
       return res.status(200).json({
         _id: user._id,
         username: user.username,
@@ -174,7 +213,7 @@ const logoutUser = async (req, res) => {
 // @access  Public
 const googleLogin = async (req, res) => {
   try {
-    
+
     const { credential } = req.body;
 
     // Verify Google token
@@ -493,7 +532,7 @@ const generate2FA = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    return res.json({ 
+    return res.json({
       secret: secret.base32,
       qrCode,
       otpauth_url: secret.otpauth_url
@@ -511,7 +550,7 @@ const verify2FA = async (req, res) => {
   try {
     const { token } = req.body;
     const user = await User.findById(req.user.id).select('+tempTwoFactorSecret');
-    
+
     if (!user || !user.tempTwoFactorSecret) {
       return res.status(400).json({ error: 'No temporary secret found. Please generate a new one.' });
     }
@@ -548,7 +587,7 @@ const disable2FA = async (req, res) => {
   try {
     const { token } = req.body;
     const user = await User.findById(req.user.id).select('+twoFactorSecret');
-    
+
     if (!user || !user.twoFactorSecret) {
       return res.status(400).json({ error: '2FA is not enabled' });
     }
@@ -584,7 +623,7 @@ const verifyLogin2FA = async (req, res) => {
   try {
     const { code, userId } = req.body;
     const user = await User.findById(userId).select('+twoFactorSecret');
-    
+
     if (!user || !user.twoFactorSecret || !user.twoFactorEnabled) {
       return res.status(400).json({ error: '2FA is not enabled' });
     }
@@ -626,7 +665,7 @@ const verifyLogin2FA = async (req, res) => {
 const getSecuritySettings = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('twoFactorEnabled sessionTimeout loginNotifications');
-    
+
     return res.json({
       twoFactorEnabled: user?.twoFactorEnabled || false,
       sessionTimeout: user?.sessionTimeout || 30,
@@ -644,7 +683,7 @@ const getSecuritySettings = async (req, res) => {
 const updateSecuritySettings = async (req, res) => {
   try {
     const { sessionTimeout, loginNotifications, userId } = req.body;
-    
+
     await User.findByIdAndUpdate(userId, {
       $set: {
         sessionTimeout: Number(sessionTimeout),
@@ -690,6 +729,114 @@ const updateUserStatus = async (req, res) => {
   }
 };
 
+// @desc    Request password reset
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res) => {
+  try {
+    const { usernameOrEmail } = req.body;
+    if (!usernameOrEmail) {
+      return res.status(400).json({ message: 'Username or email is required' });
+    }
+    const user = await User.findOne({
+      $or: [
+        { email: usernameOrEmail },
+        { username: usernameOrEmail }
+      ]
+    });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    // Generate unique key and expiry
+    const key = uuidv4();
+    const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const link = `${process.env.FRONTEND_URL}/reset-password?key=${key}`;
+    // Create ForgotPasswordHistory record
+    await ForgotPasswordHistory.create({
+      Username: user.username,
+      AttemptNo: 1,
+      MaxNoOfAttempts: 3,
+      Key: key,
+      ExpiryTime: expiry,
+      Link: link,
+      IsValid: true
+    });
+    // Send email with link
+    await sendResetEmail(user.email, user.username, link);
+    res.json({ message: 'If the user exists, a password reset link has been sent to the registered email.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Reset password
+// @route   POST /api/auth/verify-reset-password
+// @access  Public
+const verifyResetPassword = async (req, res) => {
+  try {
+    const { key } = req.body;
+    const record = await ForgotPasswordHistory.findOne({ Key: key });
+    if (!record) {
+      return res.status(201).json({ message: 'Invalid or expired reset link' });
+    }
+    if (record.IsValid == false) {
+      return res.status(201).json({ message: 'Reset link has already been used' });
+    }
+    if (record.ExpiryTime < new Date()) {
+      return res.status(201).json({ message: 'Reset link has expired' });
+    }
+    return res.status(200).json({ message: 'Reset link is valid' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Reset password
+// @route   POST /api/auth/reset-password
+// @access  Public
+const resetPassword = async (req, res) => {
+  try {
+    const { key, newPassword } = req.body;
+    if (!key || !newPassword) {
+      return res.status(400).json({ message: 'Key and new password are required' });
+    }
+    const record = await ForgotPasswordHistory.findOne({ Key: key, IsValid: true });
+    if (!record) {
+      return res.status(400).json({ message: 'Invalid or expired reset link' });
+    }
+    if (record.ExpiryTime < new Date()) {
+      return res.status(400).json({ message: 'Reset link has expired' });
+    }
+    const user = await User.findOne({ username: record.Username });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    // Check if new password is same as old password
+    const isSame = await bcrypt.compare(newPassword, user.password);
+    if (isSame) {
+      return res.status(400).json({ message: 'New password cannot be the same as the old password' });
+    }
+    // Enforce strong password requirements
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+    if (!strongPasswordRegex.test(newPassword)) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters, include uppercase, lowercase, number, and special character.' });
+    }
+    // Update password
+    user.password = newPassword;
+    await user.save();
+    // Mark record as used
+    record.IsValid = false;
+    record.PasswordChangedDate = new Date();
+    await record.save();
+    res.status(200).json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -705,5 +852,8 @@ module.exports = {
   verifyLogin2FA,
   getSecuritySettings,
   updateSecuritySettings,
-  updateUserStatus
+  updateUserStatus,
+  forgotPassword,
+  resetPassword,
+  verifyResetPassword
 }; 

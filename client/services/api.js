@@ -227,6 +227,31 @@ export const authService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to update user status' };
     }
+  },
+  
+  forgotPassword: async (usernameOrEmail) => {
+    try {
+      const response = await api.post('/auth/forgot-password', { usernameOrEmail });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to send reset link' };
+    }
+  },
+  resetPassword: async (key, newPassword) => {
+    try {
+      const response = await api.post('/auth/reset-password', { key, newPassword });
+      return response;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to reset password' };
+    }
+  },
+  verifyResetPassword: async (key) => {
+    try {
+      const response = await api.post('/auth/verify-reset-password', { key });
+      return response;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to verify reset password' };
+    }
   }
 };
 

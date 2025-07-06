@@ -53,15 +53,13 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
     if (isOpen) {
       commonTypeService.getTaskTypes()
         .then((types) => {
-          if (mode === 'fromSideBar') {
-            const fromSideBarType = types.find(t => t.Value === 'User Story');
-            setTypeOptions(fromSideBarType ? [fromSideBarType] : []);
-            if (fromSideBarType && !isEditMode) setType(fromSideBarType.Value);
-          } else {
-            const filtered = types.filter(t => t.Value !== 'User Story');
-            setTypeOptions(filtered);
-            if (filtered.length > 0 && !isEditMode) setType(filtered[0].Value);
-          }
+          // if (mode === 'fromSideBar') {
+          //   const fromSideBarType = types.find(t => t.Value === 'User Story');
+          //   setTypeOptions(fromSideBarType ? [fromSideBarType] : []);
+          //   if (fromSideBarType && !isEditMode) setType(fromSideBarType.Value);
+          // }
+          setTypeOptions(types);
+          if (types.length > 0 && !isEditMode) setType(types[0].Value);
         })
         .catch(() => setTypeOptions([]));
       if (projectIdDefault && !isEditMode) setProjectId(projectIdDefault);
@@ -121,7 +119,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <h3 className="text-xl font-semibold mb-4">
-        {isEditMode 
+        {isEditMode
           ? (mode === 'fromSideBar' ? 'Edit User Story' : 'Edit Task')
           : (mode === 'fromSideBar' ? 'Add User Story' : 'Add New Task')
         }

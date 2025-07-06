@@ -15,7 +15,10 @@ const {
   verifyLogin2FA,
   getSecuritySettings,
   updateSecuritySettings,
-  updateUserStatus
+  updateUserStatus,
+  forgotPassword,
+  resetPassword,
+  verifyResetPassword,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -244,5 +247,9 @@ router.post('/security-settings', protect, updateSecuritySettings);
 
 // User status route
 router.put('/status', protect, updateUserStatus);
+
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
+router.post('/verify-reset-password', verifyResetPassword);
 
 module.exports = router; 

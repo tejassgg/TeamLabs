@@ -84,8 +84,6 @@ const Settings = () => {
     }
   }, [user?.organizationID]);
 
-
-
   // Helper function to get icon for feature
   const getFeatureIcon = (feature) => {
     const featureText = feature.Value.toLowerCase();

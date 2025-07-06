@@ -282,7 +282,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           />
 
           {/* UserStories (Collapsible) */}
-          <SidebarCollapsible
+          {/* <SidebarCollapsible
             icon={<FaBookOpen className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
             label="UserStories"
             isOpen={isUserStoriesOpen}
@@ -296,7 +296,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             onItemClick={(task) => handleNavigation(`/task/${task._id}`)}
             canAdd={true}
             theme={theme}
-          />
+          /> */}
         </nav>
 
         {/* Bottom: Logout & Theme Switch */}
