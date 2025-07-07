@@ -2,13 +2,13 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { OAuth2Client } = require('google-auth-library');
 const { logActivity } = require('../services/activityService');
+const { sendResetEmail } = require('../services/emailService');
 const UserActivity = require('../models/UserActivity');
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
 const ForgotPasswordHistory = require('../models/ForgotPasswordHistory');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
-const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -20,39 +20,7 @@ const generateToken = (id) => {
   });
 };
 
-// Helper to send reset email
-async function sendResetEmail(to, username, link) {
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    secure: false,
-    port: 587,
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_PASS
-    },
-  });
 
-  const html = `
-    <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fb; padding: 40px 0;">
-      <div style="max-width: 480px; margin: auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #e3e8ee; padding: 32px;">
-        <div style=\"text-align:center;margin-bottom:24px;\"><span style=\"font-size:2rem;font-weight:800;color:#2563eb;letter-spacing:1px;font-family:Segoe UI,Arial,sans-serif;\">TeamLabs</span></div>
-        <h2 style="color: #2563eb; margin-bottom: 12px;">Reset Your Password</h2>
-        <p style="color: #444; font-size: 16px;">Hi <b>${username}</b>,</p>
-        <p style="color: #444; font-size: 15px; margin-bottom: 24px;">We received a request to reset your password. Click the button below to set a new password. This link is valid for 24 hours.</p>
-        <a href="${link}" style="display: inline-block; background: linear-gradient(90deg, #2563eb, #1e40af); color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 600; margin-bottom: 24px;">Reset Password</a>
-        <p style="color: #888; font-size: 13px; margin-top: 32px;">If you did not request this, you can safely ignore this email.<br/>For security, this link will expire in 24 hours.</p>
-        <div style="margin-top: 32px; text-align: center; color: #b0b0b0; font-size: 12px;">&copy; ${new Date().getFullYear()} TeamLabs</div>
-      </div>
-    </div>
-  `;
-
-  await transporter.sendMail({
-    from: process.env.GMAIL_USER,
-    to,
-    subject: 'Reset your TeamLabs password',
-    html
-  });
-}
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -158,7 +126,7 @@ const loginUser = async (req, res) => {
           userId: user._id
         });
       }
-
+      
       return res.status(200).json({
         _id: user._id,
         username: user.username,
@@ -213,7 +181,7 @@ const logoutUser = async (req, res) => {
 // @access  Public
 const googleLogin = async (req, res) => {
   try {
-
+    
     const { credential } = req.body;
 
     // Verify Google token
@@ -532,7 +500,7 @@ const generate2FA = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    return res.json({
+    return res.json({ 
       secret: secret.base32,
       qrCode,
       otpauth_url: secret.otpauth_url
@@ -550,7 +518,7 @@ const verify2FA = async (req, res) => {
   try {
     const { token } = req.body;
     const user = await User.findById(req.user.id).select('+tempTwoFactorSecret');
-
+    
     if (!user || !user.tempTwoFactorSecret) {
       return res.status(400).json({ error: 'No temporary secret found. Please generate a new one.' });
     }
@@ -587,7 +555,7 @@ const disable2FA = async (req, res) => {
   try {
     const { token } = req.body;
     const user = await User.findById(req.user.id).select('+twoFactorSecret');
-
+    
     if (!user || !user.twoFactorSecret) {
       return res.status(400).json({ error: '2FA is not enabled' });
     }
@@ -623,7 +591,7 @@ const verifyLogin2FA = async (req, res) => {
   try {
     const { code, userId } = req.body;
     const user = await User.findById(userId).select('+twoFactorSecret');
-
+    
     if (!user || !user.twoFactorSecret || !user.twoFactorEnabled) {
       return res.status(400).json({ error: '2FA is not enabled' });
     }
@@ -665,7 +633,7 @@ const verifyLogin2FA = async (req, res) => {
 const getSecuritySettings = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('twoFactorEnabled sessionTimeout loginNotifications');
-
+    
     return res.json({
       twoFactorEnabled: user?.twoFactorEnabled || false,
       sessionTimeout: user?.sessionTimeout || 30,
@@ -683,7 +651,7 @@ const getSecuritySettings = async (req, res) => {
 const updateSecuritySettings = async (req, res) => {
   try {
     const { sessionTimeout, loginNotifications, userId } = req.body;
-
+    
     await User.findByIdAndUpdate(userId, {
       $set: {
         sessionTimeout: Number(sessionTimeout),

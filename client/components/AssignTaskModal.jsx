@@ -42,7 +42,7 @@ const AssignTaskModal = ({ isOpen, onClose, task, projectId, onAssignTask }) => 
     try {
       setLoading(true);
       const updatedTask = await taskService.assignTask(task.TaskID, selectedMember);
-      showToast('Task assigned successfully', 'success');
+      showToast('Task assigned successfully', 'success'); 
       onAssignTask(updatedTask);
       onClose();
     } catch (err) {

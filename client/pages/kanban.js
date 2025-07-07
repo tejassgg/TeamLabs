@@ -222,7 +222,8 @@ const KanbanBoard = () => {
     // Update the status after assignment is complete
     taskService.updateTaskStatus(updatedTask.TaskID, targetStatus)
       .then(() => {
-        showToast(`Task assigned and moved to ${statusMap[targetStatus]}`, 'success');
+        // Don't show success message here since assignment already shows one
+        // showToast(`Task assigned and moved to ${statusMap[targetStatus]}`, 'success');
       })
       .catch((err) => {
         showToast('Failed to update task status', 'error');

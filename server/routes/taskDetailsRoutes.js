@@ -8,6 +8,7 @@ const ProjectDetails = require('../models/ProjectDetails');
 const TaskDetailsHistory = require('../models/TaskDetailsHistory');
 const Project = require('../models/Project');
 const { logActivity } = require('../services/activityService');
+const { sendTaskAssignmentEmail } = require('../services/emailService');
 const Subtask = require('../models/Subtask');
 const Attachment = require('../models/Attachment');
 const Comment = require('../models/Comment');
@@ -16,15 +17,15 @@ const { checkUserStoryLimit, checkTaskLimit, incrementUsage } = require('../midd
 
 // Middleware to check limits based on task type
 const checkTaskTypeLimit = async (req, res, next) => {
-  const taskType = req.body.taskDetail?.Type;
-  
-  if (taskType === 'User Story') {
-    return checkUserStoryLimit(req, res, next);
-  } else if (taskType) {
-    return checkTaskLimit(req, res, next);
-  }
-  
-  next();
+    const taskType = req.body.taskDetail?.Type;
+
+    if (taskType === 'User Story') {
+        return checkUserStoryLimit(req, res, next);
+    } else if (taskType) {
+        return checkTaskLimit(req, res, next);
+    }
+
+    next();
 };
 
 // POST /api/task-details - Create a new task
@@ -50,54 +51,54 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
         const newTask = savedTaskDetail.toObject();
 
         // Increment usage for non-premium users
-        await incrementUsage(req, res, () => {});
+        await incrementUsage(req, res, () => { });
 
         // Fetch assignee details if exists
         if (newTask.Assignee) {
-      try {
-            const assignee = await User.findById(newTask.Assignee);
-            if (assignee) {
-                const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
-          let teamName = null;
-          if (teamDetails) {
-                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
-            teamName = team ? team.TeamName : null;
-          }
-                newTask.AssigneeDetails = {
-                    _id: assignee._id,
-                    username: assignee.username,
-                    fullName: assignee.firstName + " " + assignee.lastName,
-                    email: assignee.email,
-            teamName: teamName
-                };
+            try {
+                const assignee = await User.findById(newTask.Assignee);
+                if (assignee) {
+                    const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
+                    let teamName = null;
+                    if (teamDetails) {
+                        const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                        teamName = team ? team.TeamName : null;
+                    }
+                    newTask.AssigneeDetails = {
+                        _id: assignee._id,
+                        username: assignee.username,
+                        fullName: assignee.firstName + " " + assignee.lastName,
+                        email: assignee.email,
+                        teamName: teamName
+                    };
+                }
+            } catch (error) {
+                console.error('Error fetching assignee details:', error);
             }
-      } catch (error) {
-        console.error('Error fetching assignee details:', error);
-      }
         }
 
         // Fetch assignedTo details if exists
         if (newTask.AssignedTo) {
-      try {
-            const assignedTo = await User.findById(newTask.AssignedTo);
-            if (assignedTo) {
-                const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
-          let teamName = null;
-          if (teamDetails) {
-                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
-            teamName = team ? team.TeamName : null;
-          }
-                newTask.AssignedToDetails = {
-                    _id: assignedTo._id,
-                    username: assignedTo.username,
-                    fullName: assignedTo.firstName + " " + assignedTo.lastName,
-                    email: assignedTo.email,
-            teamName: teamName
-                };
+            try {
+                const assignedTo = await User.findById(newTask.AssignedTo);
+                if (assignedTo) {
+                    const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
+                    let teamName = null;
+                    if (teamDetails) {
+                        const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                        teamName = team ? team.TeamName : null;
+                    }
+                    newTask.AssignedToDetails = {
+                        _id: assignedTo._id,
+                        username: assignedTo.username,
+                        fullName: assignedTo.firstName + " " + assignedTo.lastName,
+                        email: assignedTo.email,
+                        teamName: teamName
+                    };
+                }
+            } catch (error) {
+                console.error('Error fetching assignedTo details:', error);
             }
-      } catch (error) {
-        console.error('Error fetching assignedTo details:', error);
-      }
         }
 
         // Log the activity
@@ -116,6 +117,38 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
                 assignee: taskData.Assignee
             }
         );
+
+        // Send email notification if task is assigned during creation
+        if (newTask.AssignedTo && newTask.AssignedToDetails) {
+            try {
+                const createdByUser = await User.findById(taskData.CreatedBy);
+                const assignedBy = createdByUser ? `${createdByUser.firstName} ${createdByUser.lastName}` : 'Unknown User';
+
+                const taskDetails = `
+                    <strong>Task Name:</strong> ${newTask.Name}<br>
+                    <strong>Description:</strong> ${newTask.Description || 'No description provided'}<br>
+                    <strong>Type:</strong> ${newTask.Type}<br>
+                    <strong>Priority:</strong> ${newTask.Priority || 'Not set'}<br>
+                    <strong>Status:</strong> ${newTask.Status === 1 ? 'Not Assigned' : newTask.Status === 2 ? 'Assigned' : newTask.Status === 3 ? 'In Progress' : newTask.Status === 4 ? 'Completed' : 'Unknown'}<br>
+                    <strong>Created Date:</strong> ${new Date(newTask.CreatedDate).toLocaleDateString()}<br>
+                    <strong>Assigned Date:</strong> ${new Date(newTask.AssignedDate).toLocaleDateString()}
+                `;
+
+                await sendTaskAssignmentEmail(
+                    newTask.AssignedToDetails.email,
+                    newTask.Name,
+                    taskDetails,
+                    assignedBy,
+                    newTask.Priority,
+                    newTask.Status,
+                    newTask.Type,
+                    newTask.TaskID
+                );
+            } catch (emailError) {
+                console.error('Error sending task assignment email:', emailError);
+                // Don't fail the request if email fails
+            }
+        }
 
         res.status(201).json(newTask);
     } catch (err) {
@@ -156,7 +189,7 @@ router.get('/:taskId', async (req, res) => {
     try {
         const taskId = req.params.taskId;
         const task = await TaskDetails.findOne({ TaskID: taskId, IsActive: true });
-        
+
         if (!task) {
             return res.status(404).json({ error: 'Task not found' });
         }
@@ -440,14 +473,14 @@ router.patch('/:taskId/assign', async (req, res) => {
             `Updated ${task.Type.toLowerCase()} "${task.Name}" status from ${oldStatus}.`,
         );
 
-        // Log assignment activity
+        // Log assignment activity and send email notification
         if (AssignedTo) {
             const assignedUser = await User.findById(AssignedTo);
             if (assignedUser) {
                 // Get the user who is making the assignment (from request body)
                 const assignedByUser = await User.findById(req.body.assignedBy);
                 const assignedBy = assignedByUser ? `${assignedByUser.firstName} ${assignedByUser.lastName}` : 'Unknown User';
-                
+
                 await logActivity(
                     task.CreatedBy,
                     'task_assign',
@@ -464,12 +497,51 @@ router.patch('/:taskId/assign', async (req, res) => {
                         projectId: task.ProjectID_FK
                     }
                 );
+
+                // Send email notification to the assigned user
+                try {
+                    // Fetch project info
+                    const project = await Project.findOne({ ProjectID: task.ProjectID_FK });
+                    // Fetch last 5 history items
+                    const historyItems = await TaskDetailsHistory.find({ TaskID: task.TaskID }).sort({ HistoryDate: -1 }).limit(3);
+                    // Fetch up to 3 attachments
+                    const attachments = await Attachment.find({ TaskID: task.TaskID }).sort({ UploadedAt: -1 }).limit(3);
+                    // Fetch up to 3 comments
+                    const comments = await Comment.find({ TaskID: task.TaskID }).sort({ CreatedAt: -1 }).limit(3);
+
+                    const taskDetails = `
+                        <strong>Task Name:</strong> ${task.Name}<br>
+                        <strong>Description:</strong> ${task.Description || 'No description provided'}<br>
+                        <strong>Type:</strong> ${task.Type}<br>
+                        <strong>Priority:</strong> ${task.Priority || 'Not set'}<br>
+                        <strong>Status:</strong> ${task.Status === 1 ? 'Not Assigned' : task.Status === 2 ? 'Assigned' : task.Status === 3 ? 'In Progress' : task.Status === 4 ? 'Completed' : 'Unknown'}<br>
+                        <strong>Assigned Date:</strong> ${task.AssignedDate ? new Date(task.AssignedDate).toISOString() : ''}
+                    `;
+
+                    await sendTaskAssignmentEmail(
+                        assignedUser.email,
+                        task.Name,
+                        taskDetails,
+                        assignedBy,
+                        task.Priority,
+                        task.Status,
+                        task.Type,
+                        task.TaskID,
+                        project,
+                        historyItems,
+                        attachments.length > 0 ? attachments : null,
+                        comments.length > 0 ? comments : null
+                    );
+                } catch (emailError) {
+                    console.error('Error sending task assignment email:', emailError);
+                    // Don't fail the request if email fails
+                }
             }
         }
 
         // Fetch updated task activity after assignment
-        const taskActivity = await UserActivity.find({ 
-            'metadata.taskId': task.TaskID 
+        const taskActivity = await UserActivity.find({
+            'metadata.taskId': task.TaskID
         }).sort({ timestamp: -1 }).limit(10);
 
         res.json({
@@ -532,7 +604,7 @@ router.get('/:taskId/activity', async (req, res) => {
 router.delete('/:taskId/delete', async (req, res) => {
     try {
         const taskId = req.params.taskId;
-        
+
         const task = await TaskDetails.findOne({ TaskID: taskId });
         if (!task) return res.status(404).json({ error: 'Task not found' });
 
@@ -553,7 +625,7 @@ router.delete('/:taskId/delete', async (req, res) => {
             CreatedBy: task.CreatedBy,
             HistoryDate: new Date()
         });
-        
+
         await taskHistory.save();
 
         // Log the activity before deleting
@@ -769,8 +841,8 @@ router.delete('/bulk-delete', async (req, res) => {
         // Delete all tasks
         const result = await TaskDetails.deleteMany({ TaskID: { $in: taskIds } });
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: `Successfully deleted ${result.deletedCount} tasks`,
             deletedCount: result.deletedCount
         });
@@ -798,104 +870,104 @@ router.delete('/bulk-delete', async (req, res) => {
 
 // GET /api/task-details/:taskId/full - Get task with subtasks, attachments, comments
 router.get('/:taskId/full', async (req, res) => {
-  try {
-    const { taskId } = req.params;
-    
-    const task = await TaskDetails.findOne({ TaskID: taskId, IsActive: true });
-    if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
-    }
-    
-    const newTask = task.toObject();
+    try {
+        const { taskId } = req.params;
 
-    // Fetch assignee details if exists
-    if (newTask.Assignee) {
-      const assignee = await User.findById(newTask.Assignee);
-      if (assignee) {
-        const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
-        const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
-        newTask.AssigneeDetails = {
-          _id: assignee._id,
-          username: assignee.username,
-          fullName: assignee.firstName + " " + assignee.lastName,
-          email: assignee.email,
-          teamName: team.TeamName
-        };
-      }
-    }
-
-    // Fetch assignedTo details if exists
-    if (newTask.AssignedTo) {
-      const assignedTo = await User.findById(newTask.AssignedTo);
-      if (assignedTo) {
-        const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
-        const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
-        newTask.AssignedToDetails = {
-          _id: assignedTo._id,
-          username: assignedTo.username,
-          fullName: assignedTo.firstName + " " + assignedTo.lastName,
-          email: assignedTo.email,
-          teamName: team.TeamName
-        };
-      }
-    }
-
-    // Fetch project details if task has a ProjectID_FK
-    let project = null;
-    let projectMembers = [];
-    if (newTask.ProjectID_FK) {
-      try {
-        project = await Project.findOne({ ProjectID: newTask.ProjectID_FK });
-        
-        // Fetch project members
-        if (project) {
-          // Get teams assigned to this project through ProjectDetails
-          const projectDetails = await ProjectDetails.find({ ProjectID: project.ProjectID, IsActive: true });
-          
-          if (projectDetails.length > 0) {
-            const teamIds = projectDetails.map(pd => pd.TeamID);
-            
-            // Get team members for these teams
-            const teamMembers = await TeamDetails.find({ TeamID_FK: { $in: teamIds }, IsMemberActive: true });
-            
-            if (teamMembers.length > 0) {
-              const memberIds = teamMembers.map(tm => tm.MemberID);
-              const members = await User.find({ _id: { $in: memberIds } });
-              projectMembers = members.map(member => ({
-                _id: member._id,
-                username: member.username,
-                fullName: member.firstName + " " + member.lastName,
-                email: member.email
-              }));
-            }
-          }
+        const task = await TaskDetails.findOne({ TaskID: taskId, IsActive: true });
+        if (!task) {
+            return res.status(404).json({ error: 'Task not found' });
         }
-      } catch (projectError) {
-        console.error('Error fetching project details:', projectError);
-      }
-    }
 
-    const subtasks = await Subtask.find({ TaskID: taskId }).sort({ Order: 1, CreatedDate: 1 });
-    const attachments = await Attachment.find({ TaskID: taskId }).sort({ UploadedAt: -1 });
-    const comments = await Comment.find({ TaskID: taskId }).sort({ CreatedAt: 1 });
-    
-    // Fetch task activity
-    const taskActivity = await UserActivity.find({ 
-        'metadata.taskId': taskId 
-    }).sort({ timestamp: -1 }).limit(10);
-    
-    res.json({
-      task: newTask,
-      project,
-      projectMembers,
-      subtasks,
-      attachments,
-      comments,
-      taskActivity
-    });
-  } catch (err) {
-    console.error('Error fetching full task details:', err);
-    res.status(500).json({ error: 'Failed to fetch full task details' });
+        const newTask = task.toObject();
+
+        // Fetch assignee details if exists
+        if (newTask.Assignee) {
+            const assignee = await User.findById(newTask.Assignee);
+            if (assignee) {
+                const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
+                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                newTask.AssigneeDetails = {
+                    _id: assignee._id,
+                    username: assignee.username,
+                    fullName: assignee.firstName + " " + assignee.lastName,
+                    email: assignee.email,
+                    teamName: team.TeamName
+                };
+            }
+        }
+
+        // Fetch assignedTo details if exists
+        if (newTask.AssignedTo) {
+            const assignedTo = await User.findById(newTask.AssignedTo);
+            if (assignedTo) {
+                const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
+                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                newTask.AssignedToDetails = {
+                    _id: assignedTo._id,
+                    username: assignedTo.username,
+                    fullName: assignedTo.firstName + " " + assignedTo.lastName,
+                    email: assignedTo.email,
+                    teamName: team.TeamName
+                };
+            }
+        }
+
+        // Fetch project details if task has a ProjectID_FK
+        let project = null;
+        let projectMembers = [];
+        if (newTask.ProjectID_FK) {
+            try {
+                project = await Project.findOne({ ProjectID: newTask.ProjectID_FK });
+
+                // Fetch project members
+                if (project) {
+                    // Get teams assigned to this project through ProjectDetails
+                    const projectDetails = await ProjectDetails.find({ ProjectID: project.ProjectID, IsActive: true });
+
+                    if (projectDetails.length > 0) {
+                        const teamIds = projectDetails.map(pd => pd.TeamID);
+
+                        // Get team members for these teams
+                        const teamMembers = await TeamDetails.find({ TeamID_FK: { $in: teamIds }, IsMemberActive: true });
+
+                        if (teamMembers.length > 0) {
+                            const memberIds = teamMembers.map(tm => tm.MemberID);
+                            const members = await User.find({ _id: { $in: memberIds } });
+                            projectMembers = members.map(member => ({
+                                _id: member._id,
+                                username: member.username,
+                                fullName: member.firstName + " " + member.lastName,
+                                email: member.email
+                            }));
+                        }
+                    }
+                }
+            } catch (projectError) {
+                console.error('Error fetching project details:', projectError);
+            }
+        }
+
+        const subtasks = await Subtask.find({ TaskID: taskId }).sort({ Order: 1, CreatedDate: 1 });
+        const attachments = await Attachment.find({ TaskID: taskId }).sort({ UploadedAt: -1 });
+        const comments = await Comment.find({ TaskID: taskId }).sort({ CreatedAt: 1 });
+
+        // Fetch task activity
+        const taskActivity = await UserActivity.find({
+            'metadata.taskId': taskId
+        }).sort({ timestamp: -1 }).limit(10);
+
+        res.json({
+            task: newTask,
+            project,
+            projectMembers,
+            subtasks,
+            attachments,
+            comments,
+            taskActivity
+        });
+    } catch (err) {
+        console.error('Error fetching full task details:', err);
+        res.status(500).json({ error: 'Failed to fetch full task details' });
     }
 });
 
