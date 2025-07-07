@@ -345,9 +345,10 @@ export const projectService = {
   addProject: async (projectData) => {
     try {
       const response = await api.post('/projects', projectData);
+      console.log('response', response);
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Failed to add project' };
+      throw error.response?.data;
     }
   },
   updateProject: async (projectId, updateData) => {
@@ -374,7 +375,7 @@ export const taskService = {
       const response = await api.post('/task-details', { taskDetail: taskData, mode: mode });
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Failed to add task' };
+      throw error.response?.data;
     }
   },
   getAllTaskDetails: async () => {
@@ -599,6 +600,60 @@ export const taskDetailsService = {
   getFullTaskDetails: async (taskId) => {
     const res = await api.get(`/task-details/${taskId}/full`);
     return res.data;
+  }
+};
+
+export const landingService = {
+  // Get landing page statistics
+  getStats: async () => {
+    try {
+      const response = await publicApi.get('/landing/stats');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch landing statistics' };
+    }
+  },
+
+  // Get active teams for landing page
+  getActiveTeams: async (limit = 10) => {
+    try {
+      const response = await publicApi.get(`/landing/active-teams?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch active teams' };
+    }
+  },
+
+  // Get completed projects for landing page
+  getCompletedProjects: async (limit = 10) => {
+    try {
+      const response = await publicApi.get(`/landing/completed-projects?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch completed projects' };
+    }
+  },
+
+  // Get comprehensive landing page overview
+  getOverview: async () => {
+    try {
+      const response = await publicApi.get('/landing/overview');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch landing overview' };
+    }
+  }
+};
+
+export const userService = {
+  // Get user's usage limits and premium status
+  getUserUsageLimits: async (userId) => {
+    try {
+      const response = await api.get(`/users/${userId}/usage-limits`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch user usage limits' };
+    }
   }
 };
 

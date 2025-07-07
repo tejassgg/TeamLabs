@@ -12,16 +12,31 @@ const Subtask = require('../models/Subtask');
 const Attachment = require('../models/Attachment');
 const Comment = require('../models/Comment');
 const UserActivity = require('../models/UserActivity');
+const { checkUserStoryLimit, checkTaskLimit, incrementUsage } = require('../middleware/premiumLimits');
 
+// Middleware to check limits based on task type
+const checkTaskTypeLimit = async (req, res, next) => {
+  const taskType = req.body.taskDetail?.Type;
+  
+  if (taskType === 'User Story') {
+    return checkUserStoryLimit(req, res, next);
+  } else if (taskType) {
+    return checkTaskLimit(req, res, next);
+  }
+  
+  next();
+};
 
 // POST /api/task-details - Create a new task
-router.post('/', async (req, res) => {
+router.post('/', checkTaskTypeLimit, async (req, res) => {
     try {
         const taskData = req.body.taskDetail;
         const mode = req.body.mode;
 
+        console.log('taskData', req.body);
+
         taskData.CreatedDate = new Date();
-        if (mode == "fromSideBar") {
+        if (taskData.Type == "User Story") {
             taskData.Assignee = "";
             taskData.AssignedDate = "";
             taskData.Status = 2;
@@ -34,53 +49,56 @@ router.post('/', async (req, res) => {
 
         const newTask = savedTaskDetail.toObject();
 
-            // Fetch assignee details if exists
-    if (newTask.Assignee) {
+        // Increment usage for non-premium users
+        await incrementUsage(req, res, () => {});
+
+        // Fetch assignee details if exists
+        if (newTask.Assignee) {
       try {
-        const assignee = await User.findById(newTask.Assignee);
-        if (assignee) {
-          const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
+            const assignee = await User.findById(newTask.Assignee);
+            if (assignee) {
+                const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
           let teamName = null;
           if (teamDetails) {
-            const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
             teamName = team ? team.TeamName : null;
           }
-          newTask.AssigneeDetails = {
-            _id: assignee._id,
-            username: assignee.username,
-            fullName: assignee.firstName + " " + assignee.lastName,
-            email: assignee.email,
+                newTask.AssigneeDetails = {
+                    _id: assignee._id,
+                    username: assignee.username,
+                    fullName: assignee.firstName + " " + assignee.lastName,
+                    email: assignee.email,
             teamName: teamName
-          };
-        }
+                };
+            }
       } catch (error) {
         console.error('Error fetching assignee details:', error);
       }
-    }
+        }
 
-            // Fetch assignedTo details if exists
-    if (newTask.AssignedTo) {
+        // Fetch assignedTo details if exists
+        if (newTask.AssignedTo) {
       try {
-        const assignedTo = await User.findById(newTask.AssignedTo);
-        if (assignedTo) {
-          const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
+            const assignedTo = await User.findById(newTask.AssignedTo);
+            if (assignedTo) {
+                const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
           let teamName = null;
           if (teamDetails) {
-            const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
             teamName = team ? team.TeamName : null;
           }
-          newTask.AssignedToDetails = {
-            _id: assignedTo._id,
-            username: assignedTo.username,
-            fullName: assignedTo.firstName + " " + assignedTo.lastName,
-            email: assignedTo.email,
+                newTask.AssignedToDetails = {
+                    _id: assignedTo._id,
+                    username: assignedTo.username,
+                    fullName: assignedTo.firstName + " " + assignedTo.lastName,
+                    email: assignedTo.email,
             teamName: teamName
-          };
-        }
+                };
+            }
       } catch (error) {
         console.error('Error fetching assignedTo details:', error);
       }
-    }
+        }
 
         // Log the activity
         await logActivity(
@@ -878,7 +896,7 @@ router.get('/:taskId/full', async (req, res) => {
   } catch (err) {
     console.error('Error fetching full task details:', err);
     res.status(500).json({ error: 'Failed to fetch full task details' });
-  }
+    }
 });
 
 module.exports = router; 

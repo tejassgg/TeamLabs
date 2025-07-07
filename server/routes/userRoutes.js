@@ -4,6 +4,45 @@ const User = require('../models/User');
 const TeamDetails = require('../models/TeamDetails');
 const { protect } = require('../middleware/auth');
 
+// GET /api/users/:userId/usage-limits - Get user's usage limits and premium status
+router.get('/:userId/usage-limits', protect, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const usageData = {
+      isPremium: user.isPremiumMember && user.isSubscriptionActive(),
+      subscriptionStatus: user.subscriptionStatus,
+      subscriptionPlan: user.subscriptionPlan,
+      subscriptionEndDate: user.subscriptionEndDate,
+      usageLimits: {
+        projectsCreated: user.usageLimits.projectsCreated,
+        userStoriesCreated: user.usageLimits.userStoriesCreated,
+        tasksCreated: user.usageLimits.tasksCreated
+      },
+      limits: {
+        projects: 3,
+        userStories: 3,
+        tasks: 20
+      },
+      canCreate: {
+        project: user.canCreateProject(),
+        userStory: user.canCreateUserStory(),
+        task: user.canCreateTask()
+      }
+    };
+
+    res.json(usageData);
+  } catch (err) {
+    console.error('Error fetching user usage limits:', err);
+    res.status(500).json({ error: 'Failed to fetch usage limits' });
+  }
+});
+
 // PATCH /api/users/:userId/remove-from-org - Remove user from organization and all teams
 router.patch('/:userId/remove-from-org', protect, async (req, res) => {
   try {

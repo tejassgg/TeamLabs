@@ -133,7 +133,7 @@ router.get('/:organizationId', async (req, res) => {
       upcomingDeadlines: upcomingDeadlines.length,
       organizationName: organization?.Value || 'Unknown Organization',
       recentProjects: projects.slice(0, 5).map(project => ({
-        id: project._id,
+        id: project.ProjectID,
         name: project.Name,
         deadline: project.FinishDate,
         isActive: project.IsActive,

@@ -4,9 +4,10 @@ import Head from 'next/head';
 import Link from 'next/link';
 import api, { authService, taskService, projectService } from '../../services/api';
 import Layout from '../../components/Layout';
-import { FaTrash, FaCog, FaTimes, FaClock, FaUserCheck, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaChevronRight, FaInfoCircle, FaProjectDiagram, FaChartBar, FaTasks } from 'react-icons/fa';
+import { FaTrash, FaCog, FaTimes, FaClock, FaUserCheck, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaChevronRight, FaInfoCircle, FaProjectDiagram, FaChartBar, FaTasks, FaPlus } from 'react-icons/fa';
 import LoadingScreen from '../../components/LoadingScreen';
 import AddTaskModal from '../../components/AddTaskModal';
+import CustomModal from '../../components/CustomModal';
 import { useToast } from '../../context/ToastContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -69,6 +70,7 @@ const ProjectDetailsPage = () => {
   const [removingTeam, setRemovingTeam] = useState(null);
   const [removing, setRemoving] = useState(false);
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+  const [addTaskTypeMode, setAddTaskTypeMode] = useState('task'); // 'userStory' or 'task'
   const [taskList, setTaskList] = useState([]);
   const [userStories, setUserStories] = useState([]);
   const [deletingTask, setDeletingTask] = useState(false);
@@ -79,6 +81,13 @@ const ProjectDetailsPage = () => {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [activeTab, setActiveTab] = useState('manage');
+  const [showDeleteUserStoryDialog, setShowDeleteUserStoryDialog] = useState(false);
+  const [userStoryToDelete, setUserStoryToDelete] = useState(null);
+  const [deletingUserStory, setDeletingUserStory] = useState(false);
+  const [teamSearch, setTeamSearch] = useState('');
+  const [showAllTeams, setShowAllTeams] = useState(false);
+  const [filteredAvailableTeams, setFilteredAvailableTeams] = useState([]);
+  const [isTeamInputFocused, setIsTeamInputFocused] = useState(false);
 
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
@@ -132,6 +141,34 @@ const ProjectDetailsPage = () => {
     setFilteredTeams(matchingTeams.slice(0, 10));
   }, [search, orgTeams, teams, isInputFocused]);
 
+  // Filter available teams for dropdown
+  useEffect(() => {
+    if (!isTeamInputFocused) {
+      setFilteredAvailableTeams([]);
+      return;
+    }
+
+    if (!teamSearch) {
+      // When search is empty, show first 10 teams by default
+      const assignedIds = new Set(teams.map(t => t.TeamID));
+      const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
+      setFilteredAvailableTeams(showAllTeams ? availableTeams : availableTeams.slice(0, 10));
+      return;
+    }
+
+    const s = teamSearch.toLowerCase();
+    // Exclude teams that are already assigned
+    const assignedIds = new Set(teams.map(t => t.TeamID));
+    const matchingTeams = orgTeams.filter(t =>
+      !assignedIds.has(t.TeamID) && (
+        (t.TeamName && t.TeamName.toLowerCase().includes(s)) ||
+        (t.TeamDescription && t.TeamDescription.toLowerCase().includes(s)) ||
+        (t.TeamID && t.TeamID.toLowerCase().includes(s))
+      )
+    );
+    setFilteredAvailableTeams(showAllTeams ? matchingTeams : matchingTeams.slice(0, 10));
+  }, [teamSearch, orgTeams, teams, showAllTeams, isTeamInputFocused]);
+
   // Calculate deadline timer
   useEffect(() => {
     if (project && project.FinishDate) {
@@ -181,6 +218,9 @@ const ProjectDetailsPage = () => {
       setSelectedTeam(null);
       setSearch('');
       setIsInputFocused(false);
+      setTeamSearch('');
+      setIsTeamInputFocused(false);
+      setFilteredAvailableTeams([]);
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to add team');
     } finally {
@@ -286,8 +326,14 @@ const ProjectDetailsPage = () => {
       } else {
         setTaskList(prev => [...prev, newTask]);
       }
+
+      return newTask; // Return the new task for the modal to handle
     } catch (err) {
+      if (err.status == 403) {
+        showToast(err.message, 'warning');
+      } else {
       showToast('Failed to add task', 'error');
+      }
     }
   };
 
@@ -624,6 +670,66 @@ const ProjectDetailsPage = () => {
             <FaTasks size={48} className="mb-4" />
             <p>{error}</p>
           </div>
+        ) : tasks.length === 0 ? (
+          <div className={getThemeClasses(
+            'bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden',
+            'dark:bg-gray-800 dark:border-gray-700'
+          )}>
+            {/* Empty State Message */}
+            <div className={getThemeClasses(
+              'text-center py-8 border-b border-gray-200',
+              'dark:border-gray-700'
+            )}>
+              <div className={getThemeClasses(
+                'text-gray-500 flex flex-col items-center',
+                'dark:text-gray-400'
+              )}>
+                <FaTasks size={32} className="mb-2" />
+                <p className="text-sm font-medium">No tasks created yet</p>
+                <p className="text-xs mt-1">Create your first task to get started</p>
+              </div>
+            </div>
+            <div className={getThemeClasses(
+              'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 divide-x divide-gray-200',
+              'dark:divide-gray-700'
+            )}>
+              {Object.entries(statusMap).map(([statusCode, statusName], index, arr) => {
+                const status = parseInt(statusCode);
+                const icon = statusIcons[status];
+                const statusStyle = statusColors[status];
+                const isLast = index === arr.length - 1;
+                const addTaskButton = status === 1 ? (
+                  <div className="mt-2">
+                    <button
+                      className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-white border border-gray-200 rounded-lg shadow-sm text-gray-500 font-semibold text-base transition hover:bg-gray-50 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      style={{ minHeight: '64px' }}
+                      onClick={() => setShowAddTaskModal(true)}
+                    >
+                      <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>Add New Task
+                    </button>
+                  </div>
+                ) : null;
+                return (
+                  <KanbanColumn
+                    key={statusCode}
+                    statusCode={status}
+                    statusName={statusName}
+                    icon={icon}
+                    bgColor={statusStyle.light}
+                    tasks={[]}
+                    handleDragStart={handleDragStart}
+                    handleDragEnd={handleDragEnd}
+                    handleDrop={handleDrop}
+                    isTaskAssignedToUser={isTaskAssignedToUser}
+                    isLast={isLast}
+                    addTaskButton={addTaskButton}
+                  />
+                );
+              })}
+            </div>
+          </div>
         ) : (
           <div className={getThemeClasses(
             'bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden',
@@ -699,11 +805,35 @@ const ProjectDetailsPage = () => {
               onClose={() => setShowAssignModal(false)}
               task={draggingTask}
               onAssign={handleAssignTask}
+              projectId={projectId}
             />
           </div>
         )}
       </div>
     );
+  };
+
+  // Function to handle user story deletion
+  const handleDeleteUserStory = async (userStoryId) => {
+    setDeletingUserStory(true);
+    try {
+      await taskService.deleteTask(userStoryId);
+      showToast('User Story deleted successfully', 'success');
+      // Update user stories list by removing deleted user story
+      setUserStories(prev => prev.filter(story => story.TaskID !== userStoryId));
+      setShowDeleteUserStoryDialog(false);
+      setUserStoryToDelete(null);
+    } catch (err) {
+      showToast('Failed to delete user story: ' + (err.message || 'Unknown error'), 'error');
+    } finally {
+      setDeletingUserStory(false);
+    }
+  };
+
+  // Function to open the delete user story confirmation dialog
+  const confirmDeleteUserStory = (userStory) => {
+    setUserStoryToDelete(userStory);
+    setShowDeleteUserStoryDialog(true);
   };
 
   if (loading) {
@@ -775,9 +905,9 @@ const ProjectDetailsPage = () => {
 
         {/* Tab Navigation */}
         <div className="mb-6">
-          <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}> 
+          <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
             <nav className="-mb-px flex space-x-8">
-              <button
+            <button
                 onClick={() => setActiveTab('manage')}
                 className={`${activeTab === 'manage'
                   ? theme === 'dark'
@@ -787,11 +917,11 @@ const ProjectDetailsPage = () => {
                     ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
-              >
+            >
                 <FaProjectDiagram size={16} />
                 <span>Manage Project</span>
-              </button>
-                        <button
+            </button>
+              <button
                 onClick={() => setActiveTab('board')}
                 className={`${activeTab === 'board'
                   ? theme === 'dark'
@@ -804,14 +934,131 @@ const ProjectDetailsPage = () => {
               >
                 <FaChartBar size={16} />
                 <span>Board</span>
-                        </button>
+              </button>
             </nav>
-                      </div>
-              </div>
+          </div>
+        </div>
 
         {/* Tab Content */}
         {activeTab === 'manage' ? (
           <div>
+            {/* Add Team Dropdown */}
+        {isOwner && (
+              <div className="mb-6">
+                <form onSubmit={(e) => { e.preventDefault(); if (selectedTeam) handleAddTeam(selectedTeam.TeamID); }} className="flex flex-col gap-2">
+            <label className={getThemeClasses(
+              'block text-gray-700 font-semibold mb-1',
+                    'dark:text-gray-300'
+            )}>Search for a Team (search by name, description, or TeamID)</label>
+            <input
+              type="text"
+              className={getThemeClasses(
+                'border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200',
+                      'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
+              )}
+                    value={teamSearch}
+              onChange={e => {
+                      setTeamSearch(e.target.value);
+                      setSelectedTeam(null);
+                      setShowAllTeams(false);
+              }}
+              onFocus={() => {
+                      setIsTeamInputFocused(true);
+                      if (!teamSearch) {
+                  const assignedIds = new Set(teams.map(t => t.TeamID));
+                  const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
+                        setFilteredAvailableTeams(availableTeams.slice(0, 10));
+                }
+              }}
+              onBlur={() => {
+                setTimeout(() => {
+                        setIsTeamInputFocused(false);
+                }, 200);
+              }}
+              placeholder="Type to search..."
+              autoComplete="off"
+            />
+                  {isTeamInputFocused && filteredAvailableTeams.length > 0 && (
+              <div className="w-full md:w-96">
+                <ul className={getThemeClasses(
+                  'border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md',
+                  'dark:bg-gray-800 dark:border-gray-700'
+                )}>
+                        {filteredAvailableTeams.map((team, index) => (
+                    <li
+                      key={`${team.TeamID}-${index}`}
+                      className={getThemeClasses(
+                        'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150',
+                        'dark:border-gray-700'
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className={getThemeClasses(
+                          'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2',
+                          'dark:hover:bg-blue-900/30'
+                        )}
+                          onClick={() => {
+                                  setSelectedTeam(team);
+                                  setTeamSearch(team.TeamName + ' (' + team.TeamDescription + ')');
+                                  setIsTeamInputFocused(false);
+                          }}
+                        >
+                          <div className="flex flex-col">
+                            <div className={getThemeClasses(
+                              'font-medium text-gray-900',
+                              'dark:text-gray-100'
+                                  )}>
+                                    {team.TeamName}
+                                  </div>
+                            <div className={getThemeClasses(
+                              'text-sm text-gray-600',
+                              'dark:text-gray-400'
+                                  )}>
+                                    {team.TeamDescription}
+                                  </div>
+                            <div className={getThemeClasses(
+                                    'text-xs text-gray-400 mt-0.5',
+                              'dark:text-gray-500'
+                            )}>
+                                    ID: {team.TeamID}
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                                onClick={() => {
+                                  setSelectedTeam(team);
+                                  handleAddTeam(team.TeamID);
+                                }}
+                          className={getThemeClasses(
+                            'ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm',
+                            'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
+                          )}
+                        >
+                                Add
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                      {!showAllTeams && orgTeams.length > 10 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowAllTeams(true)}
+                          className={getThemeClasses(
+                            'w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200',
+                            'dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30'
+                          )}
+                        >
+                          Show All Teams ({orgTeams.length})
+                        </button>
+                      )}
+              </div>
+            )}
+                </form>
+          </div>
+        )}
+
           {/* Teams Assigned Table */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <div className={tableContainerClasses}>
@@ -928,7 +1175,19 @@ const ProjectDetailsPage = () => {
           {/* User Stories Table */}
           <div className={tableContainerClasses}>
             <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
+                  <div className="flex items-center justify-between">
               <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>User Stories</h2>
+                    <button
+                      onClick={() => { setAddTaskTypeMode('userStory'); setIsAddTaskOpen(true); }}
+                      className={getThemeClasses(
+                        'inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm',
+                        'dark:bg-blue-500 dark:hover:bg-blue-600'
+                      )}
+                    >
+                      <FaPlus size={14} />
+                      Add New
+                    </button>
+                  </div>
             </div>
             <div className="overflow-x-auto">
               {userStories.length === 0 ? (
@@ -993,10 +1252,10 @@ const ProjectDetailsPage = () => {
                               <FaCog size={14} />
                             </button>
                             <button
-                              onClick={() => {/* TODO: Implement delete */ }}
+                                  onClick={() => confirmDeleteUserStory(story)}
                               className={getThemeClasses(
-                                'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-red-100 text-red-700 hover:bg-red-200',
-                                'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-800/50'
+                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                    'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
                               )}
                               title="Delete User Story"
                             >
@@ -1019,8 +1278,9 @@ const ProjectDetailsPage = () => {
             <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
               <div className="flex items-center justify-between">
                 <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Tasks</h2>
-                {selectedTasks.length > 0 && (
                   <div className="flex items-center gap-3">
+                      {selectedTasks.length > 0 ? (
+                        <>
                     <div className={getThemeClasses(
                       'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
                       'dark:bg-blue-900/30 dark:text-blue-300'
@@ -1046,8 +1306,20 @@ const ProjectDetailsPage = () => {
                       <FaTrash size={14} />
                       Delete Selected
                     </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => { setAddTaskTypeMode('task'); setIsAddTaskOpen(true); }}
+                          className={getThemeClasses(
+                            'inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm',
+                            'dark:bg-blue-500 dark:hover:bg-blue-600'
+                          )}
+                        >
+                          <FaPlus size={14} />
+                          Add New
+                        </button>
+                      )}
                   </div>
-                )}
               </div>
             </div>
             <div className="overflow-x-auto">
@@ -1099,16 +1371,16 @@ const ProjectDetailsPage = () => {
                         <td className="py-3 px-4">
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2 mb-1">
-                              <button
-                                onClick={() => router.push(`/task/${task.TaskID}`)}
-                                className={getThemeClasses(
-                                  'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium',
-                                  'dark:hover:text-blue-400'
-                                )}
-                                title="Click to view task details"
-                              >
-                                {task.Name}
-                              </button>
+                                  <button
+                                    onClick={() => router.push(`/task/${task.TaskID}`)}
+                                    className={getThemeClasses(
+                                      'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium',
+                                      'dark:hover:text-blue-400'
+                                    )}
+                                    title="Click to view task details"
+                                  >
+                                    {task.Name}
+                                  </button>
                               {getTaskTypeBadgeComponent(task.Type)}
                             </div>
                             <span className={getThemeClasses(
@@ -1395,6 +1667,7 @@ const ProjectDetailsPage = () => {
           projectIdDefault={projectId}
           userStories={userStories}
           editingTask={editingTask}
+          addTaskTypeMode={addTaskTypeMode}
         />
 
         {/* Delete Task Confirmation Dialog */}
@@ -1514,6 +1787,74 @@ const ProjectDetailsPage = () => {
             </div>
           </div>
         )}
+        {/* Delete User Story Confirmation Dialog */}
+        <CustomModal
+          isOpen={showDeleteUserStoryDialog}
+          onClose={() => {
+            setShowDeleteUserStoryDialog(false);
+            setUserStoryToDelete(null);
+          }}
+          title="Delete User Story"
+          getThemeClasses={getThemeClasses}
+          actions={
+            <>
+              <button
+                onClick={() => {
+                  setShowDeleteUserStoryDialog(false);
+                  setUserStoryToDelete(null);
+                }}
+                className={getThemeClasses(
+                  'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
+                  'dark:text-gray-300 dark:hover:bg-gray-700 dark:border-gray-600'
+                )}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteUserStory(userStoryToDelete?.TaskID)}
+                className="px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 flex items-center gap-2"
+                disabled={deletingUserStory}
+              >
+                {deletingUserStory ? (
+                  <>
+                    <span className="animate-spin h-4 w-4 border-t-2 border-b-2 border-white rounded-full"></span>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaTrash size={14} />
+                    <span>Delete User Story</span>
+                  </>
+                )}
+              </button>
+            </>
+          }
+        >
+          <div>
+            <p className={getThemeClasses('text-gray-600 mb-4', 'dark:text-gray-300')}>
+              Are you sure you want to delete this user story? This action cannot be undone.
+            </p>
+            {userStoryToDelete && (
+              <div className={getThemeClasses(
+                'bg-red-50 border border-red-100 rounded-lg p-4',
+                'dark:bg-red-900/20 dark:border-red-800'
+              )}>
+                <h4 className={getThemeClasses('font-medium text-red-800 mb-1', 'dark:text-red-300')}>
+                  {userStoryToDelete.Name}
+                </h4>
+                <p className={getThemeClasses('text-sm text-red-700', 'dark:text-red-400')}>
+                  {userStoryToDelete.Description}
+                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  {getTaskTypeBadgeComponent(userStoryToDelete.Type)}
+                  <span className={getThemeClasses('text-xs text-red-600', 'dark:text-red-400')}>
+                    {getTaskStatusText(userStoryToDelete.Status)}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </CustomModal>
       </div>
     </Layout>
   );

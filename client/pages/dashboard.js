@@ -324,7 +324,7 @@ const Dashboard = () => {
                   <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Recent Projects</h2>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full overflow-y-auto">
                     <thead>
                       <tr className={`${theme === 'dark' ? 'bg-[#232323] border-[#424242]' : 'bg-gray-50 border-gray-200'}`}>
                         <th className="py-3 px-4 text-left">Project</th>

@@ -5,6 +5,7 @@ const User = require('../models/User');
 const TeamDetails = require('../models/TeamDetails');
 const ProjectDetails = require('../models/ProjectDetails');
 const { logActivity } = require('../services/activityService');
+const { checkProjectLimit, incrementUsage } = require('../middleware/premiumLimits');
 
 // GET /api/projects - fetch all projects the user is allocated to
 router.get('/:userId/:type', async (req, res) => {
@@ -34,7 +35,7 @@ router.get('/:userId/:type', async (req, res) => {
 });
 
 // POST /api/projects - add a new project
-router.post('/', async (req, res) => {
+router.post('/', checkProjectLimit, async (req, res) => {
   try {
     const { Name, Description, ProjectOwner, OrganizationID, FinishDate } = req.body;
     if (!Name) return res.status(400).json({ error: 'Project Name is required' });
@@ -51,6 +52,9 @@ router.post('/', async (req, res) => {
       ProjectStatusID: 1
     });
     await newProject.save();
+
+    // Increment usage for non-premium users
+    await incrementUsage(req, res, () => {});
 
     // Log the activity
     await logActivity(
@@ -94,10 +98,9 @@ router.post('/', async (req, res) => {
 router.patch('/:projectId', async (req, res) => {
   try {
     const { Name, Description, FinishDate, ProjectStatusID } = req.body;
-
+    
     // Try to find project by _id first, then by ProjectID
     let project = await Project.findOne({ ProjectID: req.params.projectId });
-    
     if (!project) return res.status(404).json({ error: 'Project not found' });
 
     const oldValues = {
@@ -173,7 +176,7 @@ router.patch('/:projectId/toggle-status', async (req, res) => {
     } catch (findError) {
       project = await Project.findOne({ ProjectID: req.params.projectId });
     }
-
+    
     if (!project) return res.status(404).json({ error: 'Project not found' });
     project.IsActive = !project.IsActive;
     project.ModifiedDate = new Date();
@@ -182,6 +185,6 @@ router.patch('/:projectId/toggle-status', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to update project status' });
   }
-});
+}); 
 
 module.exports = router; 

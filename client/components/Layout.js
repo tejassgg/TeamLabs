@@ -26,6 +26,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
   const [isUserStoriesOpen, setIsUserStoriesOpen] = useState(true);
   const { teams, projects, tasksDetails, userDetails, setProjects, setTeams, setTasksDetails, organizations } = useGlobal();
+  const { showToast } = useToast();
   const canManageTeamsAndProjects = userDetails?.role === 'Admin' || userDetails?.role === 'Owner';
 
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
@@ -36,10 +37,10 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
     try {
       const newTeam = await teamService.addTeam(teamData);
       setTeams(prevTeams => [...prevTeams, newTeam.team]);
-      toast.success('Team added successfully!');
+      showToast('Team added successfully!', 'success');
       return newTeam;
     } catch (err) {
-      toast.error('Failed to add team');
+      showToast('Failed to add team', 'error');
       throw err;
     }
   };
@@ -48,11 +49,14 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
     try {
       const newProject = await projectService.addProject(projectData);
       setProjects(prevProjects => [...prevProjects, newProject]);
-      toast.success('Project added successfully!');
+      showToast('Project added successfully!', 'success');
       return newProject;
     } catch (err) {
-      toast.error('Failed to add project');
-      throw err;
+      if(err.status == 403) {
+        showToast(err.message, 'warning');
+      } else {
+        showToast('Failed to add project', 'error');
+      }
     }
   };
 
@@ -60,9 +64,9 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
     try {
       const newTask = await taskService.addTaskDetails(taskData, 'fromSideBar');
       setTasksDetails(prevTasks => [...prevTasks, newTask]);
-      toast.success('Task added successfully!');
+      showToast('Task added successfully!', 'success');
     } catch (err) {
-      toast.error('Failed to add user story');
+      showToast('Failed to add user story', 'error');
     }
   };
 
@@ -159,10 +163,10 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
       {isOpen && !collapsed && (
         <ul className="ml-8 mt-1 space-y-1">
           {items.length === 0 ? (
-            <li className="text-gray-400 italic">No {label}</li>
+            <li key={`no-${label.toLowerCase()}`} className="text-gray-400 italic">No {label}</li>
           ) : (
             items.map((item) => (
-              <li key={item[itemKey]}>
+              <li key={item[itemKey] || item._id || `item-${Math.random()}`}>
                 <button
                   className={`w-full text-left px-2 py-1 rounded-lg transition-colors duration-150 ${activeId === item[itemKey]
                     ? (theme === 'dark' ? 'bg-blue-900 text-blue-200 font-medium' : 'bg-blue-50 text-blue-600 font-medium')
@@ -400,37 +404,6 @@ const Layout = ({ children }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobile, isMobileSidebarOpen]);
-
-  const handleAddTeam = async (teamData) => {
-    try {
-      const newTeam = await teamService.addTeam(teamData);
-      showToast('Team added successfully!', 'success');
-      return newTeam;
-    } catch (err) {
-      showToast('Failed to add team', 'error');
-      throw err;
-    }
-  };
-
-  const handleAddProject = async (projectData) => {
-    try {
-      const newProject = await projectService.addProject(projectData);
-      showToast('Project added successfully!', 'success');
-      return newProject;
-    } catch (err) {
-      showToast('Failed to add project', 'error');
-      throw err;
-    }
-  };
-
-  const handleAddUserStory = async (taskData) => {
-    try {
-      const newTask = await taskService.addTask(taskData);
-      showToast('Task added successfully!', 'success');
-    } catch (err) {
-      showToast('Failed to add user story', 'error');
-    }
-  };
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'}`}>

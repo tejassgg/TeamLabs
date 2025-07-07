@@ -15,7 +15,6 @@ const AssignTaskModal = ({ isOpen, onClose, task, projectId, onAssignTask }) => 
     if (isOpen && projectId) {
       setLoading(true);
       setError('');
-      
       taskService.getTeamMembersByProject(projectId)
         .then(members => {
           setTeamMembers(members);

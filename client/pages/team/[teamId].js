@@ -997,14 +997,14 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                <p className={getThemeClasses(
+                  <p className={getThemeClasses(
                   'text-gray-600',
-                  'dark:text-gray-400'
-                )}>
+                    'dark:text-gray-400'
+                  )}>
                   {selectedMember.IsMemberActive
                     ? `Are you sure you want to revoke access for ${selectedMember.name}? This will prevent them from accessing team resources.`
                     : `Are you sure you want to grant access for ${selectedMember.name}? This will allow them to access team resources.`}
-                </p>
+                  </p>
               </CustomModal>
             )}
 
@@ -1228,14 +1228,14 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                <p className={getThemeClasses(
+                  <p className={getThemeClasses(
                   'text-gray-600',
-                  'dark:text-gray-400'
-                )}>
+                    'dark:text-gray-400'
+                  )}>
                   {team.IsActive
                     ? 'Are you sure you want to deactivate this team? This will prevent members from accessing team resources.'
                     : 'Are you sure you want to activate this team? This will allow members to access team resources.'}
-                </p>
+                  </p>
               </CustomModal>
             )}
 
@@ -1276,10 +1276,10 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                <p className={getThemeClasses(
+                  <p className={getThemeClasses(
                   'text-gray-600',
-                  'dark:text-gray-400'
-                )}>
+                    'dark:text-gray-400'
+                  )}>
                   Are you sure you want to add {userToAdd.firstName} {userToAdd.lastName} to the team?
                 </p>
               </CustomModal>
@@ -1326,10 +1326,10 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                <p className={getThemeClasses(
+                  <p className={getThemeClasses(
                   'text-gray-600',
-                  'dark:text-gray-400'
-                )}>
+                    'dark:text-gray-400'
+                  )}>
                   {selectedInactiveMember.name} is currently inactive in the team. You must activate the member before performing any actions.
                 </p>
               </CustomModal>
@@ -1366,10 +1366,10 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                <p className={getThemeClasses(
+                  <p className={getThemeClasses(
                   'text-gray-600',
-                  'dark:text-gray-400'
-                )}>
+                    'dark:text-gray-400'
+                  )}>
                   Are you sure you want to delete this team? This action cannot be undone and will remove all team members and associated data.
                 </p>
               </CustomModal>

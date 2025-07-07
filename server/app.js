@@ -18,6 +18,7 @@ const commentRoutes = require('./routes/commentRoutes');
 const attachmentRoutes = require('./routes/attachmentRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const landingRoutes = require('./routes/landingRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
 
@@ -69,6 +70,7 @@ app.use('/api', commentRoutes);
 app.use('/api/attachments', attachmentRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/landing', landingRoutes);
 
 // Test route
 app.get('/', (req, res) => {

@@ -6,6 +6,7 @@ import Modal from '../components/Modal';
 import LoginForm from '../components/LoginForm';
 import RegisterForm from '../components/RegisterForm';
 import { useTheme } from '../context/ThemeContext';
+import { landingService } from '../services/api';
 import { FaMoon, FaSun, FaRocket, FaChartLine, FaUsers, FaShieldAlt, FaRobot, FaCheckCircle, FaArrowRight, FaPlay, FaStar, FaGithub, FaGoogle, FaSignOutAlt } from 'react-icons/fa';
 
 const testimonials = [
@@ -32,9 +33,9 @@ const testimonials = [
   }
 ];
 
-const stats = [
-  { number: "10,000+", label: "Active Teams" },
-  { number: "50,000+", label: "Projects Completed" },
+const defaultStats = [
+  { number: "0", label: "Active Teams" },
+  { number: "0", label: "Projects Completed" },
   { number: "99.9%", label: "Uptime" },
   { number: "24/7", label: "Support" }
 ];
@@ -123,9 +124,36 @@ export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState('login');
   const [isVisible, setIsVisible] = useState(false);
+  const [stats, setStats] = useState(defaultStats);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setIsVisible(true);
+  }, []);
+
+  // Fetch landing page statistics
+  useEffect(() => {
+    const fetchLandingStats = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch stats only
+        const statsData = await landingService.getStats();
+        setStats([
+          { number: statsData.activeTeams.toString(), label: "Active Teams" },
+          { number: statsData.completedProjects.toString(), label: "Projects Completed" },
+          { number: "99.9%", label: "Uptime" },
+          { number: "24/7", label: "Support" }
+        ]);
+      } catch (error) {
+        console.error('Error fetching landing stats:', error);
+        // Keep default stats on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLandingStats();
   }, []);
 
   const handleLogout = () => {
@@ -218,7 +246,7 @@ export default function Home() {
           <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-8 ${resolvedTheme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'}`}>
               <FaRocket className="mr-2" />
-              Trusted by 10,000+ teams worldwide
+              Trusted by {stats[0].number}+ teams worldwide
             </div>
             
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
@@ -257,7 +285,7 @@ export default function Home() {
               {stats.map((stat, index) => (
                 <div key={index} className="text-center">
                   <div className={`text-3xl md:text-4xl font-bold mb-2 ${resolvedTheme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
-                    {stat.number}
+                    {stat.number}{stat.label == "Projects Completed" ? "+" : stat.label == "Active Teams" ? "+" : ""}
                   </div>
                   <div className={`text-sm ${resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                     {stat.label}
@@ -536,6 +564,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+
 
       {/* Pricing Section - Full Width */}
       <section id="pricing" className={`py-20 ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-gray-800 to-gray-900' : 'bg-gradient-to-r from-blue-50 to-purple-50'}`}>

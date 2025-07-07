@@ -7,26 +7,41 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
   const [finishDate, setFinishDate] = useState('');
   const [error, setError] = useState('');
 
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) {
       setError('Project Name is required');
       return;
     }
-    onAddProject({
-      Name: name.trim(),
-      Description: description.trim(),
-      FinishDate: finishDate ? new Date(finishDate) : null,
-      ProjectOwner: projectOwner,
-      OrganizationID: organizationId,
-      IsActive: false
-    });
-    setName('');
-    setDescription('');
-    setFinishDate('');
-    setError('');
-    onClose();
+    
+    try {
+      await onAddProject({
+        Name: name.trim(),
+        Description: description.trim(),
+        FinishDate: finishDate ? new Date(finishDate) : null,
+        ProjectOwner: projectOwner,
+        OrganizationID: organizationId,
+        IsActive: false
+      });
+      setName('');
+      setDescription('');
+      setFinishDate('');
+      setError('');
+      onClose();
+    } catch (error) {
+      console.log('error', error.response);
+      // Handle premium limit errors
+      if (error?.response?.status === 403) {
+        const errorData = error.response.data;
+        if (errorData.type === 'project') {
+          setError(`You have reached the maximum number of projects (${errorData.limit}) for free users. Please upgrade to premium for unlimited projects.`);
+        } else {
+          setError(errorData.message || 'Limit reached. Please upgrade to premium.');
+        }
+      } else {
+        setError('Failed to add project. Please try again.');
+      }
+    }
   };
 
   if (!isOpen) return null;

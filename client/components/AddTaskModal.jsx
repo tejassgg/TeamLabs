@@ -3,7 +3,7 @@ import Modal from './Modal';
 import { commonTypeService } from '../services/api';
 import { useGlobal } from '../context/GlobalContext';
 
-const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSideBar', projectIdDefault, userStories, editingTask = null }) => {
+const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSideBar', projectIdDefault, userStories, editingTask = null, addTaskTypeMode = 'task' }) => {
   const { projects, userDetails } = useGlobal();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -36,35 +36,43 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       setParentId(editingTask.ParentID || '');
       setIsActive(editingTask.IsActive !== undefined ? editingTask.IsActive : true);
     } else if (isOpen && !editingTask) {
-      // Reset form for add mode
       setName('');
       setDescription('');
-      setType('');
       setPriority('Medium');
       setAssignee(userDetails?._id || '');
       setAssignedTo('');
       setProjectId(projectIdDefault || '');
       setParentId('');
       setIsActive(true);
+      if (addTaskTypeMode === 'userStory') {
+        setType('User Story');
+      } else {
+        setType('');
+      }
     }
-  }, [isOpen, editingTask, projectIdDefault, userDetails]);
+  }, [isOpen, editingTask, projectIdDefault, userDetails, addTaskTypeMode]);
 
   useEffect(() => {
     if (isOpen) {
       commonTypeService.getTaskTypes()
         .then((types) => {
-          // if (mode === 'fromSideBar') {
-          //   const fromSideBarType = types.find(t => t.Value === 'User Story');
-          //   setTypeOptions(fromSideBarType ? [fromSideBarType] : []);
-          //   if (fromSideBarType && !isEditMode) setType(fromSideBarType.Value);
-          // }
-          setTypeOptions(types);
-          if (types.length > 0 && !isEditMode) setType(types[0].Value);
+          let filteredTypes = types;
+          if (addTaskTypeMode === 'task') {
+            filteredTypes = types.filter(t => t.Value !== 'User Story');
+          }
+          setTypeOptions(filteredTypes);
+          if (!isEditMode) {
+            if (addTaskTypeMode === 'userStory') {
+              setType('User Story');
+            } else if (filteredTypes.length > 0) {
+              setType(filteredTypes[0].Value);
+            }
+          }
         })
         .catch(() => setTypeOptions([]));
       if (projectIdDefault && !isEditMode) setProjectId(projectIdDefault);
     }
-  }, [isOpen, mode, projectIdDefault, isEditMode]);
+  }, [isOpen, mode, projectIdDefault, isEditMode, addTaskTypeMode]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -80,6 +88,11 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       setError('Project is required');
       return;
     }
+    // Only validate User Story selection if task type is not 'User Story' and mode is 'fromProject'
+    if (mode === 'fromProject' && type !== 'User Story' && !parentId) {
+      setError('User Story is required');
+      return;
+    }
 
     const taskData = {
       Name: name.trim(),
@@ -88,7 +101,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       Priority: type !== 'User Story' ? priority : undefined,
       Assignee: assignee,
       ProjectID_FK: projectId,
-      ParentID: mode === 'fromProject' ? parentId : null,
+      ParentID: mode === 'fromProject' && type !== 'User Story' ? parentId : null,
       CreatedBy: createdBy
     };
 
@@ -97,7 +110,21 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       onUpdateTask(editingTask.TaskID, taskData);
     } else {
       // Call add function
-      onAddTask(taskData);
+      onAddTask(taskData).catch(error => {
+        // Handle premium limit errors
+        if (error?.response?.status === 403) {
+          const errorData = error.response.data;
+          if (errorData.type === 'userStory') {
+            setError(`You have reached the maximum number of user stories (${errorData.limit}) for free users. Please upgrade to premium for unlimited user stories.`);
+          } else if (errorData.type === 'task') {
+            setError(`You have reached the maximum number of tasks (${errorData.limit}) per user story for free users. Please upgrade to premium for unlimited tasks.`);
+          } else {
+            setError(errorData.message || 'Limit reached. Please upgrade to premium.');
+          }
+        } else {
+          setError('Failed to add task. Please try again.');
+        }
+      });
     }
 
     // Reset form
@@ -154,7 +181,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
               onChange={e => setType(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               required
-              disabled={mode === 'fromSideBar'}
+              disabled={mode === 'fromSideBar' || addTaskTypeMode === 'userStory'}
             >
               {typeOptions.map(opt => (
                 <option key={opt._id} value={opt.Value}>{opt.Value}</option>
@@ -193,7 +220,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
             </select>
           </div>
         )}
-        {mode === 'fromProject' && (
+        {mode === 'fromProject' && type !== 'User Story' && (
           <div>
             <label className="block text-sm font-medium mb-1">User Story<span className="text-red-500">*</span></label>
             <select
