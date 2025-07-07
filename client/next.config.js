@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   env: {
-    API_URL: process.env.API_URL || 'http://localhost:5000/api',
+    API_URL: process.env.NEXT_PUBLIC_API_URL,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   },
 }
