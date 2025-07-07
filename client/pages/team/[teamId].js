@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Head from 'next/head';
 import api, { authService } from '../../services/api';
 import Layout from '../../components/Layout';
+import CustomModal from '../../components/CustomModal';
 import { FaCog, FaTrash, FaTimes, FaChevronRight } from 'react-icons/fa';
 import LoadingScreen from '../../components/LoadingScreen';
 import { useAuth } from '../../context/AuthContext';
@@ -961,29 +962,16 @@ const TeamDetailsPage = () => {
 
             {/* Member Access Confirmation Dialog */}
             {showRevokeDialog && selectedMember && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className={getThemeClasses(
-                  'bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100',
-                  'dark:bg-gray-800 dark:border-gray-700'
-                )}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className={`w-3 h-3 rounded-full ${selectedMember.IsMemberActive ? 'bg-red-500' : 'bg-green-500'}`}></span>
-                    <h3 className={getThemeClasses(
-                      'text-lg font-semibold',
-                      'dark:text-gray-100'
-                    )}>
-                      {selectedMember.IsMemberActive ? 'Revoke Access' : 'Grant Access'}
-                    </h3>
-                  </div>
-                  <p className={getThemeClasses(
-                    'text-gray-600 mb-6',
-                    'dark:text-gray-400'
-                  )}>
-                    {selectedMember.IsMemberActive
-                      ? `Are you sure you want to revoke access for ${selectedMember.name}? This will prevent them from accessing team resources.`
-                      : `Are you sure you want to grant access for ${selectedMember.name}? This will allow them to access team resources.`}
-                  </p>
-                  <div className="flex justify-end gap-3">
+              <CustomModal
+                isOpen={showRevokeDialog}
+                onClose={() => {
+                  setShowRevokeDialog(false);
+                  setSelectedMember(null);
+                }}
+                title={selectedMember.IsMemberActive ? 'Revoke Access' : 'Grant Access'}
+                getThemeClasses={getThemeClasses}
+                actions={
+                  <>
                     <button
                       onClick={() => {
                         setShowRevokeDialog(false);
@@ -1006,34 +994,32 @@ const TeamDetailsPage = () => {
                     >
                       {toggling === selectedMember.MemberID ? 'Updating...' : 'Confirm'}
                     </button>
-                  </div>
-                </div>
-              </div>
+                  </>
+                }
+              >
+                <p className={getThemeClasses(
+                  'text-gray-600',
+                  'dark:text-gray-400'
+                )}>
+                  {selectedMember.IsMemberActive
+                    ? `Are you sure you want to revoke access for ${selectedMember.name}? This will prevent them from accessing team resources.`
+                    : `Are you sure you want to grant access for ${selectedMember.name}? This will allow them to access team resources.`}
+                </p>
+              </CustomModal>
             )}
 
             {/* Remove Member Confirmation Dialog */}
             {showRemoveDialog && selectedMember && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className={getThemeClasses(
-                  'bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100',
-                  'dark:bg-gray-800 dark:border-gray-700'
-                )}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                    <h3 className={getThemeClasses(
-                      'text-lg font-semibold',
-                      'dark:text-gray-100'
-                    )}>
-                      Remove Member
-                    </h3>
-                  </div>
-                  <p className={getThemeClasses(
-                    'text-gray-600 mb-6',
-                    'dark:text-gray-400'
-                  )}>
-                    Are you sure you want to remove {selectedMember.name} from the team? This action cannot be undone.
-                  </p>
-                  <div className="flex justify-end gap-3">
+              <CustomModal
+                isOpen={showRemoveDialog}
+                onClose={() => {
+                  setShowRemoveDialog(false);
+                  setSelectedMember(null);
+                }}
+                title="Remove Member"
+                getThemeClasses={getThemeClasses}
+                actions={
+                  <>
                     <button
                       onClick={() => {
                         setShowRemoveDialog(false);
@@ -1056,9 +1042,16 @@ const TeamDetailsPage = () => {
                     >
                       {removing === selectedMember.MemberID ? 'Removing...' : 'Remove'}
                     </button>
-                  </div>
-                </div>
-              </div>
+                  </>
+                }
+              >
+                <p className={getThemeClasses(
+                  'text-gray-600',
+                  'dark:text-gray-400'
+                )}>
+                  Are you sure you want to remove {selectedMember.name} from the team? This action cannot be undone.
+                </p>
+              </CustomModal>
             )}
 
             {/* Team Settings Modal */}
@@ -1206,29 +1199,13 @@ const TeamDetailsPage = () => {
 
             {/* Team Status Confirmation Dialog */}
             {showConfirmDialog && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className={getThemeClasses(
-                  'bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100',
-                  'dark:bg-gray-800 dark:border-gray-700'
-                )}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className={`w-3 h-3 rounded-full ${team.IsActive ? 'bg-red-500' : 'bg-green-500'}`}></span>
-                    <h3 className={getThemeClasses(
-                      'text-lg font-semibold',
-                      'dark:text-gray-100'
-                    )}>
-                      {team.IsActive ? 'Deactivate Team' : 'Activate Team'}
-                    </h3>
-                  </div>
-                  <p className={getThemeClasses(
-                    'text-gray-600 mb-6',
-                    'dark:text-gray-400'
-                  )}>
-                    {team.IsActive
-                      ? 'Are you sure you want to deactivate this team? This will prevent members from accessing team resources.'
-                      : 'Are you sure you want to activate this team? This will allow members to access team resources.'}
-                  </p>
-                  <div className="flex justify-end gap-3">
+              <CustomModal
+                isOpen={showConfirmDialog}
+                onClose={() => setShowConfirmDialog(false)}
+                title={team.IsActive ? 'Deactivate Team' : 'Activate Team'}
+                getThemeClasses={getThemeClasses}
+                actions={
+                  <>
                     <button
                       onClick={() => setShowConfirmDialog(false)}
                       className={getThemeClasses(
@@ -1248,34 +1225,32 @@ const TeamDetailsPage = () => {
                     >
                       {togglingTeam ? 'Updating...' : 'Confirm'}
                     </button>
-                  </div>
-                </div>
-              </div>
+                  </>
+                }
+              >
+                <p className={getThemeClasses(
+                  'text-gray-600',
+                  'dark:text-gray-400'
+                )}>
+                  {team.IsActive
+                    ? 'Are you sure you want to deactivate this team? This will prevent members from accessing team resources.'
+                    : 'Are you sure you want to activate this team? This will allow members to access team resources.'}
+                </p>
+              </CustomModal>
             )}
 
             {/* Add Member Confirmation Dialog */}
             {showAddMemberDialog && userToAdd && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className={getThemeClasses(
-                  'bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100',
-                  'dark:bg-gray-800 dark:border-gray-700'
-                )}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-                    <h3 className={getThemeClasses(
-                      'text-lg font-semibold',
-                      'dark:text-gray-100'
-                    )}>
-                      Add Team Member
-                    </h3>
-                  </div>
-                  <p className={getThemeClasses(
-                    'text-gray-600 mb-6',
-                    'dark:text-gray-400'
-                  )}>
-                    Are you sure you want to add {userToAdd.firstName} {userToAdd.lastName} to the team?
-                  </p>
-                  <div className="flex justify-end gap-3">
+              <CustomModal
+                isOpen={showAddMemberDialog}
+                onClose={() => {
+                  setShowAddMemberDialog(false);
+                  setUserToAdd(null);
+                }}
+                title="Add Team Member"
+                getThemeClasses={getThemeClasses}
+                actions={
+                  <>
                     <button
                       onClick={() => {
                         setShowAddMemberDialog(false);
@@ -1298,34 +1273,30 @@ const TeamDetailsPage = () => {
                     >
                       {adding ? 'Adding...' : 'Confirm'}
                     </button>
-                  </div>
-                </div>
-              </div>
+                  </>
+                }
+              >
+                <p className={getThemeClasses(
+                  'text-gray-600',
+                  'dark:text-gray-400'
+                )}>
+                  Are you sure you want to add {userToAdd.firstName} {userToAdd.lastName} to the team?
+                </p>
+              </CustomModal>
             )}
 
             {/* Inactive Member Dialog */}
             {showInactiveMemberDialog && selectedInactiveMember && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className={getThemeClasses(
-                  'bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100',
-                  'dark:bg-gray-800 dark:border-gray-700'
-                )}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                    <h3 className={getThemeClasses(
-                      'text-lg font-semibold',
-                      'dark:text-gray-100'
-                    )}>
-                      Inactive Member
-                    </h3>
-                  </div>
-                  <p className={getThemeClasses(
-                    'text-gray-600 mb-6',
-                    'dark:text-gray-400'
-                  )}>
-                    {selectedInactiveMember.name} is currently inactive in the team. You must activate the member before performing any actions.
-                  </p>
-                  <div className="flex justify-end gap-3">
+              <CustomModal
+                isOpen={showInactiveMemberDialog}
+                onClose={() => {
+                  setShowInactiveMemberDialog(false);
+                  setSelectedInactiveMember(null);
+                }}
+                title="Inactive Member"
+                getThemeClasses={getThemeClasses}
+                actions={
+                  <>
                     <button
                       onClick={() => {
                         setShowInactiveMemberDialog(false);
@@ -1352,32 +1323,27 @@ const TeamDetailsPage = () => {
                     >
                       Activate Member
                     </button>
-                  </div>
-                </div>
-              </div>
+                  </>
+                }
+              >
+                <p className={getThemeClasses(
+                  'text-gray-600',
+                  'dark:text-gray-400'
+                )}>
+                  {selectedInactiveMember.name} is currently inactive in the team. You must activate the member before performing any actions.
+                </p>
+              </CustomModal>
             )}
 
             {/* Delete Team Confirmation Dialog */}
             {showDeleteDialog && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className={getThemeClasses(
-                  'bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100',
-                  'dark:bg-gray-800 dark:border-gray-700'
-                )}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                    <h3 className={getThemeClasses(
-                      'text-lg font-semibold',
-                      'dark:text-gray-100'
-                    )}>Delete Team</h3>
-                  </div>
-                  <p className={getThemeClasses(
-                    'text-gray-600 mb-6',
-                    'dark:text-gray-400'
-                  )}>
-                    Are you sure you want to delete this team? This action cannot be undone and will remove all team members and associated data.
-                  </p>
-                  <div className="flex justify-end gap-3">
+              <CustomModal
+                isOpen={showDeleteDialog}
+                onClose={() => setShowDeleteDialog(false)}
+                title="Delete Team"
+                getThemeClasses={getThemeClasses}
+                actions={
+                  <>
                     <button
                       onClick={() => setShowDeleteDialog(false)}
                       className={getThemeClasses(
@@ -1397,32 +1363,27 @@ const TeamDetailsPage = () => {
                     >
                       {deletingTeam ? 'Deleting...' : 'Delete Team'}
                     </button>
-                  </div>
-                </div>
-              </div>
+                  </>
+                }
+              >
+                <p className={getThemeClasses(
+                  'text-gray-600',
+                  'dark:text-gray-400'
+                )}>
+                  Are you sure you want to delete this team? This action cannot be undone and will remove all team members and associated data.
+                </p>
+              </CustomModal>
             )}
 
             {/* Bulk Remove Projects Confirmation Dialog */}
             {showBulkRemoveProjectsDialog && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className={getThemeClasses(
-                  'bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100',
-                  'dark:bg-gray-800 dark:border-gray-700'
-                )}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                    <h3 className={getThemeClasses(
-                      'text-lg font-semibold',
-                      'dark:text-gray-100'
-                    )}>Remove Selected Projects</h3>
-                  </div>
-                  <p className={getThemeClasses(
-                    'text-gray-600 mb-6',
-                    'dark:text-gray-400'
-                  )}>
-                    Are you sure you want to remove {selectedProjects.length} selected project{selectedProjects.length !== 1 ? 's' : ''} from the team? This action cannot be undone.
-                  </p>
-                  <div className="flex justify-end gap-3">
+              <CustomModal
+                isOpen={showBulkRemoveProjectsDialog}
+                onClose={() => setShowBulkRemoveProjectsDialog(false)}
+                title="Remove Selected Projects"
+                getThemeClasses={getThemeClasses}
+                actions={
+                  <>
                     <button
                       onClick={() => setShowBulkRemoveProjectsDialog(false)}
                       className={getThemeClasses(
@@ -1442,9 +1403,16 @@ const TeamDetailsPage = () => {
                     >
                       {bulkRemovingProjects ? 'Removing...' : 'Remove Projects'}
                     </button>
-                  </div>
-                </div>
-              </div>
+                  </>
+                }
+              >
+                <p className={getThemeClasses(
+                  'text-gray-600',
+                  'dark:text-gray-400'
+                )}>
+                  Are you sure you want to remove {selectedProjects.length} selected project{selectedProjects.length !== 1 ? 's' : ''} from the team? This action cannot be undone.
+                </p>
+              </CustomModal>
             )}
           </>
         )}

@@ -322,9 +322,8 @@ const Navbar = ({ isMobile, theme, onLogout }) => {
       </div>
     );
   }
-
   return (
-    <nav className={`${theme === 'dark' ? 'bg-[#18181b] text-white border-[#232323]' : 'bg-white text-gray-900 border-gray-200'} shadow-sm rounded-xl mt-4 border`}>
+    <nav className={`${theme === 'dark' ? 'bg-[#18181b] text-white border-[#232323]' : 'bg-white text-gray-900 border-gray-200'} shadow-sm border-b`}>
       <div className="mx-auto">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo */}
@@ -334,6 +333,7 @@ const Navbar = ({ isMobile, theme, onLogout }) => {
               <span className="text-2xl lg:text-3xl font-extrabold">TeamLabs</span>
             </Link>
           </div>
+
           {/* Right side - User menu and Notifications */}
           <div className="flex items-center pr-4 lg:pr-8 space-x-2 lg:space-x-6">
             {/* Status Dropdown */}

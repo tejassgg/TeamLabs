@@ -1,0 +1,178 @@
+const express = require('express');
+const router = express.Router();
+const Attachment = require('../models/Attachment');
+const fs = require('fs');
+const path = require('path');
+
+// Get all attachments for a task
+// GET /api/attachments/tasks/:taskId/attachments
+router.get('/tasks/:taskId/attachments', async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    
+    if (!taskId) {
+      return res.status(400).json({ error: 'Task ID is required' });
+    }
+
+    const attachments = await Attachment.find({ TaskID: taskId }).sort({ UploadedAt: -1 });
+    res.json(attachments);
+  } catch (err) {
+    console.error('Error fetching attachments:', err);
+    res.status(500).json({ error: 'Failed to fetch attachments' });
+  }
+});
+
+// Add a new attachment (for backward compatibility)
+// POST /api/attachments/tasks/:taskId/attachments
+router.post('/tasks/:taskId/attachments', async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { Filename, FileURL, UploadedBy } = req.body;
+    
+    if (!taskId || !Filename || !FileURL || !UploadedBy) {
+      return res.status(400).json({ error: 'Task ID, Filename, FileURL, and UploadedBy are required' });
+    }
+
+    const attachment = new Attachment({ 
+      TaskID: taskId, 
+      Filename, 
+      FileURL, 
+      UploadedBy,
+      UploadedAt: new Date()
+    });
+    
+    await attachment.save();
+    res.status(201).json(attachment);
+  } catch (err) {
+    console.error('Error adding attachment:', err);
+    res.status(500).json({ error: 'Failed to add attachment' });
+  }
+});
+
+// Delete an attachment
+// DELETE /api/attachments/:attachmentId
+router.delete('/:attachmentId', async (req, res) => {
+  try {
+    const { attachmentId } = req.params;
+    
+    if (!attachmentId) {
+      return res.status(400).json({ error: 'Attachment ID is required' });
+    }
+
+    // Find the attachment first to get the file path
+    const attachment = await Attachment.findOne({ AttachmentID: attachmentId });
+    
+    if (!attachment) {
+      return res.status(404).json({ error: 'Attachment not found' });
+    }
+
+    // Delete the physical file if it exists
+    if (attachment.FileURL) {
+      const filePath = path.join(__dirname, '../../client/public', attachment.FileURL);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    // Delete from database
+    await Attachment.findOneAndDelete({ AttachmentID: attachmentId });
+    
+    res.json({ 
+      success: true,
+      message: 'Attachment deleted successfully' 
+    });
+  } catch (err) {
+    console.error('Error deleting attachment:', err);
+    res.status(500).json({ error: 'Failed to delete attachment' });
+  }
+});
+
+// Get a single attachment by ID
+// GET /api/attachments/:attachmentId
+router.get('/:attachmentId', async (req, res) => {
+  try {
+    const { attachmentId } = req.params;
+    
+    if (!attachmentId) {
+      return res.status(400).json({ error: 'Attachment ID is required' });
+    }
+
+    const attachment = await Attachment.findOne({ AttachmentID: attachmentId });
+    
+    if (!attachment) {
+      return res.status(404).json({ error: 'Attachment not found' });
+    }
+
+    res.json(attachment);
+  } catch (err) {
+    console.error('Error fetching attachment:', err);
+    res.status(500).json({ error: 'Failed to fetch attachment' });
+  }
+});
+
+// Update an attachment
+// PATCH /api/attachments/:attachmentId
+router.patch('/:attachmentId', async (req, res) => {
+  try {
+    const { attachmentId } = req.params;
+    const updateData = req.body;
+    
+    if (!attachmentId) {
+      return res.status(400).json({ error: 'Attachment ID is required' });
+    }
+
+    const attachment = await Attachment.findOneAndUpdate(
+      { AttachmentID: attachmentId },
+      { ...updateData, UpdatedAt: new Date() },
+      { new: true }
+    );
+    
+    if (!attachment) {
+      return res.status(404).json({ error: 'Attachment not found' });
+    }
+
+    res.json(attachment);
+  } catch (err) {
+    console.error('Error updating attachment:', err);
+    res.status(500).json({ error: 'Failed to update attachment' });
+  }
+});
+
+// Bulk delete attachments
+// DELETE /api/attachments/bulk-delete
+router.delete('/bulk-delete', async (req, res) => {
+  try {
+    const { attachmentIds } = req.body;
+    
+    if (!attachmentIds || !Array.isArray(attachmentIds) || attachmentIds.length === 0) {
+      return res.status(400).json({ error: 'Attachment IDs array is required' });
+    }
+
+    // Find attachments to get file paths
+    const attachments = await Attachment.find({ AttachmentID: { $in: attachmentIds } });
+    
+    // Delete physical files
+    for (const attachment of attachments) {
+      if (attachment.FileURL) {
+        const filePath = path.join(__dirname, '../../client/public', attachment.FileURL);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+    }
+
+    // Delete from database
+    const result = await Attachment.deleteMany({ AttachmentID: { $in: attachmentIds } });
+    
+    res.json({ 
+      success: true,
+      message: `Successfully deleted ${result.deletedCount} attachments`,
+      deletedCount: result.deletedCount
+    });
+  } catch (err) {
+    console.error('Error bulk deleting attachments:', err);
+    res.status(500).json({ error: 'Failed to delete attachments' });
+  }
+});
+
+module.exports = router; 

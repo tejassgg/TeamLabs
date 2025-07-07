@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FaChevronRight } from 'react-icons/fa';
 
-const Breadcrumb = ({ type, projectName, teamName }) => {
+const Breadcrumb = ({ type, projectName, projectId, teamName, taskName }) => {
   const router = useRouter();
 
   const getBreadcrumbItems = () => {
@@ -31,14 +31,22 @@ const Breadcrumb = ({ type, projectName, teamName }) => {
         return [
           { label: 'Settings', href: router.asPath }
         ];
+      case 'task':
+        return [
+          { label: 'Projects', href: '/dashboard/projects' },
+          { label: projectName, href: `/project/${projectId}` },
+          { label: taskName, href: router.asPath, isCurrent: true }
+        ];
       default:
         return [];
     }
   };
 
+  const items = getBreadcrumbItems();
+
   return (
     <div className="container">
-      <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-6 h-8">
+      <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-4 h-8">
         <Link 
           href="/dashboard" 
           className={`hover:text-blue-600 transition-colors duration-200 ${
@@ -47,10 +55,10 @@ const Breadcrumb = ({ type, projectName, teamName }) => {
         >
           Dashboard
         </Link>
-        {getBreadcrumbItems().map((item, index) => (
+        {items.map((item, index) => (
           <div key={index} className="flex items-center space-x-2">
             <FaChevronRight className="text-gray-400 w-3 h-3" />
-            {index === getBreadcrumbItems().length - 1 ? (
+            {item.isCurrent || index === items.length - 1 ? (
               <span className="text-gray-700 font-medium">{item.label}</span>
             ) : (
               <Link

@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
 });
 
 // File filter to only allow images
-const fileFilter = (req, file, cb) => {
+const imageFileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
@@ -30,16 +30,54 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ 
+// File filter for attachments - allow common file types
+const attachmentFileFilter = (req, file, cb) => {
+  const allowedMimeTypes = [
+    'image/',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/plain',
+    'text/csv',
+    'application/json',
+    'application/xml',
+    'text/html',
+    'text/css',
+    'application/javascript',
+    'text/javascript'
+  ];
+  
+  const isAllowed = allowedMimeTypes.some(type => 
+    file.mimetype.startsWith(type) || file.mimetype === type
+  );
+  
+  if (isAllowed) {
+    cb(null, true);
+  } else {
+    cb(new Error('File type not allowed!'), false);
+  }
+};
+
+const imageUpload = multer({ 
   storage,
-  fileFilter,
+  fileFilter: imageFileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 });
 
+const attachmentUpload = multer({ 
+  storage,
+  fileFilter: attachmentFileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  }
+});
+
 // POST /api/upload
-router.post('/', upload.single('image'), (req, res) => {
+router.post('/', imageUpload.single('image'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -51,6 +89,53 @@ router.post('/', upload.single('image'), (req, res) => {
     console.error('Upload error:', error);
     res.status(500).json({ 
       message: error.message || 'Error uploading file',
+      details: error.stack
+    });
+  }
+});
+
+// POST /api/attachments/upload - Upload task attachment
+router.post('/attachments/upload', attachmentUpload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const { taskId, userId, filename } = req.body;
+    
+    if (!taskId || !userId) {
+      return res.status(400).json({ message: 'Task ID and User ID are required' });
+    }
+
+    // Create attachment record in database
+    const Attachment = require('../models/Attachment');
+    const attachment = new Attachment({
+      TaskID: taskId,
+      Filename: filename || req.file.originalname,
+      FileURL: `/uploads/${req.file.filename}`,
+      FileSize: req.file.size,
+      UploadedBy: userId,
+      UploadedAt: new Date()
+    });
+
+    await attachment.save();
+
+    res.json({ 
+      success: true,
+      message: 'File uploaded successfully',
+      attachment: {
+        AttachmentID: attachment.AttachmentID,
+        Filename: attachment.Filename,
+        FileURL: attachment.FileURL,
+        FileSize: attachment.FileSize,
+        UploadedAt: attachment.UploadedAt
+      }
+    });
+  } catch (error) {
+    console.error('Attachment upload error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: error.message || 'Error uploading attachment',
       details: error.stack
     });
   }

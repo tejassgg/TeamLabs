@@ -19,6 +19,8 @@ const userActivitySchema = new mongoose.Schema({
       'task_create', 'task_update', 'task_delete', 'task_complete', 'task_assign',
       // User Story activities
       'user_story_create', 'user_story_update', 'user_story_delete',
+      // Comment activities
+      'comment_add', 'comment_update', 'comment_delete',
       // Error activities
       'error',
       // Chatbot activities

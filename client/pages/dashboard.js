@@ -252,7 +252,7 @@ const Dashboard = () => {
           <span className={theme === 'dark' ? 'text-[#F3F6FA] font-medium' : 'text-gray-700 font-medium'}>Dashboard</span>
         </div>
 
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.organizationName}</h1>
             <p className={`text-lg mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>Welcome to your workspace</p>

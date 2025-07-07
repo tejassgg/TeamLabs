@@ -2,14 +2,32 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import api, { authService, taskService } from '../../services/api';
+import api, { authService, taskService, projectService } from '../../services/api';
 import Layout from '../../components/Layout';
-import { FaTrash, FaCog, FaTimes, FaClock, FaUserCheck, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaChevronRight, FaInfoCircle } from 'react-icons/fa';
+import { FaTrash, FaCog, FaTimes, FaClock, FaUserCheck, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaChevronRight, FaInfoCircle, FaProjectDiagram, FaChartBar, FaTasks } from 'react-icons/fa';
 import LoadingScreen from '../../components/LoadingScreen';
 import AddTaskModal from '../../components/AddTaskModal';
 import { useToast } from '../../context/ToastContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
+import AssignTaskModal from '../../components/AssignTaskModal';
+import React from 'react';
+import TaskCard from '../../components/TaskCard';
+import KanbanColumn from '../../components/KanbanColumn';
+import {
+  statusMap,
+  statusIcons,
+  statusColors,
+  getTaskTypeDetails,
+  getPriorityStyle,
+  useThemeClasses
+} from '../../components/kanbanUtils';
+
+
+
+
+
+
 
 const ProjectDetailsPage = () => {
   const router = useRouter();
@@ -60,6 +78,7 @@ const ProjectDetailsPage = () => {
   const [selectedTasks, setSelectedTasks] = useState([]);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState('manage');
 
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
@@ -200,8 +219,9 @@ const ProjectDetailsPage = () => {
       });
       setProject(res.data);
       setShowSettingsModal(false);
+      showToast('Project details updated successfully!', 'success');
     } catch (err) {
-      alert('Failed to update project');
+      showToast('Failed to update project details', 'error');
     } finally {
       setSavingSettings(false);
     }
@@ -454,36 +474,236 @@ const ProjectDetailsPage = () => {
     }
   };
 
-  // Helper function to get styles for priority
-  const getPriorityStyle = (priority) => {
-    const styles = {
-      'High': {
-        bgColor: 'bg-red-50',
-        textColor: 'text-red-700',
-        borderColor: 'border-red-200',
-        icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      },
-      'Medium': {
-        bgColor: 'bg-yellow-50',
-        textColor: 'text-yellow-700',
-        borderColor: 'border-yellow-200',
-        icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      },
-      'Low': {
-        bgColor: 'bg-green-50',
-        textColor: 'text-green-700',
-        borderColor: 'border-green-200',
-        icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+  // KanbanBoardForProject: Kanban board for a specific projectId (extracted from kanban.js, but no heading, breadcrumb, or project select)
+  const KanbanBoardForProject = ({ projectId, initialTasks, initialUserStories }) => {
+    const { userDetails } = useGlobal();
+    const { showToast } = useToast();
+    const [tasks, setTasks] = useState(initialTasks || []);
+    const [userStories, setUserStories] = useState(initialUserStories || []);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [draggingTask, setDraggingTask] = useState(null);
+    const [targetStatus, setTargetStatus] = useState(null);
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [showDeleteArea, setShowDeleteArea] = useState(false);
+    const [isOverDeleteArea, setIsOverDeleteArea] = useState(false);
+    const [draggedCardDimensions, setDraggedCardDimensions] = useState(null);
+    const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+    const getThemeClasses = (lightClasses, darkClasses) => theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
+
+    useEffect(() => {
+      if (!projectId) return;
+      setLoading(true);
+      const fetchTasksAndUserStories = async () => {
+        try {
+          const fetchedTasks = await taskService.getTaskDetails(projectId);
+          const mappedTasks = fetchedTasks.map(task => {
+            if (task.Status === 4 || task.Status === 5) {
+              return { ...task, Status: 3 };
+            }
+            return task;
+          });
+          setTasks(mappedTasks);
+          // Fetch user stories for the project
+          const projectDetails = await projectService.getProjectDetails(projectId);
+          setUserStories(projectDetails.userStories || []);
+        } catch (err) {
+          setError('Failed to fetch tasks');
+          showToast('Failed to fetch tasks', 'error');
+        } finally {
+          setLoading(false);
+        }
+      };
+      // fetchTasksAndUserStories();
+    }, [projectId]);
+
+    const isTaskAssignedToUser = (task) => task.Assignee === userDetails?._id;
+
+    const handleDragStart = (task, event, dimensions = null) => {
+      if (task.Status === 1 || isTaskAssignedToUser(task)) {
+        setDraggingTask(task);
+        setShowDeleteArea(true);
+        if (dimensions) {
+          const rect = event.currentTarget.getBoundingClientRect();
+          setDraggedCardDimensions({ ...dimensions, left: rect.left, top: rect.top });
+        }
+      } else {
+        event.preventDefault();
+        showToast('You can only move tasks assigned to you', 'warning');
+        return;
       }
     };
 
-    return styles[priority] || styles['Medium']; // Default to Medium if priority not found
+    const handleDragEnd = () => {
+      setShowDeleteArea(false);
+      setIsOverDeleteArea(false);
+      setDraggedCardDimensions(null);
+    };
+
+    const handleDrop = async (statusCode) => {
+      if (!draggingTask || draggingTask.Status === statusCode) {
+        setDraggingTask(null);
+        setShowDeleteArea(false);
+        return;
+      }
+      if (draggingTask.Status === 1) {
+        setTargetStatus(statusCode);
+        setShowAssignModal(true);
+        setShowDeleteArea(false);
+        return;
+      }
+      await updateTaskStatus(draggingTask, statusCode);
+      setShowDeleteArea(false);
+    };
+
+    const handleDeleteDrop = async () => {
+      if (!draggingTask) return;
+      try {
+        await taskService.deleteTask(draggingTask.TaskID);
+        setTasks(tasks.filter(task => task.TaskID !== draggingTask.TaskID));
+        showToast('Task removed successfully', 'success');
+      } catch (err) {
+        showToast('Failed to remove task', 'error');
+      }
+      setDraggingTask(null);
+      setShowDeleteArea(false);
+      setIsOverDeleteArea(false);
+    };
+
+    const handleDeleteDragOver = (e) => {
+      e.preventDefault();
+      setIsOverDeleteArea(true);
+    };
+
+    const handleDeleteDragLeave = () => {
+      setIsOverDeleteArea(false);
+    };
+
+    const updateTaskStatus = async (task, statusCode) => {
+      const updatedTasks = tasks.map(t => t.TaskID === task.TaskID ? { ...t, Status: statusCode } : t);
+      setTasks(updatedTasks);
+      try {
+        await taskService.updateTaskStatus(task.TaskID, statusCode);
+        showToast(`Task moved to ${statusMap[statusCode]}`, 'success');
+      } catch (err) {
+        const originalTasks = tasks.map(t => t.TaskID === task.TaskID ? task : t);
+        setTasks(originalTasks);
+        showToast('Failed to update task status', 'error');
+      }
+      setDraggingTask(null);
+    };
+
+    const handleAssignTask = (updatedTask) => {
+      const updatedTasks = tasks.map(task => task.TaskID === updatedTask.TaskID ? { ...updatedTask, Status: targetStatus } : task);
+      setTasks(updatedTasks);
+      taskService.updateTaskStatus(updatedTask.TaskID, targetStatus)
+        .then(() => {
+          showToast(`Task assigned and moved to ${statusMap[targetStatus]}`, 'success');
+        })
+        .catch(() => {
+          showToast('Failed to update task status', 'error');
+        });
+      setDraggingTask(null);
+      setTargetStatus(null);
+    };
+
+    return (
+      <div className="mx-auto">
+        {loading && tasks.length === 0 ? (
+          <div className="flex items-center justify-center py-16">
+            <div className={getThemeClasses(
+              'animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500',
+              'dark:border-blue-400'
+            )}></div>
+          </div>
+        ) : error && tasks.length === 0 ? (
+          <div className={getThemeClasses(
+            'text-center py-16 text-red-500 flex flex-col items-center',
+            'dark:text-red-400'
+          )}>
+            <FaTasks size={48} className="mb-4" />
+            <p>{error}</p>
+          </div>
+        ) : (
+          <div className={getThemeClasses(
+            'bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden',
+            'dark:bg-gray-800 dark:border-gray-700'
+          )}>
+            <div className={getThemeClasses(
+              'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 divide-x divide-gray-200',
+              'dark:divide-gray-700'
+            )}>
+              {Object.entries(statusMap).map(([statusCode, statusName], index, arr) => {
+                const status = parseInt(statusCode);
+                const icon = statusIcons[status];
+                const statusStyle = statusColors[status];
+                const isLast = index === arr.length - 1;
+                const addTaskButton = status === 1 ? (
+                  <div className="mt-2">
+                    <button
+                      className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-white border border-gray-200 rounded-lg shadow-sm text-gray-500 font-semibold text-base transition hover:bg-gray-50 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      style={{ minHeight: '64px' }}
+                      onClick={() => setShowAddTaskModal(true)}
+                    >
+                      <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>Add New Task
+                    </button>
+                  </div>
+                ) : null;
+                return (
+                  <KanbanColumn
+                    key={statusCode}
+                    statusCode={status}
+                    statusName={statusName}
+                    icon={icon}
+                    bgColor={statusStyle.light}
+                    tasks={tasks}
+                    handleDragStart={handleDragStart}
+                    handleDragEnd={handleDragEnd}
+                    handleDrop={handleDrop}
+                    isTaskAssignedToUser={isTaskAssignedToUser}
+                    isLast={isLast}
+                    addTaskButton={addTaskButton}
+                  />
+                );
+              })}
+            </div>
+            {/* Delete Area for drag-and-drop delete */}
+            {showDeleteArea && (
+              <div
+                className={getThemeClasses(
+                  `fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex items-center justify-center px-8 py-4 rounded-xl border-2 transition-all duration-200 ${isOverDeleteArea ? 'bg-red-100 border-red-500' : 'bg-white border-gray-300'}`,
+                  'dark:bg-gray-900 dark:border-gray-700'
+                )}
+                onDragOver={handleDeleteDragOver}
+                onDrop={handleDeleteDrop}
+                onDragLeave={handleDeleteDragLeave}
+              >
+                <FaTrash className={getThemeClasses('text-red-500 mr-2', 'dark:text-red-400')} size={20} />
+                <span className={getThemeClasses('text-red-700 font-semibold', 'dark:text-red-300')}>Drop here to delete task</span>
+              </div>
+            )}
+            {/* AddTaskModal */}
+            <AddTaskModal
+              isOpen={showAddTaskModal}
+              onClose={() => setShowAddTaskModal(false)}
+              onAddTask={newTask => setTasks(prev => [...prev, newTask])}
+              mode="fromProject"
+              projectIdDefault={projectId}
+              userStories={userStories}
+            />
+            {/* AssignTaskModal */}
+            <AssignTaskModal
+              isOpen={showAssignModal}
+              onClose={() => setShowAssignModal(false)}
+              task={draggingTask}
+              onAssign={handleAssignTask}
+            />
+          </div>
+        )}
+      </div>
+    );
   };
 
   if (loading) {
@@ -515,20 +735,16 @@ const ProjectDetailsPage = () => {
           <span className="text-gray-700 font-medium">Project Details</span>
         </div>
 
-        <div className="flex items-center justify-between mb-4">
+        {/* Project Title, Status, Description */}
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
-            <div>
               <h2 className="text-3xl font-bold pr-8">{project.Name}</h2>
-            </div>
             {project && (
-              <div>
-                {getProjectStatusBadgeComponent(project.ProjectStatusID)}
-              </div>
+              <div>{getProjectStatusBadgeComponent(project.ProjectStatusID)}</div>
             )}
           </div>
           {isOwner && (
             <div className="flex items-center gap-2">
-
               <button
                 className="p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors"
                 title="Project Settings"
@@ -539,7 +755,7 @@ const ProjectDetailsPage = () => {
             </div>
           )}
         </div>
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-4">
           <p className="text-gray-600">{project.Description}</p>
           {project.FinishDate && (
             <div className="ml-auto flex items-center gap-2">
@@ -555,115 +771,49 @@ const ProjectDetailsPage = () => {
               })()}
             </div>
           )}
-          {userStories.length > 0 && (
-            <button
-              className={getThemeClasses(
-                'ml-4 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200',
-                'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-              )}
-              onClick={() => setIsAddTaskOpen(true)}
-            >
-              + Add Task
-            </button>
-          )}
         </div>
 
-        {isOwner && (
-          <div className="mb-6 flex flex-col gap-2">
-            <label className={getThemeClasses(
-              'block text-gray-700 font-semibold mb-1',
-              'dark:text-gray-200'
-            )}>Search for a Team (search by name, description, or TeamID)</label>
-            <input
-              type="text"
-              className={getThemeClasses(
-                'border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200',
-                'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400'
-              )}
-              value={search}
-              onChange={e => {
-                setSearch(e.target.value);
-              }}
-              onFocus={() => {
-                setIsInputFocused(true);
-                if (!search) {
-                  const assignedIds = new Set(teams.map(t => t.TeamID));
-                  const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
-                  setFilteredTeams(availableTeams.slice(0, 10));
-                }
-              }}
-              onBlur={() => {
-                setTimeout(() => {
-                  setIsInputFocused(false);
-                }, 200);
-              }}
-              placeholder="Type to search..."
-              autoComplete="off"
-            />
-            {isInputFocused && filteredTeams.length > 0 && (
-              <div className="w-full md:w-96">
-                <ul className={getThemeClasses(
-                  'border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md',
-                  'dark:bg-gray-800 dark:border-gray-700'
-                )}>
-                  {filteredTeams.map((team, index) => (
-                    <li
-                      key={`${team.TeamID}-${index}`}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150',
-                        'dark:border-gray-700'
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className={getThemeClasses(
-                          'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2',
-                          'dark:hover:bg-blue-900/30'
-                        )}
-                          onClick={() => {
-                            setSelectedTeam(team.TeamID);
-                            setSearch(team.TeamName);
-                            setIsInputFocused(false);
-                          }}
-                        >
-                          <div className="flex flex-col">
-                            <div className={getThemeClasses(
-                              'font-medium text-gray-900',
-                              'dark:text-gray-100'
-                            )}>{team.TeamName}</div>
-                            <div className={getThemeClasses(
-                              'text-sm text-gray-600',
-                              'dark:text-gray-400'
-                            )}>{team.TeamDescription}</div>
-                            <div className={getThemeClasses(
-                              'text-xs text-gray-500 mt-1',
-                              'dark:text-gray-500'
-                            )}>
-                              {team.memberCount || 0} {team.memberCount === 1 ? 'member' : 'members'}
-                            </div>
-                          </div>
-                        </div>
+        {/* Tab Navigation */}
+        <div className="mb-6">
+          <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}> 
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('manage')}
+                className={`${activeTab === 'manage'
+                  ? theme === 'dark'
+                    ? 'border-blue-400 text-blue-400'
+                    : 'border-blue-600 text-blue-600'
+                  : theme === 'dark'
+                    ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+              >
+                <FaProjectDiagram size={16} />
+                <span>Manage Project</span>
+              </button>
                         <button
-                          type="button"
-                          onClick={() => handleAddTeam(team.TeamID)}
-                          className={getThemeClasses(
-                            'ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm',
-                            'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-                          )}
-                          disabled={adding}
-                        >
-                          {adding ? 'Adding...' : 'Add'}
+                onClick={() => setActiveTab('board')}
+                className={`${activeTab === 'board'
+                  ? theme === 'dark'
+                    ? 'border-blue-400 text-blue-400'
+                    : 'border-blue-600 text-blue-600'
+                  : theme === 'dark'
+                    ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+              >
+                <FaChartBar size={16} />
+                <span>Board</span>
                         </button>
+            </nav>
                       </div>
-                    </li>
-                  ))}
-                </ul>
               </div>
-            )}
-          </div>
-        )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Tab Content */}
+        {activeTab === 'manage' ? (
+          <div>
           {/* Teams Assigned Table */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <div className={tableContainerClasses}>
             <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
               <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Teams Assigned</h2>
@@ -949,7 +1099,16 @@ const ProjectDetailsPage = () => {
                         <td className="py-3 px-4">
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className={tableTextClasses}>{task.Name}</span>
+                              <button
+                                onClick={() => router.push(`/task/${task.TaskID}`)}
+                                className={getThemeClasses(
+                                  'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium',
+                                  'dark:hover:text-blue-400'
+                                )}
+                                title="Click to view task details"
+                              >
+                                {task.Name}
+                              </button>
                               {getTaskTypeBadgeComponent(task.Type)}
                             </div>
                             <span className={getThemeClasses(
@@ -1089,6 +1248,13 @@ const ProjectDetailsPage = () => {
             </div>
           </div>
         </div>
+          </div>
+        ) : (
+          <div>
+            {/* Board Tab: Kanban Board for this project */}
+            <KanbanBoardForProject projectId={projectId} initialTasks={taskList} initialUserStories={userStories} />
+          </div>
+        )}
 
         {showSettingsModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

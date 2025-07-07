@@ -393,6 +393,14 @@ export const taskService = {
       throw error.response?.data || { message: 'Failed to fetch project tasks' };
     }
   },
+  getTaskById: async (taskId) => {
+    try {
+      const response = await api.get(`/task-details/${taskId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch task details' };
+    }
+  },
   updateTaskStatus: async (taskId, newStatus) => {
     try {
       const response = await api.patch(`/task-details/${taskId}/status`, { Status: newStatus });
@@ -411,7 +419,12 @@ export const taskService = {
   },
   assignTask: async (taskId, userId) => {
     try {
-      const response = await api.patch(`/task-details/${taskId}/assign`, { AssignedTo: userId, AssignedDate: new Date() });
+      const currentUser = authService.getCurrentUser();
+      const response = await api.patch(`/task-details/${taskId}/assign`, { 
+        AssignedTo: userId, 
+        AssignedDate: new Date(),
+        assignedBy: currentUser?._id 
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to assign task' };
@@ -440,6 +453,14 @@ export const taskService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to delete tasks' };
     }
+  },
+  getTaskActivity: async (taskId, page = 1, limit = 5) => {
+    try {
+      const response = await api.get(`/task-details/${taskId}/activity?page=${page}&limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch task activity' };
+    }
   }
 };
 
@@ -465,6 +486,119 @@ export const chatbotService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch conversation history' };
     }
+  }
+};
+
+export const subtaskService = {
+  getSubtasks: async (taskId) => {
+    console.log('taskId', taskId);
+    const res = await api.get(`/tasks/${taskId}/subtasks`);
+    return res.data;
+  },
+  addSubtask: async (taskId, title, order = 0) => {
+    const res = await api.post(`/tasks/${taskId}/subtasks`, { Title: title, Order: order });
+    return res.data;
+  },
+  updateSubtask: async (subtaskId, update) => {
+    const res = await api.patch(`/subtasks/${subtaskId}`, update);
+    return res.data;
+  },
+  deleteSubtask: async (subtaskId) => {
+    const res = await api.delete(`/subtasks/${subtaskId}`);
+    return res.data;
+  }
+};
+
+export const attachmentService = {
+  getAttachments: async (taskId) => {
+    try {
+      const res = await api.get(`/attachments/tasks/${taskId}/attachments`);
+      return res.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch attachments' };
+    }
+  },
+  getAttachment: async (attachmentId) => {
+    try {
+      const res = await api.get(`/attachments/${attachmentId}`);
+      return res.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch attachment' };
+    }
+  },
+  uploadAttachment: async (formData) => {
+    try {
+      const res = await api.post('/upload/attachments/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return res.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to upload attachment' };
+    }
+  },
+  addAttachment: async (taskId, filename, fileUrl, uploadedBy) => {
+    try {
+      const res = await api.post(`/attachments/tasks/${taskId}/attachments`, { 
+        Filename: filename, 
+        FileURL: fileUrl, 
+        UploadedBy: uploadedBy 
+      });
+      return res.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to add attachment' };
+    }
+  },
+  updateAttachment: async (attachmentId, updateData) => {
+    try {
+      const res = await api.patch(`/attachments/${attachmentId}`, updateData);
+      return res.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to update attachment' };
+    }
+  },
+  deleteAttachment: async (attachmentId) => {
+    try {
+      const res = await api.delete(`/attachments/${attachmentId}`);
+      return res.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to delete attachment' };
+    }
+  },
+  bulkDeleteAttachments: async (attachmentIds) => {
+    try {
+      const res = await api.delete('/attachments/bulk-delete', { data: { attachmentIds } });
+      return res.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to delete attachments' };
+    }
+  }
+};
+
+export const commentService = {
+  getComments: async (taskId) => {
+    const res = await api.get(`/tasks/${taskId}/comments`);
+    return res.data;
+  },
+  addComment: async (taskId, author, content) => {
+    const res = await api.post(`/tasks/${taskId}/comments`, { Author: author, Content: content });
+    return res.data;
+  },
+  updateComment: async (commentId, update) => {
+    const res = await api.patch(`/comments/${commentId}`, update);
+    return res.data;
+  },
+  deleteComment: async (commentId) => {
+    const res = await api.delete(`/comments/${commentId}`);
+    return res.data;
+  }
+};
+
+export const taskDetailsService = {
+  getFullTaskDetails: async (taskId) => {
+    const res = await api.get(`/task-details/${taskId}/full`);
+    return res.data;
   }
 };
 

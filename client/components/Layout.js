@@ -192,7 +192,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
         style={{ minHeight: '100vh', width: isMobile ? (collapsed ? 80 : 280) : (collapsed ? 80 : 288), overflow: 'visible' }}
       >
         {/* Top: Logo & Collapse Button */}
-        <div className={`flex items-center justify-between p-4 border-b ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
+        <div className={`flex items-center justify-between p-3 border-b ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
           <div className="flex items-center gap-2">
             {/* Dynamic Org Initials */}
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}> 
@@ -462,7 +462,7 @@ const Layout = ({ children }) => {
       >
         {!isMobile && (
           <div className="flex justify-center">
-            <div style={{ width: '98%' }}>
+            <div style={{ width: '100%' }}>
               <Navbar theme={theme} toggleTheme={toggleTheme} onLogout={logout} />
             </div>
           </div>

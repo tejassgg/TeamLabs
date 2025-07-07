@@ -1,6 +1,7 @@
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
+const path = require('path');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
@@ -13,6 +14,8 @@ const projectDetailsRoutes = require('./routes/projectDetailsRoutes');
 const dashboardDetailsRoute = require('./routes/dashboardDetailsRoute');
 const userRoutes = require('./routes/userRoutes');
 const taskRoutes = require('./routes/taskDetailsRoutes');
+const commentRoutes = require('./routes/commentRoutes');
+const attachmentRoutes = require('./routes/attachmentRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const swaggerUi = require('swagger-ui-express');
@@ -41,6 +44,9 @@ app.use(cors({
 
 app.use(express.urlencoded({ extended: false }));
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, '../client/public/uploads')));
+
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
   explorer: true,
@@ -59,6 +65,8 @@ app.use('/api/project-details', projectDetailsRoutes);
 app.use('/api/dashboard', dashboardDetailsRoute);
 app.use('/api/users', userRoutes);
 app.use('/api/task-details', taskRoutes);
+app.use('/api', commentRoutes);
+app.use('/api/attachments', attachmentRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/payment', paymentRoutes);
 
