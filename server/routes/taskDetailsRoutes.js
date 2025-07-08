@@ -34,8 +34,6 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
         const taskData = req.body.taskDetail;
         const mode = req.body.mode;
 
-        console.log('taskData', req.body);
-
         taskData.CreatedDate = new Date();
         if (taskData.Type == "User Story") {
             taskData.Assignee = "";
@@ -332,7 +330,7 @@ router.get('/project/:projectId/team-members', async (req, res) => {
 router.patch('/:taskId/status', async (req, res) => {
     try {
         const taskId = req.params.taskId;
-        const { Status } = req.body;
+        const { Status, modifiedBy } = req.body;
 
         const task = await TaskDetails.findOne({ TaskID: taskId });
         if (!task) return res.status(404).json({ error: 'Task not found' });
@@ -354,6 +352,8 @@ router.patch('/:taskId/status', async (req, res) => {
             CreatedDate: task.CreatedDate,
             AssignedDate: task.AssignedDate,
             CreatedBy: task.CreatedBy,
+            ModifiedDate: task.ModifiedDate,
+            ModifiedBy: task.ModifiedBy,
             HistoryDate: new Date()
         });
 
@@ -361,6 +361,8 @@ router.patch('/:taskId/status', async (req, res) => {
 
         // Update status
         task.Status = Status;
+        task.ModifiedDate = new Date();
+        task.ModifiedBy = modifiedBy;
         await task.save();
 
         // Log the activity
@@ -956,6 +958,11 @@ router.get('/:taskId/full', async (req, res) => {
             'metadata.taskId': taskId
         }).sort({ timestamp: -1 }).limit(10);
 
+        let userStoryTasks = [];
+        if (newTask.Type === 'User Story') {
+            userStoryTasks = await TaskDetails.find({ ParentID: newTask.TaskID, IsActive: true });
+        }
+
         res.json({
             task: newTask,
             project,
@@ -963,7 +970,8 @@ router.get('/:taskId/full', async (req, res) => {
             subtasks,
             attachments,
             comments,
-            taskActivity
+            taskActivity,
+            userStoryTasks
         });
     } catch (err) {
         console.error('Error fetching full task details:', err);

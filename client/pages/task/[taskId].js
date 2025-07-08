@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import Layout from '../../components/Layout';
-import { FaArrowLeft, FaUser, FaCalendar, FaTag, FaExclamationTriangle, FaCheckCircle, FaClock, FaShieldAlt, FaRocket, FaTimes, FaEdit, FaTrash, FaProjectDiagram, FaUsers, FaCalendarAlt, FaUserFriends, FaInfoCircle, FaCog, FaChevronDown, FaUserPlus } from 'react-icons/fa';
+import { FaArrowLeft, FaUser, FaCalendar, FaTag, FaExclamationTriangle, FaCheckCircle, FaClock, FaShieldAlt, FaRocket, FaTimes, FaEdit, FaTrash, FaProjectDiagram, FaUsers, FaCalendarAlt, FaUserFriends, FaInfoCircle, FaCog, FaChevronDown, FaUserPlus, FaPlus } from 'react-icons/fa';
 import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useToast } from '../../context/ToastContext';
@@ -17,6 +17,9 @@ import { authService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/Modal';
 import CustomModal from '../../components/CustomModal';
+import axios from 'axios';
+import { getTaskTypeBadge, getPriorityBadge, getTaskTypeStyle } from '../../components/TaskTypeBadge';
+import AddTaskModal from '../../components/AddTaskModal';
 
 const TaskDetailsPage = () => {
     const router = useRouter();
@@ -25,7 +28,7 @@ const TaskDetailsPage = () => {
     const { userDetails } = useGlobal();
     const { showToast } = useToast();
     const getThemeClasses = useThemeClasses();
-    const { user} = useAuth();
+    const { user } = useAuth();
 
     const [task, setTask] = useState(null);
     const [project, setProject] = useState(null);
@@ -49,27 +52,29 @@ const TaskDetailsPage = () => {
     const taskNameSpanRef = useRef(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [userStoryTasks, setUserStoryTasks] = useState([]);
+    const [showAddTaskModal, setShowAddTaskModal] = useState(false);
 
     useEffect(() => {
         const fetchTaskDetails = async () => {
             if (!taskId) {
                 return; // Don't fetch if taskId is not available yet
             }
-            
+
             // Validate taskId format
             if (typeof taskId !== 'string' || taskId.trim() === '') {
                 setError('Invalid task ID');
                 setLoading(false);
                 return;
             }
-            
+
             // Check if user is authenticated
             const isAuthenticated = authService.isAuthenticated();
             if (!isAuthenticated) {
                 router.push('/login');
                 return;
             }
-            
+
             setLoading(true);
             try {
                 const data = await taskDetailsService.getFullTaskDetails(taskId);
@@ -79,6 +84,7 @@ const TaskDetailsPage = () => {
                 setSubtasks(data.subtasks);
                 setAttachments(data.attachments);
                 setComments(data.comments);
+                setUserStoryTasks(data.userStoryTasks || []); // use directly from API
             } catch (err) {
                 console.error('Error fetching task details:', err);
                 setError('Failed to fetch task details');
@@ -171,7 +177,7 @@ const TaskDetailsPage = () => {
     const handleStatusUpdate = async (newStatus) => {
         setUpdatingStatus(true);
         try {
-            await taskService.updateTaskStatus(taskId, newStatus);
+            await taskService.updateTaskStatus(taskId, newStatus, user?._id);
             setTask(prev => ({ ...prev, Status: newStatus }));
             setStatusDropdownOpen(false);
             showToast('Task status updated successfully', 'success');
@@ -188,19 +194,19 @@ const TaskDetailsPage = () => {
             // If memberId is null or 'self', use current user's ID
             const assigneeId = memberId === 'self' || !memberId ? user?._id : memberId;
             const response = await taskService.assignTask(taskId, assigneeId);
-            
+
             // Update task with the response data which includes the new assignee details
-            setTask(prev => ({ 
-                ...prev, 
+            setTask(prev => ({
+                ...prev,
                 AssignedTo: assigneeId,
-                AssignedToDetails: response.AssignedToDetails 
+                AssignedToDetails: response.AssignedToDetails
             }));
-            
+
             // Update task activity from the response
             if (response.taskActivity) {
                 setTaskActivity(response.taskActivity);
             }
-            
+
             setMemberDropdownOpen(false);
             showToast('Task assigned successfully', 'success');
         } catch (err) {
@@ -221,6 +227,24 @@ const TaskDetailsPage = () => {
         } finally {
             setActivityLoading(false);
         }
+    };
+
+    const formatTimeAgo = (date) => {
+        if (!date) return '';
+        const now = new Date();
+        const taskDate = new Date(date);
+        const diffInMinutes = Math.floor((now - taskDate) / (1000 * 60));
+
+        if (diffInMinutes < 1) return 'Just now';
+        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) return `${diffInHours}h ago`;
+
+        const diffInDays = Math.floor(diffInHours / 24);
+        if (diffInDays < 7) return `${diffInDays}d ago`;
+
+        return taskDate.toLocaleDateString();
     };
 
     useEffect(() => {
@@ -246,6 +270,18 @@ const TaskDetailsPage = () => {
             showToast('Failed to update task name', 'error');
         } finally {
             setEditingTaskName(false);
+        }
+    };
+
+    const handleAddTask = async (taskData) => {
+        try {
+            // Set ParentID to current user story's TaskID and always set ProjectID_FK
+            const newTask = await taskService.addTaskDetails({ ...taskData, ParentID: task.TaskID, ProjectID_FK: task.ProjectID_FK }, 'fromProject');
+            setUserStoryTasks(prev => [...prev, newTask]);
+            showToast('Task added successfully!', 'success');
+            setShowAddTaskModal(false);
+        } catch (err) {
+            showToast('Failed to add task', 'error');
         }
     };
 
@@ -329,7 +365,7 @@ const TaskDetailsPage = () => {
                                                 className="flex items-center gap-2 hover:bg-gray-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
                                                 disabled={updatingStatus}
                                             >
-                                                <span className={`inline-flex items-center gap-2 ${statusInfo.statusStyle.textLight}`}>
+                                                <span className={`inline-flex whitespace-nowrap items-center gap-2 ${statusInfo.statusStyle.textLight}`}>
                                                     {statusInfo.statusIcon}
                                                     {statusInfo.statusName}
                                                 </span>
@@ -388,80 +424,81 @@ const TaskDetailsPage = () => {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Assigned To */}
-                                <div className="flex items-center gap-3">
-                                    <span className="text-gray-500 text-sm flex-shrink-0"><FaUser className="inline mr-1" />Assigned To:</span>
-                                    {projectMembers.length > 0 ? (
-                                        <div className="relative member-dropdown">
-                                            {task.AssignedToDetails ? (
-                                                <button
-                                                    onClick={() => setMemberDropdownOpen(!memberDropdownOpen)}
-                                                    className="flex items-center gap-2 hover:bg-gray-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
-                                                    disabled={assigningMember}
-                                                >
-                                                    <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs">
-                                                        {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
-                                                    </div>
-                                                    <span className="text-gray-900 font-medium">{task.AssignedToDetails.fullName}</span>
-                                                    <FaChevronDown size={10} className="text-gray-400" />
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={() => setMemberDropdownOpen(!memberDropdownOpen)}
-                                                    className="flex items-center gap-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
-                                                    disabled={assigningMember}
-                                                >
-                                                    <FaUserPlus size={12} className="text-gray-500" />
-                                                    <span>Assign Task</span>
-                                                    <FaChevronDown size={10} className="text-gray-400" />
-                                                </button>
-                                            )}
+                                {task.Type !== 'User Story' && (
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-gray-500 text-sm flex-shrink-0"><FaUser className="inline mr-1" />Assigned To:</span>
+                                        {projectMembers.length > 0 ? (
+                                            <div className="relative member-dropdown">
+                                                {task.AssignedToDetails ? (
+                                                    <button
+                                                        onClick={() => setMemberDropdownOpen(!memberDropdownOpen)}
+                                                        className="flex items-center gap-2 hover:bg-gray-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
+                                                        disabled={assigningMember}
+                                                    >
+                                                        <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs">
+                                                            {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                                        </div>
+                                                        <span className="text-gray-900 font-medium">{task.AssignedToDetails.fullName}</span>
+                                                        <FaChevronDown size={10} className="text-gray-400" />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setMemberDropdownOpen(!memberDropdownOpen)}
+                                                        className="flex items-center gap-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
+                                                        disabled={assigningMember}
+                                                    >
+                                                        <FaUserPlus size={12} className="text-gray-500" />
+                                                        <span>Assign Task</span>
+                                                        <FaChevronDown size={10} className="text-gray-400" />
+                                                    </button>
+                                                )}
 
-                                            {memberDropdownOpen && (
-                                                <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-                                                    <div className="py-1">
-                                                        {/* Assign to self option */}
-                                                        <button
-                                                            onClick={() => handleMemberAssignment('self')}
-                                                            disabled={assigningMember}
-                                                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 text-gray-700"
-                                                        >
-                                                            <FaUser size={12} className="text-blue-600" />
-                                                            Assign to me
-                                                        </button>
-                                                        <div className="border-t border-gray-100 my-1"></div>
-                                                        
-                                                        {/* Project members */}
-                                                        {projectMembers.map((member) => {
-                                                            const isAssigned = task.AssignedTo === member._id;
-                                                            return (
-                                                                <button
-                                                                    key={member._id}
-                                                                    onClick={() => handleMemberAssignment(member._id)}
-                                                                    disabled={assigningMember || isAssigned}
-                                                                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 ${
-                                                                        isAssigned ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                                                                    }`}
-                                                                >
-                                                                    <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs">
-                                                                        {member.fullName.split(' ').map(n => n[0]).join('')}
-                                                                    </div>
-                                                                    <span className="flex-1">{member.fullName}</span>
-                                                                    {isAssigned && (
-                                                                        <span className="text-blue-600">
-                                                                            <FaCheckCircle size={12} />
-                                                                        </span>
-                                                                    )}
-                                                                </button>
-                                                            );
-                                                        })}
+                                                {memberDropdownOpen && (
+                                                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                                                        <div className="py-1">
+                                                            {/* Assign to self option */}
+                                                            <button
+                                                                onClick={() => handleMemberAssignment('self')}
+                                                                disabled={assigningMember}
+                                                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 text-gray-700"
+                                                            >
+                                                                <FaUser size={12} className="text-blue-600" />
+                                                                Assign to me
+                                                            </button>
+                                                            <div className="border-t border-gray-100 my-1"></div>
+
+                                                            {/* Project members */}
+                                                            {projectMembers.map((member) => {
+                                                                const isAssigned = task.AssignedTo === member._id;
+                                                                return (
+                                                                    <button
+                                                                        key={member._id}
+                                                                        onClick={() => handleMemberAssignment(member._id)}
+                                                                        disabled={assigningMember || isAssigned}
+                                                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 ${isAssigned ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                                                                            }`}
+                                                                    >
+                                                                        <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs">
+                                                                            {member.fullName.split(' ').map(n => n[0]).join('')}
+                                                                        </div>
+                                                                        <span className="flex-1">{member.fullName}</span>
+                                                                        {isAssigned && (
+                                                                            <span className="text-blue-600">
+                                                                                <FaCheckCircle size={12} />
+                                                                            </span>
+                                                                        )}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <span className="text-gray-400">No project members available</span>
-                                    )}
-                                </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-400">No project members available</span>
+                                        )}
+                                    </div>
+                                )}
                                 {/* Created Date */}
                                 {task.CreatedDate && (
                                     <div className="flex items-center gap-3">
@@ -490,10 +527,10 @@ const TaskDetailsPage = () => {
                             <div className="border-t border-gray-100" />
                             {/* Comments Section */}
                             <div className="h-[1800px] overflow-y-auto py-6">
-                                <TaskComments 
-                                    taskId={task.TaskID} 
-                                    userId={userDetails?._id} 
-                                    userName={userDetails?.fullName || userDetails?.username || 'User'} 
+                                <TaskComments
+                                    taskId={task.TaskID}
+                                    userId={userDetails?._id}
+                                    userName={userDetails?.fullName || userDetails?.username || 'User'}
                                     initialComments={comments}
                                     projectMembers={projectMembers}
                                 />
@@ -598,6 +635,66 @@ const TaskDetailsPage = () => {
                                 )}
                             </div>
                         </div>
+                        {/* User Story Tasks List */}
+                        {task.Type === 'User Story' && (
+                            <div className="px-6 pb-6">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h4 className="text-md font-semibold text-gray-800 mt-4">Links</h4>
+                                    <button
+                                        className="ml-2 p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-sm transition-colors"
+                                        title="Add Task to this User Story"
+                                        onClick={() => setShowAddTaskModal(true)}
+                                    >
+                                        <FaPlus />
+                                    </button>
+                                </div>
+                                {userStoryTasks.length === 0 ? (
+                                    <div className="text-gray-400 text-sm">No tasks found for this user story.</div>
+                                ) : (
+                                    <ul className="divide-y divide-gray-100">
+                                        {userStoryTasks.map(t => {
+
+
+                                            return (
+                                                <li key={t.TaskID} className="py-3">
+                                                    <div className="flex items-start gap-3">
+                                                        {/* Task Type Badge - Icon Only */}
+                                                        <span className={`inline-flex items-center justify-center w-8 h-8 text-xs font-medium ${getTaskTypeStyle(t.Type).textColor} shadow-sm transition-all duration-200`}>
+                                                            {getTaskTypeStyle(t.Type).icon}
+                                                        </span>
+                                                        <div className="flex-1">
+                                                            <Link
+                                                                href={`/task/${t.TaskID}`}
+                                                                className="font-medium text-blue-600 hover:text-blue-800 transition-colors duration-200 block"
+                                                            >
+                                                                {t.Name}
+                                                            </Link>
+                                                            <div className="text-xs text-gray-500 mt-1">
+                                                                Updated {formatTimeAgo(t.ModifiedDate)}
+                                                            </div>
+                                                        </div>
+                                                        {/* Status Badge */}
+                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border shadow-sm transition-all duration-200 ${statusColors[t.Status]?.light || 'bg-gray-50'} ${statusColors[t.Status]?.textLight || 'text-gray-700'} ${statusColors[t.Status]?.borderLight || 'border-gray-200'}`}>
+                                                            {statusIcons[t.Status]}
+                                                            {statusMap[t.Status] || 'Unknown'}
+                                                        </span>
+                                                    </div>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                )}
+                                <AddTaskModal
+                                    isOpen={showAddTaskModal}
+                                    onClose={() => setShowAddTaskModal(false)}
+                                    onAddTask={handleAddTask}
+                                    mode="fromProject"
+                                    projectIdDefault={task.ProjectID_FK}
+                                    userStories={[{ TaskID: task.TaskID, Name: task.Name }]}
+                                    addTaskTypeMode="task"
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

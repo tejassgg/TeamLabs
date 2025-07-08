@@ -224,7 +224,7 @@ const TaskAttachments = ({ taskId, userId, initialAttachments }) => {
         <div className="text-xs text-gray-400">Max file size: 10MB. Images, docs, code files allowed.</div>
       </div>
         {attachments.length === 0 ? (
-          <div className="text-center text-gray-400 py-8">No attachments yet.</div>
+          <div className="text-center text-gray-400 py-2">No attachments yet.</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {attachments.map(att => (

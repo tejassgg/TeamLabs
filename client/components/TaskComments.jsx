@@ -74,28 +74,28 @@ const TaskComments = ({ taskId, userId, userName, initialComments, projectMember
     const now = new Date();
     const commentDate = new Date(date);
     const diffInMinutes = Math.floor((now - commentDate) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    
+
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) return `${diffInHours}h ago`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 7) return `${diffInDays}d ago`;
-    
+
     return commentDate.toLocaleDateString();
   };
 
   const handleCommentChange = (e) => {
     const value = e.target.value;
     setNewComment(value);
-    
+
     // Check for @ symbol
     const cursorPos = e.target.selectionStart;
     const textBeforeCursor = value.substring(0, cursorPos);
     const atIndex = textBeforeCursor.lastIndexOf('@');
-    
+
     if (atIndex !== -1 && atIndex < cursorPos) {
       const filter = textBeforeCursor.substring(atIndex + 1);
       setMentionFilter(filter);
@@ -110,12 +110,12 @@ const TaskComments = ({ taskId, userId, userName, initialComments, projectMember
     const beforeAt = newComment.substring(0, cursorPosition - mentionFilter.length - 1);
     const afterAt = newComment.substring(cursorPosition);
     const mentionText = `@${member.fullName.replace(/ /g, '_')}`;
-    
+
     const newText = beforeAt + mentionText + ' ' + afterAt;
     setNewComment(newText);
     setShowMentionDropdown(false);
     setMentionFilter('');
-    
+
     // Focus back to textarea and set cursor position
     setTimeout(() => {
       if (textareaRef.current) {
@@ -169,6 +169,83 @@ const TaskComments = ({ taskId, userId, userName, initialComments, projectMember
             {comments.length}
           </span>
         </h3>
+      </div>
+
+      {/* Add Comment Form */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4 relative">
+        <div className="flex items-start space-x-3">
+          <div className="flex-shrink-0">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+              {userName ? userName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+            </div>
+          </div>
+
+          <div className="flex-1">
+            <div className="relative">
+              <textarea
+                ref={textareaRef}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                placeholder="Write a comment... Use @ to mention team members"
+                value={newComment}
+                onChange={handleCommentChange}
+                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleAdd()}
+                rows={3}
+              />
+
+              {/* Mention Dropdown */}
+              {showMentionDropdown && filteredMembers.length > 0 && (
+                <div
+                  ref={dropdownRef}
+                  className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto"
+                >
+                  <div className="p-2">
+                    <div className="text-xs text-gray-500 px-2 py-1 mb-1">Mention team members:</div>
+                    {filteredMembers.map((member) => (
+                      <button
+                        key={member._id}
+                        onClick={() => handleMentionSelect(member)}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 rounded-md"
+                      >
+                        <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                          {member.fullName.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <span className="flex-1">{member.fullName}</span>
+                        <FaAt size={10} className="text-gray-400" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between mt-3">
+              <p className="text-xs text-gray-500">
+                Press Enter to send, Shift+Enter for new line • Use @ to mention team members
+              </p>
+
+              <button
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm ${newComment.trim() && !isSubmitting
+                    ? 'bg-blue-500 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                onClick={handleAdd}
+                disabled={!newComment.trim() || isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Posting...
+                  </>
+                ) : (
+                  <>
+                    <FaPaperPlane size={12} />
+                    Post Comment
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Comments List */}
@@ -225,14 +302,14 @@ const TaskComments = ({ taskId, userId, userName, initialComments, projectMember
                         autoFocus
                       />
                       <div className="flex items-center gap-2">
-                        <button 
+                        <button
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500 text-white text-sm font-medium rounded-lg hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
                           onClick={() => handleEdit(comment.CommentID)}
                         >
                           <FaCheck size={12} />
                           Save
                         </button>
-                        <button 
+                        <button
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
                           onClick={() => setEditingId(null)}
                         >
@@ -258,84 +335,6 @@ const TaskComments = ({ taskId, userId, userName, initialComments, projectMember
             <p className="text-gray-500 text-sm">No comments yet. Be the first to comment!</p>
           </div>
         )}
-      </div>
-
-      {/* Add Comment Form */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 relative">
-        <div className="flex items-start space-x-3">
-          <div className="flex-shrink-0">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-              {userName ? userName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
-            </div>
-          </div>
-          
-          <div className="flex-1">
-            <div className="relative">
-              <textarea
-                ref={textareaRef}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                placeholder="Write a comment... Use @ to mention team members"
-                value={newComment}
-                onChange={handleCommentChange}
-                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleAdd()}
-                rows={3}
-              />
-              
-              {/* Mention Dropdown */}
-              {showMentionDropdown && filteredMembers.length > 0 && (
-                <div 
-                  ref={dropdownRef}
-                  className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto"
-                >
-                  <div className="p-2">
-                    <div className="text-xs text-gray-500 px-2 py-1 mb-1">Mention team members:</div>
-                    {filteredMembers.map((member) => (
-                      <button
-                        key={member._id}
-                        onClick={() => handleMentionSelect(member)}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 rounded-md"
-                      >
-                        <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                          {member.fullName.split(' ').map(n => n[0]).join('')}
-                        </div>
-                        <span className="flex-1">{member.fullName}</span>
-                        <FaAt size={10} className="text-gray-400" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <div className="flex items-center justify-between mt-3">
-              <p className="text-xs text-gray-500">
-                Press Enter to send, Shift+Enter for new line • Use @ to mention team members
-              </p>
-              
-              <button 
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm ${
-                  newComment.trim() && !isSubmitting
-                    ? 'bg-blue-500 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
-                onClick={handleAdd}
-                disabled={!newComment.trim() || isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <FaPaperPlane size={12} />
-                    Post Comment
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

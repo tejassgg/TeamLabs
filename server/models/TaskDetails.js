@@ -63,6 +63,14 @@ const TaskDetailsSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  ModifiedDate: {
+    type: Date,
+    default: null
+  },
+  ModifiedBy: {
+    type: String,
+    default: null
+  },
   CreatedBy: {
     type: String,
     required: true

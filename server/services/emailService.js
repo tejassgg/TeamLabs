@@ -14,31 +14,31 @@ const transporter = nodemailer.createTransport({
 
 // ===== COMMON UTILITY FUNCTIONS =====
 
-// Helper: get time ago string
-const getTimeAgo = (date) => {
-  if (!date) return '';
-  const now = new Date();
-  const then = new Date(date);
-  const diff = Math.floor((now - then) / 1000);
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
-  return `${Math.floor(diff/86400)}d ago`;
-};
+  // Helper: get time ago string
+  const getTimeAgo = (date) => {
+    if (!date) return '';
+    const now = new Date();
+    const then = new Date(date);
+    const diff = Math.floor((now - then) / 1000);
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+    return `${Math.floor(diff/86400)}d ago`;
+  };
 
-// Helper: get file emoji by extension
-const getFileEmoji = (filename) => {
-  const ext = filename.split('.').pop().toLowerCase();
-  if (["jpg","jpeg","png","gif","bmp","svg","webp"].includes(ext)) return '🖼️';
-  if (["pdf"].includes(ext)) return '📄';
-  if (["doc","docx","odt","rtf"].includes(ext)) return '📄';
-  if (["xls","xlsx","csv"].includes(ext)) return '📊';
-  if (["ppt","pptx"].includes(ext)) return '📊';
-  if (["zip","rar","7z","tar","gz"].includes(ext)) return '🗜️';
-  if (["mp3","wav","ogg"].includes(ext)) return '🎵';
-  if (["mp4","mov","avi","wmv","mkv"].includes(ext)) return '🎬';
-  return '📎';
-};
+  // Helper: get file emoji by extension
+  const getFileEmoji = (filename) => {
+    const ext = filename.split('.').pop().toLowerCase();
+    if (["jpg","jpeg","png","gif","bmp","svg","webp"].includes(ext)) return '🖼️';
+    if (["pdf"].includes(ext)) return '📄';
+    if (["doc","docx","odt","rtf"].includes(ext)) return '📄';
+    if (["xls","xlsx","csv"].includes(ext)) return '📊';
+    if (["ppt","pptx"].includes(ext)) return '📊';
+    if (["zip","rar","7z","tar","gz"].includes(ext)) return '🗜️';
+    if (["mp3","wav","ogg"].includes(ext)) return '🎵';
+    if (["mp4","mov","avi","wmv","mkv"].includes(ext)) return '🎬';
+    return '📎';
+  };
 
 // Helper: parse mentions from content
 const parseMentions = (content) => {

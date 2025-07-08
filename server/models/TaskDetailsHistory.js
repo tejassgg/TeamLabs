@@ -50,6 +50,14 @@ const TaskDetailsHistorySchema = new mongoose.Schema({
   CreatedBy: {
     type: String
   },
+  ModifiedDate: {
+    type: Date,
+    default: null
+  },
+  ModifiedBy: {
+    type: String,
+    default: null
+  },
   HistoryDate: {
     type: Date,
     default: Date.now

@@ -345,7 +345,6 @@ export const projectService = {
   addProject: async (projectData) => {
     try {
       const response = await api.post('/projects', projectData);
-      console.log('response', response);
       return response.data;
     } catch (error) {
       throw error.response?.data;
@@ -402,9 +401,9 @@ export const taskService = {
       throw error.response?.data || { message: 'Failed to fetch task details' };
     }
   },
-  updateTaskStatus: async (taskId, newStatus) => {
+  updateTaskStatus: async (taskId, newStatus, modifiedBy) => {
     try {
-      const response = await api.patch(`/task-details/${taskId}/status`, { Status: newStatus });
+      const response = await api.patch(`/task-details/${taskId}/status`, { Status: newStatus, modifiedBy: modifiedBy });
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to update task status' };
@@ -492,7 +491,6 @@ export const chatbotService = {
 
 export const subtaskService = {
   getSubtasks: async (taskId) => {
-    console.log('taskId', taskId);
     const res = await api.get(`/tasks/${taskId}/subtasks`);
     return res.data;
   },

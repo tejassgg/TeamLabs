@@ -24,12 +24,6 @@ import {
   useThemeClasses
 } from '../../components/kanbanUtils';
 
-
-
-
-
-
-
 const ProjectDetailsPage = () => {
   const router = useRouter();
   const { projectId } = router.query;
@@ -464,7 +458,11 @@ const ProjectDetailsPage = () => {
       await taskService.deleteTask(taskId);
       showToast('Task deleted successfully', 'success');
       // Refresh tasks
-      fetchProjectTasks();
+      setTaskList(prev => prev.filter(task => task.TaskID !== taskId));
+      setUserStories(prev => prev.filter(task => task.TaskID !== taskId));
+      // Close the modal
+      setShowDeleteTaskDialog(false);
+      setTaskToDelete(null);
     } catch (err) {
       showToast('Failed to delete task: ' + (err.message || 'Unknown error'), 'error');
     }
@@ -1213,7 +1211,9 @@ const ProjectDetailsPage = () => {
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
                             <div className="flex flex-col">
-                              <span className={tableTextClasses}>{story.Name}</span>
+                              <Link href={`/task/${story.TaskID}`} legacyBehavior>
+                                <a className={tableTextClasses + ' hover:text-blue-600 hover:underline transition-colors cursor-pointer'} title="View User Story Details">{story.Name}</a>
+                              </Link>
                               {story.Description && (
                                 <span className={tableSecondaryTextClasses}>{story.Description}</span>
                               )}

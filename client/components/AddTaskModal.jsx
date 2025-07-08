@@ -42,7 +42,12 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       setAssignee(userDetails?._id || '');
       setAssignedTo('');
       setProjectId(projectIdDefault || '');
-      setParentId('');
+      // If only one user story, preselect it
+      if (userStories && userStories.length === 1) {
+        setParentId(userStories[0].TaskID);
+      } else {
+        setParentId('');
+      }
       setIsActive(true);
       if (addTaskTypeMode === 'userStory') {
         setType('User Story');
@@ -50,7 +55,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
         setType('');
       }
     }
-  }, [isOpen, editingTask, projectIdDefault, userDetails, addTaskTypeMode]);
+  }, [isOpen, editingTask, projectIdDefault, userDetails, addTaskTypeMode, userStories]);
 
   useEffect(() => {
     if (isOpen) {
@@ -220,18 +225,20 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
             </select>
           </div>
         )}
+        {/* User Story Dropdown (only for tasks, not user stories) */}
         {mode === 'fromProject' && type !== 'User Story' && (
-          <div>
+          <div className="flex-1">
             <label className="block text-sm font-medium mb-1">User Story<span className="text-red-500">*</span></label>
             <select
               value={parentId}
               onChange={e => setParentId(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               required
+              disabled={userStories && userStories.length === 1}
             >
               <option value="">Select User Story</option>
-              {userStories.map(fromSideBar => (
-                <option key={fromSideBar._id} value={fromSideBar._id}>{fromSideBar.Name}</option>
+              {userStories && userStories.map(story => (
+                <option key={story.TaskID} value={story.TaskID}>{story.Name}</option>
               ))}
             </select>
           </div>
