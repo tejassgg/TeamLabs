@@ -2,7 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Comment = require('../models/Comment');
 const TaskDetails = require('../models/TaskDetails');
+const User = require('../models/User');
+const Project = require('../models/Project');
 const { logActivity } = require('../services/activityService');
+const { sendCommentMentionEmail } = require('../services/emailService');
 
 // Get all comments for a task
 router.get('/tasks/:taskId/comments', async (req, res) => {
@@ -44,6 +47,63 @@ router.post('/tasks/:taskId/comments', async (req, res) => {
       Content: Content.trim() 
     });
     await comment.save();
+
+    // Parse mentions from comment content
+    const parseMentions = (content) => {
+      const mentionRegex = /@([A-Za-z_]+)/g;
+      const mentions = [];
+      let match;
+      while ((match = mentionRegex.exec(content)) !== null) {
+        mentions.push(match[1].replace(/_/g, ' '));
+      }
+      return mentions;
+    };
+
+    // Send email notifications to mentioned users
+    const mentionedNames = parseMentions(Content);
+    if (mentionedNames.length > 0) {
+      try {
+        // Get project info for email
+        const project = await Project.findOne({ ProjectID: task.ProjectID_FK });
+        
+        // Find mentioned users by their full name
+        for (const mentionedName of mentionedNames) {
+          const mentionedUser = await User.findOne({
+            $or: [
+              { firstName: { $regex: new RegExp(`^${mentionedName.split(' ')[0]}`, 'i') } },
+              { lastName: { $regex: new RegExp(`^${mentionedName.split(' ')[1] || ''}`, 'i') } },
+              { 
+                $expr: {
+                  $regexMatch: {
+                    input: { $concat: ['$firstName', ' ', '$lastName'] },
+                    regex: new RegExp(mentionedName, 'i')
+                  }
+                }
+              }
+            ]
+          });
+
+          if (mentionedUser && mentionedUser.email) {
+            // Send email notification
+            await sendCommentMentionEmail(
+              mentionedUser.email,
+              mentionedUser.fullName || (mentionedUser.firstName + ' ' + mentionedUser.lastName), // mentionTo
+              Content, // or update.Content for update route
+              task.Name,
+              taskId, // or comment.TaskID for update route
+              project,
+              task.Type,
+              task.Status,
+              task.Priority,
+              Author // or comment.Author for update route
+            );
+          }
+        }
+      } catch (emailError) {
+        console.error('Error sending mention emails:', emailError);
+        // Don't fail the request if email fails
+      }
+    }
 
     // Log the activity
     await logActivity(
@@ -89,6 +149,70 @@ router.patch('/comments/:commentId', async (req, res) => {
     const task = await TaskDetails.findOne({ TaskID: comment.TaskID });
     if (!task) {
       return res.status(404).json({ error: 'Associated task not found' });
+    }
+
+    // Parse mentions from updated comment content
+    const parseMentions = (content) => {
+      const mentionRegex = /@([A-Za-z_]+)/g;
+      const mentions = [];
+      let match;
+      while ((match = mentionRegex.exec(content)) !== null) {
+        mentions.push(match[1].replace(/_/g, ' '));
+      }
+      return mentions;
+    };
+
+    // Send email notifications to newly mentioned users (only if content changed)
+    if (update.Content && update.Content !== comment.Content) {
+      const oldMentions = parseMentions(comment.Content);
+      const newMentions = parseMentions(update.Content);
+      
+      // Find newly mentioned users (not mentioned in the original comment)
+      const newlyMentioned = newMentions.filter(name => !oldMentions.includes(name));
+      
+      if (newlyMentioned.length > 0) {
+        try {
+          // Get project info for email
+          const project = await Project.findOne({ ProjectID: task.ProjectID_FK });
+          
+          // Find mentioned users by their full name
+          for (const mentionedName of newlyMentioned) {
+            const mentionedUser = await User.findOne({
+              $or: [
+                { firstName: { $regex: new RegExp(`^${mentionedName.split(' ')[0]}`, 'i') } },
+                { lastName: { $regex: new RegExp(`^${mentionedName.split(' ')[1] || ''}`, 'i') } },
+                { 
+                  $expr: {
+                    $regexMatch: {
+                      input: { $concat: ['$firstName', ' ', '$lastName'] },
+                      regex: new RegExp(mentionedName, 'i')
+                    }
+                  }
+                }
+              ]
+            });
+
+            if (mentionedUser && mentionedUser.email) {
+              // Send email notification
+              await sendCommentMentionEmail(
+                mentionedUser.email,
+                mentionedUser.fullName || (mentionedUser.firstName + ' ' + mentionedUser.lastName), // mentionTo
+                update.Content, // or update.Content for update route
+                task.Name,
+                comment.TaskID, // or comment.TaskID for update route
+                project,
+                task.Type,
+                task.Status,
+                task.Priority,
+                comment.Author // or comment.Author for update route
+              );
+            }
+          }
+        } catch (emailError) {
+          console.error('Error sending mention emails for updated comment:', emailError);
+          // Don't fail the request if email fails
+        }
+      }
     }
 
     // Update the comment
