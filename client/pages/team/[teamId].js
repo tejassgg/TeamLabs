@@ -362,30 +362,6 @@ const TeamDetailsPage = () => {
         <meta name="theme-color" content={theme === 'dark' ? '#1F2937' : '#FFFFFF'} />
       </Head>
       <div className="mx-auto">
-        {/* Breadcrumb Navigation */}
-        <div className={getThemeClasses(
-          'flex items-center text-sm text-gray-500 mb-4',
-          'dark:text-gray-400'
-        )}>
-          <Link href="/dashboard" className={getThemeClasses(
-            'hover:text-blue-600 transition-colors',
-            'dark:hover:text-blue-400'
-          )}>
-            Dashboard
-          </Link>
-          <FaChevronRight className="mx-2" size={12} />
-          <Link href="/teams" className={getThemeClasses(
-            'hover:text-blue-600 transition-colors',
-            'dark:hover:text-blue-400'
-          )}>
-            Teams
-          </Link>
-          <FaChevronRight className="mx-2" size={12} />
-          <span className={getThemeClasses(
-            'text-gray-700 font-medium',
-            'dark:text-gray-300'
-          )}>Team Details</span>
-        </div>
 
         {loading ? (
           <LoadingScreen />
@@ -564,8 +540,8 @@ const TeamDetailsPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Team Members Table */}
               <div className={getThemeClasses(
-                'bg-white rounded-xl shadow-sm border border-gray-200',
-                'dark:bg-[#1F1F1F] dark:border-[#424242]'
+                'rounded-xl border border-gray-200',
+                'dark:border-gray-700'
               )}>
                 <div className={getThemeClasses(
                   'p-4 border-b border-gray-200',
@@ -611,8 +587,8 @@ const TeamDetailsPage = () => {
                   <table className="w-full">
                     <thead>
                       <tr className={getThemeClasses(
-                        'bg-gray-50 border-b border-gray-200',
-                        'dark:bg-gray-700/50 dark:border-gray-700'
+                        'border-b border-gray-200',
+                        'dark:border-gray-700'
                       )}>
                         {isOwner && (
                           <th className="py-3 px-4 text-center w-[50px]">
@@ -652,8 +628,8 @@ const TeamDetailsPage = () => {
                     <tbody>
                       {members.map(member => (
                         <tr key={member.TeamDetailsID} className={getThemeClasses(
-                          'border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0',
-                          'dark:border-gray-700 dark:hover:bg-gray-700/50'
+                          'border-b border-gray-100 hover:bg-gray-50/50 transition-colors last:border-b-0',
+                          'dark:border-gray-700 dark:hover:bg-gray-700/30'
                         )}>
                           {isOwner && (
                             <td className="py-3 px-4 text-center">
@@ -805,8 +781,8 @@ const TeamDetailsPage = () => {
                       {members.length === 0 && (
                         <tr>
                           <td colSpan={isOwner ? 5 : 4} className={getThemeClasses(
-                            'text-center py-8 text-gray-400 bg-gray-50',
-                            'dark:text-gray-500 dark:bg-gray-800/50'
+                            'text-center py-8 text-gray-400',
+                            'dark:text-gray-500'
                           )}>
                             No members in this team
                           </td>
@@ -819,8 +795,8 @@ const TeamDetailsPage = () => {
 
               {/* Projects Table */}
               <div className={getThemeClasses(
-                'bg-white rounded-xl shadow-sm border border-gray-200',
-                'dark:bg-[#1F1F1F] dark:border-[#424242]'
+                'rounded-xl border border-gray-200',
+                'dark:border-gray-700'
               )}>
                 <div className={getThemeClasses(
                   'p-4 border-b border-gray-200',
@@ -867,8 +843,8 @@ const TeamDetailsPage = () => {
                     <table className="w-full">
                       <thead>
                         <tr className={getThemeClasses(
-                          'bg-gray-50 border-b border-gray-200',
-                          'dark:bg-gray-700/50 dark:border-gray-700'
+                          'border-b border-gray-200',
+                          'dark:border-gray-700'
                         )}>
                           {isOwner && (
                             <th className="py-3 px-4 text-center w-[50px]">
@@ -908,8 +884,8 @@ const TeamDetailsPage = () => {
 
                           return (
                             <tr key={proj.ProjectID} className={getThemeClasses(
-                              'border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0',
-                              'dark:border-gray-700 dark:hover:bg-gray-700/50'
+                              'border-b border-gray-100 hover:bg-gray-50/50 transition-colors last:border-b-0',
+                              'dark:border-gray-700 dark:hover:bg-gray-700/30'
                             )}>
                               {isOwner && (
                                 <td className="py-3 px-4 text-center">
@@ -927,7 +903,13 @@ const TeamDetailsPage = () => {
                               <td className={getThemeClasses(
                                 'py-3 px-4 font-medium text-gray-900',
                                 'dark:text-gray-100'
-                              )}>{proj.Name}</td>
+                              )}>
+                                <Link href={`/project/${proj.ProjectID}`} legacyBehavior>
+                                  <a className="hover:text-blue-600 hover:underline transition-colors cursor-pointer" title="View Project Details">
+                                    {proj.Name}
+                                  </a>
+                                </Link>
+                              </td>
                               <td className={getThemeClasses(
                                 'py-3 px-4 text-gray-600',
                                 'dark:text-gray-400'
@@ -950,8 +932,8 @@ const TeamDetailsPage = () => {
                     </table>
                   ) : (
                     <div className={getThemeClasses(
-                      'text-center py-8 text-gray-400 bg-gray-50',
-                      'dark:text-gray-500 dark:bg-gray-800/50'
+                      'text-center py-8 text-gray-400',
+                      'dark:text-gray-500'
                     )}>
                       No Projects Assigned
                     </div>

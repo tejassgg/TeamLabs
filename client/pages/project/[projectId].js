@@ -23,6 +23,7 @@ import {
   getPriorityStyle,
   useThemeClasses
 } from '../../components/kanbanUtils';
+import { getProjectStatusBadge } from '../../components/ProjectStatusBadge';
 
 const ProjectDetailsPage = () => {
   const router = useRouter();
@@ -82,6 +83,7 @@ const ProjectDetailsPage = () => {
   const [showAllTeams, setShowAllTeams] = useState(false);
   const [filteredAvailableTeams, setFilteredAvailableTeams] = useState([]);
   const [isTeamInputFocused, setIsTeamInputFocused] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
@@ -421,15 +423,15 @@ const ProjectDetailsPage = () => {
     return `${baseClasses} ${theme === 'dark' ? darkClasses : ''}`;
   };
 
-  // Update the table container classes
+  // Update the table container classes - transparent background with borders to blend with page
   const tableContainerClasses = getThemeClasses(
-    'bg-white rounded-xl shadow-sm border border-gray-200',
-    'dark:bg-[#1F1F1F] dark:border-[#424242]'
+    'rounded-xl border border-gray-200',
+    'dark:border-gray-700'
   );
 
   const tableHeaderClasses = getThemeClasses(
-    'bg-gray-50 border-b border-gray-200',
-    'dark:bg-gray-700/50 dark:border-gray-700'
+    'border-b border-gray-200',
+    'dark:border-gray-700'
   );
 
   const tableHeaderTextClasses = getThemeClasses(
@@ -438,8 +440,8 @@ const ProjectDetailsPage = () => {
   );
 
   const tableRowClasses = getThemeClasses(
-    'border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0',
-    'dark:border-gray-700 dark:hover:bg-gray-700/50'
+    'border-b border-gray-100 hover:bg-gray-50/50 transition-colors last:border-b-0',
+    'dark:border-gray-700 dark:hover:bg-gray-700/30'
   );
 
   const tableTextClasses = getThemeClasses(
@@ -850,23 +852,11 @@ const ProjectDetailsPage = () => {
         <title>Project - {project?.Name || 'Loading...'} | TeamLabs</title>
       </Head>
       <div className="mx-auto">
-        {/* Breadcrumb Navigation */}
-        <div className="flex items-center text-sm text-gray-500 mb-4">
-          <Link href="/dashboard" className="hover:text-blue-600 transition-colors">
-            Dashboard
-          </Link>
-          <FaChevronRight className="mx-2" size={12} />
-          <Link href="/projects" className="hover:text-blue-600 transition-colors">
-            Projects
-          </Link>
-          <FaChevronRight className="mx-2" size={12} />
-          <span className="text-gray-700 font-medium">Project Details</span>
-        </div>
 
         {/* Project Title, Status, Description */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
-              <h2 className="text-3xl font-bold pr-8">{project.Name}</h2>
+              <h2 className={getThemeClasses("text-3xl font-bold pr-8 text-gray-900", "dark:text-gray-100")}>{project.Name}</h2>
             {project && (
               <div>{getProjectStatusBadgeComponent(project.ProjectStatusID)}</div>
             )}
@@ -874,7 +864,10 @@ const ProjectDetailsPage = () => {
           {isOwner && (
             <div className="flex items-center gap-2">
               <button
-                className="p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors"
+                className={getThemeClasses(
+                  "p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors",
+                  "dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700"
+                )}
                 title="Project Settings"
                 onClick={() => setShowSettingsModal(true)}
               >
@@ -884,10 +877,10 @@ const ProjectDetailsPage = () => {
           )}
         </div>
         <div className="flex items-center gap-4">
-          <p className="text-gray-600">{project.Description}</p>
+          <p className={getThemeClasses("text-gray-600", "dark:text-gray-400")}>{project.Description}</p>
           {project.FinishDate && (
             <div className="ml-auto flex items-center gap-2">
-              <span className="font-semibold text-gray-700">Deadline:</span>
+              <span className={getThemeClasses("font-semibold text-gray-700", "dark:text-gray-300")}>Deadline:</span>
               {(() => {
                 const status = getDeadlineStatusComponent(deadline);
                 return (
@@ -1087,7 +1080,11 @@ const ProjectDetailsPage = () => {
                               {teamDetails?.TeamName.split(' ').map(n => n[0]).join('')}
                             </div>
                             <div className="flex flex-col">
-                              <span className={tableTextClasses}>{teamDetails?.TeamName || team.TeamID}</span>
+                              <Link href={`/team/${team.TeamID}`} legacyBehavior>
+                                <a className={`${tableTextClasses} hover:text-blue-600 hover:underline transition-colors cursor-pointer`} title="View Team Details">
+                                  {teamDetails?.TeamName || team.TeamID}
+                                </a>
+                              </Link>
                               {teamDetails?.TeamDescription && (
                                 <span className={tableSecondaryTextClasses}>{teamDetails.TeamDescription}</span>
                               )}
@@ -1158,8 +1155,8 @@ const ProjectDetailsPage = () => {
                   {teams.length === 0 && (
                     <tr>
                       <td colSpan={isOwner ? 4 : 3} className={getThemeClasses(
-                        'text-center py-8 text-gray-400 bg-gray-50',
-                        'dark:text-gray-500 dark:bg-gray-700/50'
+                        'text-center py-8 text-gray-400',
+                        'dark:text-gray-500'
                       )}>
                         No teams assigned to this project.
                       </td>
@@ -1190,8 +1187,8 @@ const ProjectDetailsPage = () => {
             <div className="overflow-x-auto">
               {userStories.length === 0 ? (
                 <div className={getThemeClasses(
-                  'text-center py-8 text-gray-400 bg-gray-50',
-                  'dark:text-gray-500 dark:bg-gray-700/50'
+                  'text-center py-8 text-gray-400',
+                  'dark:text-gray-500'
                 )}>
                   No user stories for this project.
                 </div>
@@ -1325,8 +1322,8 @@ const ProjectDetailsPage = () => {
             <div className="overflow-x-auto">
               {taskList.length === 0 ? (
                 <div className={getThemeClasses(
-                  'text-center py-8 text-gray-400 bg-gray-50',
-                  'dark:text-gray-500 dark:bg-gray-700/50'
+                  'text-center py-8 text-gray-400',
+                  'dark:text-gray-500'
                 )}>
                   No tasks for this project.
                 </div>
@@ -1530,18 +1527,27 @@ const ProjectDetailsPage = () => {
 
         {showSettingsModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
+            <div className={getThemeClasses(
+              "bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100",
+              "dark:bg-[#232323] dark:border-gray-700 dark:text-gray-100"
+            )}>
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold">Project Settings</h3>
+                <h3 className={getThemeClasses("text-lg font-semibold text-gray-900", "dark:text-gray-100")}>Project Settings</h3>
                 <button
                   onClick={() => setShowSettingsModal(false)}
-                  className="text-gray-400 hover:text-gray-500"
+                  className={getThemeClasses(
+                    "text-gray-400 hover:text-gray-500",
+                    "dark:text-gray-400 dark:hover:text-gray-200"
+                  )}
                 >
                   <FaTimes size={20} />
                 </button>
               </div>
               {project.ModifiedDate && (
-                <div className="text-sm text-gray-500 mb-4 flex items-center gap-1">
+                <div className={getThemeClasses(
+                  "text-sm text-gray-500 mb-4 flex items-center gap-1",
+                  "dark:text-gray-400"
+                )}>
                   <FaInfoCircle size={14} />
                   <span>Last Modified: {new Date(project.ModifiedDate).toLocaleDateString('en-US', {
                     year: 'numeric',
@@ -1554,64 +1560,106 @@ const ProjectDetailsPage = () => {
               )}
               <form onSubmit={handleSettingsSave} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+                  <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Project Name</label>
                   <input
                     type="text"
                     value={settingsForm.Name}
                     onChange={e => setSettingsForm(f => ({ ...f, Name: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    className={getThemeClasses(
+                      "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500",
+                      "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                    )}
                     maxLength={50}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Description</label>
                   <textarea
                     value={settingsForm.Description}
                     onChange={e => setSettingsForm(f => ({ ...f, Description: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    className={getThemeClasses(
+                      "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500",
+                      "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                    )}
                     maxLength={100}
                     rows={3}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Finish Date</label>
+                  <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Finish Date</label>
                   <input
                     type="date"
                     value={settingsForm.FinishDate}
                     onChange={e => setSettingsForm(f => ({ ...f, FinishDate: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    className={getThemeClasses(
+                      "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500",
+                      "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                    )}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Project Status</label>
-                  <select
-                    value={settingsForm.ProjectStatusID}
-                    onChange={e => setSettingsForm(f => ({ ...f, ProjectStatusID: Number(e.target.value) }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                  >
-                    {[1, 2, 3, 4, 5, 6].map(statusCode => {
-                      const status = getProjectStatus(statusCode);
-                      return (
-                        <option key={status.Code} value={status.Code}>
-                          {status.Value}
-                        </option>
-                      );
-                    })}
-                  </select>
+                  <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Project Status</label>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowStatusDropdown(open => !open)}
+                      className={getThemeClasses(
+                        "w-full px-4 py-2.5 rounded-xl transition-all duration-200 text-gray-900 flex items-center gap-2",
+                        "dark:text-gray-100"
+                      )}
+                    >
+                      {getProjectStatusBadge(getProjectStatus(settingsForm.ProjectStatusID), false)}
+                      <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {showStatusDropdown && (
+                      <div className={getThemeClasses(
+                        "absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-auto",
+                        "dark:bg-[#232323] dark:border-gray-700"
+                      )}>
+                        {[1, 2, 3, 4, 5, 6].map(statusCode => {
+                          const status = getProjectStatus(statusCode);
+                          return (
+                            <button
+                              key={status.Code}
+                              type="button"
+                              onClick={() => {
+                                setSettingsForm(f => ({ ...f, ProjectStatusID: status.Code }));
+                                setShowStatusDropdown(false);
+                              }}
+                              className={getThemeClasses(
+                                'w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2',
+                                'dark:hover:bg-gray-700'
+                              )}
+                            >
+                              {getProjectStatusBadge(status, false)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between items-center pt-4">
                   <button
                     type="button"
                     onClick={handleToggleProjectStatus}
-                    className={`px-4 py-2.5 rounded-xl font-medium transition-all duration-200 ${project.IsActive ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                    className={getThemeClasses(
+                      `px-4 py-2.5 rounded-xl font-medium transition-all duration-200 ${project.IsActive ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`,
+                      `${project.IsActive ? 'dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40' : 'dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/40'}`
+                    )}
                     disabled={togglingStatus}
                   >
                     {togglingStatus ? 'Updating...' : project.IsActive ? 'Mark In Active' : 'Mark Active'}
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium"
+                    className={getThemeClasses(
+                      "px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium",
+                      "dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800"
+                    )}
                     disabled={savingSettings}
                   >
                     {savingSettings ? 'Saving...' : 'Save Changes'}
@@ -1673,23 +1721,29 @@ const ProjectDetailsPage = () => {
         {/* Delete Task Confirmation Dialog */}
         {showDeleteTaskDialog && taskToDelete && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
+            <div className={getThemeClasses(
+              "bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100",
+              "dark:bg-gray-800 dark:border-gray-700"
+            )}>
               <div className="flex items-center gap-3 mb-4">
                 <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                <h3 className="text-lg font-semibold">
+                <h3 className={getThemeClasses("text-lg font-semibold text-gray-900", "dark:text-gray-100")}>
                   Delete Task
                 </h3>
               </div>
               <div className="mb-6">
-                <p className="text-gray-600 mb-4">
+                <p className={getThemeClasses("text-gray-600 mb-4", "dark:text-gray-300")}>
                   Are you sure you want to delete this task? This action cannot be undone.
                 </p>
-                <div className="bg-red-50 border border-red-100 rounded-lg p-4">
-                  <h4 className="font-medium text-red-800 mb-1">{taskToDelete.Name}</h4>
-                  <p className="text-sm text-red-700">{taskToDelete.Description}</p>
+                <div className={getThemeClasses(
+                  "bg-red-50 border border-red-100 rounded-lg p-4",
+                  "dark:bg-red-900/20 dark:border-red-800"
+                )}>
+                  <h4 className={getThemeClasses("font-medium text-red-800 mb-1", "dark:text-red-300")}>{taskToDelete.Name}</h4>
+                  <p className={getThemeClasses("text-sm text-red-700", "dark:text-red-400")}>{taskToDelete.Description}</p>
                   <div className="mt-2 flex items-center gap-2">
                     {getTaskTypeBadgeComponent(taskToDelete.Type)}
-                    <span className="text-xs text-red-600">
+                    <span className={getThemeClasses("text-xs text-red-600", "dark:text-red-400")}>
                       {getTaskStatusText(taskToDelete.Status)}
                     </span>
                   </div>
@@ -1701,7 +1755,10 @@ const ProjectDetailsPage = () => {
                     setShowDeleteTaskDialog(false);
                     setTaskToDelete(null);
                   }}
-                  className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                  className={getThemeClasses(
+                    "px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200",
+                    "dark:text-gray-300 dark:hover:bg-gray-700 dark:border-gray-600"
+                  )}
                 >
                   Cancel
                 </button>
@@ -1729,29 +1786,35 @@ const ProjectDetailsPage = () => {
         {/* Bulk Delete Tasks Confirmation Dialog */}
         {showBulkDeleteDialog && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
+            <div className={getThemeClasses(
+              "bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100",
+              "dark:bg-gray-800 dark:border-gray-700"
+            )}>
               <div className="flex items-center gap-3 mb-4">
                 <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                <h3 className="text-lg font-semibold">
+                <h3 className={getThemeClasses("text-lg font-semibold text-gray-900", "dark:text-gray-100")}>
                   Delete Selected Tasks
                 </h3>
               </div>
               <div className="mb-6">
-                <p className="text-gray-600 mb-4">
+                <p className={getThemeClasses("text-gray-600 mb-4", "dark:text-gray-300")}>
                   Are you sure you want to delete {selectedTasks.length} selected task{selectedTasks.length !== 1 ? 's' : ''}? This action cannot be undone.
                 </p>
-                <div className="bg-red-50 border border-red-100 rounded-lg p-4 max-h-32 overflow-y-auto">
-                  <h4 className="font-medium text-red-800 mb-2">Tasks to be deleted:</h4>
+                <div className={getThemeClasses(
+                  "bg-red-50 border border-red-100 rounded-lg p-4 max-h-32 overflow-y-auto",
+                  "dark:bg-red-900/20 dark:border-red-800"
+                )}>
+                  <h4 className={getThemeClasses("font-medium text-red-800 mb-2", "dark:text-red-300")}>Tasks to be deleted:</h4>
                   {taskList
                     .filter(task => selectedTasks.includes(task.TaskID))
                     .slice(0, 5)
                     .map(task => (
-                      <div key={task.TaskID} className="text-sm text-red-700 mb-1">
+                      <div key={task.TaskID} className={getThemeClasses("text-sm text-red-700 mb-1", "dark:text-red-400")}>
                         • {task.Name}
                       </div>
                     ))}
                   {selectedTasks.length > 5 && (
-                    <div className="text-sm text-red-600 italic">
+                    <div className={getThemeClasses("text-sm text-red-600 italic", "dark:text-red-400")}>
                       ... and {selectedTasks.length - 5} more
                     </div>
                   )}
@@ -1762,7 +1825,10 @@ const ProjectDetailsPage = () => {
                   onClick={() => {
                     setShowBulkDeleteDialog(false);
                   }}
-                  className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                  className={getThemeClasses(
+                    "px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200",
+                    "dark:text-gray-300 dark:hover:bg-gray-700 dark:border-gray-600"
+                  )}
                 >
                   Cancel
                 </button>

@@ -54,14 +54,14 @@ const ProjectStatusDropdown = ({
       <button
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled || isUpdating}
-        className={`flex items-center justify-between w-full px-3 py-2 rounded-lg border transition-all duration-200 ${
+        className={`flex items-center justify-between w-full px-3 py-2 rounded-lg transition-all duration-200 ${
           disabled || isUpdating
             ? 'opacity-50 cursor-not-allowed'
-            : 'cursor-pointer hover:shadow-sm'
+            : 'cursor-pointer'
         } ${
           theme === 'dark'
-            ? 'bg-[#232323] border-[#424242] text-[#F3F6FA] hover:bg-[#2A2A2A]'
-            : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50'
+            ? 'text-[#F3F6FA]'
+            : 'text-gray-900 '
         }`}
       >
         <div className="flex items-center gap-2">

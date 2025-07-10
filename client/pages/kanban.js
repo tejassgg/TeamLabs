@@ -247,23 +247,6 @@ const KanbanBoard = () => {
         <title>Kanban Board | TeamLabs</title>
       </Head>
       <div className="mx-auto">
-        {/* Breadcrumb Navigation */}
-        <div className={getThemeClasses(
-          'flex items-center text-sm text-gray-500 mb-4',
-          'dark:text-gray-400'
-        )}>
-          <Link href="/dashboard" className={getThemeClasses(
-            'hover:text-blue-600 transition-colors',
-            'dark:hover:text-blue-400'
-          )}>
-            Dashboard
-          </Link>
-          <FaChevronRight className="mx-2" size={12} />
-          <span className={getThemeClasses(
-            'text-gray-700 font-medium',
-            'dark:text-gray-300'
-          )}>Kanban Board</span>
-        </div>
 
         <div className="flex items-center justify-between mb-6">
           <h1 className={getThemeClasses(
@@ -275,8 +258,8 @@ const KanbanBoard = () => {
               value={selectedProject || ''}
               onChange={handleProjectChange}
               className={getThemeClasses(
-                'border border-gray-300 rounded-xl px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
+                'rounded-xl px-4 py-2 text-gray-700 bg-gray-100',
+                'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100'
               )}
             >
               {projects.length === 0 ? (
@@ -332,8 +315,8 @@ const KanbanBoard = () => {
           </div>
         ) : (
           <div className={getThemeClasses(
-            'bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden',
-            'dark:bg-gray-800 dark:border-gray-700'
+            'rounded-xl border border-gray-200 overflow-hidden',
+            'dark:border-gray-700'
           )}>
             <div className={getThemeClasses(
               'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 divide-x divide-gray-200',
@@ -348,7 +331,7 @@ const KanbanBoard = () => {
                 const addTaskButton = status === 1 ? (
                   <div className="mt-2">
                     <button
-                      className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-white border border-gray-200 rounded-lg shadow-sm text-gray-500 font-semibold text-base transition hover:bg-gray-50 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-4 border border-gray-200 rounded-lg text-gray-500 font-semibold text-base transition hover:bg-gray-50/50 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
                       style={{ minHeight: '64px' }}
                       onClick={() => setShowAddTaskModal(true)}
                     >

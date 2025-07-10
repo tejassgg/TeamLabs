@@ -22,7 +22,7 @@ export const statusIcons = {
 export const statusColors = {
   1: {
     light: 'bg-gray-50',
-    dark: 'bg-gray-800/50',
+    dark: 'bg-transparent',
     textLight: 'text-gray-700',
     textDark: 'text-gray-300',
     borderLight: 'border-gray-200',
@@ -30,7 +30,7 @@ export const statusColors = {
   },
   2: {
     light: 'bg-blue-50',
-    dark: 'bg-blue-900/30',
+    dark: 'bg-transparent',
     textLight: 'text-blue-700',
     textDark: 'text-blue-300',
     borderLight: 'border-blue-200',
@@ -38,7 +38,7 @@ export const statusColors = {
   },
   3: {
     light: 'bg-yellow-50',
-    dark: 'bg-yellow-900/30',
+    dark: 'bg-transparent',
     textLight: 'text-yellow-700',
     textDark: 'text-yellow-300',
     borderLight: 'border-yellow-200',
@@ -46,7 +46,7 @@ export const statusColors = {
   },
   6: {
     light: 'bg-indigo-50',
-    dark: 'bg-indigo-900/30',
+    dark: 'bg-transparent',
     textLight: 'text-indigo-700',
     textDark: 'text-indigo-300',
     borderLight: 'border-indigo-200',
@@ -54,7 +54,7 @@ export const statusColors = {
   },
   7: {
     light: 'bg-pink-50',
-    dark: 'bg-pink-900/30',
+    dark: 'bg-transparent',
     textLight: 'text-pink-700',
     textDark: 'text-pink-300',
     borderLight: 'border-pink-200',
@@ -62,7 +62,7 @@ export const statusColors = {
   },
   8: {
     light: 'bg-green-50',
-    dark: 'bg-green-900/30',
+    dark: 'bg-transparent',
     textLight: 'text-green-700',
     textDark: 'text-green-300',
     borderLight: 'border-green-200',

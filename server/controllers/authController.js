@@ -375,11 +375,12 @@ const completeUserProfile = async (req, res) => {
 // @access  Private
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
+    const user = await User.findById(req.user._id).select('-password -googleId');
 
     if (user) {
       // If user has an organization ID, fetch the organization details
       if (user.organizationID) {
+        console.log(user);
         const CommonType = require('../models/CommonType');
         const organization = await CommonType.findOne({
           Code: user.organizationID,
@@ -393,6 +394,7 @@ const getUserProfile = async (req, res) => {
           code: organization.Code
         } : null;
         userProfile.organizationID = user.organizationID;
+        userProfile.status = user.status;
         res.json(userProfile);
       } else {
         res.json(user);

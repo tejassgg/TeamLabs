@@ -238,7 +238,7 @@ const DashboardCharts = ({ stats, theme }) => {
         <div className="lg:col-span-1">
           <div className="grid grid-cols-2 gap-4">
             {/* Projects Card */}
-            <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-4 border transition-all duration-200`}>
+            <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-4' : 'bg-white text-gray-900 border-gray-100 rounded-xl shadow-sm p-4 border'} transition-all duration-200`}>
               <div className="flex flex-col items-center text-center">
                 <div className={`p-2 rounded-lg mb-2 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-blue-50 to-blue-100'}`}>
                   <FaProjectDiagram className={theme === 'dark' ? 'text-blue-400' : 'text-blue-500'} size={16} />
@@ -249,7 +249,7 @@ const DashboardCharts = ({ stats, theme }) => {
             </div>
 
             {/* Teams Card */}
-            <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-4 border transition-all duration-200`}>
+            <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-4' : 'bg-white text-gray-900 border-gray-100 rounded-xl shadow-sm p-4 border'} transition-all duration-200`}>
               <div className="flex flex-col items-center text-center">
                 <div className={`p-2 rounded-lg mb-2 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-green-50 to-green-100'}`}>
                   <FaUsers className={theme === 'dark' ? 'text-green-400' : 'text-green-500'} size={16} />
@@ -260,7 +260,7 @@ const DashboardCharts = ({ stats, theme }) => {
             </div>
 
             {/* Deadlines Card */}
-            <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-4 border transition-all duration-200`}>
+            <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-4' : 'bg-white text-gray-900 border-gray-100 rounded-xl shadow-sm p-4 border'} transition-all duration-200`}>
               <div className="flex flex-col items-center text-center">
                 <div className={`p-2 rounded-lg mb-2 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-yellow-50 to-yellow-100'}`}>
                   <FaClock className={theme === 'dark' ? 'text-yellow-300' : 'text-yellow-500'} size={16} />
@@ -271,7 +271,7 @@ const DashboardCharts = ({ stats, theme }) => {
             </div>
 
             {/* People Card */}
-            <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242] hover:bg-[#232323]' : 'bg-white text-gray-900 border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-4 border transition-all duration-200`}>
+            <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-4' : 'bg-white text-gray-900 border-gray-100 rounded-xl shadow-sm p-4 border'} transition-all duration-200`}>
               <div className="flex flex-col items-center text-center">
                 <div className={`p-2 rounded-lg mb-2 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-purple-50 to-purple-100'}`}>
                   <FaUserFriends className={theme === 'dark' ? 'text-purple-300' : 'text-purple-500'} size={16} />
@@ -285,29 +285,23 @@ const DashboardCharts = ({ stats, theme }) => {
 
         {/* Task Completion Summary - 3/4th width */}
         <div className="lg:col-span-3">
-          <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border`}>
+          <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
             <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
               <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Task Completion Summary</h2>
               <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Overview of task progress and completion rates</p>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-blue-50'}`}>
-                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
-                    {stats.charts.totalTasks}
-                  </div>
+                <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-transparent border border-gray-700 text-[#F3F6FA]' : 'bg-blue-50'} ${theme === 'dark' ? '' : 'border-none'} `}>
+                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>{stats.charts.totalTasks}</div>
                   <div className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>Total Tasks</div>
                 </div>
-                <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-green-50'}`}>
-                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
-                    {stats.charts.completedTasks}
-                  </div>
+                <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-transparent border border-gray-700 text-[#F3F6FA]' : 'bg-green-50'} ${theme === 'dark' ? '' : 'border-none'} `}>
+                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>{stats.charts.completedTasks}</div>
                   <div className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>Completed Tasks</div>
                 </div>
-                <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-yellow-50'}`}>
-                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                    {stats.charts.activeTasks}
-                  </div>
+                <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-transparent border border-gray-700 text-[#F3F6FA]' : 'bg-yellow-50'} ${theme === 'dark' ? '' : 'border-none'} `}>
+                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>{stats.charts.activeTasks}</div>
                   <div className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>Active Tasks</div>
                 </div>
               </div>
@@ -332,7 +326,7 @@ const DashboardCharts = ({ stats, theme }) => {
       {/* Project Status and Task Type Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Project Status Distribution */}
-        <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border`}>
+        <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
           <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
             <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Project Status Distribution</h2>
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Overview of project status across the organization</p>
@@ -345,7 +339,7 @@ const DashboardCharts = ({ stats, theme }) => {
         </div>
 
         {/* Task Type Distribution */}
-        <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border`}>
+        <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
           <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
             <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Task Type Distribution</h2>
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Breakdown of different task types</p>
@@ -359,7 +353,7 @@ const DashboardCharts = ({ stats, theme }) => {
       </div>
 
       {/* Monthly Activity Timeline */}
-      <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border`}>
+      <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
         <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
           <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Monthly Activity Overview</h2>
           <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Track project creation and task completion trends</p>
@@ -374,7 +368,7 @@ const DashboardCharts = ({ stats, theme }) => {
       {/* Team Performance and Activity Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Team Performance */}
-        <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border`}>
+        <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
           <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
             <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Team Performance Overview</h2>
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Team member counts and active projects</p>
@@ -387,7 +381,7 @@ const DashboardCharts = ({ stats, theme }) => {
         </div>
 
         {/* Activity Overview */}
-        <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border`}>
+        <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
           <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
             <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Recent Activity Overview</h2>
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>User activity breakdown (last 30 days)</p>

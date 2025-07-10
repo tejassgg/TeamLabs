@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { FaMoon, FaSun, FaDesktop, FaShieldAlt, FaSignOutAlt, FaCheck, FaTimes, FaCrown, FaInfinity, FaUsers, FaRocket, FaStar, FaCheckCircle } from 'react-icons/fa';
 import { useToast } from '../context/ToastContext';
 import TwoFactorAuth from '../components/TwoFactorAuth';
-import Breadcrumb from '../components/Breadcrumb';
+
 import authService from '../services/api';
 import { useRouter } from 'next/router';
 
@@ -360,7 +360,6 @@ const Settings = () => {
       <Head>
         <title>Settings | TeamLabs</title>
       </Head>
-      <Breadcrumb type="settings" />
       <div className="mx-auto">
         <div className="flex items-center justify-between">
           <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -407,11 +406,11 @@ const Settings = () => {
         </div>
 
         {/* Settings Content */}
-        <div className={`rounded-xl shadow-sm border ${theme === 'dark' ? 'bg-[#1F1F1F] border-gray-700' : 'bg-white border-gray-200'
+        <div className={`rounded-xl shadow-sm border ${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-white border-gray-200'
           }`}>
           {/* Appearance Settings */}
           {activeTab === 'appearance' && (
-            <div className={`p-6 ${theme === 'dark' ? 'bg-[#1F1F1F]' : 'bg-white'}`}>
+            <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
               <h2 className={`text-xl font-semibold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}>Theme Settings</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -505,13 +504,13 @@ const Settings = () => {
 
           {/* Security Settings */}
           {activeTab === 'security' && (
-            <div className={`p-6 ${theme === 'dark' ? 'bg-[#1F1F1F]' : 'bg-white'}`}>
+            <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
               <h2 className={`text-xl font-semibold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}>Security Settings</h2>
-              <div className={`p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
+              <div className={`p-6 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-gray-50'}`}>
                 <div className="space-y-6">
                   {/* Two-Factor Authentication */}
-                  <div className={`flex items-center justify-between p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white'
+                  <div className={`flex items-center justify-between p-4 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-white'
                     } border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
                     }`}>
                     <div>
@@ -550,7 +549,7 @@ const Settings = () => {
                       </button>
                     )}
                   </div>
-                  <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white'
+                  <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-white'
                     } border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
                     }`}>
                     <div className="mb-4">
@@ -563,7 +562,7 @@ const Settings = () => {
                       value={securitySettings.sessionTimeout}
                       onChange={(e) => setSecuritySettings(prev => ({ ...prev, sessionTimeout: Number(e.target.value) }))}
                       className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
-                        ? 'border-gray-700 bg-[#1F1F1F] text-white focus:ring-blue-400 focus:border-blue-400'
+                        ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400'
                         : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500'
                         }`}
                     >
@@ -574,7 +573,7 @@ const Settings = () => {
                       <option value={240}>4 hours</option>
                     </select>
                   </div>
-                  <div className={`flex items-center justify-between p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white'
+                  <div className={`flex items-center justify-between p-4 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-white'
                     } border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
                     }`}>
                     <div>
@@ -615,7 +614,7 @@ const Settings = () => {
 
           {/* Subscription Settings */}
           {activeTab === 'subscription' && (
-            <div className={`p-6 ${theme === 'dark' ? 'bg-[#1F1F1F]' : 'bg-white'}`}>
+            <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
               <div className="mb-8">
                 <h2 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                   Subscription Plans
@@ -626,7 +625,7 @@ const Settings = () => {
               </div>
 
               {/* Current Plan Status */}
-              <div className={`mb-8 p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className={`mb-8 p-6 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-gray-50'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -676,7 +675,7 @@ const Settings = () => {
                   {/* Free Plan */}
                   <div className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
                     theme === 'dark' 
-                      ? 'bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-600 hover:border-gray-500' 
+                      ? 'bg-transparent border-gray-600 hover:border-gray-500' 
                       : 'bg-gradient-to-br from-gray-50 to-white border-gray-200 hover:border-gray-300 shadow-lg hover:shadow-xl'
                   }`}>
                     {/* Current Plan Badge */}
@@ -700,7 +699,7 @@ const Settings = () => {
                     <div className="relative z-10 flex flex-col h-full">
                       <div className="text-center mb-8">
                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 group-hover:scale-110 ${
-                          theme === 'dark' ? 'bg-gradient-to-br from-gray-700 to-gray-800' : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                          theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-gray-100 to-gray-200'
                         }`}>
                           <FaUsers className={`text-2xl ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
                         </div>
@@ -749,7 +748,7 @@ const Settings = () => {
                   {/* Monthly Premium */}
                   <div className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
                     theme === 'dark'
-                      ? 'bg-gradient-to-br from-blue-900/30 via-purple-900/20 to-indigo-900/30 border-blue-500/50 hover:border-blue-400'
+                      ? 'bg-transparent border-blue-500/50 hover:border-blue-400'
                       : 'bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 border-blue-500 hover:border-blue-400 shadow-lg hover:shadow-xl'
                   }`}>
                     {/* Current Plan Badge */}
@@ -781,7 +780,7 @@ const Settings = () => {
                     
                     <div className="relative z-10 flex flex-col h-full">
                       <div className="text-center mb-8">
-                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 group-hover:scale-110 bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg`}>
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 group-hover:scale-110 ${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg'}`}>
                           <FaCrown className="text-2xl text-white" />
                         </div>
                         <h3 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Premium Monthly</h3>
@@ -832,7 +831,7 @@ const Settings = () => {
                   {/* Annual Premium */}
                   <div className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
                     theme === 'dark'
-                      ? 'bg-gradient-to-br from-purple-900/30 via-pink-900/20 to-indigo-900/30 border-purple-500/50 hover:border-purple-400'
+                      ? 'bg-transparent border-purple-500/50 hover:border-purple-400'
                       : 'bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 border-purple-500 hover:border-purple-400 shadow-lg hover:shadow-xl'
                   }`}>
                     {/* Current Plan Badge */}
@@ -864,7 +863,7 @@ const Settings = () => {
                     
                     <div className="relative z-10 flex flex-col h-full">
                       <div className="text-center mb-8">
-                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 group-hover:scale-110 bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg`}>
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 group-hover:scale-110 ${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg'}`}>
                           <FaStar className="text-2xl text-white" />
                         </div>
                         <h3 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Premium Annual</h3>
@@ -930,7 +929,7 @@ const Settings = () => {
 
               {/* Transaction History */}
               {paymentHistory.length > 0 && (
-                <div className={`mt-8 rounded-xl shadow-sm border ${theme === 'dark' ? 'bg-[#1F1F1F] border-gray-700' : 'bg-white border-gray-200'}`}>
+                <div className={`mt-8 rounded-xl shadow-sm border ${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-white border-gray-200'}`}>
                   <div className={`p-6 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                     <h3 className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                       Transaction History

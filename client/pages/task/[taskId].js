@@ -12,7 +12,7 @@ import LoadingScreen from '../../components/LoadingScreen';
 import { statusMap, statusIcons, statusColors, getTaskTypeDetails, getPriorityStyle, useThemeClasses } from '../../components/kanbanUtils';
 import TaskAttachments from '../../components/TaskAttachments';
 import TaskComments from '../../components/TaskComments';
-import Breadcrumb from '../../components/Breadcrumb';
+
 import { authService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/Modal';
@@ -324,13 +324,6 @@ const TaskDetailsPage = () => {
                 <title>{task.Name} | TeamLabs</title>
             </Head>
             <div className="mx-auto">
-                {/* Breadcrumb Navigation */}
-                <Breadcrumb
-                    type="task"
-                    projectName={project?.Name || 'Unknown Project'}
-                    projectId={project?.ProjectID || project?._id || ''}
-                    taskName={task.Name || ''}
-                />
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left/Main Section */}
                     <div className="lg:col-span-2">

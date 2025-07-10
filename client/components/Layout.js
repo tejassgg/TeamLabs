@@ -2,7 +2,7 @@ import Navbar from './Navbar';
 import { useTheme } from '../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FaPlus, FaChevronRight, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaCircle } from 'react-icons/fa';
+import { FaPlus, FaChevronRight, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaCircle } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import AddTeamModal from './AddTeamModal';
 import { teamService } from '../services/api';
@@ -16,6 +16,7 @@ import ChatBot from './ChatBot';
 import TooltipPortal from './TooltipPortal';
 import Link from 'next/link';
 
+
 const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
@@ -25,9 +26,10 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [isTeamsOpen, setIsTeamsOpen] = useState(true);
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
-  const { teams, projects, user, setProjects, setTeams, setTasksDetails, organization } = useGlobal();
+  const { teams, projects, user, setProjects, setTeams, setTasksDetails, organization, userDetails } = useGlobal();
   const { showToast } = useToast();
-  const canManageTeamsAndProjects = user?.role === 'Admin' || user?.role === 'Owner';
+  const canManageTeamsAndProjects = userDetails?.role === 'Admin' || userDetails?.role === 'Owner';
+  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
 
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
   const activeProjectId = router.pathname.startsWith('/project/') ? router.query.projectId : null;
@@ -35,6 +37,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   // Load collapsed state from localStorage after component mounts
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      console.log(userDetails);
       const saved = localStorage.getItem('sidebarCollapsed');
       if (saved !== null) {
         const collapsedState = JSON.parse(saved);
@@ -159,12 +162,23 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const SidebarCollapsible = ({ icon, label, isOpen, onToggle, items, onAdd, activeId, itemKey, itemLabel, onItemClick, canAdd, theme }) => (
     <div>
       <div className="flex items-center justify-between">
-        <SidebarButton
-          icon={icon}
-          label={label}
-          onClick={onToggle}
-          theme={theme}
-        />
+        <div className="flex items-center gap-2 flex-1">
+          <SidebarButton
+            icon={icon}
+            label={label}
+            onClick={onToggle}
+            theme={theme}
+          />
+          {(!isMobile && collapsed) ? null : (
+            <button
+              className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+              aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${label}`}
+              onClick={onToggle}
+            >
+              {isOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+            </button>
+          )}
+        </div>
         {(!isMobile && collapsed) ? null : canAdd && (
           <button
             className={`ml-2 p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
@@ -269,8 +283,8 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           <SidebarButton
             icon={<FaBookOpen className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
             label="Query Board"
-            active={router.pathname === '/query'}
-            onClick={() => handleNavigation('/query')}
+            active={false}
+            onClick={() => setIsComingSoonOpen(true)}
             theme={theme}
           />
 
@@ -377,6 +391,34 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           />
         </>
       )}
+      {isComingSoonOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold">Coming Soon!</h3>
+              <button
+                onClick={() => setIsComingSoonOpen(false)}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex flex-col items-center justify-center py-6">
+              <FaBookOpen size={48} className="mb-4 text-blue-500" />
+              <h2 className="text-2xl font-bold mb-2 text-center">Query Board is Coming Soon</h2>
+              <p className="text-gray-500 mb-4 text-center">We're working hard to bring you this feature. Stay tuned!</p>
+            </div>
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                onClick={() => setIsComingSoonOpen(false)}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200"
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
@@ -388,6 +430,116 @@ const Layout = ({ children }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { showToast } = useToast();
+  const router = useRouter();
+  const { teams, projects, tasksDetails } = useGlobal();
+
+  // Dynamic breadcrumb component
+  const DynamicBreadcrumb = () => {
+    const getBreadcrumbItems = () => {
+      const path = router.pathname;
+      const query = router.query;
+      
+      // Dashboard
+      if (path === '/dashboard') {
+        return [{ label: 'Dashboard', href: '/dashboard', isCurrent: true }];
+      }
+      
+      // Kanban Board
+      if (path === '/kanban') {
+        return [{ label: 'Kanban Board', href: '/kanban', isCurrent: true }];
+      }
+      
+      // Profile
+      if (path === '/profile') {
+        return [{ label: 'Profile', href: '/profile', isCurrent: true }];
+      }
+      
+      // Settings
+      if (path === '/settings') {
+        return [{ label: 'Settings', href: '/settings', isCurrent: true }];
+      }
+      
+      // Team Details
+      if (path === '/team/[teamId]') {
+        const teamId = query.teamId;
+        const team = teams.find(t => t.TeamID === teamId || t._id === teamId);
+        return [
+          { label: 'Teams', href: '/dashboard' },
+          { label: team?.TeamName || 'Team Details', href: router.asPath, isCurrent: true }
+        ];
+      }
+      
+      // Project Details
+      if (path === '/project/[projectId]') {
+        const projectId = query.projectId;
+        const project = projects.find(p => p.ProjectID === projectId || p._id === projectId);
+        return [
+          { label: 'Projects', href: '/dashboard' },
+          { label: project?.Name || 'Project Details', href: router.asPath, isCurrent: true }
+        ];
+      }
+      
+      // Task Details
+      if (path === '/task/[taskId]') {
+        const taskId = query.taskId;
+        const task = tasksDetails.find(t => t.TaskID === taskId || t._id === taskId);
+        const project = task ? projects.find(p => p.ProjectID === task.ProjectID_FK) : null;
+        
+        // Enhanced project name detection
+        let projectName = 'Project Details';
+        let projectHref = '/dashboard';
+        
+        if (project?.Name) {
+          projectName = project.Name;
+          projectHref = `/project/${project.ProjectID || project._id}`;
+        } else if (task?.ProjectID) {
+          // If we have a project ID but no name, show a more descriptive fallback
+          projectName = 'Project Details';
+          projectHref = `/project/${task.ProjectID}`;
+        }
+        
+        return [
+          { label: 'Projects', href: '/dashboard' },
+          { label: projectName, href: projectHref },
+          { label: task?.Name || 'Task Details', href: router.asPath, isCurrent: true }
+        ];
+      }
+      
+      // Payment
+      if (path === '/payment') {
+        return [{ label: 'Payment', href: '/payment', isCurrent: true }];
+      }
+      
+      // Default
+      return [{ label: 'Dashboard', href: '/dashboard' }];
+    };
+
+    const items = getBreadcrumbItems();
+    
+    if (items.length <= 1) return null;
+
+    return (
+      <nav className={`flex items-center space-x-2 text-sm h-8 p-8 md:px-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
+        {items.map((item, index) => (
+          <div key={index} className="flex items-center space-x-2">
+            {index > 0 && <FaChevronRight className={`w-3 h-3 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />}
+            {item.isCurrent ? (
+              <span className={`font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-700'}`}>
+                {item.label}
+              </span>
+            ) : (
+              <Link
+                href={item.href}
+                className={`hover:text-blue-600 transition-colors duration-200 ${theme === 'dark' ? 'hover:text-blue-400' : ''}`}
+              >
+                {item.label}
+              </Link>
+            )}
+          </div>
+        ))}
+      </nav>
+    );
+  };
 
   // Load collapsed state from localStorage after component mounts
   useEffect(() => {
@@ -461,8 +613,12 @@ const Layout = ({ children }) => {
             </div>
           </div>
         )}
-        <main className={`p-4 md:p-8 overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#18181b] text-white' : ''}`}>
-          {children}
+        <main className={`overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#18181b] text-white' : ''}`}>
+          <DynamicBreadcrumb />
+          
+          <div className={`${router.pathname.startsWith('/task') || router.pathname.startsWith('/project') || router.pathname.startsWith('/team') ? 'px-8' : 'p-8'} md:px-8`}>
+            {children}
+          </div>
         </main>
         <ChatBot />
       </div>

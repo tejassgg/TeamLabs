@@ -202,28 +202,28 @@ const TaskAttachments = ({ taskId, userId, initialAttachments }) => {
           <span className={getThemeClasses("bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full", "dark:bg-blue-900/30 dark:text-blue-300")}>{attachments.length}</span>
         </div>
         {/* Drag-and-drop upload zone */}
-        <div
+      <div
           className={getThemeClasses(
-            `relative flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-8 mb-6 transition-colors cursor-pointer bg-transparent border-transparent`,
-            `dark:bg-transparent dark:border-transparent`
+            `relative flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-8 mb-6 transition-colors cursor-pointer bg-transparent ${dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}`,
+            `dark:bg-transparent ${dragActive ? 'dark:border-blue-400 dark:bg-blue-900/20' : 'dark:border-gray-600 dark:hover:border-gray-500'}`
           )}
-          onClick={() => !uploading && fileInputRef.current.click()}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          style={{ minHeight: '120px' }}
-        >
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            onChange={handleFileInputChange}
-            disabled={uploading}
-          />
+        onClick={() => !uploading && fileInputRef.current.click()}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        style={{ minHeight: '120px' }}
+      >
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          onChange={handleFileInputChange}
+          disabled={uploading}
+        />
           <FaCloudUploadAlt className={`mb-2 text-4xl ${dragActive ? 'text-blue-500' : getThemeClasses('text-gray-400', 'dark:text-gray-500')}`} />
           <div className={getThemeClasses("text-base font-medium text-gray-700 mb-1", "dark:text-gray-200")}>{uploading ? 'Uploading...' : 'Drag & drop or click to upload'}</div>
           <div className={getThemeClasses("text-xs text-gray-400", "dark:text-gray-500")}>Max file size: 10MB. Images, docs, code files allowed.</div>
-        </div>
+      </div>
         {attachments.length === 0 ? (
           <div className={getThemeClasses("text-center text-gray-400 py-2", "dark:text-gray-500")}>No attachments yet.</div>
         ) : (

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
-const Modal = ({ isOpen, onClose, children }) => {
+const Modal = ({ isOpen, onClose, children, title }) => {
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -19,14 +19,24 @@ const Modal = ({ isOpen, onClose, children }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 transition-opacity duration-300">
-      <div className={`rounded-xl shadow-lg p-8 relative w-full max-w-md mx-4 animate-fadeIn transition-colors duration-300 ${theme === 'dark' ? 'bg-[#232323] text-white' : 'bg-white text-gray-900'}`}>
-        <button
-          className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-primary focus:outline-none"
-          onClick={onClose}
-          aria-label="Close"
-        >
-          &times;
-        </button>
+      <div className={`rounded-xl shadow-lg p-6 relative w-full max-w-md mx-4 animate-fadeIn transition-colors duration-300 ${theme === 'dark' ? 'bg-[#232323] text-white' : 'bg-white text-gray-900'}`}>
+        {/* Header with centered title and close button */}
+        <div className="flex items-center justify-between mb-6">
+          {title && (
+            <h3 className="text-xl font-semibold flex-1">
+              {title}
+            </h3>
+          )}
+          <div className="flex-1 flex justify-end">
+            <button
+              className="text-2xl text-gray-400 hover:text-primary focus:outline-none transition-colors"
+              onClick={onClose}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
         {children}
       </div>
       <style jsx global>{`

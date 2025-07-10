@@ -21,6 +21,7 @@ import {
 } from 'react-icons/fa';
 import ActivityNotifications from './ActivityNotifications';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 
 // Enhanced StatusDropdown component
 const StatusDropdown = ({ currentStatus, onStatusChange, theme }) => {
@@ -145,6 +146,7 @@ const StatusDropdown = ({ currentStatus, onStatusChange, theme }) => {
 };
 
 const Navbar = ({ isMobile, theme, onLogout }) => {
+  const { user } = useAuth();
   const { userDetails } = useGlobal();
   const router = useRouter();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -157,6 +159,8 @@ const Navbar = ({ isMobile, theme, onLogout }) => {
   // Add status update handler
   const handleStatusChange = async (newStatus) => {
     try {
+      console.log(newStatus);
+      console.log(user);
       const response = await authService.updateUserStatus(newStatus, userDetails._id);
 
       if (response.status != 200) throw new Error('Failed to update status');

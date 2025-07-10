@@ -53,7 +53,7 @@ exports.updateUser = async (req, res) => {
 // New: Get all user overview data in one API
 exports.getUserOverview = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).lean();
+    const user = await User.findById(req.user.id).lean().select('-password -googleId');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     // Teams: user is owner or member

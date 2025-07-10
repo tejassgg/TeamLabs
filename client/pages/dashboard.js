@@ -247,10 +247,6 @@ const Dashboard = () => {
         <title>Dashboard | TeamLabs</title>
       </Head>
       <div className="mx-auto">
-        {/* Breadcrumb Navigation */}
-        <div className={`flex items-center text-sm mb-4 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>
-          <span className={theme === 'dark' ? 'text-[#F3F6FA] font-medium' : 'text-gray-700 font-medium'}>Dashboard</span>
-        </div>
 
         <div className="flex items-center justify-between">
           <div>
@@ -304,7 +300,7 @@ const Dashboard = () => {
             ) : SimpleCharts ? (
               <SimpleCharts stats={stats} theme={theme} />
             ) : (
-              <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border p-6 mb-8`}>
+              <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-6 mb-8' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border p-6 mb-8'}`}>
                 <h3 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Dashboard Analytics</h3>
                 <p className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
                   Install chart.js and react-chartjs-2 for enhanced visualizations: npm install chart.js react-chartjs-2
@@ -319,42 +315,40 @@ const Dashboard = () => {
             {/* Recent Projects and Organization Members - Single Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Projects */}
-              <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border`}>
-                <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
+              <div className={`${theme === 'dark' ? 'text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
+                <div className={`p-4 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                   <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Recent Projects</h2>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full overflow-y-auto">
                     <thead>
-                      <tr className={`${theme === 'dark' ? 'bg-[#232323] border-[#424242]' : 'bg-gray-50 border-gray-200'}`}>
-                        <th className="py-3 px-4 text-left">Project</th>
-                        <th className="py-3 px-4 text-left">Deadline</th>
-                        <th className="py-3 px-4 text-left">Status</th>
+                      <tr className={`${theme === 'dark' ? 'border-gray-700' : 'bg-gray-50 border-gray-200'} border-b`}>
+                        <th className="py-3 px-4 text-left ">Project</th>
+                        <th className="py-3 px-4 text-left ">Deadline</th>
+                        <th className="py-3 px-4 text-left ">Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {stats?.recentProjects?.map(project => {
                         const currentStatus = getProjectStatus(project.projectStatusId || 1);
-                        
                         return (
                           <tr 
                             key={project.id} 
-                            className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-[#424242] hover:bg-[#232323]' : 'border-gray-100 hover:bg-gray-50'} border-b cursor-pointer`}
+                            className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b cursor-pointer`}
                             onClick={() => router.push(`/project/${project.id}`)}
                           >
-                            <td className="py-3 px-4">
+                            <td className="py-2 px-4">
                               <div className="flex flex-col">
-                                <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>
-                                  {project.name}
-                                </span>
+                                <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}> {project.name} </span>
+                                {project.description && (
+                                  <span className={`text-xs mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>{project.description}</span>
+                                )}
                               </div>
                             </td>
-                            <td className="py-3 px-4">
-                              <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>
-                                {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'}
-                              </span>
+                            <td className="py-2 px-4">
+                              <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}> {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'} </span>
                             </td>
-                            <td className="py-3 px-4">
+                            <td className="py-2 px-4">
                               <div onClick={(e) => e.stopPropagation()}>
                                 <ProjectStatusDropdown
                                   currentStatus={currentStatus}
@@ -371,9 +365,7 @@ const Dashboard = () => {
                       })}
                       {(!stats?.recentProjects || stats.recentProjects.length === 0) && (
                         <tr>
-                          <td colSpan={3} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-[#232323]' : 'text-gray-400 bg-gray-50'}`}>
-                            No Recent Projects
-                          </td>
+                          <td colSpan={3} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}> No Recent Projects </td>
                         </tr>
                       )}
                     </tbody>
@@ -382,14 +374,14 @@ const Dashboard = () => {
               </div>
 
               {/* Organization Members Table */}
-              <div className={`${theme === 'dark' ? 'bg-[#1F1F1F] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} rounded-xl shadow-sm border`}>
-                <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
+              <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
+                <div className={`p-4 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                   <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Organization Members</h2>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className={`${theme === 'dark' ? 'bg-[#232323] border-[#424242]' : 'bg-gray-50 border-gray-200'}`}>
+                      <tr className={`${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-gray-50 border-gray-200'} border-b`}>
                         <th className="py-3 px-4 text-left">Member</th>
                         <th className="py-3 px-4 text-left">Status</th>
                         <th className="py-3 px-4 text-left">Role</th>
@@ -402,20 +394,14 @@ const Dashboard = () => {
                         const StatusIcon = statusConfig.icon;
 
                         return (
-                          <tr key={member.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-[#424242] hover:bg-[#232323]' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
+                          <tr key={member.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
                             <td className="py-3 px-4">
                               <div className="flex items-center gap-3">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-600'}`}>
-                                  {member.name.split(' ').map(n => n[0]).join('')}
-                                </div>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-600'}`}> {member.name.split(' ').map(n => n[0]).join('')} </div>
                                 <div className="flex flex-col">
-                                  <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>
-                                    {member.name}
-                                  </span>
+                                  <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}> {member.name} </span>
                                   <div className="flex flex-col gap-0.5">
-                                    <span className={`text-xs ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>
-                                      <strong>{member.username}</strong> | {member.email}
-                                    </span>
+                                    <span className={`text-xs ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}> <strong>{member.username}</strong> | {member.email} </span>
                                   </div>
                                 </div>
                               </div>
@@ -423,22 +409,18 @@ const Dashboard = () => {
                             <td className="py-3 px-4">
                               <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium
                               ${theme === 'dark'
-                                  ? 'bg-[#232323] border border-[#424242]'
+                                  ? 'bg-transparent border border-gray-700'
                                   : 'bg-white border border-gray-200'}`}
                               >
                                 <StatusIcon className={`${statusConfig.color} text-sm`} />
-                                <span className={theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-700'}>
-                                  {statusConfig.label}
-                                </span>
+                                <span className={theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-700'}> {statusConfig.label} </span>
                                 {member.status === 'Active' && (
                                   <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.color.replace('text', 'bg')} animate-pulse`}></span>
                                 )}
                               </div>
                             </td>
                             <td className="py-3 px-4">
-                              <span className={`text-sm ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>
-                                {member.role}
-                              </span>
+                              <span className={`text-sm ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}> {member.role} </span>
                             </td>
                             {isAdmin && user.organizationID && (
                               <td className="py-3 px-4 text-center">
@@ -448,7 +430,7 @@ const Dashboard = () => {
                                       setRemovingUser(member);
                                       setShowRemoveDialog(true);
                                     }}
-                                    className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition shadow-sm ${theme === 'dark' ? 'text-red-300 bg-[#424242] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
+                                    className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-red-300 bg-[#232323] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
                                     title="Remove Member"
                                   >
                                     <FaTrash size={14} />
@@ -461,9 +443,7 @@ const Dashboard = () => {
                       })}
                       {(!stats?.members || stats.members.length === 0) && (
                         <tr>
-                          <td colSpan={isAdmin && user.organizationID ? 4 : 3} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-[#232323]' : 'text-gray-400 bg-gray-50'}`}>
-                            No members found
-                          </td>
+                          <td colSpan={isAdmin && user.organizationID ? 4 : 3} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}> No members found </td>
                         </tr>
                       )}
                     </tbody>

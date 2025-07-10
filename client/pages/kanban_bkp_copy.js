@@ -367,14 +367,6 @@ const KanbanBoard = () => {
         <title>Kanban Board | TeamLabs</title>
       </Head>
       <div className="mx-auto">
-        {/* Breadcrumb Navigation */}
-        <div className="flex items-center text-sm text-gray-500 mb-4">
-          <Link href="/dashboard" className="hover:text-blue-600 transition-colors">
-            Dashboard
-          </Link>
-          <FaChevronRight className="mx-2" size={12} />
-          <span className="text-gray-700 font-medium">Kanban Board</span>
-        </div>
 
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Kanban Board</h1>

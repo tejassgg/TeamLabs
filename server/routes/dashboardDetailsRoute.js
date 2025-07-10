@@ -138,7 +138,8 @@ router.get('/:organizationId', async (req, res) => {
         deadline: project.FinishDate,
         isActive: project.IsActive,
         projectStatusId: project.ProjectStatusID,
-        projectStatus: projStatus.find(item => item.Code === project.ProjectStatusID)?.Value || 'Unknown Status'
+        projectStatus: projStatus.find(item => item.Code === project.ProjectStatusID)?.Value || 'Unknown Status',
+        description: project.Description
       })),
       recentTeams: teams.slice(0, 5).map(team => ({
         id: team._id,

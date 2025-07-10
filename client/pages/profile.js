@@ -10,7 +10,7 @@ import {
   FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaBuilding, FaCity, FaGlobe,
   FaGithub, FaLinkedin, FaTwitter, FaFacebook, FaInstagram, FaEdit, FaHistory,
   FaCalendarAlt, FaClock, FaCheckCircle, FaTimesCircle, FaGoogle, FaSignInAlt, FaSignOutAlt, FaUserEdit,
-  FaBuilding as FaOrganization, FaChevronRight
+  FaBuilding as FaOrganization, FaChevronRight, FaUserCircle, FaChartLine
 } from 'react-icons/fa';
 
 const Profile = () => {
@@ -192,15 +192,15 @@ const Profile = () => {
         <Head>
           <title>Complete Your Profile | TeamLabs</title>
         </Head>
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className={`min-h-screen ${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-gray-50 to-blue-50'}`}>
           <div className="max-w-2xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold mb-4 text-gray-700">Complete Your Profile</h1>
-              <p className="text-lg text-gray-600">
+              <h1 className={`text-3xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>Complete Your Profile</h1>
+              <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 Please provide your contact and address information to complete your profile.
               </p>
             </div>
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-lg overflow-hidden border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
               <div className="p-8">
                 <CompleteProfileForm onComplete={handleProfileComplete} />
               </div>
@@ -217,98 +217,42 @@ const Profile = () => {
         <title>Profile | TeamLabs</title>
       </Head>
       <div className="mx-auto">
-        {/* Breadcrumb Navigation */}
-        <div className="flex items-center text-sm text-gray-500 mb-4">
-          <Link href="/dashboard" className="hover:text-blue-600 transition-colors">
-            Dashboard
-          </Link>
-          <FaChevronRight className="mx-2" size={12} />
-          <span className="text-gray-700 font-medium">Profile</span>
-        </div>
 
-        <div className="mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto sm:px-6 lg:px-1">
+          {/* Welcome Message */}
+          <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            Welcome, {profile?.firstName} {profile?.lastName}
+          </h1>
+          <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mt-2`}>
+            Manage your profile information and view your activity history
+          </p>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Profile Header and Social Links */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="relative h-40 bg-gradient-to-br from-gray-50 to-blue-50">
-                  <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
-                    <div className="h-24 w-24 rounded-full border-4 border-white overflow-hidden bg-white shadow-lg">
-                      <img
-                        src={user?.profileImage || profile?.profileImage || '/static/default-avatar.png'}
-                        alt="Profile"
-                        className="h-full w-full object-cover"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = '/static/default-avatar.png';
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="pt-16 pb-8 px-8 text-center">
-                  <h1 className="text-2xl font-bold mb-2 text-gray-700">
-                    {profile?.firstName} {profile?.middleName} {profile?.lastName}
-                  </h1>
-                  <p className="text-gray-500 mb-4">{profile?.username}</p>
-
-                  {/* Social Media Links */}
-                  <div className="mt-6">
-                    <button
-                      onClick={() => setShowSocialLinks(!showSocialLinks)}
-                      className="text-blue-500 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center mx-auto space-x-2"
-                    >
-                      <span>{showSocialLinks ? 'Hide Social Links' : 'Show Social Links'}</span>
-                      <FaGlobe className="text-sm" />
-                    </button>
-
-                    {showSocialLinks && (
-                      <div className="mt-4 flex justify-center space-x-4">
-                        <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-200">
-                          <FaGithub size={24} />
-                        </a>
-                        <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-200">
-                          <FaLinkedin size={24} />
-                        </a>
-                        <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-200">
-                          <FaTwitter size={24} />
-                        </a>
-                        <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-200">
-                          <FaFacebook size={24} />
-                        </a>
-                        <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-200">
-                          <FaInstagram size={24} />
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Profile Details and Activity */}
+            {/* Left Column - Tabs and Content */}
             <div className="lg:col-span-2">
               {/* Tabs */}
               <div className="mb-6">
-                <div className="border-b border-gray-200">
+                <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                   <nav className="-mb-px flex space-x-8">
                     <button
                       onClick={() => setActiveTab('profile')}
                       className={`${activeTab === 'profile'
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                          ? theme === 'dark' ? 'border-blue-400 text-blue-400' : 'border-blue-500 text-blue-600'
+                          : theme === 'dark' ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
                     >
-                      Profile Information
+                      <FaUserCircle size={16} />
+                      <span>Profile Information</span>
                     </button>
                     <button
                       onClick={() => setActiveTab('activity')}
                       className={`${activeTab === 'activity'
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                          ? theme === 'dark' ? 'border-blue-400 text-blue-400' : 'border-blue-500 text-blue-600'
+                          : theme === 'dark' ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
                     >
-                      Activity History
+                      <FaChartLine size={16} />
+                      <span>Activity History</span>
                     </button>
                   </nav>
                 </div>
@@ -316,10 +260,10 @@ const Profile = () => {
 
               {/* Profile Information Tab */}
               {activeTab === 'profile' && (
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-lg overflow-hidden border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                   <div className="p-8">
                     <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-xl font-semibold">Profile Information</h2>
+                      <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Profile Information</h2>
                       {!isEditing && (
                         <button
                           onClick={() => setIsEditing(true)}
@@ -345,45 +289,45 @@ const Profile = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Contact Information */}
                         <div className="space-y-4">
-                          <h3 className="text-lg font-medium text-gray-500 mb-4 flex items-center gap-2">
+                          <h3 className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'} mb-4 flex items-center gap-2`}>
                             <FaUser className="text-blue-500" />
                             <span>Contact Details</span>
                           </h3>
 
-                          <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 space-y-3">
-                            <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                          <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-gray-50 to-blue-50'} rounded-xl p-4 space-y-3 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                            <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                               <FaEnvelope className="text-blue-500 flex-shrink-0" />
                               <div>
-                                <p className="text-sm text-gray-500">Email Address</p>
-                                <p className="font-medium text-gray-700">{profile?.email}</p>
+                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Email Address</p>
+                                <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>{profile?.email}</p>
                               </div>
                             </div>
 
-                            <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                            <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                               <FaPhone className="text-blue-500 flex-shrink-0" />
                               <div>
-                                <p className="text-sm text-gray-500">Phone Number</p>
+                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Phone Number</p>
                                 <p className="font-medium">
                                   {profile?.phone ? (
-                                    <span className="text-gray-700">{profile.phone}</span>
+                                    <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>{profile.phone}</span>
                                   ) : (
-                                    <span className="text-gray-400 italic">Not provided</span>
+                                    <span className={`${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} italic`}>Not provided</span>
                                   )}
                                 </p>
                               </div>
                             </div>
 
-                            <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                            <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                               <FaOrganization className="text-blue-500 flex-shrink-0" />
                               <div>
-                                <p className="text-sm text-gray-500">Organization</p>
+                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Organization</p>
                                 <p className="font-medium">
                                   {profile?.organization?.name || getOrganizationName(profile?.organizationID) ? (
-                                    <span className="text-gray-700">
+                                    <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>
                                       {profile?.organization?.name || getOrganizationName(profile?.organizationID)}
                                     </span>
                                   ) : (
-                                    <span className="text-gray-400 italic">Not provided</span>
+                                    <span className={`${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} italic`}>Not provided</span>
                                   )}
                                 </p>
                               </div>
@@ -393,57 +337,57 @@ const Profile = () => {
 
                         {/* Address Information */}
                         <div className="space-y-4">
-                          <h3 className="text-lg font-medium text-gray-500 mb-4 flex items-center gap-2">
+                          <h3 className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'} mb-4 flex items-center gap-2`}>
                             <FaMapMarkerAlt className="text-blue-500" />
                             <span>Location Details</span>
                           </h3>
 
-                          <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 space-y-3">
-                            <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                          <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-gray-50 to-blue-50'} rounded-xl p-4 space-y-3 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                            <div className={`flex items-start space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                               <FaMapMarkerAlt className="text-blue-500 mt-1 flex-shrink-0" />
                               <div>
-                                <p className="text-sm text-gray-500">Street Address</p>
-                                <p className="font-medium text-gray-700">
+                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Street Address</p>
+                                <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>
                                   {profile?.address || 'Not provided'}
                                   {profile?.aptNumber && (
-                                    <span className="text-gray-600 ml-1">#{profile.aptNumber}</span>
+                                    <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} ml-1`}>#{profile.aptNumber}</span>
                                   )}
                                 </p>
                               </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
-                              <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                              <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                                 <FaBuilding className="text-blue-500 flex-shrink-0" />
                                 <div>
-                                  <p className="text-sm text-gray-500">City</p>
-                                  <p className="font-medium text-gray-700">{profile?.city || 'Not provided'}</p>
+                                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>City</p>
+                                  <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>{profile?.city || 'Not provided'}</p>
                                 </div>
                               </div>
 
-                              <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                              <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                                 <FaCity className="text-blue-500 flex-shrink-0" />
                                 <div>
-                                  <p className="text-sm text-gray-500">State</p>
-                                  <p className="font-medium text-gray-700">{profile?.state || 'Not provided'}</p>
+                                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>State</p>
+                                  <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>{profile?.state || 'Not provided'}</p>
                                 </div>
                               </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
-                              <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                              <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                                 <FaGlobe className="text-blue-500 flex-shrink-0" />
                                 <div>
-                                  <p className="text-sm text-gray-500">Country</p>
-                                  <p className="font-medium text-gray-700">{profile?.country || 'Not provided'}</p>
+                                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Country</p>
+                                  <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>{profile?.country || 'Not provided'}</p>
                                 </div>
                               </div>
 
-                              <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-200">
+                              <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                                 <FaMapMarkerAlt className="text-blue-500 flex-shrink-0" />
                                 <div>
-                                  <p className="text-sm text-gray-500">ZIP Code</p>
-                                  <p className="font-medium text-gray-700">{profile?.zipCode || 'Not provided'}</p>
+                                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>ZIP Code</p>
+                                  <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>{profile?.zipCode || 'Not provided'}</p>
                                 </div>
                               </div>
                             </div>
@@ -457,9 +401,9 @@ const Profile = () => {
 
               {/* Activity History Tab */}
               {activeTab === 'activity' && (
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-lg overflow-hidden border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                   <div className="p-8">
-                    <h2 className="text-xl font-semibold mb-6">Activity History</h2>
+                    <h2 className={`text-xl font-semibold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Activity History</h2>
                     {loadingActivities ? (
                       <div className="flex items-center justify-center py-8">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -467,15 +411,15 @@ const Profile = () => {
                     ) : activities.length > 0 ? (
                       <>
                         {/* Activity Statistics */}
-                        <div className="mb-6 p-4 bg-gray-50 rounded-xl">
+                        <div className={`mb-6 p-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-gray-50'} rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                           <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-                            <div className="p-4 bg-white rounded-xl shadow-sm">
-                              <p className="text-sm text-gray-500">Total Activities</p>
-                              <p className="text-lg font-semibold">{pagination.total}</p>
+                            <div className={`p-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-sm border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Total Activities</p>
+                              <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{pagination.total}</p>
                             </div>
-                            <div className="p-4 bg-white rounded-xl shadow-sm">
-                              <p className="text-sm text-gray-500">Date Range</p>
-                              <p className="text-lg font-semibold">
+                            <div className={`p-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-sm border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Date Range</p>
+                              <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                 {getDateRange(activities) ? `${getDateRange(activities).oldest} to ${getDateRange(activities).newest}` : 'N/A'}
                               </p>
                             </div>
@@ -487,20 +431,20 @@ const Profile = () => {
                           {activities.map((activity) => (
                             <div
                               key={activity._id}
-                              className="flex items-center space-x-3 p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200"
+                              className={`flex items-center space-x-3 p-4 rounded-xl ${theme === 'dark' ? 'hover:bg-gray-800/50 border border-gray-700' : 'hover:bg-gray-50'} transition-colors duration-200`}
                             >
                               <div className="flex-shrink-0">
                                 {getActivityIcon(activity)}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
-                                  <p className="font-medium text-sm truncate">{getActivityTitle(activity)}</p>
-                                  <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
+                                  <p className={`font-medium text-sm truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{getActivityTitle(activity)}</p>
+                                  <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} whitespace-nowrap ml-2`}>
                                     {formatDate(activity.timestamp)}
                                   </span>
                                 </div>
                                 {activity.details && (
-                                  <p className="text-xs text-gray-500 truncate">{activity.details}</p>
+                                  <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} truncate`}>{activity.details}</p>
                                 )}
                               </div>
                             </div>
@@ -510,22 +454,22 @@ const Profile = () => {
                         {/* Pagination Information and Controls */}
                         <div className="mt-6 space-y-4">
                           <div className="flex justify-between items-center">
-                            <div className="p-4 bg-white rounded-xl shadow-sm">
-                              <p className="text-sm text-gray-500">Showing</p>
-                              <p className="text-lg font-semibold">
+                            <div className={`p-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-sm border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Showing</p>
+                              <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                 {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)}
                               </p>
                             </div>
 
                             <div className="flex items-center space-x-2">
-                              <label htmlFor="pageSize" className="text-sm text-gray-500">
+                              <label htmlFor="pageSize" className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                                 Items per page:
                               </label>
                               <select
                                 id="pageSize"
                                 value={pagination.limit}
                                 onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                                className="block w-20 rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                className={`block w-20 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${theme === 'dark' ? 'border-gray-700 bg-transparent text-white' : 'border-gray-300 bg-white text-gray-900'}`}
                               >
                                 {pageSizeOptions.map(size => (
                                   <option key={size} value={size}>
@@ -543,14 +487,14 @@ const Profile = () => {
                                 onClick={() => handlePageChange(pagination.page - 1)}
                                 disabled={pagination.page === 1}
                                 className={`px-4 py-2 rounded-xl ${pagination.page === 1
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700'
+                                  ? theme === 'dark' ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700'
                                   }`}
                               >
                                 Previous
                               </button>
 
-                              <span className="text-sm text-gray-600">
+                              <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                                 Page {pagination.page} of {pagination.totalPages}
                               </span>
 
@@ -558,8 +502,8 @@ const Profile = () => {
                                 onClick={() => handlePageChange(pagination.page + 1)}
                                 disabled={pagination.page === pagination.totalPages}
                                 className={`px-4 py-2 rounded-xl ${pagination.page === pagination.totalPages
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700'
+                                  ? theme === 'dark' ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700'
                                   }`}
                               >
                                 Next
@@ -569,7 +513,7 @@ const Profile = () => {
                         </div>
                       </>
                     ) : (
-                      <div className="text-center py-8 text-gray-500">
+                      <div className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                         <FaHistory className="mx-auto mb-4" size={32} />
                         <p>No activity history available</p>
                       </div>
@@ -577,6 +521,64 @@ const Profile = () => {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Right Column - Profile Header and Social Links */}
+            <div className="lg:col-span-1">
+              <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-lg overflow-hidden border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className={`relative h-40 ${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-gray-50 to-blue-50'}`}>
+                  <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
+                    <div className="h-24 w-24 rounded-full border-4 border-white overflow-hidden bg-white shadow-lg">
+                      <img
+                        src={user?.profileImage || profile?.profileImage || '/static/default-avatar.png'}
+                        alt="Profile"
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '/static/default-avatar.png';
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-16 pb-8 px-8 text-center">
+                  <h1 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>
+                    {profile?.firstName} {profile?.middleName} {profile?.lastName}
+                  </h1>
+                  <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'} mb-4`}>{profile?.username}</p>
+
+                  {/* Social Media Links */}
+                  <div className="mt-6">
+                    <button
+                      onClick={() => setShowSocialLinks(!showSocialLinks)}
+                      className={`${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-600'} transition-colors duration-200 flex items-center justify-center mx-auto space-x-2`}
+                    >
+                      <span>{showSocialLinks ? 'Hide Social Links' : 'Show Social Links'}</span>
+                      <FaGlobe className="text-sm" />
+                    </button>
+
+                    {showSocialLinks && (
+                      <div className="mt-4 flex justify-center space-x-4">
+                        <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                          <FaGithub size={24} />
+                        </a>
+                        <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                          <FaLinkedin size={24} />
+                        </a>
+                        <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                          <FaTwitter size={24} />
+                        </a>
+                        <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                          <FaFacebook size={24} />
+                        </a>
+                        <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                          <FaInstagram size={24} />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
