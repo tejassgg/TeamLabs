@@ -298,8 +298,14 @@ const TaskDetailsPage = () => {
             <Layout>
                 <div className="min-h-screen flex items-center justify-center">
                     <div className="text-center">
-                        <div className="text-red-500 text-2xl mb-4 font-semibold">Task not found</div>
-                        <Link href="/dashboard" className="text-blue-600 hover:text-blue-800 font-medium">
+                        <div className={getThemeClasses(
+                            "text-red-500 text-2xl mb-4 font-semibold",
+                            "dark:text-red-400"
+                        )}>Task not found</div>
+                        <Link href="/dashboard" className={getThemeClasses(
+                            "text-blue-600 hover:text-blue-800 font-medium",
+                            "dark:text-blue-400 dark:hover:text-blue-300"
+                        )}>
                             Return to Dashboard
                         </Link>
                     </div>
@@ -328,280 +334,163 @@ const TaskDetailsPage = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left/Main Section */}
                     <div className="lg:col-span-2">
-                        <div className="bg-white shadow-sm  overflow-hidden">
-                            {/* Task Details Section */}
-                            <div className="mb-4">
-                                <div className="flex justify-between gap-2">
-                                    <div className="flex mt-2 ml-1 gap-2 w-full" >
-                                        {editingTaskName ? (
-                                            <div ref={editTaskNameInputRef} className="flex items-center gap-2" style={{ width: '70%' }}>
-                                                <input
-                                                    className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-2xl font-bold mb-2"
-                                                    value={newTaskName}
-                                                    onChange={e => setNewTaskName(e.target.value)}
-                                                    onKeyDown={e => e.key === 'Enter' && handleSaveTaskName()}
-                                                    autoFocus
-                                                    style={{ minWidth: '200px', width: '100%' }}
-                                                />
-                                                <button
-                                                    onClick={handleSaveTaskName}
-                                                    className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                                                    title="Save Task Name"
-                                                >
-                                                    Save
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <h1 ref={taskNameSpanRef} className="text-4xl font-bold text-gray-900 mb-2 break-words inline-block">{task.Name}</h1>
-                                                <button onClick={handleEditTaskName} className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Task Name"><FaEdit size={18} /></button>
-                                            </>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="relative status-dropdown">
-                                            <button
-                                                onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                                                className="flex items-center gap-2 hover:bg-gray-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
-                                                disabled={updatingStatus}
-                                            >
-                                                <span className={`inline-flex whitespace-nowrap items-center gap-2 ${statusInfo.statusStyle.textLight}`}>
-                                                    {statusInfo.statusIcon}
-                                                    {statusInfo.statusName}
-                                                </span>
-                                                <FaChevronDown size={10} className="text-gray-400" />
-                                            </button>
-
-                                            {statusDropdownOpen && (
-                                                <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                                                    <div className="py-1">
-                                                        {Object.entries(statusMap).map(([statusCode, statusName]) => {
-                                                            const currentStatusInfo = getStatusInfo(parseInt(statusCode));
-                                                            const isCurrentStatus = parseInt(statusCode) === task.Status;
-                                                            return (
-                                                                <button
-                                                                    key={statusCode}
-                                                                    onClick={() => handleStatusUpdate(parseInt(statusCode))}
-                                                                    disabled={updatingStatus || isCurrentStatus}
-                                                                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 ${isCurrentStatus ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                                                                        }`}
-                                                                >
-                                                                    {currentStatusInfo.statusIcon}
-                                                                    {statusName}
-                                                                    {isCurrentStatus && (
-                                                                        <span className="ml-auto text-blue-600">
-                                                                            <FaCheckCircle size={12} />
-                                                                        </span>
-                                                                    )}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <button onClick={handleDeleteTask} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Task"><FaTrash size={18} /></button>
-                                    </div>
+                        {/* --- TOP SECTION --- */}
+                        <div className="mb-8">
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                    <h1 className={getThemeClasses("text-3xl md:text-4xl font-bold text-gray-900 truncate", "dark:text-gray-100")}>{task.Name}</h1>
+                                    {task.Status !== undefined && (
+                                        <span className={`ml-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border shadow-sm ${statusColors[task.Status]?.light || 'bg-gray-50'} ${statusColors[task.Status]?.textLight || 'text-gray-700'} ${statusColors[task.Status]?.borderLight || 'border-gray-200'}`}>{statusIcons[task.Status]} {statusMap[task.Status] || 'Unknown'}</span>
+                                    )}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                                        <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${typeInfo.bgColor} ${typeInfo.textColor} border ${typeInfo.borderColor}`}>{typeInfo.icon}{task.Type}</span>
-                                        {task.Priority && task.Type !== 'User Story' && (
-                                            <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${priorityInfo.bgColor} ${priorityInfo.textColor} border ${priorityInfo.borderColor}`}>{priorityInfo.icon}{task.Priority}</span>
-                                        )}
-                                    </div>
+                                <div className="flex items-center gap-3 flex-shrink-0">
+                                    {task.DueDate && (
+                                        <span className={getThemeClasses(
+                                            "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-700 border border-green-200",
+                                            "dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50"
+                                        )}>
+                                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                            {(() => {
+                                                // Calculate days left
+                                                const due = new Date(task.DueDate);
+                                                const now = new Date();
+                                                const diff = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
+                                                return diff >= 0 ? `${diff} Days Left` : 'Overdue';
+                                            })()}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                                <textarea
-                                    value={task.Description || ''}
-                                    readOnly
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 resize-none"
-                                    rows={3}
-                                    placeholder="No description available"
-                                />
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Assigned To */}
-                                {task.Type !== 'User Story' && (
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-gray-500 text-sm flex-shrink-0"><FaUser className="inline mr-1" />Assigned To:</span>
-                                        {projectMembers.length > 0 ? (
-                                            <div className="relative member-dropdown">
-                                                {task.AssignedToDetails ? (
-                                                    <button
-                                                        onClick={() => setMemberDropdownOpen(!memberDropdownOpen)}
-                                                        className="flex items-center gap-2 hover:bg-gray-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
-                                                        disabled={assigningMember}
-                                                    >
-                                                        <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs">
-                                                            {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
-                                                        </div>
-                                                        <span className="text-gray-900 font-medium">{task.AssignedToDetails.fullName}</span>
-                                                        <FaChevronDown size={10} className="text-gray-400" />
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => setMemberDropdownOpen(!memberDropdownOpen)}
-                                                        className="flex items-center gap-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
-                                                        disabled={assigningMember}
-                                                    >
-                                                        <FaUserPlus size={12} className="text-gray-500" />
-                                                        <span>Assign Task</span>
-                                                        <FaChevronDown size={10} className="text-gray-400" />
-                                                    </button>
-                                                )}
-
-                                                {memberDropdownOpen && (
-                                                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-                                                        <div className="py-1">
-                                                            {/* Assign to self option */}
-                                                            <button
-                                                                onClick={() => handleMemberAssignment('self')}
-                                                                disabled={assigningMember}
-                                                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 text-gray-700"
-                                                            >
-                                                                <FaUser size={12} className="text-blue-600" />
-                                                                Assign to me
-                                                            </button>
-                                                            <div className="border-t border-gray-100 my-1"></div>
-
-                                                            {/* Project members */}
-                                                            {projectMembers.map((member) => {
-                                                                const isAssigned = task.AssignedTo === member._id;
-                                                                return (
-                                                                    <button
-                                                                        key={member._id}
-                                                                        onClick={() => handleMemberAssignment(member._id)}
-                                                                        disabled={assigningMember || isAssigned}
-                                                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 ${isAssigned ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                                                                            }`}
-                                                                    >
-                                                                        <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs">
-                                                                            {member.fullName.split(' ').map(n => n[0]).join('')}
-                                                                        </div>
-                                                                        <span className="flex-1">{member.fullName}</span>
-                                                                        {isAssigned && (
-                                                                            <span className="text-blue-600">
-                                                                                <FaCheckCircle size={12} />
-                                                                            </span>
-                                                                        )}
-                                                                    </button>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <span className="text-gray-400">No project members available</span>
-                                        )}
-                                    </div>
-                                )}
-                                {/* Created Date */}
-                                {task.CreatedDate && (
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-gray-500 text-sm flex-shrink-0"><FaCalendarAlt className="inline mr-1" />Created:</span>
-                                        <span className="text-gray-900 font-medium">{new Date(task.CreatedDate).toLocaleDateString()}</span>
-                                    </div>
-                                )}
-                                {/* Due Date */}
-                                {task.DueDate && (
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-gray-500 text-sm flex-shrink-0"><FaClock className="inline mr-1" />Due:</span>
-                                        <span className="text-gray-900 font-medium">{new Date(task.DueDate).toLocaleDateString()}</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Subtasks Section
-                            <div className="py-6">
-                                <TaskSubtasks taskId={task.TaskID} initialSubtasks={subtasks} />
-                            </div> */}
-                            <div className="mt-4 border-t border-gray-100" />
-                            {/* Attachments Section */}
-                            <div className="py-6">
-                                <TaskAttachments taskId={task.TaskID} userId={userDetails?._id} initialAttachments={attachments} />
-                            </div>
-                            <div className="border-t border-gray-100" />
-                            {/* Comments Section */}
-                            <div className="h-[1800px] overflow-y-auto py-6">
-                                <TaskComments
-                                    taskId={task.TaskID}
-                                    userId={userDetails?._id}
-                                    userName={userDetails?.fullName || userDetails?.username || 'User'}
-                                    initialComments={comments}
-                                    projectMembers={projectMembers}
-                                />
+                            {task.Description && (
+                                <div className={getThemeClasses("mt-2 text-base text-gray-500", "dark:text-gray-400")}>{task.Description}</div>
+                            )}
+                            {/* Tabs Row */}
+                            <div className="flex items-center gap-6 mt-6 border-b border-gray-200 dark:border-gray-700">
+                                <button className={getThemeClasses(
+                                    "pb-2 text-blue-600 font-medium border-b-2 border-blue-600 transition-all duration-200",
+                                    "dark:text-blue-400 dark:border-blue-400"
+                                )}>
+                                    <span className="flex items-center gap-2"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7V6a2 2 0 012-2h2a2 2 0 012 2v1m0 0v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7h6zm0 0h6m0 0V6a2 2 0 012-2h2a2 2 0 012 2v1m0 0v10a2 2 0 01-2 2h-2a2 2 0 01-2-2V7h6z" /></svg>Manage Project</span>
+                                </button>
+                                <button className={getThemeClasses(
+                                    "pb-2 text-gray-500 font-medium border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200",
+                                    "dark:text-gray-400 dark:hover:text-blue-400 dark:hover:border-blue-400"
+                                )}>
+                                    <span className="flex items-center gap-2"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M3 6h18M3 14h18M3 18h18" /></svg>Board</span>
+                                </button>
                             </div>
                         </div>
+                        {/* --- END TOP SECTION --- */}
+
+                        {/* --- ATTACHMENTS SECTION --- */}
+                        <div className="mb-10">
+                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900", "dark:text-gray-100")}>Attachments</h2>
+                            <TaskAttachments taskId={task.TaskID} userId={userDetails?._id} initialAttachments={attachments} />
+                        </div>
+                        {/* Divider between Attachments and Comments */}
+                        <div className={getThemeClasses("border-t border-gray-200 mb-10", "dark:border-gray-700")}></div>
+                        {/* --- COMMENTS SECTION --- */}
+                        <div>
+                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900", "dark:text-gray-100")}>Comments</h2>
+                            <TaskComments
+                                taskId={task.TaskID}
+                                userId={userDetails?._id}
+                                userName={userDetails?.fullName || userDetails?.username || 'User'}
+                                initialComments={comments}
+                                projectMembers={projectMembers}
+                            />
+                        </div>
                     </div>
-
                     {/* Right Column - Project Info & Actions */}
-                    <div className="space-y-6">
-                        {/* Project Information */}
-                        {project && (
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
-                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                        <FaProjectDiagram className="text-purple-500" />
-                                        Project Information
-                                    </h3>
-                                </div>
-                                <div className="p-6">
-                                    <div className="space-y-4">
-                                        <div>
-                                            <div className="text-sm font-medium text-gray-500 mb-1">Project Name</div>
-                                            <Link
-                                                href={`/project/${project.ProjectID || project._id}`}
-                                                className="text-blue-600 hover:text-blue-800 font-medium text-lg block"
-                                            >
-                                                {project.Name}
-                                            </Link>
-                                        </div>
-                                        {project.Description && (
-                                            <div>
-                                                <div className="text-sm font-medium text-gray-500 mb-1">Description</div>
-                                                <div className="text-gray-900">
-                                                    {project.Description}
-                                                </div>
-                                            </div>
-                                        )}
-                                        {project.FinishDate && (
-                                            <div>
-                                                <div className="text-sm font-medium text-gray-500 mb-1">Project Deadline</div>
-                                                <div className="text-gray-900 font-medium">
-                                                    {new Date(project.FinishDate).toLocaleDateString()}
-                                                </div>
-                                            </div>
-                                        )}
+                    <div className="space-y-10">
+                        {/* --- PROJECT INFORMATION SECTION --- */}
+                        <div className={getThemeClasses(
+                            "border border-gray-200 rounded-xl px-6 bg-transparent",
+                            "dark:border-gray-700 dark:bg-transparent"
+                        )}>
+                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900 flex items-center gap-2 border-b border-gray-200 py-4", "dark:text-gray-100 dark:border-gray-700")}> 
+                                <FaProjectDiagram className={getThemeClasses("text-purple-500", "dark:text-purple-400")} />
+                                Project Information
+                            </h2>
+                            {project && (
+                                <div className="space-y-4 pb-4">
+                                    <div>
+                                        <div className={getThemeClasses(
+                                            "text-sm font-medium text-gray-500 mb-1",
+                                            "dark:text-gray-400"
+                                        )}>Project Name</div>
+                                        <Link
+                                            href={`/project/${project.ProjectID || project._id}`}
+                                            className={getThemeClasses(
+                                                "text-blue-600 hover:text-blue-800 font-medium text-lg block",
+                                                "dark:text-blue-400 dark:hover:text-blue-300"
+                                            )}
+                                        >
+                                            {project.Name}
+                                        </Link>
                                     </div>
+                                    {project.Description && (
+                                        <div>
+                                            <div className={getThemeClasses(
+                                                "text-sm font-medium text-gray-500 mb-1",
+                                                "dark:text-gray-400"
+                                            )}>Description</div>
+                                            <div className={getThemeClasses(
+                                                "text-gray-900",
+                                                "dark:text-gray-100"
+                                            )}>
+                                                {project.Description}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {project.FinishDate && (
+                                        <div>
+                                            <div className={getThemeClasses(
+                                                "text-sm font-medium text-gray-500 mb-1",
+                                                "dark:text-gray-400"
+                                            )}>Project Deadline</div>
+                                            <div className={getThemeClasses(
+                                                "text-gray-900 font-medium",
+                                                "dark:text-gray-100"
+                                            )}>
+                                                {new Date(project.FinishDate).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                        )}
-
-                        {/* Task Activity */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
-                                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                    <FaClock className="text-green-500" />
-                                    History
-                                </h3>
-                            </div>
-                            <div className="p-6">
+                            )}
+                        </div>
+                        {/* --- HISTORY SECTION --- */}
+                        <div className={getThemeClasses(
+                            "border border-gray-200 rounded-xl px-6 bg-transparent",
+                            "dark:border-gray-700 dark:bg-transparent"
+                        )}>
+                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900 flex items-center gap-2 border-b border-gray-200 py-4", "dark:text-gray-100 dark:border-gray-700")}> 
+                                <FaClock className={getThemeClasses("text-green-500", "dark:text-green-400")} />
+                                History
+                            </h2>
+                            <div>
                                 {activityLoading ? (
-                                    <div className="text-center py-8 text-gray-400">Loading...</div>
+                                    <div className={getThemeClasses(
+                                        "text-center py-8 text-gray-400",
+                                        "dark:text-gray-500"
+                                    )}>Loading...</div>
                                 ) : taskActivity.length > 0 ? (
                                     <div className="space-y-4">
                                         {taskActivity.map((activity, index) => (
                                             <div key={activity._id || index} className="flex items-start gap-3">
                                                 <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
                                                 <div className="flex-1">
-                                                    <div className="text-sm text-gray-900 font-medium">
+                                                    <div className={getThemeClasses(
+                                                        "text-sm text-gray-900 font-medium",
+                                                        "dark:text-gray-100"
+                                                    )}>
                                                         {formatActivityDisplay(activity)}
                                                     </div>
-                                                    <div className="text-xs text-gray-500 mt-1">
+                                                    <div className={getThemeClasses(
+                                                        "text-xs text-gray-500 mt-1",
+                                                        "dark:text-gray-400"
+                                                    )}>
                                                         {new Date(activity.timestamp).toLocaleString()}
                                                     </div>
                                                 </div>
@@ -610,17 +499,26 @@ const TaskDetailsPage = () => {
                                         {/* Pagination Controls */}
                                         <div className="flex justify-end items-center gap-2 mt-4">
                                             <button
-                                                className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                                                className={getThemeClasses(
+                                                    "px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50",
+                                                    "dark:bg-gray-700 dark:hover:bg-gray-600"
+                                                )}
                                                 disabled={activityPage === 1}
                                                 onClick={() => setActivityPage(p => Math.max(1, p - 1))}
                                             >
                                                 Prev
                                             </button>
-                                            <span className="text-sm text-gray-600">
+                                            <span className={getThemeClasses(
+                                                "text-sm text-gray-600",
+                                                "dark:text-gray-400"
+                                            )}>
                                                 Page {activityPage} of {activityTotalPages}
                                             </span>
                                             <button
-                                                className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                                                className={getThemeClasses(
+                                                    "px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50",
+                                                    "dark:bg-gray-700 dark:hover:bg-gray-600"
+                                                )}
                                                 disabled={activityPage === activityTotalPages}
                                                 onClick={() => setActivityPage(p => Math.min(activityTotalPages, p + 1))}
                                             >
@@ -630,7 +528,10 @@ const TaskDetailsPage = () => {
                                     </div>
                                 ) : (
                                     <div className="text-center py-8">
-                                        <div className="text-gray-400 text-sm">No activity recorded yet</div>
+                                        <div className={getThemeClasses(
+                                            "text-gray-400 text-sm",
+                                            "dark:text-gray-500"
+                                        )}>No activity recorded yet</div>
                                     </div>
                                 )}
                             </div>
@@ -639,9 +540,15 @@ const TaskDetailsPage = () => {
                         {task.Type === 'User Story' && (
                             <div className="px-6 pb-6">
                                 <div className="flex items-center justify-between mb-2">
-                                    <h4 className="text-md font-semibold text-gray-800 mt-4">Links</h4>
+                                    <h4 className={getThemeClasses(
+                                        "text-md font-semibold text-gray-800 mt-4",
+                                        "dark:text-gray-100"
+                                    )}>Links</h4>
                                     <button
-                                        className="ml-2 p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-sm transition-colors"
+                                        className={getThemeClasses(
+                                            "ml-2 p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-sm transition-colors",
+                                            "dark:bg-blue-700 dark:hover:bg-blue-800"
+                                        )}
                                         title="Add Task to this User Story"
                                         onClick={() => setShowAddTaskModal(true)}
                                     >
@@ -649,12 +556,16 @@ const TaskDetailsPage = () => {
                                     </button>
                                 </div>
                                 {userStoryTasks.length === 0 ? (
-                                    <div className="text-gray-400 text-sm">No tasks found for this user story.</div>
+                                    <div className={getThemeClasses(
+                                        "text-gray-400 text-sm",
+                                        "dark:text-gray-500"
+                                    )}>No tasks found for this user story.</div>
                                 ) : (
-                                    <ul className="divide-y divide-gray-100">
+                                    <ul className={getThemeClasses(
+                                        "divide-y divide-gray-100",
+                                        "dark:divide-gray-700"
+                                    )}>
                                         {userStoryTasks.map(t => {
-
-
                                             return (
                                                 <li key={t.TaskID} className="py-3">
                                                     <div className="flex items-start gap-3">
@@ -665,16 +576,22 @@ const TaskDetailsPage = () => {
                                                         <div className="flex-1">
                                                             <Link
                                                                 href={`/task/${t.TaskID}`}
-                                                                className="font-medium text-blue-600 hover:text-blue-800 transition-colors duration-200 block"
+                                                                className={getThemeClasses(
+                                                                    "font-medium text-blue-600 hover:text-blue-800 transition-colors duration-200 block",
+                                                                    "dark:text-blue-400 dark:hover:text-blue-300"
+                                                                )}
                                                             >
                                                                 {t.Name}
                                                             </Link>
-                                                            <div className="text-xs text-gray-500 mt-1">
+                                                            <div className={getThemeClasses(
+                                                                "text-xs text-gray-500 mt-1",
+                                                                "dark:text-gray-400"
+                                                            )}>
                                                                 Updated {formatTimeAgo(t.ModifiedDate)}
                                                             </div>
                                                         </div>
                                                         {/* Status Badge */}
-                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border shadow-sm transition-all duration-200 ${statusColors[t.Status]?.light || 'bg-gray-50'} ${statusColors[t.Status]?.textLight || 'text-gray-700'} ${statusColors[t.Status]?.borderLight || 'border-gray-200'}`}>
+                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border shadow-sm transition-all duration-200 ${statusColors[t.Status]?.light || 'bg-gray-50'} ${statusColors[t.Status]?.textLight || 'text-gray-700'} ${statusColors[t.Status]?.borderLight || 'border-gray-200'}`}> 
                                                             {statusIcons[t.Status]}
                                                             {statusMap[t.Status] || 'Unknown'}
                                                         </span>
