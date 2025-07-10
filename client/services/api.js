@@ -252,6 +252,15 @@ export const authService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to verify reset password' };
     }
+  },
+  getUserOverview: async () => {
+    try {
+      const response = await api.get('/users/overview');
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to get user overview' };
+    }
   }
 };
 

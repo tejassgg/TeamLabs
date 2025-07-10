@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const TeamDetails = require('../models/TeamDetails');
 const { protect } = require('../middleware/auth');
+const userController = require('../controllers/userController');
 
 // GET /api/users/:userId/usage-limits - Get user's usage limits and premium status
 router.get('/:userId/usage-limits', protect, async (req, res) => {
@@ -105,5 +106,8 @@ router.patch('/:userId/remove-from-org', protect, async (req, res) => {
     res.status(500).json({ error: 'Failed to remove user from organization' });
   }
 });
+
+// GET /api/users/overview - Get all user-related overview data at once
+router.get('/overview', protect, userController.getUserOverview);
 
 module.exports = router; 

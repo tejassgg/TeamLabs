@@ -4,6 +4,7 @@ import { teamService, projectService, authService, taskService, commonTypeServic
 import { getProjectStatusStyle, getProjectStatusBadge } from '../components/ProjectStatusBadge';
 import { getTaskTypeStyle, getTaskTypeBadge } from '../components/TaskTypeBadge';
 import { getDeadlineStatus, calculateDeadlineText } from '../components/DeadlineStatusBadge';
+import { useRouter } from 'next/router';
 
 const GlobalContext = createContext();
 
@@ -17,11 +18,12 @@ export const useGlobal = () => {
 
 export const GlobalProvider = ({ children }) => {
   const { user } = useAuth();
+  const router = useRouter();
   const [userDetails, setUserDetails] = useState(null);
   const [teams, setTeams] = useState([]);
   const [projects, setProjects] = useState([]);
   const [tasksDetails, setTasksDetails] = useState([]);
-  const [organizations, setOrganizations] = useState([]);
+  const [organization, setOrganization] = useState(null);
   const [projectStatuses, setProjectStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -70,12 +72,12 @@ export const GlobalProvider = ({ children }) => {
   const fetchOrganizations = async () => {
     try {
       const orgs = await authService.getUserOrganizations();
-      setOrganizations(orgs);
+      setOrganization(orgs);
       return orgs;
     } catch (err) {
       setError('Failed to fetch organizations');
       console.error('Error fetching organizations:', err);
-      return [];
+      return null;
     }
   };
 
@@ -156,27 +158,28 @@ export const GlobalProvider = ({ children }) => {
     const initializeData = async () => {
       setLoading(true);
       try {
-        const profile = await fetchUserDetails();
-        if (profile) {
-          await Promise.all([
-            fetchTeams(profile.organizationID, profile.role, profile._id),
-            fetchProjects(profile._id, profile.role),
-            fetchOrganizations(),
-            fetchTasksDetails(),
-            fetchProjectStatuses()
-          ]);
+        const overview = await authService.getUserOverview();
+        if (overview) {          
+          setUserDetails(overview.user);
+          setTeams(overview.teams);
+          setProjects(overview.projects);
+          setOrganization(overview.organization);
+          setTasksDetails(overview.tasks);
+          setProjectStatuses(overview.projectStatuses);
         }
       } catch (err) {
+        setError('Failed to fetch user overview');
         console.error('Error initializing data:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (user) {
+    // Only fetch if not on landing page
+    if (user && router.pathname !== '/') {
       initializeData();
     }
-  }, [user]);
+  }, [user, router.pathname]);
 
   const refreshOrganizations = async () => {
     return await fetchOrganizations();
@@ -205,7 +208,7 @@ export const GlobalProvider = ({ children }) => {
     teams,
     projects,
     tasksDetails,
-    organizations,
+    organization,
     projectStatuses,
     loading,
     error,

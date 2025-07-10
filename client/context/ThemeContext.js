@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState('system');
+  const [theme, setTheme] = useState('light');
   const [resolvedTheme, setResolvedTheme] = useState('light');
 
   // On mount, load theme from localStorage

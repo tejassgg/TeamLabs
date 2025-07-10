@@ -14,6 +14,7 @@ import { taskService } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import ChatBot from './ChatBot';
 import TooltipPortal from './TooltipPortal';
+import Link from 'next/link';
 
 const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const { theme, toggleTheme } = useTheme();
@@ -24,14 +25,24 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [isTeamsOpen, setIsTeamsOpen] = useState(true);
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
-  const [isUserStoriesOpen, setIsUserStoriesOpen] = useState(true);
-  const { teams, projects, tasksDetails, userDetails, setProjects, setTeams, setTasksDetails, organizations } = useGlobal();
+  const { teams, projects, user, setProjects, setTeams, setTasksDetails, organization } = useGlobal();
   const { showToast } = useToast();
-  const canManageTeamsAndProjects = userDetails?.role === 'Admin' || userDetails?.role === 'Owner';
+  const canManageTeamsAndProjects = user?.role === 'Admin' || user?.role === 'Owner';
 
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
   const activeProjectId = router.pathname.startsWith('/project/') ? router.query.projectId : null;
-  const activeDashboardItem = router.pathname === '/kanban' ? 'kanban' : (router.pathname === '/query' ? 'query' : null);
+
+  // Load collapsed state from localStorage after component mounts
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebarCollapsed');
+      if (saved !== null) {
+        const collapsedState = JSON.parse(saved);
+        setCollapsed(collapsedState);
+        setSidebarCollapsed(collapsedState);
+      }
+    }
+  }, [setSidebarCollapsed]);
 
   const handleAddTeam = async (teamData) => {
     try {
@@ -52,7 +63,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
       showToast('Project added successfully!', 'success');
       return newProject;
     } catch (err) {
-      if(err.status == 403) {
+      if (err.status == 403) {
         showToast(err.message, 'warning');
       } else {
         showToast('Failed to add project', 'error');
@@ -62,7 +73,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
 
   const handleAddUserStory = async (taskData) => {
     try {
-      const newTask = await taskService.addTaskDetails(taskData, 'fromSideBar');
+      const newTask = await taskService.addTaskDetails(taskData, 'fromSidebar');
       setTasksDetails(prevTasks => [...prevTasks, newTask]);
       showToast('Task added successfully!', 'success');
     } catch (err) {
@@ -78,20 +89,25 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   };
 
   const handleCollapseToggle = () => {
-    setCollapsed((prev) => {
-      setSidebarCollapsed(!prev);
-      return !prev;
-    });
+    if (!isMobile) {
+      const newCollapsed = !collapsed;
+      setCollapsed(newCollapsed);
+      setSidebarCollapsed(newCollapsed);
+      // Save to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sidebarCollapsed', JSON.stringify(newCollapsed));
+      }
+    }
   };
 
   // Sidebar button component
-  const SidebarButton = ({ icon, label, active, onClick, collapsed, theme }) => {
+  const SidebarButton = ({ icon, label, active, onClick, theme }) => {
     const [showTooltip, setShowTooltip] = useState(false);
     const [tooltipPos, setTooltipPos] = useState({ left: 0, top: 0 });
     const btnRef = useRef(null);
 
     const handleShowTooltip = () => {
-      if (collapsed && btnRef.current) {
+      if (!isMobile && collapsed && btnRef.current) {
         const rect = btnRef.current.getBoundingClientRect();
         setTooltipPos({
           left: rect.right + 8,
@@ -105,15 +121,15 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
       <div className="relative">
         <button
           ref={btnRef}
-          className={`flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-colors duration-200
+          className={`flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-sm
             ${active
               ? `${theme === 'dark'
-                  ? 'bg-blue-800 text-white font-bold border-l-4 border-blue-400'
-                  : 'bg-blue-100 text-blue-700 font-bold border-l-4 border-blue-500'} shadow-sm`
+                ? 'bg-blue-800 text-white font-bold border-l-4 border-blue-400'
+                : 'bg-blue-100 text-blue-700 font-bold border-l-4 border-blue-500'} shadow-sm`
               : theme === 'dark'
                 ? 'hover:bg-[#424242] text-blue-200 border-l-4 border-transparent'
                 : 'hover:bg-blue-100 text-blue-600 border-l-4 border-transparent'}
-            ${collapsed ? 'justify-center' : 'justify-start'}
+            ${!isMobile && collapsed ? 'justify-center' : 'justify-start'}
           `}
           onClick={onClick}
           tabIndex={0}
@@ -124,9 +140,9 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           onBlur={() => setShowTooltip(false)}
         >
           <span className="text-lg">{icon}</span>
-          {!collapsed && <span className="font-medium text-base">{label}</span>}
+          {(!isMobile && collapsed) ? null : <span className="font-medium text-base">{label}</span>}
         </button>
-        {collapsed && showTooltip && (
+        {!isMobile && collapsed && showTooltip && (
           <TooltipPortal position={tooltipPos}>
             <div className={`px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-50 text-sm font-semibold
               ${theme === 'dark' ? 'bg-[#424242] text-[#F3F6FA]' : 'bg-white text-gray-900 border border-gray-200'}`}
@@ -140,17 +156,16 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   };
 
   // Collapsible section component
-  const SidebarCollapsible = ({ icon, label, isOpen, onToggle, items, onAdd, collapsed, activeId, itemKey, itemLabel, onItemClick, canAdd, theme }) => (
+  const SidebarCollapsible = ({ icon, label, isOpen, onToggle, items, onAdd, activeId, itemKey, itemLabel, onItemClick, canAdd, theme }) => (
     <div>
       <div className="flex items-center justify-between">
         <SidebarButton
           icon={icon}
           label={label}
           onClick={onToggle}
-          collapsed={collapsed}
           theme={theme}
         />
-        {!collapsed && canAdd && (
+        {(!isMobile && collapsed) ? null : canAdd && (
           <button
             className={`ml-2 p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
             aria-label={`Add ${label}`}
@@ -160,7 +175,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           </button>
         )}
       </div>
-      {isOpen && !collapsed && (
+      {isOpen && (!isMobile && collapsed ? false : true) && (
         <ul className="ml-8 mt-1 space-y-1">
           {items.length === 0 ? (
             <li key={`no-${label.toLowerCase()}`} className="text-gray-400 italic">No {label}</li>
@@ -168,7 +183,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             items.map((item) => (
               <li key={item[itemKey] || item._id || `item-${Math.random()}`}>
                 <button
-                  className={`w-full text-left px-2 py-1 rounded-lg transition-colors duration-150 ${activeId === item[itemKey]
+                  className={`w-full text-left px-2 py-1 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeId === item[itemKey]
                     ? (theme === 'dark' ? 'bg-blue-900 text-blue-200 font-medium' : 'bg-blue-50 text-blue-600 font-medium')
                     : (theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-gray-100')}`}
                   onClick={() => onItemClick(item)}
@@ -183,45 +198,56 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
     </div>
   );
 
+  useEffect(() => {
+    console.log('Organization data:', organization);
+    console.log('User data:', user);
+  }, [organization, user]);
+
   return (
     <>
       <aside
-        className={`fixed top-0 left-0 h-screen z-40 transition-all duration-300
+        className={`fixed top-0 left-0 h-screen z-40 transition-all duration-500 ease-in-out
           ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'}
           flex flex-col justify-between shadow-2xl
           ${isMobile ?
-            `w-[${collapsed ? '80px' : '280px'}] transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}` :
+            `w-72 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}` :
             `${collapsed ? 'w-20' : 'w-72'}`}
         `}
-        style={{ minHeight: '100vh', width: isMobile ? (collapsed ? 80 : 280) : (collapsed ? 80 : 288), overflow: 'visible' }}
+        style={{ 
+          minHeight: '100vh', 
+          width: isMobile ? 288 : (collapsed ? 80 : 288), 
+          overflow: 'visible',
+          transform: isMobile && !isOpen ? 'translateX(-100%)' : 'translateX(0)',
+          transition: 'all 500ms cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
       >
         {/* Top: Logo & Collapse Button */}
         <div className={`flex items-center justify-between p-3 border-b ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
             {/* Dynamic Org Initials */}
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}> 
-              {organizations && organizations.length > 0
-                ? organizations.find(org => org._id === userDetails?.organizationID)?.name?.split(' ').map(n => n[0]).join('')
-                  || organizations[0].name?.split(' ').map(n => n[0]).join('')
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg flex-shrink-0 ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
+              {organization && organization.Value 
+                ? organization.Value.split(' ').map(n => n[0]).join('') 
                 : 'OG'}
             </div>
             {/* Dynamic Org Name */}
-            {!collapsed && (
-              <span className="font-bold text-lg truncate max-w-[120px]">
-                {organizations && organizations.length > 0
-                  ? organizations.find(org => org._id === userDetails?.organizationID)?.name
-                    || organizations[0].name
-                  : ''}
-              </span>
-            )}
+            <span className={`font-bold text-lg truncate transition-all duration-300 ease-in-out ${
+              !isMobile && collapsed ? 'opacity-0 scale-95 w-0' : 'opacity-100 scale-100'
+            }`}>
+              {organization && organization.Value 
+                ? organization.Value 
+                : 'Organization'}
+            </span>
           </div>
-          <button
-            className={`ml-2 p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
-            onClick={handleCollapseToggle}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
-          </button>
+          {!isMobile && (
+            <button
+              className={`p-1.5 rounded-full transition-all duration-300 ease-in-out transform hover:scale-110 flex-shrink-0 ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+              onClick={handleCollapseToggle}
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
+            </button>
+          )}
         </div>
 
         {/* Main Navigation */}
@@ -231,7 +257,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             label="Dashboard"
             active={router.pathname === '/dashboard'}
             onClick={() => handleNavigation('/dashboard')}
-            collapsed={collapsed}
             theme={theme}
           />
           <SidebarButton
@@ -239,7 +264,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             label="Kanban Board"
             active={router.pathname === '/kanban'}
             onClick={() => handleNavigation('/kanban')}
-            collapsed={collapsed}
             theme={theme}
           />
           <SidebarButton
@@ -247,7 +271,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             label="Query Board"
             active={router.pathname === '/query'}
             onClick={() => handleNavigation('/query')}
-            collapsed={collapsed}
             theme={theme}
           />
 
@@ -259,7 +282,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             onToggle={() => setIsTeamsOpen((prev) => !prev)}
             items={teams}
             onAdd={() => setIsAddTeamOpen(true)}
-            collapsed={collapsed}
             activeId={activeTeamId}
             itemKey={"TeamID"}
             itemLabel={"TeamName"}
@@ -276,7 +298,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             onToggle={() => setIsProjectsOpen((prev) => !prev)}
             items={projects}
             onAdd={() => setIsAddProjectOpen(true)}
-            collapsed={collapsed}
             activeId={activeProjectId}
             itemKey={"ProjectID"}
             itemLabel={"Name"}
@@ -284,23 +305,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             canAdd={canManageTeamsAndProjects}
             theme={theme}
           />
-
-          {/* UserStories (Collapsible) */}
-          {/* <SidebarCollapsible
-            icon={<FaBookOpen className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
-            label="UserStories"
-            isOpen={isUserStoriesOpen}
-            onToggle={() => setIsUserStoriesOpen((prev) => !prev)}
-            items={tasksDetails.filter(task => task.Type === 'User Story')}
-            onAdd={() => setIsAddTaskOpen(true)}
-            collapsed={collapsed}
-            activeId={null}
-            itemKey={"_id"}
-            itemLabel={"Name"}
-            onItemClick={(task) => handleNavigation(`/task/${task._id}`)}
-            canAdd={true}
-            theme={theme}
-          /> */}
         </nav>
 
         {/* Bottom: Logout & Theme Switch */}
@@ -314,29 +318,30 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
               }
               router.push('/login');
             }}
-            collapsed={collapsed}
             theme={theme}
           />
           <button
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-colors duration-200 ${collapsed ? 'justify-center' : 'justify-start'} ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] ${(!isMobile && collapsed) ? 'justify-center' : 'justify-start'} ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
             onClick={toggleTheme}
             aria-label="Toggle dark/light mode"
           >
             <span className="text-lg">{theme === 'dark' ? <FaRegSun /> : <FaRegMoon />}</span>
-            {!collapsed && <>
-              <span className="font-medium text-base">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
-              <span className="ml-auto">
-                <span
-                  className={`relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in ml-2 ${theme === 'dark' ? 'bg-blue-700' : 'bg-gray-300'}`}
-                  style={{ borderRadius: '9999px' }}
-                >
+            {(!isMobile && collapsed) ? null : (
+              <>
+                <span className="font-medium text-base">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+                <span className="ml-auto">
                   <span
-                    className={`absolute left-1 top-1 w-4 h-4 rounded-full transition-transform duration-200 ${theme === 'dark' ? 'bg-yellow-300 translate-x-4' : 'bg-white translate-x-0'}`}
-                    style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
-                  ></span>
+                    className={`relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in ml-2 ${theme === 'dark' ? 'bg-blue-700' : 'bg-gray-300'}`}
+                    style={{ borderRadius: '9999px' }}
+                  >
+                    <span
+                      className={`absolute left-1 top-1 w-4 h-4 rounded-full transition-transform duration-200 ${theme === 'dark' ? 'bg-yellow-300 translate-x-4' : 'bg-white translate-x-0'}`}
+                      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
+                    ></span>
+                  </span>
                 </span>
-              </span>
-            </>}
+              </>
+            )}
           </button>
         </div>
 
@@ -361,14 +366,14 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             isOpen={isAddProjectOpen}
             onClose={() => setIsAddProjectOpen(false)}
             onAddProject={handleAddProject}
-            organizationId={userDetails?.organizationID}
-            projectOwner={userDetails?._id}
+            organizationId={user?.organizationID}
+            projectOwner={user?._id}
           />
           <AddTaskModal
             isOpen={isAddTaskOpen}
             onClose={() => setIsAddTaskOpen(false)}
             onAddTask={handleAddUserStory}
-            mode="fromSideBar"
+            mode="fromSidebar"
           />
         </>
       )}
@@ -383,6 +388,17 @@ const Layout = ({ children }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { showToast } = useToast();
+
+  // Load collapsed state from localStorage after component mounts
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebarCollapsed');
+      if (saved !== null) {
+        const collapsedState = JSON.parse(saved);
+        setSidebarCollapsed(collapsedState);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -412,16 +428,18 @@ const Layout = ({ children }) => {
       </div>
       {/* Mobile Navbar with Hamburger */}
       <div className={`lg:hidden fixed top-0 left-0 right-0 z-30 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gray-200'} shadow-md`}>
-        <div className="px-4 py-3 flex items-center justify-between">
+        <div className="px-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
-              className="sidebar-toggle p-2 rounded-lg text-gray-600 hover:bg-gray-300 transition-colors"
+              className="sidebar-toggle p-2 rounded-lg text-gray-600 hover:bg-gray-300 transition-all duration-300 ease-in-out transform hover:scale-110"
               onClick={() => setIsMobileSidebarOpen(true)}
               aria-label="Open sidebar"
             >
               <FaBars size={22} />
             </button>
-            <div className="text-lg font-bold ml-1">TeamLabs</div>
+            <Link href="/" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none">
+              TeamLabs
+            </Link>
           </div>
           <div>
             <Navbar isMobile={true} theme={theme} toggleTheme={toggleTheme} onLogout={logout} />
@@ -430,8 +448,11 @@ const Layout = ({ children }) => {
       </div>
       {/* Main Content */}
       <div
-        className={`transition-all duration-300 ${isMobile ? 'ml-0 pt-14' : ''}`}
-        style={{ marginLeft: isMobile ? 0 : (sidebarCollapsed ? 80 : 288) }}
+        className={`transition-all duration-500 ease-in-out ${isMobile ? 'ml-0 pt-14' : ''}`}
+        style={{ 
+          marginLeft: isMobile ? 0 : (sidebarCollapsed ? 80 : 288),
+          transition: 'margin-left 500ms cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
       >
         {!isMobile && (
           <div className="flex justify-center">
@@ -446,9 +467,12 @@ const Layout = ({ children }) => {
         <ChatBot />
       </div>
       {/* Overlay for mobile when sidebar is open */}
-      {isMobile && isMobileSidebarOpen && (
+      {isMobile && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30"
+          className={`fixed inset-0 z-30 transition-all duration-500 ease-in-out ${isMobileSidebarOpen
+            ? 'bg-black bg-opacity-50 pointer-events-auto'
+            : 'bg-transparent pointer-events-none'
+          }`}
           onClick={() => setIsMobileSidebarOpen(false)}
         ></div>
       )}

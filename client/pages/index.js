@@ -7,7 +7,7 @@ import LoginForm from '../components/LoginForm';
 import RegisterForm from '../components/RegisterForm';
 import { useTheme } from '../context/ThemeContext';
 import { landingService } from '../services/api';
-import { FaMoon, FaSun, FaRocket, FaChartLine, FaUsers, FaShieldAlt, FaRobot, FaCheckCircle, FaArrowRight, FaPlay, FaStar, FaGithub, FaGoogle, FaSignOutAlt } from 'react-icons/fa';
+import { FaMoon, FaSun, FaRocket, FaChartLine, FaUsers, FaShieldAlt, FaRobot, FaCheckCircle, FaArrowRight, FaPlay, FaStar, FaGithub, FaGoogle, FaSignOutAlt, FaChevronRight, FaChevronDown, FaBars, FaTimes } from 'react-icons/fa';
 
 const testimonials = [
   {
@@ -15,21 +15,24 @@ const testimonials = [
     role: "Product Manager",
     company: "TechFlow Inc",
     content: "TeamLabs transformed our development workflow. The AI assistant alone saved us 10+ hours per week!",
-    rating: 5
+    rating: 5,
+    avatar: "/static/default-avatar.png"
   },
   {
     name: "Michael Chen",
     role: "Engineering Lead",
     company: "StartupXYZ",
     content: "The analytics dashboard gives us insights we never had before. Our team productivity increased by 40%.",
-    rating: 5
+    rating: 5,
+    avatar: "/static/default-avatar.png"
   },
   {
     name: "Emily Rodriguez",
     role: "Scrum Master",
     company: "Digital Solutions",
     content: "Best project management tool we've used. The Kanban board is intuitive and the collaboration features are amazing.",
-    rating: 5
+    rating: 5,
+    avatar: "/static/default-avatar.png"
   }
 ];
 
@@ -38,6 +41,33 @@ const defaultStats = [
   { number: "0", label: "Projects Completed" },
   { number: "99.9%", label: "Uptime" },
   { number: "24/7", label: "Support" }
+];
+
+const features = [
+  {
+    icon: FaChartLine,
+    title: "Smart Analytics",
+    description: "Get real-time insights into your team's performance with AI-powered analytics and beautiful visualizations",
+    color: "blue"
+  },
+  {
+    icon: FaUsers,
+    title: "Team Collaboration",
+    description: "Work together seamlessly with live activity feeds, instant messaging, and integrated communication tools",
+    color: "purple"
+  },
+  {
+    icon: FaRobot,
+    title: "AI Assistant",
+    description: "Intelligent task classification, automated workflows, and smart recommendations to boost productivity",
+    color: "green"
+  },
+  {
+    icon: FaShieldAlt,
+    title: "Enterprise Security",
+    description: "Multi-factor authentication, role-based access control, and real-time security alerts for peace of mind",
+    color: "red"
+  }
 ];
 
 const pricing = [
@@ -126,6 +156,7 @@ export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
   const [stats, setStats] = useState(defaultStats);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
@@ -181,58 +212,78 @@ export default function Home() {
 
       {/* Navigation */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${resolvedTheme === 'dark' ? 'bg-gray-900/95 backdrop-blur-sm border-b border-gray-800' : 'bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm'}`}>
-        <div className="mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 w-full">
-            {/* Logo - far left, bigger */}
+            {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
-              <span className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none">
+              <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none">
                 TeamLabs
               </span>
             </div>
 
-            {/* Centered navigation links */}
-            <div className="hidden md:flex flex-1 justify-center items-center space-x-8">
-              <a href="#features" className={`transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Features</a>
-              <a href="#pricing" className={`transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Pricing</a>
-              <a href="#testimonials" className={`transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Reviews</a>
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="#features" className={`text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Features</a>
+              <a href="#testimonials" className={`text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Reviews</a>
+              <a href="#pricing" className={`text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Pricing</a>
             </div>
 
-            {/* Right-aligned theme mode, dashboard, and auth buttons */}
-            <div className="flex items-center space-x-4 justify-end">
+            {/* Right-aligned buttons */}
+            <div className="flex items-center space-x-4">
               <button
                 onClick={toggleTheme}
-                className={`p-2 rounded-full transition-colors ${resolvedTheme === 'dark' ? 'text-gray-400 hover:text-yellow-300 bg-gray-800 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200'}`}
+                className={`p-2 rounded-lg transition-colors ${resolvedTheme === 'dark' ? 'text-gray-400 hover:text-yellow-300 bg-gray-800 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200'}`}
                 title={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 {resolvedTheme === 'dark' ? <FaSun /> : <FaMoon />}
               </button>
+              
               {isAuthenticated ? (
                 <>
-                  <Link href="/dashboard" className={`px-4 py-2 font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}>
+                  <Link href="/dashboard" className={`px-4 py-2 text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}>
                     Dashboard
                   </Link>
-                  <button onClick={handleLogout} className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${resolvedTheme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`}>
-                    <FaSignOutAlt className="text-lg" /> Logout
+                  <button onClick={handleLogout} className={`px-4 py-2 border rounded-lg flex items-center gap-2 text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`}>
+                    <FaSignOutAlt className="text-sm" /> Logout
                   </button>
                 </>
               ) : (
                 <>
-                  <button onClick={openLogin} className={`px-4 py-2 font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>
+                  <button onClick={openLogin} className={`px-4 py-2 text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>
                     Sign In
                   </button>
-                  <button onClick={openRegister} className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
+                  <button onClick={openRegister} className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
                     Get Started
                   </button>
                 </>
               )}
+              
+              {/* Mobile menu button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 rounded-lg transition-colors"
+              >
+                {mobileMenuOpen ? <FaTimes /> : <FaBars />}
+              </button>
             </div>
           </div>
+          
+          {/* Mobile Navigation */}
+          {mobileMenuOpen && (
+            <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col space-y-4">
+                <a href="#features" className={`text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Features</a>
+                <a href="#pricing" className={`text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Pricing</a>
+                <a href="#testimonials" className={`text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Reviews</a>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
-      {/* Hero Section - Full Width */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Gradient */}
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        {/* Background */}
         <div className={`absolute inset-0 ${resolvedTheme === 'dark' ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'}`}></div>
         
         {/* Animated Background Elements */}
@@ -244,12 +295,12 @@ export default function Home() {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-8 ${resolvedTheme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'}`}>
+            <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-8 ${resolvedTheme === 'dark' ? 'bg-blue-900/50 text-blue-200 border border-blue-700' : 'bg-blue-100 text-blue-800 border border-blue-200'}`}>
               <FaRocket className="mr-2" />
               Trusted by {stats[0].number}+ teams worldwide
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
                 AI-Powered
               </span>
@@ -259,12 +310,12 @@ export default function Home() {
               </span>
             </h1>
             
-            <p className={`text-xl md:text-2xl mb-8 max-w-3xl mx-auto leading-relaxed ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+            <p className={`text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
               Transform your team's productivity with intelligent task management, real-time collaboration, 
               and AI-powered insights that drive results.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
               {isAuthenticated ? (
                 <Link href="/dashboard" className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
                   Go to Dashboard
@@ -297,53 +348,76 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Smart Analytics Dashboard Section - Full Width */}
-      <section className={`py-20 ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-gray-800 to-gray-900' : 'bg-gradient-to-r from-gray-50 to-blue-50'}`}>
+      {/* Features Section */}
+      <section id="features" className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              📊 Smart Analytics Dashboard
+              Everything you need to succeed
             </h2>
             <p className={`text-xl max-w-3xl mx-auto ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-              Get real-time insights into your team's performance with AI-powered analytics and beautiful visualizations
+              Powerful features designed to streamline your workflow and boost team productivity
             </p>
           </div>
           
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => {
+              const IconComponent = feature.icon;
+              const colorClasses = {
+                blue: resolvedTheme === 'dark' ? 'bg-blue-900 text-blue-400' : 'bg-blue-100 text-blue-600',
+                purple: resolvedTheme === 'dark' ? 'bg-purple-900 text-purple-400' : 'bg-purple-100 text-purple-600',
+                green: resolvedTheme === 'dark' ? 'bg-green-900 text-green-400' : 'bg-green-100 text-green-600',
+                red: resolvedTheme === 'dark' ? 'bg-red-900 text-red-400' : 'bg-red-100 text-red-600'
+              };
+              
+              return (
+                <div key={index} className={`p-6 rounded-2xl transition-all hover:transform hover:scale-105 ${resolvedTheme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'}`}>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${colorClasses[feature.color]}`}>
+                    <IconComponent className="w-6 h-6" />
+                  </div>
+                  <h3 className={`text-xl font-semibold mb-3 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    {feature.title}
+                  </h3>
+                  <p className={`text-sm ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                    {feature.description}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard Preview Section */}
+      <section className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className="flex items-start space-x-4">
-                <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${resolvedTheme === 'dark' ? 'bg-blue-900' : 'bg-blue-100'}`}>
-                  <FaChartLine className={`w-6 h-6 ${resolvedTheme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
-                </div>
-                <div>
-                  <h3 className={`text-xl font-semibold mb-2 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Real-Time Metrics</h3>
-                  <p className={resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                    Monitor project progress, team velocity, and resource utilization with live updates and instant notifications.
-                  </p>
-                </div>
-              </div>
+            <div>
+              <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                Smart Analytics Dashboard
+              </h2>
+              <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                Get real-time insights into your team's performance with AI-powered analytics and beautiful visualizations
+              </p>
               
-              <div className="flex items-start space-x-4">
-                <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${resolvedTheme === 'dark' ? 'bg-purple-900' : 'bg-purple-100'}`}>
-                  <FaUsers className={`w-6 h-6 ${resolvedTheme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`} />
+              <div className="space-y-6">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${resolvedTheme === 'dark' ? 'bg-green-900' : 'bg-green-100'}`}>
+                    <FaCheckCircle className="w-4 h-4 text-green-500" />
+                  </div>
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Real-time metrics and live updates</span>
                 </div>
-                <div>
-                  <h3 className={`text-xl font-semibold mb-2 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Team Performance Insights</h3>
-                  <p className={resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                    Identify bottlenecks, track individual contributions, and optimize team productivity with detailed analytics.
-                  </p>
+                <div className="flex items-center space-x-4">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${resolvedTheme === 'dark' ? 'bg-green-900' : 'bg-green-100'}`}>
+                    <FaCheckCircle className="w-4 h-4 text-green-500" />
+                  </div>
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Team performance insights</span>
                 </div>
-              </div>
-              
-              <div className="flex items-start space-x-4">
-                <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${resolvedTheme === 'dark' ? 'bg-green-900' : 'bg-green-100'}`}>
-                  <FaCheckCircle className={`w-6 h-6 ${resolvedTheme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
-                </div>
-                <div>
-                  <h3 className={`text-xl font-semibold mb-2 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Customizable Widgets</h3>
-                  <p className={resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                    Build your perfect dashboard with drag-and-drop widgets, custom charts, and personalized metrics.
-                  </p>
+                <div className="flex items-center space-x-4">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${resolvedTheme === 'dark' ? 'bg-green-900' : 'bg-green-100'}`}>
+                    <FaCheckCircle className="w-4 h-4 text-green-500" />
+                  </div>
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Customizable widgets and charts</span>
                 </div>
               </div>
             </div>
@@ -362,8 +436,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Kanban Board & Task Management Section - Full Width */}
-      <section className={`py-20 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+      {/* Kanban Board Section */}
+      <section className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="relative order-2 lg:order-1">
@@ -379,32 +453,28 @@ export default function Home() {
             
             <div className="order-1 lg:order-2">
               <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                📋 Kanban Board & Task Management
+                Kanban Board & Task Management
               </h2>
               <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 Intuitive drag-and-drop interface with AI-powered task classification and smart automation
               </p>
               
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className={resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>Drag-and-drop task management with real-time updates</span>
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Drag-and-drop task management</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className={resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>AI-powered task classification (Feature, Bug, Story, Doc)</span>
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>AI-powered task classification</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className={resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>Smart priority-based workflow automation</span>
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Smart workflow automation</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className={resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>Bulk operations for efficient task management</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className={resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>Automated task assignment based on availability</span>
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Bulk operations support</span>
                 </div>
               </div>
             </div>
@@ -412,126 +482,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Project Details & Team Collaboration Section - Full Width */}
-      <section className={`py-20 ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-gray-800 to-gray-900' : 'bg-gradient-to-r from-purple-50 to-pink-50'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              🗂️ Project Details & Team Collaboration
-            </h2>
-            <p className={`text-xl max-w-3xl mx-auto ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-              Complete project lifecycle management with real-time collaboration and seamless team coordination
-            </p>
-          </div>
-          
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className={`rounded-xl p-6 shadow-lg ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-                <h3 className={`text-xl font-semibold mb-3 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Full Project Lifecycle</h3>
-                <p className={`mb-4 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                  From ideation to completion, track every aspect of your project with detailed user stories and task breakdowns.
-                </p>
-                <div className={`flex items-center font-medium ${resolvedTheme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
-                  Learn more <FaArrowRight className="ml-2" />
-                </div>
-              </div>
-              
-              <div className={`rounded-xl p-6 shadow-lg ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-                <h3 className={`text-xl font-semibold mb-3 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Real-Time Collaboration</h3>
-                <p className={`mb-4 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Work together seamlessly with live activity feeds, instant messaging, and integrated communication tools.
-                </p>
-                <div className={`flex items-center font-medium ${resolvedTheme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
-                  Learn more <FaArrowRight className="ml-2" />
-                </div>
-              </div>
-              
-              <div className={`rounded-xl p-6 shadow-lg ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-                <h3 className={`text-xl font-semibold mb-3 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Cross-Project Management</h3>
-                <p className={`mb-4 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Manage multiple projects simultaneously with resource optimization and cross-team collaboration.
-                </p>
-                <div className={`flex items-center font-medium ${resolvedTheme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
-                  Learn more <FaArrowRight className="ml-2" />
-                </div>
-              </div>
-            </div>
-            
-            <div className="relative">
-              <div className="relative z-10">
-                <img 
-                  src="/static/projectdetails.jpg" 
-                  alt="Project Details" 
-                  className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
-                />
-              </div>
-              <div className={`absolute -inset-4 rounded-2xl opacity-20 blur-xl ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-gradient-to-r from-purple-400 to-pink-400'}`}></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Security, AI Assistant & Flexible Plans Section - Full Width */}
-      <section className={`py-20 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="relative">
-              <div className="relative z-10">
-                <img 
-                  src="/static/subscription.jpg" 
-                  alt="Security & AI Features" 
-                  className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
-                />
-              </div>
-              <div className={`absolute -inset-4 rounded-2xl opacity-20 blur-xl ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-yellow-600 to-red-600' : 'bg-gradient-to-r from-yellow-400 to-red-400'}`}></div>
-            </div>
-            
-            <div>
-              <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                🔐 Security, 🤖 AI Assistant & 💳 Flexible Plans
-              </h2>
-              <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                Enterprise-grade security, intelligent AI assistance, and flexible pricing for teams of all sizes
-              </p>
-              
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <FaShieldAlt className="w-5 h-5 text-green-500" />
-                    <span className={`font-medium ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Multi-Factor Authentication</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <FaRobot className="w-5 h-5 text-blue-500" />
-                    <span className={`font-medium ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>AI-Powered Assistant</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <FaUsers className="w-5 h-5 text-purple-500" />
-                    <span className={`font-medium ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Role-Based Access Control</span>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <FaCheckCircle className="w-5 h-5 text-green-500" />
-                    <span className={`font-medium ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Real-Time Security Alerts</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <FaCheckCircle className="w-5 h-5 text-green-500" />
-                    <span className={`font-medium ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Dark/Light Theme Support</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <FaCheckCircle className="w-5 h-5 text-green-500" />
-                    <span className={`font-medium ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Flexible Subscription Plans</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section - Full Width */}
-      <section id="testimonials" className={`py-20 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+      {/* Testimonials Section */}
+      <section id="testimonials" className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -544,19 +496,26 @@ export default function Home() {
           
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className={`rounded-xl p-6 shadow-lg ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'}`}>
+              <div key={index} className={`rounded-2xl p-8 shadow-lg transition-all hover:transform hover:scale-105 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
                 <div className="flex items-center mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <FaStar key={i} className="w-5 h-5 text-yellow-400" />
                   ))}
                 </div>
-                <p className={`mb-4 italic ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                <p className={`mb-6 italic text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                   "{testimonial.content}"
                 </p>
-                <div>
-                  <div className={`font-semibold ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{testimonial.name}</div>
-                  <div className={`text-sm ${resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {testimonial.role} at {testimonial.company}
+                <div className="flex items-center">
+                  <img 
+                    src={testimonial.avatar} 
+                    alt={testimonial.name}
+                    className="w-12 h-12 rounded-full mr-4"
+                  />
+                  <div>
+                    <div className={`font-semibold ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{testimonial.name}</div>
+                    <div className={`text-sm ${resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {testimonial.role} at {testimonial.company}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -565,10 +524,8 @@ export default function Home() {
         </div>
       </section>
 
-
-
-      {/* Pricing Section - Full Width */}
-      <section id="pricing" className={`py-20 ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-gray-800 to-gray-900' : 'bg-gradient-to-r from-blue-50 to-purple-50'}`}>
+      {/* Pricing Section */}
+      <section id="pricing" className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -595,16 +552,6 @@ export default function Home() {
                   <div className="text-center mb-8">
                     <h3 className={`text-2xl font-bold mb-2 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h3>
                     <div className="mb-2">
-                      {plan.originalPrice && (
-                        <div className="flex items-center justify-center gap-2 mb-1">
-                          <span className={`text-lg line-through ${resolvedTheme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
-                            {plan.originalPrice}
-                          </span>
-                          <span className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs font-medium px-2 py-1 rounded-full">
-                            Save 30%
-                          </span>
-                        </div>
-                      )}
                       <div className="flex items-baseline justify-center gap-1">
                         <span className={`text-4xl font-bold ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{plan.price}</span>
                         <span className={resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>{plan.period}</span>
@@ -628,7 +575,7 @@ export default function Home() {
                   </ul>
                   
                   <button 
-                    onClick={plan.name === 'Starter' ? openRegister : openRegister}
+                    onClick={plan.name === 'Free' ? openRegister : openRegister}
                     className={`w-full py-3 px-6 rounded-lg font-semibold transition-all ${
                       plan.highlight 
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700' 
@@ -646,8 +593,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section - Full Width */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+      {/* CTA Section */}
+      <section className="py-24 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Ready to Transform Your Team?
@@ -673,7 +620,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className={`py-12 ${resolvedTheme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
+      <footer className={`py-16 ${resolvedTheme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
@@ -762,6 +709,33 @@ export default function Home() {
         .reveal-visible {
           opacity: 1;
           transform: none;
+        }
+        
+        @keyframes blob {
+          0% {
+            transform: translate(0px, 0px) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+          100% {
+            transform: translate(0px, 0px) scale(1);
+          }
+        }
+        
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        
+        .animation-delay-4000 {
+          animation-delay: 4s;
         }
       `}</style>
     </div>
