@@ -7,6 +7,7 @@ import Layout from '../../components/Layout';
 import CustomModal from '../../components/CustomModal';
 import { FaCog, FaTrash, FaTimes, FaChevronRight } from 'react-icons/fa';
 import LoadingScreen from '../../components/LoadingScreen';
+import TeamDetailsSkeleton from '../../components/TeamDetailsSkeleton';
 import { useAuth } from '../../context/AuthContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -364,7 +365,7 @@ const TeamDetailsPage = () => {
       <div className="mx-auto">
 
         {loading ? (
-          <LoadingScreen />
+          <TeamDetailsSkeleton />
         ) : error ? (
           <div className={getThemeClasses(
             'text-center text-red-500',

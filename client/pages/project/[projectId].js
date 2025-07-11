@@ -24,6 +24,7 @@ import {
   useThemeClasses
 } from '../../components/kanbanUtils';
 import { getProjectStatusBadge } from '../../components/ProjectStatusBadge';
+import ProjectDetailsSkeleton from '../../components/ProjectDetailsSkeleton';
 
 const ProjectDetailsPage = () => {
   const router = useRouter();
@@ -838,7 +839,7 @@ const ProjectDetailsPage = () => {
 
   if (loading) {
     return <Layout>
-      <LoadingScreen />
+      <ProjectDetailsSkeleton />
     </Layout>;
   }
 

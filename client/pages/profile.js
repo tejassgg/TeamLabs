@@ -166,18 +166,6 @@ const Profile = () => {
     };
   };
 
-  // Function to get organization name from ID
-  const getOrganizationName = (orgId) => {
-    if (!orgId) return 'Not provided';
-    // First check if we have the organization details in the profile
-    if (profile?.organization) {
-      return profile.organization.name;
-    }
-    // Fallback to searching in organizations list
-    const org = organizations.find(org => org.Code === orgId);
-    return org ? org.Value : 'Unknown Organization';
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -193,7 +181,7 @@ const Profile = () => {
           <title>Complete Your Profile | TeamLabs</title>
         </Head>
         <div className={`min-h-screen ${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-gray-50 to-blue-50'}`}>
-          <div className="max-w-2xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
               <h1 className={`text-3xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>Complete Your Profile</h1>
               <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -237,8 +225,8 @@ const Profile = () => {
                     <button
                       onClick={() => setActiveTab('profile')}
                       className={`${activeTab === 'profile'
-                          ? theme === 'dark' ? 'border-blue-400 text-blue-400' : 'border-blue-500 text-blue-600'
-                          : theme === 'dark' ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? theme === 'dark' ? 'border-blue-400 text-blue-400' : 'border-blue-500 text-blue-600'
+                        : theme === 'dark' ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                         } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
                     >
                       <FaUserCircle size={16} />
@@ -247,8 +235,8 @@ const Profile = () => {
                     <button
                       onClick={() => setActiveTab('activity')}
                       className={`${activeTab === 'activity'
-                          ? theme === 'dark' ? 'border-blue-400 text-blue-400' : 'border-blue-500 text-blue-600'
-                          : theme === 'dark' ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? theme === 'dark' ? 'border-blue-400 text-blue-400' : 'border-blue-500 text-blue-600'
+                        : theme === 'dark' ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                         } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
                     >
                       <FaChartLine size={16} />
@@ -260,17 +248,20 @@ const Profile = () => {
 
               {/* Profile Information Tab */}
               {activeTab === 'profile' && (
-                <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-lg overflow-hidden border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                   <div className="p-8">
-                    <div className="flex justify-between items-center mb-6">
-                      <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Profile Information</h2>
+                    <div className="flex justify-between items-center mb-8">
+                      <h2 className={`text-2xl font-bold flex items-center gap-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        <FaUserCircle className="text-blue-500" size={28} />
+                        Review Your Information
+                      </h2>
                       {!isEditing && (
                         <button
                           onClick={() => setIsEditing(true)}
-                          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm"
+                          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md text-base font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400"
                         >
                           <FaEdit />
-                          <span>Edit Profile</span>
+                          Edit
                         </button>
                       )}
                     </div>
@@ -286,110 +277,109 @@ const Profile = () => {
                         />
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Contact Information */}
-                        <div className="space-y-4">
-                          <h3 className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'} mb-4 flex items-center gap-2`}>
-                            <FaUser className="text-blue-500" />
-                            <span>Contact Details</span>
-                          </h3>
-
-                          <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-gray-50 to-blue-50'} rounded-xl p-4 space-y-3 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                            <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                              <FaEnvelope className="text-blue-500 flex-shrink-0" />
-                              <div>
-                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Email Address</p>
-                                <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>{profile?.email}</p>
-                              </div>
-                            </div>
-
-                            <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                              <FaPhone className="text-blue-500 flex-shrink-0" />
-                              <div>
-                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Phone Number</p>
-                                <p className="font-medium">
-                                  {profile?.phone ? (
-                                    <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>{profile.phone}</span>
-                                  ) : (
-                                    <span className={`${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} italic`}>Not provided</span>
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                              <FaOrganization className="text-blue-500 flex-shrink-0" />
-                              <div>
-                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Organization</p>
-                                <p className="font-medium">
-                                  {profile?.organization?.name || getOrganizationName(profile?.organizationID) ? (
-                                    <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>
-                                      {profile?.organization?.name || getOrganizationName(profile?.organizationID)}
+                      <div className="divide-y divide-blue-100 dark:divide-gray-800">
+                        {/* Contact & Location Details Unified Card */}
+                        <div className="pb-8">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {/* Contact Details */}
+                            <div>
+                              <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                                <FaUser className="text-blue-500" />
+                                Contact Details
+                              </h3>
+                              <ul className="space-y-4">
+                                <li className="flex items-center gap-4">
+                                  <FaEnvelope className="text-blue-400 text-xl" />
+                                  <div>
+                                    <span className="block text-xs text-gray-400 dark:text-gray-500">Email Address</span>
+                                    <span className={`block text-base font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{profile?.email}</span>
+                                  </div>
+                                </li>
+                                <li className="flex items-center gap-4">
+                                  <FaPhone className="text-blue-400 text-xl" />
+                                  <div>
+                                    <span className="block text-xs text-gray-400 dark:text-gray-500">Phone Number</span>
+                                    <span className={`block text-base font-medium ${profile?.phone ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                                      {profile?.phone || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
                                     </span>
-                                  ) : (
-                                    <span className={`${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} italic`}>Not provided</span>
-                                  )}
-                                </p>
-                              </div>
+                                  </div>
+                                </li>
+                                <li className="flex items-center gap-4">
+                                  <FaUserCircle className="text-blue-400 text-xl" />
+                                  <div>
+                                    <span className="block text-xs text-gray-400 dark:text-gray-500">Role</span>
+                                    <span className={`block text-base font-medium ${profile.role ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                                      {profile.role}
+                                    </span>
+                                  </div>
+                                </li>
+                                <li className="flex items-center gap-4">
+                                  <FaBuilding className="text-blue-400 text-xl" />
+                                  <div>
+                                    <span className="block text-xs text-gray-400 dark:text-gray-500">Organization</span>
+                                    <span className={`block text-base font-medium ${profile.organizationID ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                                      {profile.organization.name}
+                                    </span>
+                                  </div>
+                                </li>
+                              </ul>
                             </div>
-                          </div>
-                        </div>
-
-                        {/* Address Information */}
-                        <div className="space-y-4">
-                          <h3 className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'} mb-4 flex items-center gap-2`}>
-                            <FaMapMarkerAlt className="text-blue-500" />
-                            <span>Location Details</span>
-                          </h3>
-
-                          <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-gray-50 to-blue-50'} rounded-xl p-4 space-y-3 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                            <div className={`flex items-start space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                              <FaMapMarkerAlt className="text-blue-500 mt-1 flex-shrink-0" />
-                              <div>
-                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Street Address</p>
-                                <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>
-                                  {profile?.address || 'Not provided'}
-                                  {profile?.aptNumber && (
-                                    <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} ml-1`}>#{profile.aptNumber}</span>
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                                <FaBuilding className="text-blue-500 flex-shrink-0" />
-                                <div>
-                                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>City</p>
-                                  <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>{profile?.city || 'Not provided'}</p>
-                                </div>
-                              </div>
-
-                              <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                                <FaCity className="text-blue-500 flex-shrink-0" />
-                                <div>
-                                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>State</p>
-                                  <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>{profile?.state || 'Not provided'}</p>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                                <FaGlobe className="text-blue-500 flex-shrink-0" />
-                                <div>
-                                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Country</p>
-                                  <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>{profile?.country || 'Not provided'}</p>
-                                </div>
-                              </div>
-
-                              <div className={`flex items-center space-x-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-transparent hover:bg-gray-800/50' : 'bg-white/50 backdrop-blur-sm hover:bg-white/80'} transition-all duration-200 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                                <FaMapMarkerAlt className="text-blue-500 flex-shrink-0" />
-                                <div>
-                                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>ZIP Code</p>
-                                  <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>{profile?.zipCode || 'Not provided'}</p>
-                                </div>
-                              </div>
+                            {/* Location Details */}
+                            <div>
+                              <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                                <FaMapMarkerAlt className="text-blue-500" />
+                                Location Details
+                              </h3>
+                              <ul className="space-y-4">
+                                <li className="flex items-center gap-4">
+                                  <FaMapMarkerAlt className="text-blue-400 text-xl" />
+                                  <div>
+                                    <span className="block text-xs text-gray-400 dark:text-gray-500">Street Address</span>
+                                    <span className={`block text-base font-medium ${profile?.address ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                                      {profile?.address || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
+                                      {profile?.aptNumber && (
+                                        <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} ml-1`}>#{profile.aptNumber}</span>
+                                      )}
+                                    </span>
+                                  </div>
+                                </li>
+                                <li className="flex items-center gap-4">
+                                  <FaBuilding className="text-blue-400 text-xl" />
+                                  <div>
+                                    <span className="block text-xs text-gray-400 dark:text-gray-500">City</span>
+                                    <span className={`block text-base font-medium ${profile?.city ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                                      {profile?.city || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
+                                    </span>
+                                  </div>
+                                </li>
+                                <li className="flex items-center gap-4">
+                                  <FaCity className="text-blue-400 text-xl" />
+                                  <div>
+                                    <span className="block text-xs text-gray-400 dark:text-gray-500">State</span>
+                                    <span className={`block text-base font-medium ${profile?.state ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                                      {profile?.state || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
+                                    </span>
+                                  </div>
+                                </li>
+                                <li className="flex items-center gap-4">
+                                  <FaGlobe className="text-blue-400 text-xl" />
+                                  <div>
+                                    <span className="block text-xs text-gray-400 dark:text-gray-500">Country</span>
+                                    <span className={`block text-base font-medium ${profile?.country ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                                      {profile?.country || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
+                                    </span>
+                                  </div>
+                                </li>
+                                <li className="flex items-center gap-4">
+                                  <FaMapMarkerAlt className="text-blue-400 text-xl" />
+                                  <div>
+                                    <span className="block text-xs text-gray-400 dark:text-gray-500">ZIP Code</span>
+                                    <span className={`block text-base font-medium ${profile?.zipCode ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                                      {profile?.zipCode || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
+                                    </span>
+                                  </div>
+                                </li>
+                              </ul>
                             </div>
                           </div>
                         </div>

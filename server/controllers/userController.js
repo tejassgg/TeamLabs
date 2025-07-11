@@ -4,6 +4,9 @@ const TeamDetails = require('../models/TeamDetails');
 const Project = require('../models/Project');
 const TaskDetails = require('../models/TaskDetails');
 const CommonType = require('../models/CommonType');
+const Invite = require('../models/Invite');
+const crypto = require('crypto');
+const emailService = require('../services/emailService');
 
 exports.updateUser = async (req, res) => {
   try {
@@ -106,5 +109,118 @@ exports.getUserOverview = async (req, res) => {
   } catch (error) {
     console.error('Error fetching user overview:', error);
     res.status(500).json({ message: 'Error fetching user overview' });
+  }
+}; 
+
+// Get all invites for organization
+exports.getInvites = async (req, res) => {
+  try {
+    const organizationID = req.user.organizationID;
+    const invites = await Invite.find({ organizationID })
+      .populate('inviter', 'firstName lastName email')
+      .sort({ createdAt: -1 });
+
+    // Update expired invites
+    const updatedInvites = invites.map(invite => {
+      if (invite.status === 'Pending' && invite.isExpired()) {
+        invite.status = 'Expired';
+        invite.save();
+      }
+      return invite;
+    });
+
+    res.json(updatedInvites);
+  } catch (err) {
+    console.error('Get invites error:', err);
+    res.status(500).json({ message: 'Failed to fetch invites' });
+  }
+};
+
+// Resend invite
+exports.resendInvite = async (req, res) => {
+  try {
+    const { inviteId } = req.params;
+    const invite = await Invite.findById(inviteId);
+    
+    if (!invite) {
+      return res.status(404).json({ message: 'Invite not found' });
+    }
+
+    if (invite.status !== 'Pending') {
+      return res.status(400).json({ message: 'Can only resend pending invites' });
+    }
+
+    if (invite.isExpired()) {
+      return res.status(400).json({ message: 'Invite has expired' });
+    }
+
+    // Generate new token and update expiration
+    const crypto = require('crypto');
+    invite.token = crypto.randomBytes(32).toString('hex');
+    invite.expiredAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    await invite.save();
+
+    // Send new invite email
+    const inviteLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/register?invite=${invite.token}`;
+    await emailService.sendInviteEmail(invite.email, inviteLink, req.user.firstName || 'A TeamLabs Admin');
+
+    res.json({ message: 'Invite resent successfully', invite });
+  } catch (err) {
+    console.error('Resend invite error:', err);
+    res.status(500).json({ message: 'Failed to resend invite' });
+  }
+};
+
+// Delete/Cancel invite
+exports.deleteInvite = async (req, res) => {
+  try {
+    const { inviteId } = req.params;
+    const invite = await Invite.findById(inviteId);
+    
+    if (!invite) {
+      return res.status(404).json({ message: 'Invite not found' });
+    }
+
+    if (invite.status === 'Accepted') {
+      return res.status(400).json({ message: 'Cannot delete accepted invite' });
+    }
+
+    await Invite.findByIdAndDelete(inviteId);
+    res.json({ message: 'Invite deleted successfully' });
+  } catch (err) {
+    console.error('Delete invite error:', err);
+    res.status(500).json({ message: 'Failed to delete invite' });
+  }
+};
+
+// Invite user to organization
+exports.inviteUser = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const inviter = req.user._id;
+    const organizationID = req.user.organizationID;
+    if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    // Check if already invited (pending or not expired)
+    const existing = await Invite.findOne({ 
+      email, 
+      organizationID, 
+      status: 'Pending',
+      expiredAt: { $gt: new Date() }
+    });
+    if (existing) return res.status(409).json({ message: 'User already invited', invite: existing });
+
+    // Generate token
+    const token = crypto.randomBytes(32).toString('hex');
+    const invite = await Invite.create({ email, organizationID, inviter, token });
+
+    // Send invite email
+    const inviteLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/register?invite=${token}`;
+    await emailService.sendInviteEmail(email, inviteLink, req.user.firstName || 'A TeamLabs Admin');
+
+    res.status(201).json({ message: 'Invite sent', invite });
+  } catch (err) {
+    console.error('Invite error:', err);
+    res.status(500).json({ message: 'Failed to send invite' });
   }
 }; 

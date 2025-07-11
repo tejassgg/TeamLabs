@@ -4,6 +4,8 @@ const { OAuth2Client } = require('google-auth-library');
 const { logActivity } = require('../services/activityService');
 const { sendResetEmail } = require('../services/emailService');
 const UserActivity = require('../models/UserActivity');
+const CommonType = require('../models/CommonType');
+const Invite = require('../models/Invite');
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
 const ForgotPasswordHistory = require('../models/ForgotPasswordHistory');
@@ -19,8 +21,6 @@ const generateToken = (id) => {
     expiresIn: '30d',
   });
 };
-
-
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -41,7 +41,8 @@ const registerUser = async (req, res) => {
       zipCode,
       city,
       state,
-      country
+      country,
+      inviteToken
     } = req.body;
 
     // Check if user already exists
@@ -49,6 +50,30 @@ const registerUser = async (req, res) => {
 
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
+    }
+
+    let organizationID = null;
+    let invite = null;
+
+    // Handle invite token if provided
+    if (inviteToken) {
+      invite = await Invite.findOne({
+        token: inviteToken,
+        status: 'Pending',
+        email: email
+      });
+
+      if (!invite) {
+        return res.status(400).json({ message: 'Invalid or expired invite token' });
+      }
+
+      // Set organization from invite
+      organizationID = invite.organizationID;
+
+      // Mark invite as accepted
+      invite.status = 'Accepted';
+      invite.acceptedAt = new Date();
+      await invite.save();
     }
 
     // Create user
@@ -68,7 +93,7 @@ const registerUser = async (req, res) => {
       state,
       country,
       role: 'User',
-      organizationID: null,
+      organizationID: organizationID,
       lastLogin: new Date(),
     });
 
@@ -85,6 +110,7 @@ const registerUser = async (req, res) => {
         organizationID: user.organizationID,
         role: user.role,
         token: generateToken(user._id),
+        needsAdditionalDetails: !organizationID // Only need additional details if not invited
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -126,7 +152,7 @@ const loginUser = async (req, res) => {
           userId: user._id
         });
       }
-      
+
       return res.status(200).json({
         _id: user._id,
         username: user.username,
@@ -181,8 +207,8 @@ const logoutUser = async (req, res) => {
 // @access  Public
 const googleLogin = async (req, res) => {
   try {
-    
-    const { credential } = req.body;
+
+    const { credential, inviteToken } = req.body;
 
     // Verify Google token
     const ticket = await client.verifyIdToken({
@@ -236,6 +262,30 @@ const googleLogin = async (req, res) => {
       // Create random password for Google users
       const password = Math.random().toString(36).slice(-8);
 
+      let organizationID = null;
+      let invite = null;
+
+      // Handle invite token if provided
+      if (inviteToken) {
+        invite = await Invite.findOne({
+          token: inviteToken,
+          status: 'Pending',
+          email: email
+        });
+
+        if (!invite) {
+          return res.status(400).json({ message: 'Invalid or expired invite token' });
+        }
+
+        // Set organization from invite
+        organizationID = invite.organizationID;
+
+        // Mark invite as accepted
+        invite.status = 'Accepted';
+        invite.acceptedAt = new Date();
+        await invite.save();
+      }
+
       user = await User.create({
         username,
         firstName: given_name || name.split(' ')[0],
@@ -254,6 +304,7 @@ const googleLogin = async (req, res) => {
         state: null,
         country: null,
         role: 'User',
+        organizationID: organizationID,
         // Set default security settings
         twoFactorEnabled: false,
         sessionTimeout: 30,
@@ -272,9 +323,9 @@ const googleLogin = async (req, res) => {
         email: user.email,
         profileImage: picture,
         token: generateToken(user._id),
-        needsAdditionalDetails: true,
+        needsAdditionalDetails: !organizationID, // Only need additional details if not invited
         role: user.role,
-        message: 'Please complete your profile with additional details',
+        message: organizationID ? 'Welcome to the organization!' : 'Please complete your profile with additional details',
         // Include security settings in login response
         twoFactorEnabled: false,
         sessionTimeout: 30,
@@ -340,10 +391,18 @@ const completeUserProfile = async (req, res) => {
       user.role = role;
     }
 
+    // Mark user as Active after profile completion
+    user.status = 'Active';
+
     await user.save();
 
     // Log profile update
     await logActivity(user._id, 'profile_update', 'success', 'Profile updated successfully', req);
+
+    const organization = await CommonType.findOne({
+      Code: user.organizationID,
+      MasterType: 'Organization'
+    });
 
     res.json({
       _id: user._id,
@@ -362,7 +421,11 @@ const completeUserProfile = async (req, res) => {
       country: user.country,
       organizationID: user.organizationID,
       needsAdditionalDetails: false,
-      role: user.role
+      role: user.role,
+      organization: organization ? {
+        name: organization.Value,
+        code: organization.Code
+      } : null
     });
   } catch (error) {
     console.error(error);
@@ -380,7 +443,6 @@ const getUserProfile = async (req, res) => {
     if (user) {
       // If user has an organization ID, fetch the organization details
       if (user.organizationID) {
-        console.log(user);
         const CommonType = require('../models/CommonType');
         const organization = await CommonType.findOne({
           Code: user.organizationID,
@@ -395,6 +457,7 @@ const getUserProfile = async (req, res) => {
         } : null;
         userProfile.organizationID = user.organizationID;
         userProfile.status = user.status;
+        userProfile.orgName = organization ? organization.Value : null;
         res.json(userProfile);
       } else {
         res.json(user);
@@ -502,7 +565,7 @@ const generate2FA = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    return res.json({ 
+    return res.json({
       secret: secret.base32,
       qrCode,
       otpauth_url: secret.otpauth_url
@@ -520,7 +583,7 @@ const verify2FA = async (req, res) => {
   try {
     const { token } = req.body;
     const user = await User.findById(req.user.id).select('+tempTwoFactorSecret');
-    
+
     if (!user || !user.tempTwoFactorSecret) {
       return res.status(400).json({ error: 'No temporary secret found. Please generate a new one.' });
     }
@@ -557,7 +620,7 @@ const disable2FA = async (req, res) => {
   try {
     const { token } = req.body;
     const user = await User.findById(req.user.id).select('+twoFactorSecret');
-    
+
     if (!user || !user.twoFactorSecret) {
       return res.status(400).json({ error: '2FA is not enabled' });
     }
@@ -593,7 +656,7 @@ const verifyLogin2FA = async (req, res) => {
   try {
     const { code, userId } = req.body;
     const user = await User.findById(userId).select('+twoFactorSecret');
-    
+
     if (!user || !user.twoFactorSecret || !user.twoFactorEnabled) {
       return res.status(400).json({ error: '2FA is not enabled' });
     }
@@ -635,7 +698,7 @@ const verifyLogin2FA = async (req, res) => {
 const getSecuritySettings = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('twoFactorEnabled sessionTimeout loginNotifications');
-    
+
     return res.json({
       twoFactorEnabled: user?.twoFactorEnabled || false,
       sessionTimeout: user?.sessionTimeout || 30,
@@ -653,7 +716,7 @@ const getSecuritySettings = async (req, res) => {
 const updateSecuritySettings = async (req, res) => {
   try {
     const { sessionTimeout, loginNotifications, userId } = req.body;
-    
+
     await User.findByIdAndUpdate(userId, {
       $set: {
         sessionTimeout: Number(sessionTimeout),

@@ -83,9 +83,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Google login
-  const googleLogin = async (credential) => {
+  const googleLogin = async (credential, inviteToken = null) => {
     try {
-      const data = await authService.googleLogin(credential);
+      const data = await authService.googleLogin(credential, inviteToken);
       setUser(data);
       return { 
         success: true,

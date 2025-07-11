@@ -20,6 +20,9 @@ const RegisterForm = () => {
   const [phoneExtensions, setPhoneExtensions] = useState([]);
   const fileInputRef = useRef();
 
+  // Get invite token from URL if present
+  const inviteToken = router.query.invite;
+
   // Fetch user roles and phone extensions when component mounts
   useEffect(() => {
     const fetchData = async () => {
@@ -109,9 +112,13 @@ const RegisterForm = () => {
         const result = await res.json();
         imageUrl = result.url;
       }
-      const result = await registerUser({ ...data, profileImage: imageUrl });
+      const result = await registerUser({ ...data, profileImage: imageUrl, inviteToken });
       if (result.success) {
-        router.push('/dashboard');
+        if (result.needsAdditionalDetails) {
+          router.push('/profile');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
         setError(result.message);
       }
@@ -126,9 +133,16 @@ const RegisterForm = () => {
   // Social login handlers (unchanged)
   const handleGoogleLoginSuccess = async (credentialResponse) => {
     try {
-      const response = await googleLogin(credentialResponse.credential);
+      const response = await googleLogin(credentialResponse.credential, inviteToken);
       if (response.success) {
-        router.push('/dashboard');
+        if (response.needsAdditionalDetails) {
+          router.push('/profile');
+        } else {
+          router.push('/dashboard');
+        }
+      }
+      else{
+        setError(response.message);
       }
     } catch (error) {
       setError('Failed to register with Google');

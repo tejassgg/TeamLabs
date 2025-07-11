@@ -361,8 +361,32 @@ async function sendCommentMentionEmail(to, mentionTo, commentContent, taskName, 
   }
 }
 
+// Send invite email
+async function sendInviteEmail(to, inviteLink, inviterName) {
+  const html = `
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fb; padding: 40px 0;">
+      <div style="max-width: 480px; margin: auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #e3e8ee; padding: 32px;">
+        <div style="text-align:center;margin-bottom:24px;"><span style="font-size:2rem;font-weight:800;color:#2563eb;letter-spacing:1px;font-family:Segoe UI,Arial,sans-serif;">TeamLabs</span></div>
+        <h2 style="color: #2563eb; margin-bottom: 12px;">You're Invited to Join TeamLabs!</h2>
+        <p style="color: #444; font-size: 16px;">Hi,</p>
+        <p style="color: #444; font-size: 15px; margin-bottom: 24px;">${inviterName} has invited you to join their organization on TeamLabs. Click the button below to register and join the team.</p>
+        <a href="${inviteLink}" style="display: inline-block; background: linear-gradient(90deg, #2563eb, #1e40af); color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 600; margin-bottom: 24px;">Accept Invite & Register</a>
+        <p style="color: #888; font-size: 13px; margin-top: 32px;">If you did not expect this invitation, you can safely ignore this email.</p>
+        <div style="margin-top: 32px; text-align: center; color: #b0b0b0; font-size: 12px;">&copy; ${new Date().getFullYear()} TeamLabs</div>
+      </div>
+    </div>
+  `;
+  await transporter.sendMail({
+    from: process.env.GMAIL_USER,
+    to,
+    subject: 'You are invited to join TeamLabs',
+    html
+  });
+}
+
 module.exports = {
   sendResetEmail,
   sendTaskAssignmentEmail,
-  sendCommentMentionEmail
+  sendCommentMentionEmail,
+  sendInviteEmail
 }; 

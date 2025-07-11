@@ -37,7 +37,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   // Load collapsed state from localStorage after component mounts
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      console.log(userDetails);
       const saved = localStorage.getItem('sidebarCollapsed');
       if (saved !== null) {
         const collapsedState = JSON.parse(saved);
@@ -212,11 +211,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
     </div>
   );
 
-  useEffect(() => {
-    console.log('Organization data:', organization);
-    console.log('User data:', user);
-  }, [organization, user]);
-
   return (
     <>
       <aside
@@ -227,9 +221,9 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             `w-72 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}` :
             `${collapsed ? 'w-20' : 'w-72'}`}
         `}
-        style={{ 
-          minHeight: '100vh', 
-          width: isMobile ? 288 : (collapsed ? 80 : 288), 
+        style={{
+          minHeight: '100vh',
+          width: isMobile ? 288 : (collapsed ? 80 : 288),
           overflow: 'visible',
           transform: isMobile && !isOpen ? 'translateX(-100%)' : 'translateX(0)',
           transition: 'all 500ms cubic-bezier(0.4, 0, 0.2, 1)'
@@ -240,16 +234,15 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {/* Dynamic Org Initials */}
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg flex-shrink-0 ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
-              {organization && organization.Value 
-                ? organization.Value.split(' ').map(n => n[0]).join('') 
+              {organization && organization.Value
+                ? organization.Value.split(' ').map(n => n[0]).join('')
                 : 'OG'}
             </div>
             {/* Dynamic Org Name */}
-            <span className={`font-bold text-lg truncate transition-all duration-300 ease-in-out ${
-              !isMobile && collapsed ? 'opacity-0 scale-95 w-0' : 'opacity-100 scale-100'
-            }`}>
-              {organization && organization.Value 
-                ? organization.Value 
+            <span className={`font-bold text-lg truncate transition-all duration-300 ease-in-out ${!isMobile && collapsed ? 'opacity-0 scale-95 w-0' : 'opacity-100 scale-100'
+              }`}>
+              {organization && organization.Value
+                ? organization.Value
                 : 'Organization'}
             </span>
           </div>
@@ -423,6 +416,15 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   );
 };
 
+const isProfileComplete = (userDetails) => {
+  if (!userDetails) return false;
+  // Adjust these fields as per your required profile fields
+  const requiredFields = [
+    'phone', 'address', 'city', 'state', 'country', 'firstName', 'lastName', 'email'
+  ];
+  return requiredFields.every(field => userDetails[field] && userDetails[field].toString().trim() !== '');
+};
+
 const Layout = ({ children }) => {
   const { theme, toggleTheme, resolvedTheme } = useTheme();
   const { logout, user } = useAuth();
@@ -431,34 +433,34 @@ const Layout = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { showToast } = useToast();
   const router = useRouter();
-  const { teams, projects, tasksDetails } = useGlobal();
+  const { teams, projects, tasksDetails, userDetails, loading: globalLoading } = useGlobal();
 
   // Dynamic breadcrumb component
   const DynamicBreadcrumb = () => {
     const getBreadcrumbItems = () => {
       const path = router.pathname;
       const query = router.query;
-      
+
       // Dashboard
       if (path === '/dashboard') {
         return [{ label: 'Dashboard', href: '/dashboard', isCurrent: true }];
       }
-      
+
       // Kanban Board
       if (path === '/kanban') {
         return [{ label: 'Kanban Board', href: '/kanban', isCurrent: true }];
       }
-      
+
       // Profile
       if (path === '/profile') {
         return [{ label: 'Profile', href: '/profile', isCurrent: true }];
       }
-      
+
       // Settings
       if (path === '/settings') {
         return [{ label: 'Settings', href: '/settings', isCurrent: true }];
       }
-      
+
       // Team Details
       if (path === '/team/[teamId]') {
         const teamId = query.teamId;
@@ -468,7 +470,7 @@ const Layout = ({ children }) => {
           { label: team?.TeamName || 'Team Details', href: router.asPath, isCurrent: true }
         ];
       }
-      
+
       // Project Details
       if (path === '/project/[projectId]') {
         const projectId = query.projectId;
@@ -478,17 +480,17 @@ const Layout = ({ children }) => {
           { label: project?.Name || 'Project Details', href: router.asPath, isCurrent: true }
         ];
       }
-      
+
       // Task Details
       if (path === '/task/[taskId]') {
         const taskId = query.taskId;
         const task = tasksDetails.find(t => t.TaskID === taskId || t._id === taskId);
         const project = task ? projects.find(p => p.ProjectID === task.ProjectID_FK) : null;
-        
+
         // Enhanced project name detection
         let projectName = 'Project Details';
         let projectHref = '/dashboard';
-        
+
         if (project?.Name) {
           projectName = project.Name;
           projectHref = `/project/${project.ProjectID || project._id}`;
@@ -497,25 +499,25 @@ const Layout = ({ children }) => {
           projectName = 'Project Details';
           projectHref = `/project/${task.ProjectID}`;
         }
-        
+
         return [
           { label: 'Projects', href: '/dashboard' },
           { label: projectName, href: projectHref },
           { label: task?.Name || 'Task Details', href: router.asPath, isCurrent: true }
         ];
       }
-      
+
       // Payment
       if (path === '/payment') {
         return [{ label: 'Payment', href: '/payment', isCurrent: true }];
       }
-      
+
       // Default
       return [{ label: 'Dashboard', href: '/dashboard' }];
     };
 
     const items = getBreadcrumbItems();
-    
+
     if (items.length <= 1) return null;
 
     return (
@@ -573,6 +575,16 @@ const Layout = ({ children }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobile, isMobileSidebarOpen]);
 
+  useEffect(() => {
+    if (globalLoading) return;
+    // Only run on client
+    if (typeof window === 'undefined') return;
+    // Don't redirect if already on /profile or /logout
+    if (!isProfileComplete(userDetails) && !['/profile', '/logout'].includes(router.pathname)) {
+      router.replace('/profile');
+    }
+  }, [userDetails, globalLoading, router.pathname]);
+
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'}`}>
       <div id="mobile-sidebar">
@@ -601,7 +613,7 @@ const Layout = ({ children }) => {
       {/* Main Content */}
       <div
         className={`transition-all duration-500 ease-in-out ${isMobile ? 'ml-0 pt-14' : ''}`}
-        style={{ 
+        style={{
           marginLeft: isMobile ? 0 : (sidebarCollapsed ? 80 : 288),
           transition: 'margin-left 500ms cubic-bezier(0.4, 0, 0.2, 1)'
         }}
@@ -615,7 +627,7 @@ const Layout = ({ children }) => {
         )}
         <main className={`overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#18181b] text-white' : ''}`}>
           <DynamicBreadcrumb />
-          
+
           <div className={`${router.pathname.startsWith('/task') || router.pathname.startsWith('/project') || router.pathname.startsWith('/team') ? 'px-8' : 'p-8'} md:px-8`}>
             {children}
           </div>
@@ -628,7 +640,7 @@ const Layout = ({ children }) => {
           className={`fixed inset-0 z-30 transition-all duration-500 ease-in-out ${isMobileSidebarOpen
             ? 'bg-black bg-opacity-50 pointer-events-auto'
             : 'bg-transparent pointer-events-none'
-          }`}
+            }`}
           onClick={() => setIsMobileSidebarOpen(false)}
         ></div>
       )}

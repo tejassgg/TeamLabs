@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { authService, commonTypeService } from '../services/api';
+import { FaUser, FaEnvelope, FaPhone, FaBuilding, FaMapMarkerAlt, FaCity, FaGlobe, FaTimesCircle, FaUserCircle, FaTimes } from 'react-icons/fa';
 
 const CompleteProfileForm = ({ onComplete, onCancel }) => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
     phone: '',
     middleName: '',
     address: '',
@@ -32,6 +35,8 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
       try {
         const profile = await authService.getUserProfile();
         setFormData({
+          firstName: profile.firstName || '',
+          lastName: profile.lastName || '',
           phone: profile.phone || '',
           middleName: profile.middleName || '',
           address: profile.address || '',
@@ -106,203 +111,296 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
       case 1:
         return (
           <>
-            <div>
-              <div className="flex gap-4">
-                <div className="w-[25%]">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Ext</label>
-                  <select
-                    name="phoneExtension"
-                    value={formData.phoneExtension}
-                    onChange={e => setFormData({ ...formData, phoneExtension: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    required
-                  >
-                    {phoneExtensions.map(ext => (
-                      <option key={ext.Code} value={ext.Value}>{ext.Value}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    required
-                    placeholder="+1 (555) 555-5555"
-                  />
-                </div>
+            {/* Row 1: First Name | Last Name */}
+            <div className="flex gap-4">
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  required
+                  placeholder="First Name"
+                />
+              </div>
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  required
+                  placeholder="Last Name"
+                />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Middle Name</label>
-              <input
-                type="text"
-                name="middleName"
-                value={formData.middleName}
-                onChange={(e) => setFormData({ ...formData, middleName: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                placeholder="Optional"
-              />
+            {/* Row 2: Middle Name | Ext | Phone Number */}
+            <div className="flex gap-4 mt-4">
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Middle Name</label>
+                <input
+                  type="text"
+                  name="middleName"
+                  value={formData.middleName}
+                  onChange={e => setFormData({ ...formData, middleName: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  placeholder="Optional"
+                />
+              </div>
+              <div className="w-[8%] min-w-[70px]">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Ext</label>
+                <select
+                  name="phoneExtension"
+                  value={formData.phoneExtension}
+                  onChange={e => setFormData({ ...formData, phoneExtension: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  required
+                >
+                  {phoneExtensions.map(ext => (
+                    <option key={ext.Code} value={ext.Value}>{ext.Value}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="w-[38%]">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  required
+                  placeholder="+1 (555) 555-5555"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={e => setFormData({ ...formData, role: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                required
-              >
-                <option value="">Select Role</option>
-                {roleOptions.map(role => (
-                  <option key={role.Code} value={role.Value}>{role.Value}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Organization</label>
-              <select
-                name="organizationID"
-                value={formData.organizationID}
-                onChange={e => setFormData({ ...formData, organizationID: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                required
-              >
-                <option value="">Select Organization</option>
-                {orgOptions.map(org => (
-                  <option key={org._id} value={org.Code}>{org.Value}</option>
-                ))}
-              </select>
+            {/* Row 3: Role | Organization */}
+            <div className="flex gap-4 mt-4">
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={e => setFormData({ ...formData, role: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  required
+                >
+                  <option value="">Select Role</option>
+                  {roleOptions.map(role => (
+                    <option key={role.Code} value={role.Value}>{role.Value}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Organization</label>
+                <select
+                  name="organizationID"
+                  value={formData.organizationID}
+                  onChange={e => setFormData({ ...formData, organizationID: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  required
+                >
+                  <option value="">Select Organization</option>
+                  {orgOptions.map(org => (
+                    <option key={org._id} value={org.Code}>{org.Value}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </>
         );
       case 2:
         return (
           <>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                required
-                placeholder="Enter your street address"
-              />
+            <div className="flex gap-4">
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  required
+                  placeholder="Enter your street address"
+                />
+              </div>
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Apartment/Suite Number</label>
+                <input
+                  type="text"
+                  name="aptNumber"
+                  value={formData.aptNumber}
+                  onChange={(e) => setFormData({ ...formData, aptNumber: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  placeholder="Optional"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Apartment/Suite Number</label>
-              <input
-                type="text"
-                name="aptNumber"
-                value={formData.aptNumber}
-                onChange={(e) => setFormData({ ...formData, aptNumber: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                placeholder="Optional"
-              />
+
+            <div className="flex gap-4 mt-4">
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
+                <input
+                  type="text"
+                  name="zipCode"
+                  value={formData.zipCode}
+                  onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  required
+                  placeholder="12345"
+                />
+              </div>
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                <input
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  required
+                  placeholder="New York"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
-              <input
-                type="text"
-                name="zipCode"
-                value={formData.zipCode}
-                onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                required
-                placeholder="12345"
-              />
+            <div className="flex gap-4 mt-4">
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                <input
+                  type="text"
+                  name="state"
+                  value={formData.state}
+                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  required
+                  placeholder="NY"
+                />
+              </div>
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                <input
+                  type="text"
+                  name="country"
+                  value={formData.country}
+                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  required
+                  placeholder="United States"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-              <input
-                type="text"
-                name="city"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                required
-                placeholder="New York"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-              <input
-                type="text"
-                name="state"
-                value={formData.state}
-                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                required
-                placeholder="NY"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-              <input
-                type="text"
-                name="country"
-                value={formData.country}
-                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                required
-                placeholder="United States"
-              />
-            </div>
+
           </>
         );
       case 3:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-700">Review Your Information</h3>
-            <div className="bg-gradient-to-br from-gray-50 to-blue-50 p-6 rounded-xl space-y-4">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="bg-white/50 backdrop-blur-sm p-4 rounded-xl">
-                  <p className="text-sm font-medium text-gray-500">Phone Number</p>
-                  <p className="mt-1 text-gray-700">{formData.phone || 'Not provided'}</p>
+            <div className={`${theme === 'dark' ? 'bg-transparent border border-gray-700' : 'bg-white border border-gray-200'} rounded-2xl shadow-lg p-8 divide-y divide-blue-100 dark:divide-gray-800`}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-8">
+                {/* Contact Details */}
+                <div>
+                  <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                    <FaUser className="text-blue-500" />
+                    Contact Details
+                  </h3>
+                  <ul className="space-y-4">
+                    <li className="flex items-center gap-4">
+                      <FaEnvelope className="text-blue-400 text-xl" />
+                      <div>
+                        <span className="block text-xs text-gray-400 dark:text-gray-500">Email Address</span>
+                        <span className={`block text-base font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{user?.email}</span>
+                      </div>
+                    </li>
+                    <li className="flex items-center gap-4">
+                      <FaPhone className="text-blue-400 text-xl" />
+                      <div>
+                        <span className="block text-xs text-gray-400 dark:text-gray-500">Phone Number</span>
+                        <span className={`block text-base font-medium ${formData.phone ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                          {formData.phone || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
+                        </span>
+                      </div>
+                    </li>
+                    <li className="flex items-center gap-4">
+                      <FaUserCircle className="text-blue-400 text-xl" />
+                      <div>
+                        <span className="block text-xs text-gray-400 dark:text-gray-500">Role</span>
+                        <span className={`block text-base font-medium ${formData.role ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                          {roleOptions.find(role => role.Value === formData.role)?.Value || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
+                        </span>
+                      </div>
+                    </li>
+                    <li className="flex items-center gap-4">
+                      <FaBuilding className="text-blue-400 text-xl" />
+                      <div>
+                        <span className="block text-xs text-gray-400 dark:text-gray-500">Organization</span>
+                        <span className={`block text-base font-medium ${formData.organizationID ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                          {orgOptions.find(org => org.Code === parseInt(formData.organizationID))?.Value || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
+                        </span>
+                      </div>
+                    </li>
+                  </ul>
                 </div>
-                <div className="bg-white/50 backdrop-blur-sm p-4 rounded-xl">
-                  <p className="text-sm font-medium text-gray-500">Middle Name</p>
-                  <p className="mt-1 text-gray-700">{formData.middleName || 'Not provided'}</p>
-                </div>
-                <div className="bg-white/50 backdrop-blur-sm p-4 rounded-xl">
-                  <p className="text-sm font-medium text-gray-500">Role</p>
-                  <p className="mt-1 text-gray-700">
-                    {roleOptions.find(role => role.Code === formData.role)?.Value || 'Not provided'}
-                  </p>
-                </div>
-                <div className="bg-white/50 backdrop-blur-sm p-4 rounded-xl">
-                  <p className="text-sm font-medium text-gray-500">Organization</p>
-                  <p className="mt-1 text-gray-700">
-                    {orgOptions.find(org => org.Code === formData.organizationID)?.Value || 'Not provided'}
-                  </p>
-                </div>
-                <div className="col-span-2 bg-white/50 backdrop-blur-sm p-4 rounded-xl">
-                  <p className="text-sm font-medium text-gray-500">Address</p>
-                  <p className="mt-1 text-gray-700">
-                    {formData.address}
-                    {formData.aptNumber && `, ${formData.aptNumber}`}
-                  </p>
-                </div>
-                <div className="bg-white/50 backdrop-blur-sm p-4 rounded-xl">
-                  <p className="text-sm font-medium text-gray-500">City</p>
-                  <p className="mt-1 text-gray-700">{formData.city}</p>
-                </div>
-                <div className="bg-white/50 backdrop-blur-sm p-4 rounded-xl">
-                  <p className="text-sm font-medium text-gray-500">State</p>
-                  <p className="mt-1 text-gray-700">{formData.state}</p>
-                </div>
-                <div className="bg-white/50 backdrop-blur-sm p-4 rounded-xl">
-                  <p className="text-sm font-medium text-gray-500">ZIP Code</p>
-                  <p className="mt-1 text-gray-700">{formData.zipCode}</p>
-                </div>
-                <div className="bg-white/50 backdrop-blur-sm p-4 rounded-xl">
-                  <p className="text-sm font-medium text-gray-500">Country</p>
-                  <p className="mt-1 text-gray-700">{formData.country}</p>
+                {/* Location Details */}
+                <div>
+                  <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                    <FaMapMarkerAlt className="text-blue-500" />
+                    Location Details
+                  </h3>
+                  <ul className="space-y-4">
+                    <li className="flex items-center gap-4">
+                      <FaMapMarkerAlt className="text-blue-400 text-xl" />
+                      <div>
+                        <span className="block text-xs text-gray-400 dark:text-gray-500">Street Address</span>
+                        <span className={`block text-base font-medium ${formData.address ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                          {formData.address || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
+                          {formData.aptNumber && (
+                            <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} ml-1`}>#{formData.aptNumber}</span>
+                          )}
+                        </span>
+                      </div>
+                    </li>
+                    <li className="flex items-center gap-4">
+                      <FaCity className="text-blue-400 text-xl" />
+                      <div>
+                        <span className="block text-xs text-gray-400 dark:text-gray-500">City</span>
+                        <span className={`block text-base font-medium ${formData.city ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                          {formData.city || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
+                        </span>
+                      </div>
+                    </li>
+                    <li className="flex items-center gap-4">
+                      <FaBuilding className="text-blue-400 text-xl" />
+                      <div>
+                        <span className="block text-xs text-gray-400 dark:text-gray-500">State</span>
+                        <span className={`block text-base font-medium ${formData.state ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                          {formData.state || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
+                        </span>
+                      </div>
+                    </li>
+                    <li className="flex items-center gap-4">
+                      <FaGlobe className="text-blue-400 text-xl" />
+                      <div>
+                        <span className="block text-xs text-gray-400 dark:text-gray-500">Country</span>
+                        <span className={`block text-base font-medium ${formData.country ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                          {formData.country || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
+                        </span>
+                      </div>
+                    </li>
+                    <li className="flex items-center gap-4">
+                      <FaMapMarkerAlt className="text-blue-400 text-xl" />
+                      <div>
+                        <span className="block text-xs text-gray-400 dark:text-gray-500">ZIP Code</span>
+                        <span className={`block text-base font-medium ${formData.zipCode ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
+                          {formData.zipCode || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
+                        </span>
+                      </div>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -321,12 +419,12 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
           onClick={onCancel}
           className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
         >
-          Cancel
+          <FaTimes className="w-4 h-4" />
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex flex-col gap-4">
           {renderStepContent()}
         </div>
 

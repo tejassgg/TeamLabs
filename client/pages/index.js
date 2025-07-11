@@ -683,11 +683,7 @@ export default function Home() {
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
         {modalType === 'login' ? (
           <>
-            <LoginForm onSuccess={() => setModalOpen(false)} />
-            <div className="text-center mt-4">
-              <span className="text-gray-600 dark:text-gray-300">Don't have an account? </span>
-              <button className="text-blue-700 dark:text-blue-400 font-bold hover:underline" onClick={() => setModalType('register')}>Sign Up</button>
-            </div>
+            <LoginForm onSuccess={() => setModalOpen(false)} />            
           </>
         ) : (
           <>

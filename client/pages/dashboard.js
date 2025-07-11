@@ -8,9 +8,10 @@ import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
 import { useToast } from '../context/ToastContext';
 import ProjectStatusDropdown from '../components/ProjectStatusDropdown';
-import { FaProjectDiagram, FaUsers, FaClock, FaUserFriends, FaTrash, FaCheckCircle, FaPauseCircle, FaExclamationCircle, FaTimes, FaCode, FaVial, FaShieldAlt, FaRocket, FaQuestionCircle, FaCog, FaCalendarAlt, FaTasks, FaChevronRight, FaVideo, FaChalkboardTeacher, FaCoffee, FaPowerOff, FaUserSlash, FaChartBar, FaUserCog } from 'react-icons/fa';
+import { FaTrash, FaCheckCircle, FaVideo, FaChalkboardTeacher, FaProjectDiagram, FaCoffee, FaPowerOff, FaUserSlash, FaChartBar, FaEnvelope, FaRedo, FaPlus } from 'react-icons/fa';
 import api from '../services/api';
 import { projectService } from '../services/api';
+import { userService } from '../services/api';
 
 // Dynamic import for charts
 let DashboardCharts = null;
@@ -23,83 +24,6 @@ try {
   // If Chart.js is not available, use simple charts
   SimpleCharts = require('../components/SimpleCharts').default;
 }
-
-const getProjectStatusStyle = (status) => {
-  switch (status) {
-    case 'Not Assigned':
-      return {
-        bgColor: 'from-gray-50 to-gray-100',
-        textColor: 'text-gray-700',
-        borderColor: 'border-gray-200',
-        icon: 'FaTimes',
-        iconColor: 'text-gray-500'
-      };
-    case 'Assigned':
-      return {
-        bgColor: 'from-blue-50 to-blue-100',
-        textColor: 'text-blue-700',
-        borderColor: 'border-blue-200',
-        icon: 'FaCheckCircle',
-        iconColor: 'text-blue-500'
-      };
-    case 'In Progress':
-      return {
-        bgColor: 'from-yellow-50 to-yellow-100',
-        textColor: 'text-yellow-700',
-        borderColor: 'border-yellow-200',
-        icon: 'FaClock',
-        iconColor: 'text-yellow-500'
-      };
-    case 'Development':
-      return {
-        bgColor: 'from-purple-50 to-purple-100',
-        textColor: 'text-purple-700',
-        borderColor: 'border-purple-200',
-        icon: 'FaCode',
-        iconColor: 'text-purple-500'
-      };
-    case 'Testing':
-      return {
-        bgColor: 'from-orange-50 to-orange-100',
-        textColor: 'text-orange-700',
-        borderColor: 'border-orange-200',
-        icon: 'FaVial',
-        iconColor: 'text-orange-500'
-      };
-    case 'QA':
-      return {
-        bgColor: 'from-indigo-50 to-indigo-100',
-        textColor: 'text-indigo-700',
-        borderColor: 'border-indigo-200',
-        icon: 'FaShieldAlt',
-        iconColor: 'text-indigo-500'
-      };
-    case 'Deployment':
-      return {
-        bgColor: 'from-pink-50 to-pink-100',
-        textColor: 'text-pink-700',
-        borderColor: 'border-pink-200',
-        icon: 'FaRocket',
-        iconColor: 'text-pink-500'
-      };
-    case 'Completed':
-      return {
-        bgColor: 'from-green-50 to-green-100',
-        textColor: 'text-green-700',
-        borderColor: 'border-green-200',
-        icon: 'FaCheckCircle',
-        iconColor: 'text-green-500'
-      };
-    default:
-      return {
-        bgColor: 'from-gray-50 to-gray-100',
-        textColor: 'text-gray-700',
-        borderColor: 'border-gray-200',
-        icon: 'FaQuestionCircle',
-        iconColor: 'text-gray-500'
-      };
-  }
-};
 
 const getStatusConfig = (status) => {
   const config = {
@@ -156,6 +80,10 @@ const Dashboard = () => {
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState('metrics');
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteStatus, setInviteStatus] = useState('');
+  const [invitedEmails, setInvitedEmails] = useState([]);
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
@@ -200,27 +128,106 @@ const Dashboard = () => {
   const handleProjectStatusUpdate = async (projectId, newStatusId) => {
     try {
       await projectService.updateProject(projectId, { ProjectStatusID: newStatusId });
-      
+
       // Update the local stats to reflect the change
       setStats(prevStats => ({
         ...prevStats,
-        recentProjects: prevStats.recentProjects.map(project => 
-          project.id === projectId 
-            ? { 
-                ...project, 
-                projectStatusId: newStatusId,
-                projectStatus: getProjectStatus(newStatusId).Value 
-              }
+        recentProjects: prevStats.recentProjects.map(project =>
+          project.id === projectId
+            ? {
+              ...project,
+              projectStatusId: newStatusId,
+              projectStatus: getProjectStatus(newStatusId).Value
+            }
             : project
         )
       }));
-      
+
       showToast('Project status updated successfully!', 'success');
     } catch (err) {
       showToast('Failed to update project status', 'error');
       console.error('Error updating project status:', err);
       throw err; // Re-throw to let the dropdown component handle the error
     }
+  };
+
+  const handleInvite = async () => {
+    setInviteStatus('');
+    try {
+      const res = await userService.inviteUser(inviteEmail);
+      setInvitedEmails((prev) => [...prev, inviteEmail]);
+      setInviteStatus('Invite sent!');
+      setInviteEmail('');
+      // Refresh dashboard data to get the new invite
+      const response = await api.get(`/dashboard/${user.organizationID}`);
+      setStats(response.data);
+    } catch (err) {
+      setInviteStatus(err.message || 'Failed to send invite');
+    }
+  };
+
+  const handleResendInvite = async (inviteId) => {
+    try {
+      await userService.resendInvite(inviteId);
+      showToast('Invite resent successfully!', 'success');
+      // Refresh dashboard data to get updated invites
+      const response = await api.get(`/dashboard/${user.organizationID}`);
+      setStats(response.data);
+    } catch (err) {
+      showToast(err.message || 'Failed to resend invite', 'error');
+    }
+  };
+
+  const handleDeleteInvite = async (inviteId) => {
+    try {
+      await userService.deleteInvite(inviteId);
+      showToast('Invite deleted successfully!', 'success');
+      // Refresh dashboard data to get updated invites
+      const response = await api.get(`/dashboard/${user.organizationID}`);
+      setStats(response.data);
+    } catch (err) {
+      showToast(err.message || 'Failed to delete invite', 'error');
+    }
+  };
+
+  const getInviteStatusBadge = (invite) => {
+    const now = new Date();
+    const isExpired = invite.expiredAt && new Date(invite.expiredAt) < now;
+
+    if (invite.status === 'Accepted') {
+      return { color: 'text-green-500', bg: 'bg-green-500/10', text: 'Accepted' };
+    } else if (invite.status === 'Expired' || isExpired) {
+      return { color: 'text-red-500', bg: 'bg-red-500/10', text: 'Expired' };
+    } else {
+      return { color: 'text-yellow-500', bg: 'bg-yellow-500/10', text: 'Pending' };
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getTimeUntilExpiry = (expiryDate) => {
+    if (!expiryDate) return 'N/A';
+    const now = new Date();
+    const expiry = new Date(expiryDate);
+    const diff = expiry - now;
+
+    if (diff <= 0) return 'Expired';
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h`;
+    return 'Less than 1h';
   };
 
   if (loading) {
@@ -332,8 +339,8 @@ const Dashboard = () => {
                       {stats?.recentProjects?.map(project => {
                         const currentStatus = getProjectStatus(project.projectStatusId || 1);
                         return (
-                          <tr 
-                            key={project.id} 
+                          <tr
+                            key={project.id}
                             className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b cursor-pointer`}
                             onClick={() => router.push(`/project/${project.id}`)}
                           >
@@ -451,6 +458,107 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+
+            {/* Invites Section - Only for Admins */}
+            {isAdmin && user.organizationID && (
+              <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
+                <div className={`p-4 border-b flex items-center justify-between ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                  <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'} flex items-center gap-2`}>
+                    {/* <FaEnvelope className="text-blue-500" /> */}
+                    Pending Invites
+                  </h2>
+                  <button
+                    className={`ml-4 px-4 py-2 rounded-lg font-medium transition-all duration-200 flex flex-row items-center gap-2 ${theme === 'dark' ? 'bg-blue-900 text-blue-200 hover:bg-blue-800' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                    onClick={() => setShowInviteModal(true)}>
+                    <FaPlus className="text-white" /> Invite
+                  </button>
+                </div>
+
+                <div className="p-4">
+                  {loading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className={`${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-gray-50 border-gray-200'} border-b`}>
+                            <th className="py-3 px-4 text-left">Email</th>
+                            <th className="py-3 px-4 text-left">Status</th>
+                            <th className="py-3 px-4 text-left">Invited By</th>
+                            <th className="py-3 px-4 text-left">Invited Date</th>
+                            <th className="py-3 px-4 text-left">Expires</th>
+                            <th className="py-3 px-4 text-center">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stats?.invites?.map(invite => {
+                            const statusBadge = getInviteStatusBadge(invite);
+                            return (
+                              <tr key={invite._id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
+                                <td className="py-3 px-4">
+                                  <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{invite.email}</span>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusBadge.bg} ${statusBadge.color}`}>
+                                    {statusBadge.text}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
+                                    {invite.inviter ? `${invite.inviter.firstName} ${invite.inviter.lastName}` : 'Unknown'}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
+                                    {formatDate(invite.invitedAt)}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
+                                    {getTimeUntilExpiry(invite.expiredAt)}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 text-center">
+                                  <div className="flex items-center justify-center gap-2">
+                                    {invite.status === 'Pending' && (
+                                      <button
+                                        onClick={() => handleResendInvite(invite._id)}
+                                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-blue-300 bg-[#232323] hover:bg-blue-900' : 'text-blue-700 bg-blue-100 hover:bg-blue-200'}`}
+                                        title="Resend Invite"
+                                      >
+                                        <FaRedo size={14} />
+                                      </button>
+                                    )}
+                                    {invite.status !== 'Accepted' && (
+                                      <button
+                                        onClick={() => handleDeleteInvite(invite._id)}
+                                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-red-300 bg-[#232323] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
+                                        title="Delete Invite"
+                                      >
+                                        <FaTrash size={14} />
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          {stats?.invites?.length === 0 && (
+                            <tr>
+                              <td colSpan={6} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}>
+                                No invites found
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -481,6 +589,51 @@ const Dashboard = () => {
                   {removingUser === removingUser?.id ? 'Removing...' : 'Remove from Organization'}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Invite Modal */}
+        {showInviteModal && (
+          <div className={`fixed inset-0 flex items-center justify-center z-50 ${theme === 'dark' ? 'bg-black bg-opacity-70' : 'bg-black bg-opacity-50'}`}>
+            <div className={`rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border ${theme === 'dark' ? 'bg-[#232323] border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-100'}`}>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : ''}`}>Invite User to Organization</h3>
+              </div>
+              <div className="mb-4">
+                <input
+                  type="email"
+                  className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-[#232323] border-[#424242] text-[#F3F6FA]' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
+                  placeholder="Enter email address"
+                  value={inviteEmail}
+                  onChange={e => setInviteEmail(e.target.value)}
+                />
+              </div>
+              <button
+                className={`w-full py-2 rounded-lg font-medium transition-all duration-200 mb-2 ${theme === 'dark' ? 'bg-blue-900 text-blue-200 hover:bg-blue-800' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                onClick={handleInvite}
+                disabled={!inviteEmail}
+              >
+                Send Invite
+              </button>
+              {inviteStatus && <div className="text-sm mt-2 mb-2 text-green-500">{inviteStatus}</div>}
+              {invitedEmails.length > 0 && (
+                <div className="mt-4">
+                  <div className="text-xs text-gray-400 mb-1">Invited Emails:</div>
+                  <ul className="text-sm">
+                    {invitedEmails.map((email, idx) => (
+                      <li key={idx} className="text-blue-500">{email}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <button
+                className={`mt-4 w-full py-2 rounded-lg font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-gray-700 text-gray-200 hover:bg-gray-800' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                onClick={() => { setShowInviteModal(false); setInviteStatus(''); setInviteEmail(''); }}
+              >
+                Close
+              </button>
             </div>
           </div>
         )}

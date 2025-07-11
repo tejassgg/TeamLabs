@@ -91,9 +91,9 @@ export const authService = {
   },
 
   // Google login
-  googleLogin: async (credential) => {
+  googleLogin: async (credential, inviteToken = null) => {
     try {
-      const response = await api.post('/auth/google', { credential });
+      const response = await api.post('/auth/google', { credential, inviteToken });
       if (response.data.token) {
         Cookies.set('token', response.data.token, { expires: 30 });
         // Store user data including security settings from login response
@@ -256,7 +256,6 @@ export const authService = {
   getUserOverview: async () => {
     try {
       const response = await api.get('/users/overview');
-      console.log(response.data);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to get user overview' };
@@ -660,6 +659,38 @@ export const userService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch user usage limits' };
+    }
+  },
+  inviteUser: async (email) => {
+    try {
+      const response = await api.post('/users/invite', { email });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to send invite' };
+    }
+  },
+  getInvites: async () => {
+    try {
+      const response = await api.get('/users/invites');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch invites' };
+    }
+  },
+  resendInvite: async (inviteId) => {
+    try {
+      const response = await api.post(`/users/invites/${inviteId}/resend`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to resend invite' };
+    }
+  },
+  deleteInvite: async (inviteId) => {
+    try {
+      const response = await api.delete(`/users/invites/${inviteId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to delete invite' };
     }
   }
 };

@@ -6,6 +6,7 @@ const User = require('../models/User');
 const CommonType = require('../models/CommonType');
 const UserActivity = require('../models/UserActivity');
 const TaskDetails = require('../models/TaskDetails');
+const Invite = require('../models/Invite');
 
 // Get dashboard statistics
 router.get('/:organizationId', async (req, res) => {
@@ -20,6 +21,20 @@ router.get('/:organizationId', async (req, res) => {
     
     // Get all users in the organization
     const users = await User.find({ organizationID: organizationId });
+
+    // Get all invites for the organization
+    const invites = await Invite.find({ organizationID: organizationId })
+      .populate('inviter', 'firstName lastName email')
+      .sort({ createdAt: -1 });
+
+    // Update expired invites
+    const updatedInvites = invites.map(invite => {
+      if (invite.status === 'Pending' && invite.isExpired()) {
+        invite.status = 'Expired';
+        invite.save();
+      }
+      return invite;
+    });
 
     // Get all tasks in the organization
     const tasks = await TaskDetails.find({ 
@@ -170,6 +185,19 @@ router.get('/:organizationId', async (req, res) => {
           username: user.username || 'No username'
         };
       }),
+      invites: updatedInvites.map(invite => ({
+        _id: invite._id,
+        email: invite.email,
+        status: invite.status,
+        invitedAt: invite.invitedAt,
+        expiredAt: invite.expiredAt,
+        acceptedAt: invite.acceptedAt,
+        inviter: invite.inviter ? {
+          firstName: invite.inviter.firstName,
+          lastName: invite.inviter.lastName,
+          email: invite.inviter.email
+        } : null
+      })),
       // Chart data
       charts: {
         projectStatusDistribution,

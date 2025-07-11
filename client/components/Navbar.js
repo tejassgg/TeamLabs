@@ -145,6 +145,14 @@ const StatusDropdown = ({ currentStatus, onStatusChange, theme }) => {
   );
 };
 
+const isProfileComplete = (userDetails) => {
+  if (!userDetails) return false;
+  const requiredFields = [
+    'phone', 'address', 'city', 'state', 'country', 'firstName', 'lastName', 'email'
+  ];
+  return requiredFields.every(field => userDetails[field] && userDetails[field].toString().trim() !== '');
+};
+
 const Navbar = ({ isMobile, theme, onLogout }) => {
   const { user } = useAuth();
   const { userDetails } = useGlobal();
@@ -159,8 +167,6 @@ const Navbar = ({ isMobile, theme, onLogout }) => {
   // Add status update handler
   const handleStatusChange = async (newStatus) => {
     try {
-      console.log(newStatus);
-      console.log(user);
       const response = await authService.updateUserStatus(newStatus, userDetails._id);
 
       if (response.status != 200) throw new Error('Failed to update status');
@@ -229,6 +235,13 @@ const Navbar = ({ isMobile, theme, onLogout }) => {
   const toggleNotifications = () => {
     setIsNotificationsOpen(!isNotificationsOpen);
     if (isUserMenuOpen) setIsUserMenuOpen(false);
+  };
+
+  const handleLogoClick = (e) => {
+    if (!isProfileComplete(userDetails)) {
+      e.preventDefault();
+      router.push('/profile');
+    }
   };
 
   // If in mobile navbar, show only the user profile button
@@ -329,8 +342,8 @@ const Navbar = ({ isMobile, theme, onLogout }) => {
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo */}
           <div className="flex-shrink-0 ml-2 lg:ml-6">
-            <Link href="/" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none">
-            TeamLabs
+            <Link href="/" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none" onClick={handleLogoClick}>
+              TeamLabs
             </Link>
           </div>
 
