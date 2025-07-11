@@ -7,6 +7,7 @@ const CommonType = require('../models/CommonType');
 const Invite = require('../models/Invite');
 const crypto = require('crypto');
 const emailService = require('../services/emailService');
+const Organization = require('../models/Organization');
 
 exports.updateUser = async (req, res) => {
   try {
@@ -79,13 +80,10 @@ exports.getUserOverview = async (req, res) => {
       IsActive: true
     }).lean();
 
-    // User's specific organization (from CommonType)
-    const userOrganization = await CommonType.findOne({ 
-      MasterType: 'Organization', 
-      Code: parseInt(user.organizationID) 
-    }).lean();
-        
-    const organization = userOrganization;
+    const organization = await Organization.findOne({
+      OrganizationID: user.organizationID
+    });
+
     // Tasks: assigned to user or created by user
     const tasks = await TaskDetails.find({
       $or: [

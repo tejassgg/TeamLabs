@@ -4,6 +4,7 @@ const Team = require('../models/Team');
 const User = require('../models/User');
 const TeamDetails = require('../models/TeamDetails');
 const { logActivity } = require('../services/activityService');
+const { checkTeamLimit } = require('../middleware/premiumLimits');
 
 // GET /api/teams - fetch all teams
 router.get('/:role/:userId', async (req, res) => {
@@ -32,7 +33,7 @@ router.get('/:role/:userId', async (req, res) => {
 });
 
 // POST /api/teams - add a new team
-router.post('/', async (req, res) => {
+router.post('/', checkTeamLimit, async (req, res) => {
   try {
     const { TeamName, TeamDescription, TeamType, OwnerID } = req.body;
     if (!TeamName) return res.status(400).json({ error: 'Team Name is required' });

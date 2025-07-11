@@ -4,7 +4,6 @@ const { OAuth2Client } = require('google-auth-library');
 const { logActivity } = require('../services/activityService');
 const { sendResetEmail } = require('../services/emailService');
 const UserActivity = require('../models/UserActivity');
-const CommonType = require('../models/CommonType');
 const Invite = require('../models/Invite');
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
@@ -12,6 +11,7 @@ const ForgotPasswordHistory = require('../models/ForgotPasswordHistory');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
+const Organization = require('../models/Organization');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -399,10 +399,13 @@ const completeUserProfile = async (req, res) => {
     // Log profile update
     await logActivity(user._id, 'profile_update', 'success', 'Profile updated successfully', req);
 
-    const organization = await CommonType.findOne({
-      Code: user.organizationID,
-      MasterType: 'Organization'
+    const organization = await Organization.findOne({
+      OrganizationID: user.organizationID
     });
+
+    if (!organization) {
+      return res.status(404).json({ message: 'Organization not found' });
+    }
 
     res.json({
       _id: user._id,
@@ -444,9 +447,9 @@ const getUserProfile = async (req, res) => {
       // If user has an organization ID, fetch the organization details
       if (user.organizationID) {
         const CommonType = require('../models/CommonType');
-        const organization = await CommonType.findOne({
-          Code: user.organizationID,
-          MasterType: 'Organization'
+
+        const organization = await Organization.findOne({
+          OrganizationID: user.organizationID
         });
 
         // Add organization details to the response
@@ -517,10 +520,8 @@ const getUserOrganizations = async (req, res) => {
 
     // If user has an organization ID, fetch the organization details
     if (user.organizationID) {
-      const CommonType = require('../models/CommonType');
-      const organization = await CommonType.findOne({
-        Code: user.organizationID,
-        MasterType: 'Organization'
+      const organization = await Organization.findOne({
+        OrganizationID: user.organizationID
       });
 
       if (organization) {

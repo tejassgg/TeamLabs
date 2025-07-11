@@ -1,10 +1,18 @@
 const Payment = require('../models/Payment');
 const User = require('../models/User');
 const CommonType = require('../models/CommonType');
+const Organization = require('../models/Organization');
 
 // Generate unique payment ID
 const generatePaymentId = () => {
   return `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+};
+
+// Helper to check if user is admin of the organization
+const isOrgAdmin = async (organizationID, userId) => {
+  const org = await Organization.findOne({ OrganizationID: organizationID });
+  if (!org) return false;
+  return org.OwnerID.toString() === userId.toString();
 };
 
 // Process payment and activate subscription
@@ -224,6 +232,12 @@ const cancelSubscription = async (req, res) => {
       });
     }
 
+    // Admin check
+    const isAdmin = await isOrgAdmin(organizationID, userId);
+    if (!isAdmin) {
+      return res.status(403).json({ success: false, message: 'Only the organization admin can cancel the subscription.' });
+    }
+
     // Update subscription to not auto-renew
     activeSubscription.autoRenew = false;
     await activeSubscription.save();
@@ -266,6 +280,12 @@ const downgradeSubscription = async (req, res) => {
         success: false,
         message: 'No active subscription found'
       });
+    }
+
+    // Admin check
+    const isAdmin = await isOrgAdmin(organizationID, userId);
+    if (!isAdmin) {
+      return res.status(403).json({ success: false, message: 'Only the organization admin can downgrade the subscription.' });
     }
 
     let refundResult = null;
@@ -504,6 +524,12 @@ const upgradeSubscription = async (req, res) => {
       });
     }
 
+    // Admin check
+    const isAdmin = await isOrgAdmin(organizationID, userId);
+    if (!isAdmin) {
+      return res.status(403).json({ success: false, message: 'Only the organization admin can upgrade the subscription.' });
+    }
+
     // Create new annual subscription
     const annualPayment = new Payment({
       paymentId: `ANNUAL_${Date.now()}`,
@@ -594,25 +620,26 @@ const getCardBrand = (cardNumber) => {
 
 const activateOrganizationPremium = async (organizationID, plan) => {
   try {
+    // Get the organization
+    const org = await Organization.findOne({ OrganizationID: organizationID });
+    if (!org) throw new Error('Organization not found');
     // Get all users in the organization
     const users = await User.find({ organizationID: organizationID });
-    
     // Calculate subscription dates
     const startDate = new Date();
     const endDate = new Date(startDate);
-    
     if (plan === 'monthly') {
       endDate.setMonth(endDate.getMonth() + 1);
     } else if (plan === 'annual') {
       endDate.setFullYear(endDate.getFullYear() + 1);
     }
-
     // Activate premium for all users
-    const updatePromises = users.map(user => 
-      user.activatePremium(plan, startDate, endDate)
-    );
-    
+    const updatePromises = users.map(user => user.activatePremium(plan, startDate, endDate));
     await Promise.all(updatePromises);
+    // Mark organization as premium
+    org.isPremium = true;
+    org.subscription = { plan, startDate, endDate };
+    await org.save();
   } catch (error) {
     console.error('Error activating organization premium:', error);
     throw error;
@@ -621,16 +648,18 @@ const activateOrganizationPremium = async (organizationID, plan) => {
 
 const deactivateOrganizationPremium = async (organizationID) => {
   try {
+    // Get the organization
+    const org = await Organization.findOne({ OrganizationID: organizationID });
+    if (!org) throw new Error('Organization not found');
     // Get all users in the organization
     const users = await User.find({ organizationID: organizationID });
-    
     // Deactivate premium for all users
-    const updatePromises = users.map(user => 
-      user.deactivatePremium()
-    );
-    
+    const updatePromises = users.map(user => user.deactivatePremium());
     await Promise.all(updatePromises);
-
+    // Mark organization as not premium
+    org.isPremium = false;
+    org.subscription = { plan: 'free', startDate: null, endDate: null };
+    await org.save();
   } catch (error) {
     console.error('Error deactivating organization premium:', error);
     throw error;

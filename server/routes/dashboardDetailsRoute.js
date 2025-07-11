@@ -7,6 +7,7 @@ const CommonType = require('../models/CommonType');
 const UserActivity = require('../models/UserActivity');
 const TaskDetails = require('../models/TaskDetails');
 const Invite = require('../models/Invite');
+const Organization = require('../models/Organization');
 
 // Get dashboard statistics
 router.get('/:organizationId', async (req, res) => {
@@ -68,7 +69,7 @@ router.get('/:organizationId', async (req, res) => {
     });
 
     // Get organization details
-    const organization = await CommonType.findOne({MasterType: 'Organization', Code: organizationId});
+    const organization = await Organization.findOne({OrganizationID: organizationId});
     const projStatus = await CommonType.find({MasterType: 'ProjectStatus'});
 
     // Calculate project status distribution

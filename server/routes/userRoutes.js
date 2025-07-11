@@ -5,7 +5,6 @@ const TeamDetails = require('../models/TeamDetails');
 const { protect } = require('../middleware/auth');
 const userController = require('../controllers/userController');
 const { inviteUser, getInvites, resendInvite, deleteInvite } = require('../controllers/userController');
-const auth = require('../middleware/auth');
 
 // GET /api/users/:userId/usage-limits - Get user's usage limits and premium status
 router.get('/:userId/usage-limits', protect, async (req, res) => {

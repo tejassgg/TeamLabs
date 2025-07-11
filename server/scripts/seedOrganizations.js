@@ -1,19 +1,22 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const CommonType = require('../models/CommonType');
+const Organization = require('../models/Organization');
 
 dotenv.config();
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-const orgTypes = [
-  { Value: 'Olanthroxx', Code: 1, MasterType: 'Organization' },
-  { Value: 'CoolStraxx', Code: 2, MasterType: 'Organization' },
-  { Value: 'Persistent Systems Limited', Code: 3, MasterType: 'Organization' },
+const dummyOwnerId = new mongoose.Types.ObjectId('681d488bb30030619cf0053d');
+const dummyModifierId = new mongoose.Types.ObjectId('681d488bb30030619cf0053d');
+
+const orgs = [
+  { Name: 'Olanthroxx', OrganizationID: 1, OwnerID: dummyOwnerId, IsActive: true, CreatedDate: new Date(), ModifiedDate: new Date(), ModifiedBy: dummyModifierId },
+  { Name: 'CoolStraxx', OrganizationID: 2, OwnerID: dummyOwnerId, IsActive: true, CreatedDate: new Date(), ModifiedDate: new Date(), ModifiedBy: dummyModifierId },
+  { Name: 'Persistent Systems Limited', OrganizationID: 3, OwnerID: dummyOwnerId, IsActive: true, CreatedDate: new Date(), ModifiedDate: new Date(), ModifiedBy: dummyModifierId },
 ];
 
 (async () => {
-  await CommonType.deleteMany({ MasterType: 'Organization' });
-  await CommonType.insertMany(orgTypes);
-  console.log('Seeded Organization options!');
+  await Organization.deleteMany({});
+  await Organization.insertMany(orgs);
+  console.log('Seeded Organization collection!');
   mongoose.disconnect();
 })();

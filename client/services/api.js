@@ -277,7 +277,7 @@ export const teamService = {
       const response = await api.post('/teams', teamData);
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Failed to add team' };
+      throw error.response?.data;
     }
   },
   deleteTeam: async (teamId, userId) => {

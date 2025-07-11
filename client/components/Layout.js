@@ -53,8 +53,11 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
       showToast('Team added successfully!', 'success');
       return newTeam;
     } catch (err) {
-      showToast('Failed to add team', 'error');
-      throw err;
+      if (err.status == 403) {
+        showToast(err.message, 'warning');
+      } else {
+        showToast('Failed to add team', 'error');
+      }
     }
   };
 
@@ -373,8 +376,8 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             isOpen={isAddProjectOpen}
             onClose={() => setIsAddProjectOpen(false)}
             onAddProject={handleAddProject}
-            organizationId={user?.organizationID}
-            projectOwner={user?._id}
+            organizationId={userDetails?.organizationID}
+            projectOwner={userDetails?._id}
           />
           <AddTaskModal
             isOpen={isAddTaskOpen}
