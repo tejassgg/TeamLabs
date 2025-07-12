@@ -48,16 +48,9 @@ const KanbanColumn = React.memo(({ statusCode, statusName, icon, bgColor, tasks,
       )}>
         {/* Add New Task Button (only for Not Assigned column) */}
         {statusCode === 1 && addTaskButton && (
-          <button
-            type="button"
-            onClick={addTaskButton.props.onClick}
-            className={getThemeClasses(
-              'w-full flex items-center justify-center gap-2 px-4 py-6 rounded-xl border border-gray-200 bg-white text-gray-700 font-medium text-lg transition-colors mb-4 hover:bg-gray-50',
-              'dark:bg-transparent dark:border-gray-600 dark:text-gray-200 dark:hover:bg-[#232323] dark:hover:border-gray-400'
-            )}
-          >
-            <span className="text-2xl">+</span> Add New Task
-          </button>
+          <div className="mb-4">
+            {addTaskButton}
+          </div>
         )}
         {/* Task Cards */}
         {tasksInStatus.map(task => (

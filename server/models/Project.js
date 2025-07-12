@@ -45,6 +45,53 @@ const ProjectSchema = new mongoose.Schema({
   ModifiedBy: {
     type: String,
     maxlength: 50
+  },
+  // GitHub Repository Integration
+  githubRepository: {
+    connected: {
+      type: Boolean,
+      default: false
+    },
+    repositoryId: {
+      type: String,
+      default: null
+    },
+    repositoryName: {
+      type: String,
+      default: null
+    },
+    repositoryUrl: {
+      type: String,
+      default: null
+    },
+    repositoryFullName: {
+      type: String,
+      default: null
+    },
+    repositoryDescription: {
+      type: String,
+      default: null
+    },
+    repositoryLanguage: {
+      type: String,
+      default: null
+    },
+    repositoryStars: {
+      type: Number,
+      default: 0
+    },
+    repositoryForks: {
+      type: Number,
+      default: 0
+    },
+    connectedAt: {
+      type: Date,
+      default: null
+    },
+    connectedBy: {
+      type: String,
+      default: null
+    }
   }
 });
 

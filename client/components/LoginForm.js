@@ -74,7 +74,7 @@ const LoginForm = ({ onSuccess }) => {
         if (response.needsAdditionalDetails) {
           router.push('/profile');
         } else {
-          router.push('/dashboard');
+        router.push('/dashboard');
         }
       }
     } catch (error) {

@@ -6,6 +6,8 @@ const TeamDetails = require('../models/TeamDetails');
 const ProjectDetails = require('../models/ProjectDetails');
 const { logActivity } = require('../services/activityService');
 const { checkProjectLimit, incrementUsage } = require('../middleware/premiumLimits');
+const { protect } = require('../middleware/auth');
+const { linkRepositoryToProject, unlinkRepositoryFromProject, getProjectRepository, getProjectCommits, getProjectIssues } = require('../controllers/authController');
 
 // GET /api/projects - fetch all projects the user is allocated to
 router.get('/:userId/:type', async (req, res) => {
@@ -187,4 +189,10 @@ router.patch('/:projectId/toggle-status', async (req, res) => {
   }
 }); 
 
+// Project GitHub Repository routes
+router.post('/:projectId/github/link', protect, linkRepositoryToProject);
+router.post('/:projectId/github/unlink', protect, unlinkRepositoryFromProject);
+router.get('/:projectId/github/repository', protect, getProjectRepository);
+router.get('/:projectId/github/commits', protect, getProjectCommits);
+router.get('/:projectId/github/issues', protect, getProjectIssues);
 module.exports = router; 

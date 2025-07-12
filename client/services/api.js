@@ -219,7 +219,7 @@ export const authService = {
       throw error.response?.data || { message: 'Failed to update security settings' };
     }
   },
-
+  
   updateUserStatus: async (status, userId) => {
     try {
       const response = await api.put('/auth/status', { status, userId});
@@ -260,7 +260,92 @@ export const authService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to get user overview' };
     }
-  }
+  },
+
+  // GitHub Integration methods
+  initiateGitHubAuth: async (userId) => {
+    try {
+      const response = await api.post('/auth/github/initiate', { userId });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to initiate GitHub authentication' };
+    }
+  },
+
+  handleGitHubCallback: async (code, state, userId) => {
+    try {
+      const response = await api.post('/auth/github/callback', { userId }, {
+        params: { code, state }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to complete GitHub authentication' };
+    }
+  },
+
+  disconnectGitHub: async (userId) => {
+    try {
+      const response = await api.post('/auth/github/disconnect', { userId });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to disconnect GitHub account' };
+    }
+  },
+
+  getGitHubStatus: async (userId) => {
+    try {
+      const response = await api.get(`/auth/github/status/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to get GitHub status' };
+    }
+  },
+
+  getSubscriptionData: async (organizationID) => {
+    try {
+      const response = await api.get(`/payment/organization/${organizationID}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch subscription data' };
+    }
+  },
+
+  // GitHub Repository methods
+  getUserRepositories: async (userId) => {
+    try {
+      const response = await api.get(`/auth/github/repositories/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch user repositories' };
+    }
+  },
+
+  linkRepositoryToProject: async (projectId, repositoryData) => {
+    try {
+      const response = await api.post(`/projects/${projectId}/github/link`, { repositoryData });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to link repository to project' };
+    }
+  },
+
+  unlinkRepositoryFromProject: async (projectId) => {
+    try {
+      const response = await api.post(`/projects/${projectId}/github/unlink`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to unlink repository from project' };
+    }
+  },
+
+  getProjectRepository: async (projectId) => {
+    try {
+      const response = await api.get(`/projects/${projectId}/github/repository`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to get project repository' };
+    }
+  },
 };
 
 export const teamService = {
@@ -429,9 +514,9 @@ export const taskService = {
     try {
       const currentUser = authService.getCurrentUser();
       const response = await api.patch(`/task-details/${taskId}/assign`, { 
-        AssignedTo: userId, 
-        AssignedDate: new Date(),
-        assignedBy: currentUser?._id 
+        AssignedTo: userId,
+        AssignedDate: userId ? new Date() : null,
+        assignedBy: currentUser?._id,
       });
       return response.data;
     } catch (error) {
@@ -691,6 +776,32 @@ export const userService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to delete invite' };
+    }
+  }
+};
+
+export const githubService = {
+  // Get project commits
+  getProjectCommits: async (projectId, page = 1, perPage = 20) => {
+    try {
+      const response = await api.get(`/projects/${projectId}/github/commits`, {
+        params: { page, per_page: perPage }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch commits' };
+    }
+  },
+  
+  // Get project issues
+  getProjectIssues: async (projectId, page = 1, perPage = 20) => {
+    try {
+      const response = await api.get(`/projects/${projectId}/github/issues`, {
+        params: { page, per_page: perPage }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch issues' };
     }
   }
 };

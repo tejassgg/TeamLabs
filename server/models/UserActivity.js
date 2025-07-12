@@ -26,8 +26,9 @@ const userActivitySchema = new mongoose.Schema({
       // Chatbot activities
       'chatbot_interaction',
       // Team Member activities
-      'team_members_remove','team_projects_remove', 'project_team_add'
-      
+      'team_members_remove','team_projects_remove', 'project_team_add',
+      // Repository activities
+      'repository_linked', 'repository_unlinked'      
     ]
   },
   status: {

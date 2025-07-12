@@ -3,11 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import Head from 'next/head';
 import Layout from '../components/Layout';
 import { useState, useEffect } from 'react';
-import { FaMoon, FaSun, FaDesktop, FaShieldAlt, FaSignOutAlt, FaCheck, FaTimes, FaCrown, FaInfinity, FaUsers, FaRocket, FaStar, FaCheckCircle } from 'react-icons/fa';
+import { FaMoon, FaSun, FaDesktop, FaShieldAlt, FaSignOutAlt, FaCheck, FaTimes, FaCrown, FaInfinity, FaUsers, FaRocket, FaStar, FaCheckCircle, FaGithub } from 'react-icons/fa';
 import { useToast } from '../context/ToastContext';
 import TwoFactorAuth from '../components/TwoFactorAuth';
 
-import authService from '../services/api';
+import { authService } from '../services/api';
 import { useRouter } from 'next/router';
 
 const Settings = () => {
@@ -39,6 +39,14 @@ const Settings = () => {
     refundAmount: 0,
     remainingDays: 0
   });
+  const [githubStatus, setGithubStatus] = useState({
+    connected: false,
+    username: null,
+    email: null,
+    avatarUrl: null,
+    connectedAt: null
+  });
+  const [githubLoading, setGithubLoading] = useState(false);
 
   // Update security settings when user data changes
   useEffect(() => {
@@ -55,7 +63,7 @@ const Settings = () => {
   // This allows direct navigation to specific tabs via URL (e.g., /settings?tab=subscription)
   useEffect(() => {
     if (router.query.tab) {
-      const validTabs = ['appearance', 'security', 'subscription'];
+      const validTabs = ['appearance', 'security', 'subscription', 'integrations'];
       if (validTabs.includes(router.query.tab)) {
         setActiveTab(router.query.tab);
       }
@@ -84,6 +92,146 @@ const Settings = () => {
     }
   }, [user?.organizationID]);
 
+  // Fetch GitHub status when integrations tab is active
+  useEffect(() => {
+    if (activeTab === 'integrations' && user?._id) {
+      fetchGitHubStatus();
+    }
+  }, [activeTab, user?._id]);
+
+  const fetchSubscriptionData = async () => {
+    setLoadingSubscription(true);
+    try {
+      const response = await authService.getSubscriptionData(user.organizationID);
+      
+      setSubscriptionData(response.data.subscription);
+      setPaymentHistory(response.data.paymentHistory.payments || []);
+      setSubscriptionFeatures(response.data.subscriptionFeatures || {
+        free: [],
+        monthly: [],
+        annual: []
+      });
+    } catch (error) {
+      console.error('Error fetching subscription data:', error);
+    } finally {
+      setLoadingSubscription(false);
+    }
+  };
+
+  const fetchGitHubStatus = async () => {
+    try {
+      setGithubLoading(true);
+      const response = await authService.getGitHubStatus(user._id);
+      if (response.success) {
+        setGithubStatus(response.githubStatus);
+      }
+    } catch (error) {
+      console.error('Error fetching GitHub status:', error);
+      showToast('Failed to fetch GitHub status', 'error');
+    } finally {
+      setGithubLoading(false);
+    }
+  };
+
+  const handleConnectGitHub = async () => {
+    try {
+      setGithubLoading(true);
+      const response = await authService.initiateGitHubAuth(user._id);
+      
+      if (response.success) {
+        // Store state for verification
+        localStorage.setItem('github_state', response.state);
+        localStorage.setItem('github_userId', user._id);
+        
+        // Redirect to GitHub OAuth
+        window.location.href = response.authUrl;
+      } else {
+        showToast(response.error || 'Failed to initiate GitHub authentication', 'error');
+      }
+    } catch (error) {
+      console.error('Error initiating GitHub auth:', error);
+      showToast('Failed to initiate GitHub authentication', 'error');
+    } finally {
+      setGithubLoading(false);
+    }
+  };
+
+  const handleDisconnectGitHub = async () => {
+    try {
+      setGithubLoading(true);
+      const response = await authService.disconnectGitHub(user._id);
+      
+      if (response.success) {
+        setGithubStatus({
+          connected: false,
+          username: null,
+          email: null,
+          avatarUrl: null,
+          connectedAt: null
+        });
+        showToast('GitHub account disconnected successfully', 'success');
+      } else {
+        showToast(response.error || 'Failed to disconnect GitHub account', 'error');
+      }
+    } catch (error) {
+      console.error('Error disconnecting GitHub:', error);
+      showToast('Failed to disconnect GitHub account', 'error');
+    } finally {
+      setGithubLoading(false);
+    }
+  };
+
+  // Handle GitHub OAuth callback
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    const storedState = localStorage.getItem('github_state');
+    const storedUserId = localStorage.getItem('github_userId');
+
+    if (code && state && storedState && storedUserId) {
+      // Verify state parameter
+      if (state === storedState) {
+        handleGitHubCallback(code, state, storedUserId);
+      } else {
+        showToast('Invalid GitHub authentication state', 'error');
+      }
+      
+      // Clean up stored data
+      localStorage.removeItem('github_state');
+      localStorage.removeItem('github_userId');
+      
+      // Remove URL parameters
+      const newUrl = window.location.pathname + '?tab=integrations';
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
+
+  const handleGitHubCallback = async (code, state, userId) => {
+    try {
+      setGithubLoading(true);
+      const response = await authService.handleGitHubCallback(code, state, userId);
+      
+      if (response.success) {
+        setGithubStatus({
+          connected: true,
+          username: response.githubUser.username,
+          email: response.githubUser.email,
+          avatarUrl: response.githubUser.avatarUrl,
+          connectedAt: new Date()
+        });
+        showToast('GitHub account connected successfully', 'success');
+      } else {
+        showToast(response.error || 'Failed to connect GitHub account', 'error');
+      }
+    } catch (error) {
+      console.error('Error handling GitHub callback:', error);
+      showToast('Failed to connect GitHub account', 'error');
+    } finally {
+      setGithubLoading(false);
+    }
+  };
+
   // Helper function to get icon for feature
   const getFeatureIcon = (feature) => {
     const featureText = feature.Value.toLowerCase();
@@ -99,25 +247,6 @@ const Settings = () => {
       return <FaCheckCircle className="text-sm text-white" />;
     } else {
       return <FaCheck className="text-sm text-white" />;
-    }
-  };
-
-  const fetchSubscriptionData = async () => {
-    setLoadingSubscription(true);
-    try {
-      const response = await authService.get(`/payment/organization/${user.organizationID}`);
-      
-      setSubscriptionData(response.data.data.subscription);
-      setPaymentHistory(response.data.data.paymentHistory.payments || []);
-      setSubscriptionFeatures(response.data.data.subscriptionFeatures || {
-        free: [],
-        monthly: [],
-        annual: []
-      });
-    } catch (error) {
-      console.error('Error fetching subscription data:', error);
-    } finally {
-      setLoadingSubscription(false);
     }
   };
 
@@ -352,7 +481,8 @@ const Settings = () => {
   const tabs = [
     { id: 'appearance', label: 'Appearance', icon: resolvedTheme === 'dark' ? FaMoon : FaSun },
     { id: 'security', label: 'Security', icon: FaShieldAlt },
-    { id: 'subscription', label: 'Subscription', icon: FaCrown }
+    { id: 'subscription', label: 'Subscription', icon: FaCrown },
+    { id: 'integrations', label: 'Integrations', icon: FaGithub }, // New Integrations tab
   ];
 
   return (
@@ -1049,6 +1179,91 @@ const Settings = () => {
                     </ul>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Integrations Tab */}
+          {activeTab === 'integrations' && (
+            <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+              <h2 className={`text-xl font-semibold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Integrations</h2>
+              
+              {/* GitHub Integration */}
+              <div className={`mb-6 p-6 rounded-xl border ${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+                <div className="flex items-center gap-4 mb-4">
+                  <FaGithub size={32} className={theme === 'dark' ? 'text-white' : 'text-gray-900'} />
+                  <div>
+                    <span className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>GitHub</span>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Connect your GitHub account for repository integrations
+                    </p>
+                  </div>
+                </div>
+
+                {githubLoading ? (
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                    <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {githubStatus.connected ? 'Disconnecting...' : 'Connecting...'}
+                    </span>
+                  </div>
+                ) : githubStatus.connected ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      {githubStatus.avatarUrl && (
+                        <img 
+                          src={githubStatus.avatarUrl} 
+                          alt="GitHub Avatar" 
+                          className="w-10 h-10 rounded-full"
+                        />
+                      )}
+                      <div>
+                        <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                          @{githubStatus.username}
+                        </p>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {githubStatus.email}
+                        </p>
+                        {githubStatus.connectedAt && (
+                          <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                            Connected {new Date(githubStatus.connectedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleDisconnectGitHub}
+                      disabled={githubLoading}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+                    >
+                      Disconnect GitHub
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={handleConnectGitHub}
+                        disabled={githubLoading}
+                        className={`px-6 py-2 rounded-lg font-semibold transition-colors duration-200 ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                      >
+                        Connect GitHub Account
+                      </button>
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Not connected</span>
+                    </div>
+                    <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                      Connect your GitHub account to enable repository integrations and automations.
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Future Integrations Placeholder */}
+              <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+                <h3 className={`text-lg font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>More Integrations Coming Soon</h3>
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  We're working on adding more integrations including Slack, Discord, and more.
+                </p>
               </div>
             </div>
           )}

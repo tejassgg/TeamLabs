@@ -410,11 +410,12 @@ router.patch('/:taskId/status', async (req, res) => {
 router.patch('/:taskId/assign', async (req, res) => {
     try {
         const taskId = req.params.taskId;
-        const { AssignedTo, AssignedDate } = req.body;
+        const { AssignedTo, AssignedDate, assignedBy } = req.body;
 
         const task = await TaskDetails.findOne({ TaskID: taskId });
         if (!task) return res.status(404).json({ error: 'Task not found' });
         const oldStatus = task.Status;
+        const oldAssignedTo = task.AssignedTo;
 
         // Save task history before updating
         const taskHistory = new TaskDetailsHistory({
@@ -438,11 +439,13 @@ router.patch('/:taskId/assign', async (req, res) => {
 
         // Update assignment
         task.AssignedTo = AssignedTo;
-        task.AssignedDate = AssignedDate || new Date();
+        task.AssignedDate = AssignedTo ? (AssignedDate || new Date()) : null;
 
-        // If the task is being assigned and was in Not Assigned status, change to Assigned status
+        // Update status based on assignment
         if (AssignedTo && task.Status === 1) {
             task.Status = 2; // Assigned status
+        } else if (!AssignedTo && task.Status === 2) {
+            task.Status = 1; // Back to Not Assigned status
         }
 
         await task.save();
@@ -453,13 +456,17 @@ router.patch('/:taskId/assign', async (req, res) => {
             const assignedTo = await User.findById(task.AssignedTo);
             if (assignedTo) {
                 const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
-                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                let teamName = null;
+                if (teamDetails) {
+                    const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                    teamName = team ? team.TeamName : null;
+                }
                 assignedToDetails = {
                     _id: assignedTo._id,
                     username: assignedTo.username,
                     fullName: assignedTo.firstName + " " + assignedTo.lastName,
                     email: assignedTo.email,
-                    teamName: team.TeamName
+                    teamName: teamName
                 };
             }
         }
@@ -468,11 +475,24 @@ router.patch('/:taskId/assign', async (req, res) => {
         taskWithDetails.AssignedToDetails = assignedToDetails;
 
         // Log the activity
+        const actionType = AssignedTo ? 'task_assign' : 'task_unassign';
+        const actionDescription = AssignedTo ? 
+            `Task "${task.Name}" assigned to user` : 
+            `Task "${task.Name}" unassigned`;
+
         await logActivity(
             task.CreatedBy,
-            task.Type == 'User Story' ? 'user_story_update' : 'task_update',
+            actionType,
             'success',
-            `Updated ${task.Type.toLowerCase()} "${task.Name}" status from ${oldStatus}.`,
+            actionDescription,
+            req,
+            {
+                taskId: task.TaskID,
+                taskName: task.Name,
+                oldAssignedTo,
+                newAssignedTo: AssignedTo,
+                projectId: task.ProjectID_FK
+            }
         );
 
         // Log assignment activity and send email notification
@@ -480,22 +500,22 @@ router.patch('/:taskId/assign', async (req, res) => {
             const assignedUser = await User.findById(AssignedTo);
             if (assignedUser) {
                 // Get the user who is making the assignment (from request body)
-                const assignedByUser = await User.findById(req.body.assignedBy);
-                const assignedBy = assignedByUser ? `${assignedByUser.firstName} ${assignedByUser.lastName}` : 'Unknown User';
+                const assignedByUser = await User.findById(assignedBy);
+                const assignedByName = assignedByUser ? `${assignedByUser.firstName} ${assignedByUser.lastName}` : 'Unknown User';
 
                 await logActivity(
                     task.CreatedBy,
                     'task_assign',
                     'success',
-                    `${assignedBy} assigned task "${task.Name}" to ${assignedUser.firstName} ${assignedUser.lastName}`,
+                    `${assignedByName} assigned task "${task.Name}" to ${assignedUser.firstName} ${assignedUser.lastName}`,
                     req,
                     {
                         taskId: task.TaskID,
                         taskName: task.Name,
                         assignedTo: assignedUser._id,
                         assignedToName: `${assignedUser.firstName} ${assignedUser.lastName}`,
-                        assignedBy: req.body.assignedBy,
-                        assignedByName: assignedBy,
+                        assignedBy: assignedBy,
+                        assignedByName: assignedByName,
                         projectId: task.ProjectID_FK
                     }
                 );
@@ -524,7 +544,7 @@ router.patch('/:taskId/assign', async (req, res) => {
                         assignedUser.email,
                         task.Name,
                         taskDetails,
-                        assignedBy,
+                        assignedByName,
                         task.Priority,
                         task.Status,
                         task.Type,
@@ -557,7 +577,7 @@ router.patch('/:taskId/assign', async (req, res) => {
             const task = await TaskDetails.findOne({ TaskID: req.params.taskId });
             await logActivity(
                 task?.CreatedBy,
-                task.Type == 'User Story' ? 'user_story_update' : 'task_update',
+                'task_assign',
                 'error',
                 `Failed to assign task: ${error.message}`,
                 req,

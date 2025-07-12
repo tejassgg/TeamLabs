@@ -111,6 +111,7 @@ const BadgeDropdown = ({
 };
 
 const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSideBar', projectIdDefault, userStories, editingTask = null, addTaskTypeMode = 'task' }) => {
+
   const { projects, userDetails } = useGlobal();
   const { theme } = useTheme();
   
@@ -193,6 +194,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (!name.trim()) {
       setError('Task Name is required');
       return;
@@ -222,12 +224,16 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       CreatedBy: createdBy
     };
 
+    
+
     if (isEditMode) {
       // Call update function
       onUpdateTask(editingTask.TaskID, taskData);
     } else {
       // Call add function
+
       onAddTask(taskData).catch(error => {
+        console.error('Error in onAddTask:', error);
         // Handle premium limit errors
         if (error?.response?.status === 403) {
           const errorData = error.response.data;

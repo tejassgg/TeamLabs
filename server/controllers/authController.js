@@ -1,17 +1,18 @@
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 const { OAuth2Client } = require('google-auth-library');
+const User = require('../models/User');
+const UserActivity = require('../models/UserActivity');
+const Organization = require('../models/Organization');
+const axios = require('axios');
+const qrcode = require('qrcode');
+const speakeasy = require('speakeasy');
+const nodemailer = require('nodemailer');
 const { logActivity } = require('../services/activityService');
 const { sendResetEmail } = require('../services/emailService');
-const UserActivity = require('../models/UserActivity');
 const Invite = require('../models/Invite');
-const speakeasy = require('speakeasy');
-const QRCode = require('qrcode');
-const ForgotPasswordHistory = require('../models/ForgotPasswordHistory');
-const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
-const Organization = require('../models/Organization');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -871,6 +872,629 @@ const resetPassword = async (req, res) => {
   }
 };
 
+// GitHub OAuth Integration
+const initiateGitHubAuth = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'User ID is required' });
+    }
+
+    // Generate state parameter for security using browser-compatible method
+    const generateRandomString = (length) => {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    };
+    
+    const state = generateRandomString(32);
+    
+    // Store state in session or temporary storage (for production, use Redis)
+    // For now, we'll use a simple approach
+    const redirectUri = `${process.env.CLIENT_URL || 'http://localhost:3000'}/github-callback`;
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&scope=repo,user:email&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    
+    res.json({
+      success: true,
+      authUrl: githubAuthUrl,
+      state: state
+    });
+  } catch (error) {
+    console.error('GitHub auth initiation error:', error);
+    res.status(500).json({ success: false, error: 'Failed to initiate GitHub authentication' });
+  }
+};
+
+const handleGitHubCallback = async (req, res) => {
+  try {
+    const { code, state } = req.query;
+    const { userId } = req.body;
+
+    if (!code || !state || !userId) {
+      return res.status(400).json({ success: false, error: 'Missing required parameters' });
+    }
+
+    // Exchange code for access token
+    const tokenResponse = await axios.post('https://github.com/login/oauth/access_token', {
+      client_id: process.env.GITHUB_CLIENT_ID,
+      client_secret: process.env.GITHUB_CLIENT_SECRET,
+      code: code
+    }, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    const { access_token } = tokenResponse.data;
+
+    if (!access_token) {
+      return res.status(400).json({ success: false, error: 'Failed to obtain access token' });
+    }
+
+    // Get user information from GitHub
+    const userResponse = await axios.get('https://api.github.com/user', {
+      headers: {
+        'Authorization': `token ${access_token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    const githubUser = userResponse.data;
+
+    // Get user's email from GitHub
+    const emailsResponse = await axios.get('https://api.github.com/user/emails', {
+      headers: {
+        'Authorization': `token ${access_token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    const primaryEmail = emailsResponse.data.find(email => email.primary)?.email || githubUser.email;
+
+    // Update user with GitHub information
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        githubConnected: true,
+        githubAccessToken: access_token,
+        githubUserId: githubUser.id.toString(),
+        githubUsername: githubUser.login,
+        githubEmail: primaryEmail,
+        githubAvatarUrl: githubUser.avatar_url,
+        githubConnectedAt: new Date()
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Log the activity
+    await UserActivity.create({
+      userId: userId,
+      type: 'github_connected',
+      details: `Connected GitHub account: ${githubUser.login}`,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    res.json({
+      success: true,
+      message: 'GitHub account connected successfully',
+      githubUser: {
+        username: githubUser.login,
+        email: primaryEmail,
+        avatarUrl: githubUser.avatar_url
+      }
+    });
+  } catch (error) {
+    console.error('GitHub callback error:', error);
+    res.status(500).json({ success: false, error: 'Failed to complete GitHub authentication' });
+  }
+};
+
+const disconnectGitHub = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'User ID is required' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    if (!user.githubConnected) {
+      return res.status(400).json({ success: false, error: 'GitHub account is not connected' });
+    }
+
+    // Revoke GitHub access token
+    if (user.githubAccessToken) {
+      try {
+        await axios.delete(`https://api.github.com/applications/${process.env.GITHUB_CLIENT_ID}/token`, {
+          headers: {
+            'Authorization': `token ${user.githubAccessToken}`,
+            'Accept': 'application/vnd.github.v3+json'
+          },
+          data: {
+            access_token: user.githubAccessToken
+          }
+        });
+      } catch (error) {
+        console.error('Error revoking GitHub token:', error);
+        // Continue with disconnection even if token revocation fails
+      }
+    }
+
+    // Update user to remove GitHub connection
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        githubConnected: false,
+        githubAccessToken: null,
+        githubUserId: null,
+        githubUsername: null,
+        githubEmail: null,
+        githubAvatarUrl: null,
+        githubConnectedAt: null
+      },
+      { new: true }
+    );
+
+    // Log the activity
+    await UserActivity.create({
+      userId: userId,
+      type: 'github_disconnected',
+      details: 'Disconnected GitHub account',
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    res.json({
+      success: true,
+      message: 'GitHub account disconnected successfully'
+    });
+  } catch (error) {
+    console.error('GitHub disconnect error:', error);
+    res.status(500).json({ success: false, error: 'Failed to disconnect GitHub account' });
+  }
+};
+
+const getGitHubStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'User ID is required' });
+    }
+
+    const user = await User.findById(userId).select('githubConnected githubUsername githubEmail githubAvatarUrl githubConnectedAt');
+    
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      githubStatus: {
+        connected: user.githubConnected,
+        username: user.githubUsername,
+        email: user.githubEmail,
+        avatarUrl: user.githubAvatarUrl,
+        connectedAt: user.githubConnectedAt
+      }
+    });
+  } catch (error) {
+    console.error('GitHub status error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get GitHub status' });
+  }
+};
+
+// GitHub Repository methods
+const getUserRepositories = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'User ID is required' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    if (!user.githubConnected) {
+      return res.status(400).json({ success: false, error: 'GitHub account not connected' });
+    }
+
+    // Fetch user's repositories from GitHub
+    const response = await axios.get('https://api.github.com/user/repos', {
+      headers: {
+        'Authorization': `token ${user.githubAccessToken}`,
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      params: {
+        sort: 'updated',
+        per_page: 100
+      }
+    });
+
+    const repositories = response.data.map(repo => ({
+      id: repo.id,
+      name: repo.name,
+      full_name: repo.full_name,
+      description: repo.description,
+      language: repo.language,
+      stargazers_count: repo.stargazers_count,
+      forks_count: repo.forks_count,
+      html_url: repo.html_url,
+      clone_url: repo.clone_url,
+      private: repo.private,
+      updated_at: repo.updated_at
+    }));
+
+    res.json({
+      success: true,
+      repositories
+    });
+  } catch (error) {
+    console.error('Error fetching user repositories:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch repositories' });
+  }
+};
+
+// Project GitHub Repository methods
+const linkRepositoryToProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { repositoryData } = req.body;
+    const userId = req.user._id;
+
+    if (!projectId || !repositoryData) {
+      return res.status(400).json({ success: false, error: 'Project ID and repository data are required' });
+    }
+
+    // Check if user has GitHub connected
+    const user = await User.findById(userId);
+    if (!user || !user.githubConnected) {
+      return res.status(400).json({ success: false, error: 'GitHub account not connected' });
+    }
+
+    // Import Project model
+    const Project = require('../models/Project');
+
+    // Find the project
+    const project = await Project.findOne({ ProjectID: projectId });
+    if (!project) {
+      return res.status(404).json({ success: false, error: 'Project not found' });
+    }
+
+    // Check if user is project owner or has permission
+    if (project.ProjectOwner.toString() !== userId.toString()) {
+      return res.status(403).json({ success: false, error: 'Not authorized to link repository to this project' });
+    }
+
+    // Update project with repository information
+    const updatedProject = await Project.findOneAndUpdate(
+      { ProjectID: projectId },
+      {
+        'githubRepository.connected': true,
+        'githubRepository.repositoryId': repositoryData.id,
+        'githubRepository.repositoryName': repositoryData.name,
+        'githubRepository.repositoryUrl': repositoryData.html_url,
+        'githubRepository.repositoryFullName': repositoryData.full_name,
+        'githubRepository.repositoryDescription': repositoryData.description,
+        'githubRepository.repositoryLanguage': repositoryData.language,
+        'githubRepository.repositoryStars': repositoryData.stargazers_count,
+        'githubRepository.repositoryForks': repositoryData.forks_count,
+        'githubRepository.connectedAt': new Date(),
+        'githubRepository.connectedBy': userId
+      },
+      { new: true }
+    );
+
+    // Log the activity
+    await UserActivity.create({
+      user: userId,
+      type: 'repository_linked',
+      status: 'success',
+      details: `Linked repository ${repositoryData.full_name} to project ${project.Name}`,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    res.json({
+      success: true,
+      message: 'Repository linked successfully',
+      project: updatedProject
+    });
+  } catch (error) {
+    console.error('Error linking repository to project:', error);
+    res.status(500).json({ success: false, error: 'Failed to link repository to project' });
+  }
+};
+
+const unlinkRepositoryFromProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const userId = req.user._id;
+
+    if (!projectId) {
+      return res.status(400).json({ success: false, error: 'Project ID is required' });
+    }
+
+    // Import Project model
+    const Project = require('../models/Project');
+
+    // Find the project
+    const project = await Project.findOne({ ProjectID: projectId });
+    if (!project) {
+      return res.status(404).json({ success: false, error: 'Project not found' });
+    }
+
+    // Check if user is project owner or has permission
+    if (project.ProjectOwner.toString() !== userId.toString()) {
+      return res.status(403).json({ success: false, error: 'Not authorized to unlink repository from this project' });
+    }
+
+    // Check if repository is linked
+    if (!project.githubRepository?.connected) {
+      return res.status(400).json({ success: false, error: 'No repository linked to this project' });
+    }
+
+    // Update project to remove repository information
+    const updatedProject = await Project.findOneAndUpdate(
+      { ProjectID: projectId },
+      {
+        'githubRepository.connected': false,
+        'githubRepository.repositoryId': null,
+        'githubRepository.repositoryName': null,
+        'githubRepository.repositoryUrl': null,
+        'githubRepository.repositoryFullName': null,
+        'githubRepository.repositoryDescription': null,
+        'githubRepository.repositoryLanguage': null,
+        'githubRepository.repositoryStars': 0,
+        'githubRepository.repositoryForks': 0,
+        'githubRepository.connectedAt': null,
+        'githubRepository.connectedBy': null
+      },
+      { new: true }
+    );
+
+    // Log the activity
+    await UserActivity.create({
+      user: userId,
+      type: 'repository_unlinked',
+      status: 'success',
+      details: `Unlinked repository from project ${project.Name}`,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    res.json({
+      success: true,
+      message: 'Repository unlinked successfully',
+      project: updatedProject
+    });
+  } catch (error) {
+    console.error('Error unlinking repository from project:', error);
+    res.status(500).json({ success: false, error: 'Failed to unlink repository from project' });
+  }
+};
+
+const getProjectRepository = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    if (!projectId) {
+      return res.status(400).json({ success: false, error: 'Project ID is required' });
+    }
+
+    // Import Project model
+    const Project = require('../models/Project');
+
+    // Find the project
+    const project = await Project.findOne({ ProjectID: projectId });
+    if (!project) {
+      return res.status(404).json({ success: false, error: 'Project not found' });
+    }
+
+    if (!project.githubRepository?.connected) {
+      return res.json({
+        success: true,
+        repository: null
+      });
+    }
+
+    res.json({
+      success: true,
+      repository: project.githubRepository
+    });
+  } catch (error) {
+    console.error('Error getting project repository:', error);
+    res.status(500).json({ success: false, error: 'Failed to get project repository' });
+  }
+};
+
+// Get commits from GitHub repository
+const getProjectCommits = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { page = 1, per_page = 20 } = req.query;
+    const userId = req.user._id;
+
+    if (!projectId) {
+      return res.status(400).json({ success: false, error: 'Project ID is required' });
+    }
+
+    // Import Project model
+    const Project = require('../models/Project');
+
+    // Find the project
+    const project = await Project.findOne({ ProjectID: projectId });
+    if (!project) {
+      return res.status(404).json({ success: false, error: 'Project not found' });
+    }
+
+    // Check if repository is linked
+    if (!project.githubRepository?.connected) {
+      return res.status(400).json({ success: false, error: 'No repository linked to this project' });
+    }
+
+    // Get the user who linked the repository
+    const linkingUser = await User.findById(project.githubRepository.connectedBy);
+    if (!linkingUser || !linkingUser.githubConnected) {
+      return res.status(400).json({ success: false, error: 'Repository owner not connected to GitHub' });
+    }
+
+    // Fetch commits from GitHub API
+    const response = await axios.get(
+      `https://api.github.com/repos/${project.githubRepository.repositoryFullName}/commits`,
+      {
+        headers: {
+          'Authorization': `token ${linkingUser.githubAccessToken}`,
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        params: {
+          page,
+          per_page
+        }
+      }
+    );
+
+    // Format the commits data
+    const commits = response.data.map(commit => ({
+      sha: commit.sha,
+      message: commit.commit.message,
+      author: {
+        name: commit.commit.author.name,
+        email: commit.commit.author.email,
+        date: commit.commit.author.date
+      },
+      committer: {
+        name: commit.commit.committer.name,
+        email: commit.commit.committer.email,
+        date: commit.commit.committer.date
+      },
+      html_url: commit.html_url,
+      url: commit.url,
+      parents: commit.parents.map(parent => parent.sha)
+    }));
+
+    res.json({
+      success: true,
+      commits,
+      pagination: {
+        page: parseInt(page),
+        per_page: parseInt(per_page),
+        has_next: response.data.length === parseInt(per_page)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching project commits:', error);
+    if (error.response?.status === 404) {
+      return res.status(404).json({ success: false, error: 'Repository not found or access denied' });
+    }
+    res.status(500).json({ success: false, error: 'Failed to fetch commits' });
+  }
+};
+
+// Get issues from GitHub repository
+const getProjectIssues = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { page = 1, per_page = 20 } = req.query;
+    const userId = req.user._id;
+
+    if (!projectId) {
+      return res.status(400).json({ success: false, error: 'Project ID is required' });
+    }
+
+    // Import Project model
+    const Project = require('../models/Project');
+
+    // Find the project
+    const project = await Project.findOne({ ProjectID: projectId });
+    if (!project) {
+      return res.status(404).json({ success: false, error: 'Project not found' });
+    }
+
+    // Check if repository is linked
+    if (!project.githubRepository?.connected) {
+      return res.status(400).json({ success: false, error: 'No repository linked to this project' });
+    }
+
+    // Get the user who linked the repository
+    const linkingUser = await User.findById(project.githubRepository.connectedBy);
+    if (!linkingUser || !linkingUser.githubConnected) {
+      return res.status(400).json({ success: false, error: 'Repository owner not connected to GitHub' });
+    }
+
+    // Fetch issues from GitHub API
+    const response = await axios.get(
+      `https://api.github.com/repos/${project.githubRepository.repositoryFullName}/issues`,
+      {
+        headers: {
+          'Authorization': `token ${linkingUser.githubAccessToken}`,
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        params: {
+          page,
+          per_page,
+          state: 'all' // Get both open and closed issues
+        }
+      }
+    );
+
+    // Format the issues data
+    const issues = response.data.map(issue => ({
+      id: issue.id,
+      number: issue.number,
+      title: issue.title,
+      body: issue.body,
+      state: issue.state,
+      locked: issue.locked,
+      assignees: issue.assignees,
+      labels: issue.labels,
+      user: {
+        login: issue.user.login,
+        avatar_url: issue.user.avatar_url,
+        html_url: issue.user.html_url
+      },
+      created_at: issue.created_at,
+      updated_at: issue.updated_at,
+      closed_at: issue.closed_at,
+      html_url: issue.html_url,
+      comments: issue.comments,
+      pull_request: issue.pull_request
+    }));
+
+    res.json({
+      success: true,
+      issues,
+      pagination: {
+        page: parseInt(page),
+        per_page: parseInt(per_page),
+        has_next: response.data.length === parseInt(per_page)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching project issues:', error);
+    if (error.response?.status === 404) {
+      return res.status(404).json({ success: false, error: 'Repository not found or access denied' });
+    }
+    res.status(500).json({ success: false, error: 'Failed to fetch issues' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -889,5 +1513,15 @@ module.exports = {
   updateUserStatus,
   forgotPassword,
   resetPassword,
-  verifyResetPassword
+  verifyResetPassword,
+  initiateGitHubAuth,
+  handleGitHubCallback,
+  disconnectGitHub,
+  getGitHubStatus,
+  getUserRepositories,
+  linkRepositoryToProject,
+  unlinkRepositoryFromProject,
+  getProjectRepository,
+  getProjectCommits,
+  getProjectIssues
 }; 

@@ -191,15 +191,19 @@ const TaskDetailsPage = () => {
     const handleMemberAssignment = async (memberId) => {
         setAssigningMember(true);
         try {
-            // If memberId is null or 'self', use current user's ID
-            const assigneeId = memberId === 'self' || !memberId ? user?._id : memberId;
+            // If memberId is null, unassign the task
+            // If memberId is 'self', use current user's ID
+            // Otherwise use the provided memberId
+            const assigneeId = memberId === 'self' ? user?._id : memberId;
+
             const response = await taskService.assignTask(taskId, assigneeId);
 
             // Update task with the response data which includes the new assignee details
             setTask(prev => ({
                 ...prev,
                 AssignedTo: assigneeId,
-                AssignedToDetails: response.AssignedToDetails
+                AssignedToDetails: response.AssignedToDetails,
+                Status: assigneeId ? 2 : 1 // Update status based on assignment
             }));
 
             // Update task activity from the response
@@ -208,7 +212,10 @@ const TaskDetailsPage = () => {
             }
 
             setMemberDropdownOpen(false);
-            showToast('Task assigned successfully', 'success');
+            const actionMessage = assigneeId ?
+                (memberId === 'self' ? 'Task assigned to yourself' : 'Task assigned successfully') :
+                'Task unassigned successfully';
+            showToast(actionMessage, 'success');
         } catch (err) {
             showToast('Failed to assign task', 'error');
         } finally {
@@ -245,6 +252,17 @@ const TaskDetailsPage = () => {
         if (diffInDays < 7) return `${diffInDays}d ago`;
 
         return taskDate.toLocaleDateString();
+    };
+
+    // Helper function to get user initials
+    const getUserInitials = (fullName) => {
+        if (!fullName) return '?';
+        return fullName
+            .split(' ')
+            .map(name => name.charAt(0))
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
     };
 
     useEffect(() => {
@@ -450,36 +468,175 @@ const TaskDetailsPage = () => {
                                     placeholder="No description available"
                                 />
                             </div>
+
+                            {/* --- MEMBER ASSIGNMENT SECTION (for non-User Story tasks) --- */}
+                            {task.Type !== 'User Story' && (
+                                <div className="flex items-center gap-4 pb-4">
+                                    <div className={getThemeClasses("text-sm font-medium text-gray-500 mb-1", "dark:text-gray-400")}>Assigned To:</div>
+                                    <div className="relative member-dropdown">
+                                        <button
+                                            onClick={() => setMemberDropdownOpen(!memberDropdownOpen)}
+                                            className={getThemeClasses(
+                                                "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium bg-transparent border-none shadow-none transition-colors cursor-pointer",
+                                                "dark:bg-transparent border-none shadow-none dark:text-gray-100"
+                                            )}
+                                            style={{ minWidth: 120 }}
+                                            disabled={assigningMember}>
+                                            <div className="flex items-center gap-2">
+                                                {task.AssignedToDetails ? (
+                                                    <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-medium">
+                                                        {getUserInitials(task.AssignedToDetails.fullName)}
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-6 h-6 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center text-xs font-medium">
+                                                        ?
+                                                    </div>
+                                                )}
+                                                <span className={getThemeClasses("text-gray-900", "dark:text-gray-100")}>
+                                                    {task.AssignedToDetails ?
+                                                        task.AssignedToDetails.fullName :
+                                                        'Select member'
+                                                    }
+                                                </span>
+                                            </div>
+                                            <FaChevronDown size={12} className={getThemeClasses("ml-1 text-gray-400", "dark:text-gray-500")} />
+                                        </button>
+                                        {memberDropdownOpen && (
+                                            <div className={getThemeClasses(
+                                                "absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10",
+                                                "dark:bg-gray-800 dark:border-gray-700"
+                                            )}>
+                                                <div className="py-1">
+                                                    {/* Self assign option */}
+                                                    <button
+                                                        onClick={() => handleMemberAssignment('self')}
+                                                        disabled={assigningMember}
+                                                        className={getThemeClasses(
+                                                            "w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2",
+                                                            "dark:hover:bg-gray-700 dark:text-gray-300"
+                                                        )}
+                                                    >
+                                                        <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-medium">
+                                                            {getUserInitials(userDetails?.fullName || userDetails?.firstName + ' ' + userDetails?.lastName || 'Me')}
+                                                        </div>
+                                                        <span className={getThemeClasses("text-gray-900", "dark:text-gray-100")}>Assign to me</span>
+                                                    </button>
+                                                    {/* Team members */}
+                                                    {projectMembers.map((member) => (
+                                                        <button
+                                                            key={member._id}
+                                                            onClick={() => handleMemberAssignment(member._id)}
+                                                            disabled={assigningMember}
+                                                            className={getThemeClasses(
+                                                                `w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 ${task.AssignedTo === member._id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`,
+                                                                `dark:hover:bg-gray-700 ${task.AssignedTo === member._id ? 'dark:bg-blue-900/30 dark:text-blue-300' : 'dark:text-gray-300'}`
+                                                            )}
+                                                        >
+                                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${task.AssignedTo === member._id
+                                                                    ? 'bg-blue-500 text-white'
+                                                                    : 'bg-gray-200 text-gray-700'
+                                                                }`}>
+                                                                {getUserInitials(member.fullName)}
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <div className={getThemeClasses("font-medium text-gray-900", "dark:text-gray-100")}>{member.fullName}</div>
+                                                                <div className={getThemeClasses("text-xs text-gray-500", "dark:text-gray-400")}>
+                                                                    {member.username}
+                                                                </div>
+                                                            </div>
+                                                            {task.AssignedTo === member._id && (
+                                                                <FaCheckCircle size={12} className={getThemeClasses("text-blue-600", "dark:text-blue-400")} />
+                                                            )}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {assigningMember && (
+                                        <div className={getThemeClasses(
+                                            "mt-2 text-sm text-gray-500 flex items-center gap-2",
+                                            "dark:text-gray-300"
+                                        )}>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                                            Assigning task...
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                         {/* --- END UPPER PART --- */}
 
                         {/* --- ATTACHMENTS SECTION --- */}
-                        <div className="mb-10">
-                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900", "dark:text-gray-100")}>Attachments</h2>
+                        <div className="mb-5">
                             <TaskAttachments taskId={task.TaskID} userId={userDetails?._id} initialAttachments={attachments} />
                         </div>
                         {/* Divider between Attachments and Comments */}
-                        <div className={getThemeClasses("border-t border-gray-200 mb-10", "dark:border-gray-700")}></div>
+                        <div className={getThemeClasses("border-t border-gray-200 mb-5", "dark:border-gray-700")}></div>
                         {/* --- COMMENTS SECTION --- */}
-                        <div>
-                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900", "dark:text-gray-100")}>Comments</h2>
-                            <TaskComments
-                                taskId={task.TaskID}
-                                userId={userDetails?._id}
-                                userName={userDetails?.fullName || userDetails?.username || 'User'}
-                                initialComments={comments}
-                                projectMembers={projectMembers}
-                            />
+                        <div className="mb-5">
+                            <TaskComments taskId={task.TaskID} userId={userDetails?._id} userName={userDetails?.fullName || userDetails?.username || 'User'} initialComments={comments} projectMembers={projectMembers} />
                         </div>
                     </div>
                     {/* Right Column - Project Info & Actions */}
-                    <div className="space-y-10">
+                    <div className="space-y-5">
+                        {/* --- TASK DATES SECTION --- */}
+                        <div className={getThemeClasses(
+                            "border border-gray-200 rounded-xl px-6 bg-transparent",
+                            "dark:border-gray-700 dark:bg-transparent"
+                        )}>
+                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900 flex items-center gap-2 border-b border-gray-200 py-4", "dark:text-gray-100 dark:border-gray-700")}>
+                                <FaCalendarAlt className={getThemeClasses("text-blue-500", "dark:text-blue-400")} />
+                                Task Dates
+                            </h2>
+                            <div className="space-y-4 pb-4">
+                                <div>
+                                    <div className={getThemeClasses(
+                                        "text-sm font-medium text-gray-500 mb-1",
+                                        "dark:text-gray-400"
+                                    )}>Created Date</div>
+                                    <div className={getThemeClasses(
+                                        "text-gray-900 font-medium",
+                                        "dark:text-gray-100"
+                                    )}>
+                                        {task.CreatedDate ? new Date(task.CreatedDate).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        }) : 'Not available'}
+                                    </div>
+                                </div>
+                                {task.AssignedDate && (
+                                    <div>
+                                        <div className={getThemeClasses(
+                                            "text-sm font-medium text-gray-500 mb-1",
+                                            "dark:text-gray-400"
+                                        )}>Assigned Date</div>
+                                        <div className={getThemeClasses(
+                                            "text-gray-900 font-medium",
+                                            "dark:text-gray-100"
+                                        )}>
+                                            {new Date(task.AssignedDate).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         {/* --- PROJECT INFORMATION SECTION --- */}
                         <div className={getThemeClasses(
                             "border border-gray-200 rounded-xl px-6 bg-transparent",
                             "dark:border-gray-700 dark:bg-transparent"
                         )}>
-                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900 flex items-center gap-2 border-b border-gray-200 py-4", "dark:text-gray-100 dark:border-gray-700")}> 
+                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900 flex items-center gap-2 border-b border-gray-200 py-4", "dark:text-gray-100 dark:border-gray-700")}>
                                 <FaProjectDiagram className={getThemeClasses("text-purple-500", "dark:text-purple-400")} />
                                 Project Information
                             </h2>
@@ -531,12 +688,13 @@ const TaskDetailsPage = () => {
                                 </div>
                             )}
                         </div>
+
                         {/* --- HISTORY SECTION --- */}
                         <div className={getThemeClasses(
                             "border border-gray-200 rounded-xl px-6 bg-transparent",
                             "dark:border-gray-700 dark:bg-transparent"
                         )}>
-                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900 flex items-center gap-2 border-b border-gray-200 py-4", "dark:text-gray-100 dark:border-gray-700")}> 
+                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900 flex items-center gap-2 border-b border-gray-200 py-4", "dark:text-gray-100 dark:border-gray-700")}>
                                 <FaClock className={getThemeClasses("text-green-500", "dark:text-green-400")} />
                                 History
                             </h2>
@@ -544,7 +702,7 @@ const TaskDetailsPage = () => {
                                 {activityLoading ? (
                                     <div className={getThemeClasses(
                                         "text-center py-8 text-gray-400",
-                                        "dark:text-gray-500"
+                                        "dark:text-gray-300"
                                     )}>Loading...</div>
                                 ) : taskActivity.length > 0 ? (
                                     <div className="space-y-4 pb-4">
@@ -581,7 +739,7 @@ const TaskDetailsPage = () => {
                                             </button>
                                             <span className={getThemeClasses(
                                                 "text-sm text-gray-600",
-                                                "dark:text-gray-400"
+                                                "dark:text-gray-300"
                                             )}>
                                                 Page {activityPage} of {activityTotalPages}
                                             </span>
@@ -601,12 +759,13 @@ const TaskDetailsPage = () => {
                                     <div className="text-center py-8">
                                         <div className={getThemeClasses(
                                             "text-gray-400 text-sm",
-                                            "dark:text-gray-500"
+                                            "dark:text-gray-300"
                                         )}>No activity recorded yet</div>
                                     </div>
                                 )}
                             </div>
                         </div>
+
                         {/* User Story Tasks List */}
                         {task.Type === 'User Story' && (
                             <div className="px-6 pb-6">
@@ -629,7 +788,7 @@ const TaskDetailsPage = () => {
                                 {userStoryTasks.length === 0 ? (
                                     <div className={getThemeClasses(
                                         "text-gray-400 text-sm",
-                                        "dark:text-gray-500"
+                                        "dark:text-gray-300"
                                     )}>No tasks found for this user story.</div>
                                 ) : (
                                     <ul className={getThemeClasses(
@@ -662,7 +821,7 @@ const TaskDetailsPage = () => {
                                                             </div>
                                                         </div>
                                                         {/* Status Badge */}
-                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border shadow-sm transition-all duration-200 ${statusColors[t.Status]?.light || 'bg-gray-50'} ${statusColors[t.Status]?.textLight || 'text-gray-700'} ${statusColors[t.Status]?.borderLight || 'border-gray-200'}`}> 
+                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border shadow-sm transition-all duration-200 ${statusColors[t.Status]?.light || 'bg-gray-50'} ${statusColors[t.Status]?.textLight || 'text-gray-700'} ${statusColors[t.Status]?.borderLight || 'border-gray-200'}`}>
                                                             {statusIcons[t.Status]}
                                                             {statusMap[t.Status] || 'Unknown'}
                                                         </span>

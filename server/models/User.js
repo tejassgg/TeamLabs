@@ -261,6 +261,36 @@ const UserSchema = new mongoose.Schema({
       type: Number,
       default: 0
     }
+  },
+
+  // GitHub Integration fields
+  githubConnected: {
+    type: Boolean,
+    default: false
+  },
+  githubAccessToken: {
+    type: String,
+    default: null
+  },
+  githubUserId: {
+    type: String,
+    default: null
+  },
+  githubUsername: {
+    type: String,
+    default: null
+  },
+  githubEmail: {
+    type: String,
+    default: null
+  },
+  githubAvatarUrl: {
+    type: String,
+    default: null
+  },
+  githubConnectedAt: {
+    type: Date,
+    default: null
   }
 });
 

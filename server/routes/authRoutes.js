@@ -19,6 +19,14 @@ const {
   forgotPassword,
   resetPassword,
   verifyResetPassword,
+  initiateGitHubAuth,
+  handleGitHubCallback,
+  disconnectGitHub,
+  getGitHubStatus,
+  getUserRepositories,
+  linkRepositoryToProject,
+  unlinkRepositoryFromProject,
+  getProjectRepository,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -251,5 +259,12 @@ router.put('/status', protect, updateUserStatus);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.post('/verify-reset-password', verifyResetPassword);
+
+// GitHub OAuth routes
+router.post('/github/initiate', initiateGitHubAuth);
+router.post('/github/callback', handleGitHubCallback);
+router.post('/github/disconnect', protect, disconnectGitHub);
+router.get('/github/status/:userId', protect, getGitHubStatus);
+router.get('/github/repositories/:userId', protect, getUserRepositories);
 
 module.exports = router; 

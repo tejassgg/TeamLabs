@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import api, { authService, taskService, projectService } from '../../services/api';
+import api, { authService, taskService, projectService, githubService } from '../../services/api';
 import Layout from '../../components/Layout';
-import { FaTrash, FaCog, FaTimes, FaClock, FaUserCheck, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaChevronRight, FaInfoCircle, FaProjectDiagram, FaChartBar, FaTasks, FaPlus } from 'react-icons/fa';
-import LoadingScreen from '../../components/LoadingScreen';
+import { FaTrash, FaCog, FaTimes, FaClock, FaUserCheck, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaChevronRight, FaInfoCircle, FaProjectDiagram, FaChartBar, FaTasks, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch } from 'react-icons/fa';
 import AddTaskModal from '../../components/AddTaskModal';
 import CustomModal from '../../components/CustomModal';
 import { useToast } from '../../context/ToastContext';
@@ -13,15 +12,12 @@ import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import AssignTaskModal from '../../components/AssignTaskModal';
 import React from 'react';
-import TaskCard from '../../components/TaskCard';
 import KanbanColumn from '../../components/KanbanColumn';
 import {
   statusMap,
   statusIcons,
   statusColors,
-  getTaskTypeDetails,
-  getPriorityStyle,
-  useThemeClasses
+  getPriorityStyle
 } from '../../components/kanbanUtils';
 import { getProjectStatusBadge } from '../../components/ProjectStatusBadge';
 import ProjectDetailsSkeleton from '../../components/ProjectDetailsSkeleton';
@@ -85,6 +81,26 @@ const ProjectDetailsPage = () => {
   const [filteredAvailableTeams, setFilteredAvailableTeams] = useState([]);
   const [isTeamInputFocused, setIsTeamInputFocused] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  // GitHub Repository state
+  const [projectRepository, setProjectRepository] = useState(null);
+  const [userRepositories, setUserRepositories] = useState([]);
+  const [showRepositoryModal, setShowRepositoryModal] = useState(false);
+  const [showRepositoryList, setShowRepositoryList] = useState(false);
+  const [repositoryLoading, setRepositoryLoading] = useState(false);
+  const [linkingRepository, setLinkingRepository] = useState(false);
+  const [unlinkingRepository, setUnlinkingRepository] = useState(false);
+  // Repository commits state
+  const [commits, setCommits] = useState([]);
+  const [commitsLoading, setCommitsLoading] = useState(false);
+  const [commitsPage, setCommitsPage] = useState(1);
+  const [hasMoreCommits, setHasMoreCommits] = useState(true);
+  const [commitsTotalPages, setCommitsTotalPages] = useState(1);
+  const [commitsPerPage] = useState(10);
+  // Repository issues state
+  const [issues, setIssues] = useState([]);
+  const [issuesLoading, setIssuesLoading] = useState(false);
+  const [issuesPage, setIssuesPage] = useState(1);
+  const [hasMoreIssues, setHasMoreIssues] = useState(true);
 
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
@@ -108,6 +124,356 @@ const ProjectDetailsPage = () => {
         .finally(() => setLoading(false));
     }
   }, [projectId, router]);
+
+  // Fetch project repository information
+  useEffect(() => {
+    if (projectId && currentUser) {
+      fetchProjectRepository();
+    }
+  }, [projectId, currentUser]);
+
+  // Fetch commits when repository tab is active and repository is connected
+  useEffect(() => {
+    if (activeTab === 'repo' && projectRepository?.connected) {
+      fetchCommits(1);
+      fetchIssues(1);
+    }
+  }, [activeTab, projectRepository]);
+
+  const fetchProjectRepository = async () => {
+    try {
+      setRepositoryLoading(true);
+      const response = await authService.getProjectRepository(projectId);
+      if (response.success) {
+        setProjectRepository(response.repository);
+      }
+    } catch (error) {
+      console.error('Error fetching project repository:', error);
+    } finally {
+      setRepositoryLoading(false);
+    }
+  };
+
+  const fetchUserRepositories = async () => {
+    try {
+      setRepositoryLoading(true);
+      const response = await authService.getUserRepositories(currentUser._id);
+      if (response.success) {
+        setUserRepositories(response.repositories);
+        setShowRepositoryList(true);
+      } else {
+        showToast(response.error || 'Failed to fetch repositories', 'error');
+      }
+    } catch (error) {
+      console.error('Error fetching user repositories:', error);
+      showToast('Failed to fetch repositories', 'error');
+    } finally {
+      setRepositoryLoading(false);
+    }
+  };
+
+  const handleLinkRepository = async (repository) => {
+    try {
+      setLinkingRepository(true);
+      const response = await authService.linkRepositoryToProject(projectId, repository, currentUser._id);
+      if (response.success) {
+        setProjectRepository(response.project.githubRepository);
+        setShowRepositoryModal(false);
+        setShowRepositoryList(false);
+        showToast('Repository linked successfully', 'success');
+      } else {
+        showToast(response.error || 'Failed to link repository', 'error');
+      }
+    } catch (error) {
+      console.error('Error linking repository:', error);
+      showToast('Failed to link repository', 'error');
+    } finally {
+      setLinkingRepository(false);
+    }
+  };
+
+  const handleUnlinkRepository = async () => {
+    try {
+      setUnlinkingRepository(true);
+      const response = await authService.unlinkRepositoryFromProject(projectId);
+      if (response.success) {
+        setProjectRepository(null);
+        showToast('Repository unlinked successfully', 'success');
+      } else {
+        showToast(response.error || 'Failed to unlink repository', 'error');
+      }
+    } catch (error) {
+      console.error('Error unlinking repository:', error);
+      showToast('Failed to unlink repository', 'error');
+    } finally {
+      setUnlinkingRepository(false);
+    }
+  };
+
+  // Fetch commits from repository
+  const fetchCommits = async (page = 1) => {
+    if (!projectRepository?.connected) return;
+
+    try {
+      setCommitsLoading(true);
+      const response = await githubService.getProjectCommits(projectId, page, commitsPerPage);
+      if (response.success) {
+        setCommits(response.commits);
+        setCommitsPage(page);
+        setHasMoreCommits(response.pagination.has_next);
+        // Estimate total pages based on current page and has_next
+        if (response.pagination.has_next) {
+          setCommitsTotalPages(page + 1);
+        } else {
+          setCommitsTotalPages(page);
+        }
+      } else {
+        showToast(response.error || 'Failed to fetch commits', 'error');
+      }
+    } catch (error) {
+      console.error('Error fetching commits:', error);
+      showToast('Failed to fetch commits', 'error');
+    } finally {
+      setCommitsLoading(false);
+    }
+  };
+
+  // Fetch issues from repository
+  const fetchIssues = async (page = 1) => {
+    if (!projectRepository?.connected) return;
+
+    try {
+      setIssuesLoading(true);
+      const response = await githubService.getProjectIssues(projectId, page, 20);
+      if (response.success) {
+        if (page === 1) {
+          setIssues(response.issues);
+        } else {
+          setIssues(prev => [...prev, ...response.issues]);
+        }
+        setHasMoreIssues(response.pagination.has_next);
+        setIssuesPage(page);
+      } else {
+        showToast(response.error || 'Failed to fetch issues', 'error');
+      }
+    } catch (error) {
+      console.error('Error fetching issues:', error);
+      showToast('Failed to fetch issues', 'error');
+    } finally {
+      setIssuesLoading(false);
+    }
+  };
+
+  // Load more commits
+  const loadMoreCommits = () => {
+    if (!commitsLoading && hasMoreCommits) {
+      fetchCommits(commitsPage + 1);
+    }
+  };
+
+  // Pagination functions for commits
+  const goToCommitsPage = (page) => {
+    if (page >= 1 && page <= commitsTotalPages && !commitsLoading) {
+      fetchCommits(page);
+    }
+  };
+
+  const nextCommitsPage = () => {
+    if (commitsPage < commitsTotalPages && !commitsLoading) {
+      fetchCommits(commitsPage + 1);
+    }
+  };
+
+  const prevCommitsPage = () => {
+    if (commitsPage > 1 && !commitsLoading) {
+      fetchCommits(commitsPage - 1);
+    }
+  };
+
+  // Pagination component
+  const Pagination = ({ currentPage, totalPages, onPageChange, onNext, onPrev, loading }) => {
+    const getPageNumbers = () => {
+      const pages = [];
+      const maxVisible = 5;
+
+      if (totalPages <= maxVisible) {
+        for (let i = 1; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        if (currentPage <= 3) {
+          for (let i = 1; i <= 4; i++) {
+            pages.push(i);
+          }
+          pages.push('...');
+          pages.push(totalPages);
+        } else if (currentPage >= totalPages - 2) {
+          pages.push(1);
+          pages.push('...');
+          for (let i = totalPages - 3; i <= totalPages; i++) {
+            pages.push(i);
+          }
+        } else {
+          pages.push(1);
+          pages.push('...');
+          for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+            pages.push(i);
+          }
+          pages.push('...');
+          pages.push(totalPages);
+        }
+      }
+
+      return pages;
+    };
+
+    return (
+      <div className="flex items-center justify-center gap-1 mt-6">
+        <button
+          onClick={onPrev}
+          disabled={currentPage === 1 || loading}
+          className={getThemeClasses(
+            "px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50",
+            currentPage === 1 || loading
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+          )}
+        >
+          Previous
+        </button>
+
+        {getPageNumbers().map((page, index) => (
+          <button
+            key={index}
+            onClick={() => typeof page === 'number' ? onPageChange(page) : null}
+            disabled={page === '...' || loading}
+            className={getThemeClasses(
+              "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+              page === '...'
+                ? "text-gray-400 cursor-default"
+                : page === currentPage
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+            )}
+          >
+            {page}
+          </button>
+        ))}
+
+        <button
+          onClick={onNext}
+          disabled={currentPage === totalPages || loading}
+          className={getThemeClasses(
+            "px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50",
+            currentPage === totalPages || loading
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+          )}
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
+
+  // Load more issues
+  const loadMoreIssues = () => {
+    if (!issuesLoading && hasMoreIssues) {
+      fetchIssues(issuesPage + 1);
+    }
+  };
+
+  // Format commit date
+  const formatCommitDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Format issue date
+  const formatIssueDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  // Get short SHA
+  const getShortSha = (sha) => {
+    return sha.substring(0, 7);
+  };
+
+  // Get issue status badge
+  const getIssueStatusBadge = (state) => {
+    const isOpen = state === 'open';
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isOpen
+        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+        : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+        }`}>
+        {isOpen ? 'Open' : 'Closed'}
+      </span>
+    );
+  };
+
+  // Group commits by date
+  const groupCommitsByDate = (commits) => {
+    const groups = {};
+    commits.forEach(commit => {
+      const date = new Date(commit.author.date);
+      const dateKey = date.toDateString();
+      const today = new Date().toDateString();
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toDateString();
+
+      let displayDate;
+      if (dateKey === today) {
+        displayDate = 'Today';
+      } else if (dateKey === yesterday) {
+        displayDate = 'Yesterday';
+      } else {
+        displayDate = date.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      }
+
+      if (!groups[displayDate]) {
+        groups[displayDate] = [];
+      }
+      groups[displayDate].push(commit);
+    });
+    return groups;
+  };
+
+  // Format relative time
+  const formatRelativeTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+
+    if (diffInMinutes < 1) return 'just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   useEffect(() => {
     setFilteredTeams([]);
@@ -316,7 +682,7 @@ const ProjectDetailsPage = () => {
     try {
       const newTask = await taskService.addTaskDetails(taskData);
       showToast('Task added successfully!', 'success');
-      
+
       // Update task list directly instead of refetching
       if (newTask.Type === 'User Story') {
         setUserStories(prev => [...prev, newTask]);
@@ -329,7 +695,7 @@ const ProjectDetailsPage = () => {
       if (err.status == 403) {
         showToast(err.message, 'warning');
       } else {
-      showToast('Failed to add task', 'error');
+        showToast('Failed to add task', 'error');
       }
     }
   };
@@ -338,14 +704,14 @@ const ProjectDetailsPage = () => {
     try {
       const updatedTask = await taskService.updateTask(taskId, taskData);
       showToast('Task updated successfully!', 'success');
-      
+
       // Update task list directly instead of refetching
       if (updatedTask.Type === 'User Story') {
-        setUserStories(prev => prev.map(task => 
+        setUserStories(prev => prev.map(task =>
           task.TaskID === taskId ? updatedTask : task
         ));
       } else {
-        setTaskList(prev => prev.map(task => 
+        setTaskList(prev => prev.map(task =>
           task.TaskID === taskId ? updatedTask : task
         ));
       }
@@ -509,7 +875,7 @@ const ProjectDetailsPage = () => {
     try {
       await taskService.bulkDeleteTasks(selectedTasks);
       showToast(`Successfully deleted ${selectedTasks.length} tasks`, 'success');
-      
+
       // Update task list by removing deleted tasks
       setTaskList(prev => prev.filter(task => !selectedTasks.includes(task.TaskID)));
       setSelectedTasks([]);
@@ -522,11 +888,11 @@ const ProjectDetailsPage = () => {
   };
 
   // KanbanBoardForProject: Kanban board for a specific projectId (extracted from kanban.js, but no heading, breadcrumb, or project select)
-  const KanbanBoardForProject = ({ projectId, initialTasks, initialUserStories }) => {
+  const KanbanBoardForProject = ({ projectId, initialTasks, initialUserStories, setTaskList, setUserStories }) => {
     const { userDetails } = useGlobal();
     const { showToast } = useToast();
     const [tasks, setTasks] = useState(initialTasks || []);
-    const [userStories, setUserStories] = useState(initialUserStories || []);
+    const [localUserStories, setLocalUserStories] = useState(initialUserStories || []);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [draggingTask, setDraggingTask] = useState(null);
@@ -537,6 +903,31 @@ const ProjectDetailsPage = () => {
     const [draggedCardDimensions, setDraggedCardDimensions] = useState(null);
     const [showAddTaskModal, setShowAddTaskModal] = useState(false);
     const getThemeClasses = (lightClasses, darkClasses) => theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
+
+    // Handle adding new task from modal
+    const handleAddTaskFromModal = async (taskData) => {
+      console.log('handleAddTaskFromModal called with:', taskData);
+      try {
+        console.log('Calling taskService.addTaskDetails...');
+        const newTask = await taskService.addTaskDetails(taskData);
+        console.log('Task added successfully:', newTask);
+
+        setTasks(prev => [...prev, newTask]);
+
+        // Also update parent component's task lists
+        if (newTask.Type === 'User Story') {
+          setUserStories(prev => [...prev, newTask]);
+        } else {
+          setTaskList(prev => [...prev, newTask]);
+        }
+
+        showToast('Task added successfully!', 'success');
+        setShowAddTaskModal(false);
+      } catch (err) {
+        console.error('Error adding task:', err);
+        showToast('Failed to add task', 'error');
+      }
+    };
 
     useEffect(() => {
       if (!projectId) return;
@@ -553,7 +944,7 @@ const ProjectDetailsPage = () => {
           setTasks(mappedTasks);
           // Fetch user stories for the project
           const projectDetails = await projectService.getProjectDetails(projectId);
-          setUserStories(projectDetails.userStories || []);
+          setLocalUserStories(projectDetails.userStories || []);
         } catch (err) {
           setError('Failed to fetch tasks');
           showToast('Failed to fetch tasks', 'error');
@@ -730,6 +1121,16 @@ const ProjectDetailsPage = () => {
                 );
               })}
             </div>
+            {/* AddTaskModal for empty state */}
+            {console.log('Rendering AddTaskModal with isOpen:', showAddTaskModal)}
+            <AddTaskModal
+              isOpen={showAddTaskModal}
+              onClose={() => setShowAddTaskModal(false)}
+              onAddTask={handleAddTaskFromModal}
+              mode="fromProject"
+              projectIdDefault={projectId}
+              userStories={localUserStories}
+            />
           </div>
         ) : (
           <div className={getThemeClasses(
@@ -750,7 +1151,7 @@ const ProjectDetailsPage = () => {
                     <button
                       className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-white border border-gray-200 rounded-lg shadow-sm text-gray-500 font-semibold text-base transition hover:bg-gray-50 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
                       style={{ minHeight: '64px' }}
-                      onClick={() => setShowAddTaskModal(true)}
+                      onClick={() => { setShowAddTaskModal(true) }}
                     >
                       <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -795,10 +1196,10 @@ const ProjectDetailsPage = () => {
             <AddTaskModal
               isOpen={showAddTaskModal}
               onClose={() => setShowAddTaskModal(false)}
-              onAddTask={newTask => setTasks(prev => [...prev, newTask])}
+              onAddTask={handleAddTaskFromModal}
               mode="fromProject"
               projectIdDefault={projectId}
-              userStories={userStories}
+              userStories={localUserStories}
             />
             {/* AssignTaskModal */}
             <AssignTaskModal
@@ -857,13 +1258,30 @@ const ProjectDetailsPage = () => {
         {/* Project Title, Status, Description */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
-              <h2 className={getThemeClasses("text-3xl font-bold pr-8 text-gray-900", "dark:text-gray-100")}>{project.Name}</h2>
+            <h2 className={getThemeClasses("text-3xl font-bold pr-8 text-gray-900", "dark:text-gray-100")}>{project.Name}</h2>
             {project && (
               <div>{getProjectStatusBadgeComponent(project.ProjectStatusID)}</div>
             )}
           </div>
           {isOwner && (
             <div className="flex items-center gap-2">
+              {/* GitHub Repository Button */}
+              <button
+                className={getThemeClasses(
+                  "p-1.5 text-gray-500 hover:text-green-500 rounded-full hover:bg-gray-100 transition-colors",
+                  "dark:text-gray-400 dark:hover:text-green-400 dark:hover:bg-gray-700"
+                )}
+                title={projectRepository ? "Manage Repository" : "Link GitHub Repository"}
+                onClick={() => {
+                  if (projectRepository) {
+                    setShowRepositoryModal(true);
+                  } else {
+                    fetchUserRepositories();
+                  }
+                }}
+              >
+                <FaGithub size={20} />
+              </button>
               <button
                 className={getThemeClasses(
                   "p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors",
@@ -895,11 +1313,13 @@ const ProjectDetailsPage = () => {
           )}
         </div>
 
+
+
         {/* Tab Navigation */}
         <div className="mb-6">
           <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
             <nav className="-mb-px flex space-x-8">
-            <button
+              <button
                 onClick={() => setActiveTab('manage')}
                 className={`${activeTab === 'manage'
                   ? theme === 'dark'
@@ -909,10 +1329,10 @@ const ProjectDetailsPage = () => {
                     ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
-            >
+              >
                 <FaProjectDiagram size={16} />
                 <span>Manage Project</span>
-            </button>
+              </button>
               <button
                 onClick={() => setActiveTab('board')}
                 className={`${activeTab === 'board'
@@ -927,6 +1347,22 @@ const ProjectDetailsPage = () => {
                 <FaChartBar size={16} />
                 <span>Board</span>
               </button>
+              {projectRepository?.connected && (
+                <button
+                  onClick={() => setActiveTab('repo')}
+                  className={`${activeTab === 'repo'
+                    ? theme === 'dark'
+                      ? 'border-blue-400 text-blue-400'
+                      : 'border-blue-600 text-blue-600'
+                    : theme === 'dark'
+                      ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                >
+                  <FaGithub size={16} />
+                  <span>Repo</span>
+                </button>
+              )}
             </nav>
           </div>
         </div>
@@ -935,104 +1371,104 @@ const ProjectDetailsPage = () => {
         {activeTab === 'manage' ? (
           <div>
             {/* Add Team Dropdown */}
-        {isOwner && (
+            {isOwner && (
               <div className="mb-6">
                 <form onSubmit={(e) => { e.preventDefault(); if (selectedTeam) handleAddTeam(selectedTeam.TeamID); }} className="flex flex-col gap-2">
-            <label className={getThemeClasses(
-              'block text-gray-700 font-semibold mb-1',
+                  <label className={getThemeClasses(
+                    'block text-gray-700 font-semibold mb-1',
                     'dark:text-gray-300'
-            )}>Search for a Team (search by name, description, or TeamID)</label>
-            <input
-              type="text"
-              className={getThemeClasses(
-                'border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200',
+                  )}>Search for a Team (search by name, description, or TeamID)</label>
+                  <input
+                    type="text"
+                    className={getThemeClasses(
+                      'border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200',
                       'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
-              )}
+                    )}
                     value={teamSearch}
-              onChange={e => {
+                    onChange={e => {
                       setTeamSearch(e.target.value);
                       setSelectedTeam(null);
                       setShowAllTeams(false);
-              }}
-              onFocus={() => {
+                    }}
+                    onFocus={() => {
                       setIsTeamInputFocused(true);
                       if (!teamSearch) {
-                  const assignedIds = new Set(teams.map(t => t.TeamID));
-                  const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
+                        const assignedIds = new Set(teams.map(t => t.TeamID));
+                        const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
                         setFilteredAvailableTeams(availableTeams.slice(0, 10));
-                }
-              }}
-              onBlur={() => {
-                setTimeout(() => {
+                      }
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => {
                         setIsTeamInputFocused(false);
-                }, 200);
-              }}
-              placeholder="Type to search..."
-              autoComplete="off"
-            />
+                      }, 200);
+                    }}
+                    placeholder="Type to search..."
+                    autoComplete="off"
+                  />
                   {isTeamInputFocused && filteredAvailableTeams.length > 0 && (
-              <div className="w-full md:w-96">
-                <ul className={getThemeClasses(
-                  'border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md',
-                  'dark:bg-gray-800 dark:border-gray-700'
-                )}>
+                    <div className="w-full md:w-96">
+                      <ul className={getThemeClasses(
+                        'border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md',
+                        'dark:bg-gray-800 dark:border-gray-700'
+                      )}>
                         {filteredAvailableTeams.map((team, index) => (
-                    <li
-                      key={`${team.TeamID}-${index}`}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150',
-                        'dark:border-gray-700'
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className={getThemeClasses(
-                          'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2',
-                          'dark:hover:bg-blue-900/30'
-                        )}
-                          onClick={() => {
+                          <li
+                            key={`${team.TeamID}-${index}`}
+                            className={getThemeClasses(
+                              'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150',
+                              'dark:border-gray-700'
+                            )}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className={getThemeClasses(
+                                'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2',
+                                'dark:hover:bg-blue-900/30'
+                              )}
+                                onClick={() => {
                                   setSelectedTeam(team);
                                   setTeamSearch(team.TeamName + ' (' + team.TeamDescription + ')');
                                   setIsTeamInputFocused(false);
-                          }}
-                        >
-                          <div className="flex flex-col">
-                            <div className={getThemeClasses(
-                              'font-medium text-gray-900',
-                              'dark:text-gray-100'
+                                }}
+                              >
+                                <div className="flex flex-col">
+                                  <div className={getThemeClasses(
+                                    'font-medium text-gray-900',
+                                    'dark:text-gray-100'
                                   )}>
                                     {team.TeamName}
                                   </div>
-                            <div className={getThemeClasses(
-                              'text-sm text-gray-600',
-                              'dark:text-gray-400'
+                                  <div className={getThemeClasses(
+                                    'text-sm text-gray-600',
+                                    'dark:text-gray-400'
                                   )}>
                                     {team.TeamDescription}
                                   </div>
-                            <div className={getThemeClasses(
+                                  <div className={getThemeClasses(
                                     'text-xs text-gray-400 mt-0.5',
-                              'dark:text-gray-500'
-                            )}>
+                                    'dark:text-gray-500'
+                                  )}>
                                     ID: {team.TeamID}
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
                                 onClick={() => {
                                   setSelectedTeam(team);
                                   handleAddTeam(team.TeamID);
                                 }}
-                          className={getThemeClasses(
-                            'ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm',
-                            'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-                          )}
-                        >
+                                className={getThemeClasses(
+                                  'ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm',
+                                  'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
+                                )}
+                              >
                                 Add
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
                       {!showAllTeams && orgTeams.length > 10 && (
                         <button
                           type="button"
@@ -1045,134 +1481,134 @@ const ProjectDetailsPage = () => {
                           Show All Teams ({orgTeams.length})
                         </button>
                       )}
+                    </div>
+                  )}
+                </form>
               </div>
             )}
-                </form>
-          </div>
-        )}
 
-          {/* Teams Assigned Table */}
+            {/* Teams Assigned Table */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <div className={tableContainerClasses}>
-            <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
-              <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Teams Assigned</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className={tableHeaderClasses}>
-                    <th className={`py-3 px-4 text-left w-[300px] ${tableHeaderTextClasses}`}>Team Name</th>
-                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Date Added</th>
-                    <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Status</th>
-                    {isOwner && <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Actions</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {teams.map(team => {
-                    const teamDetails = orgTeams.find(t => t.TeamID === team.TeamID);
-                    return (
-                      <tr key={team.TeamID} className={tableRowClasses}>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className={getThemeClasses(
-                              'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium',
-                              'dark:bg-blue-900/50 dark:text-blue-300'
-                            )}>
-                              {teamDetails?.TeamName.split(' ').map(n => n[0]).join('')}
-                            </div>
-                            <div className="flex flex-col">
-                              <Link href={`/team/${team.TeamID}`} legacyBehavior>
-                                <a className={`${tableTextClasses} hover:text-blue-600 hover:underline transition-colors cursor-pointer`} title="View Team Details">
-                                  {teamDetails?.TeamName || team.TeamID}
-                                </a>
-                              </Link>
-                              {teamDetails?.TeamDescription && (
-                                <span className={tableSecondaryTextClasses}>{teamDetails.TeamDescription}</span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
-                          {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${team.IsActive
-                              ? getThemeClasses(
-                                'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200',
-                                'dark:from-green-900/50 dark:to-green-800/50 dark:text-green-300 dark:border-green-700'
-                              )
-                              : getThemeClasses(
-                                'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200',
-                                'dark:from-red-900/50 dark:to-red-800/50 dark:text-red-300 dark:border-red-700'
-                              )
-                            }`}>
-                            <span className={`w-2 h-2 rounded-full ${team.IsActive
-                                ? getThemeClasses('bg-green-500 animate-pulse', 'dark:bg-green-400')
-                                : getThemeClasses('bg-red-500', 'dark:bg-red-400')
-                              }`}></span>
-                            {team.IsActive ? 'Active' : 'Inactive'}
-                          </div>
-                        </td>
-                        {isOwner && (
-                          <td className="py-3 px-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => handleToggleTeamStatus(team.TeamID)}
-                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
-                                    ? getThemeClasses(
-                                      'bg-blue-100 text-blue-700 hover:bg-blue-200',
-                                      'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
-                                    )
-                                    : getThemeClasses(
-                                      'bg-green-100 text-green-700 hover:bg-green-200',
-                                      'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-800/50'
-                                    )
-                                  }`}
-                                title={team.IsActive ? 'Revoke Access' : 'Grant Access'}
-                                disabled={toggling === team.TeamID}
-                              >
-                                <FaCog size={14} />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setRemovingTeam(team);
-                                  setShowRemoveDialog(true);
-                                }}
-                                className={getThemeClasses(
-                                  'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
-                                  'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
-                                )}
-                                title="Remove Team"
-                                disabled={removing}
-                              >
-                                <FaTrash size={14} />
-                              </button>
-                            </div>
-                          </td>
-                        )}
+              <div className={tableContainerClasses}>
+                <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
+                  <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Teams Assigned</h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className={tableHeaderClasses}>
+                        <th className={`py-3 px-4 text-left w-[300px] ${tableHeaderTextClasses}`}>Team Name</th>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Date Added</th>
+                        <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Status</th>
+                        {isOwner && <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Actions</th>}
                       </tr>
-                    );
-                  })}
-                  {teams.length === 0 && (
-                    <tr>
-                      <td colSpan={isOwner ? 4 : 3} className={getThemeClasses(
-                        'text-center py-8 text-gray-400',
-                        'dark:text-gray-500'
-                      )}>
-                        No teams assigned to this project.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                    </thead>
+                    <tbody>
+                      {teams.map(team => {
+                        const teamDetails = orgTeams.find(t => t.TeamID === team.TeamID);
+                        return (
+                          <tr key={team.TeamID} className={tableRowClasses}>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className={getThemeClasses(
+                                  'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium',
+                                  'dark:bg-blue-900/50 dark:text-blue-300'
+                                )}>
+                                  {teamDetails?.TeamName.split(' ').map(n => n[0]).join('')}
+                                </div>
+                                <div className="flex flex-col">
+                                  <Link href={`/team/${team.TeamID}`} legacyBehavior>
+                                    <a className={`${tableTextClasses} hover:text-blue-600 hover:underline transition-colors cursor-pointer`} title="View Team Details">
+                                      {teamDetails?.TeamName || team.TeamID}
+                                    </a>
+                                  </Link>
+                                  {teamDetails?.TeamDescription && (
+                                    <span className={tableSecondaryTextClasses}>{teamDetails.TeamDescription}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
+                              {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${team.IsActive
+                                ? getThemeClasses(
+                                  'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200',
+                                  'dark:from-green-900/50 dark:to-green-800/50 dark:text-green-300 dark:border-green-700'
+                                )
+                                : getThemeClasses(
+                                  'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200',
+                                  'dark:from-red-900/50 dark:to-red-800/50 dark:text-red-300 dark:border-red-700'
+                                )
+                                }`}>
+                                <span className={`w-2 h-2 rounded-full ${team.IsActive
+                                  ? getThemeClasses('bg-green-500 animate-pulse', 'dark:bg-green-400')
+                                  : getThemeClasses('bg-red-500', 'dark:bg-red-400')
+                                  }`}></span>
+                                {team.IsActive ? 'Active' : 'Inactive'}
+                              </div>
+                            </td>
+                            {isOwner && (
+                              <td className="py-3 px-4 text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                  <button
+                                    onClick={() => handleToggleTeamStatus(team.TeamID)}
+                                    className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
+                                      ? getThemeClasses(
+                                        'bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                        'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
+                                      )
+                                      : getThemeClasses(
+                                        'bg-green-100 text-green-700 hover:bg-green-200',
+                                        'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-800/50'
+                                      )
+                                      }`}
+                                    title={team.IsActive ? 'Revoke Access' : 'Grant Access'}
+                                    disabled={toggling === team.TeamID}
+                                  >
+                                    <FaCog size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setRemovingTeam(team);
+                                      setShowRemoveDialog(true);
+                                    }}
+                                    className={getThemeClasses(
+                                      'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                      'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
+                                    )}
+                                    title="Remove Team"
+                                    disabled={removing}
+                                  >
+                                    <FaTrash size={14} />
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                      {teams.length === 0 && (
+                        <tr>
+                          <td colSpan={isOwner ? 4 : 3} className={getThemeClasses(
+                            'text-center py-8 text-gray-400',
+                            'dark:text-gray-500'
+                          )}>
+                            No teams assigned to this project.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-          {/* User Stories Table */}
-          <div className={tableContainerClasses}>
-            <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
+              {/* User Stories Table */}
+              <div className={tableContainerClasses}>
+                <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
                   <div className="flex items-center justify-between">
-              <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>User Stories</h2>
+                    <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>User Stories</h2>
                     <button
                       onClick={() => { setAddTaskTypeMode('userStory'); setIsAddTaskOpen(true); }}
                       className={getThemeClasses(
@@ -1184,126 +1620,126 @@ const ProjectDetailsPage = () => {
                       Add New
                     </button>
                   </div>
-            </div>
-            <div className="overflow-x-auto">
-              {userStories.length === 0 ? (
-                <div className={getThemeClasses(
-                  'text-center py-8 text-gray-400',
-                  'dark:text-gray-500'
-                )}>
-                  No user stories for this project.
                 </div>
-              ) : (
-                <table className="w-full">
-                  <thead>
-                    <tr className={tableHeaderClasses}>
-                      <th className={`py-3 px-4 text-left w-[300px] ${tableHeaderTextClasses}`}>Name</th>
-                      <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Date Created</th>
-                      <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Status</th>
-                      <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {userStories.map(story => (
-                      <tr key={story._id} className={tableRowClasses}>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex flex-col">
-                              <Link href={`/task/${story.TaskID}`} legacyBehavior>
-                                <a className={tableTextClasses + ' hover:text-blue-600 hover:underline transition-colors cursor-pointer'} title="View User Story Details">{story.Name}</a>
-                              </Link>
-                              {story.Description && (
-                                <span className={tableSecondaryTextClasses}>{story.Description}</span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
-                          {new Date(story.CreatedDate).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: '2-digit',
-                            year: 'numeric'
-                          })}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          {(() => {
-                            const status = getTaskStatusStyle(story.Status);
-                            const StatusIcon = status.icon;
-                            return (
-                              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
-                                <StatusIcon className={status.iconColor} size={14} />
-                                {getTaskStatusText(story.Status)}
-                              </span>
-                            );
-                          })()}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => handleEditTask(story)}
-                              className={getThemeClasses(
-                                'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
-                                'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
-                              )}
-                              title="Edit User Story"
-                            >
-                              <FaCog size={14} />
-                            </button>
-                            <button
+                <div className="overflow-x-auto">
+                  {userStories.length === 0 ? (
+                    <div className={getThemeClasses(
+                      'text-center py-8 text-gray-400',
+                      'dark:text-gray-500'
+                    )}>
+                      No user stories for this project.
+                    </div>
+                  ) : (
+                    <table className="w-full">
+                      <thead>
+                        <tr className={tableHeaderClasses}>
+                          <th className={`py-3 px-4 text-left w-[300px] ${tableHeaderTextClasses}`}>Name</th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Date Created</th>
+                          <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Status</th>
+                          <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {userStories.map(story => (
+                          <tr key={story._id} className={tableRowClasses}>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="flex flex-col">
+                                  <Link href={`/task/${story.TaskID}`} legacyBehavior>
+                                    <a className={tableTextClasses + ' hover:text-blue-600 hover:underline transition-colors cursor-pointer'} title="View User Story Details">{story.Name}</a>
+                                  </Link>
+                                  {story.Description && (
+                                    <span className={tableSecondaryTextClasses}>{story.Description}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
+                              {new Date(story.CreatedDate).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: '2-digit',
+                                year: 'numeric'
+                              })}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              {(() => {
+                                const status = getTaskStatusStyle(story.Status);
+                                const StatusIcon = status.icon;
+                                return (
+                                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
+                                    <StatusIcon className={status.iconColor} size={14} />
+                                    {getTaskStatusText(story.Status)}
+                                  </span>
+                                );
+                              })()}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => handleEditTask(story)}
+                                  className={getThemeClasses(
+                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                    'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
+                                  )}
+                                  title="Edit User Story"
+                                >
+                                  <FaCog size={14} />
+                                </button>
+                                <button
                                   onClick={() => confirmDeleteUserStory(story)}
-                              className={getThemeClasses(
+                                  className={getThemeClasses(
                                     'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
                                     'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
-                              )}
-                              title="Delete User Story"
-                            >
-                              <FaTrash size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+                                  )}
+                                  title="Delete User Story"
+                                >
+                                  <FaTrash size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Tasks Table - Keep it full width below */}
-        <div className="mb-6">
-          <div className={tableContainerClasses}>
-            <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
-              <div className="flex items-center justify-between">
-                <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Tasks</h2>
-                  <div className="flex items-center gap-3">
+            {/* Tasks Table - Keep it full width below */}
+            <div className="mb-6">
+              <div className={tableContainerClasses}>
+                <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
+                  <div className="flex items-center justify-between">
+                    <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Tasks</h2>
+                    <div className="flex items-center gap-3">
                       {selectedTasks.length > 0 ? (
                         <>
-                    <div className={getThemeClasses(
-                      'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
-                      'dark:bg-blue-900/30 dark:text-blue-300'
-                    )}>
-                      <span className="text-sm font-medium">{selectedTasks.length} selected</span>
-                      <button
-                        onClick={() => setSelectedTasks([])}
-                        className={getThemeClasses(
-                          'p-1 hover:bg-blue-100 rounded-full transition-colors',
-                          'dark:hover:bg-blue-900/50'
-                        )}
-                      >
-                        <FaTimes size={14} />
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => setShowBulkDeleteDialog(true)}
-                      className={getThemeClasses(
-                        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors',
-                        'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
-                      )}
-                    >
-                      <FaTrash size={14} />
-                      Delete Selected
-                    </button>
+                          <div className={getThemeClasses(
+                            'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
+                            'dark:bg-blue-900/30 dark:text-blue-300'
+                          )}>
+                            <span className="text-sm font-medium">{selectedTasks.length} selected</span>
+                            <button
+                              onClick={() => setSelectedTasks([])}
+                              className={getThemeClasses(
+                                'p-1 hover:bg-blue-100 rounded-full transition-colors',
+                                'dark:hover:bg-blue-900/50'
+                              )}
+                            >
+                              <FaTimes size={14} />
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => setShowBulkDeleteDialog(true)}
+                            className={getThemeClasses(
+                              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors',
+                              'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
+                            )}
+                          >
+                            <FaTrash size={14} />
+                            Delete Selected
+                          </button>
                         </>
                       ) : (
                         <button
@@ -1317,58 +1753,58 @@ const ProjectDetailsPage = () => {
                           Add New
                         </button>
                       )}
+                    </div>
                   </div>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              {taskList.length === 0 ? (
-                <div className={getThemeClasses(
-                  'text-center py-8 text-gray-400',
-                  'dark:text-gray-500'
-                )}>
-                  No tasks for this project.
                 </div>
-              ) : (
-                <table className="w-full">
-                  <thead>
-                    <tr className={tableHeaderClasses}>
-                      <th className="py-3 px-4 text-center w-[50px]">
-                        <input
-                          type="checkbox"
-                          checked={selectedTasks.length === taskList.length && taskList.length > 0}
-                          onChange={handleSelectAllTasks}
-                          className={getThemeClasses(
-                            'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                            'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
-                          )}
-                        />
-                      </th>
-                      <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Name</th>
-                      <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Assigned To</th>
-                      <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Assignee</th>
-                      <th className={`hidden md:table-cell py-3 px-4 text-center ${tableHeaderTextClasses}`}>Date Assigned</th>
-                      <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Priority</th>
-                      <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Status</th>
-                      <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {taskList.map(task => (
-                      <tr key={task._id} className={tableRowClasses}>
-                        <td className="py-3 px-4 text-center">
-                          <input
-                            type="checkbox"
-                            checked={selectedTasks.includes(task.TaskID)}
-                            onChange={() => handleSelectTask(task.TaskID)}
-                            className={getThemeClasses(
-                              'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                              'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
-                            )}
-                          />
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2 mb-1">
+                <div className="overflow-x-auto">
+                  {taskList.length === 0 ? (
+                    <div className={getThemeClasses(
+                      'text-center py-8 text-gray-400',
+                      'dark:text-gray-500'
+                    )}>
+                      No tasks for this project.
+                    </div>
+                  ) : (
+                    <table className="w-full">
+                      <thead>
+                        <tr className={tableHeaderClasses}>
+                          <th className="py-3 px-4 text-center w-[50px]">
+                            <input
+                              type="checkbox"
+                              checked={selectedTasks.length === taskList.length && taskList.length > 0}
+                              onChange={handleSelectAllTasks}
+                              className={getThemeClasses(
+                                'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                                'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                              )}
+                            />
+                          </th>
+                          <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Name</th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Assigned To</th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Assignee</th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-center ${tableHeaderTextClasses}`}>Date Assigned</th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Priority</th>
+                          <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Status</th>
+                          <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {taskList.map(task => (
+                          <tr key={task._id} className={tableRowClasses}>
+                            <td className="py-3 px-4 text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedTasks.includes(task.TaskID)}
+                                onChange={() => handleSelectTask(task.TaskID)}
+                                className={getThemeClasses(
+                                  'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                                  'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                                )}
+                              />
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex flex-col">
+                                <div className="flex items-center gap-2 mb-1">
                                   <button
                                     onClick={() => router.push(`/task/${task.TaskID}`)}
                                     className={getThemeClasses(
@@ -1379,152 +1815,335 @@ const ProjectDetailsPage = () => {
                                   >
                                     {task.Name}
                                   </button>
-                              {getTaskTypeBadgeComponent(task.Type)}
-                            </div>
-                            <span className={getThemeClasses(
-                              'text-xs text-gray-500',
-                              'dark:text-gray-400'
-                            )}>{task.Description}</span>
-                            {/* Show assigned to on mobile if available */}
-                            {task.AssignedTo && task.AssignedToDetails && (
-                              <div className={getThemeClasses(
-                                'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600',
-                                'dark:text-gray-300'
-                              )}>
-                                <span className="font-medium">Assigned to:</span>
-                                <span>{task.AssignedToDetails.fullName}</span>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="hidden md:table-cell py-3 px-4">
-                          {task.AssignedTo && task.AssignedToDetails ? (
-                            <div className="flex items-center gap-3">
-                              <div className={getThemeClasses(
-                                'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
-                                'dark:from-blue-600 dark:to-blue-700'
-                              )}>
-                                {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
-                              </div>
-                              <div className="flex flex-col">
-                                <span className={tableTextClasses}>{task.AssignedToDetails.fullName}</span>
-                                {task.AssignedToDetails.teamName && (
-                                  <span className={tableSecondaryTextClasses}>{task.AssignedToDetails.teamName}</span>
-                                )}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex items-center">
-                              <span className={tableSecondaryTextClasses}>Not Assigned</span>
-                            </div>
-                          )}
-                        </td>
-                        <td className="hidden md:table-cell py-3 px-4">
-                          {task.Assignee && task.AssigneeDetails ? (
-                            <div className="flex items-center gap-3">
-                              <div className={getThemeClasses(
-                                'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm',
-                                'dark:from-green-600 dark:to-green-700'
-                              )}>
-                                {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
-                              </div>
-                              <div className="flex flex-col">
-                                <span className={tableTextClasses}>{task.AssigneeDetails.fullName}</span>
-                                {task.AssigneeDetails.teamName && (
-                                  <span className={tableSecondaryTextClasses}>{task.AssigneeDetails.teamName}</span>
-                                )}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <div className={getThemeClasses(
-                                'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm',
-                                'dark:bg-gray-700 dark:text-gray-400'
-                              )}>
-                                <span>NA</span>
-                              </div>
-                              <span className={tableSecondaryTextClasses}>Not Assigned</span>
-                            </div>
-                          )}
-                        </td>
-                        <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
-                          {task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          }) : '-'}
-                        </td>
-                        <td className="hidden md:table-cell py-3 px-4">
-                          <div className="flex items-center gap-1.5">
-                            {task.Type !== 'User Story' && task.Priority && (
-                              (() => {
-                                const priorityDetails = getPriorityStyle(task.Priority);
-                                return (
-                                  <span className={getThemeClasses(
-                                    `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium ${priorityDetails.bgColor} ${priorityDetails.textColor} border ${priorityDetails.borderColor} shadow-sm`,
-                                    `dark:${priorityDetails.bgColor.replace('bg-', 'bg-')}/30 dark:${priorityDetails.textColor.replace('text-', 'text-')}/90 dark:${priorityDetails.borderColor.replace('border-', 'border-')}/50`
+                                  {getTaskTypeBadgeComponent(task.Type)}
+                                </div>
+                                <span className={getThemeClasses(
+                                  'text-xs text-gray-500',
+                                  'dark:text-gray-400'
+                                )}>{task.Description}</span>
+                                {/* Show assigned to on mobile if available */}
+                                {task.AssignedTo && task.AssignedToDetails && (
+                                  <div className={getThemeClasses(
+                                    'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600',
+                                    'dark:text-gray-300'
                                   )}>
-                                    {priorityDetails.icon}
-                                    {task.Priority}
+                                    <span className="font-medium">Assigned to:</span>
+                                    <span>{task.AssignedToDetails.fullName}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="hidden md:table-cell py-3 px-4">
+                              {task.AssignedTo && task.AssignedToDetails ? (
+                                <div className="flex items-center gap-3">
+                                  <div className={getThemeClasses(
+                                    'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
+                                    'dark:from-blue-600 dark:to-blue-700'
+                                  )}>
+                                    {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className={tableTextClasses}>{task.AssignedToDetails.fullName}</span>
+                                    {task.AssignedToDetails.teamName && (
+                                      <span className={tableSecondaryTextClasses}>{task.AssignedToDetails.teamName}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center">
+                                  <span className={tableSecondaryTextClasses}>Not Assigned</span>
+                                </div>
+                              )}
+                            </td>
+                            <td className="hidden md:table-cell py-3 px-4">
+                              {task.Assignee && task.AssigneeDetails ? (
+                                <div className="flex items-center gap-3">
+                                  <div className={getThemeClasses(
+                                    'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm',
+                                    'dark:from-green-600 dark:to-green-700'
+                                  )}>
+                                    {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className={tableTextClasses}>{task.AssigneeDetails.fullName}</span>
+                                    {task.AssigneeDetails.teamName && (
+                                      <span className={tableSecondaryTextClasses}>{task.AssigneeDetails.teamName}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <div className={getThemeClasses(
+                                    'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm',
+                                    'dark:bg-gray-700 dark:text-gray-400'
+                                  )}>
+                                    <span>NA</span>
+                                  </div>
+                                  <span className={tableSecondaryTextClasses}>Not Assigned</span>
+                                </div>
+                              )}
+                            </td>
+                            <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
+                              {task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              }) : '-'}
+                            </td>
+                            <td className="hidden md:table-cell py-3 px-4">
+                              <div className="flex items-center gap-1.5">
+                                {task.Type !== 'User Story' && task.Priority && (
+                                  (() => {
+                                    const priorityDetails = getPriorityStyle(task.Priority);
+                                    return (
+                                      <span className={getThemeClasses(
+                                        `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium ${priorityDetails.bgColor} ${priorityDetails.textColor} border ${priorityDetails.borderColor} shadow-sm`,
+                                        `dark:${priorityDetails.bgColor.replace('bg-', 'bg-')}/30 dark:${priorityDetails.textColor.replace('text-', 'text-')}/90 dark:${priorityDetails.borderColor.replace('border-', 'border-')}/50`
+                                      )}>
+                                        {priorityDetails.icon}
+                                        {task.Priority}
+                                      </span>
+                                    );
+                                  })()
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-left">
+                              {(() => {
+                                const status = getTaskStatusStyle(task.Status);
+                                const StatusIcon = status.icon;
+                                return (
+                                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
+                                    <StatusIcon className={status.iconColor} size={14} />
+                                    <span className="hidden md:inline">{getTaskStatusText(task.Status)}</span>
+                                    <span className="md:hidden">{getTaskStatusText(task.Status).substring(0, 3)}</span>
                                   </span>
                                 );
-                              })()
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-left">
-                          {(() => {
-                            const status = getTaskStatusStyle(task.Status);
-                            const StatusIcon = status.icon;
-                            return (
-                              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
-                                <StatusIcon className={status.iconColor} size={14} />
-                                <span className="hidden md:inline">{getTaskStatusText(task.Status)}</span>
-                                <span className="md:hidden">{getTaskStatusText(task.Status).substring(0, 3)}</span>
-                              </span>
-                            );
-                          })()}
-                        </td>
-                        <td className="py-3 px-4 text-left">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => handleEditTask(task)}
-                              className={getThemeClasses(
-                                'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
-                                'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
-                              )}
-                              title="Edit Task"
-                            >
-                              <FaCog size={14} />
-                            </button>
-                            <button
-                              onClick={() => confirmDeleteTask(task)}
-                              className={getThemeClasses(
-                                'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
-                                'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
-                              )}
-                              title="Delete Task"
-                              disabled={removing}
-                            >
-                              <FaTrash size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+                              })()}
+                            </td>
+                            <td className="py-3 px-4 text-left">
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => handleEditTask(task)}
+                                  className={getThemeClasses(
+                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                    'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
+                                  )}
+                                  title="Edit Task"
+                                >
+                                  <FaCog size={14} />
+                                </button>
+                                <button
+                                  onClick={() => confirmDeleteTask(task)}
+                                  className={getThemeClasses(
+                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                    'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
+                                  )}
+                                  title="Delete Task"
+                                  disabled={removing}
+                                >
+                                  <FaTrash size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-          </div>
-        ) : (
+        ) : activeTab === 'board' ? (
           <div>
             {/* Board Tab: Kanban Board for this project */}
-            <KanbanBoardForProject projectId={projectId} initialTasks={taskList} initialUserStories={userStories} />
+            <KanbanBoardForProject
+              projectId={projectId}
+              initialTasks={taskList}
+              initialUserStories={userStories}
+              setTaskList={setTaskList}
+              setUserStories={setUserStories}
+            />
           </div>
-        )}
+        ) : activeTab === 'repo' && projectRepository?.connected ? (
+          <div className={getThemeClasses("bg-white rounded-xl shadow p-6", "dark:bg-gray-900")}>
+            <div className="flex items-center gap-2 mb-6">
+              <FaGithub size={22} className={getThemeClasses("text-gray-800", "dark:text-gray-100")} />
+              <h2 className={getThemeClasses("text-xl font-semibold text-gray-900", "dark:text-gray-100")}>Repository Activity</h2>
+            </div>
+
+            {/* Commits and Issues Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Commits Section */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <FaCode size={18} className={getThemeClasses("text-gray-600", "dark:text-gray-400")} />
+                    <h3 className={getThemeClasses("text-lg font-semibold text-gray-900", "dark:text-gray-100")}>Commits</h3>
+                  </div>
+                  {commits.length > 0 && (
+                    <div className={getThemeClasses("text-sm text-gray-500", "dark:text-gray-400")}>
+                      Page {commitsPage} of {commitsTotalPages}
+                    </div>
+                  )}
+                </div>
+                {commitsLoading && commits.length === 0 ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                    <span className={getThemeClasses("ml-3 text-sm text-gray-500", "dark:text-gray-400")}>Loading commits...</span>
+                  </div>
+                ) : commits.length === 0 ? (
+                  <div className={getThemeClasses("text-center py-8 text-gray-500", "dark:text-gray-400")}>No commits found.</div>
+                ) : (
+                  <>
+                    <div className="space-y-6">
+                      {Object.entries(groupCommitsByDate(commits)).map(([date, dateCommits]) => (
+                        <div key={date} className="relative">
+                          {/* Date Header */}
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className={getThemeClasses("flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full", "dark:bg-blue-400")}></div>
+                            <h4 className={getThemeClasses("text-sm font-semibold text-gray-700", "dark:text-gray-300")}>{date}</h4>
+                            <div className={getThemeClasses("flex-1 h-px bg-gray-200", "dark:bg-gray-700")}></div>
+                          </div>
+
+                          {/* Timeline */}
+                          <div className="relative">
+                            {/* Timeline line */}
+                            <div className={getThemeClasses("absolute left-1 top-0 bottom-0 w-px bg-gray-200", "dark:bg-gray-700")}></div>
+
+                            {/* Commits */}
+                            <div className="space-y-3">
+                              {dateCommits.map((commit, index) => (
+                                <div key={commit.sha} className="relative pl-6">
+                                  {/* Timeline dot */}
+                                  <div className={getThemeClasses("absolute left-0 top-2 w-2 h-2 bg-blue-500 rounded-full border-2 border-white", "dark:bg-blue-400 dark:border-gray-900")}></div>
+
+                                  {/* Commit card */}
+                                  <div className={getThemeClasses("bg-gray-50 rounded-lg p-3 border border-gray-100", "dark:bg-gray-800 dark:border-gray-700")}>
+                                    <div className="flex items-start gap-2 mb-2">
+                                      <a
+                                        href={commit.html_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={getThemeClasses("font-mono text-blue-600 hover:underline text-xs flex-shrink-0", "dark:text-blue-400")}
+                                      >
+                                        {getShortSha(commit.sha)}
+                                      </a>
+                                      <span className={getThemeClasses("text-gray-900 font-medium text-sm line-clamp-2", "dark:text-gray-100")} title={commit.message}>
+                                        {commit.message.split('\n')[0]}
+                                      </span>
+                                    </div>
+
+                                    <div className={getThemeClasses("flex items-center justify-between text-xs text-gray-500", "dark:text-gray-400")}>
+                                      <div className="flex items-center gap-2">
+                                        <span>by {commit.author.name}</span>
+                                        <span>•</span>
+                                        <span>{formatRelativeTime(commit.author.date)}</span>
+                                      </div>
+
+                                      <a
+                                        href={commit.html_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={getThemeClasses("inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-white text-gray-700 hover:bg-blue-50 transition-colors border border-gray-200", "dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-blue-900/30 dark:border-gray-600")}
+                                      >
+                                        <FaGithub size={10} /> View
+                                      </a>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {commitsTotalPages > 1 && (
+                      <Pagination
+                        currentPage={commitsPage}
+                        totalPages={commitsTotalPages}
+                        onPageChange={goToCommitsPage}
+                        onNext={nextCommitsPage}
+                        onPrev={prevCommitsPage}
+                        loading={commitsLoading}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Issues Section */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <FaQuestionCircle size={18} className={getThemeClasses("text-gray-600", "dark:text-gray-400")} />
+                  <h3 className={getThemeClasses("text-lg font-semibold text-gray-900", "dark:text-gray-100")}>Issues</h3>
+                </div>
+                {issuesLoading && issues.length === 0 ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                    <span className={getThemeClasses("ml-3 text-sm text-gray-500", "dark:text-gray-400")}>Loading issues...</span>
+                  </div>
+                ) : issues.length === 0 ? (
+                  <div className={getThemeClasses("text-center py-8 text-gray-500", "dark:text-gray-400")}>No issues found.</div>
+                ) : (
+                  <>
+                    <ul className={getThemeClasses("divide-y divide-gray-200", "dark:divide-gray-700")}>
+                      {issues.map(issue => (
+                        <li key={issue.id} className="py-3 flex flex-col gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className={getThemeClasses("text-gray-900 font-medium text-sm truncate", "dark:text-gray-100")} title={issue.title}>#{issue.number} {issue.title}</span>
+                            {getIssueStatusBadge(issue.state)}
+                          </div>
+                          <div className={getThemeClasses("flex items-center gap-2 text-xs text-gray-500", "dark:text-gray-400")}>
+                            <span>by {issue.user.login}</span>
+                            <span>•</span>
+                            <span>{formatIssueDate(issue.created_at)}</span>
+                            {issue.comments > 0 && (
+                              <>
+                                <span>•</span>
+                                <span>{issue.comments} comments</span>
+                              </>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <a href={issue.html_url} target="_blank" rel="noopener noreferrer" className={getThemeClasses("inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 hover:bg-blue-50 transition-colors", "dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-blue-900/30")}>
+                              <FaGithub size={12} /> View
+                            </a>
+                            {issue.labels.length > 0 && (
+                              <div className="flex gap-1">
+                                {issue.labels.slice(0, 2).map(label => (
+                                  <span key={label.id} className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: `#${label.color}`, color: parseInt(label.color, 16) > 0x888888 ? '#000' : '#fff' }}>
+                                    {label.name}
+                                  </span>
+                                ))}
+                                {issue.labels.length > 2 && (
+                                  <span className={getThemeClasses("text-xs text-gray-500", "dark:text-gray-400")}>+{issue.labels.length - 2}</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    {hasMoreIssues && (
+                      <div className="flex justify-center mt-4">
+                        <button
+                          onClick={loadMoreIssues}
+                          disabled={issuesLoading}
+                          className={getThemeClasses("px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-60", "dark:bg-blue-700 dark:hover:bg-blue-800")}
+                        >
+                          {issuesLoading ? 'Loading...' : 'Load More'}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {showSettingsModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1587,62 +2206,124 @@ const ProjectDetailsPage = () => {
                     rows={3}
                   />
                 </div>
-                <div>
-                  <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Finish Date</label>
-                  <input
-                    type="date"
-                    value={settingsForm.FinishDate}
-                    onChange={e => setSettingsForm(f => ({ ...f, FinishDate: e.target.value }))}
-                    className={getThemeClasses(
-                      "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500",
-                      "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400"
-                    )}
-                  />
-                </div>
-                <div>
-                  <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Project Status</label>
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setShowStatusDropdown(open => !open)}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Finish Date</label>
+                    <input
+                      type="date"
+                      value={settingsForm.FinishDate}
+                      onChange={e => setSettingsForm(f => ({ ...f, FinishDate: e.target.value }))}
                       className={getThemeClasses(
-                        "w-full px-4 py-2.5 rounded-xl transition-all duration-200 text-gray-900 flex items-center gap-2",
-                        "dark:text-gray-100"
+                        "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500",
+                        "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                       )}
-                    >
-                      {getProjectStatusBadge(getProjectStatus(settingsForm.ProjectStatusID), false)}
-                      <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {showStatusDropdown && (
-                      <div className={getThemeClasses(
-                        "absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-auto",
-                        "dark:bg-[#232323] dark:border-gray-700"
-                      )}>
-                        {[1, 2, 3, 4, 5, 6].map(statusCode => {
-                          const status = getProjectStatus(statusCode);
-                          return (
-                            <button
-                              key={status.Code}
-                              type="button"
-                              onClick={() => {
-                                setSettingsForm(f => ({ ...f, ProjectStatusID: status.Code }));
-                                setShowStatusDropdown(false);
-                              }}
-                              className={getThemeClasses(
-                                'w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2',
-                                'dark:hover:bg-gray-700'
-                              )}
-                            >
-                              {getProjectStatusBadge(status, false)}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
+                    />
+                  </div>
+                  <div>
+                    <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Project Status</label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowStatusDropdown(open => !open)}
+                        className={getThemeClasses(
+                          "w-full px-4 py-2.5 rounded-xl transition-all duration-200 text-gray-900 flex items-center gap-2",
+                          "dark:text-gray-100"
+                        )}
+                      >
+                        {getProjectStatusBadge(getProjectStatus(settingsForm.ProjectStatusID), false)}
+                        <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {showStatusDropdown && (
+                        <div className={getThemeClasses(
+                          "absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-auto",
+                          "dark:bg-[#232323] dark:border-gray-700"
+                        )}>
+                          {[1, 2, 3, 4, 5, 6].map(statusCode => {
+                            const status = getProjectStatus(statusCode);
+                            return (
+                              <button
+                                key={status.Code}
+                                type="button"
+                                onClick={() => {
+                                  setSettingsForm(f => ({ ...f, ProjectStatusID: status.Code }));
+                                  setShowStatusDropdown(false);
+                                }}
+                                className={getThemeClasses(
+                                  'w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2',
+                                  'dark:hover:bg-gray-700'
+                                )}
+                              >
+                                {getProjectStatusBadge(status, false)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
+
+                {/* GitHub Repository Information */}
+                {projectRepository && (
+                  <div className={`p-3 rounded-lg border ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700' : 'bg-green-50 border-green-200'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FaGithub className="text-green-600" size={16} />
+                        <div>
+                          <h4 className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            {projectRepository.repositoryFullName}
+                          </h4>
+                          {projectRepository.repositoryDescription && (
+                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mt-1`}>
+                              {projectRepository.repositoryDescription}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-3 mt-2">
+                            {projectRepository.repositoryLanguage && (
+                              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+                                <FaCode size={10} />
+                                {projectRepository.repositoryLanguage}
+                              </span>
+                            )}
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>
+                              <FaStar size={10} />
+                              {projectRepository.repositoryStars}
+                            </span>
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
+                              <FaCodeBranch size={10} />
+                              {projectRepository.repositoryForks}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-center gap-2">
+                        <a
+                          href={projectRepository.repositoryUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'}`}
+                        >
+                          <FaLink size={10} />
+                          View
+                        </a>
+                        {isOwner && (
+                          <button
+                            type="button"
+                            onClick={handleUnlinkRepository}
+                            disabled={unlinkingRepository}
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+                          >
+                            {unlinkingRepository ? <FaSpinner className="animate-spin" size={10} /> : <FaUnlink size={10} />}
+                            Unlink
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center pt-4">
                   <button
                     type="button"
@@ -1922,6 +2603,187 @@ const ProjectDetailsPage = () => {
             )}
           </div>
         </CustomModal>
+
+        {/* GitHub Repository Selection Modal */}
+        {showRepositoryList && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className={`max-w-2xl w-full mx-4 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    Select GitHub Repository
+                  </h3>
+                  <button
+                    onClick={() => setShowRepositoryList(false)}
+                    className={`p-2 rounded-lg hover:bg-opacity-10 ${theme === 'dark' ? 'hover:bg-white text-white' : 'hover:bg-gray-900 text-gray-900'}`}
+                  >
+                    <FaTimes className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {repositoryLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <span className={`ml-3 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Loading repositories...
+                    </span>
+                  </div>
+                ) : userRepositories.length > 0 ? (
+                  <div className="max-h-96 overflow-y-auto">
+                    <div className="grid gap-3">
+                      {userRepositories.map((repo) => (
+                        <div
+                          key={repo.id}
+                          className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-md cursor-pointer ${theme === 'dark'
+                            ? 'border-gray-700 hover:border-gray-600 bg-gray-700/50'
+                            : 'border-gray-200 hover:border-blue-300 bg-white'
+                            }`}
+                          onClick={() => handleLinkRepository(repo)}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <FaGithub className="text-green-600" size={16} />
+                                <h4 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {repo.full_name}
+                                </h4>
+                                {repo.private && (
+                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-600 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+                                    Private
+                                  </span>
+                                )}
+                              </div>
+                              {repo.description && (
+                                <p className={`text-sm mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                  {repo.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-4">
+                                {repo.language && (
+                                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-600 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+                                    <FaCode size={10} />
+                                    {repo.language}
+                                  </span>
+                                )}
+                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>
+                                  <FaStar size={10} />
+                                  {repo.stargazers_count}
+                                </span>
+                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
+                                  <FaCodeBranch size={10} />
+                                  {repo.forks_count}
+                                </span>
+                                <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                  Updated {new Date(repo.updated_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleLinkRepository(repo);
+                              }}
+                              disabled={linkingRepository}
+                              className={`ml-4 px-4 py-2 rounded-lg font-medium transition-colors ${theme === 'dark'
+                                ? 'bg-green-600 hover:bg-green-700 text-white'
+                                : 'bg-green-600 hover:bg-green-700 text-white'
+                                }`}
+                            >
+                              {linkingRepository ? (
+                                <FaSpinner className="animate-spin" size={14} />
+                              ) : (
+                                <FaLink size={14} />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <FaGithub className="mx-auto mb-4" size={32} />
+                    <p>No repositories found</p>
+                    <p className="text-sm mt-2">Make sure your GitHub account is connected and you have repositories.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* GitHub Repository Management Modal */}
+        {showRepositoryModal && projectRepository && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className={`max-w-md w-full mx-4 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    Repository Settings
+                  </h3>
+                  <button
+                    onClick={() => setShowRepositoryModal(false)}
+                    className={`p-2 rounded-lg hover:bg-opacity-10 ${theme === 'dark' ? 'hover:bg-white text-white' : 'hover:bg-gray-900 text-gray-900'}`}
+                  >
+                    <FaTimes className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <FaGithub className="text-green-600" size={20} />
+                    <div>
+                      <h4 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        {projectRepository.repositoryFullName}
+                      </h4>
+                      {projectRepository.repositoryDescription && (
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {projectRepository.repositoryDescription}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 mb-4">
+                    {projectRepository.repositoryLanguage && (
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-600 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+                        <FaCode size={10} />
+                        {projectRepository.repositoryLanguage}
+                      </span>
+                    )}
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>
+                      <FaStar size={10} />
+                      {projectRepository.repositoryStars}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
+                      <FaCodeBranch size={10} />
+                      {projectRepository.repositoryForks}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={projectRepository.repositoryUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'}`}
+                    >
+                      <FaLink size={14} />
+                      View Repository
+                    </a>
+                    <button
+                      onClick={handleUnlinkRepository}
+                      disabled={unlinkingRepository}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+                    >
+                      {unlinkingRepository ? <FaSpinner className="animate-spin" size={14} /> : <FaUnlink size={14} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
