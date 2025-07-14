@@ -71,11 +71,12 @@ const LoginForm = ({ onSuccess }) => {
       const response = await googleLogin(credentialResponse.credential);
       if (response.success) {
         if (onSuccess) onSuccess();
-        if (response.needsAdditionalDetails) {
-          router.push('/profile');
-        } else {
+        // if (response.needsAdditionalDetails) {
+        //   router.push('/profile');
+        // } else {
+        // router.push('/dashboard');
+        // }
         router.push('/dashboard');
-        }
       }
     } catch (error) {
       setError('Failed to login with Google');

@@ -8,10 +8,13 @@ import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
 import { useToast } from '../context/ToastContext';
 import ProjectStatusDropdown from '../components/ProjectStatusDropdown';
-import { FaTrash, FaCheckCircle, FaVideo, FaChalkboardTeacher, FaProjectDiagram, FaCoffee, FaPowerOff, FaUserSlash, FaChartBar, FaEnvelope, FaRedo, FaPlus } from 'react-icons/fa';
+import { FaTrash, FaCheckCircle, FaVideo, FaChalkboardTeacher, FaRocket, FaProjectDiagram, FaCoffee, FaPowerOff, FaUserSlash, FaChartBar, FaEnvelope, FaRedo, FaPlus } from 'react-icons/fa';
 import api from '../services/api';
 import { projectService } from '../services/api';
 import { userService } from '../services/api';
+import { authService } from '../services/api';
+import OnboardingProgress from '../components/OnboardingProgress';
+import OnboardingGuide from '../components/OnboardingGuide';
 
 // Dynamic import for charts
 let DashboardCharts = null;
@@ -84,6 +87,7 @@ const Dashboard = () => {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteStatus, setInviteStatus] = useState('');
   const [invitedEmails, setInvitedEmails] = useState([]);
+  const [showOnboardingGuide, setShowOnboardingGuide] = useState(false);
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
@@ -260,7 +264,50 @@ const Dashboard = () => {
             <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.organizationName}</h1>
             <p className={`text-lg mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>Welcome to your workspace</p>
           </div>
+          <button
+            onClick={() => setShowOnboardingGuide(true)}
+            className={`px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${
+              theme === 'dark' 
+                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            }`}
+          >
+            <FaRocket size={14} />
+            Setup Guide
+          </button>
         </div>
+
+        {/* Onboarding Progress */}
+        <OnboardingProgress onComplete={async () => {
+          try {
+            // Update onboarding status to complete
+            await authService.updateOnboardingStatus(true, 'complete', {
+              profileComplete: true,
+              organizationComplete: true,
+              teamCreated: true,
+              projectCreated: true,
+              onboardingComplete: true
+            });
+            
+            // Refresh the global context to update onboarding data
+            const overview = await authService.getUserOverview();
+            if (overview) {
+              // Update the global context with fresh data
+              // This will trigger a re-render with updated onboarding status
+              // Instead of reloading, we'll let the context update naturally
+              showToast('Onboarding completed successfully!', 'success');
+            }
+          } catch (error) {
+            console.error('Error completing onboarding:', error);
+            showToast('Failed to complete onboarding', 'error');
+          }
+        }} />
+
+        {/* Onboarding Guide Modal */}
+        <OnboardingGuide 
+          isOpen={showOnboardingGuide} 
+          onClose={() => setShowOnboardingGuide(false)} 
+        />
 
         {/* Tab Navigation */}
         <div className="mb-6">

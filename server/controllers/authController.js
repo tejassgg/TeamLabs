@@ -358,7 +358,8 @@ const completeUserProfile = async (req, res) => {
       state,
       country,
       organizationID,
-      role
+      role,
+      needsUpdate
     } = req.body;
 
     const user = await User.findById(req.user._id);
@@ -366,18 +367,21 @@ const completeUserProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    // Update user profile with additional details
-    user.phone = phone;
-    user.phoneExtension = phoneExtension || user.phoneExtension; // Keep existing if not provided
-    user.middleName = middleName;
-    user.address = address;
-    user.aptNumber = aptNumber;
-    user.zipCode = zipCode;
-    user.city = city;
-    user.state = state;
-    user.country = country;
-    user.organizationID = organizationID;
+    if (needsUpdate === 'organizationID') {
+      user.organizationID = organizationID;
+    }
+    else {
+      // Update user profile with additional details
+      user.phone = phone;
+      user.phoneExtension = phoneExtension || user.phoneExtension; // Keep existing if not provided
+      user.middleName = middleName;
+      user.address = address;
+      user.aptNumber = aptNumber;
+      user.zipCode = zipCode;
+      user.city = city;
+      user.state = state;
+      user.country = country;
+    }
 
     if (role) {
       // Verify that the role exists in CommonTypes
@@ -400,12 +404,12 @@ const completeUserProfile = async (req, res) => {
     // Log profile update
     await logActivity(user._id, 'profile_update', 'success', 'Profile updated successfully', req);
 
-    const organization = await Organization.findOne({
-      OrganizationID: user.organizationID
-    });
-
-    if (!organization) {
-      return res.status(404).json({ message: 'Organization not found' });
+    // Only try to find organization if organizationID is provided
+    let organization = null;
+    if (user.organizationID) {
+      organization = await Organization.findOne({
+        OrganizationID: user.organizationID
+      });
     }
 
     res.json({
@@ -427,7 +431,7 @@ const completeUserProfile = async (req, res) => {
       needsAdditionalDetails: false,
       role: user.role,
       organization: organization ? {
-        name: organization.Value,
+        name: organization.Name,
         code: organization.Code
       } : null
     });
@@ -456,12 +460,12 @@ const getUserProfile = async (req, res) => {
         // Add organization details to the response
         const userProfile = user.toObject();
         userProfile.organization = organization ? {
-          name: organization.Value,
+          name: organization.Name,
           code: organization.Code
         } : null;
         userProfile.organizationID = user.organizationID;
         userProfile.status = user.status;
-        userProfile.orgName = organization ? organization.Value : null;
+        userProfile.orgName = organization ? organization.Name : null;
         res.json(userProfile);
       } else {
         res.json(user);
@@ -528,7 +532,7 @@ const getUserOrganizations = async (req, res) => {
       if (organization) {
         return res.json([{
           _id: organization._id,
-          name: organization.Value,
+          name: organization.Name,
           code: organization.Code
         }]);
       }
@@ -876,7 +880,7 @@ const resetPassword = async (req, res) => {
 const initiateGitHubAuth = async (req, res) => {
   try {
     const { userId } = req.body;
-    
+
     if (!userId) {
       return res.status(400).json({ success: false, error: 'User ID is required' });
     }
@@ -890,14 +894,14 @@ const initiateGitHubAuth = async (req, res) => {
       }
       return result;
     };
-    
+
     const state = generateRandomString(32);
-    
+
     // Store state in session or temporary storage (for production, use Redis)
     // For now, we'll use a simple approach
     const redirectUri = `${process.env.CLIENT_URL || 'http://localhost:3000'}/github-callback`;
     const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&scope=repo,user:email&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`;
-    
+
     res.json({
       success: true,
       authUrl: githubAuthUrl,
@@ -1076,7 +1080,7 @@ const getGitHubStatus = async (req, res) => {
     }
 
     const user = await User.findById(userId).select('githubConnected githubUsername githubEmail githubAvatarUrl githubConnectedAt');
-    
+
     if (!user) {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
@@ -1287,6 +1291,38 @@ const unlinkRepositoryFromProject = async (req, res) => {
   } catch (error) {
     console.error('Error unlinking repository from project:', error);
     res.status(500).json({ success: false, error: 'Failed to unlink repository from project' });
+  }
+};
+
+const updateOnboardingStatus = async (req, res) => {
+  try {
+    const { completed, step, progress } = req.body;
+    const userId = req.user._id;
+
+    const updateData = {};
+    if (completed !== undefined) updateData.onboardingCompleted = completed;
+    if (step) updateData.onboardingStep = step;
+    if (progress) updateData.onboardingProgress = progress;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      onboardingCompleted: user.onboardingCompleted,
+      onboardingStep: user.onboardingStep,
+      onboardingProgress: user.onboardingProgress
+    });
+  } catch (error) {
+    console.error('Error updating onboarding status:', error);
+    res.status(500).json({ message: 'Failed to update onboarding status' });
   }
 };
 
@@ -1523,5 +1559,6 @@ module.exports = {
   unlinkRepositoryFromProject,
   getProjectRepository,
   getProjectCommits,
-  getProjectIssues
+  getProjectIssues,
+  updateOnboardingStatus
 }; 

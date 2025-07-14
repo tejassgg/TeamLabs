@@ -28,7 +28,9 @@ const userActivitySchema = new mongoose.Schema({
       // Team Member activities
       'team_members_remove','team_projects_remove', 'project_team_add',
       // Repository activities
-      'repository_linked', 'repository_unlinked'      
+      'repository_linked', 'repository_unlinked',
+      // Team Join Request activities
+      'team_join_request'
     ]
   },
   status: {

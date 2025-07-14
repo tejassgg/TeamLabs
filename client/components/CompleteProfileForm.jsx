@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useGlobal } from '../context/GlobalContext';
 import { authService, commonTypeService } from '../services/api';
-import { FaUser, FaEnvelope, FaPhone, FaBuilding, FaMapMarkerAlt, FaCity, FaGlobe, FaTimesCircle, FaUserCircle, FaTimes } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCity, FaGlobe, FaTimesCircle, FaUserCircle, FaTimes } from 'react-icons/fa';
+import CustomModal from './CustomModal';
 
 const CompleteProfileForm = ({ onComplete, onCancel }) => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { theme } = useTheme();
+  const { refreshOrganizations } = useGlobal(); // Use global context for refresh
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -19,11 +22,9 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
     city: '',
     state: '',
     country: '',
-    organizationID: '',
     role: '',
     phoneExtension: ''
   });
-  const [orgOptions, setOrgOptions] = useState([]);
   const [roleOptions, setRoleOptions] = useState([]);
   const [phoneExtensions, setPhoneExtensions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -45,7 +46,6 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
           city: profile.city || '',
           state: profile.state || '',
           country: profile.country || '',
-          organizationID: profile.organizationID || '',
           role: profile.role || 'User',
           phoneExtension: profile.phoneExtension || ''
         });
@@ -57,31 +57,26 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
     fetchUserProfile();
   }, []);
 
-  // Fetch organizations and roles for dropdowns
+  // Fetch roles and phone extensions for dropdowns
   useEffect(() => {
-
-    Promise.all([
-      commonTypeService.getOrganizations(),
-      commonTypeService.getUserRoles(),
-      commonTypeService.getPhoneExtensions()
-    ])
-      .then(([orgs, roles, extensions]) => {
-        setOrgOptions(orgs);
+    const fetchDropdownData = async () => {
+      try {
+        const { userRoles, phoneExtensions } = await commonTypeService.getDropdownData();
         // Filter out Admin role if user is not an admin
-        const filteredRoles = roles.filter(role => {
-          // If user is not an admin, hide the Admin role
+        const filteredRoles = userRoles.filter(role => {
           if (user?.role !== 'Admin' && role.Value === 'Admin') {
             return false;
           }
           return true;
         });
         setRoleOptions(filteredRoles);
-        setPhoneExtensions(extensions);
-      })
-      .catch(() => {
-        setOrgOptions([]);
+        setPhoneExtensions(phoneExtensions);
+      } catch (err) {
         setRoleOptions([]);
-      });
+        setPhoneExtensions([]);
+      }
+    };
+    fetchDropdownData();
   }, [user?.role]);
 
   const totalSteps = 3;
@@ -98,7 +93,28 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
 
     try {
       const data = await authService.completeProfile(formData);
-      onComplete(data);
+      
+      // Calculate the current onboarding progress
+      const currentProgress = {
+        profileComplete: true, // This step is being completed
+        organizationComplete: false,
+        teamCreated: false,
+        projectCreated: false,
+        onboardingComplete: false
+      };
+      
+      // Advance onboarding step to 'organization' after profile completion
+      await authService.updateOnboardingStatus(false, 'organization', currentProgress);
+      
+      // Refresh global context (user overview, onboarding, etc.)
+      if (typeof refreshOrganizations === 'function') {
+        await refreshOrganizations();
+      }
+      
+      // Pass profile completion data without organization info
+      onComplete({
+        ...data
+      });
     } catch (err) {
       setError(err.message || 'Failed to update profile');
     } finally {
@@ -178,7 +194,7 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
                 />
               </div>
             </div>
-            {/* Row 3: Role | Organization */}
+            {/* Row 3: Role */}
             <div className="flex gap-4 mt-4">
               <div className="w-1/2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
@@ -192,21 +208,6 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
                   <option value="">Select Role</option>
                   {roleOptions.map(role => (
                     <option key={role.Code} value={role.Value}>{role.Value}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Organization</label>
-                <select
-                  name="organizationID"
-                  value={formData.organizationID}
-                  onChange={e => setFormData({ ...formData, organizationID: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                  required
-                >
-                  <option value="">Select Organization</option>
-                  {orgOptions.map(org => (
-                    <option key={org._id} value={org.Code}>{org.Value}</option>
                   ))}
                 </select>
               </div>
@@ -334,15 +335,6 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
                         </span>
                       </div>
                     </li>
-                    <li className="flex items-center gap-4">
-                      <FaBuilding className="text-blue-400 text-xl" />
-                      <div>
-                        <span className="block text-xs text-gray-400 dark:text-gray-500">Organization</span>
-                        <span className={`block text-base font-medium ${formData.organizationID ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
-                          {orgOptions.find(org => org.Code === parseInt(formData.organizationID))?.Value || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
-                        </span>
-                      </div>
-                    </li>
                   </ul>
                 </div>
                 {/* Location Details */}
@@ -374,7 +366,7 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
                       </div>
                     </li>
                     <li className="flex items-center gap-4">
-                      <FaBuilding className="text-blue-400 text-xl" />
+                      <FaGlobe className="text-blue-400 text-xl" />
                       <div>
                         <span className="block text-xs text-gray-400 dark:text-gray-500">State</span>
                         <span className={`block text-base font-medium ${formData.state ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
@@ -388,15 +380,6 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
                         <span className="block text-xs text-gray-400 dark:text-gray-500">Country</span>
                         <span className={`block text-base font-medium ${formData.country ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
                           {formData.country || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
-                        </span>
-                      </div>
-                    </li>
-                    <li className="flex items-center gap-4">
-                      <FaMapMarkerAlt className="text-blue-400 text-xl" />
-                      <div>
-                        <span className="block text-xs text-gray-400 dark:text-gray-500">ZIP Code</span>
-                        <span className={`block text-base font-medium ${formData.zipCode ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
-                          {formData.zipCode || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
                         </span>
                       </div>
                     </li>

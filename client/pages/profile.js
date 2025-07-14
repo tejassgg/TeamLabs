@@ -18,7 +18,6 @@ const Profile = () => {
   const { theme } = useTheme();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [needsProfileUpdate, setNeedsProfileUpdate] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [showSocialLinks, setShowSocialLinks] = useState(false);
   const [activities, setActivities] = useState([]);
@@ -49,11 +48,6 @@ const Profile = () => {
       try {
         const userProfile = await authService.getUserProfile();
         setProfile(userProfile);
-
-        // Check if any required fields are missing
-        const requiredFields = ['phone', 'address', 'city', 'state', 'zipCode', 'country'];
-        const hasMissingFields = requiredFields.some(field => !userProfile[field]);
-        setNeedsProfileUpdate(hasMissingFields);
       } catch (error) {
         console.error('Error fetching user profile:', error);
       } finally {
@@ -92,8 +86,6 @@ const Profile = () => {
     try {
       // Update the profile state
       setProfile(updatedProfile);
-      setNeedsProfileUpdate(false);
-
       // Update the user's organization ID in the auth context
       if (updatedProfile.organizationID) {
         updateUser({ ...user, organizationID: updatedProfile.organizationID });
@@ -171,31 +163,6 @@ const Profile = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
-    );
-  }
-
-  if (needsProfileUpdate) {
-    return (
-      <Layout>
-        <Head>
-          <title>Complete Your Profile | TeamLabs</title>
-        </Head>
-        <div className={`min-h-screen ${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-gray-50 to-blue-50'}`}>
-          <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <h1 className={`text-3xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>Complete Your Profile</h1>
-              <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                Please provide your contact and address information to complete your profile.
-              </p>
-            </div>
-            <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-lg overflow-hidden border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-              <div className="p-8">
-                <CompleteProfileForm onComplete={handleProfileComplete} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </Layout>
     );
   }
 
@@ -291,35 +258,15 @@ const Profile = () => {
                                 <li className="flex items-center gap-4">
                                   <FaEnvelope className="text-blue-400 text-xl" />
                                   <div>
-                                    <span className="block text-xs text-gray-400 dark:text-gray-500">Email Address</span>
-                                    <span className={`block text-base font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{profile?.email}</span>
+                                    <div className="font-medium">Email</div>
+                                    <div className="text-gray-700 dark:text-gray-200">{profile?.email || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaPhone className="text-blue-400 text-xl" />
                                   <div>
-                                    <span className="block text-xs text-gray-400 dark:text-gray-500">Phone Number</span>
-                                    <span className={`block text-base font-medium ${profile?.phone ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
-                                      {profile?.phone || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
-                                    </span>
-                                  </div>
-                                </li>
-                                <li className="flex items-center gap-4">
-                                  <FaUserCircle className="text-blue-400 text-xl" />
-                                  <div>
-                                    <span className="block text-xs text-gray-400 dark:text-gray-500">Role</span>
-                                    <span className={`block text-base font-medium ${profile.role ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
-                                      {profile.role}
-                                    </span>
-                                  </div>
-                                </li>
-                                <li className="flex items-center gap-4">
-                                  <FaBuilding className="text-blue-400 text-xl" />
-                                  <div>
-                                    <span className="block text-xs text-gray-400 dark:text-gray-500">Organization</span>
-                                    <span className={`block text-base font-medium ${profile.organizationID ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
-                                      {profile.organization.name}
-                                    </span>
+                                    <div className="font-medium">Phone</div>
+                                    <div className="text-gray-700 dark:text-gray-200">{profile?.phone || '-'}</div>
                                   </div>
                                 </li>
                               </ul>
@@ -332,51 +279,45 @@ const Profile = () => {
                               </h3>
                               <ul className="space-y-4">
                                 <li className="flex items-center gap-4">
-                                  <FaMapMarkerAlt className="text-blue-400 text-xl" />
-                                  <div>
-                                    <span className="block text-xs text-gray-400 dark:text-gray-500">Street Address</span>
-                                    <span className={`block text-base font-medium ${profile?.address ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
-                                      {profile?.address || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
-                                      {profile?.aptNumber && (
-                                        <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} ml-1`}>#{profile.aptNumber}</span>
-                                      )}
-                                    </span>
-                                  </div>
-                                </li>
-                                <li className="flex items-center gap-4">
                                   <FaBuilding className="text-blue-400 text-xl" />
                                   <div>
-                                    <span className="block text-xs text-gray-400 dark:text-gray-500">City</span>
-                                    <span className={`block text-base font-medium ${profile?.city ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
-                                      {profile?.city || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
-                                    </span>
+                                    <div className="font-medium">Address</div>
+                                    <div className="text-gray-700 dark:text-gray-200">{profile?.address || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaCity className="text-blue-400 text-xl" />
                                   <div>
-                                    <span className="block text-xs text-gray-400 dark:text-gray-500">State</span>
-                                    <span className={`block text-base font-medium ${profile?.state ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
-                                      {profile?.state || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
-                                    </span>
+                                    <div className="font-medium">City</div>
+                                    <div className="text-gray-700 dark:text-gray-200">{profile?.city || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaGlobe className="text-blue-400 text-xl" />
                                   <div>
-                                    <span className="block text-xs text-gray-400 dark:text-gray-500">Country</span>
-                                    <span className={`block text-base font-medium ${profile?.country ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
-                                      {profile?.country || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
-                                    </span>
+                                    <div className="font-medium">State</div>
+                                    <div className="text-gray-700 dark:text-gray-200">{profile?.state || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
-                                  <FaMapMarkerAlt className="text-blue-400 text-xl" />
+                                  <FaGlobe className="text-blue-400 text-xl" />
                                   <div>
-                                    <span className="block text-xs text-gray-400 dark:text-gray-500">ZIP Code</span>
-                                    <span className={`block text-base font-medium ${profile?.zipCode ? (theme === 'dark' ? 'text-white' : 'text-gray-800') : 'text-yellow-500'}`}>
-                                      {profile?.zipCode || <span className="italic flex items-center gap-1"><FaTimesCircle className="inline text-yellow-400" /> Not provided</span>}
-                                    </span>
+                                    <div className="font-medium">Zip Code</div>
+                                    <div className="text-gray-700 dark:text-gray-200">{profile?.zipCode || '-'}</div>
+                                  </div>
+                                </li>
+                                <li className="flex items-center gap-4">
+                                  <FaGlobe className="text-blue-400 text-xl" />
+                                  <div>
+                                    <div className="font-medium">Country</div>
+                                    <div className="text-gray-700 dark:text-gray-200">{profile?.country || '-'}</div>
+                                  </div>
+                                </li>
+                                <li className="flex items-center gap-4">
+                                  <FaOrganization className="text-blue-400 text-xl" />
+                                  <div>
+                                    <div className="font-medium">Organization</div>
+                                    <div className="text-gray-700 dark:text-gray-200">{profile?.organizationName || '-'}</div>
                                   </div>
                                 </li>
                               </ul>

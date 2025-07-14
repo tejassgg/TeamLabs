@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
-import api, { authService } from '../../services/api';
+import api, { authService, teamService } from '../../services/api';
 import Layout from '../../components/Layout';
 import CustomModal from '../../components/CustomModal';
 import { FaCog, FaTrash, FaTimes, FaChevronRight } from 'react-icons/fa';
@@ -71,6 +71,9 @@ const TeamDetailsPage = () => {
   const [selectedProjects, setSelectedProjects] = useState([]);
   const [bulkRemovingProjects, setBulkRemovingProjects] = useState(false);
   const [showBulkRemoveProjectsDialog, setShowBulkRemoveProjectsDialog] = useState(false);
+  const [joinRequests, setJoinRequests] = useState([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+  const [processingRequest, setProcessingRequest] = useState('');
 
   const teamColors = [
     { value: '#3B82F6', name: 'Blue' },
@@ -356,6 +359,43 @@ const TeamDetailsPage = () => {
     }
   };
 
+  // Fetch join requests if owner
+  useEffect(() => {
+    if (isOwner && teamId) {
+      setLoadingRequests(true);
+      teamService.getTeamJoinRequests(teamId)
+        .then(setJoinRequests)
+        .catch(() => setJoinRequests([]))
+        .finally(() => setLoadingRequests(false));
+    }
+  }, [isOwner, teamId]);
+
+  const handleAcceptRequest = async (requestId, userId) => {
+    setProcessingRequest(requestId + '-accept');
+    try {
+      await teamService.acceptTeamJoinRequest(teamId, requestId, user._id);
+      setJoinRequests(prev => prev.filter(r => r._id !== requestId));
+      // Optionally refresh members
+      const res = await api.get(`/team-details/${teamId}`);
+      setMembers(res.data.members);
+    } catch (err) {
+      // Optionally show error
+    } finally {
+      setProcessingRequest('');
+    }
+  };
+  const handleRejectRequest = async (requestId) => {
+    setProcessingRequest(requestId + '-reject');
+    try {
+      await teamService.rejectTeamJoinRequest(teamId, requestId, user._id);
+      setJoinRequests(prev => prev.filter(r => r._id !== requestId));
+    } catch (err) {
+      // Optionally show error
+    } finally {
+      setProcessingRequest('');
+    }
+  };
+
   return (
     <Layout>
       <Head>
@@ -535,6 +575,58 @@ const TeamDetailsPage = () => {
                   </div>
                 )}
               </form>
+            )}
+
+            {/* Join Requests Table (Owner/Admin only) */}
+            {isOwner && (
+              <div className={getThemeClasses('rounded-xl border border-gray-200 mb-8', 'dark:border-gray-700')}>
+                <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
+                  <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Join Requests</h2>
+                </div>
+                <div className="overflow-x-auto">
+                  {loadingRequests ? (
+                    <div className="p-4">Loading requests...</div>
+                  ) : joinRequests.length === 0 ? (
+                    <div className="p-4 text-gray-500">No pending join requests.</div>
+                  ) : (
+                    <table className="w-full">
+                      <thead>
+                        <tr className={getThemeClasses('border-b border-gray-200', 'dark:border-gray-700')}>
+                          <th className="py-3 px-4 text-left">User</th>
+                          <th className="py-3 px-4 text-left">Email</th>
+                          <th className="py-3 px-4 text-left">Requested At</th>
+                          <th className="py-3 px-4 text-left">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {joinRequests.map(req => (
+                          <tr key={req._id} className={getThemeClasses('border-b border-gray-100', 'dark:border-gray-800')}>
+                            <td className="py-2 px-4">{req.userId?.name || req.userId?.firstName + ' ' + req.userId?.lastName || 'User'}</td>
+                            <td className="py-2 px-4">{req.userId?.email}</td>
+                            <td className="py-2 px-4">{new Date(req.requestedAt).toLocaleString()}</td>
+                            <td className="py-2 px-4">
+                              <button
+                                className="mr-2 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium disabled:opacity-60"
+                                onClick={() => handleAcceptRequest(req._id, req.userId?._id)}
+                                disabled={processingRequest === req._id + '-accept'}
+                              >
+                                Accept
+                              </button>
+                              <button
+                                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium disabled:opacity-60"
+                                onClick={() => handleRejectRequest(req._id)}
+                                disabled={processingRequest === req._id + '-reject'}
+                              >
+                                Reject
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
             )}
 
             {/* Team Members and Projects Tables Grid */}

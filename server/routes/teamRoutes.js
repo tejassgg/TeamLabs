@@ -3,8 +3,22 @@ const router = express.Router();
 const Team = require('../models/Team');
 const User = require('../models/User');
 const TeamDetails = require('../models/TeamDetails');
+const TeamJoinRequest = require('../models/TeamJoinRequest');
 const { logActivity } = require('../services/activityService');
 const { checkTeamLimit } = require('../middleware/premiumLimits');
+
+// GET /api/teams/organization/:organizationId - fetch teams by organization
+router.get('/organization/:organizationId', async (req, res) => {
+  try {
+    const { organizationId } = req.params;
+    const teams = await Team.find({organizationID: organizationId}).sort({ CreatedDate: -1 });
+    
+    res.json(teams);
+  } catch (err) {
+    console.error('Error fetching teams by organization:', err);
+    res.status(500).json({ error: 'Failed to fetch teams by organization' });
+  }
+});
 
 // GET /api/teams - fetch all teams
 router.get('/:role/:userId', async (req, res) => {
@@ -61,6 +75,8 @@ router.post('/', checkTeamLimit, async (req, res) => {
       });
       await newTeam.save({ session });
 
+      console.log("New Team Created: ", newTeam);
+
       // Add the owner as a member
       const newMember = new TeamDetails({
         TeamID_FK: newTeam.TeamID,
@@ -70,6 +86,8 @@ router.post('/', checkTeamLimit, async (req, res) => {
         ModifiedBy: OwnerID
       });
       await newMember.save({ session });
+
+      console.log("New Member Added: ", newMember);
 
       // Log the activity
       await logActivity(
@@ -88,6 +106,8 @@ router.post('/', checkTeamLimit, async (req, res) => {
       // Commit the transaction
       await session.commitTransaction();
       session.endSession();
+
+      console.log("Team Created Successfully & Member Added Successfully");
 
       res.status(201).json({
         team: newTeam,
@@ -118,6 +138,90 @@ router.post('/', checkTeamLimit, async (req, res) => {
       console.error('Failed to log error activity:', logError);
     }
     res.status(500).json({ error: 'Failed to create team' });
+  }
+});
+
+// POST /api/teams/:teamId/join-request - create a join request
+router.post('/:teamId/join-request', async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId is required' });
+    
+    // Prevent duplicate requests
+    const existing = await TeamJoinRequest.findOne({ userId, teamId, status: 'pending' });
+    if (existing) {
+      return res.status(400).json({ error: 'Request already pending' });
+    }
+
+    const request = new TeamJoinRequest({ userId, teamId, status: 'pending' });
+    await request.save();
+    
+    // Log the activity
+    const team = await Team.findOne({ TeamID: teamId });
+    await logActivity(
+      userId,
+      'team_join_request',
+      'success',
+      `Requested to join team "${team?.TeamName}"`,
+      req,
+      {
+        teamId,
+        teamName: team?.TeamName
+      }
+    );
+    res.status(201).json(request);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: 'Failed to create join request' });
+  }
+});
+
+// GET /api/teams/:teamId/join-requests - get all join requests for a team
+router.get('/:teamId/join-requests', async (req, res) => {
+  try {
+    const teamId = req.params.teamId;
+    const requests = await TeamJoinRequest.find({ teamId, status: 'pending' }).populate('userId', 'name email');
+    res.json(requests);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch join requests' });
+  }
+});
+
+// POST /api/teams/:teamId/join-requests/:requestId/accept - accept a join request
+router.post('/:teamId/join-requests/:requestId/accept', async (req, res) => {
+  try {
+    const { teamId, requestId } = req.params;
+    const { adminId } = req.body;
+    const request = await TeamJoinRequest.findById(requestId);
+    if (!request || request.teamId.toString() !== teamId) return res.status(404).json({ error: 'Request not found' });
+    request.status = 'accepted';
+    request.respondedAt = new Date();
+    request.respondedBy = adminId;
+    await request.save();
+    // Add user to TeamDetails
+    const TeamDetails = require('../models/TeamDetails');
+    await TeamDetails.create({ TeamID_FK: teamId, MemberID: request.userId, IsMemberActive: true, CreatedDate: new Date(), ModifiedBy: adminId });
+    res.json({ message: 'Request accepted', request });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to accept join request' });
+  }
+});
+
+// POST /api/teams/:teamId/join-requests/:requestId/reject - reject a join request
+router.post('/:teamId/join-requests/:requestId/reject', async (req, res) => {
+  try {
+    const { teamId, requestId } = req.params;
+    const { adminId } = req.body;
+    const request = await TeamJoinRequest.findById(requestId);
+    if (!request || request.teamId.toString() !== teamId) return res.status(404).json({ error: 'Request not found' });
+    request.status = 'rejected';
+    request.respondedAt = new Date();
+    request.respondedBy = adminId;
+    await request.save();
+    res.json({ message: 'Request rejected', request });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to reject join request' });
   }
 });
 

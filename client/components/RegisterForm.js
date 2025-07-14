@@ -114,11 +114,7 @@ const RegisterForm = () => {
       }
       const result = await registerUser({ ...data, profileImage: imageUrl, inviteToken });
       if (result.success) {
-        if (result.needsAdditionalDetails) {
-          router.push('/profile');
-        } else {
-          router.push('/dashboard');
-        }
+        router.push('/dashboard');
       } else {
         setError(result.message);
       }
@@ -135,11 +131,7 @@ const RegisterForm = () => {
     try {
       const response = await googleLogin(credentialResponse.credential, inviteToken);
       if (response.success) {
-        if (response.needsAdditionalDetails) {
-          router.push('/profile');
-        } else {
-          router.push('/dashboard');
-        }
+        router.push('/dashboard');
       }
       else{
         setError(response.message);

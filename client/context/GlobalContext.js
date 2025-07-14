@@ -27,46 +27,17 @@ export const GlobalProvider = ({ children }) => {
   const [projectStatuses, setProjectStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Fetch user details
-  const fetchUserDetails = async () => {
-    try {
-      const profile = await authService.getUserProfile();
-      setUserDetails(profile);
-      return profile;
-    } catch (err) {
-      setError('Failed to fetch user details');
-      console.error('Error fetching user details:', err);
-      return null;
+  const [onboardingData, setOnboardingData] = useState({
+    onboardingCompleted: false,
+    onboardingStep: 'welcome',
+    onboardingProgress: {
+      profileComplete: false,
+      organizationComplete: false,
+      teamCreated: false,
+      projectCreated: false,
+      onboardingComplete: false
     }
-  };
-
-  // Fetch teams
-  const fetchTeams = async (orgId, role, userId) => {
-    try {
-      const fetchedTeams = await teamService.getTeams(role, userId);
-      const filteredTeams = fetchedTeams.filter(team => team.organizationID === orgId);
-      setTeams(filteredTeams);
-      return filteredTeams;
-    } catch (err) {
-      setError('Failed to fetch teams');
-      console.error('Error fetching teams:', err);
-      return [];
-    }
-  };
-
-  // Fetch projects
-  const fetchProjects = async (userId, role) => {
-    try {
-      const fetchedProjects = await projectService.getProjects(userId, role);
-      setProjects(fetchedProjects);
-      return fetchedProjects;
-    } catch (err) {
-      setError('Failed to fetch projects');
-      console.error('Error fetching projects:', err);
-      return [];
-    }
-  };
+  });
 
   // Fetch organizations
   const fetchOrganizations = async () => {
@@ -78,32 +49,6 @@ export const GlobalProvider = ({ children }) => {
       setError('Failed to fetch organizations');
       console.error('Error fetching organizations:', err);
       return null;
-    }
-  };
-
-  // Fetch tasks details
-  const fetchTasksDetails = async () => {
-    try {
-      const fetchedTasks = await taskService.getAllTaskDetails();
-      setTasksDetails(fetchedTasks);
-      return fetchedTasks;
-    } catch (err) {
-      setError('Failed to fetch tasks');
-      console.error('Error fetching tasks:', err);
-      return [];
-    }
-  };
-
-  // Fetch project statuses
-  const fetchProjectStatuses = async () => {
-    try {
-      const statuses = await commonTypeService.getProjectStatuses();
-      setProjectStatuses(statuses);
-      return statuses;
-    } catch (err) {
-      setError('Failed to fetch project statuses');
-      console.error('Error fetching project statuses:', err);
-      return [];
     }
   };
 
@@ -166,6 +111,17 @@ export const GlobalProvider = ({ children }) => {
           setOrganization(overview.organization);
           setTasksDetails(overview.tasks);
           setProjectStatuses(overview.projectStatuses);
+          setOnboardingData({
+            onboardingCompleted: overview.onboardingCompleted || false,
+            onboardingStep: overview.onboardingStep || 'welcome',
+            onboardingProgress: overview.onboardingProgress || {
+              profileComplete: false,
+              organizationComplete: false,
+              teamCreated: false,
+              projectCreated: false,
+              onboardingComplete: false
+            }
+          });
         }
       } catch (err) {
         setError('Failed to fetch user overview');
@@ -185,24 +141,6 @@ export const GlobalProvider = ({ children }) => {
     return await fetchOrganizations();
   };
 
-  const refreshAll = async () => {
-    setLoading(true);
-    try {
-      const profile = await fetchUserDetails();
-      if (profile) {
-        await Promise.all([
-          fetchTeams(profile.organizationID, profile.role, profile._id),
-          fetchProjects(profile._id, profile.role),
-          fetchOrganizations()
-        ]);
-      }
-    } catch (err) {
-      console.error('Error refreshing data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const value = {
     userDetails,
     teams,
@@ -212,8 +150,8 @@ export const GlobalProvider = ({ children }) => {
     projectStatuses,
     loading,
     error,
+    onboardingData,
     refreshOrganizations,
-    refreshAll,
     setProjects,
     setTeams,
     setTasksDetails,
@@ -225,6 +163,7 @@ export const GlobalProvider = ({ children }) => {
     getTaskStatusText,
     getDeadlineStatusComponent,
     calculateDeadlineTextComponent,
+    setUserDetails,
   };
 
   return (

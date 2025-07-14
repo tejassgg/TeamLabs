@@ -15,6 +15,7 @@ import { useToast } from '../context/ToastContext';
 import ChatBot from './ChatBot';
 import TooltipPortal from './TooltipPortal';
 import Link from 'next/link';
+import FirstTimeSetup from './FirstTimeSetup';
 
 
 const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
@@ -196,18 +197,26 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           {items.length === 0 ? (
             <li key={`no-${label.toLowerCase()}`} className="text-gray-400 italic">No {label}</li>
           ) : (
-            items.map((item) => (
-              <li key={item[itemKey] || item._id || `item-${Math.random()}`}>
-                <button
-                  className={`w-full text-left px-2 py-1 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeId === item[itemKey]
-                    ? (theme === 'dark' ? 'bg-blue-900 text-blue-200 font-medium' : 'bg-blue-50 text-blue-600 font-medium')
-                    : (theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-gray-100')}`}
-                  onClick={() => onItemClick(item)}
-                >
-                  {item[itemLabel]}
-                </button>
-              </li>
-            ))
+            items.map((item) => {
+              // Skip rendering if item is undefined or missing required properties
+              if (!item || !itemKey || !itemLabel) return null;
+              
+              const itemId = item[itemKey] || item._id || `item-${Math.random()}`;
+              const itemDisplayName = item[itemLabel] || 'Unnamed Item';
+              
+              return (
+                <li key={itemId}>
+                  <button
+                    className={`w-full text-left px-2 py-1 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeId === itemId
+                      ? (theme === 'dark' ? 'bg-blue-900 text-blue-200 font-medium' : 'bg-blue-50 text-blue-600 font-medium')
+                      : (theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-gray-100')}`}
+                    onClick={() => onItemClick(item)}
+                  >
+                    {itemDisplayName}
+                  </button>
+                </li>
+              );
+            }).filter(Boolean) // Remove any null items from the array
           )}
         </ul>
       )}
@@ -237,15 +246,15 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {/* Dynamic Org Initials */}
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg flex-shrink-0 ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
-              {organization && organization.Value
-                ? organization.Value.split(' ').map(n => n[0]).join('')
+              {organization && organization.Name
+                ? organization.Name.split(' ').map(n => n[0]).join('')
                 : 'OG'}
             </div>
             {/* Dynamic Org Name */}
             <span className={`font-bold text-lg truncate transition-all duration-300 ease-in-out ${!isMobile && collapsed ? 'opacity-0 scale-95 w-0' : 'opacity-100 scale-100'
               }`}>
-              {organization && organization.Value
-                ? organization.Value
+              {organization && organization.Name
+                ? organization.Name
                 : 'Organization'}
             </span>
           </div>
@@ -420,12 +429,22 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
 };
 
 const isProfileComplete = (userDetails) => {
-  if (!userDetails) return false;
+  if (!userDetails) {
+    return false;
+  }
   // Adjust these fields as per your required profile fields
   const requiredFields = [
     'phone', 'address', 'city', 'state', 'country', 'firstName', 'lastName', 'email'
   ];
-  return requiredFields.every(field => userDetails[field] && userDetails[field].toString().trim() !== '');
+  const result = requiredFields.every(field => {
+    const hasField = userDetails[field] && userDetails[field].toString().trim() !== '';
+    if (!hasField) {
+      console.log(`isProfileComplete: Missing or empty field: ${field}`, userDetails[field]);
+    }
+    return hasField;
+  });
+  console.log('isProfileComplete result:', result, 'for userDetails:', userDetails);
+  return result;
 };
 
 const Layout = ({ children }) => {
@@ -437,6 +456,8 @@ const Layout = ({ children }) => {
   const { showToast } = useToast();
   const router = useRouter();
   const { teams, projects, tasksDetails, userDetails, loading: globalLoading } = useGlobal();
+  const [showFirstTimeSetup, setShowFirstTimeSetup] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Dynamic breadcrumb component
   const DynamicBreadcrumb = () => {
@@ -566,6 +587,30 @@ const Layout = ({ children }) => {
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
 
+  // Reset redirecting state when route changes
+  useEffect(() => {
+    setIsRedirecting(false);
+  }, [router.pathname]);
+
+  // Check if first time setup is needed
+  useEffect(() => {
+    if (isRedirecting) return; // Prevent redirect loops
+    // Never redirect away from /profile or /welcome for onboarding
+    if (
+      userDetails &&
+      !userDetails.onboardingCompleted &&
+      !['/','/profile'].includes(router.pathname)
+    ) {
+      console.log('Show onboarding modal due to incomplete onboarding:', {
+        onboardingCompleted: userDetails.onboardingCompleted,
+        onboardingStep: userDetails.onboardingStep,
+        currentPath: router.pathname
+      });
+      setIsRedirecting(true);
+      setShowFirstTimeSetup(true);
+    }
+  }, [userDetails, router.pathname, router, isRedirecting]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       const sidebar = document.getElementById('mobile-sidebar');
@@ -579,14 +624,29 @@ const Layout = ({ children }) => {
   }, [isMobile, isMobileSidebarOpen]);
 
   useEffect(() => {
-    if (globalLoading) return;
+    if (globalLoading || isRedirecting) return; // Prevent redirect loops
     // Only run on client
     if (typeof window === 'undefined') return;
-    // Don't redirect if already on /profile or /logout
-    if (!isProfileComplete(userDetails) && !['/profile', '/logout'].includes(router.pathname)) {
+    // Never redirect away from /profile or /welcome for profile completion
+    
+    console.log(userDetails);
+
+    if (
+      !isProfileComplete(userDetails) &&
+      !['/profile', '/logout'].includes(router.pathname) &&
+      userDetails?.onboardingCompleted &&
+      router.pathname !== '/profile'
+    ) {
+      console.log('Redirecting to profile due to incomplete profile:', {
+        isProfileComplete: isProfileComplete(userDetails),
+        currentPath: router.pathname,
+        onboardingCompleted: userDetails?.onboardingCompleted,
+        userDetails: userDetails
+      });
+      setIsRedirecting(true);
       router.replace('/profile');
     }
-  }, [userDetails, globalLoading, router.pathname]);
+  }, [userDetails, globalLoading, router.pathname, isRedirecting]);
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'}`}>
@@ -647,6 +707,12 @@ const Layout = ({ children }) => {
           onClick={() => setIsMobileSidebarOpen(false)}
         ></div>
       )}
+      
+      {/* First Time Setup Modal */}
+      <FirstTimeSetup 
+        isOpen={showFirstTimeSetup} 
+        onComplete={() => setShowFirstTimeSetup(false)} 
+      />
     </div>
   );
 };

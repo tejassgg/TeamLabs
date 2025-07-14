@@ -27,6 +27,7 @@ const {
   linkRepositoryToProject,
   unlinkRepositoryFromProject,
   getProjectRepository,
+  updateOnboardingStatus,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -222,6 +223,9 @@ router.get('/activities', protect, getUserActivities);
  *         description: User not found
  */
 router.get('/organizations', protect, getUserOrganizations);
+
+// PUT /api/auth/onboarding - Update onboarding status
+router.put('/onboarding', protect, updateOnboardingStatus);
 
 /**
  * @swagger

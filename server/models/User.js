@@ -207,6 +207,24 @@ const UserSchema = new mongoose.Schema({
     enum: ['free', 'premium'],
     default: 'free'
   },
+  
+  // Onboarding Properties
+  onboardingCompleted: {
+    type: Boolean,
+    default: false
+  },
+  onboardingStep: {
+    type: String,
+    enum: ['welcome', 'profile', 'organization', 'team', 'project', 'complete'],
+    default: 'welcome'
+  },
+  onboardingProgress: {
+    profileComplete: { type: Boolean, default: false },
+    organizationComplete: { type: Boolean, default: false },
+    teamCreated: { type: Boolean, default: false },
+    projectCreated: { type: Boolean, default: false },
+    onboardingComplete: { type: Boolean, default: false }
+  },
   subscriptionPlan: {
     type: String,
     enum: [null,'monthly', 'annual'],

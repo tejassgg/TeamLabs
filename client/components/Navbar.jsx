@@ -14,7 +14,7 @@ import {
   FaChevronDown
 } from 'react-icons/fa';
 
-const Navbar = () => {
+const Navbar = ({ showWelcomeMessage = false }) => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
@@ -35,13 +35,13 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
+    <nav className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-sm border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Left side - Logo and Brand */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <span className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 TeamLabs
               </span>
             </Link>
@@ -49,6 +49,13 @@ const Navbar = () => {
 
           {/* Right side - User menu and Theme toggle */}
           <div className="flex items-center space-x-4">
+            {/* Welcome Message for Welcome Page */}
+            {showWelcomeMessage && user && (
+              <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                Welcome, {user.firstName || user.username}!
+              </span>
+            )}
+            
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}

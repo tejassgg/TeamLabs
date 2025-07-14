@@ -147,7 +147,7 @@ router.get('/:organizationId', async (req, res) => {
       totalTeams: teams.length,
       totalUsers: users.length,
       upcomingDeadlines: upcomingDeadlines.length,
-      organizationName: organization?.Value || 'Unknown Organization',
+      organizationName: organization?.Name || 'Unknown Organization',
       recentProjects: projects.slice(0, 5).map(project => ({
         id: project.ProjectID,
         name: project.Name,

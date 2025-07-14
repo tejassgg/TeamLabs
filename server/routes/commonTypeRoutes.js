@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const CommonType = require('../models/CommonType');
+const Organization = require('../models/Organization');
 
 // GET /api/common-types/team-types
 router.get('/team-types', async (req, res) => {
@@ -39,7 +40,7 @@ router.get('/project-statuses', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch project statuses' });
   }
-}); 
+});
 
 // GET /api/common-types/phone-extensions - Get all Phone Extensions
 router.get('/phone-extensions', async (req, res) => {
@@ -65,9 +66,9 @@ router.get('/task-types', async (req, res) => {
 router.get('/subscription-features/:planType', async (req, res) => {
   try {
     const { planType } = req.params;
-    const features = await CommonType.find({ 
-      MasterType: 'SubscriptionFeatures', 
-      Description: planType 
+    const features = await CommonType.find({
+      MasterType: 'SubscriptionFeatures',
+      Description: planType
     }).sort({ Code: 1 });
     res.json(features);
   } catch (err) {
@@ -82,6 +83,19 @@ router.get('/subscription-features', async (req, res) => {
     res.json(features);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch subscription features' });
+  }
+});
+
+// GET /api/common-types/dropdown-data - Get orgs, roles, phone extensions
+router.get('/dropdown-data', async (req, res) => {
+  try {
+    const organizations = await Organization.find({ IsActive: true });
+    const userRoles = await CommonType.find({ MasterType: 'UserRole' });
+    const phoneExtensions = await CommonType.find({ MasterType: 'PhoneExtension' });
+    res.json({ organizations, userRoles, phoneExtensions });
+  } catch (error) {
+    console.error('Error fetching dropdown data:', error);
+    res.status(500).json({ message: 'Failed to fetch dropdown data' });
   }
 });
 

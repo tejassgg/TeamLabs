@@ -262,6 +262,16 @@ export const authService = {
     }
   },
 
+  updateOnboardingStatus: async (completed = true, step = null, progress = null) => {
+    try {
+      debugger;
+      const response = await api.put('/auth/onboarding', { completed, step, progress });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to update onboarding status' };
+    }
+  },
+
   // GitHub Integration methods
   initiateGitHubAuth: async (userId) => {
     try {
@@ -357,6 +367,14 @@ export const teamService = {
       throw error.response?.data || { message: 'Failed to fetch teams' };
     }
   },
+  getTeamsByOrganization: async (organizationId) => {
+    try {
+      const response = await api.get(`/teams/organization/${organizationId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch teams by organization' };
+    }
+  },
   addTeam: async (teamData) => {
     try {
       const response = await api.post('/teams', teamData);
@@ -372,7 +390,39 @@ export const teamService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to delete team' };
     }
-  }
+  },
+  requestToJoinTeam: async (teamId, userId) => {
+    try {
+      const response = await api.post(`/teams/${teamId}/join-request`, { userId });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to request to join team' };
+    }
+  },
+  getTeamJoinRequests: async (teamId) => {
+    try {
+      const response = await api.get(`/teams/${teamId}/join-requests`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch join requests' };
+    }
+  },
+  acceptTeamJoinRequest: async (teamId, requestId, adminId) => {
+    try {
+      const response = await api.post(`/teams/${teamId}/join-requests/${requestId}/accept`, { adminId });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to accept join request' };
+    }
+  },
+  rejectTeamJoinRequest: async (teamId, requestId, adminId) => {
+    try {
+      const response = await api.post(`/teams/${teamId}/join-requests/${requestId}/reject`, { adminId });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to reject join request' };
+    }
+  },
 };
 
 export const commonTypeService = {
@@ -422,6 +472,25 @@ export const commonTypeService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch project statuses' };
+    }
+  },
+  getDropdownData: async () => {
+    try {
+      const response = await api.get('/common-types/dropdown-data');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch dropdown data' };
+    }
+  }
+};
+
+export const organizationService = {
+  createOrganization: async (orgData) => {
+    try {
+      const response = await api.post('/organizations', orgData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to create organization' };
     }
   }
 };

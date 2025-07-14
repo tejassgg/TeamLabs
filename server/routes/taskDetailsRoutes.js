@@ -458,7 +458,7 @@ router.patch('/:taskId/assign', async (req, res) => {
                 const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
                 let teamName = null;
                 if (teamDetails) {
-                    const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
                     teamName = team ? team.TeamName : null;
                 }
                 assignedToDetails = {

@@ -14,31 +14,31 @@ const transporter = nodemailer.createTransport({
 
 // ===== COMMON UTILITY FUNCTIONS =====
 
-// Helper: get time ago string
-const getTimeAgo = (date) => {
-  if (!date) return '';
-  const now = new Date();
-  const then = new Date(date);
-  const diff = Math.floor((now - then) / 1000);
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
-  return `${Math.floor(diff/86400)}d ago`;
-};
+  // Helper: get time ago string
+  const getTimeAgo = (date) => {
+    if (!date) return '';
+    const now = new Date();
+    const then = new Date(date);
+    const diff = Math.floor((now - then) / 1000);
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+    return `${Math.floor(diff/86400)}d ago`;
+  };
 
 // Helper: get file type icon by extension
 const getFileTypeIcon = (filename) => {
-  const ext = filename.split('.').pop().toLowerCase();
+    const ext = filename.split('.').pop().toLowerCase();
   if (["jpg","jpeg","png","gif","bmp","svg","webp"].includes(ext)) return '📷';
-  if (["pdf"].includes(ext)) return '📄';
+    if (["pdf"].includes(ext)) return '📄';
   if (["doc","docx","odt","rtf"].includes(ext)) return '📝';
-  if (["xls","xlsx","csv"].includes(ext)) return '📊';
+    if (["xls","xlsx","csv"].includes(ext)) return '📊';
   if (["ppt","pptx"].includes(ext)) return '📈';
   if (["zip","rar","7z","tar","gz"].includes(ext)) return '📦';
-  if (["mp3","wav","ogg"].includes(ext)) return '🎵';
-  if (["mp4","mov","avi","wmv","mkv"].includes(ext)) return '🎬';
-  return '📎';
-};
+    if (["mp3","wav","ogg"].includes(ext)) return '🎵';
+    if (["mp4","mov","avi","wmv","mkv"].includes(ext)) return '🎬';
+    return '📎';
+  };
 
 // Helper: parse mentions from content
 const parseMentions = (content) => {
@@ -215,12 +215,12 @@ async function sendResetEmail(to, username, link) {
                   <!-- Security Notice -->
                   <div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 32px;">
                     <p style="color: #6b7280; font-size: 12px; line-height: 1.5; margin: 0; text-align: center;">If you did not request this, you can safely ignore this email. For security, this link will expire in 24 hours.</p>
-                  </div>
+      </div>
                   
                   <!-- Footer -->
                   <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">
                     <p style="color: #9ca3af; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
-                  </div>
+    </div>
                 </td>
               </tr>
             </table>
@@ -270,26 +270,26 @@ async function sendTaskAssignmentEmail(to, taskName, taskDetails, assignedBy, pr
                   <div style="text-align: center; margin-bottom: 32px;">
                     <div style="font-size: 24px; font-weight: 700; color: #6B39E7; letter-spacing: -0.5px; margin-bottom: 8px;">TeamLabs</div>
                     <div style="width: 40px; height: 2px; background: #6B39E7; margin: 0 auto;"></div>
-                  </div>
+        </div>
                   
                   <!-- Content -->
                   <h1 style="color: #1F1F1F; font-size: 18px; font-weight: 600; margin: 0 0 16px 0;">New ${taskType} Assigned</h1>
                   <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">Hello,</p>
                   <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0;">You have been assigned a new ${taskType.toLowerCase()} by <strong style="color: #1F1F1F;">${assignedBy}</strong>.</p>
                   
-                  ${generateProjectSection(project)}
+        ${generateProjectSection(project)}
                   
                   <!-- Task Card -->
                   <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
                     <div style="font-size: 16px; font-weight: 600; color: #1F1F1F; margin-bottom: 16px; line-height: 1.3;">
-                      ${taskName}
-                    </div>
+            ${taskName}
+          </div>
                     
                     <!-- Badges -->
                     <div style="margin-bottom: 16px;">
-                      ${getPriorityBadge(priority)}
-                      ${getStatusBadge(status)}
-                    </div>
+            ${getPriorityBadge(priority)}
+            ${getStatusBadge(status)}
+          </div>
                     
                     <!-- Task Details -->
                     <div style="background: #f8fafc; border-radius: 6px; padding: 16px; margin-bottom: 16px;">
@@ -298,25 +298,25 @@ async function sendTaskAssignmentEmail(to, taskName, taskDetails, assignedBy, pr
                         <div style="margin-bottom: 8px;"><span style="font-weight:600;color:#1F1F1F;">Type:</span> ${taskType}</div>
                         <div><span style="font-weight:600;color:#1F1F1F;">Assigned Date:</span> ${assignedDateFormatted}</div>
                       </div>
-                    </div>
+          </div>
                     
-                    ${generateHistorySection(historyItems)}
-                    ${generateAttachmentsSection(attachments)}
-                    ${generateCommentsSection(comments)}
+          ${generateHistorySection(historyItems)}
+          ${generateAttachmentsSection(attachments)}
+          ${generateCommentsSection(comments)}
                     
                     <!-- CTA Button -->
                     <div style="text-align: center; margin-top: 20px;">
                       <a href="${taskUrl}" style="display: inline-block; background: #6B39E7; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: 600;">
                         View ${taskType}
-                      </a>
-                    </div>
-                  </div>
+            </a>
+          </div>
+        </div>
                   
                   <!-- Footer -->
                   <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">
                     <p style="color: #9ca3af; font-size: 11px; margin: 0;">Please log in to your TeamLabs account to view the complete ${taskType.toLowerCase()} details and update its status.</p>
                     <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
-                  </div>
+        </div>
                 </td>
               </tr>
             </table>
@@ -348,7 +348,7 @@ async function sendCommentMentionEmail(to, mentionTo, commentContent, taskName, 
 
   // Professional badge HTML generators
   const badgeStyle = 'display:inline-flex;align-items:center;justify-content:center;min-width:70px;max-width:110px;padding:4px 12px;border-radius:6px;font-size:11px;font-weight:600;margin-right:8px;box-sizing:border-box;line-height:1.2;border:1px solid;text-transform:uppercase;letter-spacing:0.5px;';
-  
+
   // Task type badge
   const typeBadge = `<span style="${badgeStyle}background:#fef3c7;color:#d97706;border-color:#fbbf24;">${taskType}</span>`;
   
@@ -390,55 +390,55 @@ async function sendCommentMentionEmail(to, mentionTo, commentContent, taskName, 
                   <div style="text-align: center; margin-bottom: 32px;">
                     <div style="font-size: 24px; font-weight: 700; color: #6B39E7; letter-spacing: -0.5px; margin-bottom: 8px;">TeamLabs</div>
                     <div style="width: 40px; height: 2px; background: #6B39E7; margin: 0 auto;"></div>
-                  </div>
+        </div>
                   
                   <!-- Content -->
                   <h1 style="color: #1F1F1F; font-size: 18px; font-weight: 600; margin: 0 0 16px 0;">You were mentioned in a comment</h1>
                   <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">Hello <strong style="color: #1F1F1F;">${mentionTo}</strong>,</p>
                   <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0;"><strong style="color: #1F1F1F;">${mentionedBy}</strong> mentioned you in a comment on a ${String(taskType || '').toLowerCase()}.</p>
                   
-                  ${generateProjectSection(project)}
+        ${generateProjectSection(project)}
                   
                   <!-- Task Card -->
                   <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
                     <div style="font-size: 16px; font-weight: 600; color: #1F1F1F; margin-bottom: 16px; line-height: 1.3;">
-                      ${taskName}
-                    </div>
+            ${taskName}
+          </div>
                     
                     <!-- Badges -->
                     <div style="margin-bottom: 16px;">
                       <table cellpadding="0" cellspacing="0" border="0" style="border:none;padding:0;margin:0;">
                         <tr>
-                          <td>${typeBadge}</td>
-                          ${priorityBadge ? `<td>${priorityBadge}</td>` : ''}
-                          ${statusBadge ? `<td>${statusBadge}</td>` : ''}
+              <td>${typeBadge}</td>
+              ${priorityBadge ? `<td>${priorityBadge}</td>` : ''}
+              ${statusBadge ? `<td>${statusBadge}</td>` : ''}
                         </tr>
                       </table>
-                    </div>
+          </div>
                     
                     <!-- Comment -->
                     <div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 16px;">
                       <div style="font-size: 13px; color: #374151; line-height: 1.6;">
-                        ${highlightedContent}
-                      </div>
+              ${highlightedContent}
+            </div>
                       <div style="margin-top: 12px; color: #6b7280; font-size: 11px;">
-                        — ${mentionedBy} • ${getTimeAgo(new Date())}
-                      </div>
-                    </div>
+              — ${mentionedBy} • ${getTimeAgo(new Date())}
+            </div>
+          </div>
                     
                     <!-- CTA Button -->
                     <div style="text-align: center; margin-top: 20px;">
                       <a href="${taskUrl}" style="display: inline-block; background: #6B39E7; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: 600;">
                         View Comment
-                      </a>
-                    </div>
-                  </div>
+            </a>
+          </div>
+        </div>
                   
                   <!-- Footer -->
                   <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">
                     <p style="color: #9ca3af; font-size: 11px; margin: 0;">Click the button above to view the complete comment and respond if needed.</p>
                     <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
-                  </div>
+        </div>
                 </td>
               </tr>
             </table>
@@ -499,12 +499,12 @@ async function sendInviteEmail(to, inviteLink, inviterName) {
                   <!-- Security Notice -->
                   <div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 32px;">
                     <p style="color: #6b7280; font-size: 12px; line-height: 1.5; margin: 0; text-align: center;">If you did not expect this invitation, you can safely ignore this email.</p>
-                  </div>
+      </div>
                   
                   <!-- Footer -->
                   <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">
                     <p style="color: #9ca3af; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
-                  </div>
+    </div>
                 </td>
               </tr>
             </table>
@@ -516,12 +516,12 @@ async function sendInviteEmail(to, inviteLink, inviterName) {
   `;
   
   try {
-    await transporter.sendMail({
-      from: process.env.GMAIL_USER,
-      to,
-      subject: 'You are invited to join TeamLabs',
-      html
-    });
+  await transporter.sendMail({
+    from: process.env.GMAIL_USER,
+    to,
+    subject: 'You are invited to join TeamLabs',
+    html
+  });
     return true;
   } catch (error) {
     console.error('Error sending invite email:', error);

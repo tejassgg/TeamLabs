@@ -67,8 +67,7 @@ exports.getUserOverview = async (req, res) => {
       $or: [
         { OwnerID: user._id },
         { TeamID: { $in: memberTeamIds } }
-      ],
-      IsActive: true
+      ]
     }).lean();
 
     // Projects: user is owner or in user's org
@@ -76,8 +75,7 @@ exports.getUserOverview = async (req, res) => {
       $or: [
         { ProjectOwner: user._id },
         { OrganizationID: user.organizationID }
-      ],
-      IsActive: true
+      ]
     }).lean();
 
     const organization = await Organization.findOne({
@@ -102,7 +100,10 @@ exports.getUserOverview = async (req, res) => {
       projects,
       organization,
       tasks,
-      projectStatuses
+      projectStatuses,
+      onboardingCompleted: user.onboardingCompleted,
+      onboardingStep: user.onboardingStep,
+      onboardingProgress: user.onboardingProgress
     });
   } catch (error) {
     console.error('Error fetching user overview:', error);
