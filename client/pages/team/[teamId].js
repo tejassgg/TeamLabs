@@ -5,6 +5,7 @@ import Head from 'next/head';
 import api, { authService, teamService } from '../../services/api';
 import Layout from '../../components/Layout';
 import CustomModal from '../../components/CustomModal';
+import StatusDropdown from '../../components/StatusDropdown';
 import { FaCog, FaTrash, FaTimes, FaChevronRight } from 'react-icons/fa';
 import LoadingScreen from '../../components/LoadingScreen';
 import TeamDetailsSkeleton from '../../components/TeamDetailsSkeleton';
@@ -72,7 +73,6 @@ const TeamDetailsPage = () => {
   const [bulkRemovingProjects, setBulkRemovingProjects] = useState(false);
   const [showBulkRemoveProjectsDialog, setShowBulkRemoveProjectsDialog] = useState(false);
   const [joinRequests, setJoinRequests] = useState([]);
-  const [loadingRequests, setLoadingRequests] = useState(false);
   const [processingRequest, setProcessingRequest] = useState('');
 
   const teamColors = [
@@ -102,6 +102,10 @@ const TeamDetailsPage = () => {
             TeamColor: res.data.team.TeamColor
           });
           setActiveProjects(res.data.activeProjects || []);
+          // Set pending requests if available
+          if (res.data.pendingRequests) {
+            setJoinRequests(res.data.pendingRequests);
+          }
         })
         .catch(err => {
           console.error('Error fetching team:', err);
@@ -359,25 +363,16 @@ const TeamDetailsPage = () => {
     }
   };
 
-  // Fetch join requests if owner
-  useEffect(() => {
-    if (isOwner && teamId) {
-      setLoadingRequests(true);
-      teamService.getTeamJoinRequests(teamId)
-        .then(setJoinRequests)
-        .catch(() => setJoinRequests([]))
-        .finally(() => setLoadingRequests(false));
-    }
-  }, [isOwner, teamId]);
+
 
   const handleAcceptRequest = async (requestId, userId) => {
     setProcessingRequest(requestId + '-accept');
     try {
       await teamService.acceptTeamJoinRequest(teamId, requestId, user._id);
-      setJoinRequests(prev => prev.filter(r => r._id !== requestId));
-      // Optionally refresh members
+      // Refresh team data to get updated members and pending requests
       const res = await api.get(`/team-details/${teamId}`);
       setMembers(res.data.members);
+      setJoinRequests(res.data.pendingRequests || []);
     } catch (err) {
       // Optionally show error
     } finally {
@@ -388,7 +383,9 @@ const TeamDetailsPage = () => {
     setProcessingRequest(requestId + '-reject');
     try {
       await teamService.rejectTeamJoinRequest(teamId, requestId, user._id);
-      setJoinRequests(prev => prev.filter(r => r._id !== requestId));
+      // Refresh team data to get updated pending requests
+      const res = await api.get(`/team-details/${teamId}`);
+      setJoinRequests(res.data.pendingRequests || []);
     } catch (err) {
       // Optionally show error
     } finally {
@@ -584,7 +581,7 @@ const TeamDetailsPage = () => {
                   <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Join Requests</h2>
                 </div>
                 <div className="overflow-x-auto">
-                  {loadingRequests ? (
+                  {loading ? (
                     <div className="p-4">Loading requests...</div>
                   ) : joinRequests.length === 0 ? (
                     <div className="p-4 text-gray-500">No pending join requests.</div>
@@ -592,8 +589,8 @@ const TeamDetailsPage = () => {
                     <table className="w-full">
                       <thead>
                         <tr className={getThemeClasses('border-b border-gray-200', 'dark:border-gray-700')}>
-                          <th className="py-3 px-4 text-left">User</th>
-                          <th className="py-3 px-4 text-left">Email</th>
+                          <th className="py-3 px-4 text-left">User Details</th>
+                          <th className="py-3 px-4 text-left">Status</th>
                           <th className="py-3 px-4 text-left">Requested At</th>
                           <th className="py-3 px-4 text-left">Actions</th>
                         </tr>
@@ -601,8 +598,65 @@ const TeamDetailsPage = () => {
                       <tbody>
                         {joinRequests.map(req => (
                           <tr key={req._id} className={getThemeClasses('border-b border-gray-100', 'dark:border-gray-800')}>
-                            <td className="py-2 px-4">{req.userId?.name || req.userId?.firstName + ' ' + req.userId?.lastName || 'User'}</td>
-                            <td className="py-2 px-4">{req.userId?.email}</td>
+                            <td className="py-2 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className={getThemeClasses(
+                                  'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium',
+                                  'dark:bg-blue-900/50 dark:text-blue-300'
+                                )}>
+                                  {req.userId?.fullName 
+                                    ? req.userId.fullName.split(' ').map(n => n[0]).join('').toUpperCase()
+                                    : req.userId?.firstName && req.userId?.lastName 
+                                      ? `${req.userId.firstName[0]}${req.userId.lastName[0]}`
+                                      : req.userId?.firstName 
+                                        ? req.userId.firstName[0] 
+                                        : req.userId?.username 
+                                          ? req.userId.username[0].toUpperCase()
+                                          : 'U'
+                                  }
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className={getThemeClasses(
+                                    'font-medium text-gray-900',
+                                    'dark:text-gray-100'
+                                  )}>
+                                    {req.userId?.fullName || req.userId?.firstName && req.userId?.lastName 
+                                      ? `${req.userId.firstName} ${req.userId.lastName}`
+                                      : req.userId?.firstName 
+                                        ? req.userId.firstName 
+                                        : req.userId?.username 
+                                          ? req.userId.username 
+                                          : 'Unknown User'
+                                    }
+                                  </span>
+                                  <span className={getThemeClasses(
+                                    'text-sm text-gray-500',
+                                    'dark:text-gray-400'
+                                  )}>
+                                    {req.userId?.email || 'No email'}
+                                  </span>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    {req.userId?.role && (
+                                      <span className={getThemeClasses(
+                                        'text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700',
+                                        'dark:bg-blue-900/30 dark:text-blue-300'
+                                      )}>
+                                        {req.userId.role}
+                                      </span>
+                                    )}
+                                    
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-2 px-4">
+                              <StatusDropdown
+                                currentStatus={req.userId?.status || 'Offline'}
+                                onStatusChange={() => {}} // Read-only in this context
+                                theme={theme}
+                                isReadOnly={true}
+                              />
+                            </td>
                             <td className="py-2 px-4">{new Date(req.requestedAt).toLocaleString()}</td>
                             <td className="py-2 px-4">
                               <button

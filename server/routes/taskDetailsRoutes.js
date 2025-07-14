@@ -199,13 +199,17 @@ router.get('/:taskId', async (req, res) => {
             const assignee = await User.findById(task.Assignee);
             if (assignee) {
                 const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
-                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                let teamName = null;
+                if (teamDetails) {
+                    const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                    teamName = team ? team.TeamName : null;
+                }
                 newTask.AssigneeDetails = {
                     _id: assignee._id,
                     username: assignee.username,
                     fullName: assignee.firstName + " " + assignee.lastName,
                     email: assignee.email,
-                    teamName: team.TeamName
+                    teamName: teamName
                 };
             }
         }
@@ -215,13 +219,17 @@ router.get('/:taskId', async (req, res) => {
             const assignedTo = await User.findById(task.AssignedTo);
             if (assignedTo) {
                 const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
-                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                let teamName = null;
+                if (teamDetails) {
+                    const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                    teamName = team ? team.TeamName : null;
+                }
                 newTask.AssignedToDetails = {
                     _id: assignedTo._id,
                     username: assignedTo.username,
                     fullName: assignedTo.firstName + " " + assignedTo.lastName,
                     email: assignedTo.email,
-                    teamName: team.TeamName
+                    teamName: teamName
                 };
             }
         }
@@ -248,13 +256,17 @@ router.get('/project/:projectId', async (req, res) => {
                 const assignee = await User.findById(task.Assignee);
                 if (assignee) {
                     const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
-                    const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                    let teamName = null;
+                    if (teamDetails) {
+                        const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                        teamName = team ? team.TeamName : null;
+                    }
                     newTask.AssigneeDetails = {
                         _id: assignee._id,
                         username: assignee.username,
                         fullName: assignee.firstName + " " + assignee.lastName,
                         email: assignee.email,
-                        teamName: team.TeamName
+                        teamName: teamName
                     };
                 }
             }
@@ -264,13 +276,17 @@ router.get('/project/:projectId', async (req, res) => {
                 const assignedTo = await User.findById(task.AssignedTo);
                 if (assignedTo) {
                     const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
-                    const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                    let teamName = null;
+                    if (teamDetails) {
+                        const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                        teamName = team ? team.TeamName : null;
+                    }
                     newTask.AssignedToDetails = {
                         _id: assignedTo._id,
                         username: assignedTo.username,
                         fullName: assignedTo.firstName + " " + assignedTo.lastName,
                         email: assignedTo.email,
-                        teamName: team.TeamName
+                        teamName: teamName
                     };
                 }
             }
@@ -740,13 +756,17 @@ router.patch('/:taskId', async (req, res) => {
             const assignee = await User.findById(updatedTask.Assignee);
             if (assignee) {
                 const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
-                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                let teamName = null;
+                if (teamDetails) {
+                    const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                    teamName = team ? team.TeamName : null;
+                }
                 updatedTask.AssigneeDetails = {
                     _id: assignee._id,
                     username: assignee.username,
                     fullName: assignee.firstName + " " + assignee.lastName,
                     email: assignee.email,
-                    teamName: team.TeamName
+                    teamName: teamName
                 };
             }
         }
@@ -756,13 +776,17 @@ router.patch('/:taskId', async (req, res) => {
             const assignedTo = await User.findById(updatedTask.AssignedTo);
             if (assignedTo) {
                 const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
-                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                let teamName = null;
+                if (teamDetails) {
+                    const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                    teamName = team ? team.TeamName : null;
+                }
                 updatedTask.AssignedToDetails = {
                     _id: assignedTo._id,
                     username: assignedTo.username,
                     fullName: assignedTo.firstName + " " + assignedTo.lastName,
                     email: assignedTo.email,
-                    teamName: team.TeamName
+                    teamName: teamName
                 };
             }
         }
@@ -907,13 +931,17 @@ router.get('/:taskId/full', async (req, res) => {
             const assignee = await User.findById(newTask.Assignee);
             if (assignee) {
                 const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
-                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                let teamName = null;
+                if (teamDetails) {
+                    const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                    teamName = team ? team.TeamName : null;
+                }
                 newTask.AssigneeDetails = {
                     _id: assignee._id,
                     username: assignee.username,
                     fullName: assignee.firstName + " " + assignee.lastName,
                     email: assignee.email,
-                    teamName: team.TeamName
+                    teamName: teamName
                 };
             }
         }
@@ -923,13 +951,17 @@ router.get('/:taskId/full', async (req, res) => {
             const assignedTo = await User.findById(newTask.AssignedTo);
             if (assignedTo) {
                 const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
-                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                let teamName = null;
+                if (teamDetails) {
+                    const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                    teamName = team ? team.TeamName : null;
+                }
                 newTask.AssignedToDetails = {
                     _id: assignedTo._id,
                     username: assignedTo.username,
                     fullName: assignedTo.firstName + " " + assignedTo.lastName,
                     email: assignedTo.email,
-                    teamName: team.TeamName
+                    teamName: teamName
                 };
             }
         }

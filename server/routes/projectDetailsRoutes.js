@@ -41,13 +41,17 @@ router.get('/:projectId', async (req, res) => {
         const assignee = await User.findById(task.Assignee);
         if (assignee) {
           const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
-          const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+          let teamName = null;
+          if (teamDetails) {
+            const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+            teamName = team ? team.TeamName : null;
+          }
           newTask.AssigneeDetails = {
             _id: assignee._id,
             username: assignee.username,
             fullName: assignee.firstName + " " + assignee.lastName,
             email: assignee.email,
-            teamName: team.TeamName
+            teamName: teamName
           };
         }
         // Fetch assignedTo details if exists
@@ -55,13 +59,17 @@ router.get('/:projectId', async (req, res) => {
           const assignedTo = await User.findById(task.AssignedTo);
           if (assignedTo) {
             const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
-            const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+            let teamName = null;
+            if (teamDetails) {
+              const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+              teamName = team ? team.TeamName : null;
+            }
             newTask.AssignedToDetails = {
               _id: assignedTo._id,
               username: assignedTo.username,
               fullName: assignedTo.firstName + " " + assignedTo.lastName,
               email: assignedTo.email,
-              teamName: team.TeamName
+              teamName: teamName
             };
           }
         }

@@ -1224,7 +1224,7 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip }) => {
                   onChange={handleProjectSelect}
                   options={projectOptions}
                   placeholder="Select Project"
-                  required
+                  required={false}
                   disabled={creatingProject}
                   onCreateProject={handleCreateProject}
                   setDropdownOpen={setDropdownOpen}
@@ -1236,6 +1236,15 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip }) => {
                   <FaFolder className="text-indigo-500" size={16} />
                   <span>Selected Project</span>
                   <span className={`ml-2 px-3 py-1 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-indigo-900 text-indigo-200' : 'bg-indigo-100 text-indigo-700'}`}>{projectOptions.find(p => p.ProjectID?.toString() === selectedProjectId)?.Name}</span>
+                </div>
+              )}
+              {projectOptions.length === 0 && (
+                <div className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                  <div className={`text-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                    <FaFolder className="mx-auto mb-2 text-gray-400" size={24} />
+                    <p className="font-medium">No projects available</p>
+                    <p className="text-sm mt-1">You can create a project later or continue without one</p>
+                  </div>
                 </div>
               )}
               <div className="mt-6 flex gap-3">
@@ -1251,8 +1260,7 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip }) => {
                 </button>
                 <button
                   onClick={onNext}
-                  disabled={!selectedProjectId}
-                  className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200"
                 >
                   Continue
                 </button>

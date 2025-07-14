@@ -601,11 +601,11 @@ const Layout = ({ children }) => {
       !userDetails.onboardingCompleted &&
       !['/','/profile'].includes(router.pathname)
     ) {
-      console.log('Show onboarding modal due to incomplete onboarding:', {
-        onboardingCompleted: userDetails.onboardingCompleted,
-        onboardingStep: userDetails.onboardingStep,
-        currentPath: router.pathname
-      });
+      // console.log('Show onboarding modal due to incomplete onboarding:', {
+      //   onboardingCompleted: userDetails.onboardingCompleted,
+      //   onboardingStep: userDetails.onboardingStep,
+      //   currentPath: router.pathname
+      // });
       setIsRedirecting(true);
       setShowFirstTimeSetup(true);
     }
@@ -629,20 +629,18 @@ const Layout = ({ children }) => {
     if (typeof window === 'undefined') return;
     // Never redirect away from /profile or /welcome for profile completion
     
-    console.log(userDetails);
-
     if (
       !isProfileComplete(userDetails) &&
       !['/profile', '/logout'].includes(router.pathname) &&
       userDetails?.onboardingCompleted &&
       router.pathname !== '/profile'
     ) {
-      console.log('Redirecting to profile due to incomplete profile:', {
-        isProfileComplete: isProfileComplete(userDetails),
-        currentPath: router.pathname,
-        onboardingCompleted: userDetails?.onboardingCompleted,
-        userDetails: userDetails
-      });
+      // console.log('Redirecting to profile due to incomplete profile:', {
+      //   isProfileComplete: isProfileComplete(userDetails),
+      //   currentPath: router.pathname,
+      //   onboardingCompleted: userDetails?.onboardingCompleted,
+      //   userDetails: userDetails
+      // });
       setIsRedirecting(true);
       router.replace('/profile');
     }

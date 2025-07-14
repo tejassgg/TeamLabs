@@ -906,11 +906,8 @@ const ProjectDetailsPage = () => {
 
     // Handle adding new task from modal
     const handleAddTaskFromModal = async (taskData) => {
-      console.log('handleAddTaskFromModal called with:', taskData);
       try {
-        console.log('Calling taskService.addTaskDetails...');
         const newTask = await taskService.addTaskDetails(taskData);
-        console.log('Task added successfully:', newTask);
 
         setTasks(prev => [...prev, newTask]);
 
@@ -1122,7 +1119,6 @@ const ProjectDetailsPage = () => {
               })}
             </div>
             {/* AddTaskModal for empty state */}
-            {console.log('Rendering AddTaskModal with isOpen:', showAddTaskModal)}
             <AddTaskModal
               isOpen={showAddTaskModal}
               onClose={() => setShowAddTaskModal(false)}

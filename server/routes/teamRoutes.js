@@ -75,8 +75,6 @@ router.post('/', checkTeamLimit, async (req, res) => {
       });
       await newTeam.save({ session });
 
-      console.log("New Team Created: ", newTeam);
-
       // Add the owner as a member
       const newMember = new TeamDetails({
         TeamID_FK: newTeam.TeamID,
@@ -86,8 +84,6 @@ router.post('/', checkTeamLimit, async (req, res) => {
         ModifiedBy: OwnerID
       });
       await newMember.save({ session });
-
-      console.log("New Member Added: ", newMember);
 
       // Log the activity
       await logActivity(
@@ -106,8 +102,6 @@ router.post('/', checkTeamLimit, async (req, res) => {
       // Commit the transaction
       await session.commitTransaction();
       session.endSession();
-
-      console.log("Team Created Successfully & Member Added Successfully");
 
       res.status(201).json({
         team: newTeam,

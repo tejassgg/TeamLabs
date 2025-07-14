@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Team = require('../models/Team');
 const TeamDetails = require('../models/TeamDetails');
+const TeamJoinRequest = require('../models/TeamJoinRequest');
 const User = require('../models/User');
 const CommonType = require('../models/CommonType');
 const ProjectDetails = require('../models/ProjectDetails');
@@ -92,6 +93,36 @@ router.get('/:teamId', async (req, res) => {
       };
     }).filter(Boolean);
 
+    // Fetch pending join requests for this team
+    const pendingRequests = await TeamJoinRequest.find({ 
+      teamId: teamId, 
+      status: 'pending' 
+    });
+
+    // Fetch user details for all pending requests
+    const requestUserIds = pendingRequests.map(req => req.userId);
+    const requestUsers = await User.find({ _id: { $in: requestUserIds } });
+
+    // Combine join requests with user details
+    const pendingRequestsWithUserDetails = pendingRequests.map(request => {
+      const user = requestUsers.find(u => u._id.toString() === request.userId);
+      return {
+        ...request.toObject(),
+        userId: user ? {
+          _id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          username: user.username,
+          fullName: `${user.firstName} ${user.lastName}`.trim(),
+          organizationID: user.organizationID,
+          role: user.role,
+          isActive: user.isActive,
+          status: user.status
+        } : null
+      };
+    });
+
     res.json({
       team: {
         ...team.toObject(),
@@ -99,7 +130,8 @@ router.get('/:teamId', async (req, res) => {
       },
       members,
       orgUsers,
-      activeProjects: teamProjects
+      activeProjects: teamProjects,
+      pendingRequests: pendingRequestsWithUserDetails
     });
   } catch (err) {
     console.error('Error fetching team details:', err);
