@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import api, { authService, taskService, projectService, githubService } from '../../services/api';
+import api, { authService, taskService, projectService, githubService, teamService, commentService, attachmentService } from '../../services/api';
 import Layout from '../../components/Layout';
-import { FaTrash, FaCog, FaTimes, FaClock, FaUserCheck, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaChevronRight, FaInfoCircle, FaProjectDiagram, FaChartBar, FaTasks, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch } from 'react-icons/fa';
+import { FaTrash, FaCog, FaTimes, FaClock, FaUserCheck, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaChevronRight, FaInfoCircle, FaProjectDiagram, FaChartBar, FaTasks, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaUsers, FaFile } from 'react-icons/fa';
 import AddTaskModal from '../../components/AddTaskModal';
 import CustomModal from '../../components/CustomModal';
 import { useToast } from '../../context/ToastContext';
@@ -21,6 +21,7 @@ import {
 } from '../../components/kanbanUtils';
 import { getProjectStatusBadge } from '../../components/ProjectStatusBadge';
 import ProjectDetailsSkeleton from '../../components/ProjectDetailsSkeleton';
+import ProjectFilesTab from '../../components/ProjectFilesTab';
 
 const ProjectDetailsPage = () => {
   const router = useRouter();
@@ -81,6 +82,11 @@ const ProjectDetailsPage = () => {
   const [filteredAvailableTeams, setFilteredAvailableTeams] = useState([]);
   const [isTeamInputFocused, setIsTeamInputFocused] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  // Team members state
+  const [teamMembers, setTeamMembers] = useState({});
+  const [loadingTeamMembers, setLoadingTeamMembers] = useState(false);
+  // Project members state
+  const [projectMembers, setProjectMembers] = useState([]);
   // GitHub Repository state
   const [projectRepository, setProjectRepository] = useState(null);
   const [userRepositories, setUserRepositories] = useState([]);
@@ -101,6 +107,8 @@ const ProjectDetailsPage = () => {
   const [issuesLoading, setIssuesLoading] = useState(false);
   const [issuesPage, setIssuesPage] = useState(1);
   const [hasMoreIssues, setHasMoreIssues] = useState(true);
+  
+
 
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
@@ -116,6 +124,7 @@ const ProjectDetailsPage = () => {
           setOrgTeams(res.data.orgTeams);
           setTaskList(res.data.taskList);
           setUserStories(res.data.userStories);
+          setProjectMembers(res.data.projectMembers || []);
         })
         .catch(err => {
           setError('Failed to fetch project');
@@ -124,6 +133,13 @@ const ProjectDetailsPage = () => {
         .finally(() => setLoading(false));
     }
   }, [projectId, router]);
+
+  // Function to get initials for a user
+  const getUserInitials = (user) => {
+    const firstName = user.firstName || '';
+    const lastName = user.lastName || '';
+    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+  };
 
   // Fetch project repository information
   useEffect(() => {
@@ -140,6 +156,8 @@ const ProjectDetailsPage = () => {
     }
   }, [activeTab, projectRepository]);
 
+
+
   const fetchProjectRepository = async () => {
     try {
       setRepositoryLoading(true);
@@ -153,6 +171,8 @@ const ProjectDetailsPage = () => {
       setRepositoryLoading(false);
     }
   };
+
+
 
   const fetchUserRepositories = async () => {
     try {
@@ -893,7 +913,7 @@ const ProjectDetailsPage = () => {
     const { showToast } = useToast();
     const [tasks, setTasks] = useState(initialTasks || []);
     const [localUserStories, setLocalUserStories] = useState(initialUserStories || []);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [draggingTask, setDraggingTask] = useState(null);
     const [targetStatus, setTargetStatus] = useState(null);
@@ -926,31 +946,25 @@ const ProjectDetailsPage = () => {
       }
     };
 
+    // Update tasks when initialTasks changes (from parent component)
     useEffect(() => {
-      if (!projectId) return;
-      setLoading(true);
-      const fetchTasksAndUserStories = async () => {
-        try {
-          const fetchedTasks = await taskService.getTaskDetails(projectId);
-          const mappedTasks = fetchedTasks.map(task => {
-            if (task.Status === 4 || task.Status === 5) {
-              return { ...task, Status: 3 };
-            }
-            return task;
-          });
-          setTasks(mappedTasks);
-          // Fetch user stories for the project
-          const projectDetails = await projectService.getProjectDetails(projectId);
-          setLocalUserStories(projectDetails.userStories || []);
-        } catch (err) {
-          setError('Failed to fetch tasks');
-          showToast('Failed to fetch tasks', 'error');
-        } finally {
-          setLoading(false);
-        }
-      };
-      // fetchTasksAndUserStories();
-    }, [projectId]);
+      if (initialTasks) {
+        const mappedTasks = initialTasks.map(task => {
+          if (task.Status === 4 || task.Status === 5) {
+            return { ...task, Status: 3 };
+          }
+          return task;
+        });
+        setTasks(mappedTasks);
+      }
+    }, [initialTasks]);
+
+    // Update user stories when initialUserStories changes
+    useEffect(() => {
+      if (initialUserStories) {
+        setLocalUserStories(initialUserStories);
+      }
+    }, [initialUserStories]);
 
     const isTaskAssignedToUser = (task) => task.Assignee === userDetails?._id;
 
@@ -1259,9 +1273,58 @@ const ProjectDetailsPage = () => {
               <div>{getProjectStatusBadgeComponent(project.ProjectStatusID)}</div>
             )}
           </div>
-          {isOwner && (
-            <div className="flex items-center gap-2">
-              {/* GitHub Repository Button */}
+          <div className="flex items-center gap-2">
+            {/* Team Member Initials - Show for all users */}
+            {projectMembers.length > 0 && (
+              <div className="flex items-center gap-3">
+                
+                <div className="flex items-center gap-1">
+                  {projectMembers.slice(0, 3).map((member, idx) => (
+                    <div
+                      key={member._id}
+                      className={getThemeClasses(
+                        "w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden bg-purple-500",
+                        "dark:border-gray-700"
+                      )}
+                      style={{ marginLeft: idx === 0 ? '0' : '-10px' }}
+                      title={`${member.firstName} ${member.lastName}`}
+                    >
+                      {member.profileImage ? (
+                        <img
+                          src={member.profileImage}
+                          alt={`${member.firstName} ${member.lastName}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className={getThemeClasses(
+                          "text-sm font-medium text-white",
+                          "dark:text-white"
+                        )}>
+                          {getUserInitials(member)}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                  {projectMembers.length > 3 && (
+                    <div className={getThemeClasses(
+                      "w-8 h-8 flex items-center justify-center px-2 py-1 rounded-full bg-gray-100 border border-gray-200 shadow-sm",
+                      "dark:bg-gray-700 dark:border-gray-600"
+                    )}
+                    style={{ marginLeft: '-10px' }}>
+                      <span className={getThemeClasses(
+                        "text-xs font-medium text-gray-600",
+                        "dark:text-gray-300"
+                      )}>
+                        +{projectMembers.length - 3}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* GitHub Repository Button - Only for owners */}
+            {isOwner && (
               <button
                 className={getThemeClasses(
                   "p-1.5 text-gray-500 hover:text-green-500 rounded-full hover:bg-gray-100 transition-colors",
@@ -1278,6 +1341,9 @@ const ProjectDetailsPage = () => {
               >
                 <FaGithub size={20} />
               </button>
+            )}
+            {/* Project Settings Button - Only for owners */}
+            {isOwner && (
               <button
                 className={getThemeClasses(
                   "p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors",
@@ -1288,14 +1354,14 @@ const ProjectDetailsPage = () => {
               >
                 <FaCog size={20} />
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <p className={getThemeClasses("text-gray-600", "dark:text-gray-400")}>{project.Description}</p>
           {project.FinishDate && (
             <div className="ml-auto flex items-center gap-2">
-              <span className={getThemeClasses("font-semibold text-gray-700", "dark:text-gray-300")}>Deadline:</span>
+              {/* <span className={getThemeClasses("font-semibold text-gray-700", "dark:text-gray-300")}>Deadline:</span> */}
               {(() => {
                 const status = getDeadlineStatusComponent(deadline);
                 return (
@@ -1342,6 +1408,20 @@ const ProjectDetailsPage = () => {
               >
                 <FaChartBar size={16} />
                 <span>Board</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('files')}
+                className={`${activeTab === 'files'
+                  ? theme === 'dark'
+                    ? 'border-blue-400 text-blue-400'
+                    : 'border-blue-600 text-blue-600'
+                  : theme === 'dark'
+                    ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+              >
+                <FaFile size={16} />
+                <span>Files</span>
               </button>
               {projectRepository?.connected && (
                 <button
@@ -1662,7 +1742,7 @@ const ProjectDetailsPage = () => {
                             const status = getTaskStatusStyle(story.Status);
                             const StatusIcon = status.icon;
                             return (
-                              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
+                              <span className={`whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
                                 <StatusIcon className={status.iconColor} size={14} />
                                 {getTaskStatusText(story.Status)}
                               </span>
@@ -1962,6 +2042,8 @@ const ProjectDetailsPage = () => {
               setUserStories={setUserStories}
             />
           </div>
+        ) : activeTab === 'files' ? (
+          <ProjectFilesTab projectId={projectId} />
         ) : activeTab === 'repo' && projectRepository?.connected ? (
           <div className={getThemeClasses("bg-white rounded-xl shadow p-6", "dark:bg-gray-900")}>
             <div className="flex items-center gap-2 mb-6">

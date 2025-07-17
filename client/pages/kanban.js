@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Layout from '../components/Layout';
 import { FaChevronRight, FaInfoCircle, FaTasks, FaExclamationCircle, FaTimes, FaCheckCircle, FaClock, FaCode, FaVial, FaShieldAlt, FaRocket, FaTrashAlt } from 'react-icons/fa';
 import { useGlobal } from '../context/GlobalContext';
-import { taskService, projectService } from '../services/api';
+import { taskService, projectService, commentService, attachmentService } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import React from 'react';
 import AssignTaskModal from '../components/AssignTaskModal';
@@ -67,7 +67,33 @@ const KanbanBoard = () => {
           }
           return task;
         });
-        setTasks(mappedTasks);
+        
+        // Fetch comments and attachments counts for each task
+        const tasksWithCounts = await Promise.all(
+          mappedTasks.map(async (task) => {
+            try {
+              const [commentsResponse, attachmentsResponse] = await Promise.all([
+                commentService.getComments(task.TaskID),
+                attachmentService.getAttachments(task.TaskID)
+              ]);
+              
+              return {
+                ...task,
+                commentsCount: commentsResponse.length || 0,
+                attachmentsCount: attachmentsResponse.length || 0
+              };
+            } catch (error) {
+              console.error(`Error fetching counts for task ${task.TaskID}:`, error);
+              return {
+                ...task,
+                commentsCount: 0,
+                attachmentsCount: 0
+              };
+            }
+          })
+        );
+        
+        setTasks(tasksWithCounts);
         // Fetch user stories for the project
         const projectDetails = await projectService.getProjectDetails(selectedProject);
         setUserStories(projectDetails.userStories || []);

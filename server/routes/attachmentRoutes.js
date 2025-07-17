@@ -1,8 +1,54 @@
 const express = require('express');
 const router = express.Router();
 const Attachment = require('../models/Attachment');
+const TaskDetails = require('../models/TaskDetails');
+const User = require('../models/User');
 const fs = require('fs');
 const path = require('path');
+
+// Get all attachments for a project
+// GET /api/attachments/project/:projectId
+router.get('/project/:projectId', async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    
+    if (!projectId) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
+
+    // Get all tasks for the project
+    const tasks = await TaskDetails.find({ ProjectID_FK: projectId, IsActive: true });
+    const taskIds = tasks.map(task => task.TaskID);
+
+    // Get all attachments for these tasks
+    const attachments = await Attachment.find({ TaskID: { $in: taskIds } }).sort({ UploadedAt: -1 });
+
+    // Fetch uploader details for each attachment
+    const attachmentsWithUserDetails = await Promise.all(attachments.map(async (attachment) => {
+      const uploader = await User.findById(attachment.UploadedBy);
+      const task = tasks.find(t => t.TaskID === attachment.TaskID);
+      
+      return {
+        ...attachment.toObject(),
+        uploaderDetails: uploader ? {
+          _id: uploader._id,
+          fullName: `${uploader.firstName} ${uploader.lastName}`,
+          email: uploader.email
+        } : null,
+        taskDetails: task ? {
+          TaskID: task.TaskID,
+          Name: task.Name,
+          Type: task.Type
+        } : null
+      };
+    }));
+
+    res.json(attachmentsWithUserDetails);
+  } catch (err) {
+    console.error('Error fetching project attachments:', err);
+    res.status(500).json({ error: 'Failed to fetch project attachments' });
+  }
+});
 
 // Get all attachments for a task
 // GET /api/attachments/tasks/:taskId/attachments

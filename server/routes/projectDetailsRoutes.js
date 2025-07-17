@@ -6,6 +6,8 @@ const Team = require('../models/Team');
 const TeamDetails = require('../models/TeamDetails');
 const TaskDetails = require('../models/TaskDetails');
 const User = require('../models/User');
+const Comment = require('../models/Comment');
+const Attachment = require('../models/Attachment');
 const {logActivity} = require('../services/activityService');
 
 // GET /api/project-details/:projectId - Get all teams for a project
@@ -75,15 +77,31 @@ router.get('/:projectId', async (req, res) => {
         }
       }
 
+      // Fetch comment and attachment counts for this task
+      const [commentsCount, attachmentsCount] = await Promise.all([
+        Comment.countDocuments({ TaskID: task.TaskID }),
+        Attachment.countDocuments({ TaskID: task.TaskID })
+      ]);
+
+      newTask.commentsCount = commentsCount;
+      newTask.attachmentsCount = attachmentsCount;
+
       return newTask;
     }));
+
+    // Fetch all project members (unique users who are members of any assigned team)
+    const assignedTeamIds = projectDetails.map(pd => pd.TeamID);
+    const allTeamDetails = await TeamDetails.find({ TeamID_FK: { $in: assignedTeamIds }, IsMemberActive: true });
+    const memberIds = [...new Set(allTeamDetails.map(td => td.MemberID))];
+    const projectMembers = await User.find({ _id: { $in: memberIds } }).select('_id firstName lastName email profileImage');
 
     res.json({
       project,
       teams: projectDetails,
       orgTeams: teamMemberCounts,
       userStories: userStories,
-      taskList: newTaskList
+      taskList: newTaskList,
+      projectMembers
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch project details' });
