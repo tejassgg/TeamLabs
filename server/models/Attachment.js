@@ -9,7 +9,11 @@ const AttachmentSchema = new mongoose.Schema({
   },
   TaskID: {
     type: String,
-    required: true
+    required: false
+  },
+  ProjectID: {
+    type: String,
+    required: false
   },
   Filename: {
     type: String,

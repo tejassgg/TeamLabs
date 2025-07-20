@@ -5,18 +5,18 @@ export const statusMap = {
   1: 'Not Assigned',
   2: 'Assigned',
   3: 'In Progress',
-  6: 'QA',
-  7: 'Deployment',
-  8: 'Completed'
+  4: 'QA',
+  5: 'Deployment',
+  6: 'Completed'
 };
 
 export const statusIcons = {
   1: <FaTimes className="text-gray-500" />,
   2: <FaCheckCircle className="text-blue-500" />,
   3: <FaClock className="text-yellow-500" />,
-  6: <FaShieldAlt className="text-indigo-500" />,
-  7: <FaRocket className="text-pink-500" />,
-  8: <FaCheckCircle className="text-green-500" />
+  4: <FaShieldAlt className="text-indigo-500" />,
+  5: <FaRocket className="text-pink-500" />,
+  6: <FaCheckCircle className="text-green-500" />
 };
 
 export const statusColors = {
@@ -44,7 +44,7 @@ export const statusColors = {
     borderLight: 'border-yellow-200',
     borderDark: 'border-yellow-800/50'
   },
-  6: {
+  4: {
     light: 'bg-indigo-50',
     dark: 'bg-transparent',
     textLight: 'text-indigo-700',
@@ -52,7 +52,7 @@ export const statusColors = {
     borderLight: 'border-indigo-200',
     borderDark: 'border-indigo-800/50'
   },
-  7: {
+  5: {
     light: 'bg-pink-50',
     dark: 'bg-transparent',
     textLight: 'text-pink-700',
@@ -60,7 +60,7 @@ export const statusColors = {
     borderLight: 'border-pink-200',
     borderDark: 'border-pink-800/50'
   },
-  8: {
+  6: {
     light: 'bg-green-50',
     dark: 'bg-transparent',
     textLight: 'text-green-700',

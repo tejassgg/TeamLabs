@@ -94,23 +94,28 @@ router.post('/', imageUpload.single('image'), (req, res) => {
   }
 });
 
-// POST /api/attachments/upload - Upload task attachment
+// POST /api/attachments/upload - Upload task or project attachment
 router.post('/attachments/upload', attachmentUpload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const { taskId, userId, filename } = req.body;
+    const { taskId, projectId, userId, filename } = req.body;
     
-    if (!taskId || !userId) {
-      return res.status(400).json({ message: 'Task ID and User ID are required' });
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    if (!taskId && !projectId) {
+      return res.status(400).json({ message: 'Either Task ID or Project ID is required' });
     }
 
     // Create attachment record in database
     const Attachment = require('../models/Attachment');
     const attachment = new Attachment({
-      TaskID: taskId,
+      TaskID: taskId || null,
+      ProjectID: projectId || null,
       Filename: filename || req.file.originalname,
       FileURL: `/uploads/${req.file.filename}`,
       FileSize: req.file.size,
@@ -140,5 +145,7 @@ router.post('/attachments/upload', attachmentUpload.single('file'), async (req, 
     });
   }
 });
+
+
 
 module.exports = router; 

@@ -182,6 +182,107 @@ router.get('/', async (req, res) => {
     }
 });
 
+// GET /api/task-details/all - Get all tasks with user details for query board (filtered by organization)
+router.get('/all', async (req, res) => {
+    try {
+        const { organizationId } = req.query;
+        
+        if (!organizationId) {
+            return res.status(400).json({ error: 'Organization ID is required' });
+        }
+
+        // First, get all projects for the organization
+        const projects = await Project.find({ OrganizationID: organizationId }).select('ProjectID');
+        const projectIds = projects.map(project => project.ProjectID);
+
+        if (projectIds.length === 0) {
+            return res.json({ tasks: [], commonTypes: {} });
+        }
+
+        // Get tasks for projects in the organization
+        const tasks = await TaskDetails.find({ 
+            ProjectID_FK: { $in: projectIds }, 
+            IsActive: true,
+            Type: { $ne: "User Story" }
+        }).sort({ CreatedDate: -1 });
+
+        // Fetch CommonTypes for dropdowns
+        const CommonType = require('../models/CommonType');
+        const [taskStatuses, taskPriorities, taskTypes] = await Promise.all([
+            CommonType.find({ MasterType: 'ProjectStatus' }).sort({ Code: 1 }),
+            CommonType.find({ MasterType: 'PriorityType' }).sort({ Code: 1 }),
+            CommonType.find({ MasterType: 'TaskType' }).sort({ Code: 1 })
+        ]);
+
+        // Use Promise.all to properly wait for all user details to be fetched
+        const tasksWithDetails = await Promise.all(tasks.map(async (task) => {
+            const newTask = task.toObject();
+
+            // Fetch assignee details if exists
+            if (newTask.Assignee) {
+                try {
+                    const assignee = await User.findById(task.Assignee);
+                    if (assignee) {
+                        const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
+                        let teamName = null;
+                        if (teamDetails) {
+                            const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                            teamName = team ? team.TeamName : null;
+                        }
+                        newTask.AssigneeDetails = {
+                            _id: assignee._id,
+                            username: assignee.username,
+                            fullName: assignee.firstName + " " + assignee.lastName,
+                            email: assignee.email,
+                            teamName: teamName
+                        };
+                    }
+                } catch (error) {
+                    console.error('Error fetching assignee details:', error);
+                }
+            }
+
+            // Fetch assignedTo details if exists
+            if (newTask.AssignedTo) {
+                try {
+                    const assignedTo = await User.findById(task.AssignedTo);
+                    if (assignedTo) {
+                        const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
+                        let teamName = null;
+                        if (teamDetails) {
+                            const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                            teamName = team ? team.TeamName : null;
+                        }
+                        newTask.AssignedToDetails = {
+                            _id: assignedTo._id,
+                            username: assignedTo.username,
+                            fullName: assignedTo.firstName + " " + assignedTo.lastName,
+                            email: assignedTo.email,
+                            teamName: teamName
+                        };
+                    }
+                } catch (error) {
+                    console.error('Error fetching assignedTo details:', error);
+                }
+            }
+
+            return newTask;
+        }));
+
+        res.json({
+            tasks: tasksWithDetails,
+            commonTypes: {
+                taskStatuses,
+                taskPriorities,
+                taskTypes
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching all tasks:', error);
+        res.status(500).json({ error: 'Failed to fetch tasks' });
+    }
+});
+
 // GET /api/task-details/:taskId - Get a single task by ID
 router.get('/:taskId', async (req, res) => {
     try {
@@ -290,6 +391,15 @@ router.get('/project/:projectId', async (req, res) => {
                     };
                 }
             }
+
+            // Get attachments and comments count
+            const [attachmentsCount, commentsCount] = await Promise.all([
+                Attachment.countDocuments({ TaskID: task.TaskID }),
+                Comment.countDocuments({ TaskID: task.TaskID })
+            ]);
+
+            newTask.attachmentsCount = attachmentsCount;
+            newTask.commentsCount = commentsCount;
 
             return newTask;
         }));

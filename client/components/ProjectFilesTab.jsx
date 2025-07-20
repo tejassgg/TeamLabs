@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { FaFile, FaSearch, FaFilter, FaTh, FaTable, FaDownload, FaTrash, FaFilePdf, FaFileWord, FaFileExcel, FaFilePowerpoint, FaFileImage, FaFileVideo, FaFileAudio, FaFileArchive, FaFileCode, FaFileAlt, FaEllipsisV } from 'react-icons/fa';
+import React, { useState, useEffect, useRef } from 'react';
+import { FaFile, FaSearch, FaFilter, FaTh, FaTable, FaDownload, FaTrash, FaFilePdf, FaFileWord, FaFileExcel, FaFilePowerpoint, FaFileImage, FaFileVideo, FaFileAudio, FaFileArchive, FaFileCode, FaFileAlt, FaEllipsisV, FaUpload, FaPlus, FaSpinner } from 'react-icons/fa';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import CustomModal from './CustomModal';
 
 const ProjectFilesTab = ({ projectId }) => {
   const { theme } = useTheme();
   const { showToast } = useToast();
+  const { user } = useAuth();
 
   // Add CSS animations
   useEffect(() => {
@@ -60,6 +62,11 @@ const ProjectFilesTab = ({ projectId }) => {
 
   // Add state for kebab menu
   const [openMenuId, setOpenMenuId] = useState(null);
+  
+  // Add state for file upload
+  const [uploading, setUploading] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Function to get file type icon
   const getFileTypeIcon = (filename) => {
@@ -100,6 +107,17 @@ const ProjectFilesTab = ({ projectId }) => {
   const isVideoFile = (filename) => {
     const extension = filename.split('.').pop()?.toLowerCase();
     return ['mp4', 'avi', 'mov', 'wmv', 'webm'].includes(extension);
+  };
+
+  // Function to format file size
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   // Function to get user initials
@@ -159,6 +177,73 @@ const ProjectFilesTab = ({ projectId }) => {
     }
   }, [projectId]);
 
+  // Handle file upload
+  const handleFileUpload = async (files) => {
+    if (!files || files.length === 0) return;
+    
+    setUploading(true);
+    
+    for (const file of files) {
+      try {
+        // Get current user from AuthContext
+        if (!user) {
+          showToast('User not authenticated', 'error');
+          return;
+        }
+        
+        // Create FormData for file upload
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('projectId', projectId);
+        formData.append('userId', user._id);
+        formData.append('filename', file.name);
+        
+        // Upload file using existing attachment upload endpoint
+        const uploadResponse = await api.post('/upload/attachments/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        
+        if (uploadResponse.data.success) {
+          showToast(`${file.name} uploaded successfully`, 'success');
+        }
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        showToast(`Failed to upload ${file.name}`, 'error');
+      }
+    }
+    
+    setUploading(false);
+    showToast('Files uploaded successfully', 'success');
+    fetchProjectAttachments(); // Refresh the list
+  };
+
+  // Handle file input change
+  const handleFileInputChange = (event) => {
+    const files = Array.from(event.target.files);
+    if (files.length > 0) {
+      handleFileUpload(files);
+    }
+    // Reset the input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Handle drag and drop
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFileUpload(files);
+    }
+  };
+
   // Filter attachments based on search and filter
   const filteredAttachments = projectAttachments.filter(attachment => {
     const matchesSearch = attachment.Filename.toLowerCase().includes(fileSearch.toLowerCase());
@@ -171,7 +256,11 @@ const ProjectFilesTab = ({ projectId }) => {
   });
 
   return (
-    <div>
+    <div
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      className="min-h-[400px]"
+    >
       {/* Search and Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex-1 relative">
@@ -188,6 +277,33 @@ const ProjectFilesTab = ({ projectId }) => {
           />
         </div>
         <div className="flex gap-2">
+          {/* Upload Button */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className={getThemeClasses(
+              "flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors",
+              "dark:bg-blue-500 dark:hover:bg-blue-600"
+            )}
+          >
+            {uploading ? (
+              <FaSpinner className="animate-spin" />
+            ) : (
+              <FaUpload />
+            )}
+            {uploading ? 'Uploading...' : 'Upload Files'}
+          </button>
+          
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleFileInputChange}
+            className="hidden"
+            accept="*/*"
+          />
+          
           <select
             value={fileFilter}
             onChange={(e) => setFileFilter(e.target.value)}
@@ -229,7 +345,17 @@ const ProjectFilesTab = ({ projectId }) => {
         <div className={getThemeClasses("text-center py-12 text-gray-500", "dark:text-gray-400")}>
           <FaFile size={48} className="mx-auto mb-4 opacity-50" />
           <p className="text-lg font-medium mb-2">No files found</p>
-          <p className="text-sm">Files uploaded to tasks in this project will appear here.</p>
+          <p className="text-sm">Upload files to this project or files uploaded to tasks will appear here.</p>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className={getThemeClasses(
+              "mt-4 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors",
+              "dark:bg-blue-500 dark:hover:bg-blue-600"
+            )}
+          >
+            <FaUpload />
+            Upload Files
+          </button>
         </div>
       ) : (
         <div>
@@ -252,7 +378,12 @@ const ProjectFilesTab = ({ projectId }) => {
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
                             <span className="text-lg">{getFileTypeIcon(attachment.Filename)}</span>
-                            <span className={getThemeClasses("text-gray-900", "dark:text-gray-100")}>{attachment.Filename}</span>
+                            <div className="flex flex-col">
+                              <span className={getThemeClasses("text-gray-900", "dark:text-gray-100")}>{attachment.Filename}</span>
+                              <span className={getThemeClasses("text-xs text-gray-500", "dark:text-gray-400")}>
+                                {attachment.FileSize ? formatFileSize(attachment.FileSize) : 'Unknown size'}
+                              </span>
+                            </div>
                           </div>
                         </td>
                         <td className="py-3 px-4">
@@ -321,9 +452,14 @@ const ProjectFilesTab = ({ projectId }) => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <div className="text-lg">{getFileTypeIcon(attachment.Filename)}</div>
-                        <p className={getThemeClasses("font-medium text-gray-900 text-sm truncate", "dark:text-gray-100")} title={attachment.Filename}>
-                          {attachment.Filename.length > 20 ? attachment.Filename.substring(0, 20) + '...' : attachment.Filename}
-                        </p>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <p className={getThemeClasses("font-medium text-gray-900 text-sm truncate", "dark:text-gray-100")} title={attachment.Filename}>
+                            {attachment.Filename.length > 20 ? attachment.Filename.substring(0, 20) + '...' : attachment.Filename}
+                          </p>
+                          <p className={getThemeClasses("text-xs text-gray-500 truncate", "dark:text-gray-400")}>
+                            {attachment.FileSize ? formatFileSize(attachment.FileSize) : 'Unknown size'}
+                          </p>
+                        </div>
                       </div>
                       <div className="relative">
                         <button

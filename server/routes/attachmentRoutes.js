@@ -20,13 +20,19 @@ router.get('/project/:projectId', async (req, res) => {
     const tasks = await TaskDetails.find({ ProjectID_FK: projectId, IsActive: true });
     const taskIds = tasks.map(task => task.TaskID);
 
-    // Get all attachments for these tasks
-    const attachments = await Attachment.find({ TaskID: { $in: taskIds } }).sort({ UploadedAt: -1 });
+    // Get all attachments for these tasks AND project-level attachments
+    const taskAttachments = await Attachment.find({ TaskID: { $in: taskIds } });
+    const projectAttachments = await Attachment.find({ ProjectID: projectId });
+    
+    // Combine and sort by upload date
+    const allAttachments = [...taskAttachments, ...projectAttachments].sort((a, b) => 
+      new Date(b.UploadedAt) - new Date(a.UploadedAt)
+    );
 
     // Fetch uploader details for each attachment
-    const attachmentsWithUserDetails = await Promise.all(attachments.map(async (attachment) => {
+    const attachmentsWithUserDetails = await Promise.all(allAttachments.map(async (attachment) => {
       const uploader = await User.findById(attachment.UploadedBy);
-      const task = tasks.find(t => t.TaskID === attachment.TaskID);
+      const task = attachment.TaskID ? tasks.find(t => t.TaskID === attachment.TaskID) : null;
       
       return {
         ...attachment.toObject(),
@@ -39,7 +45,8 @@ router.get('/project/:projectId', async (req, res) => {
           TaskID: task.TaskID,
           Name: task.Name,
           Type: task.Type
-        } : null
+        } : null,
+        isProjectAttachment: !attachment.TaskID && attachment.ProjectID
       };
     }));
 
@@ -94,6 +101,8 @@ router.post('/tasks/:taskId/attachments', async (req, res) => {
     res.status(500).json({ error: 'Failed to add attachment' });
   }
 });
+
+
 
 // Delete an attachment
 // DELETE /api/attachments/:attachmentId

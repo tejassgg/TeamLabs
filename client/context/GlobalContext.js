@@ -79,11 +79,9 @@ export const GlobalProvider = ({ children }) => {
       1: 'Not Assigned',
       2: 'Assigned',
       3: 'In Progress',
-      4: 'Development',
-      5: 'Testing',
-      6: 'QA',
-      7: 'Deployment',
-      8: 'Completed'
+      4: 'QA',
+      5: 'Deployment',
+      6: 'Completed'
     };
     return statusTexts[statusCode] || 'Unknown';
   };

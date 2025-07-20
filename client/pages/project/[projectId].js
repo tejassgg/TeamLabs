@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import api, { authService, taskService, projectService, githubService, teamService, commentService, attachmentService } from '../../services/api';
+import api, { authService, taskService, githubService} from '../../services/api';
 import Layout from '../../components/Layout';
-import { FaTrash, FaCog, FaTimes, FaClock, FaUserCheck, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaChevronRight, FaInfoCircle, FaProjectDiagram, FaChartBar, FaTasks, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaUsers, FaFile } from 'react-icons/fa';
+import { FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaVial, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaChevronRight, FaInfoCircle, FaProjectDiagram, FaChartBar, FaTasks, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaUsers, FaFile } from 'react-icons/fa';
 import AddTaskModal from '../../components/AddTaskModal';
 import CustomModal from '../../components/CustomModal';
 import { useToast } from '../../context/ToastContext';
@@ -108,8 +108,6 @@ const ProjectDetailsPage = () => {
   const [issuesPage, setIssuesPage] = useState(1);
   const [hasMoreIssues, setHasMoreIssues] = useState(true);
   
-
-
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
   }, []);
@@ -171,8 +169,6 @@ const ProjectDetailsPage = () => {
       setRepositoryLoading(false);
     }
   };
-
-
 
   const fetchUserRepositories = async () => {
     try {
@@ -401,18 +397,6 @@ const ProjectDetailsPage = () => {
     if (!issuesLoading && hasMoreIssues) {
       fetchIssues(issuesPage + 1);
     }
-  };
-
-  // Format commit date
-  const formatCommitDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   // Format issue date
@@ -765,35 +749,21 @@ const ProjectDetailsPage = () => {
         icon: FaClock,
         iconColor: isDark ? 'text-yellow-400' : 'text-yellow-500'
       },
-      4: { // Development
-        bgColor: isDark ? 'from-purple-900/50 to-purple-800/50' : 'from-purple-50 to-purple-100',
-        textColor: isDark ? 'text-purple-300' : 'text-purple-700',
-        borderColor: isDark ? 'border-purple-700' : 'border-purple-200',
-        icon: FaCode,
-        iconColor: isDark ? 'text-purple-400' : 'text-purple-500'
-      },
-      5: { // Testing
-        bgColor: isDark ? 'from-orange-900/50 to-orange-800/50' : 'from-orange-50 to-orange-100',
-        textColor: isDark ? 'text-orange-300' : 'text-orange-700',
-        borderColor: isDark ? 'border-orange-700' : 'border-orange-200',
-        icon: FaVial,
-        iconColor: isDark ? 'text-orange-400' : 'text-orange-500'
-      },
-      6: { // QA
+      4: { // QA
         bgColor: isDark ? 'from-indigo-900/50 to-indigo-800/50' : 'from-indigo-50 to-indigo-100',
         textColor: isDark ? 'text-indigo-300' : 'text-indigo-700',
         borderColor: isDark ? 'border-indigo-700' : 'border-indigo-200',
         icon: FaShieldAlt,
         iconColor: isDark ? 'text-indigo-400' : 'text-indigo-500'
       },
-      7: { // Deployment
+      5: { // Deployment
         bgColor: isDark ? 'from-pink-900/50 to-pink-800/50' : 'from-pink-50 to-pink-100',
         textColor: isDark ? 'text-pink-300' : 'text-pink-700',
         borderColor: isDark ? 'border-pink-700' : 'border-pink-200',
         icon: FaRocket,
         iconColor: isDark ? 'text-pink-400' : 'text-pink-500'
       },
-      8: { // Completed
+      6: { // Completed
         bgColor: isDark ? 'from-green-900/50 to-green-800/50' : 'from-green-50 to-green-100',
         textColor: isDark ? 'text-green-300' : 'text-green-700',
         borderColor: isDark ? 'border-green-700' : 'border-green-200',

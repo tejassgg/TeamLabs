@@ -67,33 +67,8 @@ const KanbanBoard = () => {
           }
           return task;
         });
-        
-        // Fetch comments and attachments counts for each task
-        const tasksWithCounts = await Promise.all(
-          mappedTasks.map(async (task) => {
-            try {
-              const [commentsResponse, attachmentsResponse] = await Promise.all([
-                commentService.getComments(task.TaskID),
-                attachmentService.getAttachments(task.TaskID)
-              ]);
-              
-              return {
-                ...task,
-                commentsCount: commentsResponse.length || 0,
-                attachmentsCount: attachmentsResponse.length || 0
-              };
-            } catch (error) {
-              console.error(`Error fetching counts for task ${task.TaskID}:`, error);
-              return {
-                ...task,
-                commentsCount: 0,
-                attachmentsCount: 0
-              };
-            }
-          })
-        );
-        
-        setTasks(tasksWithCounts);
+
+        setTasks(mappedTasks);
         // Fetch user stories for the project
         const projectDetails = await projectService.getProjectDetails(selectedProject);
         setUserStories(projectDetails.userStories || []);
@@ -275,10 +250,9 @@ const KanbanBoard = () => {
       <div className="mx-auto">
 
         <div className="flex items-center justify-between mb-6">
-          <h1 className={getThemeClasses(
-            'text-2xl font-bold text-gray-900',
-            'dark:text-gray-100'
-          )}>Kanban Board</h1>
+          <h1 className={getThemeClasses("text-3xl font-bold text-gray-900", "dark:text-white")}>
+            Kanban Board
+          </h1>
           <div className="flex items-center gap-4">
             <select
               value={selectedProject || ''}
@@ -617,10 +591,8 @@ const KanbanBoard = () => {
             <li>Click on a task to view more details</li>
           </ul>
           <div className={getThemeClasses(
-            'mt-4 text-sm text-gray-500',
             'dark:text-gray-400'
           )}>
-            <p>Note: This Kanban board uses native HTML5 drag and drop functionality. For enhanced UI experience, you may need to install react-beautiful-dnd or similar packages.</p>
           </div>
         </div>
       </div>

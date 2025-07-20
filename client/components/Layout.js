@@ -30,7 +30,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const { teams, projects, user, setProjects, setTeams, setTasksDetails, organization, userDetails } = useGlobal();
   const { showToast } = useToast();
   const canManageTeamsAndProjects = userDetails?.role === 'Admin' || userDetails?.role === 'Owner';
-  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
+
 
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
   const activeProjectId = router.pathname.startsWith('/project/') ? router.query.projectId : null;
@@ -288,8 +288,8 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           <SidebarButton
             icon={<FaBookOpen className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
             label="Query Board"
-            active={false}
-            onClick={() => setIsComingSoonOpen(true)}
+            active={router.pathname === '/query'}
+            onClick={() => handleNavigation('/query')}
             theme={theme}
           />
 
@@ -396,34 +396,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           />
         </>
       )}
-      {isComingSoonOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold">Coming Soon!</h3>
-              <button
-                onClick={() => setIsComingSoonOpen(false)}
-                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-              >
-                ×
-              </button>
-            </div>
-            <div className="flex flex-col items-center justify-center py-6">
-              <FaBookOpen size={48} className="mb-4 text-blue-500" />
-              <h2 className="text-2xl font-bold mb-2 text-center">Query Board is Coming Soon</h2>
-              <p className="text-gray-500 mb-4 text-center">We're working hard to bring you this feature. Stay tuned!</p>
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                onClick={() => setIsComingSoonOpen(false)}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200"
-              >
-                Got it!
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </>
   );
 };
@@ -443,7 +416,6 @@ const isProfileComplete = (userDetails) => {
     }
     return hasField;
   });
-  console.log('isProfileComplete result:', result, 'for userDetails:', userDetails);
   return result;
 };
 
