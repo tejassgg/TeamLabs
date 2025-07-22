@@ -108,7 +108,7 @@ router.post('/tasks/:taskId/comments', async (req, res) => {
     // Log the activity
     await logActivity(
       task.CreatedBy,
-      'comment_add',
+      'comment_added',
       'success',
       `${Author} added a comment to task "${task.Name}"`,
       req,
@@ -225,7 +225,7 @@ router.patch('/comments/:commentId', async (req, res) => {
     // Log the activity
     await logActivity(
       task.CreatedBy,
-      'comment_update',
+      'comment_updated',
       'success',
       `${comment.Author} updated a comment on task "${task.Name}"`,
       req,
@@ -268,7 +268,7 @@ router.delete('/comments/:commentId', async (req, res) => {
     // Log the activity
     await logActivity(
       task.CreatedBy,
-      'comment_delete',
+      'comment_deleted',
       'success',
       `${comment.Author} deleted a comment from task "${task.Name}"`,
       req,

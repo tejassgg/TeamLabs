@@ -23,11 +23,6 @@ import {
 } from '../components/kanbanUtils';
 
 
-
-
-
-
-
 const KanbanBoard = () => {
   const router = useRouter();
   const { projects, userDetails } = useGlobal();
@@ -61,14 +56,8 @@ const KanbanBoard = () => {
       setLoading(true);
       try {
         const fetchedTasks = await taskService.getTaskDetails(selectedProject);
-        const mappedTasks = fetchedTasks.map(task => {
-          if (task.Status === 4 || task.Status === 5) {
-            return { ...task, Status: 3 };
-          }
-          return task;
-        });
 
-        setTasks(mappedTasks);
+        setTasks(fetchedTasks);
         // Fetch user stories for the project
         const projectDetails = await projectService.getProjectDetails(selectedProject);
         setUserStories(projectDetails.userStories || []);

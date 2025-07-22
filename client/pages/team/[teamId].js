@@ -91,6 +91,7 @@ const TeamDetailsPage = () => {
 
   useEffect(() => {
     if (teamId) {
+      setLoading(true);
       api.get(`/team-details/${teamId}`)
         .then(res => {
           setTeam(res.data.team);

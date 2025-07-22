@@ -8,7 +8,7 @@ const TaskDetails = require('../models/TaskDetails');
 const User = require('../models/User');
 const Comment = require('../models/Comment');
 const Attachment = require('../models/Attachment');
-const {logActivity} = require('../services/activityService');
+const {logActivity, getProjectActivities} = require('../services/activityService');
 
 // GET /api/project-details/:projectId - Get all teams for a project
 router.get('/:projectId', async (req, res) => {
@@ -95,13 +95,17 @@ router.get('/:projectId', async (req, res) => {
     const memberIds = [...new Set(allTeamDetails.map(td => td.MemberID))];
     const projectMembers = await User.find({ _id: { $in: memberIds } }).select('_id firstName lastName email profileImage');
 
+    // Fetch project activity
+    const activity = await getProjectActivities(projectId);
+
     res.json({
       project,
       teams: projectDetails,
       orgTeams: teamMemberCounts,
       userStories: userStories,
       taskList: newTaskList,
-      projectMembers
+      projectMembers,
+      activity
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch project details' });

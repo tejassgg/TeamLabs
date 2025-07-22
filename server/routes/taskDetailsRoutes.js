@@ -7,6 +7,7 @@ const Team = require('../models/Team');
 const ProjectDetails = require('../models/ProjectDetails');
 const TaskDetailsHistory = require('../models/TaskDetailsHistory');
 const Project = require('../models/Project');
+const CommonType = require('../models/CommonType');
 const { logActivity } = require('../services/activityService');
 const { sendTaskAssignmentEmail } = require('../services/emailService');
 const Subtask = require('../models/Subtask');
@@ -463,6 +464,14 @@ router.patch('/:taskId/status', async (req, res) => {
 
         const oldStatus = task.Status;
 
+        // Fetch status values from CommonType
+        const [oldStatusType, newStatusType] = await Promise.all([
+            CommonType.findOne({ MasterType: 'ProjectStatus', Code: oldStatus }),
+            CommonType.findOne({ MasterType: 'ProjectStatus', Code: Status })
+        ]);
+        const oldStatusValue = oldStatusType ? oldStatusType.Value : oldStatus;
+        const newStatusValue = newStatusType ? newStatusType.Value : Status;
+
         // Save task history before updating
         const taskHistory = new TaskDetailsHistory({
             TaskID: task.TaskID,
@@ -491,19 +500,19 @@ router.patch('/:taskId/status', async (req, res) => {
         task.ModifiedBy = modifiedBy;
         await task.save();
 
-        // Log the activity
+        // Log the activity (log status values, not codes)
         await logActivity(
             task.CreatedBy,
             task.Type == 'User Story' ? 'user_story_update' : 'task_update',
             'success',
-            `Updated ${task.Type.toLowerCase()} "${task.Name}" status from ${oldStatus} to ${Status}`,
+            `Updated ${task.Type.toLowerCase()} "${task.Name}" status from ${oldStatusValue} to ${newStatusValue}`,
             req,
             {
                 taskId: task.TaskID,
                 taskName: task.Name,
                 taskType: task.Type,
-                oldStatus,
-                newStatus: Status,
+                oldStatus: oldStatusValue,
+                newStatus: newStatusValue,
                 projectId: task.ProjectID_FK
             }
         );

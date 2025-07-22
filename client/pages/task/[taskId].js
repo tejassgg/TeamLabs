@@ -177,10 +177,30 @@ const TaskDetailsPage = () => {
     const handleStatusUpdate = async (newStatus) => {
         setUpdatingStatus(true);
         try {
+            const oldStatus = task.Status;
             await taskService.updateTaskStatus(taskId, newStatus, user?._id);
             setTask(prev => ({ ...prev, Status: newStatus }));
             setStatusDropdownOpen(false);
             showToast('Task status updated successfully', 'success');
+            // Optimistically update the history table with full details
+            const oldStatusName = statusMap[oldStatus] || oldStatus;
+            const newStatusName = statusMap[newStatus] || newStatus;
+            setTaskActivity(prev => [
+                {
+                    _id: `local-${Date.now()}`,
+                    type: 'task_update',
+                    status: 'success',
+                    details: `Updated ${task.Type} "${task.Name}" status from ${oldStatusName} to ${newStatusName}`,
+                    metadata: {
+                        oldStatus: oldStatusName,
+                        newStatus: newStatusName,
+                        user: user?._id,
+                        taskId: taskId
+                    },
+                    timestamp: new Date().toISOString()
+                },
+                ...prev
+            ]);
         } catch (err) {
             showToast('Failed to update task status', 'error');
         } finally {

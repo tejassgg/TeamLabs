@@ -80,7 +80,34 @@ const getUserActivities = async (userId, page = 1, limit = 10) => {
   }
 };
 
+const getProjectActivities = async (projectId) => {
+  try {
+    // Find all activities where metadata.projectId matches
+    let activities = await UserActivity.find({ 'metadata.projectId': projectId })
+      .populate('user', 'firstName lastName email profileImage')
+      .sort({ timestamp: -1 })
+      .lean();
+
+    // For comment_added activities, fetch the comment details
+    const Comment = require('../models/Comment');
+    await Promise.all(activities.map(async (activity) => {
+      if (activity.type === 'comment_added' && activity.metadata && activity.metadata.commentId) {
+        const comment = await Comment.findOne({ CommentID: activity.metadata.commentId });
+        if (comment) {
+          activity.metadata.comment = comment.Content;
+        }
+      }
+    }));
+
+    return activities;
+  } catch (error) {
+    console.error('Error fetching project activities:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   logActivity,
-  getUserActivities
+  getUserActivities,
+  getProjectActivities
 }; 

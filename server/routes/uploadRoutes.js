@@ -125,6 +125,55 @@ router.post('/attachments/upload', attachmentUpload.single('file'), async (req, 
 
     await attachment.save();
 
+    // Log activity for attachment upload
+    const { logActivity } = require('../services/activityService');
+    let details = '';
+    let metadata = {
+      fileName: attachment.Filename,
+      fileUrl: attachment.FileURL,
+      fileSize: attachment.FileSize,
+      attachmentId: attachment.AttachmentID
+    };
+    if (taskId) {
+      // Try to fetch task name/type for better details
+      try {
+        const TaskDetails = require('../models/TaskDetails');
+        const task = await TaskDetails.findOne({ TaskID: taskId });
+        details = `Added attachment "${attachment.Filename}" to task "${task ? task.Name : taskId}"`;
+        metadata.taskId = taskId;
+        if (task) {
+          metadata.taskName = task.Name;
+          metadata.taskType = task.Type;
+          metadata.projectId = task.ProjectID_FK;
+        }
+      } catch (e) {
+        details = `Added attachment "${attachment.Filename}" to task (ID: ${taskId})`;
+        metadata.taskId = taskId;
+      }
+    } else if (projectId) {
+      // Try to fetch project name for better details
+      try {
+        const Project = require('../models/Project');
+        const project = await Project.findOne({ ProjectID: projectId });
+        details = `Added attachment "${attachment.Filename}" to project "${project ? project.Name : projectId}"`;
+        metadata.projectId = projectId;
+        if (project) {
+          metadata.projectName = project.Name;
+        }
+      } catch (e) {
+        details = `Added attachment "${attachment.Filename}" to project (ID: ${projectId})`;
+        metadata.projectId = projectId;
+      }
+    }
+    await logActivity(
+      userId,
+      'attachment_added',
+      'success',
+      details,
+      req,
+      metadata
+    );
+
     res.json({ 
       success: true,
       message: 'File uploaded successfully',
