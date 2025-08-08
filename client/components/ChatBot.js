@@ -5,8 +5,8 @@ import { useTheme } from '../context/ThemeContext';
 import { chatbotService } from '../services/api';
 import Link from 'next/link';
 
-const ChatBot = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButton = true }) => {
+  const [internalIsOpen, setIsInternalOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,6 +17,10 @@ const ChatBot = () => {
   const messagesEndRef = useRef(null);
   const { isAuthenticated } = useAuth();
   const { theme } = useTheme();
+
+  // Use external state if provided, otherwise use internal state
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = externalOnToggle || setIsInternalOpen;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -115,19 +119,21 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-[9999]">
       {/* Chat Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-colors"
-        aria-label="Toggle chat"
-      >
-        {isOpen ? <FaTimes size={24} /> : <FaRobot size={24} />}
-      </button>
+      {showButton && (
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-colors"
+          aria-label="Toggle chat"
+        >
+          {isOpen ? <FaTimes size={24} /> : <FaRobot size={24} />}
+        </button>
+      )}
 
       {/* Chat Window */}
       {isOpen && (
-        <div className={`absolute bottom-16 right-0 w-96 h-[500px] ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl flex flex-col`}>
+        <div className={`absolute bottom-16 right-0 w-96 h-[500px] ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl flex flex-col border ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
           {/* Chat Header */}
           <div className="bg-blue-600 text-white p-4 rounded-t-lg flex items-center justify-between">
             <div className="flex items-center">
@@ -289,4 +295,4 @@ const ChatBot = () => {
   );
 };
 
-export default ChatBot; 
+export default ChatBot;

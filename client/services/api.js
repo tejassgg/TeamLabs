@@ -892,6 +892,10 @@ export const messagingService = {
     });
     return res.data;
   },
+  deleteConversation: async (conversationId) => {
+    const res = await api.delete(`/messages/conversations/${conversationId}`);
+    return res.data;
+  },
 };
 
 export const githubService = {

@@ -2,7 +2,7 @@ import Navbar from './Navbar';
 import { useTheme } from '../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FaPlus, FaChevronRight, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaCircle } from 'react-icons/fa';
+import { FaPlus, FaChevronRight, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaCircle, FaRobot } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import AddTeamModal from './AddTeamModal';
 import { teamService } from '../services/api';
@@ -12,10 +12,10 @@ import { useGlobal } from '../context/GlobalContext';
 import AddTaskModal from './AddTaskModal';
 import { taskService } from '../services/api';
 import { useToast } from '../context/ToastContext';
-import ChatBot from './ChatBot';
 import TooltipPortal from './TooltipPortal';
 import Link from 'next/link';
 import FirstTimeSetup from './FirstTimeSetup';
+import ChatBot from './ChatBot';
 
 
 const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
@@ -27,6 +27,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [isTeamsOpen, setIsTeamsOpen] = useState(true);
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
+  const [isChatBotOpen, setIsChatBotOpen] = useState(false);
   const { teams, projects, user, setProjects, setTeams, setTasksDetails, organization, userDetails } = useGlobal();
   const { showToast } = useToast();
   const canManageTeamsAndProjects = userDetails?.role === 'Admin' || userDetails?.role === 'Owner';
@@ -336,6 +337,12 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
         {/* Bottom: Logout & Theme Switch */}
         <div className={`flex flex-col gap-2 p-4 border-t ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
           <SidebarButton
+            icon={<FaRobot className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+            label="AI Assistant"
+            onClick={() => setIsChatBotOpen(!isChatBotOpen)}
+            theme={theme}
+          />
+          <SidebarButton
             icon={<FaSignOutAlt className={theme === 'dark' ? 'text-red-400' : 'text-red-600'} />}
             label="Logout"
             onClick={() => {
@@ -403,7 +410,8 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           />
         </>
       )}
-
+      {/* ChatBot Component */}
+      <ChatBot isOpen={isChatBotOpen} onToggle={setIsChatBotOpen} showButton={false} />
     </>
   );
 };
@@ -462,6 +470,11 @@ const Layout = ({ children }) => {
       // Settings
       if (path === '/settings') {
         return [{ label: 'Settings', href: '/settings', isCurrent: true }];
+      }
+
+      // Messages
+      if (path === '/messages') {
+        return [{ label: 'Messages', href: '/messages', isCurrent: true }];
       }
 
       // Team Details
@@ -668,11 +681,10 @@ const Layout = ({ children }) => {
         <main className={`overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#18181b] text-white' : ''}`}>
           <DynamicBreadcrumb />
 
-          <div className={`${router.pathname.startsWith('/task') || router.pathname.startsWith('/project') || router.pathname.startsWith('/team') ? 'px-8' : 'p-8'} md:px-8`}>
+          <div className={`${router.pathname.startsWith('/task') || router.pathname.startsWith('/project') || router.pathname.startsWith('/team') ? 'px-8' : router.pathname === '/messages' ? 'px-8 pt-8' : 'p-8'} md:px-8`}>
             {children}
           </div>
         </main>
-        <ChatBot />
       </div>
       {/* Overlay for mobile when sidebar is open */}
       {isMobile && (
