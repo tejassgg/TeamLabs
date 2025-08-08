@@ -849,6 +849,51 @@ export const userService = {
   }
 };
 
+export const messagingService = {
+  getConversations: async () => {
+    const res = await api.get('/messages/conversations');
+    return res.data;
+  },
+  getOrCreateDirectConversation: async (userId) => {
+    const res = await api.post(`/messages/conversations/with/${userId}`);
+    return res.data;
+  },
+  createGroup: async (name, participantIds, avatarUrl) => {
+    const res = await api.post('/messages/conversations', { name, participantIds, avatarUrl });
+    return res.data;
+  },
+  getMessages: async (conversationId, page = 1, limit = 30) => {
+    const res = await api.get(`/messages/conversations/${conversationId}/messages`, { params: { page, limit } });
+    return res.data;
+  },
+  getConversation: async (conversationId) => {
+    const res = await api.get(`/messages/conversations/${conversationId}`);
+    return res.data;
+  },
+  addMembers: async (conversationId, memberIds) => {
+    const res = await api.post(`/messages/conversations/${conversationId}/members`, { memberIds });
+    return res.data;
+  },
+  getAssets: async (conversationId) => {
+    const res = await api.get(`/messages/conversations/${conversationId}/assets`);
+    return res.data;
+  },
+  sendMessage: async (conversationId, payload) => {
+    const res = await api.post(`/messages/conversations/${conversationId}/messages`, payload);
+    return res.data;
+  },
+  react: async (messageId, emoji) => {
+    const res = await api.post(`/messages/messages/${messageId}/reactions`, { emoji });
+    return res.data;
+  },
+  uploadChatMedia: async (formData) => {
+    const res = await api.post('/upload/chat/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  },
+};
+
 export const githubService = {
   // Get project commits
   getProjectCommits: async (projectId, page = 1, perPage = 20) => {

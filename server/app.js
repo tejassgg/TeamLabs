@@ -22,6 +22,7 @@ const landingRoutes = require('./routes/landingRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
 const organizationRoutes = require('./routes/organizationRoutes');
+const messageRoutes = require('./routes/messageRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -73,6 +74,7 @@ app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/landing', landingRoutes);
 app.use('/api/organizations', organizationRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Test route
 app.get('/', (req, res) => {

@@ -324,6 +324,13 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             canAdd={canManageTeamsAndProjects}
             theme={theme}
           />
+          <SidebarButton
+            icon={<FaBookOpen className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+            label="Messages"
+            active={router.pathname === '/messages'}
+            onClick={() => handleNavigation('/messages')}
+            theme={theme}
+          />
         </nav>
 
         {/* Bottom: Logout & Theme Switch */}

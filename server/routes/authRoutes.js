@@ -30,6 +30,7 @@ const {
   updateOnboardingStatus,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
+const User = require('../models/User');
 
 /**
  * @swagger
@@ -270,5 +271,7 @@ router.post('/github/callback', handleGitHubCallback);
 router.post('/github/disconnect', protect, disconnectGitHub);
 router.get('/github/status/:userId', protect, getGitHubStatus);
 router.get('/github/repositories/:userId', protect, getUserRepositories);
+
+// Socket registration removed
 
 module.exports = router; 

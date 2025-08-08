@@ -34,6 +34,7 @@ const imageFileFilter = (req, file, cb) => {
 const attachmentFileFilter = (req, file, cb) => {
   const allowedMimeTypes = [
     'image/',
+    'video/',
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -72,7 +73,7 @@ const attachmentUpload = multer({
   storage,
   fileFilter: attachmentFileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
+    fileSize: 50 * 1024 * 1024 // 50MB limit for videos
   }
 });
 
@@ -192,6 +193,21 @@ router.post('/attachments/upload', attachmentUpload.single('file'), async (req, 
       message: error.message || 'Error uploading attachment',
       details: error.stack
     });
+  }
+});
+
+
+// POST /api/upload/chat/upload - Upload chat media (image/video) and return URL only
+router.post('/chat/upload', attachmentUpload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    const url = `/uploads/${req.file.filename}`;
+    res.json({ success: true, url });
+  } catch (error) {
+    console.error('Chat media upload error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Error uploading chat media' });
   }
 });
 

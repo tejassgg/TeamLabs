@@ -185,6 +185,10 @@ const UserSchema = new mongoose.Schema({
     enum: ['Active', 'In a Meeting', 'Presenting', 'Away', 'Offline', 'Busy'],
     default: 'Offline'
   },
+  socketId: {
+    type: String,
+    default: null
+  },
   twoFactorSecret: {
     type: String,
     select: false // Don't include in queries by default
