@@ -850,8 +850,12 @@ export const userService = {
 };
 
 export const messagingService = {
-  getConversations: async () => {
-    const res = await api.get('/messages/conversations');
+  getConversations: async (includeArchived = false) => {
+    const res = await api.get('/messages/conversations', { params: { includeArchived } });
+    return res.data;
+  },
+  getArchivedConversations: async () => {
+    const res = await api.get('/messages/conversations/archived');
     return res.data;
   },
   getOrCreateDirectConversation: async (userId) => {
@@ -872,6 +876,22 @@ export const messagingService = {
   },
   addMembers: async (conversationId, memberIds) => {
     const res = await api.post(`/messages/conversations/${conversationId}/members`, { memberIds });
+    return res.data;
+  },
+  removeMembers: async (conversationId, memberIds) => {
+    const res = await api.delete(`/messages/conversations/${conversationId}/members`, { data: { memberIds } });
+    return res.data;
+  },
+  leaveConversation: async (conversationId) => {
+    const res = await api.post(`/messages/conversations/${conversationId}/leave`);
+    return res.data;
+  },
+  getConversationStats: async (conversationId) => {
+    const res = await api.get(`/messages/conversations/${conversationId}/stats`);
+    return res.data;
+  },
+  archiveConversation: async (conversationId) => {
+    const res = await api.post(`/messages/conversations/${conversationId}/archive`);
     return res.data;
   },
   getAssets: async (conversationId) => {

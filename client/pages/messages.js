@@ -6,6 +6,88 @@ import { useTheme } from '../context/ThemeContext';
 import api, { messagingService } from '../services/api';
 import { FaPaperPlane, FaPlus, FaSmile, FaImage, FaVideo, FaChevronDown, FaCheck, FaTimes, FaSearch, FaEllipsisV, FaCog, FaTrash } from 'react-icons/fa';
 
+// Skeleton Components
+const ConversationSkeleton = ({ theme }) => (
+  <div className={`w-full p-2 rounded-lg flex items-center gap-3 ${theme === 'dark' ? 'bg-[#221E1E]' : 'bg-white'}`}>
+    <div className={`w-8 h-8 rounded-full animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
+    <div className="flex-1 space-y-2">
+      <div className={`h-4 rounded animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} style={{ width: '70%' }} />
+      <div className={`h-3 rounded animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} style={{ width: '50%' }} />
+    </div>
+    <div className={`w-12 h-3 rounded animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
+  </div>
+);
+
+const MessageSkeleton = ({ isMine, theme }) => (
+  <div className={`group flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+    <div className="max-w-[75%]">
+      <div className={`flex items-center gap-2 mb-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
+        {!isMine && (
+          <div className={`w-7 h-7 rounded-full animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
+        )}
+        <div className={`w-16 h-3 rounded animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
+        <div className={`w-12 h-3 rounded animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
+      </div>
+      <div className={`relative border rounded-2xl ${isMine ? 'rounded-br-none' : 'rounded-bl-none'} ${theme === 'dark' ? 'bg-[#221E1E] border-[#424242]' : 'bg-white border-gray-200'}`}>
+        <div className="px-3 py-2">
+          <div className={`h-4 rounded animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} style={{ width: isMine ? '120px' : '180px' }} />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const ConversationsListSkeleton = ({ theme }) => (
+  <div className="space-y-4">
+    {/* Group Chats Section Skeleton */}
+    <div>
+      <div className={`h-4 w-24 rounded animate-pulse mb-2 ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
+      <div className="space-y-2">
+        {[1, 2, 3].map((i) => (
+          <ConversationSkeleton key={`group-${i}`} theme={theme} />
+        ))}
+      </div>
+    </div>
+    
+    {/* Direct Messages Section Skeleton */}
+    <div>
+      <div className={`h-4 w-32 rounded animate-pulse mb-2 ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
+      <div className="space-y-2">
+        {[1, 2, 3, 4].map((i) => (
+          <ConversationSkeleton key={`dm-${i}`} theme={theme} />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+const ChatHeaderSkeleton = ({ theme }) => (
+  <div className={`p-3 border-b ${theme === 'dark' ? 'bg-[#221E1E] border-[#424242]' : 'bg-white border-gray-200'} flex-shrink-0`}>
+    <div className="flex items-center gap-3">
+      <div className={`w-8 h-8 rounded-full animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
+      <div className={`h-5 w-32 rounded animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
+    </div>
+  </div>
+);
+
+const MessagesAreaSkeleton = ({ theme }) => (
+  <div className="flex-1 overflow-y-auto p-4 space-y-3">
+    {[1, 2, 3, 4, 5, 6].map((i) => (
+      <MessageSkeleton key={i} isMine={i % 2 === 0} theme={theme} />
+    ))}
+  </div>
+);
+
+const ChatFooterSkeleton = ({ theme }) => (
+  <div className={`p-3 border-t ${theme === 'dark' ? 'bg-[#221E1E] border-[#424242]' : 'bg-white border-gray-200'} flex-shrink-0`}>
+    <div className="flex items-center gap-2">
+      <div className={`w-8 h-8 rounded-lg animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
+      <div className={`w-8 h-8 rounded-lg animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
+      <div className={`flex-1 h-10 rounded-lg animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
+      <div className={`w-20 h-10 rounded-lg animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
+    </div>
+  </div>
+);
 
 export default function MessagesPage() {
   const { user } = useAuth();
@@ -32,6 +114,8 @@ export default function MessagesPage() {
   const [showKebabMenu, setShowKebabMenu] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoadingConversations, setIsLoadingConversations] = useState(true);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const memberDropdownRef = useRef(null);
   const bottomRef = useRef(null);
   const kebabMenuRef = useRef(null);
@@ -57,6 +141,36 @@ export default function MessagesPage() {
     if (diffInDays < 7) return `${diffInDays}d ago`;
 
     return messageDate.toLocaleDateString();
+  };
+
+  const renderMessageText = (text) => {
+    if (!text) return '';
+    
+    // URL regex pattern to match http/https URLs
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    
+    // Split text by URLs and render accordingly
+    const parts = text.split(urlRegex);
+    
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        // This is a URL - render as clickable link
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`underline ${theme === 'dark' ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-700'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part}
+          </a>
+        );
+      }
+      // This is regular text
+      return part;
+    });
   };
 
   // Add current user to group members by default when group type is selected
@@ -100,7 +214,12 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!user) return;
-    messagingService.getConversations().then(setConversations).catch(() => { });
+    setIsLoadingConversations(true);
+    messagingService.getConversations()
+      .then(setConversations)
+      .catch(() => { })
+      .finally(() => setIsLoadingConversations(false));
+    
     // load org users for multi-select
     api.get(`/dashboard/${user.organizationID}`).then(res => {
       const users = res.data?.members?.map(m => {
@@ -144,10 +263,13 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!selectedConversation) return;
-    messagingService.getMessages(selectedConversation._id).then((data) => {
-      setMessages(data);
-      setTimeout(scrollToBottom, 50);
-    });
+    setIsLoadingMessages(true);
+    messagingService.getMessages(selectedConversation._id)
+      .then((data) => {
+        setMessages(data);
+        setTimeout(scrollToBottom, 50);
+      })
+      .finally(() => setIsLoadingMessages(false));
   }, [selectedConversation?._id]);
 
   const scrollToBottom = () => {
@@ -263,82 +385,88 @@ export default function MessagesPage() {
               </div>
             </div>
             <div className="space-y-4">
-              {/* Group Chats Section */}
-              {filteredConversations.filter(c => c.isGroup).length > 0 && (
-                <div>
-                  <h3 className={`text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                    Group Chats
-                  </h3>
-                  <div className="space-y-2">
-                    {filteredConversations.filter(c => c.isGroup).map((c) => {
-                      const displayName = c.name || 'Group';
-                      const parts = (c.name || '').split(' ').filter(Boolean);
-                      const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'GR';
-                      return (
-                        <button key={c._id} onClick={() => setSelectedConversation(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel}`}>
-                          {c.avatarUrl ? (
-                            <img src={c.avatarUrl} alt="" className="w-8 h-8 rounded-full" />
-                          ) : (
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</div>
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <div className="font-medium truncate">{displayName}</div>
-                            <div className="text-sm opacity-70 truncate">{c.lastMessagePreview}</div>
-                          </div>
-                          <div className="text-xs opacity-50 flex-shrink-0">
-                            {formatTimeAgo(c.lastMessageTime || c.updatedAt || c.createdAt)}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Direct Messages Section */}
-              {filteredConversations.filter(c => !c.isGroup).length > 0 && (
-                <div>
-                  <h3 className={`text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                    Direct Messages
-                  </h3>
-                  <div className="space-y-2">
-                    {filteredConversations.filter(c => !c.isGroup).map((c) => {
-                      const displayName = c.participants?.filter(p => p._id !== user?._id).map(p => `${p.firstName} ${p.lastName}`).join(', ') || 'Direct';
-                      const other = c.participants?.find(p => p._id !== user?._id);
-                      const parts = `${other?.firstName || ''} ${other?.lastName || ''}`.trim().split(' ').filter(Boolean);
-                      const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'U';
-                      return (
-                        <button key={c._id} onClick={() => setSelectedConversation(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel}`}>
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</div>
-                          <div className="min-w-0 flex-1">
-                            <div className="font-medium truncate">{displayName}</div>
-                            <div className="text-sm opacity-70 truncate">{c.lastMessagePreview}</div>
-                          </div>
-                          <div className="text-xs opacity-50 flex-shrink-0">
-                            {formatTimeAgo(c.lastMessageTime || c.updatedAt || c.createdAt)}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* No conversations message */}
-              {filteredConversations.length === 0 && (
-                <div className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  {searchQuery.trim() ? (
-                    <>
-                      <p className="text-sm">No conversations found</p>
-                      <p className="text-xs mt-1">Try adjusting your search terms</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-sm">No conversations yet</p>
-                      <p className="text-xs mt-1">Start a new conversation to begin chatting</p>
-                    </>
+              {isLoadingConversations ? (
+                <ConversationsListSkeleton theme={theme} />
+              ) : (
+                <>
+                  {/* Group Chats Section */}
+                  {filteredConversations.filter(c => c.isGroup).length > 0 && (
+                    <div>
+                      <h3 className={`text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                        Group Chats
+                      </h3>
+                      <div className="space-y-2">
+                        {filteredConversations.filter(c => c.isGroup).map((c) => {
+                          const displayName = c.name || 'Group';
+                          const parts = (c.name || '').split(' ').filter(Boolean);
+                          const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'GR';
+                          return (
+                            <button key={c._id} onClick={() => setSelectedConversation(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel}`}>
+                              {c.avatarUrl ? (
+                                <img src={c.avatarUrl} alt="" className="w-8 h-8 rounded-full" />
+                              ) : (
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium truncate">{displayName}</div>
+                                <div className="text-sm opacity-70 truncate">{c.lastMessagePreview}</div>
+                              </div>
+                              <div className="text-xs opacity-50 flex-shrink-0">
+                                {formatTimeAgo(c.lastMessageTime || c.updatedAt || c.createdAt)}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   )}
-                </div>
+
+                  {/* Direct Messages Section */}
+                  {filteredConversations.filter(c => !c.isGroup).length > 0 && (
+                    <div>
+                      <h3 className={`text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                        Direct Messages
+                      </h3>
+                      <div className="space-y-2">
+                        {filteredConversations.filter(c => !c.isGroup).map((c) => {
+                          const displayName = c.participants?.filter(p => p._id !== user?._id).map(p => `${p.firstName} ${p.lastName}`).join(', ') || 'Direct';
+                          const other = c.participants?.find(p => p._id !== user?._id);
+                          const parts = `${other?.firstName || ''} ${other?.lastName || ''}`.trim().split(' ').filter(Boolean);
+                          const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'U';
+                          return (
+                            <button key={c._id} onClick={() => setSelectedConversation(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel}`}>
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</div>
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium truncate">{displayName}</div>
+                                <div className="text-sm opacity-70 truncate">{c.lastMessagePreview}</div>
+                            </div>
+                              <div className="text-xs opacity-50 flex-shrink-0">
+                                {formatTimeAgo(c.lastMessageTime || c.updatedAt || c.createdAt)}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* No conversations message */}
+                  {filteredConversations.length === 0 && (
+                    <div className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {searchQuery.trim() ? (
+                        <>
+                          <p className="text-sm">No conversations found</p>
+                          <p className="text-xs mt-1">Try adjusting your search terms</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm">No conversations yet</p>
+                          <p className="text-xs mt-1">Start a new conversation to begin chatting</p>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </aside>
@@ -447,9 +575,9 @@ export default function MessagesPage() {
                           </div>
 
                           {/* Message content */}
-                          <div className={`relative rounded-2xl border ${mine ? 'bg-blue-600 text-white border-blue-600' : panel} ${m.type === 'text' ? 'inline-block w-fit' : 'p-3'}`}>
+                          <div className={`relative border ${mine ? 'bg-blue-600 text-white border-blue-600 rounded-2xl rounded-br-none' : `${panel} rounded-2xl rounded-bl-none`} ${m.type === 'text' ? 'inline-block w-fit' : 'p-3'}`}>
                             {m.type === 'text' && (
-                              <div className="whitespace-pre-wrap px-3 py-2">{m.text}</div>
+                              <div className="whitespace-pre-wrap px-3 py-2">{renderMessageText(m.text)}</div>
                             )}
                             {m.type === 'image' && (
                               <img src={m.mediaUrl} alt="" className="rounded-lg max-h-80" />

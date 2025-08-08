@@ -17,6 +17,17 @@ const conversationSchema = new mongoose.Schema(
     lastMessagePreview: {
       type: String,
       default: ''
+    },
+    archived: {
+      type: Boolean,
+      default: false
+    },
+    archivedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    archivedAt: {
+      type: Date
     }
   },
   { timestamps: true }

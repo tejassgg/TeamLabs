@@ -11,15 +11,42 @@ const router = express.Router();
 router.get('/conversations', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    const conversations = await Conversation.find({
+    const { includeArchived = false } = req.query;
+    
+    const query = {
       organizationID: user.organizationID,
       participants: req.user._id
-    })
+    };
+    
+    // Only include archived conversations if explicitly requested
+    if (!includeArchived) {
+      query.archived = { $ne: true };
+    }
+    
+    const conversations = await Conversation.find(query)
       .sort({ updatedAt: -1 })
       .populate('participants', 'firstName lastName email profileImage');
     res.json(conversations);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch conversations' });
+  }
+});
+
+// Get archived conversations for current user's organization
+router.get('/conversations/archived', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    
+    const conversations = await Conversation.find({
+      organizationID: user.organizationID,
+      participants: req.user._id,
+      archived: true
+    })
+      .sort({ archivedAt: -1 })
+      .populate('participants', 'firstName lastName email profileImage');
+    res.json(conversations);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch archived conversations' });
   }
 });
 
@@ -117,6 +144,142 @@ router.post('/conversations/:conversationId/members', protect, async (req, res) 
     res.json(populated);
   } catch (err) {
     res.status(500).json({ message: 'Failed to add members' });
+  }
+});
+
+// Remove members from a group conversation
+router.delete('/conversations/:conversationId/members', protect, async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const { memberIds } = req.body;
+    
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation || !conversation.isGroup) {
+      return res.status(404).json({ message: 'Group not found' });
+    }
+
+    // Check if user is a participant in the conversation
+    if (!conversation.participants.map(String).includes(String(req.user._id))) {
+      return res.status(403).json({ message: 'Not authorized to modify this conversation' });
+    }
+
+    // Remove the specified members
+    conversation.participants = conversation.participants.filter(
+      participantId => !memberIds.includes(String(participantId))
+    );
+
+    // If removing members would leave the group with less than 2 participants, delete the group
+    if (conversation.participants.length < 2) {
+      // Delete all messages from the conversation
+      await Message.deleteMany({ conversation: conversationId });
+      // Delete the conversation itself
+      await Conversation.findByIdAndDelete(conversationId);
+      return res.json({ message: 'Group deleted due to insufficient members' });
+    }
+
+    await conversation.save();
+    
+    const populated = await Conversation.findById(conversation._id)
+      .populate('participants', 'firstName lastName email profileImage')
+      .lean();
+    
+    res.json(populated);
+  } catch (err) {
+    console.error('Error removing members:', err);
+    res.status(500).json({ message: 'Failed to remove members' });
+  }
+});
+
+// Leave a conversation (for users to leave a group)
+router.post('/conversations/:conversationId/leave', protect, async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
+      return res.status(404).json({ message: 'Conversation not found' });
+    }
+
+    // Check if user is a participant in the conversation
+    if (!conversation.participants.map(String).includes(String(req.user._id))) {
+      return res.status(403).json({ message: 'Not a participant in this conversation' });
+    }
+
+    // For direct messages, return error (can't leave 1-on-1 chats)
+    if (!conversation.isGroup) {
+      return res.status(400).json({ message: 'Cannot leave direct message conversations' });
+    }
+
+    // Remove the current user from participants
+    conversation.participants = conversation.participants.filter(
+      participantId => String(participantId) !== String(req.user._id)
+    );
+
+    // If leaving would leave the group with less than 2 participants, delete the group
+    if (conversation.participants.length < 2) {
+      // Delete all messages from the conversation
+      await Message.deleteMany({ conversation: conversationId });
+      // Delete the conversation itself
+      await Conversation.findByIdAndDelete(conversationId);
+      return res.json({ message: 'Group deleted due to insufficient members' });
+    }
+
+    await conversation.save();
+    
+    const populated = await Conversation.findById(conversation._id)
+      .populate('participants', 'firstName lastName email profileImage')
+      .lean();
+    
+    res.json(populated);
+  } catch (err) {
+    console.error('Error leaving conversation:', err);
+    res.status(500).json({ message: 'Failed to leave conversation' });
+  }
+});
+
+// Get conversation statistics (for admin purposes)
+router.get('/conversations/:conversationId/stats', protect, async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
+      return res.status(404).json({ message: 'Conversation not found' });
+    }
+
+    // Check if user is a participant in the conversation
+    if (!conversation.participants.map(String).includes(String(req.user._id))) {
+      return res.status(403).json({ message: 'Not authorized to view this conversation' });
+    }
+
+    // Get message count
+    const messageCount = await Message.countDocuments({ conversation: conversationId });
+    
+    // Get participant count
+    const participantCount = conversation.participants.length;
+    
+    // Get last message info
+    const lastMessage = await Message.findOne({ conversation: conversationId })
+      .sort({ createdAt: -1 })
+      .select('createdAt sender')
+      .populate('sender', 'firstName lastName');
+
+    res.json({
+      conversationId,
+      name: conversation.name,
+      isGroup: conversation.isGroup,
+      participantCount,
+      messageCount,
+      lastMessage: lastMessage ? {
+        createdAt: lastMessage.createdAt,
+        sender: lastMessage.sender
+      } : null,
+      createdAt: conversation.createdAt,
+      updatedAt: conversation.updatedAt
+    });
+  } catch (err) {
+    console.error('Error fetching conversation stats:', err);
+    res.status(500).json({ message: 'Failed to fetch conversation statistics' });
   }
 });
 
@@ -225,6 +388,69 @@ router.post('/messages/:messageId/reactions', protect, async (req, res) => {
     res.json(populated);
   } catch (err) {
     res.status(500).json({ message: 'Failed to update reaction' });
+  }
+});
+
+// Delete a conversation (only group conversations)
+router.delete('/conversations/:conversationId', protect, async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    
+    // Find the conversation
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
+      return res.status(404).json({ message: 'Conversation not found' });
+    }
+
+    // Only allow deletion of group conversations
+    if (!conversation.isGroup) {
+      return res.status(400).json({ message: 'Only group conversations can be deleted' });
+    }
+
+    // Check if user is a participant in the conversation
+    if (!conversation.participants.map(String).includes(String(req.user._id))) {
+      return res.status(403).json({ message: 'Not authorized to delete this conversation' });
+    }
+
+    // Delete all messages from the conversation
+    await Message.deleteMany({ conversation: conversationId });
+
+    // Delete the conversation itself
+    await Conversation.findByIdAndDelete(conversationId);
+
+    res.json({ message: 'Conversation and all messages deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting conversation:', err);
+    res.status(500).json({ message: 'Failed to delete conversation' });
+  }
+});
+
+// Archive a conversation (soft delete - keeps data but hides from active conversations)
+router.post('/conversations/:conversationId/archive', protect, async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
+      return res.status(404).json({ message: 'Conversation not found' });
+    }
+
+    // Check if user is a participant in the conversation
+    if (!conversation.participants.map(String).includes(String(req.user._id))) {
+      return res.status(403).json({ message: 'Not authorized to archive this conversation' });
+    }
+
+    // Add archived flag and archived by user
+    conversation.archived = true;
+    conversation.archivedBy = req.user._id;
+    conversation.archivedAt = new Date();
+    
+    await conversation.save();
+    
+    res.json({ message: 'Conversation archived successfully' });
+  } catch (err) {
+    console.error('Error archiving conversation:', err);
+    res.status(500).json({ message: 'Failed to archive conversation' });
   }
 });
 
