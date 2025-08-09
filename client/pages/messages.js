@@ -21,7 +21,7 @@ const ConversationSkeleton = ({ theme }) => (
 
 const MessageSkeleton = ({ isMine, theme }) => (
   <div className={`group flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-    <div className="max-w-[75%]">
+    <div className="max-w-[85%] lg:max-w-[75%]">
       <div className={`flex items-center gap-2 mb-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
         {!isMine && (
           <div className={`w-7 h-7 rounded-full animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
@@ -80,8 +80,8 @@ const MessagesAreaSkeleton = ({ theme }) => (
 );
 
 const ChatFooterSkeleton = ({ theme }) => (
-  <div className={`p-3 mx-3 mb-3 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#221E1E]' : 'bg-white'} flex-shrink-0`}>
-    <div className="flex items-center gap-2">
+  <div className={`p-2 lg:p-3 mx-2 lg:mx-3 mb-2 lg:mb-3 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#221E1E]' : 'bg-white'} flex-shrink-0`}>
+    <div className="flex items-center gap-1 lg:gap-2">
       <div className={`w-8 h-8 rounded-lg animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
       <div className={`w-8 h-8 rounded-lg animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
       <div className={`flex-1 h-10 rounded-lg animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
@@ -123,6 +123,9 @@ export default function MessagesPage() {
   const [isSavingGroupName, setIsSavingGroupName] = useState(false);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [recentlyUpdatedConversation, setRecentlyUpdatedConversation] = useState(null);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isDetailsAnimating, setIsDetailsAnimating] = useState(false);
   const memberDropdownRef = useRef(null);
   const bottomRef = useRef(null);
   const kebabMenuRef = useRef(null);
@@ -256,6 +259,15 @@ export default function MessagesPage() {
     }
   }, [conversations, selectedConversation]);
 
+  // Close mobile sidebar when conversation is selected
+  useEffect(() => {
+    if (selectedConversation) {
+      setIsMobileSidebarOpen(false);
+    }
+  }, [selectedConversation]);
+
+
+
   useEffect(() => {
     const onClickOutside = (e) => {
       if (memberDropdownRef.current && !memberDropdownRef.current.contains(e.target)) {
@@ -318,6 +330,12 @@ export default function MessagesPage() {
       // Return with updated conversation at the top
       return updatedConv ? [updatedConv, ...otherConvs] : prev;
     });
+
+    // Set animation state
+    setRecentlyUpdatedConversation(conversationId);
+    setTimeout(() => {
+      setRecentlyUpdatedConversation(null);
+    }, 1000); // Clear animation after 1 second
   };
 
   const handleSend = async () => {
@@ -423,6 +441,28 @@ export default function MessagesPage() {
     setEditedGroupName('');
   };
 
+  const handleOpenDetails = async () => {
+    setShowDetails(true);
+    setIsDetailsAnimating(true);
+    // Start with panel off-screen, then slide in
+    setTimeout(() => {
+      setIsDetailsAnimating(false);
+    }, 50);
+    const det = await messagingService.getConversation(selectedConversation._id);
+    setConvDetails(det);
+    const assets = await messagingService.getAssets(selectedConversation._id);
+    setConvAssets(assets);
+  };
+
+  const handleCloseDetails = () => {
+    setIsDetailsAnimating(true);
+    // Trigger slide-out animation, then hide panel
+    setTimeout(() => {
+      setShowDetails(false);
+      setIsDetailsAnimating(false);
+    }, 300); // Match animation duration
+  };
+
   const handleDeleteConversation = async () => {
     if (!selectedConversation || !selectedConversation.isGroup) return;
     
@@ -509,7 +549,7 @@ export default function MessagesPage() {
   };
 
   const bg = theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900';
-  const panel = theme === 'dark' ? 'bg-[#221E1E] border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-200 text-gray-900';
+  const panel = theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900';
 
   return (
     <Layout>
@@ -519,25 +559,33 @@ export default function MessagesPage() {
 
       <div className="mx-auto">
         <div className="mb-2 flex items-center justify-between">
-          <div>
-            <h1 className={getThemeClasses("text-3xl font-bold text-gray-900", "dark:text-white")}>
+          <div className="min-w-0 flex-1 mr-4">
+            <h1 className={getThemeClasses("text-2xl lg:text-3xl font-bold text-gray-900", "dark:text-white")}>
               Messages
             </h1>
-            <p className={getThemeClasses("text-gray-600 mt-2", "dark:text-gray-400")}>
+            <p className={getThemeClasses("text-gray-600 mt-1 lg:mt-2 text-sm lg:text-base", "dark:text-gray-400")}>
               Chat with your team members and collaborate on projects
             </p>
           </div>
           <button 
-            className={`px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-colors flex items-center gap-2 ${theme === 'dark' ? 'from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800' : ''}`} 
+            className={`px-3 lg:px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-colors flex items-center gap-1 lg:gap-2 text-sm lg:text-base touch-manipulation ${theme === 'dark' ? 'from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800' : ''}`} 
             onClick={() => setShowNewConversation(true)}
           >
             <FaPlus size={14} />
-            New
+            <span className="hidden sm:inline">New</span>
           </button>
         </div>
 
-        <div className={`flex h-[calc(100vh-175px)] ${bg}`}>
-          <aside className={`w-80 border-r ${theme === 'dark' ? 'bg-transparent border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-200 text-gray-900'} p-3 overflow-y-auto`}>
+        <div className={`flex h-[calc(100vh-175px)] ${bg} relative`}>
+          {/* Mobile Overlay */}
+          {isMobileSidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+              onClick={() => setIsMobileSidebarOpen(false)}
+            />
+          )}
+          
+          <aside className={`w-80 border-r ${theme === 'dark' ? 'bg-transparent border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-200 text-gray-900'} p-3 overflow-y-auto transition-transform duration-300 lg:relative lg:translate-x-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed lg:static top-0 left-0 h-full z-50 lg:z-auto lg:w-80`}>
             <div className="mb-3">
               {/* Search Input */}
               <div className="relative">
@@ -562,13 +610,14 @@ export default function MessagesPage() {
                       <h3 className={`text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                         Group Chats
                       </h3>
-                      <div className="space-y-2">
+                      <div className="space-y-2 transition-all duration-300 ease-in-out">
                         {filteredConversations.filter(c => c.isGroup).map((c) => {
                           const displayName = c.name || 'Group';
                           const parts = (c.name || '').split(' ').filter(Boolean);
                           const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'GR';
+                          const isRecentlyUpdated = recentlyUpdatedConversation === c._id;
                           return (
-                            <button key={c._id} onClick={() => setSelectedConversation(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel}`}>
+                            <button key={c._id} onClick={() => setSelectedConversation(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel} ${isRecentlyUpdated ? (theme === 'dark' ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200') : ''}`}>
                               {c.avatarUrl ? (
                                 <img src={c.avatarUrl} alt="" className="w-8 h-8 rounded-full" />
                               ) : (
@@ -576,7 +625,7 @@ export default function MessagesPage() {
                               )}
                               <div className="min-w-0 flex-1">
                                 <div className="font-medium truncate">{displayName}</div>
-                                <div className="text-sm opacity-70 truncate">{c.lastMessagePreview}</div>
+                                <div className={`text-sm opacity-70 truncate transition-all duration-300 ${isRecentlyUpdated ? (theme === 'dark' ? 'text-green-400 font-medium' : 'text-green-600 font-medium') : ''}`}>{c.lastMessagePreview}</div>
                               </div>
                               <div className="text-xs opacity-50 flex-shrink-0">
                                 {formatTimeAgo(c.lastMessageTime || c.updatedAt || c.createdAt)}
@@ -594,18 +643,19 @@ export default function MessagesPage() {
                       <h3 className={`text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                         Direct Messages
                       </h3>
-                      <div className="space-y-2">
+                      <div className="space-y-2 transition-all duration-300 ease-in-out">
                         {filteredConversations.filter(c => !c.isGroup).map((c) => {
                           const displayName = c.participants?.filter(p => p._id !== user?._id).map(p => `${p.firstName} ${p.lastName}`).join(', ') || 'Direct';
                           const other = c.participants?.find(p => p._id !== user?._id);
                           const parts = `${other?.firstName || ''} ${other?.lastName || ''}`.trim().split(' ').filter(Boolean);
                           const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'U';
+                          const isRecentlyUpdated = recentlyUpdatedConversation === c._id;
                           return (
-                            <button key={c._id} onClick={() => setSelectedConversation(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel}`}>
+                            <button key={c._id} onClick={() => setSelectedConversation(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel} ${isRecentlyUpdated ? (theme === 'dark' ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200') : ''}`}>
                               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</div>
                               <div className="min-w-0 flex-1">
                                 <div className="font-medium truncate">{displayName}</div>
-                                <div className="text-sm opacity-70 truncate">{c.lastMessagePreview}</div>
+                                <div className={`text-sm opacity-70 truncate transition-all duration-300 ${isRecentlyUpdated ? (theme === 'dark' ? 'text-green-400 font-medium' : 'text-green-600 font-medium') : ''}`}>{c.lastMessagePreview}</div>
                             </div>
                               <div className="text-xs opacity-50 flex-shrink-0">
                                 {formatTimeAgo(c.lastMessageTime || c.updatedAt || c.createdAt)}
@@ -637,7 +687,7 @@ export default function MessagesPage() {
               )}
             </div>
           </aside>
-          <section className="flex-1 flex flex-col h-full">
+          <section className="flex-1 flex flex-col h-full w-full lg:w-auto">
             {selectedConversation ? (
               <>
                 {isLoadingMessages ? (
@@ -645,13 +695,16 @@ export default function MessagesPage() {
                 ) : (
                   <header className={`p-3 border-b ${theme === 'dark' ? 'bg-transparent border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-200 text-gray-900'} flex-shrink-0`}>
                   <div className="flex items-center justify-between">
-                    <button onClick={async () => {
-                      setShowDetails(true);
-                      const det = await messagingService.getConversation(selectedConversation._id);
-                      setConvDetails(det);
-                      const assets = await messagingService.getAssets(selectedConversation._id);
-                      setConvAssets(assets);
-                    }} className="flex-1 text-left">
+                    {/* Mobile Menu Button */}
+                    <button
+                      onClick={() => setIsMobileSidebarOpen(true)}
+                      className={`lg:hidden p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'} mr-3`}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                      </svg>
+                    </button>
+                    <button onClick={handleOpenDetails} className="flex-1 text-left min-w-0">
                       <div className="flex items-center gap-3">
                         {selectedConversation.isGroup && selectedConversation.avatarUrl ? (
                           <img src={selectedConversation.avatarUrl} alt="" className="w-8 h-8 rounded-full" />
@@ -671,7 +724,7 @@ export default function MessagesPage() {
                         )}
                         
                         <div className="flex items-center gap-3">
-                          <span className="font-semibold text-lg hover:underline transition-all duration-200">
+                          <span className="font-semibold text-base lg:text-lg hover:underline transition-all duration-200 truncate block">
                             {selectedConversation.isGroup ? (selectedConversation.name || 'Group') : (selectedConversation.participants?.filter(p => p._id !== user?._id).map(p => `${p.firstName} ${p.lastName}`).join(', ') || 'Direct')}
                           </span>
                           
@@ -718,21 +771,17 @@ export default function MessagesPage() {
                     <div className="relative" ref={kebabMenuRef}>
                       <button
                         onClick={() => setShowKebabMenu(!showKebabMenu)}
-                        className={`p-2 rounded-xl transition-all duration-200 ${theme === 'dark' ? 'text-blue-200 hover:bg-[#424242]' : 'text-blue-600 hover:bg-blue-100'}`}
+                        className={`p-2 rounded-xl transition-all duration-200 touch-manipulation ${theme === 'dark' ? 'text-blue-200 hover:bg-[#424242]' : 'text-blue-600 hover:bg-blue-100'}`}
                       >
                         <FaEllipsisV className="w-4 h-4" />
                       </button>
                       
                       {showKebabMenu && (
-                        <div className={`absolute right-0 top-full mt-2 w-48 rounded-xl shadow-lg py-1 border z-50 ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'}`}>
+                        <div className={`absolute right-0 top-full mt-2 w-48 rounded-xl shadow-lg py-1 border z-50 ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} lg:w-48 w-40`}>
                           <button
-                            onClick={async () => {
+                            onClick={() => {
                               setShowKebabMenu(false);
-                              setShowDetails(true);
-                              const det = await messagingService.getConversation(selectedConversation._id);
-                              setConvDetails(det);
-                              const assets = await messagingService.getAssets(selectedConversation._id);
-                              setConvAssets(assets);
+                              handleOpenDetails();
                             }}
                             className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
                           >
@@ -773,7 +822,7 @@ export default function MessagesPage() {
                 {isLoadingMessages ? (
                   <MessagesAreaSkeleton theme={theme} />
                 ) : (
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  <div className="flex-1 overflow-y-auto p-2 lg:p-4 space-y-3">
                     {/* Group creation date display */}
                     {selectedConversation.isGroup && selectedConversation.createdAt && (
                       <div className="flex justify-center mb-4">
@@ -888,8 +937,8 @@ export default function MessagesPage() {
                 {isLoadingMessages ? (
                   <ChatFooterSkeleton theme={theme} />
                 ) : (
-                  <footer className={`p-3 mx-3 mb-3 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900'} flex-shrink-0`}>
-                  <div className="flex items-center gap-2">
+                  <footer className={`p-2 lg:p-3 mx-2 lg:mx-3 mb-2 lg:mb-3 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900'} flex-shrink-0`}>
+                  <div className="flex items-center gap-1 lg:gap-2">
                     <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`}>
                       <FaImage />
                       <input type="file" accept="image/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} />
@@ -899,14 +948,15 @@ export default function MessagesPage() {
                       <input type="file" accept="video/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} />
                     </label>
                     <input
-                      className={`flex-1 px-3 py-2 rounded-lg border ${panel}`}
+                      className={`flex-1 px-2 lg:px-3 py-2 rounded-lg border ${panel} text-sm lg:text-base`}
                       placeholder="Type a message"
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
                     />
-                    <button disabled={isSending} className={`px-4 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-blue-50 text-blue-600'} flex items-center gap-2`} onClick={handleSend}>
-                      <FaPaperPlane /> Send
+                    <button disabled={isSending} className={`px-2 lg:px-4 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-blue-50 text-blue-600'} flex items-center gap-1 lg:gap-2 touch-manipulation`} onClick={handleSend}>
+                      <FaPaperPlane className="text-sm" /> 
+                      <span className="hidden lg:inline">Send</span>
                     </button>
                   </div>
                   </footer>
@@ -918,8 +968,8 @@ export default function MessagesPage() {
           </section>
 
           {showNewConversation && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black/40">
-              <div className={`w-full max-w-lg rounded-2xl border ${panel} p-4`}>
+            <div className="fixed inset-0 flex items-center justify-center bg-black/40 p-4 lg:p-0 z-50">
+              <div className={`w-full max-w-lg rounded-2xl border ${panel} p-4 lg:p-6 max-h-[90vh] overflow-y-auto`}>
                 <div className="text-lg font-semibold mb-3">New Conversation</div>
                 <div className="flex items-center gap-2 mb-3">
                   {['dm', 'group'].map(t => (
@@ -1103,16 +1153,7 @@ export default function MessagesPage() {
                           setConversations((prev) => [conv, ...prev]);
                           setSelectedConversation(conv);
                           
-                          // Send system messages for all members added during group creation
-                          // Filter out the current user from the system messages since they created the group
-                          const membersToShow = groupMembers.filter(member => String(member._id) !== String(user._id));
-                          
-                          // Add messages with slight delay to ensure they appear after group selection
-                          setTimeout(async () => {
-                            for (const member of membersToShow) {
-                              await sendSystemMessage(conv._id, `${member.name} added to the group`);
-                            }
-                          }, 100);
+                          // System messages are now created automatically by the backend
                           
                           setShowNewConversation(false);
                           setGroupName('');
@@ -1133,8 +1174,11 @@ export default function MessagesPage() {
         </div>
         {showDetails && (
           <div className="fixed inset-0 z-40">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setShowDetails(false)} />
-            <div className={`absolute right-0 top-0 bottom-0 w-full max-w-md ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-4 overflow-y-auto`}>
+            <div 
+              className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isDetailsAnimating ? 'opacity-0' : 'opacity-100'}`} 
+              onClick={handleCloseDetails} 
+            />
+            <div className={`absolute right-0 top-0 bottom-0 w-full lg:max-w-md ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-4 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isDetailsAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
 
               {convDetails && (
                 <>
@@ -1192,7 +1236,7 @@ export default function MessagesPage() {
                         <div className="text-xs opacity-75">Created {convDetails.createdAt ? new Date(convDetails.createdAt).toLocaleString() : ''}</div>
                       </div>
                     </div>
-                    <button className={`${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'} rounded-lg px-3 py-1`} onClick={() => setShowDetails(false)}><FaTimes /></button>
+                    <button className={`${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'} rounded-lg px-3 py-1 touch-manipulation`} onClick={handleCloseDetails}><FaTimes /></button>
                   </div>
                   <div className="flex items-center gap-2 border-b mb-3 pb-2">
                     {['details', 'files', 'links'].map(tab => (
@@ -1246,12 +1290,6 @@ export default function MessagesPage() {
                                 // also refresh sidebar conversations
                                 const list = await messagingService.getConversations();
                                 setConversations(list);
-                                
-                                // Send system messages for each added member to DB
-                                const addedMembers = availableUsers.filter(u => ids.includes(u._id));
-                                for (const member of addedMembers) {
-                                  await sendSystemMessage(selectedConversation._id, `${member.name} added to the group`);
-                                }
                                 
                                 // Show success toast
                                 const memberCount = ids.length;

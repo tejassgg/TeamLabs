@@ -102,9 +102,31 @@ router.post('/conversations', protect, async (req, res) => {
       createdBy: req.user._id
     });
 
+    // Create system messages for all participants added to the group (excluding creator)
+    const systemMessages = [];
+    for (const user of users) {
+      if (String(user._id) !== String(req.user._id)) {
+        const systemMessage = await Message.create({
+          conversation: conversation._id,
+          type: 'system',
+          text: `${user.firstName} ${user.lastName} added to the group`
+        });
+        systemMessages.push(systemMessage);
+      }
+    }
+
+    // Update conversation with last message info if there are system messages
+    if (systemMessages.length > 0) {
+      const lastMessage = systemMessages[systemMessages.length - 1];
+      conversation.lastMessagePreview = lastMessage.text;
+      conversation.lastMessageAt = lastMessage.createdAt;
+      await conversation.save();
+    }
+
     const populated = await Conversation.findById(conversation._id).populate('participants', 'firstName lastName email profileImage');
     res.status(201).json(populated);
   } catch (err) {
+    console.error('Error creating group:', err);
     res.status(500).json({ message: 'Failed to create group' });
   }
 });
@@ -136,13 +158,39 @@ router.post('/conversations/:conversationId/members', protect, async (req, res) 
     const newUsers = await User.find({ _id: { $in: memberIds } });
     const allSameOrg = newUsers.every(u => u.organizationID === currentUser.organizationID);
     if (!allSameOrg) return res.status(400).json({ message: 'Members must be in the same organization' });
+    
+    // Track which users are actually new to avoid duplicate system messages
     const existing = new Set(conversation.participants.map(String));
-    newUsers.forEach(u => existing.add(String(u._id)));
+    const actuallyNewUsers = newUsers.filter(u => !existing.has(String(u._id)));
+    
+    // Add new users to participants
+    actuallyNewUsers.forEach(u => existing.add(String(u._id)));
     conversation.participants = Array.from(existing);
     await conversation.save();
+
+    // Create system messages for actually new members
+    const systemMessages = [];
+    for (const user of actuallyNewUsers) {
+      const systemMessage = await Message.create({
+        conversation: conversationId,
+        type: 'system',
+        text: `${user.firstName} ${user.lastName} added to the group`
+      });
+      systemMessages.push(systemMessage);
+    }
+
+    // Update conversation with last message info if there are system messages
+    if (systemMessages.length > 0) {
+      const lastMessage = systemMessages[systemMessages.length - 1];
+      conversation.lastMessagePreview = lastMessage.text;
+      conversation.lastMessageAt = lastMessage.createdAt;
+      await conversation.save();
+    }
+
     const populated = await Conversation.findById(conversation._id).populate('participants', 'firstName lastName email profileImage').lean();
     res.json(populated);
   } catch (err) {
+    console.error('Error adding members:', err);
     res.status(500).json({ message: 'Failed to add members' });
   }
 });
