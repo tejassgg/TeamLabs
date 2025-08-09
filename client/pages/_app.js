@@ -6,12 +6,15 @@ import Head from 'next/head';
 import { GlobalProvider } from '../context/GlobalContext';
 // import { SessionProvider } from 'next-auth/react';
 import { ToastProvider } from '../context/ToastContext';
+import RouteProtection from '../components/RouteProtection';
 
 function AppContainer({ Component, pageProps }) {
   const { theme } = useTheme();
   return (
     <div className={theme} style={{ minHeight: '100vh' }}>
-      <Component {...pageProps} />
+      <RouteProtection>
+        <Component {...pageProps} />
+      </RouteProtection>
     </div>
   );
 }
