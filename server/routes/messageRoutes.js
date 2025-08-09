@@ -339,16 +339,22 @@ router.post('/conversations/:conversationId/messages', protect, async (req, res)
       return res.status(403).json({ message: 'Not a participant' });
     }
 
-    const message = await Message.create({
+    const messageData = {
       conversation: conversationId,
-      sender: req.user._id,
       type: type || (mediaUrl ? 'image' : 'text'),
       text,
       mediaUrl
-    });
+    };
+
+    // Only add sender for non-system messages
+    if (type !== 'system') {
+      messageData.sender = req.user._id;
+    }
+
+    const message = await Message.create(messageData);
 
     conversation.lastMessageAt = new Date();
-    conversation.lastMessagePreview = text || (message.type === 'image' ? 'Image' : message.type === 'video' ? 'Video' : '');
+    conversation.lastMessagePreview = text || (message.type === 'image' ? 'Image' : message.type === 'video' ? 'Video' : message.type === 'system' ? text : '');
     await conversation.save();
 
     const populated = await Message.findById(message._id).populate('sender', 'firstName lastName email profileImage');
@@ -422,6 +428,47 @@ router.delete('/conversations/:conversationId', protect, async (req, res) => {
   } catch (err) {
     console.error('Error deleting conversation:', err);
     res.status(500).json({ message: 'Failed to delete conversation' });
+  }
+});
+
+// Update conversation details (name, etc.)
+router.patch('/conversations/:conversationId', protect, async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const { name } = req.body;
+    
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
+      return res.status(404).json({ message: 'Conversation not found' });
+    }
+
+    // Check if user is a participant in the conversation
+    if (!conversation.participants.map(String).includes(String(req.user._id))) {
+      return res.status(403).json({ message: 'Not authorized to update this conversation' });
+    }
+
+    // Only allow updating group conversations
+    if (!conversation.isGroup) {
+      return res.status(400).json({ message: 'Cannot update direct message conversations' });
+    }
+
+    // Update the conversation name
+    if (name !== undefined) {
+      conversation.name = name.trim();
+      conversation.updatedAt = new Date();
+    }
+    
+    await conversation.save();
+    
+    const populated = await Conversation.findById(conversation._id)
+      .populate('participants', 'firstName lastName email profileImage')
+      .populate('createdBy', 'firstName lastName email')
+      .lean();
+    
+    res.json(populated);
+  } catch (err) {
+    console.error('Error updating conversation:', err);
+    res.status(500).json({ message: 'Failed to update conversation' });
   }
 });
 

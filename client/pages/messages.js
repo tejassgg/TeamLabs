@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useToast } from '../context/ToastContext';
 import api, { messagingService } from '../services/api';
-import { FaPaperPlane, FaPlus, FaSmile, FaImage, FaVideo, FaChevronDown, FaCheck, FaTimes, FaSearch, FaEllipsisV, FaCog, FaTrash } from 'react-icons/fa';
+import { FaPaperPlane, FaPlus, FaSmile, FaImage, FaVideo, FaChevronDown, FaCheck, FaTimes, FaSearch, FaEllipsisV, FaCog, FaTrash, FaSignOutAlt, FaEdit, FaSave } from 'react-icons/fa';
 
 // Skeleton Components
 const ConversationSkeleton = ({ theme }) => (
@@ -62,7 +63,7 @@ const ConversationsListSkeleton = ({ theme }) => (
 );
 
 const ChatHeaderSkeleton = ({ theme }) => (
-  <div className={`p-3 border-b ${theme === 'dark' ? 'bg-[#221E1E] border-[#424242]' : 'bg-white border-gray-200'} flex-shrink-0`}>
+  <div className={`p-3 border-b ${theme === 'dark' ? 'bg-transparent border-[#424242]' : 'bg-white border-gray-200'} flex-shrink-0`}>
     <div className="flex items-center gap-3">
       <div className={`w-8 h-8 rounded-full animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
       <div className={`h-5 w-32 rounded animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
@@ -79,7 +80,7 @@ const MessagesAreaSkeleton = ({ theme }) => (
 );
 
 const ChatFooterSkeleton = ({ theme }) => (
-  <div className={`p-3 border-t ${theme === 'dark' ? 'bg-[#221E1E] border-[#424242]' : 'bg-white border-gray-200'} flex-shrink-0`}>
+  <div className={`p-3 mx-3 mb-3 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#221E1E]' : 'bg-white'} flex-shrink-0`}>
     <div className="flex items-center gap-2">
       <div className={`w-8 h-8 rounded-lg animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
       <div className={`w-8 h-8 rounded-lg animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
@@ -92,6 +93,7 @@ const ChatFooterSkeleton = ({ theme }) => (
 export default function MessagesPage() {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const { showToast } = useToast();
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -108,17 +110,23 @@ export default function MessagesPage() {
   const [convAssets, setConvAssets] = useState({ files: [], links: [] });
   const [groupMembers, setGroupMembers] = useState([]); // array of user objects
   const [orgUsers, setOrgUsers] = useState([]);
+  const [orgDetails, setOrgDetails] = useState(null);
   const [isMembersOpen, setIsMembersOpen] = useState(false);
   const [memberQuery, setMemberQuery] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showKebabMenu, setShowKebabMenu] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
+  const [isEditingGroupName, setIsEditingGroupName] = useState(false);
+  const [editedGroupName, setEditedGroupName] = useState('');
+  const [isSavingGroupName, setIsSavingGroupName] = useState(false);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const memberDropdownRef = useRef(null);
   const bottomRef = useRef(null);
   const kebabMenuRef = useRef(null);
+  const editInputRef = useRef(null);
 
   // Get theme classes helper function
   const getThemeClasses = (baseClasses, darkClasses) => {
@@ -256,6 +264,9 @@ export default function MessagesPage() {
       if (kebabMenuRef.current && !kebabMenuRef.current.contains(e.target)) {
         setShowKebabMenu(false);
       }
+      if (editInputRef.current && !editInputRef.current.contains(e.target)) {
+        handleCancelEditGroupName();
+      }
     };
     document.addEventListener('mousedown', onClickOutside);
     return () => document.removeEventListener('mousedown', onClickOutside);
@@ -276,12 +287,46 @@ export default function MessagesPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Helper function to update conversation preview and move to top
+  const updateConversationPreview = (conversationId, message) => {
+    setConversations(prev => {
+      let updatedConv = null;
+      const otherConvs = prev.filter(conv => {
+        if (conv._id === conversationId) {
+          let preview = '';
+          if (message.type === 'text') {
+            preview = message.text;
+          } else if (message.type === 'image') {
+            preview = '📷 Photo';
+          } else if (message.type === 'video') {
+            preview = '🎥 Video';
+          } else if (message.type === 'system') {
+            preview = message.text;
+          }
+          
+          updatedConv = {
+            ...conv,
+            lastMessagePreview: preview,
+            lastMessageTime: message.createdAt || new Date().toISOString(),
+            updatedAt: message.createdAt || new Date().toISOString()
+          };
+          return false; // Remove from this position
+        }
+        return true; // Keep other conversations
+      });
+      
+      // Return with updated conversation at the top
+      return updatedConv ? [updatedConv, ...otherConvs] : prev;
+    });
+  };
+
   const handleSend = async () => {
     if (!input.trim() || !selectedConversation) return;
     setIsSending(true);
     try {
       const msg = await messagingService.sendMessage(selectedConversation._id, { type: 'text', text: input.trim() });
       setMessages((prev) => (prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]));
+      updateConversationPreview(selectedConversation._id, msg);
       setInput('');
       setTimeout(scrollToBottom, 50);
     } catch (e) {
@@ -303,6 +348,7 @@ export default function MessagesPage() {
       const type = file.type.startsWith('image/') ? 'image' : 'video';
       const msg = await messagingService.sendMessage(selectedConversation._id, { type, mediaUrl });
       setMessages((prev) => (prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]));
+      updateConversationPreview(selectedConversation._id, msg);
       setTimeout(scrollToBottom, 50);
     } catch (e) {
       console.error('Failed to upload file:', e);
@@ -314,6 +360,67 @@ export default function MessagesPage() {
   const handleReaction = async (messageId, emoji) => {
     const updated = await messagingService.react(messageId, emoji);
     setMessages((prev) => prev.map((m) => (m._id === updated._id ? updated : m)));
+  };
+
+  // Helper function to send system messages
+  const sendSystemMessage = async (conversationId, text) => {
+    try {
+      const systemMessage = await messagingService.sendMessage(conversationId, {
+        type: 'system',
+        text: text
+      });
+      setMessages((prev) => [...prev, systemMessage]);
+      updateConversationPreview(conversationId, systemMessage);
+      return systemMessage;
+    } catch (error) {
+      console.error('Failed to send system message:', error);
+    }
+  };
+
+  const handleEditGroupName = () => {
+    setEditedGroupName(convDetails?.name || '');
+    setIsEditingGroupName(true);
+  };
+
+  const handleSaveGroupName = async () => {
+    if (!editedGroupName.trim() || !selectedConversation) return;
+    
+    setIsSavingGroupName(true);
+    try {
+      // Update conversation name via API
+      const response = await api.patch(`/messages/conversations/${selectedConversation._id}`, {
+        name: editedGroupName.trim()
+      });
+      
+      // Update local state
+      setConvDetails(prev => ({ ...prev, name: editedGroupName.trim() }));
+      setSelectedConversation(prev => ({ ...prev, name: editedGroupName.trim() }));
+      
+      // Update conversations list
+      setConversations(prev => 
+        prev.map(conv => 
+          conv._id === selectedConversation._id 
+            ? { ...conv, name: editedGroupName.trim() }
+            : conv
+        )
+      );
+      
+      // Send system message
+      await sendSystemMessage(selectedConversation._id, `Group name changed to "${editedGroupName.trim()}"`);
+      
+      setIsEditingGroupName(false);
+      showToast('Group name updated successfully', 'success');
+    } catch (error) {
+      console.error('Failed to update group name:', error);
+      showToast('Failed to update group name', 'error');
+    } finally {
+      setIsSavingGroupName(false);
+    }
+  };
+
+  const handleCancelEditGroupName = () => {
+    setIsEditingGroupName(false);
+    setEditedGroupName('');
   };
 
   const handleDeleteConversation = async () => {
@@ -334,10 +441,70 @@ export default function MessagesPage() {
       // Close dialogs
       setShowDeleteDialog(false);
       setShowKebabMenu(false);
+      
+      // Show success toast
+      showToast('Group deleted successfully', 'success');
     } catch (error) {
       console.error('Failed to delete conversation:', error);
+      showToast('Failed to delete group', 'error');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    if (!selectedConversation || !selectedConversation.isGroup) return;
+    
+    setIsLeaving(true);
+    try {
+      await messagingService.leaveConversation(selectedConversation._id);
+      
+      // Send system message to DB about leaving
+      const userName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
+      await sendSystemMessage(selectedConversation._id, `${userName} left the group`);
+      
+      // Show success toast
+      showToast('You have left the group', 'success');
+      
+      // Small delay to show the message before clearing
+      setTimeout(() => {
+        // Remove from conversations list
+        setConversations((prev) => prev.filter(c => c._id !== selectedConversation._id));
+        
+        // Clear selected conversation
+        setSelectedConversation(null);
+        setMessages([]);
+        
+        // Close menu
+        setShowKebabMenu(false);
+      }, 1000);
+    } catch (error) {
+      console.error('Failed to leave group:', error);
+      showToast('Failed to leave group', 'error');
+    } finally {
+      setIsLeaving(false);
+    }
+  };
+
+  const handleRemoveMember = async (memberId, memberName) => {
+    if (!selectedConversation || !convDetails) return;
+    
+    try {
+      const updated = await messagingService.removeMembers(selectedConversation._id, [memberId]);
+      setConvDetails(updated);
+      
+      // Refresh conversations list
+      const list = await messagingService.getConversations();
+      setConversations(list);
+      
+      // Send system message to DB
+      await sendSystemMessage(selectedConversation._id, `${memberName} has been removed from the group`);
+      
+      // Show success toast
+      showToast(`${memberName} has been removed from the group`, 'success');
+    } catch (error) {
+      console.error('Failed to remove member:', error);
+      showToast('Failed to remove member from group', 'error');
     }
   };
 
@@ -370,7 +537,7 @@ export default function MessagesPage() {
         </div>
 
         <div className={`flex h-[calc(100vh-175px)] ${bg}`}>
-          <aside className={`w-80 border-r ${panel} p-3 overflow-y-auto`}>
+          <aside className={`w-80 border-r ${theme === 'dark' ? 'bg-transparent border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-200 text-gray-900'} p-3 overflow-y-auto`}>
             <div className="mb-3">
               {/* Search Input */}
               <div className="relative">
@@ -473,7 +640,10 @@ export default function MessagesPage() {
           <section className="flex-1 flex flex-col h-full">
             {selectedConversation ? (
               <>
-                <header className={`p-3 border-b ${panel} flex-shrink-0`}>
+                {isLoadingMessages ? (
+                  <ChatHeaderSkeleton theme={theme} />
+                ) : (
+                  <header className={`p-3 border-b ${theme === 'dark' ? 'bg-transparent border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-200 text-gray-900'} flex-shrink-0`}>
                   <div className="flex items-center justify-between">
                     <button onClick={async () => {
                       setShowDetails(true);
@@ -499,9 +669,48 @@ export default function MessagesPage() {
                             })()}
                           </div>
                         )}
-                        <span className="font-semibold text-lg">
-                          {selectedConversation.isGroup ? (selectedConversation.name || 'Group') : (selectedConversation.participants?.filter(p => p._id !== user?._id).map(p => `${p.firstName} ${p.lastName}`).join(', ') || 'Direct')}
-                        </span>
+                        
+                        <div className="flex items-center gap-3">
+                          <span className="font-semibold text-lg hover:underline transition-all duration-200">
+                            {selectedConversation.isGroup ? (selectedConversation.name || 'Group') : (selectedConversation.participants?.filter(p => p._id !== user?._id).map(p => `${p.firstName} ${p.lastName}`).join(', ') || 'Direct')}
+                          </span>
+                          
+                          {/* Group members initials display */}
+                          {selectedConversation.isGroup && selectedConversation.participants && (
+                            <div className="flex items-center gap-1">
+                              {selectedConversation.participants.slice(0, 3).map((member, idx) => {
+                                const initials = `${(member.firstName || '')[0] || ''}${(member.lastName || '')[0] || ''}`.toUpperCase() || 'U';
+                                return (
+                                  <div
+                                    key={member._id}
+                                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-gray-600' : 'bg-blue-600 text-white border border-white'} shadow-sm`}
+                                    style={{ marginLeft: idx === 0 ? '0' : '-8px' }}
+                                    title={`${member.firstName || ''} ${member.lastName || ''}`.trim()}
+                                  >
+                                    {member.profileImage ? (
+                                      <img
+                                        src={member.profileImage}
+                                        alt={`${member.firstName} ${member.lastName}`}
+                                        className="w-full h-full object-cover rounded-full"
+                                      />
+                                    ) : (
+                                      <span>{initials}</span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                              {selectedConversation.participants.length > 3 && (
+                                <div 
+                                  className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-300 border border-gray-600' : 'bg-gray-100 text-gray-600 border border-white'} shadow-sm`}
+                                  style={{ marginLeft: '-8px' }}
+                                  title={`${selectedConversation.participants.length - 3} more members`}
+                                >
+                                  +{selectedConversation.participants.length - 3}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </button>
                     
@@ -534,6 +743,19 @@ export default function MessagesPage() {
                             <button
                               onClick={() => {
                                 setShowKebabMenu(false);
+                                handleLeaveGroup();
+                              }}
+                              disabled={isLeaving}
+                              className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-orange-300' : 'hover:bg-blue-100 text-orange-600'} disabled:opacity-50`}
+                            >
+                              <FaSignOutAlt size={16} />
+                              <span>{isLeaving ? 'Leaving...' : 'Leave'}</span>
+                            </button>
+                          )}
+                          {selectedConversation.isGroup && (selectedConversation?.createdBy === user?._id || selectedConversation?.admins?.includes(user?._id)) && (
+                            <button
+                              onClick={() => {
+                                setShowKebabMenu(false);
                                 setShowDeleteDialog(true);
                               }}
                               className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-red-300' : 'hover:bg-blue-100 text-red-600'}`}
@@ -546,12 +768,63 @@ export default function MessagesPage() {
                       )}
                     </div>
                   </div>
-                </header>
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                  {messages.map((m) => {
+                  </header>
+                )}
+                {isLoadingMessages ? (
+                  <MessagesAreaSkeleton theme={theme} />
+                ) : (
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    {/* Group creation date display */}
+                    {selectedConversation.isGroup && selectedConversation.createdAt && (
+                      <div className="flex justify-center mb-4">
+                        <div className={`px-4 py-2 rounded-lg text-xs ${theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                          Created on {new Date(selectedConversation.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })} at {new Date(selectedConversation.createdAt).toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {messages.map((m, index) => {
                     const mine = String(m.sender?._id || m.sender) === String(user?._id);
+                    const messageDate = new Date(m.createdAt || m.timestamp);
+                    const prevMessage = index > 0 ? messages[index - 1] : null;
+                    const prevMessageDate = prevMessage ? new Date(prevMessage.createdAt || prevMessage.timestamp) : null;
+                    
+                    // Check if we need to show a date separator
+                    const showDateSeparator = prevMessageDate && 
+                      messageDate.toDateString() !== prevMessageDate.toDateString();
+                    
                     return (
-                      <div key={m._id} className={`group flex ${mine ? 'justify-end' : 'justify-start'}`}>
+                      <React.Fragment key={m._id}>
+                        {/* Date separator - show for first message or when date changes */}
+                        {(index === 0 || showDateSeparator) && (
+                          <div className="flex justify-center my-4">
+                            <div className={`text-xs font-bold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                              {messageDate.toLocaleDateString('en-US', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Handle system messages */}
+                        {m.type === 'system' ? (
+                          <div className="flex justify-center">
+                            <div className={`px-3 py-2 rounded-lg text-xs ${theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                              {m.text}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className={`group flex ${mine ? 'justify-end' : 'justify-start'}`}>
                         <div className="max-w-[75%]">
                           {/* Sender info - show for all users */}
                           <div className={`flex items-center gap-2 mb-1 ${mine ? 'justify-end' : 'justify-start'}`}>
@@ -575,7 +848,7 @@ export default function MessagesPage() {
                           </div>
 
                           {/* Message content */}
-                          <div className={`relative border ${mine ? 'bg-blue-600 text-white border-blue-600 rounded-2xl rounded-br-none' : `${panel} rounded-2xl rounded-bl-none`} ${m.type === 'text' ? 'inline-block w-fit' : 'p-3'}`}>
+                          <div className={`relative ${mine ? 'bg-blue-600 text-white rounded-2xl rounded-br-none' : `${theme === 'dark' ? 'bg-gray-700 ' : 'bg-gray-100 '} rounded-2xl rounded-bl-none`} ${m.type === 'text' ? 'inline-block w-fit' : 'p-3'}`}>
                             {m.type === 'text' && (
                               <div className="whitespace-pre-wrap px-3 py-2">{renderMessageText(m.text)}</div>
                             )}
@@ -605,11 +878,17 @@ export default function MessagesPage() {
                           )}
                         </div>
                       </div>
+                        )}
+                      </React.Fragment>
                     );
-                  })}
-                  <div ref={bottomRef} />
-                </div>
-                <footer className={`p-3 border-t ${panel} flex-shrink-0`}>
+                    })}
+                    <div ref={bottomRef} />
+                  </div>
+                )}
+                {isLoadingMessages ? (
+                  <ChatFooterSkeleton theme={theme} />
+                ) : (
+                  <footer className={`p-3 mx-3 mb-3 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900'} flex-shrink-0`}>
                   <div className="flex items-center gap-2">
                     <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`}>
                       <FaImage />
@@ -630,7 +909,8 @@ export default function MessagesPage() {
                       <FaPaperPlane /> Send
                     </button>
                   </div>
-                </footer>
+                  </footer>
+                )}
               </>
             ) : (
               <div className="h-full flex items-center justify-center opacity-70 text-sm">Select a conversation</div>
@@ -822,11 +1102,25 @@ export default function MessagesPage() {
                           const conv = await messagingService.createGroup(groupName, ids, groupAvatar);
                           setConversations((prev) => [conv, ...prev]);
                           setSelectedConversation(conv);
+                          
+                          // Send system messages for all members added during group creation
+                          // Filter out the current user from the system messages since they created the group
+                          const membersToShow = groupMembers.filter(member => String(member._id) !== String(user._id));
+                          
+                          // Add messages with slight delay to ensure they appear after group selection
+                          setTimeout(async () => {
+                            for (const member of membersToShow) {
+                              await sendSystemMessage(conv._id, `${member.name} added to the group`);
+                            }
+                          }, 100);
+                          
                           setShowNewConversation(false);
                           setGroupName('');
                           setGroupMembers([]);
                           setGroupAvatar('');
-                        } catch (e) { }
+                        } catch (e) { 
+                          console.error('Failed to create group:', e);
+                        }
                       }}
                     >
                       Create
@@ -856,8 +1150,45 @@ export default function MessagesPage() {
                           })()}
                         </div>
                       )}
-                      <div>
-                        <div className="font-semibold text-lg">{convDetails.isGroup ? (convDetails.name || 'Group') : 'Direct Message'}</div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          {isEditingGroupName && convDetails.isGroup ? (
+                            <div className="flex items-center gap-2 flex-1" ref={editInputRef}>
+                              <input
+                                type="text"
+                                value={editedGroupName}
+                                onChange={(e) => setEditedGroupName(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleSaveGroupName();
+                                  if (e.key === 'Escape') handleCancelEditGroupName();
+                                }}
+                                className={`flex-1 px-2 py-1 text-lg font-semibold rounded ${theme === 'dark' ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-900'} focus:outline-none`}
+                                autoFocus
+                              />
+                              <button
+                                onClick={handleSaveGroupName}
+                                disabled={isSavingGroupName}
+                                className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700 text-green-400' : 'hover:bg-gray-100 text-green-600'} disabled:opacity-50`}
+                                title="Save"
+                              >
+                                <FaSave size={14} />
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="font-semibold text-lg">{convDetails.isGroup ? (convDetails.name || 'Group') : 'Direct Message'}</div>
+                              {convDetails.isGroup && (
+                                <button
+                                  onClick={handleEditGroupName}
+                                  className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'}`}
+                                  title="Edit group name"
+                                >
+                                  <FaEdit size={14} />
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
                         <div className="text-xs opacity-75">Created {convDetails.createdAt ? new Date(convDetails.createdAt).toLocaleString() : ''}</div>
                       </div>
                     </div>
@@ -875,25 +1206,65 @@ export default function MessagesPage() {
                         <div className="flex flex-wrap gap-2">
                           {convDetails.participants?.map(p => {
                             const initials = `${(p.firstName || '')[0] || ''}${(p.lastName || '')[0] || ''}`.toUpperCase() || 'U';
+                            const isGroupAdmin = convDetails?.createdBy === user?._id || convDetails?.admins?.includes(user?._id);
+                            const isCurrentUser = String(p._id) === String(user?._id);
+                            const fullName = `${p.firstName || ''} ${p.lastName || ''}`.trim();
+                            
                             return (
                               <div key={p._id} className={`px-2 py-1 rounded-full border ${panel} flex items-center gap-2`}>
                                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</span>
-                                <span className="text-sm">{p.firstName} {p.lastName}</span>
+                                <div className="flex flex-col">
+                                  <span className="text-sm">{fullName}</span>
+                                  {(String(p._id) === String(convDetails?.createdBy) || convDetails?.admins?.includes(p._id)) && (
+                                    <span className={`text-xs ${theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} font-medium`}>Admin</span>
+                                  )}
+                                </div>
+                                {isCurrentUser && <span className="text-xs opacity-60">(You)</span>}
+                                {isGroupAdmin && !isCurrentUser && (
+                                  <button
+                                    onClick={() => handleRemoveMember(p._id, fullName)}
+                                    className={`ml-1 w-4 h-4 rounded-full flex items-center justify-center text-xs ${theme === 'dark' ? 'bg-red-900 text-red-200 hover:bg-red-800' : 'bg-red-100 text-red-600 hover:bg-red-200'} transition-colors`}
+                                    title={`Remove ${fullName} from group`}
+                                  >
+                                    ×
+                                  </button>
+                                )}
                               </div>
                             );
                           })}
                         </div>
                       </div>
-                      <div>
-                        <div className="text-sm opacity-70 mb-1">Add members</div>
-                        <AddMembersDropdown theme={theme} panel={panel} orgUsers={orgUsers.filter(u => !convDetails.participants?.some(p => String(p._id) === String(u._id)))} onAdd={async (ids) => {
-                          const updated = await messagingService.addMembers(selectedConversation._id, ids);
-                          setConvDetails(updated);
-                          // also refresh sidebar conversations
-                          const list = await messagingService.getConversations();
-                          setConversations(list);
-                        }} />
-                      </div>
+                      {(() => {
+                        const availableUsers = orgUsers.filter(u => !convDetails.participants?.some(p => String(p._id) === String(u._id)));
+                        return availableUsers.length > 0 && (
+                          <div>
+                            <div className="text-sm opacity-70 mb-1">Add members</div>
+                            <AddMembersDropdown theme={theme} panel={panel} orgUsers={availableUsers} onAdd={async (ids) => {
+                              try {
+                                const updated = await messagingService.addMembers(selectedConversation._id, ids);
+                                setConvDetails(updated);
+                                // also refresh sidebar conversations
+                                const list = await messagingService.getConversations();
+                                setConversations(list);
+                                
+                                // Send system messages for each added member to DB
+                                const addedMembers = availableUsers.filter(u => ids.includes(u._id));
+                                for (const member of addedMembers) {
+                                  await sendSystemMessage(selectedConversation._id, `${member.name} added to the group`);
+                                }
+                                
+                                // Show success toast
+                                const memberCount = ids.length;
+                                const message = memberCount === 1 ? 'Member added successfully' : `${memberCount} members added successfully`;
+                                showToast(message, 'success');
+                              } catch (error) {
+                                console.error('Failed to add members:', error);
+                                showToast('Failed to add members to group', 'error');
+                              }
+                            }} />
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                   {activeDetailsTab === 'files' && (
