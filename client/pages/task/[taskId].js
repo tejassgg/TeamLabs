@@ -8,7 +8,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useToast } from '../../context/ToastContext';
 import { taskService, projectService, taskDetailsService } from '../../services/api';
-import LoadingScreen from '../../components/LoadingScreen';
+import TaskDetailsSkeleton from '../../components/TaskDetailsSkeleton';
 import { statusMap, statusIcons, statusColors, getTaskTypeDetails, getPriorityStyle, useThemeClasses } from '../../components/kanbanUtils';
 import TaskAttachments from '../../components/TaskAttachments';
 import TaskComments from '../../components/TaskComments';
@@ -326,7 +326,7 @@ const TaskDetailsPage = () => {
     if (loading) {
         return (
             <Layout>
-                <LoadingScreen />
+                <TaskDetailsSkeleton />
             </Layout>
         );
     }

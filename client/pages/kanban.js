@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import Layout from '../components/Layout';
-import { FaChevronRight, FaInfoCircle, FaTasks, FaExclamationCircle, FaTimes, FaCheckCircle, FaClock, FaCode, FaVial, FaShieldAlt, FaRocket, FaTrashAlt } from 'react-icons/fa';
+import { FaChevronRight, FaInfoCircle, FaTasks, FaExclamationCircle, FaTimes, FaCheckCircle, FaClock, FaCode, FaVial, FaShieldAlt, FaRocket, FaTrashAlt, FaProjectDiagram } from 'react-icons/fa';
 import { useGlobal } from '../context/GlobalContext';
 import { taskService, projectService, commentService, attachmentService } from '../services/api';
 import { useToast } from '../context/ToastContext';
@@ -13,6 +13,7 @@ import { useTheme } from '../context/ThemeContext';
 import AddTaskModal from '../components/AddTaskModal';
 import TaskCard from '../components/TaskCard';
 import KanbanColumn from '../components/KanbanColumn';
+import CustomDropdown from '../components/CustomDropdown';
 import {
   statusMap,
   statusIcons,
@@ -243,24 +244,21 @@ const KanbanBoard = () => {
             Kanban Board
           </h1>
           <div className="flex items-center gap-4">
-            <select
+            <CustomDropdown
               value={selectedProject || ''}
               onChange={handleProjectChange}
-              className={getThemeClasses(
-                'rounded-xl px-4 py-2 text-gray-700 bg-gray-100',
-                'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100'
-              )}
-            >
-              {projects.length === 0 ? (
-                <option value="">No projects available</option>
-              ) : (
-                projects.map(project => (
-                  <option key={project.ProjectID || project._id} value={project.ProjectID || project._id}>
-                    {project.Name}
-                  </option>
-                ))
-              )}
-            </select>
+              options={projects.length === 0 ? [] : projects.map(project => ({
+                value: project.ProjectID || project._id,
+                label: project.Name,
+                icon: <FaProjectDiagram className="w-4 h-4" />
+              }))}
+              placeholder={projects.length === 0 ? "No projects available" : "Select a project"}
+              disabled={projects.length === 0}
+              // icon={<FaProjectDiagram className="w-4 h-4" />}
+              variant="filled"
+              size="md"
+              width="w-64"
+            />
           </div>
         </div>
 
