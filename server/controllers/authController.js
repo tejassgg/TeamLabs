@@ -1,3 +1,4 @@
+// Note: real-time emissions are handled in specific controllers/routes
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
@@ -13,6 +14,7 @@ const { sendResetEmail } = require('../services/emailService');
 const Invite = require('../models/Invite');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
+const { emitToOrg } = require('../socket');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -760,6 +762,26 @@ const updateUserStatus = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+
+    // Emit real-time update to organization members
+    try {
+      if (user.organizationID) {
+        emitToOrg(user.organizationID, 'org.member.updated', {
+          event: 'org.member.updated',
+          version: 1,
+          data: {
+            organizationId: String(user.organizationID),
+            member: {
+              userId: user._id.toString(),
+              name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+              role: user.role,
+              status: user.status
+            }
+          },
+          meta: { emittedAt: new Date().toISOString() }
+        });
+      }
+    } catch (e) { /* ignore emission errors */ }
 
     res.status(200).json({ message: 'Status updated successfully', status: user.status });
   } catch (error) {

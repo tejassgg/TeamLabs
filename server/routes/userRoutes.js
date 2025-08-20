@@ -4,6 +4,7 @@ const User = require('../models/User');
 const TeamDetails = require('../models/TeamDetails');
 const { protect } = require('../middleware/auth');
 const { inviteUser, getInvites, resendInvite, deleteInvite, getUserOverview } = require('../controllers/userController');
+const { emitToOrg } = require('../socket');
 
 // GET /api/users/:userId/usage-limits - Get user's usage limits and premium status
 router.get('/:userId/usage-limits', protect, async (req, res) => {
@@ -88,6 +89,16 @@ router.patch('/:userId/remove-from-org', protect, async (req, res) => {
       // Commit the transaction
       await session.commitTransaction();
       session.endSession();
+
+      // Emit real-time removal event to org room
+      try {
+        emitToOrg(organizationId, 'org.member.removed', {
+          event: 'org.member.removed',
+          version: 1,
+          data: { organizationId, userId },
+          meta: { emittedAt: new Date().toISOString() }
+        });
+      } catch (e) { /* ignore */ }
 
       res.json({ 
         message: 'User removed from organization and all teams successfully',

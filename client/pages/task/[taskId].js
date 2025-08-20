@@ -10,6 +10,7 @@ import { useToast } from '../../context/ToastContext';
 import { taskService, projectService, taskDetailsService } from '../../services/api';
 import TaskDetailsSkeleton from '../../components/TaskDetailsSkeleton';
 import { statusMap, statusIcons, statusColors, getTaskTypeDetails, getPriorityStyle, useThemeClasses } from '../../components/kanbanUtils';
+import { connectSocket, subscribe, getSocket } from '../../services/socket';
 import TaskAttachments from '../../components/TaskAttachments';
 import TaskComments from '../../components/TaskComments';
 
@@ -94,6 +95,16 @@ const TaskDetailsPage = () => {
             }
         };
         fetchTaskDetails();
+        // Join task room for real-time
+        if (taskId) {
+            connectSocket();
+            try { getSocket().emit('task.join', { taskId }); } catch (_) {}
+        }
+        return () => {
+            if (taskId) {
+                try { getSocket().emit('task.leave', { taskId }); } catch (_) {}
+            }
+        };
     }, [taskId, router, user]);
 
     // Close dropdown when clicking outside
@@ -125,6 +136,87 @@ const TaskDetailsPage = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [editingTaskName]);
+
+    // Socket subscriptions for task details
+    useEffect(() => {
+        if (!taskId) return;
+        const offTaskUpdated = subscribe('task.updated', (payload) => {
+            const { data } = payload || {};
+            if (!data || data.taskId !== taskId) return;
+            setTask(prev => ({ ...prev, ...(data.changes || {}) }));
+        });
+        // Also react to project-level kanban status updates for redundancy
+        const offKanbanStatus = subscribe('kanban.task.status.updated', (payload) => {
+            const { data } = payload || {};
+            if (!data || data.taskId !== taskId) return;
+            setTask(prev => ({ ...prev, Status: data.status }));
+        });
+        const offKanbanUpdated = subscribe('kanban.task.updated', (payload) => {
+            const { data } = payload || {};
+            if (!data || !data.task || data.task.TaskID !== taskId) return;
+            setTask(prev => ({ ...prev, ...data.task }));
+        });
+        const offSubCreated = subscribe('task.subtask.created', (payload) => {
+            const { data } = payload || {};
+            if (!data || data.taskId !== taskId) return;
+            setSubtasks(prev => [...prev, data.subtask]);
+        });
+        const offSubUpdated = subscribe('task.subtask.updated', (payload) => {
+            const { data } = payload || {};
+            if (!data || data.taskId !== taskId) return;
+            setSubtasks(prev => prev.map(s => s.SubtaskID === data.subtask.SubtaskID ? data.subtask : s));
+        });
+        const offSubDeleted = subscribe('task.subtask.deleted', (payload) => {
+            const { data } = payload || {};
+            if (!data || data.taskId !== taskId) return;
+            setSubtasks(prev => prev.filter(s => s.SubtaskID !== data.subtaskId));
+        });
+        const offCommentCreated = subscribe('task.comment.created', (payload) => {
+            const { data } = payload || {};
+            if (!data || data.taskId !== taskId) return;
+            setComments(prev => [...prev, data.comment]);
+        });
+        const offCommentUpdated = subscribe('task.comment.updated', (payload) => {
+            const { data } = payload || {};
+            if (!data || data.taskId !== taskId) return;
+            setComments(prev => prev.map(c => c.CommentID === data.comment.CommentID ? data.comment : c));
+        });
+        const offCommentDeleted = subscribe('task.comment.deleted', (payload) => {
+            const { data } = payload || {};
+            if (!data || data.taskId !== taskId) return;
+            setComments(prev => prev.filter(c => c.CommentID !== data.commentId));
+        });
+        const offAttachAdded = subscribe('task.attachment.added', (payload) => {
+            const { data } = payload || {};
+            if (!data || data.taskId !== taskId) return;
+            setAttachments(prev => [data.attachment, ...prev]);
+        });
+        const offAttachRemoved = subscribe('task.attachment.removed', (payload) => {
+            const { data } = payload || {};
+            if (!data || data.taskId !== taskId) return;
+            setAttachments(prev => prev.filter(a => a.AttachmentID !== data.attachmentId));
+        });
+        // React to project-level assignment events to keep AssignedTo and Status in sync
+        const offAssigned = subscribe('kanban.task.assigned', (payload) => {
+            const { data } = payload || {};
+            if (!data || data.taskId !== taskId) return;
+            setTask(prev => ({ ...prev, AssignedTo: data.assignedTo, Status: data.status }));
+        });
+        return () => {
+            offTaskUpdated && offTaskUpdated();
+            offKanbanStatus && offKanbanStatus();
+            offKanbanUpdated && offKanbanUpdated();
+            offSubCreated && offSubCreated();
+            offSubUpdated && offSubUpdated();
+            offSubDeleted && offSubDeleted();
+            offCommentCreated && offCommentCreated();
+            offCommentUpdated && offCommentUpdated();
+            offCommentDeleted && offCommentDeleted();
+            offAttachAdded && offAttachAdded();
+            offAttachRemoved && offAttachRemoved();
+            offAssigned && offAssigned();
+        };
+    }, [taskId]);
 
     const getStatusInfo = (statusCode) => {
         const statusName = statusMap[statusCode] || 'Unknown';

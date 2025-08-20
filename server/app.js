@@ -33,6 +33,7 @@ connectDB();
 // Initialize app
 const app = express();
 const server = http.createServer(app);
+const { initSocket } = require('./socket');
 
 // Middleware
 app.use(express.json());
@@ -90,6 +91,13 @@ app.use((err, req, res, next) => {
 // Start server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
+  // Initialize WebSocket server after HTTP server starts
+  try {
+    initSocket(server);
+    console.log('Socket.IO initialized');
+  } catch (e) {
+    console.error('Failed to initialize Socket.IO', e);
+  }
   console.log(`Server running on port ${PORT}`);
   console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
-}); 
+});

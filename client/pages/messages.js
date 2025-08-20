@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import api, { messagingService } from '../services/api';
+import { connectSocket, getSocket, subscribe } from '../services/socket';
 import { FaPaperPlane, FaPlus, FaSmile, FaImage, FaVideo, FaChevronDown, FaCheck, FaTimes, FaSearch, FaEllipsisV, FaCog, FaTrash, FaSignOutAlt, FaEdit, FaSave } from 'react-icons/fa';
 
 // Skeleton Components
@@ -98,6 +99,12 @@ export default function MessagesPage() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [typingUsers, setTypingUsers] = useState({});
+  const typingTimersRef = useRef({});
+  const [messagesPage, setMessagesPage] = useState(1);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const MESSAGES_PAGE_SIZE = 8;
   const [isSending, setIsSending] = useState(false);
   const [showNewConversation, setShowNewConversation] = useState(false);
   const [conversationType, setConversationType] = useState('dm'); // 'dm' | 'group'
@@ -126,10 +133,19 @@ export default function MessagesPage() {
   const [recentlyUpdatedConversation, setRecentlyUpdatedConversation] = useState(null);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isDetailsAnimating, setIsDetailsAnimating] = useState(false);
+  const [unreadCounts, setUnreadCounts] = useState({});
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionPosition, setMentionPosition] = useState(0);
+  const [filteredMembers, setFilteredMembers] = useState([]);
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+  const mentionDropdownRef = useRef(null);
+  const messageInputRef = useRef(null);
   const memberDropdownRef = useRef(null);
   const bottomRef = useRef(null);
   const kebabMenuRef = useRef(null);
   const editInputRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   // Get theme classes helper function
   const getThemeClasses = (baseClasses, darkClasses) => {
@@ -156,19 +172,34 @@ export default function MessagesPage() {
 
   const renderMessageText = (text) => {
     if (!text) return '';
-    
-    // URL regex pattern to match http/https URLs
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    
-    // Split text by URLs and render accordingly
+    const mentionRegex = /@([A-Za-z_]+)/g;
+
+    const renderMentions = (chunk, baseKey) => {
+      const nodes = [];
+      let lastIndex = 0;
+      let match;
+      while ((match = mentionRegex.exec(chunk)) !== null) {
+        if (match.index > lastIndex) nodes.push(chunk.substring(lastIndex, match.index));
+        const displayName = match[1].replace(/_/g, ' ');
+        nodes.push(
+          <span key={`${baseKey}-m-${match.index}`} className="font-bold text-blue-600 bg-blue-50 px-1 rounded">
+            @{displayName}
+          </span>
+        );
+        lastIndex = match.index + match[0].length;
+      }
+      if (lastIndex < chunk.length) nodes.push(chunk.substring(lastIndex));
+      return nodes;
+    };
+
     const parts = text.split(urlRegex);
-    
-    return parts.map((part, index) => {
+    const out = [];
+    parts.forEach((part, idx) => {
       if (urlRegex.test(part)) {
-        // This is a URL - render as clickable link
-        return (
+        out.push(
           <a
-            key={index}
+            key={`u-${idx}`}
             href={part}
             target="_blank"
             rel="noopener noreferrer"
@@ -178,10 +209,12 @@ export default function MessagesPage() {
             {part}
           </a>
         );
+      } else {
+        const nodes = renderMentions(part, `p-${idx}`);
+        nodes.forEach((n, i) => out.push(typeof n === 'string' ? <span key={`t-${idx}-${i}`}>{n}</span> : n));
       }
-      // This is regular text
-      return part;
     });
+    return out;
   };
 
   // Add current user to group members by default when group type is selected
@@ -189,11 +222,11 @@ export default function MessagesPage() {
     if (conversationType === 'group' && user && orgUsers.length > 0) {
       // Find current user in orgUsers
       const currentUser = orgUsers.find(u => String(u._id) === String(user._id));
-      if (currentUser && !groupMembers.some(m => String(m._id) === String(user._id))) {
+      if (currentUser && !groupMembers.some(m => String(m._id) === String(currentUser._id))) {
         setGroupMembers(prev => [...prev, currentUser]);
       }
     }
-  }, [conversationType, user, orgUsers]);
+  }, [conversationType, user, orgUsers, groupMembers]);
 
   // Filter conversations based on search query
   const filteredConversations = useMemo(() => {
@@ -225,9 +258,18 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!user) return;
+    connectSocket();
     setIsLoadingConversations(true);
     messagingService.getConversations()
-      .then(setConversations)
+      .then((list) => {
+        setConversations(list);
+        // Initialize unreadCounts from server-provided unreadCount per conversation
+        const initialCounts = (list || []).reduce((acc, c) => {
+          acc[c._id] = typeof c.unreadCount === 'number' ? c.unreadCount : 0;
+          return acc;
+        }, {});
+        setUnreadCounts(initialCounts);
+      })
       .catch(() => { })
       .finally(() => setIsLoadingConversations(false));
     
@@ -250,6 +292,191 @@ export default function MessagesPage() {
       }) || [];
       setOrgUsers(users);
     }).catch(() => { });
+
+    // Subscribe to conversation creation to add new groups/DMs live
+    const offConv = subscribe('chat.conversation.created', (payload) => {
+      const { data } = payload || {};
+      const convo = data?.conversation;
+      if (!convo) return;
+      // Only add if current user is a participant
+      const isParticipant = (convo.participants || []).some(p => String(p._id || p) === String(user?._id));
+      if (!isParticipant) return;
+      setConversations(prev => {
+        if (prev.some(c => c._id === convo._id)) return prev;
+        return [convo, ...prev];
+      });
+    });
+    const offConvDeleted = subscribe('chat.conversation.deleted', (payload) => {
+      const { data } = payload || {};
+      const deletedId = data?.conversationId;
+      if (!deletedId) return;
+      setConversations(prev => prev.filter(c => c._id !== deletedId));
+      setSelectedConversation((cur) => cur && cur._id === deletedId ? null : cur);
+      if (selectedConversation && selectedConversation._id === deletedId) {
+        setMessages([]);
+      }
+    });
+    const offConvUpdated = subscribe('chat.conversation.updated', (payload) => {
+      const { data } = payload || {};
+      const { conversationId, participants, name, updatedAt } = data || {};
+      if (!conversationId) return;
+      
+      // Update conversations list and move updated conversation to top
+      setConversations(prev => {
+        const updatedConv = prev.find(c => c._id === conversationId);
+        if (!updatedConv) return prev;
+        
+        const updated = {
+          ...updatedConv,
+          ...(participants && { participants }),
+          ...(name && { name }),
+          ...(updatedAt && { updatedAt })
+        };
+        
+        // Move updated conversation to top
+        const otherConvs = prev.filter(c => c._id !== conversationId);
+        return [updated, ...otherConvs];
+      });
+      
+      // If this is a significant update (participants or name), refresh the full conversation data
+      if (participants || name) {
+        messagingService.getConversation(conversationId)
+          .then(fullDetails => {
+            // Update conversations list with full details
+            setConversations(prev => {
+              const otherConvs = prev.filter(c => c._id !== conversationId);
+              return [fullDetails, ...otherConvs];
+            });
+          })
+          .catch(console.error);
+      }
+      
+      // Update current conversation details if it's the selected one
+      if (selectedConversation && selectedConversation._id === conversationId) {
+        setConvDetails(prev => prev ? { 
+          ...prev, 
+          ...(participants && { participants }),
+          ...(name && { name }),
+          ...(updatedAt && { updatedAt })
+        } : prev);
+        
+        // Also update the selected conversation to reflect changes
+        setSelectedConversation(prev => prev && prev._id === conversationId ? { 
+          ...prev, 
+          ...(participants && { participants }),
+          ...(name && { name }),
+          ...(updatedAt && { updatedAt })
+        } : prev);
+        
+        // If we're editing the group name and it was updated, reset the edit state
+        if (name && isEditingGroupName) {
+          setIsEditingGroupName(false);
+          setEditedGroupName('');
+        }
+        
+        // If participants were updated, refresh conversation details to get full member information
+        if (participants) {
+          messagingService.getConversation(conversationId)
+            .then(updatedDetails => {
+              setConvDetails(updatedDetails);
+              // Also update selected conversation with full details
+              setSelectedConversation(prev => prev ? { ...prev, ...updatedDetails } : prev);
+            })
+            .catch(console.error);
+        }
+        
+        // If name was updated, also refresh conversation details to ensure consistency
+        if (name) {
+          messagingService.getConversation(conversationId)
+            .then(updatedDetails => {
+              setConvDetails(updatedDetails);
+              // Also update selected conversation with full details
+              setSelectedConversation(prev => prev ? { ...prev, ...updatedDetails } : prev);
+            })
+            .catch(console.error);
+        }
+      }
+      
+      // Set animation state for the updated conversation
+      setRecentlyUpdatedConversation(conversationId);
+      setTimeout(() => {
+        setRecentlyUpdatedConversation(null);
+      }, 1000);
+    });
+    
+    // Global inbox updates for unread counts and ordering
+    const offInbox = subscribe('chat.inbox.updated', (payload) => {
+      const { data } = payload || {};
+      const { conversationId, lastMessage, updatedAt, unreadCount } = data || {};
+      if (!conversationId) return;
+      // Ignore counting unread for messages sent by the current user
+      if (lastMessage && (String(lastMessage.sender?._id || lastMessage.sender) === String(user?._id))) {
+        setUnreadCounts((prev) => ({ ...prev, [conversationId]: 0 }));
+        return;
+      }
+      // If server provided a concrete unreadCount (e.g., after markRead), honor it
+      if (typeof unreadCount === 'number') {
+        setUnreadCounts((prev) => ({ ...prev, [conversationId]: unreadCount }));
+      } else {
+        // Increment unread if conversation is not currently open
+        setUnreadCounts((prev) => {
+          const isActive = selectedConversation && selectedConversation._id === conversationId;
+          if (isActive) return { ...prev, [conversationId]: 0 };
+          const current = prev[conversationId] || 0;
+          return { ...prev, [conversationId]: current + 1 };
+        });
+      }
+      // Update preview and move to top in the sidebar list
+      setConversations((prev) => {
+        const exists = prev.find((c) => c._id === conversationId);
+        if (!exists) return prev;
+        const updatedConv = {
+          ...exists,
+          lastMessagePreview: lastMessage?.text || (lastMessage?.type === 'image' ? '📷 Photo' : lastMessage?.type === 'video' ? '🎥 Video' : lastMessage?.type === 'system' ? lastMessage?.text : exists.lastMessagePreview),
+          lastMessageTime: updatedAt || new Date().toISOString(),
+          updatedAt: updatedAt || new Date().toISOString()
+        };
+        const others = prev.filter((c) => c._id !== conversationId);
+        return [updatedConv, ...others];
+      });
+      // Nudge animation
+      setRecentlyUpdatedConversation(conversationId);
+      setTimeout(() => setRecentlyUpdatedConversation(null), 1000);
+    });
+    
+    // Subscribe to organization member updates to refresh orgUsers list
+    const offOrgMemberUpdated = subscribe('org.member.updated', (payload) => {
+      const { data } = payload || {};
+      if (!data || !data.organizationId || data.organizationId !== user.organizationID) return;
+      
+      // Refresh organization users list when members are updated
+      api.get(`/dashboard/${user.organizationID}`).then(res => {
+        const users = res.data?.members?.map(m => {
+          const name = m.name || '';
+          const parts = name.split(' ').filter(Boolean);
+          let initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
+          if (!initials) {
+            const base = name || m.email || '';
+            initials = base.slice(0, 2).toUpperCase();
+          }
+          return {
+            _id: m.id,
+            name,
+            email: m.email,
+            initials
+          };
+        }) || [];
+        setOrgUsers(users);
+      }).catch(() => { });
+    });
+    
+    return () => {
+      offConv && offConv();
+      offConvDeleted && offConvDeleted();
+      offConvUpdated && offConvUpdated();
+      offOrgMemberUpdated && offOrgMemberUpdated();
+      offInbox && offInbox();
+    };
   }, [user]);
 
   // Select first conversation by default
@@ -259,14 +486,21 @@ export default function MessagesPage() {
     }
   }, [conversations, selectedConversation]);
 
+  // Reset unread count and mark as read on server when opening a conversation
+  useEffect(() => {
+    if (selectedConversation?._id) {
+      setUnreadCounts((prev) => ({ ...prev, [selectedConversation._id]: 0 }));
+      // Mark as read on server (fire-and-forget)
+      messagingService.markRead(selectedConversation._id).catch(() => {});
+    }
+  }, [selectedConversation?._id]);
+
   // Close mobile sidebar when conversation is selected
   useEffect(() => {
     if (selectedConversation) {
       setIsMobileSidebarOpen(false);
     }
   }, [selectedConversation]);
-
-
 
   useEffect(() => {
     const onClickOutside = (e) => {
@@ -286,13 +520,91 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!selectedConversation) return;
+    // Join conversation room
+    try { getSocket().emit('conversation.join', { conversationId: selectedConversation._id }); } catch (_) {}
     setIsLoadingMessages(true);
-    messagingService.getMessages(selectedConversation._id)
+    setMessagesPage(1);
+    setHasMoreMessages(true);
+    messagingService.getMessages(selectedConversation._id, 1, MESSAGES_PAGE_SIZE)
       .then((data) => {
         setMessages(data);
         setTimeout(scrollToBottom, 50);
+        if (!data || data.length < MESSAGES_PAGE_SIZE) setHasMoreMessages(false);
       })
       .finally(() => setIsLoadingMessages(false));
+    // Subscribe to chat events
+    const offMsg = subscribe('chat.message.created', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.conversationId !== selectedConversation._id) return;
+      
+      // Add new message to the current conversation
+      setMessages((prev) => (prev.some((m) => m._id === data.message._id) ? prev : [...prev, data.message]));
+      
+      // Update conversation preview and move to top
+      updateConversationPreview(selectedConversation._id, data.message);
+      
+      // Auto-scroll to bottom for new messages
+      setTimeout(scrollToBottom, 50);
+      
+      // If it's a system message about member changes, refresh conversation details
+      if (data.message.type === 'system' && (
+        data.message.text.includes('added to the group') ||
+        data.message.text.includes('removed from the group') ||
+        data.message.text.includes('left the group')
+      )) {
+        // Refresh conversation details to show updated participant list
+        messagingService.getConversation(selectedConversation._id)
+          .then(updatedDetails => {
+            setConvDetails(updatedDetails);
+            // Also update the selected conversation to reflect new participants
+            setSelectedConversation(prev => prev ? { ...prev, participants: updatedDetails.participants } : prev);
+          })
+          .catch(console.error);
+      }
+    });
+    // Read receipt updates from others
+    const offRead = subscribe('chat.messages.read', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.conversationId !== selectedConversation._id) return;
+      // Optionally force refresh read state if needed in future
+    });
+    const offTyping = subscribe('chat.typing', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.conversationId !== selectedConversation._id) return;
+      const { userId, isTyping } = data;
+      if (!userId || userId === user?._id) return;
+      setTypingUsers(prev => {
+        const next = { ...prev };
+        if (isTyping) {
+          next[userId] = true;
+        } else {
+          delete next[userId];
+        }
+        return next;
+      });
+      if (isTyping) {
+        if (typingTimersRef.current[userId]) clearTimeout(typingTimersRef.current[userId]);
+        typingTimersRef.current[userId] = setTimeout(() => {
+          setTypingUsers(prev => {
+            const next = { ...prev };
+            delete next[userId];
+            return next;
+          });
+          delete typingTimersRef.current[userId];
+        }, 2000);
+      }
+    });
+    return () => {
+      offMsg && offMsg();
+      offRead && offRead();
+      offTyping && offTyping();
+      try { getSocket().emit('conversation.leave', { conversationId: selectedConversation._id }); } catch (_) {}
+      setTypingUsers({});
+      try {
+        Object.values(typingTimersRef.current || {}).forEach((t) => clearTimeout(t));
+      } catch (_) {}
+      typingTimersRef.current = {};
+    };
   }, [selectedConversation?._id]);
 
   const scrollToBottom = () => {
@@ -342,15 +654,98 @@ export default function MessagesPage() {
     if (!input.trim() || !selectedConversation) return;
     setIsSending(true);
     try {
-      const msg = await messagingService.sendMessage(selectedConversation._id, { type: 'text', text: input.trim() });
-      setMessages((prev) => (prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]));
-      updateConversationPreview(selectedConversation._id, msg);
+      // If the user is no longer a participant, block locally with a toast
+      const isMember = (selectedConversation.participants || []).some(p => String(p._id || p) === String(user?._id));
+      if (!isMember) {
+        showToast('You are no longer a participant in this conversation', 'error');
+        setIsSending(false);
+        return;
+      }
       setInput('');
       setTimeout(scrollToBottom, 50);
+      const msg = await messagingService.sendMessage(selectedConversation._id, { type: 'text', text: input.trim() });
+      // setMessages((prev) => [...prev, msg]);
+      updateConversationPreview(selectedConversation._id, msg);
     } catch (e) {
       console.error('Failed to send message:', e);
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const typingStopTimerRef = useRef(null);
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setInput(value);
+    
+    // Check for @ symbol to show mentions
+    const atIndex = value.lastIndexOf('@');
+    if (atIndex !== -1 && selectedConversation?.isGroup) {
+      // Stop mention mode if a whitespace occurs immediately after '@'
+      const after = value.substring(atIndex + 1);
+      const stop = after.length === 0 ? false : /\s/.test(after[0]);
+      const query = stop ? '' : after;
+      setMentionQuery(query);
+      setMentionPosition(atIndex);
+      setSelectedMentionIndex(0); // Reset selection when showing mentions
+      
+      // Filter members based on query (fallback to selectedConversation participants if convDetails not loaded)
+      const participantsSrc = (convDetails?.participants || selectedConversation?.participants || []);
+      if (participantsSrc && Array.isArray(participantsSrc)) {
+        const filtered = participantsSrc.filter(member => {
+          const memberName = `${member.firstName || ''} ${member.lastName || ''}`.trim().toLowerCase();
+          return (!query || memberName.includes(query.toLowerCase())) && String(member._id) !== String(user?._id);
+        });
+        setFilteredMembers(filtered);
+        setShowMentions(!stop && filtered.length > 0);
+      }
+    } else {
+      setShowMentions(false);
+    }
+    
+    // Emit typing event
+    if (selectedConversation) {
+      const socket = getSocket();
+      if (socket) {
+        socket.emit('chat.typing', {
+          conversationId: selectedConversation._id,
+          userId: user._id,
+          userName: `${user.firstName || ''} ${user.lastName || ''}`.trim()
+        });
+      }
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      
+      // If mentions are shown, select the highlighted mention
+      if (showMentions && filteredMembers.length > 0) {
+        handleMentionSelect(filteredMembers[selectedMentionIndex]);
+        return;
+      }
+      
+      handleSend();
+    }
+    
+    // Handle arrow keys for mention navigation
+    if (showMentions && filteredMembers.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedMentionIndex(prev => 
+          prev < filteredMembers.length - 1 ? prev + 1 : 0
+        );
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedMentionIndex(prev => 
+          prev > 0 ? prev - 1 : filteredMembers.length - 1
+        );
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowMentions(false);
+        setMentionQuery('');
+      }
     }
   };
 
@@ -365,13 +760,38 @@ export default function MessagesPage() {
       const mediaUrl = res?.url || res?.attachment?.FileURL || '';
       const type = file.type.startsWith('image/') ? 'image' : 'video';
       const msg = await messagingService.sendMessage(selectedConversation._id, { type, mediaUrl });
-      setMessages((prev) => (prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]));
+      // setMessages((prev) => prev.map(m => m._id === tempId ? msg : m));
       updateConversationPreview(selectedConversation._id, msg);
       setTimeout(scrollToBottom, 50);
     } catch (e) {
       console.error('Failed to upload file:', e);
     } finally {
       setIsSending(false);
+    }
+  };
+
+  // Load older messages via button
+  const handleLoadMore = async () => {
+    if (!hasMoreMessages || isFetchingMore || !selectedConversation) return;
+    const el = messagesContainerRef.current;
+    const prevHeight = el ? el.scrollHeight : 0;
+    const nextPage = messagesPage + 1;
+    setIsFetchingMore(true);
+    try {
+      const older = await messagingService.getMessages(selectedConversation._id, nextPage, MESSAGES_PAGE_SIZE);
+      if (older && older.length > 0) {
+        setMessages((prev) => [...older, ...prev]);
+        setMessagesPage(nextPage);
+        setTimeout(() => {
+          const newHeight = el ? el.scrollHeight : 0;
+          if (el) el.scrollTop = newHeight - prevHeight;
+        }, 0);
+        if (older.length < MESSAGES_PAGE_SIZE) setHasMoreMessages(false);
+      } else {
+        setHasMoreMessages(false);
+      }
+    } finally {
+      setIsFetchingMore(false);
     }
   };
 
@@ -405,25 +825,15 @@ export default function MessagesPage() {
     
     setIsSavingGroupName(true);
     try {
-      // Update conversation name via API
-      const response = await api.patch(`/messages/conversations/${selectedConversation._id}`, {
+      // Show loading state
+      showToast('Updating group name...', 'info');
+      
+      // Update conversation name via API - real-time events will handle UI updates
+      await api.patch(`/messages/conversations/${selectedConversation._id}`, {
         name: editedGroupName.trim()
       });
       
-      // Update local state
-      setConvDetails(prev => ({ ...prev, name: editedGroupName.trim() }));
-      setSelectedConversation(prev => ({ ...prev, name: editedGroupName.trim() }));
-      
-      // Update conversations list
-      setConversations(prev => 
-        prev.map(conv => 
-          conv._id === selectedConversation._id 
-            ? { ...conv, name: editedGroupName.trim() }
-            : conv
-        )
-      );
-      
-      // Send system message
+      // Send system message about the name change
       await sendSystemMessage(selectedConversation._id, `Group name changed to "${editedGroupName.trim()}"`);
       
       setIsEditingGroupName(false);
@@ -502,22 +912,12 @@ export default function MessagesPage() {
       // Send system message to DB about leaving
       const userName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
       await sendSystemMessage(selectedConversation._id, `${userName} left the group`);
+      setSelectedConversation(selectedConversation);
       
       // Show success toast
       showToast('You have left the group', 'success');
       
-      // Small delay to show the message before clearing
-      setTimeout(() => {
-        // Remove from conversations list
-        setConversations((prev) => prev.filter(c => c._id !== selectedConversation._id));
-        
-        // Clear selected conversation
-        setSelectedConversation(null);
-        setMessages([]);
-        
-        // Close menu
-        setShowKebabMenu(false);
-      }, 1000);
+      setShowKebabMenu(false);
     } catch (error) {
       console.error('Failed to leave group:', error);
       showToast('Failed to leave group', 'error');
@@ -551,6 +951,49 @@ export default function MessagesPage() {
   const bg = theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900';
   const panel = theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900';
 
+  const handleMentionSelect = (member) => {
+    const beforeMention = input.substring(0, mentionPosition);
+    const afterMention = input.substring(mentionPosition + mentionQuery.length + 1); // +1 for @
+    const label = `${member.firstName || ''} ${member.lastName || ''}`.trim();
+    const mentionToken = `@${label.replace(/\s+/g, '_')}`;
+    const newInput = `${beforeMention}${mentionToken} ${afterMention}`;
+    setInput(newInput);
+    setShowMentions(false);
+    setMentionQuery('');
+    // Focus back to input
+    if (messageInputRef.current) {
+      messageInputRef.current.focus();
+      const newPosition = (beforeMention + mentionToken + ' ').length;
+      messageInputRef.current.setSelectionRange(newPosition, newPosition);
+    }
+  };
+
+  // Handle clicking outside mention dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!showMentions) return;
+      const inDropdown = mentionDropdownRef.current && mentionDropdownRef.current.contains(event.target);
+      const inInput = messageInputRef.current && event.target === messageInputRef.current;
+      if (!inDropdown && !inInput) {
+        setShowMentions(false);
+        setMentionQuery('');
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMentions]);
+
+  // Ensure convDetails is available for mentions (use current selection as base)
+  useEffect(() => {
+    if (selectedConversation) {
+      setConvDetails((prev) => {
+        if (!prev || String(prev._id) !== String(selectedConversation._id)) return selectedConversation;
+        return prev;
+      });
+    }
+  }, [selectedConversation?._id]);
+
   return (
     <Layout>
       <Head>
@@ -562,6 +1005,11 @@ export default function MessagesPage() {
           <div className="min-w-0 flex-1 mr-4">
             <h1 className={getThemeClasses("text-2xl lg:text-3xl font-bold text-gray-900", "dark:text-white")}>
               Messages
+              {Object.values(unreadCounts).reduce((sum, count) => sum + count, 0) > 0 && (
+                <span className={`ml-3 text-lg px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700'}`}>
+                  {Object.values(unreadCounts).reduce((sum, count) => sum + count, 0)} unread
+                </span>
+              )}
             </h1>
             <p className={getThemeClasses("text-gray-600 mt-1 lg:mt-2 text-sm lg:text-base", "dark:text-gray-400")}>
               Chat with your team members and collaborate on projects
@@ -607,8 +1055,18 @@ export default function MessagesPage() {
                   {/* Group Chats Section */}
                   {filteredConversations.filter(c => c.isGroup).length > 0 && (
                     <div>
-                      <h3 className={`text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                      <h3 className={`text-sm font-semibold mb-2 flex items-center gap-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                         Group Chats
+                        {(() => {
+                          const groupUnreadCount = filteredConversations
+                            .filter(c => c.isGroup)
+                            .reduce((sum, c) => sum + (unreadCounts[c._id] || 0), 0);
+                          return groupUnreadCount > 0 ? (
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700'}`}>
+                              {groupUnreadCount}
+                            </span>
+                          ) : null;
+                        })()}
                       </h3>
                       <div className="space-y-2 transition-all duration-300 ease-in-out">
                         {filteredConversations.filter(c => c.isGroup).map((c) => {
@@ -624,7 +1082,14 @@ export default function MessagesPage() {
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</div>
                               )}
                               <div className="min-w-0 flex-1">
-                                <div className="font-medium truncate">{displayName}</div>
+                                <div className="font-medium truncate flex items-center gap-2">
+                                  <span className="truncate">{displayName}</span>
+                                  {(unreadCounts[c._id] > 0) && (
+                                    <span className={`ml-auto whitespace-nowrap text-[10px] px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700'}`}>
+                                      {unreadCounts[c._id]} unread
+                                    </span>
+                                  )}
+                                </div>
                                 <div className={`text-sm opacity-70 truncate transition-all duration-300 ${isRecentlyUpdated ? (theme === 'dark' ? 'text-green-400 font-medium' : 'text-green-600 font-medium') : ''}`}>{c.lastMessagePreview}</div>
                               </div>
                               <div className="text-xs opacity-50 flex-shrink-0">
@@ -640,8 +1105,18 @@ export default function MessagesPage() {
                   {/* Direct Messages Section */}
                   {filteredConversations.filter(c => !c.isGroup).length > 0 && (
                     <div>
-                      <h3 className={`text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                      <h3 className={`text-sm font-semibold mb-2 flex items-center gap-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                         Direct Messages
+                        {(() => {
+                          const dmUnreadCount = filteredConversations
+                            .filter(c => !c.isGroup)
+                            .reduce((sum, c) => sum + (unreadCounts[c._id] || 0), 0);
+                          return dmUnreadCount > 0 ? (
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700'}`}>
+                              {dmUnreadCount}
+                            </span>
+                          ) : null;
+                        })()}
                       </h3>
                       <div className="space-y-2 transition-all duration-300 ease-in-out">
                         {filteredConversations.filter(c => !c.isGroup).map((c) => {
@@ -654,7 +1129,14 @@ export default function MessagesPage() {
                             <button key={c._id} onClick={() => setSelectedConversation(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel} ${isRecentlyUpdated ? (theme === 'dark' ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200') : ''}`}>
                               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</div>
                               <div className="min-w-0 flex-1">
-                                <div className="font-medium truncate">{displayName}</div>
+                                <div className="font-medium truncate flex items-center gap-2">
+                                  <span className="truncate">{displayName}</span>
+                                  {(unreadCounts[c._id] > 0) && (
+                                    <span className={`ml-auto whitespace-nowrap text-[10px] px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700'}`}>
+                                      {unreadCounts[c._id]} unread
+                                    </span>
+                                  )}
+                                </div>
                                 <div className={`text-sm opacity-70 truncate transition-all duration-300 ${isRecentlyUpdated ? (theme === 'dark' ? 'text-green-400 font-medium' : 'text-green-600 font-medium') : ''}`}>{c.lastMessagePreview}</div>
                             </div>
                               <div className="text-xs opacity-50 flex-shrink-0">
@@ -822,7 +1304,18 @@ export default function MessagesPage() {
                 {isLoadingMessages ? (
                   <MessagesAreaSkeleton theme={theme} />
                 ) : (
-                  <div className="flex-1 overflow-y-auto p-2 lg:p-4 space-y-3">
+                  <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-2 lg:p-4 space-y-3">
+                    {hasMoreMessages && (
+                      <div className="flex justify-center">
+                        <button
+                          onClick={handleLoadMore}
+                          disabled={isFetchingMore}
+                          className={`px-3 py-1 text-xs rounded-lg border ${theme === 'dark' ? 'border-gray-700 text-gray-300 hover:bg-gray-800' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
+                        >
+                          {isFetchingMore ? 'Loading…' : 'Load more'}
+                        </button>
+                      </div>
+                    )}
                     {/* Group creation date display */}
                     {selectedConversation.isGroup && selectedConversation.createdAt && (
                       <div className="flex justify-center mb-4">
@@ -839,6 +1332,7 @@ export default function MessagesPage() {
                         </div>
                       </div>
                     )}
+                    
                     {messages.map((m, index) => {
                     const mine = String(m.sender?._id || m.sender) === String(user?._id);
                     const messageDate = new Date(m.createdAt || m.timestamp);
@@ -917,6 +1411,13 @@ export default function MessagesPage() {
                             </div>
                           </div>
 
+                          {/* Read receipts (basic): show "Read" for messages you sent that have been read by others */}
+                          {mine && Array.isArray(m.readBy) && m.readBy.some((uid) => String(uid) !== String(user?._id)) && (
+                            <div className={`mt-1 text-[10px] opacity-60 ${mine ? 'text-right' : ''}`}>
+                              Read
+                            </div>
+                          )}
+
                           {/* Reactions outside the message block */}
                           {m.reactions?.length > 0 && (
                             <div className={`mt-1 text-xs opacity-90 flex items-center gap-1 flex-wrap ${mine ? 'justify-end' : 'justify-start'}`}>
@@ -931,34 +1432,99 @@ export default function MessagesPage() {
                       </React.Fragment>
                     );
                     })}
+                    
+                    {/* System message for users who are no longer members */}
+                    {selectedConversation && !(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id)) && (
+                      <div className="flex justify-center mb-4">
+                        <div className={`px-4 py-3 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-orange-900/20 border border-orange-500/30 text-orange-300' : 'bg-orange-50 border border-orange-200 text-orange-700'}`}>
+                          ⚠️ You are no longer a member of this conversation. You can view the conversation history but cannot send new messages.
+                        </div>
+                      </div>
+                    )}
                     <div ref={bottomRef} />
+                    {Object.keys(typingUsers).length > 0 && (
+                      <div className={`text-xs mt-1 ml-2 flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                        <div className="text-xs">{Object.keys(typingUsers).map((userId) => {
+                          const user = orgUsers.find((u) => String(u._id) === String(userId));
+                          return user ? user.name : 'Someone';
+                        }).join(', ')} is typing</div>
+                      </div>
+                    )}
                   </div>
                 )}
                 {isLoadingMessages ? (
                   <ChatFooterSkeleton theme={theme} />
                 ) : (
-                  <footer className={`p-2 lg:p-3 mx-2 lg:mx-3 mb-2 lg:mb-3 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900'} flex-shrink-0`}>
+                  <footer className={`relative p-2 lg:p-3 mx-2 lg:mx-3 mb-2 lg:mb-3 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900'} flex-shrink-0 ${!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id)) ? 'opacity-50 pointer-events-none' : ''}`}>
+                  {/* Mention Dropdown */}
+                  {showMentions && selectedConversation?.isGroup && (
+                    <div ref={mentionDropdownRef} className={`absolute bottom-full left-0 right-0 mb-2 z-50 rounded-lg border shadow-lg ${theme === 'dark' ? 'bg-[#232323] border-[#424242]' : 'bg-white border-gray-200'}`}>
+                      <div className="p-2 border-b border-gray-200 dark:border-[#424242]">
+                        <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Mention a member
+                        </div>
+                      </div>
+                      <div className="max-h-48 overflow-y-auto py-1">
+                        {filteredMembers.length > 0 ? (
+                          filteredMembers.map((member, index) => (
+                            <button
+                              key={member._id}
+                              type="button"
+                              onClick={() => handleMentionSelect(member)}
+                              className={`w-full flex items-center gap-2 px-3 py-2 text-left transition-colors ${
+                                index === selectedMentionIndex 
+                                  ? (theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-50 text-blue-700')
+                                  : (theme === 'dark' ? 'hover:bg-[#2A2A2A]' : 'hover:bg-gray-100')
+                              }`}
+                            >
+                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
+                                {`${(member.firstName || '')[0] || ''}${(member.lastName || '')[0] || ''}`.toUpperCase() || 'U'}
+                              </span>
+                              <span className="font-medium">{`${member.firstName || ''} ${member.lastName || ''}`.trim()}</span>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-center">
+                            No members found
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   <div className="flex items-center gap-1 lg:gap-2">
                     <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`}>
                       <FaImage />
-                      <input type="file" accept="image/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} />
+                      <input type="file" accept="image/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} />
                     </label>
                     <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`}>
                       <FaVideo />
-                      <input type="file" accept="video/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} />
+                      <input type="file" accept="video/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} />
                     </label>
                     <input
                       className={`flex-1 px-2 lg:px-3 py-2 rounded-lg border ${panel} text-sm lg:text-base`}
-                      placeholder="Type a message"
+                      placeholder={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id)) 
+                        ? "You are no longer a participant in this conversation" 
+                        : selectedConversation?.isGroup 
+                          ? "Type a message or @ to mention someone" 
+                          : "Type a message"}
                       value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
+                      ref={messageInputRef}
+                      onChange={handleInputChange}
+                      onKeyDown={handleKeyDown}
+                      disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))}
                     />
-                    <button disabled={isSending} className={`px-2 lg:px-4 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-blue-50 text-blue-600'} flex items-center gap-1 lg:gap-2 touch-manipulation`} onClick={handleSend}>
+                    <button disabled={isSending || !(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} className={`px-2 lg:px-4 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-blue-50 text-blue-600'} flex items-center gap-1 lg:gap-2 touch-manipulation`} onClick={handleSend}>
                       <FaPaperPlane className="text-sm" /> 
                       <span className="hidden lg:inline">Send</span>
                     </button>
                   </div>
+                  {/* Help text for mentions */}
+                  {selectedConversation?.isGroup && (selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id)) && (
+                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+                      💡 Type @ to mention a group member
+                    </div>
+                  )}
                   </footer>
                 )}
               </>
@@ -1150,7 +1716,6 @@ export default function MessagesPage() {
                             ids.push(user._id);
                           }
                           const conv = await messagingService.createGroup(groupName, ids, groupAvatar);
-                          setConversations((prev) => [conv, ...prev]);
                           setSelectedConversation(conv);
                           
                           // System messages are now created automatically by the backend
@@ -1285,16 +1850,17 @@ export default function MessagesPage() {
                             <div className="text-sm opacity-70 mb-1">Add members</div>
                             <AddMembersDropdown theme={theme} panel={panel} orgUsers={availableUsers} onAdd={async (ids) => {
                               try {
-                                const updated = await messagingService.addMembers(selectedConversation._id, ids);
-                                setConvDetails(updated);
-                                // also refresh sidebar conversations
-                                const list = await messagingService.getConversations();
-                                setConversations(list);
+                                // Show loading state
+                                const memberCount = ids.length;
+                                const loadingMessage = memberCount === 1 ? 'Adding member...' : `Adding ${memberCount} members...`;
+                                showToast(loadingMessage, 'info');
+                                
+                                // Add members - the real-time events will handle UI updates
+                                await messagingService.addMembers(selectedConversation._id, ids);
                                 
                                 // Show success toast
-                                const memberCount = ids.length;
-                                const message = memberCount === 1 ? 'Member added successfully' : `${memberCount} members added successfully`;
-                                showToast(message, 'success');
+                                const successMessage = memberCount === 1 ? 'Member added successfully' : `${memberCount} members added successfully`;
+                                showToast(successMessage, 'success');
                               } catch (error) {
                                 console.error('Failed to add members:', error);
                                 showToast('Failed to add members to group', 'error');

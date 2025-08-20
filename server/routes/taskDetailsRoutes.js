@@ -10,11 +10,13 @@ const Project = require('../models/Project');
 const CommonType = require('../models/CommonType');
 const { logActivity } = require('../services/activityService');
 const { sendTaskAssignmentEmail } = require('../services/emailService');
+const { emitToProject, emitToTask } = require('../socket');
 const Subtask = require('../models/Subtask');
 const Attachment = require('../models/Attachment');
 const Comment = require('../models/Comment');
 const UserActivity = require('../models/UserActivity');
 const { checkUserStoryLimit, checkTaskLimit, incrementUsage } = require('../middleware/premiumLimits');
+const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
 
 // Middleware to check limits based on task type
 const checkTaskTypeLimit = async (req, res, next) => {
@@ -43,7 +45,7 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
         }
         else { taskData.Status = 1; }
         taskData.IsActive = true;
-
+        taskData.CreatedBy = taskData.Assignee;
         const newTaskDetail = new TaskDetails(taskData);
         const savedTaskDetail = await newTaskDetail.save();
 
@@ -117,6 +119,16 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
             }
         );
 
+        // Emit kanban create event
+        try {
+            emitToProject(newTask.ProjectID_FK, 'kanban.task.created', {
+                event: 'kanban.task.created',
+                version: 1,
+                data: { projectId: newTask.ProjectID_FK, task: newTask },
+                meta: { emittedAt: new Date().toISOString() }
+            });
+        } catch (e) {}
+
         // Send email notification if task is assigned during creation
         if (newTask.AssignedTo && newTask.AssignedToDetails) {
             try {
@@ -149,6 +161,7 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
             }
         }
 
+        try { await emitDashboardMetrics(taskData.OrganizationID || (await Project.findOne({ ProjectID: taskData.ProjectID_FK }))?.OrganizationID); } catch (e) {}
         res.status(201).json(newTask);
     } catch (err) {
         console.error('Error creating task:', err);
@@ -517,6 +530,24 @@ router.patch('/:taskId/status', async (req, res) => {
             }
         );
 
+        try { await emitDashboardMetrics((await Project.findOne({ ProjectID: task.ProjectID_FK }))?.OrganizationID); } catch (e) {}
+        try {
+            emitToProject(task.ProjectID_FK, 'kanban.task.status.updated', {
+                event: 'kanban.task.status.updated',
+                version: 1,
+                data: { projectId: task.ProjectID_FK, taskId: task.TaskID, status: task.Status },
+                meta: { emittedAt: new Date().toISOString() }
+            });
+        } catch (e) {}
+        // Emit to task room for task details viewers
+        try {
+            emitToTask(task.TaskID, 'task.updated', {
+                event: 'task.updated',
+                version: 1,
+                data: { taskId: task.TaskID, changes: { Status: task.Status } },
+                meta: { emittedAt: new Date().toISOString() }
+            });
+        } catch (e) {}
         res.json(task);
     } catch (error) {
         console.error('Error updating task status:', error);
@@ -701,6 +732,33 @@ router.patch('/:taskId/assign', async (req, res) => {
             'metadata.taskId': task.TaskID
         }).sort({ timestamp: -1 }).limit(10);
 
+        // Emit to task room so Task Details viewers update immediately
+        try {
+            emitToTask(task.TaskID, 'task.updated', {
+                event: 'task.updated',
+                version: 1,
+                data: {
+                    taskId: task.TaskID,
+                    changes: {
+                        AssignedTo: AssignedTo,
+                        AssignedToDetails: assignedToDetails || null,
+                        Status: task.Status,
+                        AssignedDate: task.AssignedDate
+                    }
+                },
+                meta: { emittedAt: new Date().toISOString() }
+            });
+        } catch (e) {}
+
+        try {
+            emitToProject(task.ProjectID_FK, 'kanban.task.assigned', {
+                event: 'kanban.task.assigned',
+                version: 1,
+                data: { projectId: task.ProjectID_FK, taskId: task.TaskID, assignedTo: AssignedTo, status: task.Status },
+                meta: { emittedAt: new Date().toISOString() }
+            });
+        } catch (e) {}
+        try { await emitDashboardMetrics((await Project.findOne({ ProjectID: task.ProjectID_FK }))?.OrganizationID); } catch (e) {}
         res.json({
             ...taskWithDetails,
             taskActivity
@@ -804,6 +862,15 @@ router.delete('/:taskId/delete', async (req, res) => {
         // Hard delete the task
         await task.deleteOne();
 
+        try {
+            emitToProject(task.ProjectID_FK, 'kanban.task.deleted', {
+                event: 'kanban.task.deleted',
+                version: 1,
+                data: { projectId: task.ProjectID_FK, taskId: task.TaskID },
+                meta: { emittedAt: new Date().toISOString() }
+            });
+        } catch (e) {}
+        try { await emitDashboardMetrics((await Project.findOne({ ProjectID: task.ProjectID_FK }))?.OrganizationID); } catch (e) {}
         res.json({ success: true, message: 'Task Deleted Successfully' });
     } catch (error) {
         console.error('Error deleting task:', error);
@@ -926,6 +993,22 @@ router.patch('/:taskId', async (req, res) => {
             }
         );
 
+        try { await emitDashboardMetrics((await Project.findOne({ ProjectID: task.ProjectID_FK }))?.OrganizationID); } catch (e) {}
+        // Emit task field updates to project and task rooms
+        try {
+            emitToProject(task.ProjectID_FK, 'kanban.task.updated', {
+                event: 'kanban.task.updated',
+                version: 1,
+                data: { projectId: task.ProjectID_FK, task: updatedTask },
+                meta: { emittedAt: new Date().toISOString() }
+            });
+            emitToTask(task.TaskID, 'task.updated', {
+                event: 'task.updated',
+                version: 1,
+                data: { taskId: task.TaskID, changes: updatedTask },
+                meta: { emittedAt: new Date().toISOString() }
+            });
+        } catch (e) {}
         res.json(updatedTask);
     } catch (error) {
         console.error('Error updating task:', error);

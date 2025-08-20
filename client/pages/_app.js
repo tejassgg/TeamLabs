@@ -1,4 +1,6 @@
 import '../styles/globals.css';
+import { useEffect } from 'react';
+import { connectSocket } from '../services/socket';
 import { AuthProvider } from '../context/AuthContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -9,6 +11,9 @@ import { ToastProvider } from '../context/ToastContext';
 import RouteProtection from '../components/RouteProtection';
 
 function AppContainer({ Component, pageProps }) {
+  useEffect(() => {
+    connectSocket();
+  }, []);
   const { theme } = useTheme();
   return (
     <div className={theme} style={{ minHeight: '100vh' }}>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { connectSocket, subscribe, getSocket } from '../../services/socket';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -113,6 +114,46 @@ const ProjectDetailsPage = () => {
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
   }, []);
+
+  // Join project room and subscribe to project-level task updates to keep counts and lists fresh
+  useEffect(() => {
+    if (!projectId) return;
+    connectSocket();
+    try { getSocket().emit('project.join', { projectId }); } catch (_) {}
+    const offCreated = subscribe('kanban.task.created', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.projectId !== projectId) return;
+      setTaskList(prev => [...prev, data.task]);
+    });
+    const offUpdated = subscribe('kanban.task.updated', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.projectId !== projectId) return;
+      setTaskList(prev => prev.map(t => t.TaskID === data.task.TaskID ? { ...t, ...data.task } : t));
+    });
+    const offStatus = subscribe('kanban.task.status.updated', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.projectId !== projectId) return;
+      setTaskList(prev => prev.map(t => t.TaskID === data.taskId ? { ...t, Status: data.status } : t));
+    });
+    const offDeleted = subscribe('kanban.task.deleted', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.projectId !== projectId) return;
+      setTaskList(prev => prev.filter(t => t.TaskID !== data.taskId));
+    });
+    const offAssigned = subscribe('kanban.task.assigned', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.projectId !== projectId) return;
+      setTaskList(prev => prev.map(t => t.TaskID === data.taskId ? { ...t, AssignedTo: data.assignedTo, Status: data.status } : t));
+    });
+    return () => {
+      offCreated && offCreated();
+      offUpdated && offUpdated();
+      offStatus && offStatus();
+      offDeleted && offDeleted();
+      offAssigned && offAssigned();
+      try { getSocket().emit('project.leave', { projectId }); } catch (_) {}
+    };
+  }, [projectId]);
 
   useEffect(() => {
     if (projectId) {

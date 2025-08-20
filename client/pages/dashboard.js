@@ -13,6 +13,7 @@ import api from '../services/api';
 import { projectService } from '../services/api';
 import { userService } from '../services/api';
 import { authService } from '../services/api';
+import { connectSocket, subscribe } from '../services/socket';
 import OnboardingProgress from '../components/OnboardingProgress';
 import OnboardingGuide from '../components/OnboardingGuide';
 
@@ -104,6 +105,67 @@ const Dashboard = () => {
 
     if (user?.organizationID) {
       fetchDashboardStats();
+      // Phase 1: connect socket and subscribe to org member presence/updates
+      connectSocket();
+      const unsubPresence = subscribe('org.member.presence', (payload) => {
+        const { data } = payload || {};
+        if (!data || !data.userId) return;
+        setStats((prev) => {
+          if (!prev) return prev;
+          const updatedMembers = (prev.members || []).map((m) => {
+            if (m.id === data.userId) {
+              const next = { ...m, lastLogin: data.lastActiveAt || m.lastLogin };
+              // Only force Offline when user goes offline; do not override manual statuses on online
+              if (data.online === false) {
+                next.status = 'Offline';
+              }
+              return next;
+            }
+            return m;
+          });
+          return { ...prev, members: updatedMembers };
+        });
+      });
+      const unsubUpdated = subscribe('org.member.updated', (payload) => {
+        const { data } = payload || {};
+        if (!data || !data.member) return;
+        const member = data.member;
+        setStats((prev) => {
+          if (!prev) return prev;
+          const exists = (prev.members || []).some((m) => m.id === member.userId);
+          const updatedMembers = exists
+            ? prev.members.map((m) => (m.id === member.userId ? {
+                ...m,
+                name: member.name || m.name,
+                role: member.role || m.role,
+                status: member.status || m.status
+              } : m))
+            : [member, ...(prev.members || [])];
+          return { ...prev, members: updatedMembers };
+        });
+      });
+      const unsubRemoved = subscribe('org.member.removed', (payload) => {
+        const { data } = payload || {};
+        if (!data || !data.userId) return;
+        setStats((prev) => {
+          if (!prev) return prev;
+          const filtered = (prev.members || []).filter((m) => m.id !== data.userId);
+          return { ...prev, members: filtered };
+        });
+      });
+
+      const unsubMetrics = subscribe('dashboard.metrics.updated', (payload) => {
+        const { data } = payload || {};
+        if (!data || !data.metrics) return;
+        setStats((prev) => prev ? { ...prev, ...data.metrics } : prev);
+      });
+
+      return () => {
+        unsubPresence && unsubPresence();
+        unsubUpdated && unsubUpdated();
+        unsubRemoved && unsubRemoved();
+        unsubMetrics && unsubMetrics();
+      };
     }
 
     if (user?.role === 'Admin') {

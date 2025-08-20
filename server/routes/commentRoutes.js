@@ -6,6 +6,7 @@ const User = require('../models/User');
 const Project = require('../models/Project');
 const { logActivity } = require('../services/activityService');
 const { sendCommentMentionEmail } = require('../services/emailService');
+const { emitToTask, emitToProject } = require('../socket');
 
 // Get all comments for a task
 router.get('/tasks/:taskId/comments', async (req, res) => {
@@ -121,6 +122,20 @@ router.post('/tasks/:taskId/comments', async (req, res) => {
       }
     );
 
+    try {
+      emitToTask(taskId, 'task.comment.created', {
+        event: 'task.comment.created',
+        version: 1,
+        data: { taskId, comment },
+        meta: { emittedAt: new Date().toISOString() }
+      });
+      emitToProject(task.ProjectID_FK, 'task.comment.created', {
+        event: 'task.comment.created',
+        version: 1,
+        data: { taskId, comment },
+        meta: { emittedAt: new Date().toISOString() }
+      });
+    } catch (e) {}
     res.status(201).json(comment);
   } catch (err) {
     console.error('Error adding comment:', err);
@@ -238,6 +253,14 @@ router.patch('/comments/:commentId', async (req, res) => {
       }
     );
 
+    try {
+      emitToTask(comment.TaskID, 'task.comment.updated', {
+        event: 'task.comment.updated',
+        version: 1,
+        data: { taskId: comment.TaskID, comment: updatedComment },
+        meta: { emittedAt: new Date().toISOString() }
+      });
+    } catch (e) {}
     res.json(updatedComment);
   } catch (err) {
     console.error('Error updating comment:', err);
@@ -281,6 +304,14 @@ router.delete('/comments/:commentId', async (req, res) => {
       }
     );
 
+    try {
+      emitToTask(comment.TaskID, 'task.comment.deleted', {
+        event: 'task.comment.deleted',
+        version: 1,
+        data: { taskId: comment.TaskID, commentId },
+        meta: { emittedAt: new Date().toISOString() }
+      });
+    } catch (e) {}
     res.json({ message: 'Comment deleted successfully' });
   } catch (err) {
     console.error('Error deleting comment:', err);

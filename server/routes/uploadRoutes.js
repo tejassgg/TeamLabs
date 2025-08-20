@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const router = express.Router();
+const { emitToTask, emitToProject } = require('../socket');
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../../client/public/uploads');
@@ -125,6 +126,33 @@ router.post('/attachments/upload', attachmentUpload.single('file'), async (req, 
     });
 
     await attachment.save();
+
+    // Emit real-time event for task attachments
+    try {
+      if (taskId) {
+        emitToTask(taskId, 'task.attachment.added', {
+          event: 'task.attachment.added',
+          version: 1,
+          data: { taskId, attachment: {
+            AttachmentID: attachment.AttachmentID,
+            Filename: attachment.Filename,
+            FileURL: attachment.FileURL,
+            FileSize: attachment.FileSize,
+            UploadedAt: attachment.UploadedAt
+          } },
+          meta: { emittedAt: new Date().toISOString() }
+        });
+      } else if (projectId) {
+        // Optional: emit project-level event if needed later
+        try { emitToProject(projectId, 'project.attachment.added', { event: 'project.attachment.added', version: 1, data: { projectId, attachment: {
+          AttachmentID: attachment.AttachmentID,
+          Filename: attachment.Filename,
+          FileURL: attachment.FileURL,
+          FileSize: attachment.FileSize,
+          UploadedAt: attachment.UploadedAt
+        } }, meta: { emittedAt: new Date().toISOString() } }); } catch (e) {}
+      }
+    } catch (e) { }
 
     // Log activity for attachment upload
     const { logActivity } = require('../services/activityService');

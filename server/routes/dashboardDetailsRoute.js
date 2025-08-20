@@ -182,7 +182,7 @@ router.get('/:organizationId', async (req, res) => {
           role: user.role || 'User',
           initials: `${user.firstName[0] || ''}${user.lastName[0] || ''}`.toUpperCase() || 'U',
           lastLogin: lastLoginMap[user._id.toString()] || null,
-          status: user.status || 'Offline',
+          status: user.status || (user.isActive ? 'Active' : 'Offline'),
           username: user.username || 'No username'
         };
       }),

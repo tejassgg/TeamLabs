@@ -8,6 +8,7 @@ const { logActivity } = require('../services/activityService');
 const { checkProjectLimit, incrementUsage } = require('../middleware/premiumLimits');
 const { protect } = require('../middleware/auth');
 const { linkRepositoryToProject, unlinkRepositoryFromProject, getProjectRepository, getProjectCommits, getProjectIssues } = require('../controllers/authController');
+const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
 
 // GET /api/projects - fetch all projects the user is allocated to
 router.get('/:userId/:type', async (req, res) => {
@@ -73,6 +74,7 @@ router.post('/', checkProjectLimit, async (req, res) => {
       }
     );
 
+    try { await emitDashboardMetrics(OrganizationID); } catch (e) {}
     res.status(201).json(newProject);
   } catch (err) {
     console.error('Error creating project:', err);
@@ -139,6 +141,7 @@ router.patch('/:projectId', async (req, res) => {
       }
     );
 
+    try { await emitDashboardMetrics(project.OrganizationID); } catch (e) {}
     res.json(project);
   } catch (err) {
     console.error('Error updating project:', err);

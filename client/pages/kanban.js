@@ -8,6 +8,7 @@ import { useGlobal } from '../context/GlobalContext';
 import { taskService, projectService, commentService, attachmentService } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import React from 'react';
+import { connectSocket, subscribe, getSocket } from '../services/socket';
 import AssignTaskModal from '../components/AssignTaskModal';
 import { useTheme } from '../context/ThemeContext';
 import AddTaskModal from '../components/AddTaskModal';
@@ -70,6 +71,16 @@ const KanbanBoard = () => {
       }
     };
     fetchTasksAndUserStories();
+    // Join project room for live updates
+    if (selectedProject) {
+      connectSocket();
+      try { getSocket().emit('project.join', { projectId: selectedProject }); } catch (_) {}
+    }
+    return () => {
+      if (selectedProject) {
+        try { getSocket().emit('project.leave', { projectId: selectedProject }); } catch (_) {}
+      }
+    };
   }, [selectedProject]);
 
   // Handle project selection change
@@ -197,6 +208,47 @@ const KanbanBoard = () => {
 
     setDraggingTask(null);
   };
+
+  // Live kanban subscriptions
+  useEffect(() => {
+    if (!selectedProject) return;
+    const offCreated = subscribe('kanban.task.created', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.projectId !== selectedProject) return;
+      setTasks((prev) => {
+        if (prev.find(t => t.TaskID === data.task.TaskID)) return prev;
+        return [...prev, data.task];
+      });
+    });
+    const offUpdated = subscribe('kanban.task.updated', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.projectId !== selectedProject) return;
+      const task = data.task;
+      setTasks((prev) => prev.map(t => t.TaskID === task.TaskID ? { ...t, ...task } : t));
+    });
+    const offStatus = subscribe('kanban.task.status.updated', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.projectId !== selectedProject) return;
+      setTasks((prev) => prev.map(t => t.TaskID === data.taskId ? { ...t, Status: data.status } : t));
+    });
+    const offDeleted = subscribe('kanban.task.deleted', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.projectId !== selectedProject) return;
+      setTasks((prev) => prev.filter(t => t.TaskID !== data.taskId));
+    });
+    const offAssigned = subscribe('kanban.task.assigned', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.projectId !== selectedProject) return;
+      setTasks((prev) => prev.map(t => t.TaskID === data.taskId ? { ...t, AssignedTo: data.assignedTo, Status: data.status } : t));
+    });
+    return () => {
+      offCreated && offCreated();
+      offUpdated && offUpdated();
+      offStatus && offStatus();
+      offDeleted && offDeleted();
+      offAssigned && offAssigned();
+    };
+  }, [selectedProject]);
 
   // Handle task assignment and status update
   const handleAssignTask = (updatedTask) => {
@@ -545,10 +597,9 @@ const KanbanBoard = () => {
           isOpen={showAddTaskModal}
           onClose={() => setShowAddTaskModal(false)}
           onAddTask={async (taskData) => {
-            // Add the new task to the Not Assigned column
             try {
               const newTask = await taskService.addTaskDetails(taskData, 'fromProject');
-              setTasks(prev => [...prev, newTask]);
+              // setTasks(prev => [...prev, newTask]);
               setShowAddTaskModal(false);
               showToast('Task added successfully', 'success');
             } catch (err) {

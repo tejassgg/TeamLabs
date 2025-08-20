@@ -75,7 +75,7 @@ const checkUserStoryLimit = async (req, res, next) => {
 // Middleware to check if organization can create more tasks
 const checkTaskLimit = async (req, res, next) => {
   try {
-    const userId = req.body.taskDetail?.CreatedBy || req.user?._id;
+    const userId = req.body.taskDetail?.Assignee || req.user?._id;
     if (!userId) {
       return res.status(400).json({ error: 'User ID is required' });
     }

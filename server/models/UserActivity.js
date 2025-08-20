@@ -30,7 +30,9 @@ const userActivitySchema = new mongoose.Schema({
       // Repository activities
       'repository_linked', 'repository_unlinked',
       // Team Join Request activities
-      'team_join_request'
+      'team_join_request',
+      // Attachment activities
+      'attachment_added', 'attachment_deleted'
     ]
   },
   status: {

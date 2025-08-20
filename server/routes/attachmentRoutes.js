@@ -3,6 +3,7 @@ const router = express.Router();
 const Attachment = require('../models/Attachment');
 const TaskDetails = require('../models/TaskDetails');
 const User = require('../models/User');
+const { emitToTask } = require('../socket');
 const fs = require('fs');
 const path = require('path');
 
@@ -95,6 +96,7 @@ router.post('/tasks/:taskId/attachments', async (req, res) => {
     });
     
     await attachment.save();
+    try { emitToTask(taskId, 'task.attachment.added', { event: 'task.attachment.added', version: 1, data: { taskId, attachment }, meta: { emittedAt: new Date().toISOString() } }); } catch (e) {}
     res.status(201).json(attachment);
   } catch (err) {
     console.error('Error adding attachment:', err);
@@ -131,6 +133,8 @@ router.delete('/:attachmentId', async (req, res) => {
 
     // Delete from database
     await Attachment.findOneAndDelete({ AttachmentID: attachmentId });
+
+    try { emitToTask(attachment.TaskID, 'task.attachment.removed', { event: 'task.attachment.removed', version: 1, data: { taskId: attachment.TaskID, attachmentId }, meta: { emittedAt: new Date().toISOString() } }); } catch (e) {}
     
     res.json({ 
       success: true,

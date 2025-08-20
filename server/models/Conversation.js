@@ -13,6 +13,12 @@ const conversationSchema = new mongoose.Schema(
     admins: [
       { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
     ],
+    leavers: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        leftAt: { type: Date, default: Date.now }
+      }
+    ],
     lastMessageAt: { type: Date, default: Date.now },
     lastMessagePreview: {
       type: String,

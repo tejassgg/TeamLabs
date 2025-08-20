@@ -8,6 +8,7 @@ const Invite = require('../models/Invite');
 const crypto = require('crypto');
 const emailService = require('../services/emailService');
 const Organization = require('../models/Organization');
+const { emitToOrg } = require('../socket');
 
 exports.updateUser = async (req, res) => {
   try {
@@ -30,6 +31,27 @@ exports.updateUser = async (req, res) => {
     user.country = country || user.country;
 
     await user.save();
+
+    // Emit org.member.updated if user belongs to an organization
+    try {
+      if (user.organizationID) {
+        emitToOrg(user.organizationID, 'org.member.updated', {
+          event: 'org.member.updated',
+          version: 1,
+          data: {
+            organizationId: String(user.organizationID),
+            member: {
+              userId: user._id.toString(),
+              name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+              role: user.role,
+              email: user.email,
+              status: user.status || 'Active'
+            }
+          },
+          meta: { emittedAt: new Date().toISOString() }
+        });
+      }
+    } catch (e) { /* ignore */ }
 
     res.json({
       message: 'Profile updated successfully',

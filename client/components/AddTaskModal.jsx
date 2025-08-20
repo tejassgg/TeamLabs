@@ -231,7 +231,6 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       onUpdateTask(editingTask.TaskID, taskData);
     } else {
       // Call add function
-
       onAddTask(taskData).catch(error => {
         console.error('Error in onAddTask:', error);
         // Handle premium limit errors

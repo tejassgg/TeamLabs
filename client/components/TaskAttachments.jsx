@@ -4,6 +4,7 @@ import { FaPaperclip, FaTimes, FaDownload, FaFile, FaFileImage, FaFilePdf, FaFil
 import { attachmentService } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { useThemeClasses } from './kanbanUtils';
+import { subscribe } from '../services/socket';
 
 const TaskAttachments = ({ taskId, userId, initialAttachments }) => {
   const [attachments, setAttachments] = useState(initialAttachments || []);
@@ -21,6 +22,25 @@ const TaskAttachments = ({ taskId, userId, initialAttachments }) => {
     }
     // eslint-disable-next-line
   }, [initialAttachments, taskId]);
+
+  // Real-time attachment updates
+  useEffect(() => {
+    if (!taskId) return;
+    const offAdded = subscribe('task.attachment.added', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.taskId !== taskId) return;
+      setAttachments((prev) => [data.attachment, ...prev]);
+    });
+    const offRemoved = subscribe('task.attachment.removed', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.taskId !== taskId) return;
+      setAttachments((prev) => prev.filter(att => att.AttachmentID !== data.attachmentId));
+    });
+    return () => {
+      offAdded && offAdded();
+      offRemoved && offRemoved();
+    };
+  }, [taskId]);
 
   const fetchAttachments = async () => {
     try {
@@ -131,7 +151,7 @@ const TaskAttachments = ({ taskId, userId, initialAttachments }) => {
       const response = await attachmentService.uploadAttachment(formData);
       if (response.success) {
         const newAttachment = response.attachment;
-        setAttachments(prev => [newAttachment, ...prev]);
+        // setAttachments(prev => [newAttachment, ...prev]);
         showToast('File uploaded successfully', 'success');
       } else {
         showToast('Failed to upload file: ' + (response.message || 'Unknown error'), 'error');
@@ -139,7 +159,7 @@ const TaskAttachments = ({ taskId, userId, initialAttachments }) => {
     } catch (error) {
       console.error('Error uploading file:', error);
       showToast('Failed to upload file: ' + (error.message || 'Unknown error'), 'error');
-      await fetchAttachments();
+      // await fetchAttachments();
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -179,7 +199,7 @@ const TaskAttachments = ({ taskId, userId, initialAttachments }) => {
     } catch (error) {
       console.error('Error deleting attachment:', error);
       showToast('Failed to delete attachment: ' + (error.message || 'Unknown error'), 'error');
-      await fetchAttachments();
+      // await fetchAttachments();
     }
   };
 

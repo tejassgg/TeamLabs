@@ -533,6 +533,7 @@ export const projectService = {
 export const taskService = {
   addTaskDetails: async (taskData, mode) => {
     try {
+      console.log('taskData', taskData);
       const response = await api.post('/task-details', { taskDetail: taskData, mode: mode });
       return response.data;
     } catch (error) {
@@ -872,6 +873,10 @@ export const messagingService = {
   },
   getConversation: async (conversationId) => {
     const res = await api.get(`/messages/conversations/${conversationId}`);
+    return res.data;
+  },
+  markRead: async (conversationId) => {
+    const res = await api.post(`/messages/conversations/${conversationId}/read`);
     return res.data;
   },
   addMembers: async (conversationId, memberIds) => {
