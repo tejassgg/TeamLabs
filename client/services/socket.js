@@ -19,6 +19,9 @@ export function connectSocket() {
     path: SOCKET_PATH,
     transports: ['websocket', 'polling'],
     auth: { token },
+    cors: {
+      origin: process.env.NEXT_PUBLIC_SOCKET_CORS_ORIGINS ? process.env.NEXT_PUBLIC_SOCKET_CORS_ORIGINS.split(',') : '*',
+    },
     reconnection: true,
     reconnectionAttempts: Infinity,
     reconnectionDelay: 500,
