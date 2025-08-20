@@ -36,7 +36,7 @@ function initSocket(server) {
 
   const io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL,
+      origin: '*',
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
       credentials: true
