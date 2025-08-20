@@ -14,7 +14,7 @@ export function connectSocket() {
   isConnecting = true;
   const token = Cookies.get('token');
   socket = io(SOCKET_URL, {
-    transports: ['websocket'],
+    transports: ['polling', 'websocket'],
     auth: { token },
     reconnection: true,
     reconnectionAttempts: Infinity,
