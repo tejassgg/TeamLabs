@@ -1,9 +1,11 @@
 import { io } from 'socket.io-client';
 import Cookies from 'js-cookie';
 
-// Ensure we point to the same origin as REST but without /api suffix
-const base = process.env.NEXT_PUBLIC_API_URL || '';
-const SOCKET_URL = base.replace(/\/?api\/?$/, '');
+// Prefer explicit socket host; otherwise derive from API by stripping /api
+const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
+const derivedSocketBase = apiBase.replace(/\/?api\/?$/, '');
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || derivedSocketBase;
+const SOCKET_PATH = process.env.NEXT_PUBLIC_SOCKET_PATH || '/socket.io';
 
 let socket = null;
 let isConnecting = false;
@@ -14,7 +16,8 @@ export function connectSocket() {
   isConnecting = true;
   const token = Cookies.get('token');
   socket = io(SOCKET_URL, {
-    transports: ['polling', 'websocket'],
+    path: SOCKET_PATH,
+    transports: ['websocket', 'polling'],
     auth: { token },
     reconnection: true,
     reconnectionAttempts: Infinity,

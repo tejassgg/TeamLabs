@@ -35,8 +35,9 @@ function initSocket(server) {
   if (ioInstance) return ioInstance;
 
   const io = new Server(server, {
+    path: process.env.SOCKET_IO_PATH || '/socket.io',
     cors: {
-      origin: ['*', process.env.FRONTEND_URL],
+      origin: process.env.SOCKET_CORS_ORIGINS ? process.env.SOCKET_CORS_ORIGINS.split(',') : '*',
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
       credentials: true
