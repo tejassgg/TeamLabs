@@ -38,13 +38,23 @@ const { initSocket } = require('./socket');
 // Middleware
 app.use(express.json());
 
-// Configure CORS
-app.use(cors({
-  origin: '*', // Allow all origins
+// Configure CORS with explicit allowlist
+const allowedOrigins = process.env.FRONTEND_URL;
+
+const corsOptions = {
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // allow non-browser or same-origin
+    if (allowedOrigins === origin) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
+// Handle preflight across the board
+app.options('*', cors(corsOptions));
 
 app.use(express.urlencoded({ extended: false }));
 

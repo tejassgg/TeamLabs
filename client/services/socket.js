@@ -14,16 +14,12 @@ export function connectSocket() {
   isConnecting = true;
   const token = Cookies.get('token');
   socket = io(SOCKET_URL, {
-    // Allow polling fallback for environments that do not support WS upgrades (e.g., some serverless hosts)
-    transports: ['polling', 'websocket'],
-    upgrade: true,
-    path: '/socket.io',
+    transports: ['websocket'],
     auth: { token },
     reconnection: true,
     reconnectionAttempts: Infinity,
     reconnectionDelay: 500,
-    reconnectionDelayMax: 5000,
-    timeout: 10000
+    reconnectionDelayMax: 5000
   });
 
   socket.on('connect', () => {
