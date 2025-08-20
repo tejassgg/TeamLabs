@@ -18,7 +18,6 @@ export function connectSocket() {
     transports: ['polling', 'websocket'],
     upgrade: true,
     path: '/socket.io',
-    withCredentials: true,
     auth: { token },
     reconnection: true,
     reconnectionAttempts: Infinity,

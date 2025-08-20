@@ -36,10 +36,14 @@ function initSocket(server) {
 
   const io = new Server(server, {
     cors: {
-      origin: '*',
+      origin: [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'https://team-labs.vercel.app'
+      ],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-      credentials: true
+      credentials: false
     }
   });
 
