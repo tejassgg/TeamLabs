@@ -4,6 +4,7 @@ import RegisterForm from '../components/RegisterForm';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import AuthNavbar from '../components/AuthNavbar';
 
 const Register = () => {
   const { theme } = useTheme();
@@ -32,7 +33,8 @@ const Register = () => {
       <Head>
         <title>Register | TeamLabs</title>
       </Head>
-      <div className="min-h-screen w-full flex flex-col md:flex-row">
+      <AuthNavbar />
+      <div className="min-h-screen w-full flex flex-col md:flex-row pt-16">
         {/* Left Side - Welcome Section */}
         <div className="hidden md:flex flex-col justify-center items-center w-1/2 bg-gray-800 text-white p-12">
           <div className="max-w-md text-center">
@@ -58,5 +60,7 @@ const Register = () => {
     </>
   );
 };
+
+Register.displayName = 'Register';
 
 export default Register; 

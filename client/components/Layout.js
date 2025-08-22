@@ -2,15 +2,13 @@ import Navbar from './Navbar';
 import { useTheme } from '../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FaPlus, FaChevronRight, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaCircle, FaRobot } from 'react-icons/fa';
+import { FaPlus, FaChevronRight, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaCircle, FaRobot, FaEdit, FaCheck, FaTimes as FaTimesIcon } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import AddTeamModal from './AddTeamModal';
-import { teamService } from '../services/api';
-import { projectService } from '../services/api';
+import { teamService, projectService, taskService } from '../services/api';
 import AddProjectModal from './AddProjectModal';
 import { useGlobal } from '../context/GlobalContext';
 import AddTaskModal from './AddTaskModal';
-import { taskService } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import TooltipPortal from './TooltipPortal';
 import Link from 'next/link';
@@ -20,6 +18,7 @@ import ChatBot from './ChatBot';
 
 const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const { theme, toggleTheme } = useTheme();
+  const { logout } = useAuth();
   const router = useRouter();
   const [isAddTeamOpen, setIsAddTeamOpen] = useState(false);
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
@@ -201,10 +200,10 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             items.map((item) => {
               // Skip rendering if item is undefined or missing required properties
               if (!item || !itemKey || !itemLabel) return null;
-              
+
               const itemId = item[itemKey] || item._id || `item-${Math.random()}`;
               const itemDisplayName = item[itemLabel] || 'Unnamed Item';
-              
+
               return (
                 <li key={itemId}>
                   <button
@@ -345,11 +344,8 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           <SidebarButton
             icon={<FaSignOutAlt className={theme === 'dark' ? 'text-red-400' : 'text-red-600'} />}
             label="Logout"
-            onClick={() => {
-              if (typeof window !== 'undefined') {
-                window.localStorage.clear();
-              }
-              router.push('/login');
+            onClick={async () => {
+              await logout();
             }}
             theme={theme}
           />
@@ -434,7 +430,7 @@ const isProfileComplete = (userDetails) => {
   return result;
 };
 
-const Layout = ({ children }) => {
+const Layout = ({ children, pageProject, pageTitle }) => {
   const { theme, toggleTheme, resolvedTheme } = useTheme();
   const { logout, user } = useAuth();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -442,9 +438,179 @@ const Layout = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { showToast } = useToast();
   const router = useRouter();
-  const { teams, projects, tasksDetails, userDetails, loading: globalLoading } = useGlobal();
+  const { teams, projects, tasksDetails, userDetails, loading: globalLoading, setProjects, setTasksDetails } = useGlobal();
   const [showFirstTimeSetup, setShowFirstTimeSetup] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+
+  // Inline editing states
+  const [editingProjectId, setEditingProjectId] = useState(null);
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editingProjectName, setEditingProjectName] = useState('');
+  const [editingTaskName, setEditingTaskName] = useState('');
+
+  // Get page title from router or props
+  const getPageTitle = () => {
+    if (pageTitle) return pageTitle;
+
+    const path = router.pathname;
+    const query = router.query;
+
+    // Map routes to titles
+    if (path === '/dashboard') return 'Dashboard';
+    if (path === '/kanban') return 'Kanban Board';
+    if (path === '/profile') return 'Profile';
+    if (path === '/settings') return 'Settings';
+    if (path === '/messages') return 'Messages';
+    if (path === '/payment') return 'Payment';
+    if (path === '/query') return 'Query Board';
+
+    // Dynamic routes
+    if (path === '/task/[taskId]') {
+      const taskId = query.taskId;
+      const task = tasksDetails.find(t => t.TaskID === taskId || t._id === taskId);
+      return task?.Name || 'Task Details';
+    }
+
+    if (path === '/project/[projectId]') {
+      const projectId = query.projectId;
+      const project = projects.find(p => p.ProjectID === projectId || p._id === projectId);
+      return project?.Name || 'Project Details';
+    }
+
+    if (path === '/team/[teamId]') {
+      const teamId = query.teamId;
+      const team = teams.find(t => t.TeamID === teamId || t._id === teamId);
+      return team?.TeamName || 'Team Details';
+    }
+
+    return null;
+  };
+
+  // Get project data for breadcrumb
+  const getPageProject = () => {
+    if (pageProject) return pageProject;
+
+    const path = router.pathname;
+    const query = router.query;
+
+    if (path === '/task/[taskId]') {
+      const taskId = query.taskId;
+      const task = tasksDetails.find(t => t.TaskID === taskId || t._id === taskId);
+      if (task?.ProjectID_FK) {
+        return projects.find(p => p.ProjectID === task.ProjectID_FK || p._id === task.ProjectID_FK);
+      }
+    }
+
+    return null;
+  };
+
+  const currentPageTitle = getPageTitle();
+  const currentPageProject = getPageProject();
+
+  // Inline editing functions
+  const handleEditProjectName = (project) => {
+    setEditingProjectId(project.ProjectID || project._id);
+    setEditingProjectName(project.Name || '');
+  };
+
+  const handleSaveProjectName = async (projectId) => {
+    try {
+      const project = projects.find(p => p.ProjectID === projectId || p._id === projectId);
+      if (!project || editingProjectName.trim() === project.Name) {
+        setEditingProjectId(null);
+        setEditingProjectName('');
+        return;
+      }
+
+      // Call API to update project name in database
+      await projectService.updateProject(projectId, {
+        Name: editingProjectName.trim()
+      });
+
+      // Update project name in the global context
+      setProjects(prevProjects =>
+        prevProjects.map(p =>
+          (p.ProjectID === projectId || p._id === projectId)
+            ? { ...p, Name: editingProjectName.trim() }
+            : p
+        )
+      );
+
+      // Update project name in localStorage if needed
+      if (typeof window !== 'undefined') {
+        const storedProjects = JSON.parse(localStorage.getItem('projects') || '[]');
+        const updatedStoredProjects = storedProjects.map(p =>
+          (p.ProjectID === projectId || p._id === projectId)
+            ? { ...p, Name: editingProjectName.trim() }
+            : p
+        );
+        localStorage.setItem('projects', JSON.stringify(updatedStoredProjects));
+      }
+
+      showToast('Project name updated successfully!', 'success');
+      setEditingProjectId(null);
+      setEditingProjectName('');
+    } catch (error) {
+      console.error('Error updating project name:', error);
+      showToast('Failed to update project name', 'error');
+    }
+  };
+
+  const handleEditTaskName = (task) => {
+    setEditingTaskId(task.TaskID || task._id);
+    setEditingTaskName(task.Name || '');
+  };
+
+  const handleSaveTaskName = async (taskId) => {
+    try {
+
+      const task = tasksDetails.find(t => t.TaskID === taskId);
+      if (!task || editingTaskName.trim() === task.Name) {
+        setEditingTaskId(null);
+        setEditingTaskName('');
+        return;
+      }
+
+      // Call API to update task name in database
+      await taskService.updateTask(taskId, {
+        Name: editingTaskName.trim()
+      });
+
+      // Update task name in the global context
+      setTasksDetails(prevTasks =>
+        prevTasks.map(t =>
+          (t.TaskID === taskId || t._id === taskId)
+            ? { ...t, Name: editingTaskName.trim() }
+            : t
+        )
+      );
+
+      // Update task name in localStorage if needed
+      if (typeof window !== 'undefined') {
+        const storedTasks = JSON.parse(localStorage.getItem('tasksDetails') || '[]');
+        const updatedStoredTasks = storedTasks.map(t =>
+          (t.TaskID === taskId || t._id === taskId)
+            ? { ...t, Name: editingTaskName.trim() }
+            : t
+        );
+        localStorage.setItem('tasksDetails', JSON.stringify(updatedStoredTasks));
+      }
+
+      showToast('Task name updated successfully!', 'success');
+      setEditingTaskId(null);
+      setEditingTaskName('');
+    } catch (error) {
+      console.error('Error updating task name:', error);
+      showToast('Failed to update task name', 'error');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingProjectId(null);
+    setEditingTaskId(null);
+    setEditingProjectName('');
+    setEditingTaskName('');
+  };
 
   // Dynamic breadcrumb component
   const DynamicBreadcrumb = () => {
@@ -493,7 +659,13 @@ const Layout = ({ children }) => {
         const project = projects.find(p => p.ProjectID === projectId || p._id === projectId);
         return [
           { label: 'Projects', href: '/dashboard' },
-          { label: project?.Name || 'Project Details', href: router.asPath, isCurrent: true }
+          {
+            label: project?.Name || 'Project Details',
+            href: router.asPath,
+            isCurrent: true,
+            isProject: true,
+            project: project
+          }
         ];
       }
 
@@ -501,7 +673,12 @@ const Layout = ({ children }) => {
       if (path === '/task/[taskId]') {
         const taskId = query.taskId;
         const task = tasksDetails.find(t => t.TaskID === taskId || t._id === taskId);
-        const project = task ? projects.find(p => p.ProjectID === task.ProjectID_FK) : null;
+
+        // Use currentPageProject if available, otherwise fall back to global context
+        let project = currentPageProject;
+        if (!project) {
+          project = task ? projects.find(p => p.ProjectID === task.ProjectID_FK || p._id === task.ProjectID_FK) : null;
+        }
 
         // Enhanced project name detection
         let projectName = 'Project Details';
@@ -510,16 +687,27 @@ const Layout = ({ children }) => {
         if (project?.Name) {
           projectName = project.Name;
           projectHref = `/project/${project.ProjectID || project._id}`;
-        } else if (task?.ProjectID) {
+        } else if (task?.ProjectID_FK) {
           // If we have a project ID but no name, show a more descriptive fallback
           projectName = 'Project Details';
-          projectHref = `/project/${task.ProjectID}`;
+          projectHref = `/project/${task.ProjectID_FK}`;
         }
 
         return [
           { label: 'Projects', href: '/dashboard' },
-          { label: projectName, href: projectHref },
-          { label: task?.Name || 'Task Details', href: router.asPath, isCurrent: true }
+          {
+            label: projectName,
+            href: projectHref,
+            isProject: true,
+            project: project
+          },
+          {
+            label: task?.Name || 'Task Details',
+            href: router.asPath,
+            isCurrent: true,
+            isTask: true,
+            task: task
+          }
         ];
       }
 
@@ -537,22 +725,122 @@ const Layout = ({ children }) => {
     if (items.length <= 1) return null;
 
     return (
-      <nav className={`flex items-center space-x-2 text-sm h-8 p-8 md:px-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
+      <nav className={`flex items-center space-x-2 text-sm h-8 x-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
         {items.map((item, index) => (
           <div key={index} className="flex items-center space-x-2">
             {index > 0 && <FaChevronRight className={`w-3 h-3 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />}
-            {item.isCurrent ? (
-              <span className={`font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-700'}`}>
-                {item.label}
-              </span>
-            ) : (
-              <Link
-                href={item.href}
-                className={`hover:text-blue-600 transition-colors duration-200 ${theme === 'dark' ? 'hover:text-blue-400' : ''}`}
-              >
-                {item.label}
-              </Link>
-            )}
+
+            {/* Project Name with Edit Functionality - Only editable when not on task details page */}
+            {item.isProject && !item.isCurrent ? (
+              <div className="flex items-center gap-1">
+                <Link
+                  href={item.href}
+                  className={`hover:text-blue-600 transition-colors duration-200 ${theme === 'dark' ? 'hover:text-blue-400' : ''}`}
+                >
+                  {item.label}
+                </Link>
+                {/* Only show edit button if not on task details page */}
+                {!router.pathname.startsWith('/task/') && (
+                  <button
+                    onClick={() => handleEditProjectName(item.project)}
+                    className={`breadcrumb-edit-button p-1 rounded-full hover:bg-blue-100 transition-colors ${theme === 'dark' ? 'hover:bg-blue-900/30 text-blue-400' : 'text-blue-600'}`}
+                    title="Edit Project Name"
+                  >
+                    <FaEdit size={12} />
+                  </button>
+                )}
+              </div>
+            ) :
+              /* Task Name with Edit Functionality */
+              item.isTask && item.isCurrent ? (
+                <div className="flex items-center gap-1">
+                  {editingTaskId === (item.task?.TaskID || item.task?._id) ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        value={editingTaskName}
+                        onChange={(e) => setEditingTaskName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleSaveTaskName(item.task?.TaskID);
+                          } else if (e.key === 'Escape') {
+                            handleCancelEdit();
+                          }
+                        }}
+                        onBlur={() => handleCancelEdit()}
+                        className={`breadcrumb-edit-input px-2 py-1 text-sm font-medium bg-white border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800 text-gray-100 border-blue-600' : 'text-gray-900'}`}
+                        autoFocus
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <span className={`font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-700'}`}>
+                        {item.label}
+                      </span>
+                      <button
+                        onClick={() => handleEditTaskName(item.task)}
+                        className={`breadcrumb-edit-button p-1 rounded-full hover:bg-blue-100 transition-colors ${theme === 'dark' ? 'hover:bg-blue-900/30 text-blue-400' : 'text-blue-600'}`}
+                        title="Edit Task Name"
+                      >
+                        <FaEdit size={12} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) :
+                /* Project Name with Edit Functionality (Current) - Only editable when not on task details page */
+                item.isProject && item.isCurrent ? (
+                  <div className="flex items-center gap-1">
+                    {editingProjectId === (item.project?.ProjectID || item.project?._id) ? (
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={editingProjectName}
+                          onChange={(e) => setEditingProjectName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleSaveProjectName(item.project?.ProjectID || item.project?._id);
+                            } else if (e.key === 'Escape') {
+                              handleCancelEdit();
+                            }
+                          }}
+                          onBlur={() => handleCancelEdit()}
+                          className={`breadcrumb-edit-input px-2 py-1 text-sm font-medium bg-white border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800 text-gray-100 border-blue-600' : 'text-gray-900'}`}
+                          autoFocus
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <span className={`font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-700'}`}>
+                          {item.label}
+                        </span>
+                        {/* Only show edit button if not on task details page */}
+                        {!router.pathname.startsWith('/task/') && (
+                          <button
+                            onClick={() => handleEditProjectName(item.project)}
+                            className={`breadcrumb-edit-button p-1 rounded-full hover:bg-blue-100 transition-colors ${theme === 'dark' ? 'hover:bg-blue-900/30 text-blue-400' : 'text-blue-600'}`}
+                            title="Edit Project Name"
+                          >
+                            <FaEdit size={12} />
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ) :
+                  /* Regular Items */
+                  item.isCurrent ? (
+                    <span className={`font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-700'}`}>
+                      {item.label}
+                    </span>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className={`hover:text-blue-600 transition-colors duration-200 ${theme === 'dark' ? 'hover:text-blue-400' : ''}`}
+                    >
+                      {item.label}
+                    </Link>
+                  )}
           </div>
         ))}
       </nav>
@@ -584,6 +872,21 @@ const Layout = ({ children }) => {
     setIsRedirecting(false);
   }, [router.pathname]);
 
+  // Handle click outside to cancel editing
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (editingProjectId || editingTaskId) {
+        const target = event.target;
+        if (!target.closest('.breadcrumb-edit-input') && !target.closest('.breadcrumb-edit-button')) {
+          handleCancelEdit();
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [editingProjectId, editingTaskId]);
+
   // Check if first time setup is needed
   useEffect(() => {
     if (isRedirecting) return; // Prevent redirect loops
@@ -591,7 +894,7 @@ const Layout = ({ children }) => {
     if (
       userDetails &&
       !userDetails.onboardingCompleted &&
-      !['/','/profile'].includes(router.pathname)
+      !['/', '/profile'].includes(router.pathname)
     ) {
       // console.log('Show onboarding modal due to incomplete onboarding:', {
       //   onboardingCompleted: userDetails.onboardingCompleted,
@@ -620,7 +923,7 @@ const Layout = ({ children }) => {
     // Only run on client
     if (typeof window === 'undefined') return;
     // Never redirect away from /profile or /welcome for profile completion
-    
+
     if (
       !isProfileComplete(userDetails) &&
       !['/profile', '/logout'].includes(router.pathname) &&
@@ -654,12 +957,18 @@ const Layout = ({ children }) => {
             >
               <FaBars size={22} />
             </button>
-            <Link href="/" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none">
-              TeamLabs
-            </Link>
+            {currentPageTitle ? (
+              <div className="text-2xl font-bold text-gray-900 dark:text-white select-none">
+                {currentPageTitle}
+              </div>
+            ) : (
+              <Link href="/" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none">
+                TeamLabs
+              </Link>
+            )}
           </div>
           <div>
-            <Navbar isMobile={true} theme={theme} toggleTheme={toggleTheme} onLogout={logout} />
+            <Navbar isMobile={true} theme={theme} toggleTheme={toggleTheme} onLogout={logout} pageTitle={currentPageTitle} />
           </div>
         </div>
       </div>
@@ -674,14 +983,14 @@ const Layout = ({ children }) => {
         {!isMobile && (
           <div className="flex justify-center">
             <div style={{ width: '100%' }}>
-              <Navbar theme={theme} toggleTheme={toggleTheme} onLogout={logout} />
+              <Navbar theme={theme} toggleTheme={toggleTheme} onLogout={logout} pageTitle={currentPageTitle} />
             </div>
           </div>
         )}
         <main className={`overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#18181b] text-white' : ''}`}>
-          <DynamicBreadcrumb />
 
-          <div className={`${router.pathname.startsWith('/task') || router.pathname.startsWith('/project') || router.pathname.startsWith('/team') ? 'px-8' : router.pathname === '/messages' ? 'px-8 pt-8' : 'p-8'} md:px-8`}>
+          <div className="p-2">
+            <DynamicBreadcrumb />
             {children}
           </div>
         </main>
@@ -696,11 +1005,11 @@ const Layout = ({ children }) => {
           onClick={() => setIsMobileSidebarOpen(false)}
         ></div>
       )}
-      
+
       {/* First Time Setup Modal */}
-      <FirstTimeSetup 
-        isOpen={showFirstTimeSetup} 
-        onComplete={() => setShowFirstTimeSetup(false)} 
+      <FirstTimeSetup
+        isOpen={showFirstTimeSetup}
+        onComplete={() => setShowFirstTimeSetup(false)}
       />
     </div>
   );

@@ -236,14 +236,14 @@ const DashboardCharts = ({ stats, theme }) => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Statistics Cards - 2x2 Grid (1/4th width) */}
         <div className="lg:col-span-1">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="h-full grid grid-cols-2 gap-4">
             {/* Projects Card */}
             <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-4' : 'bg-white text-gray-900 border-gray-100 rounded-xl shadow-sm p-4 border'} transition-all duration-200`}>
               <div className="flex flex-col items-center text-center">
                 <div className={`p-2 rounded-lg mb-2 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-blue-50 to-blue-100'}`}>
                   <FaProjectDiagram className={theme === 'dark' ? 'text-blue-400' : 'text-blue-500'} size={16} />
                 </div>
-                <p className={`text-xs font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total Projects</p>
+                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total Projects</p>
                 <p className={`text-lg font-bold mt-1 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalProjects || 0}</p>
               </div>
             </div>
@@ -254,7 +254,7 @@ const DashboardCharts = ({ stats, theme }) => {
                 <div className={`p-2 rounded-lg mb-2 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-green-50 to-green-100'}`}>
                   <FaUsers className={theme === 'dark' ? 'text-green-400' : 'text-green-500'} size={16} />
                 </div>
-                <p className={`text-xs font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total Teams</p>
+                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total Teams</p>
                 <p className={`text-lg font-bold mt-1 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalTeams || 0}</p>
               </div>
             </div>
@@ -265,7 +265,7 @@ const DashboardCharts = ({ stats, theme }) => {
                 <div className={`p-2 rounded-lg mb-2 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-yellow-50 to-yellow-100'}`}>
                   <FaClock className={theme === 'dark' ? 'text-yellow-300' : 'text-yellow-500'} size={16} />
                 </div>
-                <p className={`text-xs font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Upcoming Deadlines</p>
+                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Upcoming Deadlines</p>
                 <p className={`text-lg font-bold mt-1 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.upcomingDeadlines || 0}</p>
               </div>
             </div>
@@ -276,7 +276,7 @@ const DashboardCharts = ({ stats, theme }) => {
                 <div className={`p-2 rounded-lg mb-2 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-purple-50 to-purple-100'}`}>
                   <FaUserFriends className={theme === 'dark' ? 'text-purple-300' : 'text-purple-500'} size={16} />
                 </div>
-                <p className={`text-xs font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total People</p>
+                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total People</p>
                 <p className={`text-lg font-bold mt-1 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalUsers || 0}</p>
               </div>
             </div>

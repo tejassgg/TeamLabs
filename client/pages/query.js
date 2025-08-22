@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
-import Layout from '../components/Layout';
 import { FaSearch, FaDownload, FaSort, FaSortUp, FaSortDown, FaEye, FaEdit, FaTrash, FaFilter } from 'react-icons/fa';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -310,21 +309,12 @@ const QueryBoard = () => {
   };
 
   return (
-    <Layout>
+    <>
       <Head>
         <title>Query Board - TeamLabs</title>
       </Head>
 
       <div className="mx-auto">
-        <div className="mb-8">
-          <h1 className={getThemeClasses("text-3xl font-bold text-gray-900", "dark:text-white")}>
-            Query Board
-          </h1>
-          <p className={getThemeClasses("text-gray-600 mt-2", "dark:text-gray-400")}>
-            View and filter all tasks across all projects
-          </p>
-        </div>
-
         {/* Search and Export Bar */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
@@ -595,7 +585,7 @@ const QueryBoard = () => {
         onConfirm={deleteTask}
         confirmButtonClass="bg-red-600 hover:bg-red-700"
       />
-    </Layout>
+    </>
   );
 };
 

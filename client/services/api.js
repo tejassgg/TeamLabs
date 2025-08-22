@@ -533,7 +533,6 @@ export const projectService = {
 export const taskService = {
   addTaskDetails: async (taskData, mode) => {
     try {
-      console.log('taskData', taskData);
       const response = await api.post('/task-details', { taskDetail: taskData, mode: mode });
       return response.data;
     } catch (error) {

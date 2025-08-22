@@ -1,9 +1,8 @@
+import React, { useState, useEffect } from 'react';
+import Head from 'next/head';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import Head from 'next/head';
 import Link from 'next/link';
-import Layout from '../components/Layout';
-import { useState, useEffect } from 'react';
 import { authService, commonTypeService } from '../services/api';
 import CompleteProfileForm from '../components/CompleteProfileForm';
 import {
@@ -167,7 +166,7 @@ const Profile = () => {
   }
 
   return (
-    <Layout>
+    <>
       <Head>
         <title>Profile | TeamLabs</title>
       </Head>
@@ -175,9 +174,6 @@ const Profile = () => {
 
         <div className="mx-auto sm:px-6 lg:px-1">
           {/* Welcome Message */}
-          <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-            Welcome, {profile?.firstName} {profile?.lastName}
-          </h1>
           <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mt-2`}>
             Manage your profile information and view your activity history
           </p>
@@ -515,7 +511,7 @@ const Profile = () => {
         </div>
 
       </div>
-    </Layout>
+    </>
   );
 };
 

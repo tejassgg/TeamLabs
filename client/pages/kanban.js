@@ -1,16 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/router';
+import React, { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
-import Layout from '../components/Layout';
 import { FaChevronRight, FaInfoCircle, FaTasks, FaExclamationCircle, FaTimes, FaCheckCircle, FaClock, FaCode, FaVial, FaShieldAlt, FaRocket, FaTrashAlt, FaProjectDiagram } from 'react-icons/fa';
 import { useGlobal } from '../context/GlobalContext';
 import { taskService, projectService, commentService, attachmentService } from '../services/api';
 import { useToast } from '../context/ToastContext';
-import React from 'react';
 import { connectSocket, subscribe, getSocket } from '../services/socket';
 import AssignTaskModal from '../components/AssignTaskModal';
-import { useTheme } from '../context/ThemeContext';
 import AddTaskModal from '../components/AddTaskModal';
 import TaskCard from '../components/TaskCard';
 import KanbanColumn from '../components/KanbanColumn';
@@ -74,11 +73,11 @@ const KanbanBoard = () => {
     // Join project room for live updates
     if (selectedProject) {
       connectSocket();
-      try { getSocket().emit('project.join', { projectId: selectedProject }); } catch (_) {}
+      try { getSocket().emit('project.join', { projectId: selectedProject }); } catch (_) { }
     }
     return () => {
       if (selectedProject) {
-        try { getSocket().emit('project.leave', { projectId: selectedProject }); } catch (_) {}
+        try { getSocket().emit('project.leave', { projectId: selectedProject }); } catch (_) { }
       }
     };
   }, [selectedProject]);
@@ -285,16 +284,35 @@ const KanbanBoard = () => {
   };
 
   return (
-    <Layout>
+    <>
       <Head>
         <title>Kanban Board | TeamLabs</title>
       </Head>
       <div className="mx-auto">
 
-        <div className="flex items-center justify-between mb-6">
-          <h1 className={getThemeClasses("text-3xl font-bold text-gray-900", "dark:text-white")}>
-            Kanban Board
-          </h1>
+        <div className="flex items-center justify-between mb-2">
+          {/* Project Info Banner */}
+          <div className={getThemeClasses(
+            'bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 flex items-center gap-3 border border-blue-100',
+            'dark:from-blue-900/30 dark:to-indigo-900/30 dark:border-blue-800/50'
+          )}>
+            <FaInfoCircle className={getThemeClasses(
+              'text-blue-500',
+              'dark:text-blue-400'
+            )} size={20} />
+            <div>
+              <p className={getThemeClasses(
+                'text-gray-700',
+                'dark:text-gray-300'
+              )}>
+                Currently viewing: <span className="font-semibold">{getCurrentProjectName()}</span>
+              </p>
+              <p className={getThemeClasses(
+                'text-sm text-gray-600',
+                'dark:text-gray-400'
+              )}>Drag and drop tasks to update their status</p>
+            </div>
+          </div>
           <div className="flex items-center gap-4">
             <CustomDropdown
               value={selectedProject || ''}
@@ -314,28 +332,7 @@ const KanbanBoard = () => {
           </div>
         </div>
 
-        {/* Project Info Banner */}
-        <div className={getThemeClasses(
-          'bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 flex items-center gap-3 border border-blue-100',
-          'dark:from-blue-900/30 dark:to-indigo-900/30 dark:border-blue-800/50'
-        )}>
-          <FaInfoCircle className={getThemeClasses(
-            'text-blue-500',
-            'dark:text-blue-400'
-          )} size={20} />
-          <div>
-            <p className={getThemeClasses(
-              'text-gray-700',
-              'dark:text-gray-300'
-            )}>
-              Currently viewing: <span className="font-semibold">{getCurrentProjectName()}</span>
-            </p>
-            <p className={getThemeClasses(
-              'text-sm text-gray-600',
-              'dark:text-gray-400'
-            )}>Drag and drop tasks to update their status</p>
-          </div>
-        </div>
+
 
         {loading && tasks.length === 0 ? (
           <div className="flex items-center justify-center py-16">
@@ -634,7 +631,7 @@ const KanbanBoard = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

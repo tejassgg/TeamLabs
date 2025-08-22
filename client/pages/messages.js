@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
-import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
@@ -50,7 +49,7 @@ const ConversationsListSkeleton = ({ theme }) => (
         ))}
       </div>
     </div>
-    
+
     {/* Direct Messages Section Skeleton */}
     <div>
       <div className={`h-4 w-32 rounded animate-pulse mb-2 ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
@@ -272,7 +271,7 @@ export default function MessagesPage() {
       })
       .catch(() => { })
       .finally(() => setIsLoadingConversations(false));
-    
+
     // load org users for multi-select
     api.get(`/dashboard/${user.organizationID}`).then(res => {
       const users = res.data?.members?.map(m => {
@@ -320,24 +319,24 @@ export default function MessagesPage() {
       const { data } = payload || {};
       const { conversationId, participants, name, updatedAt } = data || {};
       if (!conversationId) return;
-      
+
       // Update conversations list and move updated conversation to top
       setConversations(prev => {
         const updatedConv = prev.find(c => c._id === conversationId);
         if (!updatedConv) return prev;
-        
+
         const updated = {
           ...updatedConv,
           ...(participants && { participants }),
           ...(name && { name }),
           ...(updatedAt && { updatedAt })
         };
-        
+
         // Move updated conversation to top
         const otherConvs = prev.filter(c => c._id !== conversationId);
         return [updated, ...otherConvs];
       });
-      
+
       // If this is a significant update (participants or name), refresh the full conversation data
       if (participants || name) {
         messagingService.getConversation(conversationId)
@@ -350,30 +349,30 @@ export default function MessagesPage() {
           })
           .catch(console.error);
       }
-      
+
       // Update current conversation details if it's the selected one
       if (selectedConversation && selectedConversation._id === conversationId) {
-        setConvDetails(prev => prev ? { 
-          ...prev, 
+        setConvDetails(prev => prev ? {
+          ...prev,
           ...(participants && { participants }),
           ...(name && { name }),
           ...(updatedAt && { updatedAt })
         } : prev);
-        
+
         // Also update the selected conversation to reflect changes
-        setSelectedConversation(prev => prev && prev._id === conversationId ? { 
-          ...prev, 
+        setSelectedConversation(prev => prev && prev._id === conversationId ? {
+          ...prev,
           ...(participants && { participants }),
           ...(name && { name }),
           ...(updatedAt && { updatedAt })
         } : prev);
-        
+
         // If we're editing the group name and it was updated, reset the edit state
         if (name && isEditingGroupName) {
           setIsEditingGroupName(false);
           setEditedGroupName('');
         }
-        
+
         // If participants were updated, refresh conversation details to get full member information
         if (participants) {
           messagingService.getConversation(conversationId)
@@ -384,7 +383,7 @@ export default function MessagesPage() {
             })
             .catch(console.error);
         }
-        
+
         // If name was updated, also refresh conversation details to ensure consistency
         if (name) {
           messagingService.getConversation(conversationId)
@@ -396,14 +395,14 @@ export default function MessagesPage() {
             .catch(console.error);
         }
       }
-      
+
       // Set animation state for the updated conversation
       setRecentlyUpdatedConversation(conversationId);
       setTimeout(() => {
         setRecentlyUpdatedConversation(null);
       }, 1000);
     });
-    
+
     // Global inbox updates for unread counts and ordering
     const offInbox = subscribe('chat.inbox.updated', (payload) => {
       const { data } = payload || {};
@@ -443,12 +442,12 @@ export default function MessagesPage() {
       setRecentlyUpdatedConversation(conversationId);
       setTimeout(() => setRecentlyUpdatedConversation(null), 1000);
     });
-    
+
     // Subscribe to organization member updates to refresh orgUsers list
     const offOrgMemberUpdated = subscribe('org.member.updated', (payload) => {
       const { data } = payload || {};
       if (!data || !data.organizationId || data.organizationId !== user.organizationID) return;
-      
+
       // Refresh organization users list when members are updated
       api.get(`/dashboard/${user.organizationID}`).then(res => {
         const users = res.data?.members?.map(m => {
@@ -469,7 +468,7 @@ export default function MessagesPage() {
         setOrgUsers(users);
       }).catch(() => { });
     });
-    
+
     return () => {
       offConv && offConv();
       offConvDeleted && offConvDeleted();
@@ -491,7 +490,7 @@ export default function MessagesPage() {
     if (selectedConversation?._id) {
       setUnreadCounts((prev) => ({ ...prev, [selectedConversation._id]: 0 }));
       // Mark as read on server (fire-and-forget)
-      messagingService.markRead(selectedConversation._id).catch(() => {});
+      messagingService.markRead(selectedConversation._id).catch(() => { });
     }
   }, [selectedConversation?._id]);
 
@@ -521,7 +520,7 @@ export default function MessagesPage() {
   useEffect(() => {
     if (!selectedConversation) return;
     // Join conversation room
-    try { getSocket().emit('conversation.join', { conversationId: selectedConversation._id }); } catch (_) {}
+    try { getSocket().emit('conversation.join', { conversationId: selectedConversation._id }); } catch (_) { }
     setIsLoadingMessages(true);
     setMessagesPage(1);
     setHasMoreMessages(true);
@@ -536,16 +535,16 @@ export default function MessagesPage() {
     const offMsg = subscribe('chat.message.created', (payload) => {
       const { data } = payload || {};
       if (!data || data.conversationId !== selectedConversation._id) return;
-      
+
       // Add new message to the current conversation
       setMessages((prev) => (prev.some((m) => m._id === data.message._id) ? prev : [...prev, data.message]));
-      
+
       // Update conversation preview and move to top
       updateConversationPreview(selectedConversation._id, data.message);
-      
+
       // Auto-scroll to bottom for new messages
       setTimeout(scrollToBottom, 50);
-      
+
       // If it's a system message about member changes, refresh conversation details
       if (data.message.type === 'system' && (
         data.message.text.includes('added to the group') ||
@@ -598,11 +597,11 @@ export default function MessagesPage() {
       offMsg && offMsg();
       offRead && offRead();
       offTyping && offTyping();
-      try { getSocket().emit('conversation.leave', { conversationId: selectedConversation._id }); } catch (_) {}
+      try { getSocket().emit('conversation.leave', { conversationId: selectedConversation._id }); } catch (_) { }
       setTypingUsers({});
       try {
         Object.values(typingTimersRef.current || {}).forEach((t) => clearTimeout(t));
-      } catch (_) {}
+      } catch (_) { }
       typingTimersRef.current = {};
     };
   }, [selectedConversation?._id]);
@@ -627,7 +626,7 @@ export default function MessagesPage() {
           } else if (message.type === 'system') {
             preview = message.text;
           }
-          
+
           updatedConv = {
             ...conv,
             lastMessagePreview: preview,
@@ -638,7 +637,7 @@ export default function MessagesPage() {
         }
         return true; // Keep other conversations
       });
-      
+
       // Return with updated conversation at the top
       return updatedConv ? [updatedConv, ...otherConvs] : prev;
     });
@@ -677,7 +676,7 @@ export default function MessagesPage() {
   const handleInputChange = (e) => {
     const value = e.target.value;
     setInput(value);
-    
+
     // Check for @ symbol to show mentions
     const atIndex = value.lastIndexOf('@');
     if (atIndex !== -1 && selectedConversation?.isGroup) {
@@ -688,7 +687,7 @@ export default function MessagesPage() {
       setMentionQuery(query);
       setMentionPosition(atIndex);
       setSelectedMentionIndex(0); // Reset selection when showing mentions
-      
+
       // Filter members based on query (fallback to selectedConversation participants if convDetails not loaded)
       const participantsSrc = (convDetails?.participants || selectedConversation?.participants || []);
       if (participantsSrc && Array.isArray(participantsSrc)) {
@@ -702,7 +701,7 @@ export default function MessagesPage() {
     } else {
       setShowMentions(false);
     }
-    
+
     // Emit typing event
     if (selectedConversation) {
       const socket = getSocket();
@@ -719,26 +718,26 @@ export default function MessagesPage() {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      
+
       // If mentions are shown, select the highlighted mention
       if (showMentions && filteredMembers.length > 0) {
         handleMentionSelect(filteredMembers[selectedMentionIndex]);
         return;
       }
-      
+
       handleSend();
     }
-    
+
     // Handle arrow keys for mention navigation
     if (showMentions && filteredMembers.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedMentionIndex(prev => 
+        setSelectedMentionIndex(prev =>
           prev < filteredMembers.length - 1 ? prev + 1 : 0
         );
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setSelectedMentionIndex(prev => 
+        setSelectedMentionIndex(prev =>
           prev > 0 ? prev - 1 : filteredMembers.length - 1
         );
       } else if (e.key === 'Escape') {
@@ -822,20 +821,20 @@ export default function MessagesPage() {
 
   const handleSaveGroupName = async () => {
     if (!editedGroupName.trim() || !selectedConversation) return;
-    
+
     setIsSavingGroupName(true);
     try {
       // Show loading state
       showToast('Updating group name...', 'info');
-      
+
       // Update conversation name via API - real-time events will handle UI updates
       await api.patch(`/messages/conversations/${selectedConversation._id}`, {
         name: editedGroupName.trim()
       });
-      
+
       // Send system message about the name change
       await sendSystemMessage(selectedConversation._id, `Group name changed to "${editedGroupName.trim()}"`);
-      
+
       setIsEditingGroupName(false);
       showToast('Group name updated successfully', 'success');
     } catch (error) {
@@ -875,23 +874,23 @@ export default function MessagesPage() {
 
   const handleDeleteConversation = async () => {
     if (!selectedConversation || !selectedConversation.isGroup) return;
-    
+
     setIsDeleting(true);
     try {
       // Delete the conversation (this should handle messages and members deletion on the backend)
       await messagingService.deleteConversation(selectedConversation._id);
-      
+
       // Remove from conversations list
       setConversations((prev) => prev.filter(c => c._id !== selectedConversation._id));
-      
+
       // Clear selected conversation
       setSelectedConversation(null);
       setMessages([]);
-      
+
       // Close dialogs
       setShowDeleteDialog(false);
       setShowKebabMenu(false);
-      
+
       // Show success toast
       showToast('Group deleted successfully', 'success');
     } catch (error) {
@@ -904,19 +903,19 @@ export default function MessagesPage() {
 
   const handleLeaveGroup = async () => {
     if (!selectedConversation || !selectedConversation.isGroup) return;
-    
+
     setIsLeaving(true);
     try {
       await messagingService.leaveConversation(selectedConversation._id);
-      
+
       // Send system message to DB about leaving
       const userName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
       await sendSystemMessage(selectedConversation._id, `${userName} left the group`);
       setSelectedConversation(selectedConversation);
-      
+
       // Show success toast
       showToast('You have left the group', 'success');
-      
+
       setShowKebabMenu(false);
     } catch (error) {
       console.error('Failed to leave group:', error);
@@ -928,18 +927,18 @@ export default function MessagesPage() {
 
   const handleRemoveMember = async (memberId, memberName) => {
     if (!selectedConversation || !convDetails) return;
-    
+
     try {
       const updated = await messagingService.removeMembers(selectedConversation._id, [memberId]);
       setConvDetails(updated);
-      
+
       // Refresh conversations list
       const list = await messagingService.getConversations();
       setConversations(list);
-      
+
       // Send system message to DB
       await sendSystemMessage(selectedConversation._id, `${memberName} has been removed from the group`);
-      
+
       // Show success toast
       showToast(`${memberName} has been removed from the group`, 'success');
     } catch (error) {
@@ -995,46 +994,23 @@ export default function MessagesPage() {
   }, [selectedConversation?._id]);
 
   return (
-    <Layout>
+    <>
       <Head>
         <title>Messages - TeamLabs</title>
       </Head>
 
       <div className="mx-auto">
-        <div className="mb-2 flex items-center justify-between">
-          <div className="min-w-0 flex-1 mr-4">
-            <h1 className={getThemeClasses("text-2xl lg:text-3xl font-bold text-gray-900", "dark:text-white")}>
-              Messages
-              {Object.values(unreadCounts).reduce((sum, count) => sum + count, 0) > 0 && (
-                <span className={`ml-3 text-lg px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700'}`}>
-                  {Object.values(unreadCounts).reduce((sum, count) => sum + count, 0)} unread
-                </span>
-              )}
-            </h1>
-            <p className={getThemeClasses("text-gray-600 mt-1 lg:mt-2 text-sm lg:text-base", "dark:text-gray-400")}>
-              Chat with your team members and collaborate on projects
-            </p>
-          </div>
-          <button 
-            className={`px-3 lg:px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-colors flex items-center gap-1 lg:gap-2 text-sm lg:text-base touch-manipulation ${theme === 'dark' ? 'from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800' : ''}`} 
-            onClick={() => setShowNewConversation(true)}
-          >
-            <FaPlus size={14} />
-            <span className="hidden sm:inline">New</span>
-          </button>
-        </div>
-
-        <div className={`flex h-[calc(100vh-175px)] ${bg} relative`}>
+        <div className={`flex h-[calc(100vh-82px)] ${bg} relative`}>
           {/* Mobile Overlay */}
           {isMobileSidebarOpen && (
-            <div 
-              className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+            <div
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
               onClick={() => setIsMobileSidebarOpen(false)}
             />
           )}
-          
+
           <aside className={`w-80 border-r ${theme === 'dark' ? 'bg-transparent border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-200 text-gray-900'} p-3 overflow-y-auto transition-transform duration-300 lg:relative lg:translate-x-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed lg:static top-0 left-0 h-full z-50 lg:z-auto lg:w-80`}>
-            <div className="mb-3">
+            <div className="flex items-center justify-between mb-3">
               {/* Search Input */}
               <div className="relative">
                 <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={14} />
@@ -1046,6 +1022,12 @@ export default function MessagesPage() {
                   className={`w-full pl-10 pr-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-400 focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500'} focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
                 />
               </div>
+              <button
+                className={`p-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-colors flex items-center gap-1 lg:gap-2 text-sm lg:text-base touch-manipulation ${theme === 'dark' ? 'from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800' : ''}`}
+                onClick={() => setShowNewConversation(true)}
+              >
+                <FaPlus size={14} />
+              </button>
             </div>
             <div className="space-y-4">
               {isLoadingConversations ? (
@@ -1138,7 +1120,7 @@ export default function MessagesPage() {
                                   )}
                                 </div>
                                 <div className={`text-sm opacity-70 truncate transition-all duration-300 ${isRecentlyUpdated ? (theme === 'dark' ? 'text-green-400 font-medium' : 'text-green-600 font-medium') : ''}`}>{c.lastMessagePreview}</div>
-                            </div>
+                              </div>
                               <div className="text-xs opacity-50 flex-shrink-0">
                                 {formatTimeAgo(c.lastMessageTime || c.updatedAt || c.createdAt)}
                               </div>
@@ -1176,129 +1158,129 @@ export default function MessagesPage() {
                   <ChatHeaderSkeleton theme={theme} />
                 ) : (
                   <header className={`p-3 border-b ${theme === 'dark' ? 'bg-transparent border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-200 text-gray-900'} flex-shrink-0`}>
-                  <div className="flex items-center justify-between">
-                    {/* Mobile Menu Button */}
-                    <button
-                      onClick={() => setIsMobileSidebarOpen(true)}
-                      className={`lg:hidden p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'} mr-3`}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                      </svg>
-                    </button>
-                    <button onClick={handleOpenDetails} className="flex-1 text-left min-w-0">
-                      <div className="flex items-center gap-3">
-                        {selectedConversation.isGroup && selectedConversation.avatarUrl ? (
-                          <img src={selectedConversation.avatarUrl} alt="" className="w-8 h-8 rounded-full" />
-                        ) : (
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
-                            {(() => {
-                              const isGroup = selectedConversation.isGroup;
-                              if (!isGroup) {
-                                const other = selectedConversation.participants?.find(p => p._id !== user?._id);
-                                const parts = `${other?.firstName || ''} ${other?.lastName || ''}`.trim().split(' ').filter(Boolean);
-                                return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'U';
-                              }
-                              const parts = (selectedConversation.name || '').split(' ').filter(Boolean);
-                              return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'GR';
-                            })()}
-                          </div>
-                        )}
-                        
+                    <div className="flex items-center justify-between">
+                      {/* Mobile Menu Button */}
+                      <button
+                        onClick={() => setIsMobileSidebarOpen(true)}
+                        className={`lg:hidden p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'} mr-3`}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                      </button>
+                      <button onClick={handleOpenDetails} className="flex-1 text-left min-w-0">
                         <div className="flex items-center gap-3">
-                          <span className="font-semibold text-base lg:text-lg hover:underline transition-all duration-200 truncate block">
-                            {selectedConversation.isGroup ? (selectedConversation.name || 'Group') : (selectedConversation.participants?.filter(p => p._id !== user?._id).map(p => `${p.firstName} ${p.lastName}`).join(', ') || 'Direct')}
-                          </span>
-                          
-                          {/* Group members initials display */}
-                          {selectedConversation.isGroup && selectedConversation.participants && (
-                            <div className="flex items-center gap-1">
-                              {selectedConversation.participants.slice(0, 3).map((member, idx) => {
-                                const initials = `${(member.firstName || '')[0] || ''}${(member.lastName || '')[0] || ''}`.toUpperCase() || 'U';
-                                return (
-                                  <div
-                                    key={member._id}
-                                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-gray-600' : 'bg-blue-600 text-white border border-white'} shadow-sm`}
-                                    style={{ marginLeft: idx === 0 ? '0' : '-8px' }}
-                                    title={`${member.firstName || ''} ${member.lastName || ''}`.trim()}
-                                  >
-                                    {member.profileImage ? (
-                                      <img
-                                        src={member.profileImage}
-                                        alt={`${member.firstName} ${member.lastName}`}
-                                        className="w-full h-full object-cover rounded-full"
-                                      />
-                                    ) : (
-                                      <span>{initials}</span>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                              {selectedConversation.participants.length > 3 && (
-                                <div 
-                                  className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-300 border border-gray-600' : 'bg-gray-100 text-gray-600 border border-white'} shadow-sm`}
-                                  style={{ marginLeft: '-8px' }}
-                                  title={`${selectedConversation.participants.length - 3} more members`}
-                                >
-                                  +{selectedConversation.participants.length - 3}
-                                </div>
-                              )}
+                          {selectedConversation.isGroup && selectedConversation.avatarUrl ? (
+                            <img src={selectedConversation.avatarUrl} alt="" className="w-8 h-8 rounded-full" />
+                          ) : (
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
+                              {(() => {
+                                const isGroup = selectedConversation.isGroup;
+                                if (!isGroup) {
+                                  const other = selectedConversation.participants?.find(p => p._id !== user?._id);
+                                  const parts = `${other?.firstName || ''} ${other?.lastName || ''}`.trim().split(' ').filter(Boolean);
+                                  return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'U';
+                                }
+                                const parts = (selectedConversation.name || '').split(' ').filter(Boolean);
+                                return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'GR';
+                              })()}
                             </div>
                           )}
+
+                          <div className="flex items-center gap-3">
+                            <span className="font-semibold text-base lg:text-lg hover:underline transition-all duration-200 truncate block">
+                              {selectedConversation.isGroup ? (selectedConversation.name || 'Group') : (selectedConversation.participants?.filter(p => p._id !== user?._id).map(p => `${p.firstName} ${p.lastName}`).join(', ') || 'Direct')}
+                            </span>
+
+                            {/* Group members initials display */}
+                            {selectedConversation.isGroup && selectedConversation.participants && (
+                              <div className="flex items-center gap-1">
+                                {selectedConversation.participants.slice(0, 3).map((member, idx) => {
+                                  const initials = `${(member.firstName || '')[0] || ''}${(member.lastName || '')[0] || ''}`.toUpperCase() || 'U';
+                                  return (
+                                    <div
+                                      key={member._id}
+                                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-gray-600' : 'bg-blue-600 text-white border border-white'} shadow-sm`}
+                                      style={{ marginLeft: idx === 0 ? '0' : '-8px' }}
+                                      title={`${member.firstName || ''} ${member.lastName || ''}`.trim()}
+                                    >
+                                      {member.profileImage ? (
+                                        <img
+                                          src={member.profileImage}
+                                          alt={`${member.firstName} ${member.lastName}`}
+                                          className="w-full h-full object-cover rounded-full"
+                                        />
+                                      ) : (
+                                        <span>{initials}</span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                                {selectedConversation.participants.length > 3 && (
+                                  <div
+                                    className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-300 border border-gray-600' : 'bg-gray-100 text-gray-600 border border-white'} shadow-sm`}
+                                    style={{ marginLeft: '-8px' }}
+                                    title={`${selectedConversation.participants.length - 3} more members`}
+                                  >
+                                    +{selectedConversation.participants.length - 3}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                    
-                    {/* Kebab Menu */}
-                    <div className="relative" ref={kebabMenuRef}>
-                      <button
-                        onClick={() => setShowKebabMenu(!showKebabMenu)}
-                        className={`p-2 rounded-xl transition-all duration-200 touch-manipulation ${theme === 'dark' ? 'text-blue-200 hover:bg-[#424242]' : 'text-blue-600 hover:bg-blue-100'}`}
-                      >
-                        <FaEllipsisV className="w-4 h-4" />
                       </button>
-                      
-                      {showKebabMenu && (
-                        <div className={`absolute right-0 top-full mt-2 w-48 rounded-xl shadow-lg py-1 border z-50 ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} lg:w-48 w-40`}>
-                          <button
-                            onClick={() => {
-                              setShowKebabMenu(false);
-                              handleOpenDetails();
-                            }}
-                            className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
-                          >
-                            <FaCog size={16} />
-                            <span>Settings</span>
-                          </button>
-                          {selectedConversation.isGroup && (
+
+                      {/* Kebab Menu */}
+                      <div className="relative" ref={kebabMenuRef}>
+                        <button
+                          onClick={() => setShowKebabMenu(!showKebabMenu)}
+                          className={`p-2 rounded-xl transition-all duration-200 touch-manipulation ${theme === 'dark' ? 'text-blue-200 hover:bg-[#424242]' : 'text-blue-600 hover:bg-blue-100'}`}
+                        >
+                          <FaEllipsisV className="w-4 h-4" />
+                        </button>
+
+                        {showKebabMenu && (
+                          <div className={`absolute right-0 top-full mt-2 w-48 rounded-xl shadow-lg py-1 border z-50 ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} lg:w-48 w-40`}>
                             <button
                               onClick={() => {
                                 setShowKebabMenu(false);
-                                handleLeaveGroup();
+                                handleOpenDetails();
                               }}
-                              disabled={isLeaving}
-                              className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-orange-300' : 'hover:bg-blue-100 text-orange-600'} disabled:opacity-50`}
+                              className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
                             >
-                              <FaSignOutAlt size={16} />
-                              <span>{isLeaving ? 'Leaving...' : 'Leave'}</span>
+                              <FaCog size={16} />
+                              <span>Settings</span>
                             </button>
-                          )}
-                          {selectedConversation.isGroup && (selectedConversation?.createdBy === user?._id || selectedConversation?.admins?.includes(user?._id)) && (
-                            <button
-                              onClick={() => {
-                                setShowKebabMenu(false);
-                                setShowDeleteDialog(true);
-                              }}
-                              className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-red-300' : 'hover:bg-blue-100 text-red-600'}`}
-                            >
-                              <FaTrash size={16} />
-                              <span>Delete</span>
-                            </button>
-                          )}
-                        </div>
-                      )}
+                            {selectedConversation.isGroup && (
+                              <button
+                                onClick={() => {
+                                  setShowKebabMenu(false);
+                                  handleLeaveGroup();
+                                }}
+                                disabled={isLeaving}
+                                className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-orange-300' : 'hover:bg-blue-100 text-orange-600'} disabled:opacity-50`}
+                              >
+                                <FaSignOutAlt size={16} />
+                                <span>{isLeaving ? 'Leaving...' : 'Leave'}</span>
+                              </button>
+                            )}
+                            {selectedConversation.isGroup && (selectedConversation?.createdBy === user?._id || selectedConversation?.admins?.includes(user?._id)) && (
+                              <button
+                                onClick={() => {
+                                  setShowKebabMenu(false);
+                                  setShowDeleteDialog(true);
+                                }}
+                                className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-red-300' : 'hover:bg-blue-100 text-red-600'}`}
+                              >
+                                <FaTrash size={16} />
+                                <span>Delete</span>
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
                   </header>
                 )}
                 {isLoadingMessages ? (
@@ -1332,107 +1314,107 @@ export default function MessagesPage() {
                         </div>
                       </div>
                     )}
-                    
+
                     {messages.map((m, index) => {
-                    const mine = String(m.sender?._id || m.sender) === String(user?._id);
-                    const messageDate = new Date(m.createdAt || m.timestamp);
-                    const prevMessage = index > 0 ? messages[index - 1] : null;
-                    const prevMessageDate = prevMessage ? new Date(prevMessage.createdAt || prevMessage.timestamp) : null;
-                    
-                    // Check if we need to show a date separator
-                    const showDateSeparator = prevMessageDate && 
-                      messageDate.toDateString() !== prevMessageDate.toDateString();
-                    
-                    return (
-                      <React.Fragment key={m._id}>
-                        {/* Date separator - show for first message or when date changes */}
-                        {(index === 0 || showDateSeparator) && (
-                          <div className="flex justify-center my-4">
-                            <div className={`text-xs font-bold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                              {messageDate.toLocaleDateString('en-US', {
-                                weekday: 'long',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
+                      const mine = String(m.sender?._id || m.sender) === String(user?._id);
+                      const messageDate = new Date(m.createdAt || m.timestamp);
+                      const prevMessage = index > 0 ? messages[index - 1] : null;
+                      const prevMessageDate = prevMessage ? new Date(prevMessage.createdAt || prevMessage.timestamp) : null;
+
+                      // Check if we need to show a date separator
+                      const showDateSeparator = prevMessageDate &&
+                        messageDate.toDateString() !== prevMessageDate.toDateString();
+
+                      return (
+                        <React.Fragment key={m._id}>
+                          {/* Date separator - show for first message or when date changes */}
+                          {(index === 0 || showDateSeparator) && (
+                            <div className="flex justify-center my-4">
+                              <div className={`text-xs font-bold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                {messageDate.toLocaleDateString('en-US', {
+                                  weekday: 'long',
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
+                              </div>
                             </div>
-                          </div>
-                        )}
-                        
-                        {/* Handle system messages */}
-                        {m.type === 'system' ? (
-                          <div className="flex justify-center">
-                            <div className={`px-3 py-2 rounded-lg text-xs ${theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
-                              {m.text}
+                          )}
+
+                          {/* Handle system messages */}
+                          {m.type === 'system' ? (
+                            <div className="flex justify-center">
+                              <div className={`px-3 py-2 rounded-lg text-xs ${theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                                {m.text}
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <div className={`group flex ${mine ? 'justify-end' : 'justify-start'}`}>
-                        <div className="max-w-[75%]">
-                          {/* Sender info - show for all users */}
-                          <div className={`flex items-center gap-2 mb-1 ${mine ? 'justify-end' : 'justify-start'}`}>
-                            {!mine && (
-                              <div className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center bg-gray-200">
-                                {m.sender?.profileImage ? (
-                                  <img src={m.sender.profileImage} alt="" className="w-7 h-7 object-cover" />
-                                ) : (
-                                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
-                                    {`${(m.sender?.firstName || '')[0] || ''}${(m.sender?.lastName || '')[0] || ''}`.toUpperCase() || 'U'}
-                                  </span>
+                          ) : (
+                            <div className={`group flex ${mine ? 'justify-end' : 'justify-start'}`}>
+                              <div className="max-w-[75%]">
+                                {/* Sender info - show for all users */}
+                                <div className={`flex items-center gap-2 mb-1 ${mine ? 'justify-end' : 'justify-start'}`}>
+                                  {!mine && (
+                                    <div className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center bg-gray-200">
+                                      {m.sender?.profileImage ? (
+                                        <img src={m.sender.profileImage} alt="" className="w-7 h-7 object-cover" />
+                                      ) : (
+                                        <span className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
+                                          {`${(m.sender?.firstName || '')[0] || ''}${(m.sender?.lastName || '')[0] || ''}`.toUpperCase() || 'U'}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                  <div className="text-xs opacity-70">
+                                    {mine ? 'You' : `${m.sender?.firstName || ''} ${m.sender?.lastName || ''}`}
+                                  </div>
+                                  <div className="text-xs opacity-50">
+                                    {formatTimeAgo(m.createdAt || m.timestamp)}
+                                  </div>
+                                </div>
+
+                                {/* Message content */}
+                                <div className={`relative ${mine ? 'bg-blue-600 text-white rounded-2xl rounded-br-none' : `${theme === 'dark' ? 'bg-gray-700 ' : 'bg-gray-100 '} rounded-2xl rounded-bl-none`} ${m.type === 'text' ? 'inline-block w-fit' : 'p-3'}`}>
+                                  {m.type === 'text' && (
+                                    <div className="whitespace-pre-wrap px-3 py-2">{renderMessageText(m.text)}</div>
+                                  )}
+                                  {m.type === 'image' && (
+                                    <img src={m.mediaUrl} alt="" className="rounded-lg max-h-80" />
+                                  )}
+                                  {m.type === 'video' && (
+                                    <video src={m.mediaUrl} controls className="rounded-lg max-h-80" />
+                                  )}
+                                  {/* Reaction picker on hover */}
+                                  <div className={`absolute -top-3 ${mine ? '-right-1' : '-left-1'} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                                    <div className={`flex items-center gap-1 px-1 py-0.5 rounded-full border ${panel}`}>
+                                      {['👍', '❤️', '😂', '🎉', '😮', '🙏'].map((e) => (
+                                        <button key={e} className={`text-xs px-1.5 py-0.5 rounded-full ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`} onClick={() => handleReaction(m._id, e)}>{e}</button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Read receipts (basic): show "Read" for messages you sent that have been read by others */}
+                                {mine && Array.isArray(m.readBy) && m.readBy.some((uid) => String(uid) !== String(user?._id)) && (
+                                  <div className={`mt-1 text-[10px] opacity-60 ${mine ? 'text-right' : ''}`}>
+                                    Read
+                                  </div>
+                                )}
+
+                                {/* Reactions outside the message block */}
+                                {m.reactions?.length > 0 && (
+                                  <div className={`mt-1 text-xs opacity-90 flex items-center gap-1 flex-wrap ${mine ? 'justify-end' : 'justify-start'}`}>
+                                    {Object.entries(m.reactions.reduce((acc, r) => { acc[r.emoji] = (acc[r.emoji] || 0) + 1; return acc; }, {})).map(([e, count]) => (
+                                      <span key={e} className={`px-2 py-0.5 rounded-full border ${panel}`}>{e} {count}</span>
+                                    ))}
+                                  </div>
                                 )}
                               </div>
-                            )}
-                            <div className="text-xs opacity-70">
-                              {mine ? 'You' : `${m.sender?.firstName || ''} ${m.sender?.lastName || ''}`}
-                            </div>
-                            <div className="text-xs opacity-50">
-                              {formatTimeAgo(m.createdAt || m.timestamp)}
-                            </div>
-                          </div>
-
-                          {/* Message content */}
-                          <div className={`relative ${mine ? 'bg-blue-600 text-white rounded-2xl rounded-br-none' : `${theme === 'dark' ? 'bg-gray-700 ' : 'bg-gray-100 '} rounded-2xl rounded-bl-none`} ${m.type === 'text' ? 'inline-block w-fit' : 'p-3'}`}>
-                            {m.type === 'text' && (
-                              <div className="whitespace-pre-wrap px-3 py-2">{renderMessageText(m.text)}</div>
-                            )}
-                            {m.type === 'image' && (
-                              <img src={m.mediaUrl} alt="" className="rounded-lg max-h-80" />
-                            )}
-                            {m.type === 'video' && (
-                              <video src={m.mediaUrl} controls className="rounded-lg max-h-80" />
-                            )}
-                            {/* Reaction picker on hover */}
-                            <div className={`absolute -top-3 ${mine ? '-right-1' : '-left-1'} opacity-0 group-hover:opacity-100 transition-opacity`}>
-                              <div className={`flex items-center gap-1 px-1 py-0.5 rounded-full border ${panel}`}>
-                                {['👍', '❤️', '😂', '🎉', '😮', '🙏'].map((e) => (
-                                  <button key={e} className={`text-xs px-1.5 py-0.5 rounded-full ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`} onClick={() => handleReaction(m._id, e)}>{e}</button>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Read receipts (basic): show "Read" for messages you sent that have been read by others */}
-                          {mine && Array.isArray(m.readBy) && m.readBy.some((uid) => String(uid) !== String(user?._id)) && (
-                            <div className={`mt-1 text-[10px] opacity-60 ${mine ? 'text-right' : ''}`}>
-                              Read
                             </div>
                           )}
-
-                          {/* Reactions outside the message block */}
-                          {m.reactions?.length > 0 && (
-                            <div className={`mt-1 text-xs opacity-90 flex items-center gap-1 flex-wrap ${mine ? 'justify-end' : 'justify-start'}`}>
-                              {Object.entries(m.reactions.reduce((acc, r) => { acc[r.emoji] = (acc[r.emoji] || 0) + 1; return acc; }, {})).map(([e, count]) => (
-                                <span key={e} className={`px-2 py-0.5 rounded-full border ${panel}`}>{e} {count}</span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                        )}
-                      </React.Fragment>
-                    );
+                        </React.Fragment>
+                      );
                     })}
-                    
+
                     {/* System message for users who are no longer members */}
                     {selectedConversation && !(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id)) && (
                       <div className="flex justify-center mb-4">
@@ -1457,74 +1439,73 @@ export default function MessagesPage() {
                   <ChatFooterSkeleton theme={theme} />
                 ) : (
                   <footer className={`relative p-2 lg:p-3 mx-2 lg:mx-3 mb-2 lg:mb-3 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900'} flex-shrink-0 ${!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id)) ? 'opacity-50 pointer-events-none' : ''}`}>
-                  {/* Mention Dropdown */}
-                  {showMentions && selectedConversation?.isGroup && (
-                    <div ref={mentionDropdownRef} className={`absolute bottom-full left-0 right-0 mb-2 z-50 rounded-lg border shadow-lg ${theme === 'dark' ? 'bg-[#232323] border-[#424242]' : 'bg-white border-gray-200'}`}>
-                      <div className="p-2 border-b border-gray-200 dark:border-[#424242]">
-                        <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                          Mention a member
+                    {/* Mention Dropdown */}
+                    {showMentions && selectedConversation?.isGroup && (
+                      <div ref={mentionDropdownRef} className={`absolute bottom-full left-0 right-0 mb-2 z-50 rounded-lg border shadow-lg ${theme === 'dark' ? 'bg-[#232323] border-[#424242]' : 'bg-white border-gray-200'}`}>
+                        <div className="p-2 border-b border-gray-200 dark:border-[#424242]">
+                          <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                            Mention a member
+                          </div>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto py-1">
+                          {filteredMembers.length > 0 ? (
+                            filteredMembers.map((member, index) => (
+                              <button
+                                key={member._id}
+                                type="button"
+                                onClick={() => handleMentionSelect(member)}
+                                className={`w-full flex items-center gap-2 px-3 py-2 text-left transition-colors ${index === selectedMentionIndex
+                                    ? (theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-50 text-blue-700')
+                                    : (theme === 'dark' ? 'hover:bg-[#2A2A2A]' : 'hover:bg-gray-100')
+                                  }`}
+                              >
+                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
+                                  {`${(member.firstName || '')[0] || ''}${(member.lastName || '')[0] || ''}`.toUpperCase() || 'U'}
+                                </span>
+                                <span className="font-medium">{`${member.firstName || ''} ${member.lastName || ''}`.trim()}</span>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-center">
+                              No members found
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="max-h-48 overflow-y-auto py-1">
-                        {filteredMembers.length > 0 ? (
-                          filteredMembers.map((member, index) => (
-                            <button
-                              key={member._id}
-                              type="button"
-                              onClick={() => handleMentionSelect(member)}
-                              className={`w-full flex items-center gap-2 px-3 py-2 text-left transition-colors ${
-                                index === selectedMentionIndex 
-                                  ? (theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-50 text-blue-700')
-                                  : (theme === 'dark' ? 'hover:bg-[#2A2A2A]' : 'hover:bg-gray-100')
-                              }`}
-                            >
-                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
-                                {`${(member.firstName || '')[0] || ''}${(member.lastName || '')[0] || ''}`.toUpperCase() || 'U'}
-                              </span>
-                              <span className="font-medium">{`${member.firstName || ''} ${member.lastName || ''}`.trim()}</span>
-                            </button>
-                          ))
-                        ) : (
-                          <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-center">
-                            No members found
-                          </div>
-                        )}
+                    )}
+                    <div className="flex items-center gap-1 lg:gap-2">
+                      <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`}>
+                        <FaImage />
+                        <input type="file" accept="image/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} />
+                      </label>
+                      <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`}>
+                        <FaVideo />
+                        <input type="file" accept="video/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} />
+                      </label>
+                      <input
+                        className={`flex-1 px-2 lg:px-3 py-2 rounded-lg border ${panel} text-sm lg:text-base`}
+                        placeholder={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))
+                          ? "You are no longer a participant in this conversation"
+                          : selectedConversation?.isGroup
+                            ? "Type a message or @ to mention someone"
+                            : "Type a message"}
+                        value={input}
+                        ref={messageInputRef}
+                        onChange={handleInputChange}
+                        onKeyDown={handleKeyDown}
+                        disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))}
+                      />
+                      <button disabled={isSending || !(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} className={`px-2 lg:px-4 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-blue-50 text-blue-600'} flex items-center gap-1 lg:gap-2 touch-manipulation`} onClick={handleSend}>
+                        <FaPaperPlane className="text-sm" />
+                        <span className="hidden lg:inline">Send</span>
+                      </button>
+                    </div>
+                    {/* Help text for mentions */}
+                    {selectedConversation?.isGroup && (selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id)) && (
+                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+                        💡 Type @ to mention a group member
                       </div>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1 lg:gap-2">
-                    <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`}>
-                      <FaImage />
-                      <input type="file" accept="image/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} />
-                    </label>
-                    <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`}>
-                      <FaVideo />
-                      <input type="file" accept="video/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} />
-                    </label>
-                    <input
-                      className={`flex-1 px-2 lg:px-3 py-2 rounded-lg border ${panel} text-sm lg:text-base`}
-                      placeholder={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id)) 
-                        ? "You are no longer a participant in this conversation" 
-                        : selectedConversation?.isGroup 
-                          ? "Type a message or @ to mention someone" 
-                          : "Type a message"}
-                      value={input}
-                      ref={messageInputRef}
-                      onChange={handleInputChange}
-                      onKeyDown={handleKeyDown}
-                      disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))}
-                    />
-                    <button disabled={isSending || !(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} className={`px-2 lg:px-4 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-blue-50 text-blue-600'} flex items-center gap-1 lg:gap-2 touch-manipulation`} onClick={handleSend}>
-                      <FaPaperPlane className="text-sm" /> 
-                      <span className="hidden lg:inline">Send</span>
-                    </button>
-                  </div>
-                  {/* Help text for mentions */}
-                  {selectedConversation?.isGroup && (selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id)) && (
-                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
-                      💡 Type @ to mention a group member
-                    </div>
-                  )}
+                    )}
                   </footer>
                 )}
               </>
@@ -1663,12 +1644,12 @@ export default function MessagesPage() {
                   </>
                 )}
                 <div className="flex justify-end gap-3 pt-4">
-                  <button 
+                  <button
                     type="button"
                     className={getThemeClasses(
                       'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-colors',
                       'dark:text-gray-400 dark:hover:bg-gray-700 dark:border-gray-600'
-                    )} 
+                    )}
                     onClick={() => {
                       setShowNewConversation(false);
                       setConversationType('dm');
@@ -1678,13 +1659,13 @@ export default function MessagesPage() {
                     Cancel
                   </button>
                   {conversationType === 'dm' ? (
-                    <button 
+                    <button
                       type="button"
                       disabled={!selectedDmUser}
                       className={getThemeClasses(
                         'px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
                         'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-                      )} 
+                      )}
                       onClick={async () => {
                         try {
                           if (!selectedDmUser) return;
@@ -1702,12 +1683,12 @@ export default function MessagesPage() {
                       Start
                     </button>
                   ) : (
-                    <button 
+                    <button
                       type="button"
                       className={getThemeClasses(
                         'px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-colors',
                         'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-                      )} 
+                      )}
                       onClick={async () => {
                         try {
                           let ids = groupMembers.map(u => u._id);
@@ -1717,14 +1698,14 @@ export default function MessagesPage() {
                           }
                           const conv = await messagingService.createGroup(groupName, ids, groupAvatar);
                           setSelectedConversation(conv);
-                          
+
                           // System messages are now created automatically by the backend
-                          
+
                           setShowNewConversation(false);
                           setGroupName('');
                           setGroupMembers([]);
                           setGroupAvatar('');
-                        } catch (e) { 
+                        } catch (e) {
                           console.error('Failed to create group:', e);
                         }
                       }}
@@ -1739,9 +1720,9 @@ export default function MessagesPage() {
         </div>
         {showDetails && (
           <div className="fixed inset-0 z-40">
-            <div 
-              className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isDetailsAnimating ? 'opacity-0' : 'opacity-100'}`} 
-              onClick={handleCloseDetails} 
+            <div
+              className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isDetailsAnimating ? 'opacity-0' : 'opacity-100'}`}
+              onClick={handleCloseDetails}
             />
             <div className={`absolute right-0 top-0 bottom-0 w-full lg:max-w-md ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-4 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isDetailsAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
 
@@ -1818,7 +1799,7 @@ export default function MessagesPage() {
                             const isGroupAdmin = convDetails?.createdBy === user?._id || convDetails?.admins?.includes(user?._id);
                             const isCurrentUser = String(p._id) === String(user?._id);
                             const fullName = `${p.firstName || ''} ${p.lastName || ''}`.trim();
-                            
+
                             return (
                               <div key={p._id} className={`px-2 py-1 rounded-full border ${panel} flex items-center gap-2`}>
                                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</span>
@@ -1854,10 +1835,10 @@ export default function MessagesPage() {
                                 const memberCount = ids.length;
                                 const loadingMessage = memberCount === 1 ? 'Adding member...' : `Adding ${memberCount} members...`;
                                 showToast(loadingMessage, 'info');
-                                
+
                                 // Add members - the real-time events will handle UI updates
                                 await messagingService.addMembers(selectedConversation._id, ids);
-                                
+
                                 // Show success toast
                                 const successMessage = memberCount === 1 ? 'Member added successfully' : `${memberCount} members added successfully`;
                                 showToast(successMessage, 'success');
@@ -1916,7 +1897,7 @@ export default function MessagesPage() {
                   </p>
                 </div>
               </div>
-              
+
               <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-[#232323] border border-[#424242]' : 'bg-gray-50 border border-gray-200'}`}>
                 <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   This action will:
@@ -1966,7 +1947,7 @@ export default function MessagesPage() {
           </div>
         )}
       </div>
-    </Layout>
+    </>
   );
 }
 

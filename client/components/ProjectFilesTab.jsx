@@ -160,7 +160,6 @@ const ProjectFilesTab = ({ projectId }) => {
     try {
       setAttachmentsLoading(true);
       const response = await api.get(`/attachments/project/${projectId}`);
-      console.log(response.data);
       setProjectAttachments(response.data);
     } catch (error) {
       console.error('Error fetching project attachments:', error);

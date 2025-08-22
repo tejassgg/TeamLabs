@@ -4,8 +4,7 @@ import LoginForm from '../components/LoginForm';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import Link from 'next/link';
-import { FaMoon, FaSun } from 'react-icons/fa';
+import AuthNavbar from '../components/AuthNavbar';
 
 const Login = () => {
   const { theme, toggleTheme, resolvedTheme } = useTheme();
@@ -34,29 +33,7 @@ const Login = () => {
       <Head>
         <title>Login | TeamLabs</title>
       </Head>
-      {/* Header/Nav from landing page */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${resolvedTheme === 'dark' ? 'bg-gray-900/95 backdrop-blur-sm border-b border-gray-800' : 'bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm'}`}>
-        <div className="sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 w-full">
-            {/* Logo */}
-            <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none">
-                TeamLabs
-              </Link>
-            </div>
-            {/* Theme toggle */}
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={toggleTheme}
-                className={`p-2 rounded-lg transition-colors ${resolvedTheme === 'dark' ? 'text-gray-400 hover:text-yellow-300 bg-gray-800 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200'}`}
-                title={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              >
-                {resolvedTheme === 'dark' ? <FaSun /> : <FaMoon />}
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <AuthNavbar />
       <div className="min-h-screen w-full flex flex-col md:flex-row pt-16">
         {/* Left Side - Welcome Section */}
         <div className="hidden md:flex flex-col justify-center items-center w-1/2 bg-gray-800 text-white p-12">
@@ -82,5 +59,7 @@ const Login = () => {
     </>
   );
 };
+
+Login.displayName = 'Login';
 
 export default Login; 

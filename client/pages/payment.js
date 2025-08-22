@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import Layout from '../components/Layout';
+import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
@@ -359,7 +358,7 @@ const Payment = () => {
   }, [showBankDropdown]);
 
   return (
-    <Layout>
+    <>
       <Head>
         <title>Payment | TeamLabs</title>
       </Head>
@@ -376,9 +375,6 @@ const Payment = () => {
           </button>
           
           <div className="text-center">
-            <h1 className={`text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2`}>
-              Complete Your Payment
-            </h1>
             <p className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
               Secure payment for <span className="font-semibold text-blue-600">{planDetails.name}</span>
             </p>
@@ -997,7 +993,7 @@ const Payment = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

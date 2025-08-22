@@ -5,6 +5,7 @@ import { getProjectStatusStyle, getProjectStatusBadge } from '../components/Proj
 import { getTaskTypeStyle, getTaskTypeBadge } from '../components/TaskTypeBadge';
 import { getDeadlineStatus, calculateDeadlineText } from '../components/DeadlineStatusBadge';
 import { useRouter } from 'next/router';
+import { subscribe } from '../services/socket';
 
 const GlobalContext = createContext();
 
@@ -134,6 +135,46 @@ export const GlobalProvider = ({ children }) => {
       initializeData();
     }
   }, [user, router.pathname]);
+
+  // Subscribe to real-time team events
+  useEffect(() => {
+    if (!user) return;
+
+    const unsubscribeTeamCreated = subscribe('team.created', (payload) => {
+      const { data } = payload || {};
+      if (!data || !data.team) return;
+      setTeams(prev => [...prev, data.team]);
+    });
+
+    const unsubscribeTeamUpdated = subscribe('team.updated', (payload) => {
+      const { data } = payload || {};
+      if (!data || !data.team) return;
+      setTeams(prev => prev.map(t => 
+        t.TeamID === data.teamId ? data.team : t
+      ));
+    });
+
+    const unsubscribeTeamDeleted = subscribe('team.deleted', (payload) => {
+      const { data } = payload || {};
+      if (!data || !data.team) return;
+      setTeams(prev => prev.filter(t => t.TeamID !== data.teamId));
+    });
+
+    const unsubscribeTeamStatusUpdated = subscribe('team.status.updated', (payload) => {
+      const { data } = payload || {};
+      if (!data || !data.team) return;
+      setTeams(prev => prev.map(t => 
+        t.TeamID === data.teamId ? data.team : t
+      ));
+    });
+
+    return () => {
+      unsubscribeTeamCreated();
+      unsubscribeTeamUpdated();
+      unsubscribeTeamDeleted();
+      unsubscribeTeamStatusUpdated();
+    };
+  }, [user]);
 
   const refreshOrganizations = async () => {
     return await fetchOrganizations();

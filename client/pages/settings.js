@@ -1,8 +1,7 @@
-import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import Layout from '../components/Layout';
-import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { FaMoon, FaSun, FaDesktop, FaShieldAlt, FaSignOutAlt, FaCheck, FaTimes, FaCrown, FaInfinity, FaUsers, FaRocket, FaStar, FaCheckCircle, FaGithub } from 'react-icons/fa';
 import { useToast } from '../context/ToastContext';
 import TwoFactorAuth from '../components/TwoFactorAuth';
@@ -486,27 +485,11 @@ const Settings = () => {
   ];
 
   return (
-    <Layout>
+    <>
       <Head>
         <title>Settings | TeamLabs</title>
       </Head>
       <div className="mx-auto">
-        <div className="flex items-center justify-between">
-          <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-            Settings
-          </h1>
-          <button
-            onClick={logout}
-            className={`flex items-center gap-2 px-4 py-2 transition-colors ${theme === 'dark'
-                ? 'text-red-400 hover:text-red-300'
-                : 'text-red-600 hover:text-red-700'
-              }`}
-          >
-            <FaSignOutAlt />
-            <span>Logout</span>
-          </button>
-        </div>
-
         {/* Settings Navigation */}
         <div className="mb-6">
           <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
@@ -1410,7 +1393,7 @@ const Settings = () => {
           </div>
         </div>
       )}
-    </Layout>
+    </>
   );
 };
 

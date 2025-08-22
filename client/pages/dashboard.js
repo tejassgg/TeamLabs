@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
-import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
@@ -160,11 +159,60 @@ const Dashboard = () => {
         setStats((prev) => prev ? { ...prev, ...data.metrics } : prev);
       });
 
+      // Subscribe to team events to keep teams list in sync
+      const unsubTeamCreated = subscribe('team.created', (payload) => {
+        const { data } = payload || {};
+        if (!data || !data.team) return;
+        setStats((prev) => {
+          if (!prev) return prev;
+          const updatedTeams = [...(prev.teams || []), data.team];
+          return { ...prev, teams: updatedTeams, totalTeams: updatedTeams.length };
+        });
+      });
+
+      const unsubTeamUpdated = subscribe('team.updated', (payload) => {
+        const { data } = payload || {};
+        if (!data || !data.team) return;
+        setStats((prev) => {
+          if (!prev) return prev;
+          const updatedTeams = (prev.teams || []).map(t => 
+            t.TeamID === data.teamId ? data.team : t
+          );
+          return { ...prev, teams: updatedTeams };
+        });
+      });
+
+      const unsubTeamDeleted = subscribe('team.deleted', (payload) => {
+        const { data } = payload || {};
+        if (!data || !data.team) return;
+        setStats((prev) => {
+          if (!prev) return prev;
+          const updatedTeams = (prev.teams || []).filter(t => t.TeamID !== data.teamId);
+          return { ...prev, teams: updatedTeams, totalTeams: updatedTeams.length };
+        });
+      });
+
+      const unsubTeamStatusUpdated = subscribe('team.status.updated', (payload) => {
+        const { data } = payload || {};
+        if (!data || !data.team) return;
+        setStats((prev) => {
+          if (!prev) return prev;
+          const updatedTeams = (prev.teams || []).map(t => 
+            t.TeamID === data.teamId ? data.team : t
+          );
+          return { ...prev, teams: updatedTeams };
+        });
+      });
+
       return () => {
         unsubPresence && unsubPresence();
         unsubUpdated && unsubUpdated();
         unsubRemoved && unsubRemoved();
         unsubMetrics && unsubMetrics();
+        unsubTeamCreated && unsubTeamCreated();
+        unsubTeamUpdated && unsubTeamUpdated();
+        unsubTeamDeleted && unsubTeamDeleted();
+        unsubTeamStatusUpdated && unsubTeamStatusUpdated();
       };
     }
 
@@ -298,47 +346,24 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      </Layout>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Layout>
-        <div className="text-red-500 text-center p-8">{error}</div>
-      </Layout>
+      <div className="text-red-500 text-center p-8">{error}</div>
     );
   }
 
   return (
-    <Layout>
+    <>
       <Head>
         <title>Dashboard | TeamLabs</title>
       </Head>
       <div className="mx-auto">
-
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.organizationName}</h1>
-            <p className={`text-lg mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>Welcome to your workspace</p>
-          </div>
-          <button
-            onClick={() => setShowOnboardingGuide(true)}
-            className={`px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${
-              theme === 'dark' 
-                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-            }`}
-          >
-            <FaRocket size={14} />
-            Setup Guide
-          </button>
-        </div>
-
         {/* Onboarding Progress */}
         <OnboardingProgress onComplete={async () => {
           try {
@@ -374,34 +399,49 @@ const Dashboard = () => {
         {/* Tab Navigation */}
         <div className="mb-6">
           <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-            <nav className="-mb-px flex space-x-8">
+            <nav className="-mb-px flex items-center justify-between">
+              <div className="flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('metrics')}
+                  className={`${activeTab === 'metrics'
+                    ? theme === 'dark'
+                      ? 'border-blue-400 text-blue-400'
+                      : 'border-blue-600 text-blue-600'
+                    : theme === 'dark'
+                      ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                >
+                  <FaChartBar size={16} />
+                  <span>Metrics & Analytics</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('manage')}
+                  className={`${activeTab === 'manage'
+                    ? theme === 'dark'
+                      ? 'border-blue-400 text-blue-400'
+                      : 'border-blue-600 text-blue-600'
+                    : theme === 'dark'
+                      ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                >
+                  <FaProjectDiagram size={16} />
+                  <span>Manage Organization</span>
+                </button>
+              </div>
+              
+              {/* Setup Guide Button - Now positioned on the right side */}
               <button
-                onClick={() => setActiveTab('metrics')}
-                className={`${activeTab === 'metrics'
-                  ? theme === 'dark'
-                    ? 'border-blue-400 text-blue-400'
-                    : 'border-blue-600 text-blue-600'
-                  : theme === 'dark'
-                    ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                onClick={() => setShowOnboardingGuide(true)}
+                className={`px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${
+                  theme === 'dark' 
+                    ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
               >
-                <FaChartBar size={16} />
-                <span>Metrics & Analytics</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('manage')}
-                className={`${activeTab === 'manage'
-                  ? theme === 'dark'
-                    ? 'border-blue-400 text-blue-400'
-                    : 'border-blue-600 text-blue-600'
-                  : theme === 'dark'
-                    ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
-              >
-                <FaProjectDiagram size={16} />
-                <span>Manage Organization</span>
+                <FaRocket size={14} />
+                Setup Guide
               </button>
             </nav>
           </div>
@@ -747,7 +787,7 @@ const Dashboard = () => {
           </div>
         )}
       </div>
-    </Layout>
+    </>
   );
 };
 

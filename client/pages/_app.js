@@ -9,16 +9,29 @@ import { GlobalProvider } from '../context/GlobalContext';
 // import { SessionProvider } from 'next-auth/react';
 import { ToastProvider } from '../context/ToastContext';
 import RouteProtection from '../components/RouteProtection';
+import Layout from '../components/Layout';
 
 function AppContainer({ Component, pageProps }) {
   useEffect(() => {
     connectSocket();
   }, []);
   const { theme } = useTheme();
+  
+  // Check if current page is login, register, or landing page
+  const isAuthPage = Component.displayName === 'Login' || Component.displayName === 'Register' || Component.displayName === 'Home' || 
+                    pageProps?.isAuthPage || 
+                    (typeof window !== 'undefined' && ['/login', '/register', '/'].includes(window.location.pathname));
+  
   return (
     <div className={theme} style={{ minHeight: '100vh' }}>
       <RouteProtection>
-        <Component {...pageProps} />
+        {isAuthPage ? (
+          <Component {...pageProps} />
+        ) : (
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        )}
       </RouteProtection>
     </div>
   );

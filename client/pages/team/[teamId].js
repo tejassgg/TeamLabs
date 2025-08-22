@@ -1,22 +1,21 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { useGlobal } from '../../context/GlobalContext';
 import api, { authService, teamService } from '../../services/api';
-import Layout from '../../components/Layout';
 import CustomModal from '../../components/CustomModal';
 import StatusDropdown from '../../components/StatusDropdown';
 import { FaCog, FaTrash, FaTimes, FaChevronRight } from 'react-icons/fa';
-import LoadingScreen from '../../components/LoadingScreen';
 import TeamDetailsSkeleton from '../../components/TeamDetailsSkeleton';
-import { useAuth } from '../../context/AuthContext';
-import { useGlobal } from '../../context/GlobalContext';
-import { useTheme } from '../../context/ThemeContext';
+import { subscribe } from '../../services/socket';
+import Link from 'next/link';
 
 // Custom hook for theme-aware classes
 const useThemeClasses = () => {
   const { theme } = useTheme();
-  
+
   const getThemeClasses = (lightClasses, darkClasses) => {
     return theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
   };
@@ -114,6 +113,142 @@ const TeamDetailsPage = () => {
         })
         .finally(() => setLoading(false));
     }
+  }, [teamId, router]);
+
+  // Subscribe to real-time team events
+  useEffect(() => {
+    if (!teamId) return;
+
+    const unsubscribeTeamUpdated = subscribe('team.updated', (data) => {
+      if (data.data.teamId === teamId) {
+        setTeam(data.data.team);
+        // Update settings form if team name/description/type changed
+        setSettingsForm(prev => ({
+          ...prev,
+          TeamName: data.data.team.TeamName,
+          TeamType: data.data.team.TeamType,
+          TeamDescription: data.data.team.TeamDescription
+        }));
+      }
+    });
+
+    const unsubscribeTeamStatusUpdated = subscribe('team.status.updated', (data) => {
+      if (data.data.teamId === teamId) {
+        setTeam(data.data.team);
+      }
+    });
+
+    const unsubscribeTeamDeleted = subscribe('team.deleted', (data) => {
+      if (data.data.teamId === teamId) {
+        // Redirect to dashboard if team is deleted
+        router.push('/dashboard');
+      }
+    });
+
+    const unsubscribeMemberAdded = subscribe('team.member.added', (data) => {
+      if (data.data.teamId === teamId) {
+        // Add new member to the list
+        const newMember = {
+          MemberID: data.data.member.MemberID,
+          TeamDetailsID: data.data.member.TeamDetailsID,
+          IsMemberActive: data.data.member.IsMemberActive,
+          name: `${data.data.user.firstName} ${data.data.user.lastName}`,
+          email: data.data.user.email,
+          lastLogin: null,
+          CreatedDate: data.data.member.CreatedDate,
+          ModifiedDate: data.data.member.ModifiedDate
+        };
+        setMembers(prev => [...prev, newMember]);
+        // Remove user from orgUsers since they're now a member
+        setOrgUsers(prev => prev.filter(u => u._id !== data.data.user._id));
+      }
+    });
+
+    const unsubscribeMemberRemoved = subscribe('team.member.removed', (data) => {
+      if (data.data.teamId === teamId) {
+        // Remove member from the list
+        setMembers(prev => prev.filter(m => m.MemberID !== data.data.memberId));
+        // Add user back to orgUsers since they're no longer a member
+        if (data.data.user) {
+          setOrgUsers(prev => [...prev, data.data.user]);
+        }
+      }
+    });
+
+    const unsubscribeMemberStatusUpdated = subscribe('team.member.status.updated', (data) => {
+      if (data.data.teamId === teamId) {
+        // Update member status in the list
+        setMembers(prev => prev.map(m =>
+          m.MemberID === data.data.memberId
+            ? { ...m, IsMemberActive: data.data.member.IsMemberActive }
+            : m
+        ));
+      }
+    });
+
+    const unsubscribeMembersBulkRemoved = subscribe('team.members.bulk_removed', (data) => {
+      if (data.data.teamId === teamId) {
+        // Remove multiple members from the list
+        setMembers(prev => prev.filter(m => !data.data.removedMemberIds.includes(m.MemberID)));
+        // Add users back to orgUsers
+        // Note: This would require fetching user details for all removed members
+        // For now, we'll just refresh the data
+        api.get(`/team-details/${teamId}`).then(res => {
+          setMembers(res.data.members);
+          setOrgUsers(res.data.orgUsers);
+        });
+      }
+    });
+
+    const unsubscribeProjectsBulkRemoved = subscribe('team.projects.bulk_removed', (data) => {
+      if (data.data.teamId === teamId) {
+        // Remove multiple projects from the list
+        setActiveProjects(prev => prev.filter(p => !data.data.removedProjectIds.includes(p.ProjectID)));
+      }
+    });
+
+    const unsubscribeJoinRequestCreated = subscribe('team.join_request.created', (data) => {
+      if (data.data.teamId === teamId) {
+        // Add new join request to the list
+        const newRequest = {
+          ...data.data.request.toObject ? data.data.request.toObject() : data.data.request,
+          userId: data.data.user
+        };
+        setJoinRequests(prev => [...prev, newRequest]);
+      }
+    });
+
+    const unsubscribeJoinRequestAccepted = subscribe('team.join_request.accepted', (data) => {
+      if (data.data.teamId === teamId) {
+        // Remove accepted request and refresh members
+        setJoinRequests(prev => prev.filter(r => r._id !== data.data.request._id));
+        api.get(`/team-details/${teamId}`).then(res => {
+          setMembers(res.data.members);
+          setOrgUsers(res.data.orgUsers);
+        });
+      }
+    });
+
+    const unsubscribeJoinRequestRejected = subscribe('team.join_request.rejected', (data) => {
+      if (data.data.teamId === teamId) {
+        // Remove rejected request from the list
+        setJoinRequests(prev => prev.filter(r => r._id !== data.data.request._id));
+      }
+    });
+
+    return () => {
+      unsubscribeTeamUpdated();
+      unsubscribeTeamStatusUpdated();
+      unsubscribeTeamDeleted();
+      unsubscribeMemberAdded();
+      unsubscribeMemberRemoved();
+      unsubscribeMemberStatusUpdated();
+      unsubscribeMembersBulkRemoved();
+      unsubscribeProjectsBulkRemoved();
+      unsubscribeJoinRequestCreated();
+      unsubscribeJoinRequestAccepted();
+      unsubscribeJoinRequestRejected();
+    };
   }, [teamId, router]);
 
   useEffect(() => {
@@ -286,7 +421,7 @@ const TeamDetailsPage = () => {
     setError('');
     try {
       await api.delete(`/team-details/${teamId}/members/remove-members`, {
-        data: { 
+        data: {
           memberIds: selectedMembers,
           OwnerID: user?._id
         }
@@ -330,7 +465,7 @@ const TeamDetailsPage = () => {
     setError('');
     try {
       await api.delete(`/team-details/${teamId}/projects/remove-projects`, {
-        data: { 
+        data: {
           projectIds: selectedProjects,
           OwnerID: user?._id
         }
@@ -395,7 +530,7 @@ const TeamDetailsPage = () => {
   };
 
   return (
-    <Layout>
+    <>
       <Head>
         <title>{`Team - ${team?.TeamName || 'Loading...'} | TeamLabs`}</title>
         <meta name="theme-color" content={theme === 'dark' ? '#1F2937' : '#FFFFFF'} />
@@ -411,15 +546,48 @@ const TeamDetailsPage = () => {
           )}>{error}</div>
         ) : (
           <>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <h1 className={getThemeClasses(
-                  'text-3xl font-bold text-gray-900',
-                  'dark:text-gray-100'
-                )}>{team.TeamName}</h1>
-              </div>
-              {isOwner && (
-                <div className="flex items-center gap-2">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+
+              {/* Team Description - Enhanced UI */}
+              <div className={getThemeClasses(
+                'flex w-full items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm',
+                'dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none'
+              )}>
+                <div className="flex items-center gap-3">
+                  <div className={getThemeClasses(
+                    'flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center',
+                    'dark:bg-blue-900/50'
+                  )}>
+                    <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className={getThemeClasses(
+                      'text-sm font-semibold text-blue-800 mb-1',
+                      'dark:text-blue-300'
+                    )}>
+                      Team Description
+                    </h3>
+                    {team.TeamDescription ? (
+                      <p className={getThemeClasses(
+                        'text-sm text-blue-700 leading-relaxed',
+                        'dark:text-blue-200'
+                      )}>
+                        {team.TeamDescription}
+                      </p>
+                    ) : (
+                      <p className={getThemeClasses(
+                        'text-sm text-blue-600 italic',
+                        'dark:text-blue-300'
+                      )}>
+                        No description provided
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {/* Right side controls */}
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <div className={getThemeClasses(
                     `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${team.IsActive
                       ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200'
@@ -433,32 +601,28 @@ const TeamDetailsPage = () => {
                     <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
                     {team.IsActive ? 'Active' : 'InActive'}
                   </div>
-                  <button
-                    onClick={() => setShowSettingsModal(true)}
-                    className={getThemeClasses(
-                      'p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors',
-                      'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700'
-                    )}
-                    title="Team Settings"
-                  >
-                    <FaCog size={20} />
-                  </button>
+                  {isOwner && (
+                    <button
+                      onClick={() => setShowSettingsModal(true)}
+                      className={getThemeClasses(
+                        'p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors',
+                        'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700'
+                      )}
+                      title="Team Settings"
+                    >
+                      <FaCog size={20} />
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="flex items-center gap-4 mb-4">
-              <p className={getThemeClasses(
-                'text-gray-600',
-                'dark:text-gray-400'
-              )}>{team.TeamDescription}</p>
-              {team.teamTypeValue && (
-                <div className={getThemeClasses(
-                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200',
-                  'dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50'
-                )}>
-                  {team.teamTypeValue}
-                </div>
-              )}
+                {team.teamTypeValue && (
+                  <div className={getThemeClasses(
+                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200',
+                    'dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50'
+                  )}>
+                    {team.teamTypeValue}
+                  </div>
+                )}
+              </div>
             </div>
 
             {isOwner && (
@@ -605,13 +769,13 @@ const TeamDetailsPage = () => {
                                   'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium',
                                   'dark:bg-blue-900/50 dark:text-blue-300'
                                 )}>
-                                  {req.userId?.fullName 
+                                  {req.userId?.fullName
                                     ? req.userId.fullName.split(' ').map(n => n[0]).join('').toUpperCase()
-                                    : req.userId?.firstName && req.userId?.lastName 
+                                    : req.userId?.firstName && req.userId?.lastName
                                       ? `${req.userId.firstName[0]}${req.userId.lastName[0]}`
-                                      : req.userId?.firstName 
-                                        ? req.userId.firstName[0] 
-                                        : req.userId?.username 
+                                      : req.userId?.firstName
+                                        ? req.userId.firstName[0]
+                                        : req.userId?.username
                                           ? req.userId.username[0].toUpperCase()
                                           : 'U'
                                   }
@@ -621,12 +785,12 @@ const TeamDetailsPage = () => {
                                     'font-medium text-gray-900',
                                     'dark:text-gray-100'
                                   )}>
-                                    {req.userId?.fullName || req.userId?.firstName && req.userId?.lastName 
+                                    {req.userId?.fullName || req.userId?.firstName && req.userId?.lastName
                                       ? `${req.userId.firstName} ${req.userId.lastName}`
-                                      : req.userId?.firstName 
-                                        ? req.userId.firstName 
-                                        : req.userId?.username 
-                                          ? req.userId.username 
+                                      : req.userId?.firstName
+                                        ? req.userId.firstName
+                                        : req.userId?.username
+                                          ? req.userId.username
                                           : 'Unknown User'
                                     }
                                   </span>
@@ -645,7 +809,7 @@ const TeamDetailsPage = () => {
                                         {req.userId.role}
                                       </span>
                                     )}
-                                    
+
                                   </div>
                                 </div>
                               </div>
@@ -653,7 +817,7 @@ const TeamDetailsPage = () => {
                             <td className="py-2 px-4">
                               <StatusDropdown
                                 currentStatus={req.userId?.status || 'Offline'}
-                                onStatusChange={() => {}} // Read-only in this context
+                                onStatusChange={() => { }} // Read-only in this context
                                 theme={theme}
                                 isReadOnly={true}
                               />
@@ -1127,14 +1291,14 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                  <p className={getThemeClasses(
+                <p className={getThemeClasses(
                   'text-gray-600',
-                    'dark:text-gray-400'
-                  )}>
+                  'dark:text-gray-400'
+                )}>
                   {selectedMember.IsMemberActive
                     ? `Are you sure you want to revoke access for ${selectedMember.name}? This will prevent them from accessing team resources.`
                     : `Are you sure you want to grant access for ${selectedMember.name}? This will allow them to access team resources.`}
-                  </p>
+                </p>
               </CustomModal>
             )}
 
@@ -1358,14 +1522,14 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                  <p className={getThemeClasses(
+                <p className={getThemeClasses(
                   'text-gray-600',
-                    'dark:text-gray-400'
-                  )}>
+                  'dark:text-gray-400'
+                )}>
                   {team.IsActive
                     ? 'Are you sure you want to deactivate this team? This will prevent members from accessing team resources.'
                     : 'Are you sure you want to activate this team? This will allow members to access team resources.'}
-                  </p>
+                </p>
               </CustomModal>
             )}
 
@@ -1406,10 +1570,10 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                  <p className={getThemeClasses(
+                <p className={getThemeClasses(
                   'text-gray-600',
-                    'dark:text-gray-400'
-                  )}>
+                  'dark:text-gray-400'
+                )}>
                   Are you sure you want to add {userToAdd.firstName} {userToAdd.lastName} to the team?
                 </p>
               </CustomModal>
@@ -1456,10 +1620,10 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                  <p className={getThemeClasses(
+                <p className={getThemeClasses(
                   'text-gray-600',
-                    'dark:text-gray-400'
-                  )}>
+                  'dark:text-gray-400'
+                )}>
                   {selectedInactiveMember.name} is currently inactive in the team. You must activate the member before performing any actions.
                 </p>
               </CustomModal>
@@ -1496,10 +1660,10 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                  <p className={getThemeClasses(
+                <p className={getThemeClasses(
                   'text-gray-600',
-                    'dark:text-gray-400'
-                  )}>
+                  'dark:text-gray-400'
+                )}>
                   Are you sure you want to delete this team? This action cannot be undone and will remove all team members and associated data.
                 </p>
               </CustomModal>
@@ -1547,7 +1711,7 @@ const TeamDetailsPage = () => {
           </>
         )}
       </div>
-    </Layout>
+    </>
   );
 };
 

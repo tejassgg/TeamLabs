@@ -28,7 +28,7 @@ const isProfileComplete = (userDetails) => {
   return requiredFields.every(field => userDetails[field] && userDetails[field].toString().trim() !== '');
 };
 
-const Navbar = ({ isMobile, theme, onLogout }) => {
+const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
   const { user } = useAuth();
   const { userDetails } = useGlobal();
   const router = useRouter();
@@ -214,16 +214,22 @@ const Navbar = ({ isMobile, theme, onLogout }) => {
   return (
     <nav className={`${theme === 'dark' ? 'bg-[#18181b] text-white border-[#232323]' : 'bg-white text-gray-900 border-gray-200'} shadow-sm border-b`}>
       <div className="mx-auto">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-16 ml-2">
           {/* Left side - Logo */}
-          <div className="flex-shrink-0 ml-2 lg:ml-6">
-            <Link href="/" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none" onClick={handleLogoClick}>
-              TeamLabs
-            </Link>
+          <div className="flex-shrink-0">
+            {pageTitle ? (
+              <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none" onClick={handleLogoClick}>
+                {pageTitle}
+              </div>
+            ) : (
+              <Link href="/" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none" onClick={handleLogoClick}>
+                TeamLabs
+              </Link>
+            )}
           </div>
 
           {/* Right side - User menu and Notifications */}
-          <div className="flex items-center pr-4 lg:pr-8 space-x-2 lg:space-x-6">
+          <div className="flex items-center space-x-2 mr-2 lg:space-x-6">
             {/* Status Dropdown */}
             <StatusDropdown
               currentStatus={userStatus}

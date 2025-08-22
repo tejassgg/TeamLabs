@@ -83,6 +83,20 @@ export function connectSocket() {
   socket.on('chat.inbox.updated', (payload) => dispatch('chat.inbox.updated', payload));
   socket.on('chat.messages.read', (payload) => dispatch('chat.messages.read', payload));
 
+  // Team events
+  socket.on('team.created', (payload) => dispatch('team.created', payload));
+  socket.on('team.updated', (payload) => dispatch('team.updated', payload));
+  socket.on('team.deleted', (payload) => dispatch('team.deleted', payload));
+  socket.on('team.status.updated', (payload) => dispatch('team.status.updated', payload));
+  socket.on('team.member.added', (payload) => dispatch('team.member.added', payload));
+  socket.on('team.member.removed', (payload) => dispatch('team.member.removed', payload));
+  socket.on('team.member.status.updated', (payload) => dispatch('team.member.status.updated', payload));
+  socket.on('team.members.bulk_removed', (payload) => dispatch('team.members.bulk_removed', payload));
+  socket.on('team.projects.bulk_removed', (payload) => dispatch('team.projects.bulk_removed', payload));
+  socket.on('team.join_request.created', (payload) => dispatch('team.join_request.created', payload));
+  socket.on('team.join_request.accepted', (payload) => dispatch('team.join_request.accepted', payload));
+  socket.on('team.join_request.rejected', (payload) => dispatch('team.join_request.rejected', payload));
+
   return socket;
 }
 

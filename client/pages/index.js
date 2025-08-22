@@ -7,7 +7,8 @@ import LoginForm from '../components/LoginForm';
 import RegisterForm from '../components/RegisterForm';
 import { useTheme } from '../context/ThemeContext';
 import { landingService } from '../services/api';
-import { FaMoon, FaSun, FaRocket, FaChartLine, FaUsers, FaShieldAlt, FaRobot, FaCheckCircle, FaArrowRight, FaPlay, FaStar, FaGithub, FaGoogle, FaSignOutAlt, FaChevronRight, FaChevronDown, FaBars, FaTimes } from 'react-icons/fa';
+import AuthNavbar from '../components/AuthNavbar';
+import { FaRocket, FaChartLine, FaUsers, FaShieldAlt, FaRobot, FaCheckCircle, FaArrowRight, FaPlay, FaStar, FaGithub, FaGoogle, FaSignOutAlt, FaChevronRight, FaChevronDown, FaBars, FaTimes } from 'react-icons/fa';
 
 const testimonials = [
   {
@@ -148,7 +149,43 @@ function useReveal() {
   return ref;
 }
 
-export default function Home() {
+// Enhanced reveal hook with different animation types
+function useRevealWithType(type = 'fade-up') {
+  const ref = useRef(null);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reveal-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      }
+    );
+    
+    if (node) {
+      observer.observe(node);
+    }
+    
+    return () => {
+      if (node) {
+        observer.unobserve(node);
+      }
+    };
+  }, []);
+  
+  return ref;
+}
+
+function Home() {
   const { isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme, resolvedTheme } = useTheme();
   const [modalOpen, setModalOpen] = useState(false);
@@ -160,6 +197,28 @@ export default function Home() {
 
   useEffect(() => {
     setIsVisible(true);
+    
+    // Initialize scroll animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal-visible');
+        }
+      });
+    }, observerOptions);
+    
+    // Observe all reveal elements
+    const revealElements = document.querySelectorAll('.reveal');
+    revealElements.forEach((el) => observer.observe(el));
+    
+    return () => {
+      revealElements.forEach((el) => observer.unobserve(el));
+    };
   }, []);
 
   // Fetch landing page statistics
@@ -210,76 +269,7 @@ export default function Home() {
         <meta name="keywords" content="project management, team collaboration, kanban board, AI assistant, analytics dashboard" />
       </Head>
 
-      {/* Navigation */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${resolvedTheme === 'dark' ? 'bg-gray-900/95 backdrop-blur-sm border-b border-gray-800' : 'bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm'}`}>
-        <div className="sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 w-full">
-            {/* Logo */}
-            <div className="flex-shrink-0 flex items-center">
-              <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none">
-                TeamLabs
-              </span>
-            </div>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className={`text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Features</a>
-              <a href="#testimonials" className={`text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Reviews</a>
-              <a href="#pricing" className={`text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Pricing</a>
-            </div>
-
-            {/* Right-aligned buttons */}
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={toggleTheme}
-                className={`p-2 rounded-lg transition-colors ${resolvedTheme === 'dark' ? 'text-gray-400 hover:text-yellow-300 bg-gray-800 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200'}`}
-                title={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              >
-                {resolvedTheme === 'dark' ? <FaSun /> : <FaMoon />}
-              </button>
-              
-              {isAuthenticated ? (
-                <>
-                  <Link href="/dashboard" className={`px-4 py-2 text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}>
-                    Dashboard
-                  </Link>
-                  <button onClick={handleLogout} className={`px-4 py-2 border rounded-lg flex items-center gap-2 text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`}>
-                    <FaSignOutAlt className="text-sm" /> Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button onClick={openLogin} className={`px-4 py-2 text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>
-                    Sign In
-                  </button>
-                  <button onClick={openRegister} className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
-                    Get Started
-                  </button>
-                </>
-              )}
-              
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg transition-colors"
-              >
-                {mobileMenuOpen ? <FaTimes /> : <FaBars />}
-              </button>
-            </div>
-          </div>
-          
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex flex-col space-y-4">
-                <a href="#features" className={`text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Features</a>
-                <a href="#pricing" className={`text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Pricing</a>
-                <a href="#testimonials" className={`text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>Reviews</a>
-              </div>
-            </div>
-          )}
-        </div>
-      </nav>
+      <AuthNavbar openLogin={openLogin} />
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
@@ -293,8 +283,8 @@ export default function Home() {
           <div className={`absolute top-40 left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000 ${resolvedTheme === 'dark' ? 'bg-pink-600' : 'bg-pink-400'}`}></div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        <div className="relative w-[90%] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="reveal reveal-fade-up">
             <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-8 ${resolvedTheme === 'dark' ? 'bg-blue-900/50 text-blue-200 border border-blue-700' : 'bg-blue-100 text-blue-800 border border-blue-200'}`}>
               <FaRocket className="mr-2" />
               Trusted by {stats[0].number}+ teams worldwide
@@ -321,9 +311,14 @@ export default function Home() {
                   Go to Dashboard
                 </Link>
               ) : (
-                <button onClick={openRegister} className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
-                  Start Free Trial
-                </button>
+                <>
+                  <button onClick={openRegister} className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
+                    Start Free Trial
+                  </button>
+                  <button onClick={openLogin} className={`px-8 py-4 border-2 rounded-xl font-semibold text-lg transition-all flex items-center ${resolvedTheme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`}>
+                    Login
+                  </button>
+                </>
               )}
               <button className={`px-8 py-4 border-2 rounded-xl font-semibold text-lg transition-all flex items-center ${resolvedTheme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`}>
                 <FaPlay className="mr-2" />
@@ -350,8 +345,8 @@ export default function Home() {
 
       {/* Features Section */}
       <section id="features" className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+        <div className="w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16 reveal reveal-fade-up">
             <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Everything you need to succeed
             </h2>
@@ -371,7 +366,7 @@ export default function Home() {
               };
               
               return (
-                <div key={index} className={`p-6 rounded-2xl transition-all hover:transform hover:scale-105 ${resolvedTheme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'}`}>
+                <div key={index} className={`reveal reveal-fade-up reveal-delay-${index * 100} p-6 rounded-2xl transition-all hover:transform hover:scale-105 ${resolvedTheme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'}`}>
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${colorClasses[feature.color]}`}>
                     <IconComponent className="w-6 h-6" />
                   </div>
@@ -390,9 +385,9 @@ export default function Home() {
 
       {/* Dashboard Preview Section */}
       <section className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
+            <div className="reveal reveal-fade-right">
               <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 Smart Analytics Dashboard
               </h2>
@@ -422,7 +417,7 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="relative">
+            <div className="relative reveal reveal-fade-left">
               <div className="relative z-10">
                 <img 
                   src="/static/dashboard.jpg" 
@@ -438,9 +433,9 @@ export default function Home() {
 
       {/* Kanban Board Section */}
       <section className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="relative order-2 lg:order-1">
+            <div className="relative order-2 lg:order-1 reveal reveal-fade-right">
               <div className="relative z-10">
                 <img 
                   src="/static/kanbanboard.jpg" 
@@ -451,7 +446,7 @@ export default function Home() {
               <div className={`absolute -inset-4 rounded-2xl opacity-20 blur-xl ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-green-600 to-blue-600' : 'bg-gradient-to-r from-green-400 to-blue-400'}`}></div>
             </div>
             
-            <div className="order-1 lg:order-2">
+            <div className="order-1 lg:order-2 reveal reveal-fade-left">
               <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 Kanban Board & Task Management
               </h2>
@@ -482,10 +477,240 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Messages & Communication Section */}
+      <section className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'}`}>
+        <div className="w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="reveal reveal-fade-right reveal-delay-100">
+              <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                Real-Time Messaging & Collaboration
+              </h2>
+              <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                Seamless team communication with group chats, direct messages, and file sharing capabilities
+              </p>
+              
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Group and direct messaging</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>File and media sharing</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Real-time notifications</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Search conversations</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative reveal reveal-fade-left reveal-delay-200">
+              <div className="relative z-10">
+                <img 
+                  src="/static/messages.jpg" 
+                  alt="Team Messaging Interface" 
+                  className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
+                />
+              </div>
+              <div className={`absolute -inset-4 rounded-2xl opacity-20 blur-xl ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-gradient-to-r from-purple-400 to-pink-400'}`}></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Query Board & Task Management Section */}
+      <section className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className="w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="relative order-2 lg:order-1 reveal reveal-fade-right reveal-delay-100">
+              <div className="relative z-10">
+                <img 
+                  src="/static/queryboard.jpg" 
+                  alt="Query Board Interface" 
+                  className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
+                />
+              </div>
+              <div className={`absolute -inset-4 rounded-2xl opacity-20 blur-xl ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-orange-600 to-red-600' : 'bg-gradient-to-r from-orange-400 to-red-400'}`}></div>
+            </div>
+            
+            <div className="order-1 lg:order-2 reveal reveal-fade-left reveal-delay-200">
+              <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                Advanced Task Query & Management
+              </h2>
+              <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                Powerful search, filtering, and bulk operations for efficient task management and team coordination
+              </p>
+              
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Advanced search and filtering</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Bulk task operations</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Export and reporting</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Team assignment tracking</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Task Details Section */}
+      <section className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'}`}>
+        <div className="w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="reveal reveal-fade-right reveal-delay-100">
+              <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                Comprehensive Task Management
+              </h2>
+              <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                Detailed task views with attachments, comments, subtasks, and real-time collaboration features
+              </p>
+              
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Rich task details and descriptions</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>File attachments and comments</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Subtasks and dependencies</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Progress tracking and time logs</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative reveal reveal-fade-left reveal-delay-200">
+              <div className="relative z-10">
+                <img 
+                  src="/static/taskdetails.jpg" 
+                  alt="Task Details Interface" 
+                  className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
+                />
+              </div>
+              <div className={`absolute -inset-4 rounded-2xl opacity-20 blur-xl ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-indigo-600 to-blue-600' : 'bg-gradient-to-r from-indigo-400 to-blue-400'}`}></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Team Details Section */}
+      <section className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className="w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="relative order-2 lg:order-1 reveal reveal-fade-right reveal-delay-100">
+              <div className="relative z-10">
+                <img 
+                  src="/static/teamdetails.jpg" 
+                  alt="Team Management Interface" 
+                  className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
+                />
+              </div>
+              <div className={`absolute -inset-4 rounded-2xl opacity-20 blur-xl ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-teal-600 to-green-600' : 'bg-gradient-to-r from-teal-400 to-green-400'}`}></div>
+            </div>
+            
+            <div className="order-1 lg:order-2 reveal reveal-fade-left reveal-delay-200">
+              <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                Team Management & Collaboration
+              </h2>
+              <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                Comprehensive team management with member roles, permissions, and project assignments
+              </p>
+              
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Team member management</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Role-based permissions</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Project assignments</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Performance analytics</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Project Details Section */}
+      <section className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'}`}>
+        <div className="w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="reveal reveal-fade-right reveal-delay-100">
+              <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                Project Overview & Management
+              </h2>
+              <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                Complete project lifecycle management with teams, user stories, tasks, and progress tracking
+              </p>
+              
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Project planning and setup</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Team and resource allocation</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>User story management</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className={`text-lg ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Progress monitoring and reporting</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative reveal reveal-fade-left reveal-delay-200">
+              <div className="relative z-10">
+                <img 
+                  src="/static/projectdetails.jpg" 
+                  alt="Project Management Interface" 
+                  className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
+                />
+              </div>
+              <div className={`absolute -inset-4 rounded-2xl opacity-20 blur-xl ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-cyan-600 to-blue-600' : 'bg-gradient-to-r from-cyan-400 to-blue-400'}`}></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials Section */}
       <section id="testimonials" className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+        <div className="w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16 reveal reveal-fade-up">
             <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Loved by Teams Worldwide
             </h2>
@@ -496,7 +721,7 @@ export default function Home() {
           
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className={`rounded-2xl p-8 shadow-lg transition-all hover:transform hover:scale-105 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+              <div key={index} className={`reveal reveal-fade-up reveal-delay-${index * 200} rounded-2xl p-8 shadow-lg transition-all hover:transform hover:scale-105 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
                 <div className="flex items-center mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <FaStar key={i} className="w-5 h-5 text-yellow-400" />
@@ -526,8 +751,8 @@ export default function Home() {
 
       {/* Pricing Section */}
       <section id="pricing" className={`py-24 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+        <div className="w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16 reveal reveal-fade-up">
             <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Simple, Transparent Pricing
             </h2>
@@ -538,9 +763,8 @@ export default function Home() {
           
           <div className="grid md:grid-cols-3 gap-8">
             {pricing.map((plan, index) => {
-              const revealRef = useReveal();
               return (
-                <div ref={revealRef} key={index} className={`reveal relative rounded-2xl p-8 shadow-lg transition duration-500 ease-in-out transform hover:scale-105 hover:shadow-2xl ${plan.highlight ? 'ring-2 ring-blue-500' : ''} ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+                <div key={index} className={`reveal reveal-fade-up reveal-delay-${index * 150} relative rounded-2xl p-8 shadow-lg transition duration-500 ease-in-out transform hover:scale-105 hover:shadow-2xl ${plan.highlight ? 'ring-2 ring-blue-500' : ''} ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
                   {plan.highlight && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                       <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
@@ -596,33 +820,40 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to Transform Your Team?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            Join thousands of teams already using TeamLabs to boost their productivity
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="reveal reveal-fade-up">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Ready to Transform Your Team?
+            </h2>
+            <p className="text-xl text-blue-100 mb-8">
+              Join thousands of teams already using TeamLabs to boost their productivity
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {isAuthenticated ? (
               <Link href="/dashboard" className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all">
                 Go to Dashboard
               </Link>
             ) : (
-              <button onClick={openRegister} className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all">
-                Start Free Trial
-              </button>
+              <>
+                <button onClick={openRegister} className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all">
+                  Start Free Trial
+                </button>
+                <button onClick={openLogin} className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all">
+                  Login
+                </button>
+              </>
             )}
             <button className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all">
               Schedule Demo
             </button>
           </div>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className={`py-16 ${resolvedTheme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
+      <footer className={`pt-12 pb-2 ${resolvedTheme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
+        <div className="w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8 reveal reveal-fade-up">
             <div>
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 TeamLabs
@@ -663,7 +894,7 @@ export default function Home() {
             </div>
           </div>
           
-          <div className={`border-t mt-8 pt-8 flex flex-col md:flex-row justify-between items-center ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-gray-300'}`}>
+          <div className={`border-t mt-8 pt-2 flex flex-col md:flex-row justify-between items-center ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-gray-300'}`}>
             <p className={resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
               &copy; {new Date().getFullYear()} TeamLabs. All rights reserved.
             </p>
@@ -697,15 +928,44 @@ export default function Home() {
       </Modal>
 
       <style jsx global>{`
+        /* Base reveal styles */
         .reveal {
           opacity: 0;
-          transform: translateY(40px);
-          transition: opacity 0.7s cubic-bezier(0.4,0,0.2,1), transform 0.7s cubic-bezier(0.4,0,0.2,1);
+          transition: opacity 0.8s cubic-bezier(0.4,0,0.2,1), transform 0.8s cubic-bezier(0.4,0,0.2,1);
         }
+        
+        /* Fade up animation */
+        .reveal-fade-up {
+          transform: translateY(60px);
+        }
+        
+        /* Fade left animation */
+        .reveal-fade-left {
+          transform: translateX(-60px);
+        }
+        
+        /* Fade right animation */
+        .reveal-fade-right {
+          transform: translateX(60px);
+        }
+        
+        /* Fade in animation */
+        .reveal-fade-in {
+          transform: scale(0.9);
+        }
+        
+        /* Reveal visible state */
         .reveal-visible {
           opacity: 1;
           transform: none;
         }
+        
+        /* Staggered delays for grid items */
+        .reveal-delay-100 { transition-delay: 0.1s; }
+        .reveal-delay-150 { transition-delay: 0.15s; }
+        .reveal-delay-200 { transition-delay: 0.2s; }
+        .reveal-delay-300 { transition-delay: 0.3s; }
+        .reveal-delay-400 { transition-delay: 0.4s; }
         
         @keyframes blob {
           0% {
@@ -736,4 +996,8 @@ export default function Home() {
       `}</style>
     </div>
   );
-} 
+}
+
+Home.displayName = 'Home';
+
+export default Home; 
