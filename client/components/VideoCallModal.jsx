@@ -13,7 +13,9 @@ const VideoCallModal = ({
   onEnd,
   currentUser,
   answerData,
-  onOutgoingCallAnswered
+  onOutgoingCallAnswered,
+  autoAnswer = false,
+  initialAction = null
 }) => {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
@@ -23,6 +25,7 @@ const VideoCallModal = ({
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [callStartTs, setCallStartTs] = useState(null);
   const timerRef = useRef(null);
+  const autoActionDoneRef = useRef(false);
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -59,6 +62,43 @@ const VideoCallModal = ({
      : callType === 'incoming'
        ? `Incoming call from ${remoteDisplayName}`
        : `Calling ${remoteDisplayName}`;
+
+  // Automatically perform initial action (answer/decline) when opening
+  useEffect(() => {
+    if (!isOpen || autoActionDoneRef.current) return;
+    if (callType !== 'incoming') return;
+
+    const doAnswer = async () => {
+      try {
+        await initializeLocalStream();
+      } catch (_) {}
+      setTimeout(() => {
+        handleAnswer();
+        onAnswer && onAnswer();
+        autoActionDoneRef.current = true;
+      }, 150);
+    };
+
+    const doDecline = () => {
+      // Don't initialize local media when declining
+      declineCall();
+      onDecline && onDecline();
+      autoActionDoneRef.current = true;
+    };
+
+    if (initialAction === 'answer' || autoAnswer) {
+      doAnswer();
+    } else if (initialAction === 'decline') {
+      doDecline();
+    }
+  }, [isOpen, autoAnswer, initialAction, callType, initializeLocalStream, handleAnswer, onAnswer, declineCall, onDecline]);
+
+  // Reset auto action flag when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      autoActionDoneRef.current = false;
+    }
+  }, [isOpen]);
 
   // Call timer: start when connected, stop/reset otherwise
   useEffect(() => {
@@ -170,9 +210,13 @@ const VideoCallModal = ({
       await initializeLocalStream();
       handleOutgoingCall();
     } else if (callType === 'incoming') {
+      // If we're auto-declining, do not touch local media
+      if (initialAction === 'decline') return;
+      // If we're auto-answering in the auto-action effect, avoid double-init
+      if (initialAction === 'answer' || autoAnswer) return;
       await initializeLocalStream();
     }
-  }, [callType, initializeLocalStream, handleOutgoingCall]);
+  }, [callType, initializeLocalStream, handleOutgoingCall, initialAction, autoAnswer]);
 
   const handleModalClose = useCallback(() => {
     cleanup();

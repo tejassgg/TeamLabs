@@ -117,7 +117,7 @@ const TaskDetailsSkeleton = () => {
               <div className={`h-5 w-5 ${lightSkeletonClass}`}></div>
               <div className={`h-5 w-24 ${skeletonClass}`}></div>
             </div>
-            <div className="space-y-2">
+            <div className="flex items-center justify-between gap-4 space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500 dark:text-gray-400">Created Date:</span>
                 <div className={`h-4 w-32 ${lightSkeletonClass}`}></div>

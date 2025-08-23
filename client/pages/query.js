@@ -326,7 +326,7 @@ const QueryBoard = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className={getThemeClasses(
                 "w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-                "dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                "dark:bg-transparent dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
               )}
             />
           </div>
@@ -349,7 +349,7 @@ const QueryBoard = () => {
             onChange={(e) => setFilters({ ...filters, status: e.target.value })}
             className={getThemeClasses(
               "px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-              "dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+              "dark:bg-transparent dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
             )}
           >
             <option value="all">All Status</option>
@@ -365,7 +365,7 @@ const QueryBoard = () => {
             onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
             className={getThemeClasses(
               "px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-              "dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+              "dark:bg-transparent dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
             )}
           >
             <option value="all">All Priority</option>
@@ -381,7 +381,7 @@ const QueryBoard = () => {
             onChange={(e) => setFilters({ ...filters, taskType: e.target.value })}
             className={getThemeClasses(
               "px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-              "dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+              "dark:bg-transparent dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
             )}
           >
             <option value="all">All Types</option>
@@ -397,7 +397,7 @@ const QueryBoard = () => {
             onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value })}
             className={getThemeClasses(
               "px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-              "dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+              "dark:bg-transparent dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
             )}
           >
             <option value="all">All Assignees</option>
@@ -424,7 +424,7 @@ const QueryBoard = () => {
             <span className={getThemeClasses("ml-3 text-gray-500", "dark:text-gray-400")}>Loading tasks...</span>
           </div>
         ) : (
-          <div className={getThemeClasses("bg-white rounded-xl shadow overflow-hidden", "dark:bg-gray-900")}>
+          <div className={getThemeClasses("bg-white border border-gray-200 rounded-xl shadow overflow-hidden", "dark:bg-transparent dark:border-gray-700")}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>

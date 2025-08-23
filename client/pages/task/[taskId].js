@@ -364,6 +364,62 @@ const TaskDetailsPage = () => {
             .slice(0, 2);
     };
 
+        // Helper function to get task progress percentage
+    const getTaskProgressPercentage = (status) => {
+        const statusEntries = Object.entries(statusMap);
+        const currentIndex = statusEntries.findIndex(([statusCode]) => parseInt(statusCode) === status);
+        if (currentIndex === -1) return 0;
+        
+        // Calculate percentage to stop at the center of the current status circle
+        // For 6 statuses: 0%, 16.67%, 33.33%, 50%, 66.67%, 83.33%
+        // We want to stop at the center of the current status, not extend beyond it
+        const totalSteps = statusEntries.length;
+        const progressPerStep = 100 / totalSteps;
+        const progressToCurrentStep = (currentIndex + 0.7) * progressPerStep; // +0.5 to stop at center
+        
+        return Math.round(progressToCurrentStep);
+    };
+
+    // Helper function to get progress steps based on available statuses
+    const getProgressSteps = () => {
+        return Object.entries(statusMap).map(([statusCode, statusName]) => {
+            const statusCodeInt = parseInt(statusCode);
+            const statusInfo = getStatusInfo(statusCodeInt);
+
+            // Map status codes to appropriate icons
+            let icon;
+            if (statusName.toLowerCase().includes('not started') || statusName.toLowerCase().includes('pending')) {
+                icon = <FaClock size={16} />;
+            } else if (statusName.toLowerCase().includes('progress') || statusName.toLowerCase().includes('working')) {
+                icon = <FaProjectDiagram size={16} />;
+            } else if (statusName.toLowerCase().includes('review')) {
+                icon = <FaEdit size={16} />;
+            } else if (statusName.toLowerCase().includes('test')) {
+                icon = <FaCheckCircle size={16} />;
+            } else if (statusName.toLowerCase().includes('complete') || statusName.toLowerCase().includes('done')) {
+                icon = <FaCheckCircle size={16} />;
+            } else {
+                // Default icon for unknown statuses
+                icon = <FaProjectDiagram size={16} />;
+            }
+
+            return {
+                status: statusCodeInt,
+                label: statusName,
+                icon: icon
+            };
+        });
+    };
+
+    // Helper function to check if a step is completed
+    const isStepCompleted = (stepStatus, currentStatus) => {
+        const statusEntries = Object.entries(statusMap);
+        const stepIndex = statusEntries.findIndex(([statusCode]) => parseInt(statusCode) === stepStatus);
+        const currentIndex = statusEntries.findIndex(([statusCode]) => parseInt(statusCode) === currentStatus);
+
+        return stepIndex < currentIndex;
+    };
+
     useEffect(() => {
         if (taskId) fetchTaskActivity(activityPage);
         // eslint-disable-next-line
@@ -437,9 +493,84 @@ const TaskDetailsPage = () => {
                 <title>{task.Name} | TeamLabs</title>
             </Head>
             <div className="mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-2">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left/Main Section */}
                     <div className="lg:col-span-2">
+                        {/* Task Progress Bar */}
+                        <div className="mb-6">
+                            <div className={getThemeClasses(
+                                'bg-white border border-gray-200 rounded-xl p-6 shadow-sm',
+                                'dark:bg-transparent dark:border-gray-700'
+                            )}>
+                                <h3 className={getThemeClasses(
+                                    'text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2',
+                                    'dark:text-gray-100'
+                                )}>
+                                    <FaProjectDiagram className="text-blue-500 dark:text-blue-400" />
+                                    Task Progress: {getTaskProgressPercentage(task.Status)}%
+                                </h3>
+                                {/* Progress Steps with Progress Bar Behind */}
+                                <div className="relative flex items-center justify-between">
+                                    {/* Progress Bar Background */}
+                                    <div className={getThemeClasses(
+                                        'absolute top-5 left-0 right-0 h-1 bg-gray-200 rounded-full mx-3',
+                                        'dark:bg-gray-700'
+                                    )}>
+                                        <div className="h-full bg-green-500 rounded-full transition-all duration-500 ease-out"
+                                            style={{ width: `${getTaskProgressPercentage(task.Status)}%` }}
+                                        ></div>
+                                    </div>
+
+                                    {getProgressSteps().map((step, index) => {
+                                        const isCompleted = isStepCompleted(step.status, task.Status);
+                                        const isCurrent = step.status === task.Status;
+                                        const stepStatusInfo = getStatusInfo(step.status);
+
+                                        return (
+                                            <div key={step.status} className="flex flex-col items-center relative z-20">
+                                                <div className={getThemeClasses(
+                                                    `w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all duration-300 ${isCompleted
+                                                        ? 'bg-green-500 text-white shadow-lg'
+                                                        : isCurrent
+                                                            ? `${stepStatusInfo.statusStyle.bgLight} ${stepStatusInfo.statusStyle.textLight} bg-gray-200 shadow-lg scale-110`
+                                                            : `${stepStatusInfo.statusStyle.bgLight} ${stepStatusInfo.statusStyle.textLight} bg-gray-200`
+                                                    }`,
+                                                    `dark:${isCompleted
+                                                        ? 'bg-green-500 text-white'
+                                                        : isCurrent
+                                                            ? `${stepStatusInfo.statusStyle.bgDark} ${stepStatusInfo.statusStyle.textDark} shadow-lg scale-110`
+                                                            : `${stepStatusInfo.statusStyle.bgDark} ${stepStatusInfo.statusStyle.textDark} `
+                                                    }`
+                                                )}>
+                                                    {isCompleted ? (
+                                                        <FaCheckCircle size={16} />
+                                                    ) : (
+                                                        stepStatusInfo.statusIcon
+                                                    )}
+                                                </div>
+                                                <span className={getThemeClasses(
+                                                    `text-xs font-medium text-center max-w-16 whitespace-nowrap ${isCompleted
+                                                        ? 'text-green-600 '
+                                                        : isCurrent
+                                                            ? `${stepStatusInfo.statusStyle.textLight}`
+                                                            : `${stepStatusInfo.statusStyle.textLight}`
+                                                    }`,
+                                                    `dark:${isCompleted
+                                                        ? 'text-green-400'
+                                                        : isCurrent
+                                                            ? `${stepStatusInfo.statusStyle.textDark}`
+                                                            : `${stepStatusInfo.statusStyle.textDark}`
+                                                    }`
+                                                )}>
+                                                    {step.label}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Task Description - Enhanced UI */}
                         <div className="mb-8">
                             <div className={getThemeClasses(
@@ -663,7 +794,7 @@ const TaskDetailsPage = () => {
                                 <FaCalendarAlt className={getThemeClasses("text-blue-500", "dark:text-blue-400")} />
                                 Task Dates
                             </h2>
-                            <div className="space-y-4 pb-4">
+                            <div className="flex items-center justify-between gap-4 pb-4">
                                 <div>
                                     <div className={getThemeClasses(
                                         "text-sm font-medium text-gray-500 mb-1",

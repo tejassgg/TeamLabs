@@ -8,6 +8,7 @@ import api, { messagingService } from '../services/api';
 import { connectSocket, getSocket, subscribe } from '../services/socket';
 import { FaPaperPlane, FaPlus, FaSmile, FaImage, FaVideo, FaChevronDown, FaCheck, FaTimes, FaSearch, FaEllipsisV, FaCog, FaTrash, FaSignOutAlt, FaEdit, FaSave, FaPhone } from 'react-icons/fa';
 import VideoCallModal from '../components/VideoCallModal';
+import IncomingCallScreen from '../components/IncomingCallScreen';
 
 // Skeleton Components
 const ConversationSkeleton = ({ theme }) => (
@@ -153,10 +154,12 @@ export default function MessagesPage() {
 
   // Call-related state
   const [showVideoCallModal, setShowVideoCallModal] = useState(false);
+  const [showIncomingCallScreen, setShowIncomingCallScreen] = useState(false);
   const [callType, setCallType] = useState(null); // 'incoming' | 'outgoing' | 'active'
   const [callData, setCallData] = useState(null);
   const [activeCall, setActiveCall] = useState(null);
   const [answerData, setAnswerData] = useState(null); // Store answer when caller receives it
+  const [modalInitialAction, setModalInitialAction] = useState(null); // 'answer' | 'decline' | null
 
   // Get theme classes helper function
   const getThemeClasses = (baseClasses, darkClasses) => {
@@ -704,7 +707,7 @@ export default function MessagesPage() {
 
       setCallData(data);
       setCallType('incoming');
-      setShowVideoCallModal(true);
+      setShowIncomingCallScreen(true); // Show small screen first
     });
 
     const offCallAnswered = subscribe('call.answered', (payload) => {
@@ -730,6 +733,7 @@ export default function MessagesPage() {
 
       // Handle call declined - close modal and show notification
       setShowVideoCallModal(false);
+      setShowIncomingCallScreen(false);
       setCallType(null);
       setCallData(null);
       showToast('Call was declined', 'info');
@@ -741,10 +745,10 @@ export default function MessagesPage() {
 
       // Handle call ended - close modal and show notification
       setShowVideoCallModal(false);
+      setShowIncomingCallScreen(false);
       setCallType(null);
       setCallData(null);
       setActiveCall(null);
-      showToast('Call ended', 'info');
     });
 
     const offCallIceCandidate = subscribe('call.ice-candidate', (payload) => {
@@ -999,6 +1003,7 @@ export default function MessagesPage() {
 
   const handleCallEnd = () => {
     setShowVideoCallModal(false);
+    setShowIncomingCallScreen(false);
     setCallType(null);
     setCallData(null);
     setActiveCall(null);
@@ -1007,9 +1012,29 @@ export default function MessagesPage() {
 
   const handleCallDecline = () => {
     setShowVideoCallModal(false);
+    setShowIncomingCallScreen(false);
     setCallType(null);
     setCallData(null);
     setAnswerData(null); // Clear answer data
+  };
+
+  // Handle answer from small incoming call screen
+  const handleIncomingCallAnswer = () => {
+    setShowIncomingCallScreen(false);
+    setModalInitialAction('answer');
+    setShowVideoCallModal(true);
+  };
+
+  // Handle decline from small incoming call screen
+  const handleIncomingCallDecline = () => {
+    setShowIncomingCallScreen(false);
+    setModalInitialAction('decline');
+    setShowVideoCallModal(true);
+  };
+
+  // Handle close from small incoming call screen
+  const handleIncomingCallClose = () => {
+    setShowIncomingCallScreen(false);
   };
 
   // Notify user if they're not in the chat
@@ -1042,9 +1067,6 @@ export default function MessagesPage() {
 
     setIsSavingGroupName(true);
     try {
-      // Show loading state
-      showToast('Updating group name...', 'info');
-
       // Update conversation name via API - real-time events will handle UI updates
       await api.patch(`/messages/conversations/${selectedConversation._id}`, {
         name: editedGroupName.trim()
@@ -2276,10 +2298,19 @@ export default function MessagesPage() {
         )}
       </div>
 
-      {/* Video Call Modal */}
+      {/* Small incoming call screen */}
+      <IncomingCallScreen
+        isVisible={showIncomingCallScreen && callType === 'incoming'}
+        callData={callData}
+        onAnswer={handleIncomingCallAnswer}
+        onDecline={handleIncomingCallDecline}
+        onClose={handleIncomingCallClose}
+      />
+
+      {/* Full video call modal */}
       <VideoCallModal
         isOpen={showVideoCallModal}
-        onClose={() => setShowVideoCallModal(false)}
+        onClose={() => { setShowVideoCallModal(false); setModalInitialAction(null); }}
         callType={callType}
         callData={callData}
         onAnswer={handleCallAnswer}
@@ -2288,6 +2319,7 @@ export default function MessagesPage() {
         currentUser={user}
         answerData={answerData}
         onOutgoingCallAnswered={handleOutgoingCallAnswered}
+        initialAction={modalInitialAction}
       />
     </>
   );

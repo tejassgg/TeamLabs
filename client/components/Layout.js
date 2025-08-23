@@ -557,6 +557,10 @@ const Layout = ({ children, pageProject, pageTitle }) => {
   };
 
   const handleEditTaskName = (task) => {
+    if (!task) {
+      console.warn('Task object is undefined in handleEditTaskName');
+      return;
+    }
     setEditingTaskId(task.TaskID || task._id);
     setEditingTaskName(task.Name || '');
   };
@@ -777,13 +781,15 @@ const Layout = ({ children, pageProject, pageTitle }) => {
                       <span className={`font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-700'}`}>
                         {item.label}
                       </span>
-                      <button
-                        onClick={() => handleEditTaskName(item.task)}
-                        className={`breadcrumb-edit-button p-1 rounded-full hover:bg-blue-100 transition-colors ${theme === 'dark' ? 'hover:bg-blue-900/30 text-blue-400' : 'text-blue-600'}`}
-                        title="Edit Task Name"
-                      >
-                        <FaEdit size={12} />
-                      </button>
+                      {item.task && (
+                        <button
+                          onClick={() => handleEditTaskName(item.task)}
+                          className={`breadcrumb-edit-button p-1 rounded-full hover:bg-blue-100 transition-colors ${theme === 'dark' ? 'hover:bg-blue-900/30 text-blue-400' : 'text-blue-600'}`}
+                          title="Edit Task Name"
+                        >
+                          <FaEdit size={12} />
+                        </button>
+                      )}
                     </>
                   )}
                 </div>

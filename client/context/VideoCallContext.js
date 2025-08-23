@@ -29,10 +29,33 @@ const videoCallReducer = (state, action) => {
         answerData: action.payload
       };
     
+    case 'SHOW_INCOMING_CALL_SCREEN':
+      return {
+        ...state,
+        showIncomingCallScreen: true,
+        callType: 'incoming',
+        callData: action.payload,
+        callStatus: 'incoming'
+      };
+    
+    case 'HIDE_INCOMING_CALL_SCREEN':
+      return {
+        ...state,
+        showIncomingCallScreen: false
+      };
+    
+    case 'SHOW_VIDEO_CALL_MODAL':
+      return {
+        ...state,
+        showIncomingCallScreen: false,
+        showModal: true
+      };
+    
     case 'CLEAR_CALL':
       return {
         ...state,
         showModal: false,
+        showIncomingCallScreen: false,
         callType: null,
         callData: null,
         answerData: null,
@@ -59,6 +82,7 @@ const videoCallReducer = (state, action) => {
 // Initial state
 const initialState = {
   showModal: false,
+  showIncomingCallScreen: false,
   callType: null, // 'incoming', 'outgoing', 'active'
   callData: null,
   answerData: null,
@@ -85,13 +109,8 @@ export const VideoCallProvider = ({ children }) => {
   // Handle incoming call
   const handleIncomingCall = useCallback((callData) => {
     dispatch({
-      type: 'SET_CALL_STATE',
-      payload: {
-        showModal: true,
-        callType: 'incoming',
-        callData,
-        callStatus: 'incoming'
-      }
+      type: 'SHOW_INCOMING_CALL_SCREEN',
+      payload: callData
     });
   }, []);
 
@@ -177,6 +196,35 @@ export const VideoCallProvider = ({ children }) => {
     });
   }, []);
 
+  // Show incoming call screen
+  const showIncomingCallScreen = useCallback((callData) => {
+    dispatch({
+      type: 'SHOW_INCOMING_CALL_SCREEN',
+      payload: callData
+    });
+  }, []);
+
+  // Hide incoming call screen
+  const hideIncomingCallScreen = useCallback(() => {
+    dispatch({
+      type: 'HIDE_INCOMING_CALL_SCREEN'
+    });
+  }, []);
+
+  // Show video call modal (transition from small screen)
+  const showVideoCallModal = useCallback(() => {
+    dispatch({
+      type: 'SHOW_VIDEO_CALL_MODAL'
+    });
+  }, []);
+
+  // Handle call answered from small screen
+  const handleCallAnsweredFromSmallScreen = useCallback(() => {
+    dispatch({
+      type: 'SHOW_VIDEO_CALL_MODAL'
+    });
+  }, []);
+
   // Context value
   const contextValue = {
     // State
@@ -193,6 +241,10 @@ export const VideoCallProvider = ({ children }) => {
     closeModal,
     setActiveCall,
     updateCallStatus,
+    showIncomingCallScreen,
+    hideIncomingCallScreen,
+    showVideoCallModal,
+    handleCallAnsweredFromSmallScreen,
     
     // Utilities
     initializeSocket

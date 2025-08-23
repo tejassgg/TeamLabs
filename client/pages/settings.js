@@ -534,7 +534,7 @@ const Settings = () => {
                       ? 'border-blue-400 bg-blue-900/20'
                       : 'border-blue-500 bg-blue-50'
                     : theme === 'dark'
-                      ? 'border-gray-700 hover:border-gray-600 bg-[#1F1F1F]'
+                      ? 'border-gray-700 hover:border-gray-600 bg-transparent'
                       : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
                 >
@@ -558,7 +558,7 @@ const Settings = () => {
                       ? 'border-blue-400 bg-blue-900/20'
                       : 'border-blue-500 bg-blue-50'
                     : theme === 'dark'
-                      ? 'border-gray-700 hover:border-gray-600 bg-[#1F1F1F]'
+                      ? 'border-gray-700 hover:border-gray-600 bg-transparent'
                       : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
                 >
@@ -582,7 +582,7 @@ const Settings = () => {
                       ? 'border-blue-400 bg-blue-900/20'
                       : 'border-blue-500 bg-blue-50'
                     : theme === 'dark'
-                      ? 'border-gray-700 hover:border-gray-600 bg-[#1F1F1F]'
+                      ? 'border-gray-700 hover:border-gray-600 bg-transparent'
                       : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
                 >
@@ -600,7 +600,7 @@ const Settings = () => {
                   </div>
                 </button>
               </div>
-              <div className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white'
+              <div className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-transparent' : 'bg-white'
                 } border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
                 }`}>
                 <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>

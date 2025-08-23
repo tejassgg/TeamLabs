@@ -19,7 +19,7 @@ import {
   statusColors,
   getPriorityStyle
 } from '../../components/kanbanUtils';
-import { getProjectStatusBadge } from '../../components/ProjectStatusBadge';
+import { getProjectStatusBadge, getProjectStatusStyle } from '../../components/ProjectStatusBadge';
 import ProjectDetailsSkeleton from '../../components/ProjectDetailsSkeleton';
 import ProjectFilesTab from '../../components/ProjectFilesTab';
 import ProjectActivity from '../../components/ProjectActivity';
@@ -396,8 +396,8 @@ const ProjectDetailsPage = () => {
           className={getThemeClasses(
             "px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50",
             currentPage === 1 || loading
-              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-transparent dark:text-gray-500 dark:border-gray-700"
+              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-800/40 dark:border-gray-700"
           )}
         >
           Previous
@@ -411,10 +411,10 @@ const ProjectDetailsPage = () => {
             className={getThemeClasses(
               "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
               page === '...'
-                ? "text-gray-400 cursor-default"
+                ? "text-gray-400 cursor-default dark:text-gray-500"
                 : page === currentPage
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                  ? "bg-blue-600 text-white dark:bg-blue-600 dark:text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-800/40 dark:border-gray-700"
             )}
           >
             {page}
@@ -427,8 +427,8 @@ const ProjectDetailsPage = () => {
           className={getThemeClasses(
             "px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50",
             currentPage === totalPages || loading
-              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-transparent dark:text-gray-500 dark:border-gray-700"
+              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-800/40 dark:border-gray-700"
           )}
         >
           Next
@@ -823,6 +823,75 @@ const ProjectDetailsPage = () => {
   // Helper function to get theme-aware classes
   const getThemeClasses = (baseClasses, darkClasses) => {
     return `${baseClasses} ${theme === 'dark' ? darkClasses : ''}`;
+  };
+
+  // Helper function to get project progress percentage
+  const getProjectProgressPercentage = (statusCode) => {
+    if (!statusCode) return 0;
+
+    // Calculate percentage to stop at the center of the current status circle
+    // For 6 statuses: 0%, 16.67%, 33.33%, 50%, 66.67%, 83.33%
+    // We want to stop at the center of the current status, not extend beyond it
+    const totalSteps = 6; // Project has 6 statuses
+    const progressPerStep = 100 / totalSteps;
+    const currentIndex = statusCode - 1; // Convert status code to 0-based index
+    const progressToCurrentStep = (currentIndex + 0.7) * progressPerStep; // +0.7 to stop at center
+
+    return Math.round(progressToCurrentStep);
+  };
+
+  // Helper function to get project progress steps based on available statuses
+  const getProjectProgressSteps = () => {
+    return [
+      {
+        status: 1,
+        label: 'Not Assigned',
+        icon: FaTimes
+      },
+      {
+        status: 2,
+        label: 'Assigned',
+        icon: FaCheckCircle
+      },
+      {
+        status: 3,
+        label: 'In Progress',
+        icon: FaClock
+      },
+      {
+        status: 4,
+        label: 'QA',
+        icon: FaShieldAlt
+      },
+      {
+        status: 5,
+        label: 'Deployment',
+        icon: FaRocket
+      },
+      {
+        status: 6,
+        label: 'Completed',
+        icon: FaCheckCircle
+      }
+    ];
+  };
+
+  // Helper function to get project status name
+  const getProjectStatusName = (statusCode) => {
+    const statusNames = {
+      1: 'Not Assigned',
+      2: 'Assigned',
+      3: 'In Progress',
+      4: 'QA',
+      5: 'Deployment',
+      6: 'Completed'
+    };
+    return statusNames[statusCode] || 'Unknown Status';
+  };
+
+  // Helper function to check if a project step is completed
+  const isProjectStepCompleted = (stepStatus, currentStatus) => {
+    return stepStatus < currentStatus;
   };
 
   // Update the table container classes - transparent background with borders to blend with page
@@ -1264,6 +1333,71 @@ const ProjectDetailsPage = () => {
         <title>Project - {project?.Name || 'Loading...'} | TeamLabs</title>
       </Head>
       <div className="mx-auto">
+        {/* Tab Navigation */}
+        <div className="mb-6">
+          <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('manage')}
+                className={`${activeTab === 'manage'
+                  ? theme === 'dark'
+                    ? 'border-blue-400 text-blue-400'
+                    : 'border-blue-600 text-blue-600'
+                  : theme === 'dark'
+                    ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+              >
+                <FaProjectDiagram size={16} />
+                <span>Manage Project</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('board')}
+                className={`${activeTab === 'board'
+                  ? theme === 'dark'
+                    ? 'border-blue-400 text-blue-400'
+                    : 'border-blue-600 text-blue-600'
+                  : theme === 'dark'
+                    ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+              >
+                <FaChartBar size={16} />
+                <span>Board</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('files')}
+                className={`${activeTab === 'files'
+                  ? theme === 'dark'
+                    ? 'border-blue-400 text-blue-400'
+                    : 'border-blue-600 text-blue-600'
+                  : theme === 'dark'
+                    ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+              >
+                <FaFile size={16} />
+                <span>Files</span>
+              </button>
+              {projectRepository?.connected && (
+                <button
+                  onClick={() => setActiveTab('repo')}
+                  className={`${activeTab === 'repo'
+                    ? theme === 'dark'
+                      ? 'border-blue-400 text-blue-400'
+                      : 'border-blue-600 text-blue-600'
+                    : theme === 'dark'
+                      ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                >
+                  <FaGithub size={16} />
+                  <span>Repo</span>
+                </button>
+              )}
+            </nav>
+          </div>
+        </div>
         {/* Project Description - Enhanced UI */}
         <div className={getThemeClasses(
           'flex w-full items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm',
@@ -1411,192 +1545,202 @@ const ProjectDetailsPage = () => {
             </div>
           </div>
         </div>
-
-        {/* Tab Navigation */}
-        <div className="mb-6">
-          <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab('manage')}
-                className={`${activeTab === 'manage'
-                  ? theme === 'dark'
-                    ? 'border-blue-400 text-blue-400'
-                    : 'border-blue-600 text-blue-600'
-                  : theme === 'dark'
-                    ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
-              >
-                <FaProjectDiagram size={16} />
-                <span>Manage Project</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('board')}
-                className={`${activeTab === 'board'
-                  ? theme === 'dark'
-                    ? 'border-blue-400 text-blue-400'
-                    : 'border-blue-600 text-blue-600'
-                  : theme === 'dark'
-                    ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
-              >
-                <FaChartBar size={16} />
-                <span>Board</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('files')}
-                className={`${activeTab === 'files'
-                  ? theme === 'dark'
-                    ? 'border-blue-400 text-blue-400'
-                    : 'border-blue-600 text-blue-600'
-                  : theme === 'dark'
-                    ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
-              >
-                <FaFile size={16} />
-                <span>Files</span>
-              </button>
-              {projectRepository?.connected && (
-                <button
-                  onClick={() => setActiveTab('repo')}
-                  className={`${activeTab === 'repo'
-                    ? theme === 'dark'
-                      ? 'border-blue-400 text-blue-400'
-                      : 'border-blue-600 text-blue-600'
-                    : theme === 'dark'
-                      ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
-                >
-                  <FaGithub size={16} />
-                  <span>Repo</span>
-                </button>
-              )}
-            </nav>
-          </div>
-        </div>
-
         {/* Tab Content */}
         {activeTab === 'manage' ? (
           <div>
-            {/* Add Team Dropdown */}
-            {isOwner && (
-              <div className="mb-6">
-                <form onSubmit={(e) => { e.preventDefault(); if (selectedTeam) handleAddTeam(selectedTeam.TeamID); }} className="flex flex-col gap-2">
-                  <label className={getThemeClasses(
-                    'block text-gray-700 font-semibold mb-1',
-                    'dark:text-gray-300'
-                  )}>Search for a Team (search by name, description, or TeamID)</label>
-                  <input
-                    type="text"
-                    className={getThemeClasses(
-                      'border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200',
-                      'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
-                    )}
-                    value={teamSearch}
-                    onChange={e => {
-                      setTeamSearch(e.target.value);
-                      setSelectedTeam(null);
-                      setShowAllTeams(false);
-                    }}
-                    onFocus={() => {
-                      setIsTeamInputFocused(true);
-                      if (!teamSearch) {
-                        const assignedIds = new Set(teams.map(t => t.TeamID));
-                        const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
-                        setFilteredAvailableTeams(availableTeams.slice(0, 10));
-                      }
-                    }}
-                    onBlur={() => {
-                      setTimeout(() => {
-                        setIsTeamInputFocused(false);
-                      }, 200);
-                    }}
-                    placeholder="Type to search..."
-                    autoComplete="off"
-                  />
-                  {isTeamInputFocused && filteredAvailableTeams.length > 0 && (
-                    <div className="w-full md:w-96">
-                      <ul className={getThemeClasses(
-                        'border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md',
-                        'dark:bg-gray-800 dark:border-gray-700'
-                      )}>
-                        {filteredAvailableTeams.map((team, index) => (
-                          <li
-                            key={`${team.TeamID}-${index}`}
-                            className={getThemeClasses(
-                              'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150',
-                              'dark:border-gray-700'
+            <div className='w-full flex item-center justify-between gap-6 mt-6'>
+              {/* Project Progress Bar */}
+              <div className="w-[60%] mb-6">
+                <div className={getThemeClasses(
+                  'bg-white border border-gray-200 rounded-xl p-6 shadow-sm',
+                  'dark:bg-transparent dark:border-gray-700'
+                )}>
+                  <h3 className={getThemeClasses(
+                    'text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2',
+                    'dark:text-gray-100'
+                  )}>
+                    <FaProjectDiagram className="text-blue-500 dark:text-blue-400" />
+                    Project Progress: {getProjectProgressPercentage(project.ProjectStatusID)}%
+                  </h3>
+
+                  {/* Progress Steps with Progress Bar Behind */}
+                  <div className="relative flex items-center justify-between">
+                    {/* Progress Bar Background */}
+                    <div className={getThemeClasses(
+                      'absolute top-5 left-0 right-0 h-1 bg-gray-200 rounded-full mx-3',
+                      'dark:bg-gray-700'
+                    )}>
+                      <div className="h-full bg-green-500 rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${getProjectProgressPercentage(project.ProjectStatusID)}%` }}
+                      ></div>
+                    </div>
+
+                    {getProjectProgressSteps().map((step, index) => {
+                      const isCompleted = isProjectStepCompleted(step.status, project.ProjectStatusID);
+                      const isCurrent = step.status === project.ProjectStatusID;
+                      const stepStatusInfo = getProjectStatusStyle(step.status);
+
+                      return (
+                        <div key={step.status} className="flex flex-col items-center relative z-20">
+                          <div className={getThemeClasses(
+                            `w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all duration-300 ${isCompleted
+                              ? 'bg-green-500 text-white shadow-lg'
+                              : isCurrent
+                                ? `${stepStatusInfo.bgColor} ${stepStatusInfo.textColor} bg-gray-200 shadow-lg scale-110`
+                                : `${stepStatusInfo.bgColor} ${stepStatusInfo.textColor} bg-gray-200`
+                            }`,
+                            `dark:${isCompleted
+                              ? 'bg-green-500 text-white'
+                              : isCurrent
+                                ? `${stepStatusInfo.bgColor} ${stepStatusInfo.textColor} shadow-lg scale-110`
+                                : `${stepStatusInfo.bgColor} ${stepStatusInfo.textColor} `
+                            }`
+                          )}>
+                            {isCompleted ? (
+                              <FaCheckCircle size={16} />
+                            ) : (
+                              <stepStatusInfo.icon size={16} />
                             )}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className={getThemeClasses(
-                                'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2',
-                                'dark:hover:bg-blue-900/30'
+                          </div>
+                          <span className={getThemeClasses(
+                            `text-xs font-medium text-center max-w-16 whitespace-nowrap ${isCompleted
+                              ? 'text-green-600 '
+                              : isCurrent
+                                ? `${stepStatusInfo.textColor}`
+                                : `${stepStatusInfo.textColor}`
+                            }`,
+                            `dark:${isCompleted
+                              ? 'text-green-400'
+                              : isCurrent
+                                ? `${stepStatusInfo.textColor}`
+                                : `${stepStatusInfo.textColor}`
+                            }`
+                          )}>
+                            {step.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+              {/* Add Team Dropdown */}
+              {isOwner && (
+                <div className="w-[40%] mb-6">
+                  <form onSubmit={(e) => { e.preventDefault(); if (selectedTeam) handleAddTeam(selectedTeam.TeamID); }} className="flex flex-col gap-2">
+                    <label className={getThemeClasses(
+                      'block text-gray-700 font-semibold mb-1',
+                      'dark:text-gray-300'
+                    )}>Search for a Team (search by Name or Description)</label>
+                    <input
+                      type="text"
+                      className={getThemeClasses(
+                        'border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200',
+                        'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
+                      )}
+                      value={teamSearch}
+                      onChange={e => {
+                        setTeamSearch(e.target.value);
+                        setSelectedTeam(null);
+                        setShowAllTeams(false);
+                      }}
+                      onFocus={() => {
+                        setIsTeamInputFocused(true);
+                        if (!teamSearch) {
+                          const assignedIds = new Set(teams.map(t => t.TeamID));
+                          const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
+                          setFilteredAvailableTeams(availableTeams.slice(0, 10));
+                        }
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => {
+                          setIsTeamInputFocused(false);
+                        }, 200);
+                      }}
+                      placeholder="Type to search..."
+                      autoComplete="off"
+                    />
+                    {isTeamInputFocused && filteredAvailableTeams.length > 0 && (
+                      <div className="w-full md:w-96">
+                        <ul className={getThemeClasses(
+                          'border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md',
+                          'dark:bg-gray-800 dark:border-gray-700'
+                        )}>
+                          {filteredAvailableTeams.map((team, index) => (
+                            <li
+                              key={`${team.TeamID}-${index}`}
+                              className={getThemeClasses(
+                                'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150',
+                                'dark:border-gray-700'
                               )}
-                                onClick={() => {
-                                  setSelectedTeam(team);
-                                  setTeamSearch(team.TeamName + ' (' + team.TeamDescription + ')');
-                                  setIsTeamInputFocused(false);
-                                }}
-                              >
-                                <div className="flex flex-col">
-                                  <div className={getThemeClasses(
-                                    'font-medium text-gray-900',
-                                    'dark:text-gray-100'
-                                  )}>
-                                    {team.TeamName}
-                                  </div>
-                                  <div className={getThemeClasses(
-                                    'text-sm text-gray-600',
-                                    'dark:text-gray-400'
-                                  )}>
-                                    {team.TeamDescription}
-                                  </div>
-                                  <div className={getThemeClasses(
-                                    'text-xs text-gray-400 mt-0.5',
-                                    'dark:text-gray-500'
-                                  )}>
-                                    ID: {team.TeamID}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className={getThemeClasses(
+                                  'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2',
+                                  'dark:hover:bg-blue-900/30'
+                                )}
+                                  onClick={() => {
+                                    setSelectedTeam(team);
+                                    setTeamSearch(team.TeamName + ' (' + team.TeamDescription + ')');
+                                    setIsTeamInputFocused(false);
+                                  }}
+                                >
+                                  <div className="flex flex-col">
+                                    <div className={getThemeClasses(
+                                      'font-medium text-gray-900',
+                                      'dark:text-gray-100'
+                                    )}>
+                                      {team.TeamName}
+                                    </div>
+                                    <div className={getThemeClasses(
+                                      'text-sm text-gray-600',
+                                      'dark:text-gray-400'
+                                    )}>
+                                      {team.TeamDescription}
+                                    </div>
+                                    <div className={getThemeClasses(
+                                      'text-xs text-gray-400 mt-0.5',
+                                      'dark:text-gray-500'
+                                    )}>
+                                      ID: {team.TeamID}
+                                    </div>
                                   </div>
                                 </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedTeam(team);
+                                    handleAddTeam(team.TeamID);
+                                  }}
+                                  className={getThemeClasses(
+                                    'ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm',
+                                    'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
+                                  )}
+                                >
+                                  Add
+                                </button>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedTeam(team);
-                                  handleAddTeam(team.TeamID);
-                                }}
-                                className={getThemeClasses(
-                                  'ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm',
-                                  'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-                                )}
-                              >
-                                Add
-                              </button>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                      {!showAllTeams && orgTeams.length > 10 && (
-                        <button
-                          type="button"
-                          onClick={() => setShowAllTeams(true)}
-                          className={getThemeClasses(
-                            'w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200',
-                            'dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30'
-                          )}
-                        >
-                          Show All Teams ({orgTeams.length})
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </form>
-              </div>
-            )}
+                            </li>
+                          ))}
+                        </ul>
+                        {!showAllTeams && orgTeams.length > 10 && (
+                          <button
+                            type="button"
+                            onClick={() => setShowAllTeams(true)}
+                            className={getThemeClasses(
+                              'w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200',
+                              'dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30'
+                            )}
+                          >
+                            Show All Teams ({orgTeams.length})
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </form>
+                </div>
+              )}
+            </div>
             {/* Teams Assigned Table */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <div className={tableContainerClasses}>
@@ -2085,7 +2229,7 @@ const ProjectDetailsPage = () => {
         ) : activeTab === 'files' ? (
           <ProjectFilesTab projectId={projectId} />
         ) : activeTab === 'repo' && projectRepository?.connected ? (
-          <div className={getThemeClasses("bg-white rounded-xl shadow p-6", "dark:bg-gray-900")}>
+          <div className={getThemeClasses("bg-white rounded-xl shadow p-6", "dark:bg-transparent")}>
             <div className="flex items-center gap-2 mb-6">
               <FaGithub size={22} className={getThemeClasses("text-gray-800", "dark:text-gray-100")} />
               <h2 className={getThemeClasses("text-xl font-semibold text-gray-900", "dark:text-gray-100")}>Repository Activity</h2>
@@ -2138,7 +2282,7 @@ const ProjectDetailsPage = () => {
                                   <div className={getThemeClasses("absolute left-0 top-2 w-2 h-2 bg-blue-500 rounded-full border-2 border-white", "dark:bg-blue-400 dark:border-gray-900")}></div>
 
                                   {/* Commit card */}
-                                  <div className={getThemeClasses("bg-gray-50 rounded-lg p-3 border border-gray-100", "dark:bg-gray-800 dark:border-gray-700")}>
+                                  <div className={getThemeClasses("bg-gray-50 rounded-lg p-3 border border-gray-100", "dark:bg-transparent dark:border-gray-700")}>
                                     <div className="flex items-start gap-2 mb-2">
                                       <a
                                         href={commit.html_url}

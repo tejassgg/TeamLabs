@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { connectSocket } from '../services/socket';
 import { AuthProvider } from '../context/AuthContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
+import { VideoCallProvider } from '../context/VideoCallContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import Head from 'next/head';
 import { GlobalProvider } from '../context/GlobalContext';
@@ -47,7 +48,9 @@ function MyApp({ Component, pageProps }) {
         <AuthProvider>
           <GlobalProvider>
             <ToastProvider>
-              <AppContainer Component={Component} pageProps={pageProps} />
+              <VideoCallProvider>
+                <AppContainer Component={Component} pageProps={pageProps} />
+              </VideoCallProvider>
             </ToastProvider>
           </GlobalProvider>
         </AuthProvider>
