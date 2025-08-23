@@ -76,12 +76,21 @@ export function connectSocket() {
 
   // Phase 6 messaging
   socket.on('chat.message.created', (payload) => dispatch('chat.message.created', payload));
+  socket.on('chat.message.updated', (payload) => dispatch('chat.message.updated', payload));
   socket.on('chat.typing', (payload) => dispatch('chat.typing', payload));
   socket.on('chat.conversation.created', (payload) => dispatch('chat.conversation.created', payload));
   socket.on('chat.conversation.updated', (payload) => dispatch('chat.conversation.updated', payload));
   socket.on('chat.conversation.deleted', (payload) => dispatch('chat.conversation.deleted', payload));
   socket.on('chat.inbox.updated', (payload) => dispatch('chat.inbox.updated', payload));
   socket.on('chat.messages.read', (payload) => dispatch('chat.messages.read', payload));
+
+  // Call events
+  socket.on('call.incoming', (payload) => dispatch('call.incoming', payload));
+  socket.on('call.answered', (payload) => dispatch('call.answered', payload));
+  socket.on('call.declined', (payload) => dispatch('call.declined', payload));
+  socket.on('call.ended', (payload) => dispatch('call.ended', payload));
+  socket.on('call.initiated', (payload) => dispatch('call.initiated', payload));
+  socket.on('call.ice-candidate', (payload) => dispatch('call.ice-candidate', payload));
 
   // Team events
   socket.on('team.created', (payload) => dispatch('team.created', payload));

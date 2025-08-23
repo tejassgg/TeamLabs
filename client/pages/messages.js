@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import api, { messagingService } from '../services/api';
 import { connectSocket, getSocket, subscribe } from '../services/socket';
-import { FaPaperPlane, FaPlus, FaSmile, FaImage, FaVideo, FaChevronDown, FaCheck, FaTimes, FaSearch, FaEllipsisV, FaCog, FaTrash, FaSignOutAlt, FaEdit, FaSave } from 'react-icons/fa';
+import { FaPaperPlane, FaPlus, FaSmile, FaImage, FaVideo, FaChevronDown, FaCheck, FaTimes, FaSearch, FaEllipsisV, FaCog, FaTrash, FaSignOutAlt, FaEdit, FaSave, FaPhone } from 'react-icons/fa';
+import VideoCallModal from '../components/VideoCallModal';
 
 // Skeleton Components
 const ConversationSkeleton = ({ theme }) => (
@@ -91,6 +93,7 @@ const ChatFooterSkeleton = ({ theme }) => (
 );
 
 export default function MessagesPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const { theme } = useTheme();
   const { showToast } = useToast();
@@ -121,6 +124,7 @@ export default function MessagesPage() {
   const [memberQuery, setMemberQuery] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showKebabMenu, setShowKebabMenu] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
@@ -143,8 +147,16 @@ export default function MessagesPage() {
   const memberDropdownRef = useRef(null);
   const bottomRef = useRef(null);
   const kebabMenuRef = useRef(null);
+  const shareMenuRef = useRef(null);
   const editInputRef = useRef(null);
   const messagesContainerRef = useRef(null);
+
+  // Call-related state
+  const [showVideoCallModal, setShowVideoCallModal] = useState(false);
+  const [callType, setCallType] = useState(null); // 'incoming' | 'outgoing' | 'active'
+  const [callData, setCallData] = useState(null);
+  const [activeCall, setActiveCall] = useState(null);
+  const [answerData, setAnswerData] = useState(null); // Store answer when caller receives it
 
   // Get theme classes helper function
   const getThemeClasses = (baseClasses, darkClasses) => {
@@ -254,6 +266,33 @@ export default function MessagesPage() {
       return false;
     });
   }, [conversations, searchQuery, user?._id]);
+
+  // URL query parameter handling functions
+  const updateURLWithConversation = (conversationId) => {
+    if (conversationId) {
+      router.push({
+        pathname: '/messages',
+        query: { conversationID: conversationId }
+      }, undefined, { shallow: true });
+    } else {
+      router.push('/messages', undefined, { shallow: true });
+    }
+  };
+
+  const getConversationFromURL = () => {
+    return router.query.conversationID;
+  };
+
+  const selectConversationFromURL = (conversationId) => {
+    if (conversationId && conversations.length > 0) {
+      const conversation = conversations.find(c => c._id === conversationId);
+      if (conversation) {
+        setSelectedConversation(conversation);
+        return true;
+      }
+    }
+    return false;
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -380,6 +419,16 @@ export default function MessagesPage() {
               setConvDetails(updatedDetails);
               // Also update selected conversation with full details
               setSelectedConversation(prev => prev ? { ...prev, ...updatedDetails } : prev);
+              
+              // Check if current user is still a participant
+              const isStillParticipant = (updatedDetails.participants || []).some(p => String(p._id || p) === String(user?._id));
+              if (!isStillParticipant) {
+                // User is no longer a participant, redirect to conversation list
+                setSelectedConversation(null);
+                setMessages([]);
+                updateURLWithConversation(null);
+                showToast('You are no longer a participant in this conversation', 'info');
+              }
             })
             .catch(console.error);
         }
@@ -478,9 +527,55 @@ export default function MessagesPage() {
     };
   }, [user]);
 
-  // Select first conversation by default
+  // Handle URL query parameter changes and auto-select conversations
   useEffect(() => {
-    if (!selectedConversation && conversations && conversations.length > 0) {
+    if (!router.isReady || !conversations.length) return;
+    
+    const conversationId = getConversationFromURL();
+    if (conversationId) {
+      const success = selectConversationFromURL(conversationId);
+      if (!success) {
+        // If conversation not found, clear the URL and show error
+        updateURLWithConversation(null);
+        showToast('Conversation not found or you no longer have access', 'error');
+      }
+    }
+  }, [router.isReady, router.query.conversationID, conversations]);
+
+  // Handle browser back/forward button navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const conversationId = getConversationFromURL();
+      if (conversationId) {
+        selectConversationFromURL(conversationId);
+      } else {
+        // URL cleared, go back to conversation list
+        setSelectedConversation(null);
+        setMessages([]);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [conversations]);
+
+  // Handle page refresh and maintain conversation selection
+  useEffect(() => {
+    if (router.isReady && !selectedConversation) {
+      const conversationId = getConversationFromURL();
+      if (conversationId && conversations.length > 0) {
+        // Small delay to ensure conversations are loaded
+        const timer = setTimeout(() => {
+          selectConversationFromURL(conversationId);
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [router.isReady, conversations, selectedConversation]);
+
+  // Select first conversation by default (only if no URL parameter)
+  useEffect(() => {
+    if (!selectedConversation && conversations && conversations.length > 0 && !getConversationFromURL()) {
       setSelectedConversation(conversations[0]);
     }
   }, [conversations, selectedConversation]);
@@ -561,6 +656,14 @@ export default function MessagesPage() {
           .catch(console.error);
       }
     });
+    // Reaction and other message updates (e.g., edits)
+    const offMsgUpdated = subscribe('chat.message.updated', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.conversationId !== selectedConversation._id) return;
+      const updatedMsg = data.message;
+      if (!updatedMsg?._id) return;
+      setMessages((prev) => prev.map((m) => (m._id === updatedMsg._id ? updatedMsg : m)));
+    });
     // Read receipt updates from others
     const offRead = subscribe('chat.messages.read', (payload) => {
       const { data } = payload || {};
@@ -593,10 +696,78 @@ export default function MessagesPage() {
         }, 2000);
       }
     });
+
+    // Call-related subscriptions
+    const offCallIncoming = subscribe('call.incoming', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.conversationId !== selectedConversation._id) return;
+
+      setCallData(data);
+      setCallType('incoming');
+      setShowVideoCallModal(true);
+    });
+
+    const offCallAnswered = subscribe('call.answered', (payload) => {
+      const { data } = payload || {};
+      // console.log('🔔 call.answered event received:', payload);
+      if (!data || data.conversationId !== selectedConversation._id) return;
+
+      // Store the answer data for the caller to process
+      if (data.answer) {
+        // console.log('Storing answer data for caller:', data.answer);
+        setAnswerData(data.answer);
+        // Don't change callType yet - let VideoCallModal process the answer
+      } else {
+        // console.log('No answer data in call.answered event');
+        // If no answer data, update UI state
+        setCallType('active');
+      }
+    });
+
+    const offCallDeclined = subscribe('call.declined', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.conversationId !== selectedConversation._id) return;
+
+      // Handle call declined - close modal and show notification
+      setShowVideoCallModal(false);
+      setCallType(null);
+      setCallData(null);
+      showToast('Call was declined', 'info');
+    });
+
+    const offCallEnded = subscribe('call.ended', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.conversationId !== selectedConversation._id) return;
+
+      // Handle call ended - close modal and show notification
+      setShowVideoCallModal(false);
+      setCallType(null);
+      setCallData(null);
+      setActiveCall(null);
+      showToast('Call ended', 'info');
+    });
+
+    const offCallIceCandidate = subscribe('call.ice-candidate', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.conversationId !== selectedConversation._id) return;
+
+      // Handle ICE candidate for WebRTC
+      if (activeCall && activeCall.peerConnection) {
+        activeCall.peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate))
+          .catch(console.error);
+      }
+    });
+
     return () => {
       offMsg && offMsg();
+      offMsgUpdated && offMsgUpdated();
       offRead && offRead();
       offTyping && offTyping();
+      offCallIncoming && offCallIncoming();
+      offCallAnswered && offCallAnswered();
+      offCallDeclined && offCallDeclined();
+      offCallEnded && offCallEnded();
+      offCallIceCandidate && offCallIceCandidate();
       try { getSocket().emit('conversation.leave', { conversationId: selectedConversation._id }); } catch (_) { }
       setTypingUsers({});
       try {
@@ -799,6 +970,53 @@ export default function MessagesPage() {
     setMessages((prev) => prev.map((m) => (m._id === updated._id ? updated : m)));
   };
 
+  // Call handling functions
+  const handleInitiateCall = (conversationId, recipientId, recipientName) => {
+    if (!conversationId || !recipientId) return;
+    
+    setCallData({
+      conversationId,
+      callerId: user._id,
+      recipientId: recipientId,
+      callerName: `${user.firstName} ${user.lastName}`.trim(),
+      recipientName: recipientName || '',
+      type: 'video'
+    });
+    setCallType('outgoing');
+    setShowVideoCallModal(true);
+  };
+
+  const handleCallAnswer = (peerConnection) => {
+    setActiveCall({ peerConnection });
+    setCallType('active');
+  };
+
+  // Handle when outgoing call is successfully answered
+  const handleOutgoingCallAnswered = () => {
+    // console.log('Outgoing call successfully answered, changing callType to active');
+    setCallType('active');
+  };
+
+  const handleCallEnd = () => {
+    setShowVideoCallModal(false);
+    setCallType(null);
+    setCallData(null);
+    setActiveCall(null);
+    setAnswerData(null); // Clear answer data
+  };
+
+  const handleCallDecline = () => {
+    setShowVideoCallModal(false);
+    setCallType(null);
+    setCallData(null);
+    setAnswerData(null); // Clear answer data
+  };
+
+  // Notify user if they're not in the chat
+  const notifyUserNotInChat = (recipientName) => {
+    showToast(`${recipientName} is not currently in the chat`, 'info');
+  };
+
   // Helper function to send system messages
   const sendSystemMessage = async (conversationId, text) => {
     try {
@@ -872,6 +1090,48 @@ export default function MessagesPage() {
     }, 300); // Match animation duration
   };
 
+  const handleBackToConversations = () => {
+    setSelectedConversation(null);
+    setMessages([]);
+    updateURLWithConversation(null);
+  };
+
+  // Function to navigate to a specific conversation (for external use)
+  const navigateToConversation = (conversationId) => {
+    if (conversationId && conversations.length > 0) {
+      const conversation = conversations.find(c => c._id === conversationId);
+      if (conversation) {
+        setSelectedConversation(conversation);
+        updateURLWithConversation(conversationId);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Function to copy conversation link to clipboard
+  const copyConversationLink = async () => {
+    if (!selectedConversation) return;
+    
+    const conversationUrl = `${window.location.origin}/messages?conversationID=${selectedConversation._id}`;
+    
+    try {
+      await navigator.clipboard.writeText(conversationUrl);
+      showToast('Conversation link copied to clipboard!', 'success');
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+      showToast('Failed to copy link', 'error');
+    }
+  };
+
+  // Function to open conversation in new tab
+  const openConversationInNewTab = () => {
+    if (!selectedConversation) return;
+    
+    const conversationUrl = `${window.location.origin}/messages?conversationID=${selectedConversation._id}`;
+    window.open(conversationUrl, '_blank');
+  };
+
   const handleDeleteConversation = async () => {
     if (!selectedConversation || !selectedConversation.isGroup) return;
 
@@ -886,6 +1146,7 @@ export default function MessagesPage() {
       // Clear selected conversation
       setSelectedConversation(null);
       setMessages([]);
+      updateURLWithConversation(null);
 
       // Close dialogs
       setShowDeleteDialog(false);
@@ -912,6 +1173,8 @@ export default function MessagesPage() {
       const userName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
       await sendSystemMessage(selectedConversation._id, `${userName} left the group`);
       setSelectedConversation(selectedConversation);
+      // Clear URL since user is no longer in this conversation
+      updateURLWithConversation(null);
 
       // Show success toast
       showToast('You have left the group', 'success');
@@ -939,8 +1202,16 @@ export default function MessagesPage() {
       // Send system message to DB
       await sendSystemMessage(selectedConversation._id, `${memberName} has been removed from the group`);
 
-      // Show success toast
-      showToast(`${memberName} has been removed from the group`, 'success');
+      // Check if current user was removed
+      if (String(memberId) === String(user?._id)) {
+        setSelectedConversation(null);
+        setMessages([]);
+        updateURLWithConversation(null);
+        showToast('You have been removed from the group', 'info');
+      } else {
+        // Show success toast
+        showToast(`${memberName} has been removed from the group`, 'success');
+      }
     } catch (error) {
       console.error('Failed to remove member:', error);
       showToast('Failed to remove member from group', 'error');
@@ -982,6 +1253,19 @@ export default function MessagesPage() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showMentions]);
+
+  // Handle clicking outside share menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!showShareMenu) return;
+      const inMenu = shareMenuRef.current && shareMenuRef.current.contains(event.target);
+      if (!inMenu) {
+        setShowShareMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showShareMenu]);
 
   // Ensure convDetails is available for mentions (use current selection as base)
   useEffect(() => {
@@ -1057,7 +1341,10 @@ export default function MessagesPage() {
                           const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'GR';
                           const isRecentlyUpdated = recentlyUpdatedConversation === c._id;
                           return (
-                            <button key={c._id} onClick={() => setSelectedConversation(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel} ${isRecentlyUpdated ? (theme === 'dark' ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200') : ''}`}>
+                            <button key={c._id} onClick={() => {
+                              setSelectedConversation(c);
+                              updateURLWithConversation(c._id);
+                            }} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel} ${isRecentlyUpdated ? (theme === 'dark' ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200') : ''}`}>
                               {c.avatarUrl ? (
                                 <img src={c.avatarUrl} alt="" className="w-8 h-8 rounded-full" />
                               ) : (
@@ -1108,7 +1395,10 @@ export default function MessagesPage() {
                           const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'U';
                           const isRecentlyUpdated = recentlyUpdatedConversation === c._id;
                           return (
-                            <button key={c._id} onClick={() => setSelectedConversation(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel} ${isRecentlyUpdated ? (theme === 'dark' ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200') : ''}`}>
+                            <button key={c._id} onClick={() => {
+                              setSelectedConversation(c);
+                              updateURLWithConversation(c._id);
+                            }} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel} ${isRecentlyUpdated ? (theme === 'dark' ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200') : ''}`}>
                               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</div>
                               <div className="min-w-0 flex-1">
                                 <div className="font-medium truncate flex items-center gap-2">
@@ -1191,7 +1481,6 @@ export default function MessagesPage() {
                             <span className="font-semibold text-base lg:text-lg hover:underline transition-all duration-200 truncate block">
                               {selectedConversation.isGroup ? (selectedConversation.name || 'Group') : (selectedConversation.participants?.filter(p => p._id !== user?._id).map(p => `${p.firstName} ${p.lastName}`).join(', ') || 'Direct')}
                             </span>
-
                             {/* Group members initials display */}
                             {selectedConversation.isGroup && selectedConversation.participants && (
                               <div className="flex items-center gap-1">
@@ -1230,6 +1519,43 @@ export default function MessagesPage() {
                           </div>
                         </div>
                       </button>
+                      {/* Call Button - Only show for direct messages */}
+                      {!selectedConversation.isGroup && (
+                        <button
+                          onClick={() => {
+                            const other = selectedConversation.participants?.find(p => p._id !== user?._id);
+                            if (other) {
+                              handleInitiateCall(
+                                selectedConversation._id,
+                                other._id,
+                                `${other.firstName} ${other.lastName}`.trim()
+                              );
+                            }
+                          }}
+                          className={`p-2 rounded-lg transition-all duration-200 ${theme === 'dark'
+                              ? 'text-green-400 hover:bg-gray-700 hover:text-green-400'
+                              : 'text-green-600 hover:bg-green-50 hover:text-green-700'
+                            }`}
+                          title="Start video call"
+                        >
+                          <FaVideo size={16} />
+                        </button>
+                      )}
+                      
+                      {/* Share Button */}
+                      <button
+                        onClick={copyConversationLink}
+                        className={`p-2 rounded-lg transition-all duration-200 ${theme === 'dark'
+                            ? 'text-blue-400 hover:bg-gray-700 hover:text-blue-300'
+                            : 'text-blue-600 hover:bg-blue-50 hover:text-blue-700'
+                          }`}
+                        title="Copy conversation link"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                        </svg>
+                        </button>
+
 
                       {/* Kebab Menu */}
                       <div className="relative" ref={kebabMenuRef}>
@@ -1455,8 +1781,8 @@ export default function MessagesPage() {
                                 type="button"
                                 onClick={() => handleMentionSelect(member)}
                                 className={`w-full flex items-center gap-2 px-3 py-2 text-left transition-colors ${index === selectedMentionIndex
-                                    ? (theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-50 text-blue-700')
-                                    : (theme === 'dark' ? 'hover:bg-[#2A2A2A]' : 'hover:bg-gray-100')
+                                  ? (theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-50 text-blue-700')
+                                  : (theme === 'dark' ? 'hover:bg-[#2A2A2A]' : 'hover:bg-gray-100')
                                   }`}
                               >
                                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
@@ -1675,6 +2001,7 @@ export default function MessagesPage() {
                             return exists ? prev : [conv, ...prev];
                           });
                           setSelectedConversation(conv);
+                          updateURLWithConversation(conv._id);
                           setShowNewConversation(false);
                           setSelectedDmUser(null);
                         } catch (e) { }
@@ -1698,6 +2025,7 @@ export default function MessagesPage() {
                           }
                           const conv = await messagingService.createGroup(groupName, ids, groupAvatar);
                           setSelectedConversation(conv);
+                          updateURLWithConversation(conv._id);
 
                           // System messages are now created automatically by the backend
 
@@ -1947,6 +2275,20 @@ export default function MessagesPage() {
           </div>
         )}
       </div>
+
+      {/* Video Call Modal */}
+      <VideoCallModal
+        isOpen={showVideoCallModal}
+        onClose={() => setShowVideoCallModal(false)}
+        callType={callType}
+        callData={callData}
+        onAnswer={handleCallAnswer}
+        onDecline={handleCallDecline}
+        onEnd={handleCallEnd}
+        currentUser={user}
+        answerData={answerData}
+        onOutgoingCallAnswered={handleOutgoingCallAnswered}
+      />
     </>
   );
 }
