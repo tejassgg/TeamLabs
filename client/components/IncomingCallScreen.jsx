@@ -12,12 +12,14 @@ const IncomingCallScreen = ({
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [ringStartTime, setRingStartTime] = useState(null);
   const autoDeclinedRef = useRef(false);
 
   // Timer for call duration
   useEffect(() => {
     if (isVisible) {
       const startTime = Date.now();
+      setRingStartTime(startTime);
       const timer = setInterval(() => {
         const secs = Math.floor((Date.now() - startTime) / 1000);
         setElapsedSeconds(secs);
@@ -29,6 +31,7 @@ const IncomingCallScreen = ({
       return () => clearInterval(timer);
     } else {
       setElapsedSeconds(0);
+      setRingStartTime(null);
       autoDeclinedRef.current = false;
     }
   }, [isVisible, onDecline]);
@@ -131,7 +134,10 @@ const IncomingCallScreen = ({
         <div className="p-4 flex gap-3">
           {/* Decline button */}
           <button
-            onClick={onDecline}
+            onClick={() => {
+              const ringDuration = ringStartTime ? Math.floor((Date.now() - ringStartTime) / 1000) : 0;
+              onDecline && onDecline(ringDuration);
+            }}
             className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
             title="Decline Call"
           >

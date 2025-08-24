@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { FaPhone, FaPhoneSlash, FaMicrophone, FaMicrophoneSlash, FaVideo, FaVideoSlash, FaTimes, FaVolumeUp, FaVolumeMute, FaSignal } from 'react-icons/fa';
 import { useWebRTC } from '../hooks/useWebRTC';
 import { useTheme } from '../context/ThemeContext';
+import { useVideoCall } from '../context/VideoCallContext';
 
 const VideoCallModal = ({ 
   isOpen, 
@@ -18,12 +19,15 @@ const VideoCallModal = ({
   initialAction = null
 }) => {
   const { resolvedTheme } = useTheme();
+  const { ringDuration } = useVideoCall();
   const isDark = resolvedTheme === 'dark';
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [callStartTs, setCallStartTs] = useState(null);
+  const [callStartTime, setCallStartTime] = useState(null);
+  const [ringStartTime, setRingStartTime] = useState(null);
   const timerRef = useRef(null);
   const autoActionDoneRef = useRef(false);
 
@@ -63,6 +67,13 @@ const VideoCallModal = ({
        ? `Incoming call from ${remoteDisplayName}`
        : `Calling ${remoteDisplayName}`;
 
+  // Set ring start time for incoming calls
+  useEffect(() => {
+    if (isOpen && callType === 'incoming' && !ringStartTime) {
+      setRingStartTime(Date.now());
+    }
+  }, [isOpen, callType, ringStartTime]);
+
   // Automatically perform initial action (answer/decline) when opening
   useEffect(() => {
     if (!isOpen || autoActionDoneRef.current) return;
@@ -97,6 +108,7 @@ const VideoCallModal = ({
   useEffect(() => {
     if (!isOpen) {
       autoActionDoneRef.current = false;
+      setRingStartTime(null);
     }
   }, [isOpen]);
 
@@ -105,7 +117,9 @@ const VideoCallModal = ({
     if (connectionState.status === 'connected') {
       if (!callStartTs) {
         const start = Date.now();
+        const startTime = new Date().toISOString();
         setCallStartTs(start);
+        setCallStartTime(startTime);
         setElapsedSeconds(0);
         timerRef.current = setInterval(() => {
           setElapsedSeconds(Math.floor((Date.now() - start) / 1000));
@@ -218,10 +232,25 @@ const VideoCallModal = ({
     }
   }, [callType, initializeLocalStream, handleOutgoingCall, initialAction, autoAnswer]);
 
+  const handleEndCall = useCallback(() => {
+    // Pass call start time and duration to the endCall function
+    const callDuration = elapsedSeconds;
+    endCall(callStartTime, callDuration);
+    onEnd && onEnd();
+  }, [endCall, onEnd, elapsedSeconds, callStartTime]);
+
   const handleModalClose = useCallback(() => {
-    cleanup();
-    onClose();
-  }, [cleanup, onClose]);
+    // If call is connected, end it properly for both parties
+    if (connectionState.status === 'connected') {
+      handleEndCall();
+    } else {
+      // Before connecting: treat as decline so server saves Missed call and remote UI closes
+      const calculatedRingDuration = ringStartTime ? Math.floor((Date.now() - ringStartTime) / 1000) : 0;
+      const finalRingDuration = ringDuration > 0 ? ringDuration : calculatedRingDuration;
+      declineCall(finalRingDuration);
+      onDecline && onDecline();
+    }
+  }, [connectionState.status, handleEndCall, declineCall, onDecline, ringStartTime, ringDuration]);
 
   const handleAnswerDataChange = useCallback(() => {
     if (answerData && callType === 'outgoing') {
@@ -349,14 +378,12 @@ const VideoCallModal = ({
   }, [handleAnswer, onAnswer]);
 
   const handleDeclineCall = useCallback(() => {
-    declineCall();
+    // Use ring duration from context (set by IncomingCallScreen) or calculate from local timer
+    const calculatedRingDuration = ringStartTime ? Math.floor((Date.now() - ringStartTime) / 1000) : 0;
+    const finalRingDuration = ringDuration > 0 ? ringDuration : calculatedRingDuration;
+    declineCall(finalRingDuration);
     onDecline && onDecline();
-  }, [declineCall, onDecline]);
-
-  const handleEndCall = useCallback(() => {
-    endCall();
-    onEnd && onEnd();
-  }, [endCall, onEnd]);
+  }, [declineCall, onDecline, ringStartTime, ringDuration]);
 
   const getConnectionQualityIndicator = () => {
     if (connectionState.status !== 'connected') return null;

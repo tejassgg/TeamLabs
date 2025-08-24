@@ -287,6 +287,21 @@ export default function MessagesPage() {
   };
 
   const selectConversationFromURL = (conversationId) => {
+    // Clear typing indicator when switching conversations
+    if (selectedConversation && typingStopTimerRef.current) {
+      clearTimeout(typingStopTimerRef.current);
+      typingStopTimerRef.current = null;
+      
+      // Emit typing stop event for the previous conversation
+      const socket = getSocket();
+      if (socket) {
+        socket.emit('chat.typing', {
+          conversationId: selectedConversation._id,
+          isTyping: false
+        });
+      }
+    }
+    
     if (conversationId && conversations.length > 0) {
       const conversation = conversations.find(c => c._id === conversationId);
       if (conversation) {
@@ -295,6 +310,27 @@ export default function MessagesPage() {
       }
     }
     return false;
+  };
+
+  // Helper function to select conversation with typing indicator cleanup
+  const selectConversationWithCleanup = (conversation) => {
+    // Clear typing indicator when switching conversations
+    if (selectedConversation && typingStopTimerRef.current) {
+      clearTimeout(typingStopTimerRef.current);
+      typingStopTimerRef.current = null;
+      
+      // Emit typing stop event for the previous conversation
+      const socket = getSocket();
+      if (socket) {
+        socket.emit('chat.typing', {
+          conversationId: selectedConversation._id,
+          isTyping: false
+        });
+      }
+    }
+    
+    setSelectedConversation(conversation);
+    updateURLWithConversation(conversation._id);
   };
 
   useEffect(() => {
@@ -527,6 +563,12 @@ export default function MessagesPage() {
       offConvUpdated && offConvUpdated();
       offOrgMemberUpdated && offOrgMemberUpdated();
       offInbox && offInbox();
+      
+      // Clear typing stop timer on component unmount
+      if (typingStopTimerRef.current) {
+        clearTimeout(typingStopTimerRef.current);
+        typingStopTimerRef.current = null;
+      }
     };
   }, [user]);
 
@@ -548,6 +590,21 @@ export default function MessagesPage() {
   // Handle browser back/forward button navigation
   useEffect(() => {
     const handlePopState = () => {
+      // Clear typing indicator when navigating away
+      if (selectedConversation && typingStopTimerRef.current) {
+        clearTimeout(typingStopTimerRef.current);
+        typingStopTimerRef.current = null;
+        
+        // Emit typing stop event
+        const socket = getSocket();
+        if (socket) {
+          socket.emit('chat.typing', {
+            conversationId: selectedConversation._id,
+            isTyping: false
+          });
+        }
+      }
+      
       const conversationId = getConversationFromURL();
       if (conversationId) {
         selectConversationFromURL(conversationId);
@@ -560,7 +617,7 @@ export default function MessagesPage() {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [conversations]);
+  }, [conversations, selectedConversation]);
 
   // Handle page refresh and maintain conversation selection
   useEffect(() => {
@@ -579,7 +636,7 @@ export default function MessagesPage() {
   // Select first conversation by default (only if no URL parameter)
   useEffect(() => {
     if (!selectedConversation && conversations && conversations.length > 0 && !getConversationFromURL()) {
-      setSelectedConversation(conversations[0]);
+      selectConversationWithCleanup(conversations[0]);
     }
   }, [conversations, selectedConversation]);
 
@@ -598,6 +655,52 @@ export default function MessagesPage() {
       setIsMobileSidebarOpen(false);
     }
   }, [selectedConversation]);
+
+  // Handle page visibility changes to clear typing indicators
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && selectedConversation && typingStopTimerRef.current) {
+        // Clear typing indicator when page becomes hidden
+        clearTimeout(typingStopTimerRef.current);
+        typingStopTimerRef.current = null;
+        
+        // Emit typing stop event
+        const socket = getSocket();
+        if (socket) {
+          socket.emit('chat.typing', {
+            conversationId: selectedConversation._id,
+            isTyping: false
+          });
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [selectedConversation]);
+
+  // Handle router navigation to clear typing indicators
+  useEffect(() => {
+    const handleRouteChangeStart = () => {
+      if (selectedConversation && typingStopTimerRef.current) {
+        // Clear typing indicator when navigating away
+        clearTimeout(typingStopTimerRef.current);
+        typingStopTimerRef.current = null;
+        
+        // Emit typing stop event
+        const socket = getSocket();
+        if (socket) {
+          socket.emit('chat.typing', {
+            conversationId: selectedConversation._id,
+            isTyping: false
+          });
+        }
+      }
+    };
+
+    router.events.on('routeChangeStart', handleRouteChangeStart);
+    return () => router.events.off('routeChangeStart', handleRouteChangeStart);
+  }, [selectedConversation, router]);
 
   useEffect(() => {
     const onClickOutside = (e) => {
@@ -778,6 +881,12 @@ export default function MessagesPage() {
         Object.values(typingTimersRef.current || {}).forEach((t) => clearTimeout(t));
       } catch (_) { }
       typingTimersRef.current = {};
+      
+      // Clear typing stop timer
+      if (typingStopTimerRef.current) {
+        clearTimeout(typingStopTimerRef.current);
+        typingStopTimerRef.current = null;
+      }
     };
   }, [selectedConversation?._id]);
 
@@ -826,6 +935,24 @@ export default function MessagesPage() {
 
   const handleSend = async () => {
     if (!input.trim() || !selectedConversation) return;
+    
+    // Clear typing indicator when sending message
+    if (typingStopTimerRef.current) {
+      clearTimeout(typingStopTimerRef.current);
+      typingStopTimerRef.current = null;
+    }
+    
+    // Emit typing stop event
+    if (selectedConversation) {
+      const socket = getSocket();
+      if (socket) {
+        socket.emit('chat.typing', {
+          conversationId: selectedConversation._id,
+          isTyping: false
+        });
+      }
+    }
+    
     setIsSending(true);
     try {
       // If the user is no longer a participant, block locally with a toast
@@ -836,6 +963,24 @@ export default function MessagesPage() {
         return;
       }
       setInput('');
+      
+      // Clear typing indicator when input is cleared
+      if (typingStopTimerRef.current) {
+        clearTimeout(typingStopTimerRef.current);
+        typingStopTimerRef.current = null;
+      }
+      
+      // Emit typing stop event when input is cleared
+      if (selectedConversation) {
+        const socket = getSocket();
+        if (socket) {
+          socket.emit('chat.typing', {
+            conversationId: selectedConversation._id,
+            isTyping: false
+          });
+        }
+      }
+      
       setTimeout(scrollToBottom, 50);
       const msg = await messagingService.sendMessage(selectedConversation._id, { type: 'text', text: input.trim() });
       // setMessages((prev) => [...prev, msg]);
@@ -881,11 +1026,47 @@ export default function MessagesPage() {
     if (selectedConversation) {
       const socket = getSocket();
       if (socket) {
+        // Clear existing typing stop timer
+        if (typingStopTimerRef.current) {
+          clearTimeout(typingStopTimerRef.current);
+        }
+        
+        // If input is empty, emit typing stop event immediately
+        if (!value.trim()) {
+          socket.emit('chat.typing', {
+            conversationId: selectedConversation._id,
+            isTyping: false
+          });
+          typingStopTimerRef.current = null;
+          return;
+        }
+        
+        // Emit typing start event
         socket.emit('chat.typing', {
           conversationId: selectedConversation._id,
-          userId: user._id,
-          userName: `${user.firstName || ''} ${user.lastName || ''}`.trim()
+          isTyping: true
         });
+        
+        // Set timer to emit typing stop event after 2 seconds of inactivity
+        typingStopTimerRef.current = setTimeout(() => {
+          socket.emit('chat.typing', {
+            conversationId: selectedConversation._id,
+            isTyping: false
+          });
+          typingStopTimerRef.current = null;
+        }, 2000);
+        
+        // Also set a longer timeout to ensure typing indicator is cleared even if the 2-second timer fails
+        setTimeout(() => {
+          if (typingStopTimerRef.current) {
+            clearTimeout(typingStopTimerRef.current);
+            typingStopTimerRef.current = null;
+            socket.emit('chat.typing', {
+              conversationId: selectedConversation._id,
+              isTyping: false
+            });
+          }
+        }, 10000); // 10 seconds as a fallback
       }
     }
   };
@@ -919,6 +1100,24 @@ export default function MessagesPage() {
         e.preventDefault();
         setShowMentions(false);
         setMentionQuery('');
+        
+        // Clear input and typing indicator when Escape is pressed
+        setInput('');
+        if (typingStopTimerRef.current) {
+          clearTimeout(typingStopTimerRef.current);
+          typingStopTimerRef.current = null;
+        }
+        
+        // Emit typing stop event
+        if (selectedConversation) {
+          const socket = getSocket();
+          if (socket) {
+            socket.emit('chat.typing', {
+              conversationId: selectedConversation._id,
+              isTyping: false
+            });
+          }
+        }
       }
     }
   };
@@ -1123,8 +1322,7 @@ export default function MessagesPage() {
     if (conversationId && conversations.length > 0) {
       const conversation = conversations.find(c => c._id === conversationId);
       if (conversation) {
-        setSelectedConversation(conversation);
-        updateURLWithConversation(conversationId);
+        selectConversationWithCleanup(conversation);
         return true;
       }
     }
@@ -1194,7 +1392,6 @@ export default function MessagesPage() {
       // Send system message to DB about leaving
       const userName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
       await sendSystemMessage(selectedConversation._id, `${userName} left the group`);
-      setSelectedConversation(selectedConversation);
       // Clear URL since user is no longer in this conversation
       updateURLWithConversation(null);
 
@@ -1363,10 +1560,7 @@ export default function MessagesPage() {
                           const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'GR';
                           const isRecentlyUpdated = recentlyUpdatedConversation === c._id;
                           return (
-                            <button key={c._id} onClick={() => {
-                              setSelectedConversation(c);
-                              updateURLWithConversation(c._id);
-                            }} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel} ${isRecentlyUpdated ? (theme === 'dark' ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200') : ''}`}>
+                            <button key={c._id} onClick={() => selectConversationWithCleanup(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel} ${isRecentlyUpdated ? (theme === 'dark' ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200') : ''}`}>
                               {c.avatarUrl ? (
                                 <img src={c.avatarUrl} alt="" className="w-8 h-8 rounded-full" />
                               ) : (
@@ -1417,10 +1611,7 @@ export default function MessagesPage() {
                           const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'U';
                           const isRecentlyUpdated = recentlyUpdatedConversation === c._id;
                           return (
-                            <button key={c._id} onClick={() => {
-                              setSelectedConversation(c);
-                              updateURLWithConversation(c._id);
-                            }} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel} ${isRecentlyUpdated ? (theme === 'dark' ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200') : ''}`}>
+                            <button key={c._id} onClick={() => selectConversationWithCleanup(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `${theme === 'dark' ? 'bg-blue-900 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-300'}` : ''} ${panel} ${isRecentlyUpdated ? (theme === 'dark' ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200') : ''}`}>
                               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</div>
                               <div className="min-w-0 flex-1">
                                 <div className="font-medium truncate flex items-center gap-2">
@@ -1772,15 +1963,22 @@ export default function MessagesPage() {
                       </div>
                     )}
                     <div ref={bottomRef} />
-                    {Object.keys(typingUsers).length > 0 && (
-                      <div className={`text-xs mt-1 ml-2 flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                        <div className="text-xs">{Object.keys(typingUsers).map((userId) => {
-                          const user = orgUsers.find((u) => String(u._id) === String(userId));
-                          return user ? user.name : 'Someone';
-                        }).join(', ')} is typing</div>
-                      </div>
-                    )}
+                  </div>
+                )}
+                {/* Typing Indicator - positioned at bottom of message area, above footer */}
+                {Object.keys(typingUsers).length > 0 && (
+                  <div className={`px-2 lg:px-3 mx-2 lg:mx-3 mb-2 text-xs flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                    <div className="text-xs">{Object.keys(typingUsers).map((userId) => {
+                      // Try to find user in conversation participants first, then fallback to orgUsers
+                      const participant = (convDetails?.participants || selectedConversation?.participants || []).find(p => String(p._id) === String(userId));
+                      if (participant) {
+                        return `${participant.firstName || ''} ${participant.lastName || ''}`.trim() || 'Someone';
+                      }
+                      // Fallback to orgUsers if participant not found
+                      const orgUser = orgUsers.find((u) => String(u._id) === String(userId));
+                      return orgUser ? orgUser.name : 'Someone';
+                    }).join(', ')} is typing</div>
                   </div>
                 )}
                 {isLoadingMessages ? (
@@ -1841,6 +2039,24 @@ export default function MessagesPage() {
                         ref={messageInputRef}
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
+                        onBlur={() => {
+                          // Clear typing indicator when input loses focus
+                          if (typingStopTimerRef.current) {
+                            clearTimeout(typingStopTimerRef.current);
+                            typingStopTimerRef.current = null;
+                          }
+                          
+                          // Emit typing stop event
+                          if (selectedConversation) {
+                            const socket = getSocket();
+                            if (socket) {
+                              socket.emit('chat.typing', {
+                                conversationId: selectedConversation._id,
+                                isTyping: false
+                              });
+                            }
+                          }
+                        }}
                         disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))}
                       />
                       <button disabled={isSending || !(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} className={`px-2 lg:px-4 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-blue-50 text-blue-600'} flex items-center gap-1 lg:gap-2 touch-manipulation`} onClick={handleSend}>
@@ -2022,8 +2238,7 @@ export default function MessagesPage() {
                             const exists = prev.find(c => c._id === conv._id);
                             return exists ? prev : [conv, ...prev];
                           });
-                          setSelectedConversation(conv);
-                          updateURLWithConversation(conv._id);
+                          selectConversationWithCleanup(conv);
                           setShowNewConversation(false);
                           setSelectedDmUser(null);
                         } catch (e) { }
@@ -2046,8 +2261,7 @@ export default function MessagesPage() {
                             ids.push(user._id);
                           }
                           const conv = await messagingService.createGroup(groupName, ids, groupAvatar);
-                          setSelectedConversation(conv);
-                          updateURLWithConversation(conv._id);
+                          selectConversationWithCleanup(conv);
 
                           // System messages are now created automatically by the backend
 

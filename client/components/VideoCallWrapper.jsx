@@ -24,11 +24,11 @@ const VideoCallWrapper = ({ currentUser, onOutgoingCallAnswered }) => {
     handleCallAnsweredFromSmallScreen();
   };
 
-  const handleDecline = () => {
+  const handleDecline = (ringDuration) => {
     // Hide the incoming call screen and clear the call
     hideIncomingCallScreen();
     if (handleCallDeclined) {
-      handleCallDeclined();
+      handleCallDeclined(ringDuration);
     }
   };
 

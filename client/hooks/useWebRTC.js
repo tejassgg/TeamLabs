@@ -203,6 +203,14 @@ export const useWebRTC = (callType, callData, currentUser) => {
       callTimeoutRef.current = setTimeout(() => {
         if (connectionState.status === 'connecting') {
           updateConnectionState({ status: 'failed', isConnecting: false, error: 'Call timed out. The user is not responding.' });
+          // Emit missed call event for timeout
+          if (getSocket()) {
+            getSocket().emit('call.missed', { 
+              conversationId: callData.conversationId,
+              callerId: currentUser._id,
+              ringDuration: 30
+            });
+          }
         }
       }, 30000);
     } catch (error) {
@@ -267,16 +275,24 @@ export const useWebRTC = (callType, callData, currentUser) => {
     iceConnectionStateRef.current = 'new';
   }, [updateConnectionState]);
 
-  const endCall = useCallback(() => {
+  const endCall = useCallback((callStartTime, callDuration) => {
     if (getSocket()) {
-      getSocket().emit('call.end', { conversationId: callData.conversationId });
+      getSocket().emit('call.end', { 
+        conversationId: callData.conversationId,
+        callStartTime,
+        callDuration
+      });
     }
     cleanup();
   }, [callData, cleanup]);
 
-  const declineCall = useCallback(() => {
+  const declineCall = useCallback((ringDuration = 0) => {
     if (getSocket()) {
-      getSocket().emit('call.decline', { callerId: callData.callerId, conversationId: callData.conversationId });
+      getSocket().emit('call.decline', { 
+        callerId: callData.callerId, 
+        conversationId: callData.conversationId,
+        ringDuration
+      });
     }
     cleanup();
   }, [callData, cleanup]);

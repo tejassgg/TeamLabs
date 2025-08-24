@@ -74,6 +74,12 @@ const videoCallReducer = (state, action) => {
         callStatus: action.payload
       };
     
+    case 'SET_RING_DURATION':
+      return {
+        ...state,
+        ringDuration: action.payload
+      };
+    
     default:
       return state;
   }
@@ -87,7 +93,8 @@ const initialState = {
   callData: null,
   answerData: null,
   activeCall: null,
-  callStatus: 'idle'
+  callStatus: 'idle',
+  ringDuration: 0
 };
 
 // Create context
@@ -144,7 +151,14 @@ export const VideoCallProvider = ({ children }) => {
   }, []);
 
   // Handle call declined
-  const handleCallDeclined = useCallback(() => {
+  const handleCallDeclined = useCallback((ringDuration) => {
+    // Store ring duration for system message
+    if (ringDuration !== undefined) {
+      dispatch({
+        type: 'SET_RING_DURATION',
+        payload: ringDuration
+      });
+    }
     dispatch({
       type: 'CLEAR_CALL'
     });
@@ -316,6 +330,8 @@ export const useCallSubscriptions = (conversationId) => {
     const offCallEnded = socket.on('call.ended', (payload) => {
       const { data } = payload || {};
       if (data && data.conversationId === conversationId) {
+        // When remote party ends the call, we need to save a system message
+        // This will be handled by the server when the remote party emits 'call.end'
         handleCallEnded();
       }
     });
