@@ -6,15 +6,16 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
 import { useToast } from '../context/ToastContext';
-import ProjectStatusDropdown from '../components/ProjectStatusDropdown';
-import { FaTrash, FaCheckCircle, FaVideo, FaChalkboardTeacher, FaRocket, FaProjectDiagram, FaCoffee, FaPowerOff, FaUserSlash, FaChartBar, FaEnvelope, FaRedo, FaPlus } from 'react-icons/fa';
+import ProjectStatusDropdown from '../components/dashboard/ProjectStatusDropdown';
+import { FaTrash, FaRocket, FaProjectDiagram, FaChartBar, FaEnvelope, FaRedo, FaPlus } from 'react-icons/fa';
+import { getStatusConfig } from '../components/dashboard/StatusConfig';
 import api from '../services/api';
 import { projectService } from '../services/api';
 import { userService } from '../services/api';
 import { authService } from '../services/api';
 import { connectSocket, subscribe } from '../services/socket';
-import OnboardingProgress from '../components/OnboardingProgress';
-import OnboardingGuide from '../components/OnboardingGuide';
+import OnboardingProgress from '../components/dashboard/OnboardingProgress';
+import OnboardingGuide from '../components/dashboard/OnboardingGuide';
 
 // Dynamic import for charts
 let DashboardCharts = null;
@@ -22,53 +23,13 @@ let SimpleCharts = null;
 
 // Try to load Chart.js components, fallback to simple charts
 try {
-  DashboardCharts = require('../components/DashboardCharts').default;
+  DashboardCharts = require('../components/dashboard/DashboardCharts').default;
 } catch (error) {
   // If Chart.js is not available, use simple charts
-  SimpleCharts = require('../components/SimpleCharts').default;
+  SimpleCharts = require('../components/dashboard/SimpleCharts').default;
 }
 
-const getStatusConfig = (status) => {
-  const config = {
-    'Active': {
-      color: 'text-green-500',
-      bgColor: 'bg-green-500/10',
-      icon: FaCheckCircle,
-      label: 'Active'
-    },
-    'In a Meeting': {
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-500/10',
-      icon: FaVideo,
-      label: 'In a Meeting'
-    },
-    'Presenting': {
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-500/10',
-      icon: FaChalkboardTeacher,
-      label: 'Presenting'
-    },
-    'Away': {
-      color: 'text-yellow-500',
-      bgColor: 'bg-yellow-500/10',
-      icon: FaCoffee,
-      label: 'Away'
-    },
-    'Busy': {
-      color: 'text-red-500',
-      bgColor: 'bg-red-500/10',
-      icon: FaUserSlash,
-      label: 'Busy'
-    },
-    'Offline': {
-      color: 'text-gray-500',
-      bgColor: 'bg-gray-500/10',
-      icon: FaPowerOff,
-      label: 'Offline'
-    }
-  };
-  return config[status] || config['Offline'];
-};
+
 
 const Dashboard = () => {
   const { user } = useAuth();

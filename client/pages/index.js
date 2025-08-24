@@ -2,12 +2,12 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useRef } from 'react';
-import Modal from '../components/Modal';
-import LoginForm from '../components/LoginForm';
-import RegisterForm from '../components/RegisterForm';
+import Modal from '../components/shared/Modal';
+import LoginForm from '../components/auth/LoginForm';
+import RegisterForm from '../components/auth/RegisterForm';
 import { useTheme } from '../context/ThemeContext';
 import { landingService } from '../services/api';
-import AuthNavbar from '../components/AuthNavbar';
+import AuthNavbar from '../components/auth/AuthNavbar';
 import { FaRocket, FaChartLine, FaUsers, FaShieldAlt, FaRobot, FaCheckCircle, FaArrowRight, FaPlay, FaStar, FaGithub, FaGoogle, FaSignOutAlt, FaChevronRight, FaChevronDown, FaBars, FaTimes } from 'react-icons/fa';
 
 const testimonials = [

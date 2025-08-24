@@ -1,9 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { teamService, projectService, authService, taskService, commonTypeService } from '../services/api';
-import { getProjectStatusStyle, getProjectStatusBadge } from '../components/ProjectStatusBadge';
-import { getTaskTypeStyle, getTaskTypeBadge } from '../components/TaskTypeBadge';
-import { getDeadlineStatus, calculateDeadlineText } from '../components/DeadlineStatusBadge';
+import { getProjectStatusStyle, getProjectStatusBadge } from '../components/project/ProjectStatusBadge';
+import { getTaskTypeStyle, getTaskTypeBadge } from '../components/task/TaskTypeBadge';
+import { getDeadlineStatus, calculateDeadlineText } from '../components/shared/DeadlineStatusBadge';
 import { useRouter } from 'next/router';
 import { subscribe } from '../services/socket';
 
@@ -194,6 +194,7 @@ export const GlobalProvider = ({ children }) => {
     setProjects,
     setTeams,
     setTasksDetails,
+    setOrganization,
     getProjectStatus,
     getProjectStatusStyle,
     getProjectStatusBadgeComponent,

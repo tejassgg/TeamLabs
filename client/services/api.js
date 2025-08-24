@@ -394,6 +394,7 @@ export const teamService = {
   requestToJoinTeam: async (teamId, userId) => {
     try {
       const response = await api.post(`/teams/${teamId}/join-request`, { userId });
+      console.log(response.data);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to request to join team' };
@@ -421,6 +422,14 @@ export const teamService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to reject join request' };
+    }
+  },
+  getUserPendingRequests: async (userId) => {
+    try {
+      const response = await api.get(`/teams/user/${userId}/pending-requests`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch pending requests' };
     }
   },
 };

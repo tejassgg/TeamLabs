@@ -9,8 +9,8 @@ import Head from 'next/head';
 import { GlobalProvider } from '../context/GlobalContext';
 // import { SessionProvider } from 'next-auth/react';
 import { ToastProvider } from '../context/ToastContext';
-import RouteProtection from '../components/RouteProtection';
-import Layout from '../components/Layout';
+import RouteProtection from '../components/shared/RouteProtection';
+import Layout from '../components/layout/Layout';
 
 function AppContainer({ Component, pageProps }) {
   useEffect(() => {

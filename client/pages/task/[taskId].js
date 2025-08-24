@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -7,19 +7,18 @@ import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useToast } from '../../context/ToastContext';
 import { taskService, projectService, taskDetailsService } from '../../services/api';
-import TaskDetailsSkeleton from '../../components/TaskDetailsSkeleton';
-import { statusMap, statusIcons, statusColors, getTaskTypeDetails, getPriorityStyle, useThemeClasses } from '../../components/kanbanUtils';
+import TaskDetailsSkeleton from '../../components/skeletons/TaskDetailsSkeleton';
+import { statusMap, statusIcons, statusColors, getTaskTypeDetails, getPriorityStyle, useThemeClasses } from '../../components/kanban/kanbanUtils';
 import { connectSocket, subscribe, getSocket } from '../../services/socket';
-import TaskAttachments from '../../components/TaskAttachments';
-import TaskComments from '../../components/TaskComments';
+import TaskAttachments from '../../components/task/TaskAttachments';
+import TaskComments from '../../components/task/TaskComments';
 
 import { authService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import Modal from '../../components/Modal';
-import CustomModal from '../../components/CustomModal';
-import axios from 'axios';
-import { getTaskTypeBadge, getPriorityBadge, getTaskTypeStyle } from '../../components/TaskTypeBadge';
-import AddTaskModal from '../../components/AddTaskModal';
+import Modal from '../../components/shared/Modal';
+import CustomModal from '../../components/shared/CustomModal';
+import { getTaskTypeBadge, getPriorityBadge, getTaskTypeStyle } from '../../components/task/TaskTypeBadge';
+import AddTaskModal from '../../components/shared/AddTaskModal';
 
 const TaskDetailsPage = () => {
     const router = useRouter();

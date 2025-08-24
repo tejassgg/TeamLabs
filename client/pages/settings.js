@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { FaMoon, FaSun, FaDesktop, FaShieldAlt, FaSignOutAlt, FaCheck, FaTimes, FaCrown, FaInfinity, FaUsers, FaRocket, FaStar, FaCheckCircle, FaGithub } from 'react-icons/fa';
 import { useToast } from '../context/ToastContext';
-import TwoFactorAuth from '../components/TwoFactorAuth';
+import TwoFactorAuth from '../components/auth/TwoFactorAuth';
 
 import { authService } from '../services/api';
 import { useRouter } from 'next/router';

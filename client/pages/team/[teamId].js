@@ -5,23 +5,13 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
 import api, { authService, teamService } from '../../services/api';
-import CustomModal from '../../components/CustomModal';
-import StatusDropdown from '../../components/StatusDropdown';
+import CustomModal from '../../components/shared/CustomModal';
+import StatusDropdown from '../../components/shared/StatusDropdown';
 import { FaCog, FaTrash, FaTimes, FaChevronRight } from 'react-icons/fa';
-import TeamDetailsSkeleton from '../../components/TeamDetailsSkeleton';
+import TeamDetailsSkeleton from '../../components/skeletons/TeamDetailsSkeleton';
 import { subscribe } from '../../services/socket';
 import Link from 'next/link';
-
-// Custom hook for theme-aware classes
-const useThemeClasses = () => {
-  const { theme } = useTheme();
-
-  const getThemeClasses = (lightClasses, darkClasses) => {
-    return theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
-  };
-
-  return getThemeClasses;
-};
+import { useThemeClasses } from '../../components/shared/hooks/useThemeClasses';
 
 const TeamDetailsPage = () => {
   const router = useRouter();

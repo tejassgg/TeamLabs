@@ -1,10 +1,10 @@
 import { useTheme } from '../context/ThemeContext';
 import Head from 'next/head';
-import LoginForm from '../components/LoginForm';
+import LoginForm from '../components/auth/LoginForm';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import AuthNavbar from '../components/AuthNavbar';
+import AuthNavbar from '../components/auth/AuthNavbar';
 
 const Login = () => {
   const { theme, toggleTheme, resolvedTheme } = useTheme();

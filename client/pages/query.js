@@ -5,8 +5,8 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
-import CustomModal from '../components/CustomModal';
-import { getPriorityBadge, getTaskTypeBadge } from '../components/TaskTypeBadge';
+import CustomModal from '../components/shared/CustomModal';
+import { getPriorityBadge, getTaskTypeBadge } from '../components/task/TaskTypeBadge';
 
 const QueryBoard = () => {
   const { user } = useAuth();

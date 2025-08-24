@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import Link from 'next/link';
 import { authService, commonTypeService } from '../services/api';
-import CompleteProfileForm from '../components/CompleteProfileForm';
+import CompleteProfileForm from '../components/profile/CompleteProfileForm';
 import {
   FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaBuilding, FaCity, FaGlobe,
   FaGithub, FaLinkedin, FaTwitter, FaFacebook, FaInstagram, FaEdit, FaHistory,

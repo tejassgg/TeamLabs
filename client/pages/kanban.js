@@ -4,16 +4,16 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { FaChevronRight, FaInfoCircle, FaTasks, FaExclamationCircle, FaTimes, FaCheckCircle, FaClock, FaCode, FaVial, FaShieldAlt, FaRocket, FaTrashAlt, FaProjectDiagram } from 'react-icons/fa';
+import { FaChevronRight, FaInfoCircle, FaTasks, FaExclamationCircle, FaTimes, FaCheckCircle, FaClock, FaCode, FaShieldAlt, FaRocket } from 'react-icons/fa';
 import { useGlobal } from '../context/GlobalContext';
 import { taskService, projectService, commentService, attachmentService } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { connectSocket, subscribe, getSocket } from '../services/socket';
-import AssignTaskModal from '../components/AssignTaskModal';
-import AddTaskModal from '../components/AddTaskModal';
-import TaskCard from '../components/TaskCard';
-import KanbanColumn from '../components/KanbanColumn';
-import CustomDropdown from '../components/CustomDropdown';
+import AssignTaskModal from '../components/shared/AssignTaskModal';
+import AddTaskModal from '../components/shared/AddTaskModal';
+import TaskCard from '../components/kanban/TaskCard';
+import KanbanColumn from '../components/kanban/KanbanColumn';
+import CustomDropdown from '../components/shared/CustomDropdown';
 import {
   statusMap,
   statusIcons,
@@ -21,7 +21,7 @@ import {
   getTaskTypeDetails,
   getPriorityStyle,
   useThemeClasses
-} from '../components/kanbanUtils';
+} from '../components/kanban/kanbanUtils';
 
 
 const KanbanBoard = () => {

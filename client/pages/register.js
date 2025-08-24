@@ -1,10 +1,10 @@
 import { useTheme } from '../context/ThemeContext';
 import Head from 'next/head';
-import RegisterForm from '../components/RegisterForm';
+import RegisterForm from '../components/auth/RegisterForm';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import AuthNavbar from '../components/AuthNavbar';
+import AuthNavbar from '../components/auth/AuthNavbar';
 
 const Register = () => {
   const { theme } = useTheme();

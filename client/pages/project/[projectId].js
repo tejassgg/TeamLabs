@@ -5,24 +5,23 @@ import Link from 'next/link';
 
 import api, { authService, taskService, githubService } from '../../services/api';
 import { FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaTasks, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile } from 'react-icons/fa';
-import AddTaskModal from '../../components/AddTaskModal';
-import CustomModal from '../../components/CustomModal';
+import AddTaskModal from '../../components/shared/AddTaskModal';
+import CustomModal from '../../components/shared/CustomModal';
 import { useToast } from '../../context/ToastContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
-import AssignTaskModal from '../../components/AssignTaskModal';
-import React from 'react';
-import KanbanColumn from '../../components/KanbanColumn';
+import AssignTaskModal from '../../components/shared/AssignTaskModal';
+import KanbanColumn from '../../components/kanban/KanbanColumn';
 import {
   statusMap,
   statusIcons,
   statusColors,
   getPriorityStyle
-} from '../../components/kanbanUtils';
-import { getProjectStatusBadge, getProjectStatusStyle } from '../../components/ProjectStatusBadge';
-import ProjectDetailsSkeleton from '../../components/ProjectDetailsSkeleton';
-import ProjectFilesTab from '../../components/ProjectFilesTab';
-import ProjectActivity from '../../components/ProjectActivity';
+} from '../../components/kanban/kanbanUtils';
+import { getProjectStatusBadge, getProjectStatusStyle } from '../../components/project/ProjectStatusBadge';
+import ProjectDetailsSkeleton from '../../components/skeletons/ProjectDetailsSkeleton';
+import ProjectFilesTab from '../../components/project/ProjectFilesTab';
+import ProjectActivity from '../../components/project/ProjectActivity';
 import { connectSocket, subscribe, getSocket } from '../../services/socket';
 
 const ProjectDetailsPage = () => {
