@@ -200,7 +200,7 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
                     <p>Hello! How can I help you today?</p>
                     <div className="flex flex-wrap justify-center gap-2 mt-4">
                       <Link
-                        href="/login"
+                        href="/"
                         className={`inline-block px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                           theme === 'dark'
                             ? 'bg-blue-600 hover:bg-blue-700 text-white'

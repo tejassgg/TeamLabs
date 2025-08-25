@@ -2,12 +2,19 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/router';
 import { FaMoon, FaSun, FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa';
 
 const AuthNavbar = ({ openLogin }) => {
   const { theme, toggleTheme, resolvedTheme } = useTheme();
   const { isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
 
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${resolvedTheme === 'dark' ? 'bg-gray-900/95 backdrop-blur-sm border-b border-gray-800' : 'bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm'}`}>
@@ -39,7 +46,7 @@ const AuthNavbar = ({ openLogin }) => {
                   Dashboard
                 </Link>
                 <button 
-                  onClick={logout}
+                  onClick={handleLogout}
                   className={`px-4 py-2 border rounded-lg flex items-center gap-2 text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`}
                 >
                   <FaSignOutAlt className="text-sm" /> Logout
@@ -95,7 +102,7 @@ const AuthNavbar = ({ openLogin }) => {
                   </Link>
                   <button 
                     onClick={() => {
-                      logout();
+                      handleLogout();
                       setMobileMenuOpen(false);
                     }}
                     className={`px-4 py-2 border rounded-lg flex items-center gap-2 text-sm font-medium transition-colors ${resolvedTheme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`}

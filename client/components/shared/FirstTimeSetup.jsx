@@ -474,12 +474,9 @@ const ProfileStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selected
 
   // When profile is completed, allow continue
   const handleProfileComplete = (data) => {
-    console.log('data', data);
     setProfileCompleted(true);
     // Save organization data if available
     if (data && data.organizationID) {
-      // Find the organization details from the form data
-      // This will be passed from CompleteProfileForm
       setSelectedOrganization({
         id: data.organizationID,
         name: data.organization.name

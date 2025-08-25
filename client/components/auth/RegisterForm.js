@@ -415,9 +415,9 @@ const RegisterForm = () => {
       <div className="mt-6">
         <p className="text-center text-sm text-gray-600">
           Already have an account?{' '}
-          <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+          <button onClick={() => window.location.href = '/'} className="text-blue-600 hover:text-blue-700 font-medium">
             Sign In
-          </Link>
+          </button>
         </p>
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">

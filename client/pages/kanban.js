@@ -1,34 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
-import { FaChevronRight, FaInfoCircle, FaTasks, FaExclamationCircle, FaTimes, FaCheckCircle, FaClock, FaCode, FaShieldAlt, FaRocket } from 'react-icons/fa';
+import { FaInfoCircle, FaExclamationCircle, FaProjectDiagram, FaTrashAlt, FaTasks } from 'react-icons/fa';
 import { useGlobal } from '../context/GlobalContext';
-import { taskService, projectService, commentService, attachmentService } from '../services/api';
+import { taskService, projectService} from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { connectSocket, subscribe, getSocket } from '../services/socket';
 import AssignTaskModal from '../components/shared/AssignTaskModal';
 import AddTaskModal from '../components/shared/AddTaskModal';
-import TaskCard from '../components/kanban/TaskCard';
 import KanbanColumn from '../components/kanban/KanbanColumn';
 import CustomDropdown from '../components/shared/CustomDropdown';
 import {
   statusMap,
   statusIcons,
   statusColors,
-  getTaskTypeDetails,
-  getPriorityStyle,
   useThemeClasses
 } from '../components/kanban/kanbanUtils';
 
 
-const KanbanBoard = () => {
-  const router = useRouter();
+const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
   const { projects, userDetails } = useGlobal();
   const { showToast } = useToast();
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(forcedProjectId || null);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -40,15 +32,15 @@ const KanbanBoard = () => {
   const [draggedCardDimensions, setDraggedCardDimensions] = useState(null);
   const [userStories, setUserStories] = useState([]);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
-  const { theme } = useTheme();
   const getThemeClasses = useThemeClasses();
 
   // Initialize with first project when projects are loaded
   useEffect(() => {
+    if (forcedProjectId) return; // lock to provided project
     if (projects.length > 0 && !selectedProject) {
       setSelectedProject(projects[0].ProjectID || projects[0]._id);
     }
-  }, [projects, selectedProject]);
+  }, [projects, selectedProject, forcedProjectId]);
 
   // Fetch tasks and user stories when a project is selected
   useEffect(() => {
@@ -56,12 +48,9 @@ const KanbanBoard = () => {
       if (!selectedProject) return;
       setLoading(true);
       try {
-        const fetchedTasks = await taskService.getTaskDetails(selectedProject);
-
-        setTasks(fetchedTasks);
-        // Fetch user stories for the project
-        const projectDetails = await projectService.getProjectDetails(selectedProject);
-        setUserStories(projectDetails.userStories || []);
+        const { tasks: fetchedTasks, userStories: fetchedUserStories } = await taskService.getKanbanData(selectedProject);
+        setTasks(fetchedTasks || []);
+        setUserStories(fetchedUserStories || []);
       } catch (err) {
         setError('Failed to fetch tasks');
         showToast('Failed to fetch tasks', 'error');
@@ -290,50 +279,48 @@ const KanbanBoard = () => {
       </Head>
       <div className="mx-auto">
 
-        <div className="flex items-center justify-between mb-2">
-          {/* Project Info Banner */}
-          <div className={getThemeClasses(
-            'bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 flex items-center gap-3 border border-blue-100',
-            'dark:from-blue-900/30 dark:to-indigo-900/30 dark:border-blue-800/50'
-          )}>
-            <FaInfoCircle className={getThemeClasses(
-              'text-blue-500',
-              'dark:text-blue-400'
-            )} size={20} />
-            <div>
-              <p className={getThemeClasses(
-                'text-gray-700',
-                'dark:text-gray-300'
-              )}>
-                Currently viewing: <span className="font-semibold">{getCurrentProjectName()}</span>
-              </p>
-              <p className={getThemeClasses(
-                'text-sm text-gray-600',
-                'dark:text-gray-400'
-              )}>Drag and drop tasks to update their status</p>
+        {!forcedProjectId && (
+          <div className="flex items-center justify-between mb-2">
+            {/* Project Info Banner */}
+            <div className={getThemeClasses(
+              'bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 flex items-center gap-3 border border-blue-100',
+              'dark:from-blue-900/30 dark:to-indigo-900/30 dark:border-blue-800/50'
+            )}>
+              <FaInfoCircle className={getThemeClasses(
+                'text-blue-500',
+                'dark:text-blue-400'
+              )} size={20} />
+              <div>
+                <p className={getThemeClasses(
+                  'text-gray-700',
+                  'dark:text-gray-300'
+                )}>
+                  Currently viewing: <span className="font-semibold">{getCurrentProjectName()}</span>
+                </p>
+                <p className={getThemeClasses(
+                  'text-sm text-gray-600',
+                  'dark:text-gray-400'
+                )}>Drag and drop tasks to update their status</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <CustomDropdown
+                value={selectedProject || ''}
+                onChange={handleProjectChange}
+                options={projects.length === 0 ? [] : projects.map(project => ({
+                  value: project.ProjectID || project._id,
+                  label: project.Name,
+                  icon: <FaProjectDiagram className="w-4 h-4" />
+                }))}
+                placeholder={projects.length === 0 ? "No projects available" : "Select a project"}
+                disabled={projects.length === 0}
+                variant="filled"
+                size="md"
+                width="w-64"
+              />
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <CustomDropdown
-              value={selectedProject || ''}
-              onChange={handleProjectChange}
-              options={projects.length === 0 ? [] : projects.map(project => ({
-                value: project.ProjectID || project._id,
-                label: project.Name,
-                icon: <FaProjectDiagram className="w-4 h-4" />
-              }))}
-              placeholder={projects.length === 0 ? "No projects available" : "Select a project"}
-              disabled={projects.length === 0}
-              // icon={<FaProjectDiagram className="w-4 h-4" />}
-              variant="filled"
-              size="md"
-              width="w-64"
-            />
-          </div>
-        </div>
-
-
-
+        )}
         {loading && tasks.length === 0 ? (
           <div className="flex items-center justify-center py-16">
             <div className={getThemeClasses(

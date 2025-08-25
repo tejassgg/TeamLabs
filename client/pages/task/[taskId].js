@@ -2,22 +2,20 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { FaCheckCircle, FaClock, FaEdit, FaTrash, FaProjectDiagram, FaCalendarAlt, FaChevronDown, FaPlus } from 'react-icons/fa';
+import { FaCheckCircle, FaClock, FaEdit, FaTrash, FaProjectDiagram, FaCalendarAlt, FaChevronDown, FaPlus, FaTasks } from 'react-icons/fa';
 import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useToast } from '../../context/ToastContext';
-import { taskService, projectService, taskDetailsService } from '../../services/api';
+import { taskService, taskDetailsService } from '../../services/api';
 import TaskDetailsSkeleton from '../../components/skeletons/TaskDetailsSkeleton';
 import { statusMap, statusIcons, statusColors, getTaskTypeDetails, getPriorityStyle, useThemeClasses } from '../../components/kanban/kanbanUtils';
 import { connectSocket, subscribe, getSocket } from '../../services/socket';
 import TaskAttachments from '../../components/task/TaskAttachments';
 import TaskComments from '../../components/task/TaskComments';
-
-import { authService } from '../../services/api';
+import SubtaskList from '../../components/task/SubtaskList';
 import { useAuth } from '../../context/AuthContext';
-import Modal from '../../components/shared/Modal';
 import CustomModal from '../../components/shared/CustomModal';
-import { getTaskTypeBadge, getPriorityBadge, getTaskTypeStyle } from '../../components/task/TaskTypeBadge';
+import { getTaskTypeStyle } from '../../components/task/TaskTypeBadge';
 import AddTaskModal from '../../components/shared/AddTaskModal';
 
 const TaskDetailsPage = () => {
@@ -505,7 +503,7 @@ const TaskDetailsPage = () => {
                                     'text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2',
                                     'dark:text-gray-100'
                                 )}>
-                                    <FaProjectDiagram className="text-blue-500 dark:text-blue-400" />
+                                    <FaTasks className="text-blue-500 dark:text-blue-400" />
                                     Task Progress: {getTaskProgressPercentage(task.Status)}%
                                 </h3>
                                 {/* Progress Steps with Progress Bar Behind */}
@@ -775,7 +773,13 @@ const TaskDetailsPage = () => {
                         <div className="mb-5">
                             <TaskAttachments taskId={task.TaskID} userId={userDetails?._id} initialAttachments={attachments} />
                         </div>
-                        {/* Divider between Attachments and Comments */}
+                        {/* Divider between Attachments and Subtasks */}
+                        <div className={getThemeClasses("border-t border-gray-200 mb-5", "dark:border-gray-700")}></div>
+                        {/* --- SUBTASKS SECTION --- */}
+                        <div className="mb-5">
+                            <SubtaskList taskId={task.TaskID} subtasks={subtasks} onSubtasksChange={setSubtasks} />
+                        </div>
+                        {/* Divider between Subtasks and Comments */}
                         <div className={getThemeClasses("border-t border-gray-200 mb-5", "dark:border-gray-700")}></div>
                         {/* --- COMMENTS SECTION --- */}
                         <div className="mb-5">

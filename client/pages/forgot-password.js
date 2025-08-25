@@ -110,8 +110,8 @@ export default function ForgotPasswordPage() {
             <p className="text-gray-600 mb-6">If the user exists, a password reset link has been sent to the registered email address.</p>
             <button
               className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600"
-              onClick={() => router.push('/login')}
-            >Back to Login</button>
+              onClick={() => router.push('/')}
+            >Back to Home</button>
           </div>
         )}
         {step === 'reset' && (
@@ -153,8 +153,8 @@ export default function ForgotPasswordPage() {
             <p className="text-gray-600 mb-6">Your password has been reset successfully. You can now log in with your new password.</p>
             <button
               className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600"
-              onClick={() => router.push('/login')}
-            >Back to Login</button>
+              onClick={() => router.push('/')}
+            >Back to Home</button>
           </div>
         )}
       </div>

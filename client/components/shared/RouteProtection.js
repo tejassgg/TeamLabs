@@ -9,7 +9,7 @@ const RouteProtection = ({ children }) => {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Define public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/github-callback', '/welcome'];
+  const publicRoutes = ['/', '/register', '/forgot-password', '/reset-password', '/github-callback', '/welcome'];
   
   // Check if current route is public
   const isPublicRoute = publicRoutes.includes(router.pathname);
@@ -23,7 +23,7 @@ const RouteProtection = ({ children }) => {
       setIsRedirecting(true);
       // Add a small delay to show loading state
       const redirectTimeout = setTimeout(() => {
-        router.replace('/login');
+        router.replace('/');
       }, 100);
       return () => clearTimeout(redirectTimeout);
     }

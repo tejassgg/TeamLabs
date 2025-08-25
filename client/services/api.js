@@ -564,6 +564,14 @@ export const taskService = {
       throw error.response?.data || { message: 'Failed to fetch project tasks' };
     }
   },
+  getKanbanData: async (projectId) => {
+    try {
+      const response = await api.get(`/task-details/project/${projectId}/kanban`);
+      return response.data; // { tasks, userStories }
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch kanban data' };
+    }
+  },
   getTaskById: async (taskId) => {
     try {
       const response = await api.get(`/task-details/${taskId}`);
@@ -661,18 +669,31 @@ export const chatbotService = {
 };
 
 export const subtaskService = {
+  // Get all subtasks for a task
   getSubtasks: async (taskId) => {
-    const res = await api.get(`/tasks/${taskId}/subtasks`);
+    const res = await api.get(`/subtasks/${taskId}`);
     return res.data;
   },
-  addSubtask: async (taskId, title, order = 0) => {
-    const res = await api.post(`/tasks/${taskId}/subtasks`, { Title: title, Order: order });
+
+  // Create a new subtask
+  createSubtask: async (subtaskData) => {
+    const res = await api.post('/subtasks', subtaskData);
     return res.data;
   },
-  updateSubtask: async (subtaskId, update) => {
-    const res = await api.patch(`/subtasks/${subtaskId}`, update);
+
+  // Update a subtask
+  updateSubtask: async (subtaskId, updates) => {
+    const res = await api.put(`/subtasks/${subtaskId}`, updates);
     return res.data;
   },
+
+  // Toggle subtask completion status
+  toggleSubtask: async (subtaskId) => {
+    const res = await api.patch(`/subtasks/${subtaskId}/toggle`);
+    return res.data;
+  },
+
+  // Delete a subtask
   deleteSubtask: async (subtaskId) => {
     const res = await api.delete(`/subtasks/${subtaskId}`);
     return res.data;

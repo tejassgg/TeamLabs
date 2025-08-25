@@ -2,17 +2,75 @@ import React, { useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useTheme } from '../../context/ThemeContext';
 import { getTaskTypeDetails, getPriorityStyle, useThemeClasses } from './kanbanUtils';
-import { FaComment, FaPaperclip } from 'react-icons/fa';
+import { FaComment, FaPaperclip, FaCalendarAlt, FaFlag } from 'react-icons/fa';
 
-const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd, isTaskAssignedToUser, bgColor }) => {
+const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssignedToUser, bgColor }) => {
   const router = useRouter();
-  const { theme } = useTheme();
   const getThemeClasses = useThemeClasses();
   const cardRef = useRef(null);
   const canMove = isTaskAssignedToUser(task) || task.Status === 1;
 
   const typeDetails = getTaskTypeDetails(task.Type);
   const priorityDetails = task.Type !== 'User Story' ? getPriorityStyle(task.Priority) : null;
+
+  // Get column color for checkmarks
+  const getColumnColor = () => {
+    const colorMap = {
+      'bg-red-500': 'text-red-500',
+      'bg-yellow-500': 'text-yellow-500',
+      'bg-blue-500': 'text-blue-500',
+      'bg-green-500': 'text-green-500',
+      'bg-purple-500': 'text-purple-500',
+      'bg-pink-500': 'text-pink-500',
+      'bg-indigo-500': 'text-indigo-500',
+      'bg-gray-500': 'text-gray-500'
+    };
+    return colorMap[bgColor] || 'text-blue-500';
+  };
+  const accentMap = {
+    'bg-red-500': 'accent-red-500',
+    'bg-yellow-500': 'accent-yellow-500',
+    'bg-blue-500': 'accent-blue-500',
+    'bg-green-500': 'accent-green-500',
+    'bg-purple-500': 'accent-purple-500',
+    'bg-pink-500': 'accent-pink-500',
+    'bg-indigo-500': 'accent-indigo-500',
+    'bg-gray-500': 'accent-gray-500'
+  };
+
+  const map = {
+    'bg-red-500': 'bg-red-500',
+    'bg-yellow-500': 'bg-yellow-500',
+    'bg-blue-500': 'bg-blue-500',
+    'bg-green-500': 'bg-green-500',
+    'bg-purple-500': 'bg-purple-500',
+    'bg-pink-500': 'bg-pink-500',
+    'bg-indigo-500': 'bg-indigo-500',
+    'bg-gray-500': 'bg-gray-500'
+  };
+  const getColumnBg = () => {
+    // Normalize any bg-<hue>-<shade> to bg-<hue>-500 to keep a vivid tone
+    if (typeof bgColor === 'string') {
+      const match = bgColor.match(/bg-([a-z]+)-(\d{2,3})/);
+      if (match && match[1]) {
+        return `bg-${match[1]}-500`;
+      }
+    }
+    return 'bg-blue-500';
+  };
+
+  // Calculate progress based on task status
+  const getProgressPercentage = () => {
+    const statusProgress = {
+      1: 0,    // Not Assigned
+      2: 20,   // Assigned
+      3: 50,   // In Progress
+      4: 70,   // QA
+      5: 85,   // Deployment
+      6: 100   // Completed
+    };
+    return statusProgress[task.Status] || 0;
+  };
 
   const onDragStart = (e) => {
     if (!canMove) return;
@@ -46,11 +104,9 @@ const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd,
   };
 
   return (
-    <div
-      ref={cardRef}
-      key={task.TaskID}
+    <div ref={cardRef} key={task.TaskID}
       className={getThemeClasses(
-        `p-3 rounded-lg mb-2 border ${canMove ? `border-${bgColor.replace('bg-', '')}-200 cursor-grab` : 'border-gray-200 cursor-not-allowed opacity-80'}`,
+        `p-3 rounded-xl mb-2 border ${canMove ? `border-${bgColor.replace('bg-', '')}-200 cursor-grab` : 'border-gray-200 cursor-not-allowed opacity-80'}`,
         `dark:border-gray-700 ${canMove ? 'dark:hover:bg-gray-700/30' : ''}`
       )}
       draggable={canMove}
@@ -98,9 +154,94 @@ const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd,
         )}
       </div>
 
+      {/* Subtasks Section */}
+      {task.subtasks && task.subtasks.length > 0 && (
+        <div className="mt-2 space-y-1 ">
+          {task.subtasks.slice(0, 4).map((subtask) => (
+            <div key={subtask.SubtaskID} className="flex items-center gap-2 min-w-0">
+              <span
+                className={`inline-flex items-center justify-center w-4 h-4 aspect-square rounded-full border flex-none shrink-0 leading-none ${subtask.IsCompleted ? getColumnBg() + ' border-transparent' : 'border-gray-300 bg-white'}`}
+                aria-hidden="true"
+              >
+                {subtask.IsCompleted ? (
+                  <svg viewBox="0 0 20 20" className="w-3 h-3 text-white">
+                    <path fill="currentColor" d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.5 7.5a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L8.5 12.086l6.793-6.793a1 1 0 0 1 1.414 0Z" />
+                  </svg>
+                ) : null}
+              </span>
+              <span className={getThemeClasses(
+                `text-xs whitespace-normal break-words ${subtask.IsCompleted ? 'line-through text-gray-500' : 'text-gray-700'}`,
+                `dark:text-xs whitespace-normal break-words ${subtask.IsCompleted ? 'dark:line-through dark:text-gray-400' : 'dark:text-gray-300'}`
+              )}>
+                {subtask.Name}
+              </span>
+            </div>
+          ))}
+          {task.subtasks.length > 4 && (
+            <div className="flex items-center gap-2">
+              <span className={getThemeClasses(
+                'text-xs text-gray-500',
+                'dark:text-xs dark:text-gray-400'
+              )}>
+                +{task.subtasks.length - 4} more
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Progress Bar */}
+      <div className="mt-3 flex items-center justify-between gap-2">
+        {task.AssignedToDetails && (
+          <div className={getThemeClasses(
+            'w-6 h-6 rounded-md bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white text-[10px] font-semibold',
+            'dark:from-blue-600 dark:to-blue-700'
+          )}>
+            {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
+          </div>
+        )}
+        <div className="w-full">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <span className={getThemeClasses(
+                'text-xs font-medium text-gray-700',
+                'dark:text-xs dark:font-medium dark:text-gray-300'
+              )}>
+                Progress
+              </span>
+            </div>
+            <span className={getThemeClasses(
+              'text-xs text-gray-600',
+              'dark:text-xs dark:text-gray-400'
+            )}>
+              {getProgressPercentage()}%
+            </span>
+          </div>
+          <div className={getThemeClasses(
+            'w-full bg-gray-200 rounded-full h-2',
+            'dark:w-full dark:bg-gray-700 dark:rounded-full dark:h-2'
+          )}>
+            <div
+              className={`h-2 rounded-full transition-all duration-300 bg-green-500`}
+              style={{ width: `${getProgressPercentage()}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
+
       {/* Task Footer */}
       <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2">
-        {/* Comments and Attachments Count (moved to left of footer) */}
+        {/* Left: Due By */}
+        <div className="flex items-center gap-2">
+          <span className={getThemeClasses('text-xs font-medium text-gray-700', 'text-xs font-medium text-white')}>
+            Due {(() => {
+              const d = task.AssignedDate || task.CreatedDate;
+              return d ? new Date(d).toLocaleDateString(undefined, { month: 'short', day: '2-digit' }) : 'No due date';
+            })()}
+          </span>
+        </div>
+
+        {/* Right: Comments & Attachments */}
         <div className="flex items-center gap-3">
           {task.commentsCount > 0 && (
             <div className={getThemeClasses(
@@ -120,21 +261,6 @@ const TaskCard = React.memo(({ task, statusCode, handleDragStart, handleDragEnd,
               <span>{task.attachmentsCount}</span>
             </div>
           )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Priority Badge - Only show for non-User Story tasks */}
-          <div className="flex items-center">
-            {/* Initials moved here */}
-            {task.AssignedToDetails && (
-              <div className={getThemeClasses(
-                'rounded-lg border p-1 bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-medium',
-                'dark:from-blue-600 dark:to-blue-700'
-              )}>
-                {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>

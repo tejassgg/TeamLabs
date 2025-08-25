@@ -186,7 +186,7 @@ const TaskComments = ({ taskId, userId, userName, initialComments, projectMember
                 ref={textareaRef}
                 className={getThemeClasses(
                   "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none",
-                  "dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                  "dark:bg-transparent dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 )}
                 placeholder="Write a comment... Use @ to mention team members"
                 value={newComment}
@@ -298,7 +298,7 @@ const TaskComments = ({ taskId, userId, userName, initialComments, projectMember
                         onClick={() => handleDelete(comment.CommentID)}
                         title="Delete comment"
                       >
-                        <FaTrash size={10} />
+                        <FaTrash size={12} className="text-red-500 dark:text-red-400" />
                       </button>
                     </div>
                   </div>
@@ -308,7 +308,7 @@ const TaskComments = ({ taskId, userId, userName, initialComments, projectMember
                       <textarea
                         className={getThemeClasses(
                           "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none",
-                          "dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                          "dark:bg-transparent dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                         )}
                         value={editingContent}
                         onChange={e => setEditingContent(e.target.value)}

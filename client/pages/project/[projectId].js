@@ -12,6 +12,7 @@ import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import AssignTaskModal from '../../components/shared/AssignTaskModal';
 import KanbanColumn from '../../components/kanban/KanbanColumn';
+import KanbanBoard from '../kanban';
 import {
   statusMap,
   statusIcons,
@@ -712,9 +713,9 @@ const ProjectDetailsPage = () => {
 
   const fetchProjectTasks = async (projectId) => {
     try {
-      const allTasks = await taskService.getTaskDetails();
-      setUserStories(allTasks.filter(task => task.ProjectID_FK === projectId && task.Type === 'User Story'));
-      setTaskList(allTasks.filter(task => task.ProjectID_FK === projectId && task.Type !== 'User Story'));
+      const { tasks: kanbanTasks, userStories: kanbanUserStories } = await taskService.getKanbanData(projectId);
+      setUserStories(kanbanUserStories || []);
+      setTaskList(kanbanTasks || []);
     } catch (err) {
       console.log(err);
     }
@@ -1246,7 +1247,7 @@ const ProjectDetailsPage = () => {
                     statusName={statusName}
                     icon={icon}
                     bgColor={statusStyle.light}
-                    tasks={tasks}
+                    tasks={taskList}
                     handleDragStart={handleDragStart}
                     handleDragEnd={handleDragEnd}
                     handleDrop={handleDrop}
@@ -1397,156 +1398,157 @@ const ProjectDetailsPage = () => {
             </nav>
           </div>
         </div>
-        {/* Project Description - Enhanced UI */}
-        <div className={getThemeClasses(
-          'flex w-full items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm',
-          'dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none'
-        )}>
-          <div className="flex items-center gap-3">
-            <div className={getThemeClasses(
-              'flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center',
-              'dark:bg-blue-900/50'
-            )}>
-              <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <h3 className={getThemeClasses(
-                'text-sm font-semibold text-blue-800 mb-1',
-                'dark:text-blue-300'
-              )}>
-                Project Description
-              </h3>
-              {project.Description ? (
-                <p className={getThemeClasses(
-                  'text-sm text-blue-700 leading-relaxed',
-                  'dark:text-blue-200'
-                )}>
-                  {project.Description}
-                </p>
-              ) : (
-                <p className={getThemeClasses(
-                  'text-sm text-blue-600 italic',
-                  'dark:text-blue-300'
-                )}>
-                  No description provided
-                </p>
-              )}
-            </div>
-          </div>
 
-          <div className="flex items-center justify-between gap-2">
-            {/* Right side - Deadline Status */}
-            {project.FinishDate && (
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {(() => {
-                  const status = getDeadlineStatusComponent(deadline);
-                  return (
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
-                      <span className={`w-2 h-2 rounded-full ${status.dotColor} ${deadline !== 'Deadline Passed' && deadline !== 'No Deadline' ? 'animate-pulse' : ''}`}></span>
-                      {status.text}
-                    </span>
-                  );
-                })()}
-              </div>
-            )}
-            {/* Project Title, Status, Description */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-3">
-                {project && (
-                  <div>{getProjectStatusBadgeComponent(project.ProjectStatusID)}</div>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                {/* Team Member Initials - Show for all users */}
-                {projectMembers.length > 0 && (
-                  <div className="flex items-center gap-3">
-
-                    <div className="flex items-center gap-1">
-                      {projectMembers.slice(0, 3).map((member, idx) => (
-                        <div
-                          key={member._id}
-                          className={getThemeClasses(
-                            "w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden bg-purple-500",
-                            "dark:border-gray-700"
-                          )}
-                          style={{ marginLeft: idx === 0 ? '0' : '-10px' }}
-                          title={`${member.firstName} ${member.lastName}`}
-                        >
-                          {member.profileImage ? (
-                            <img
-                              src={member.profileImage}
-                              alt={`${member.firstName} ${member.lastName}`}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className={getThemeClasses(
-                              "text-sm font-medium text-white",
-                              "dark:text-white"
-                            )}>
-                              {getUserInitials(member)}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                      {projectMembers.length > 3 && (
-                        <div className={getThemeClasses(
-                          "w-8 h-8 flex items-center justify-center px-2 py-1 rounded-full bg-gray-100 border border-gray-200 shadow-sm",
-                          "dark:bg-gray-700 dark:border-gray-600"
-                        )}
-                          style={{ marginLeft: '-10px' }}>
-                          <span className={getThemeClasses(
-                            "text-xs font-medium text-gray-600",
-                            "dark:text-gray-300"
-                          )}>
-                            +{projectMembers.length - 3}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* GitHub Repository Button - Only for owners */}
-                {isOwner && (
-                  <button
-                    className={getThemeClasses(
-                      "p-1.5 text-gray-500 hover:text-green-500 rounded-full hover:bg-gray-100 transition-colors",
-                      "dark:text-gray-400 dark:hover:text-green-400 dark:hover:bg-gray-700"
-                    )}
-                    title={projectRepository ? "Manage Repository" : "Link GitHub Repository"}
-                    onClick={() => {
-                      if (projectRepository) {
-                        setShowRepositoryModal(true);
-                      } else {
-                        fetchUserRepositories();
-                      }
-                    }}
-                  >
-                    <FaGithub size={20} />
-                  </button>
-                )}
-                {/* Project Settings Button - Only for owners */}
-                {isOwner && (
-                  <button
-                    className={getThemeClasses(
-                      "p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-blue-100 transition-colors",
-                      "dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700"
-                    )}
-                    title="Project Settings"
-                    onClick={() => setShowSettingsModal(true)}
-                  >
-                    <FaCog size={20} />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
         {/* Tab Content */}
         {activeTab === 'manage' ? (
           <div>
+            {/* Project Description - Enhanced UI */}
+            <div className={getThemeClasses(
+              'flex w-full items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm',
+              'dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none'
+            )}>
+              <div className="flex items-center gap-3">
+                <div className={getThemeClasses(
+                  'flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center',
+                  'dark:bg-blue-900/50'
+                )}>
+                  <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className={getThemeClasses(
+                    'text-sm font-semibold text-blue-800 mb-1',
+                    'dark:text-blue-300'
+                  )}>
+                    Project Description
+                  </h3>
+                  {project.Description ? (
+                    <p className={getThemeClasses(
+                      'text-sm text-blue-700 leading-relaxed',
+                      'dark:text-blue-200'
+                    )}>
+                      {project.Description}
+                    </p>
+                  ) : (
+                    <p className={getThemeClasses(
+                      'text-sm text-blue-600 italic',
+                      'dark:text-blue-300'
+                    )}>
+                      No description provided
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2">
+                {/* Right side - Deadline Status */}
+                {project.FinishDate && (
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {(() => {
+                      const status = getDeadlineStatusComponent(deadline);
+                      return (
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
+                          <span className={`w-2 h-2 rounded-full ${status.dotColor} ${deadline !== 'Deadline Passed' && deadline !== 'No Deadline' ? 'animate-pulse' : ''}`}></span>
+                          {status.text}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                )}
+                {/* Project Title, Status, Description */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-3">
+                    {project && (
+                      <div>{getProjectStatusBadgeComponent(project.ProjectStatusID)}</div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {/* Team Member Initials - Show for all users */}
+                    {projectMembers.length > 0 && (
+                      <div className="flex items-center gap-3">
+
+                        <div className="flex items-center gap-1">
+                          {projectMembers.slice(0, 3).map((member, idx) => (
+                            <div
+                              key={member._id}
+                              className={getThemeClasses(
+                                "w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden bg-purple-500",
+                                "dark:border-gray-700"
+                              )}
+                              style={{ marginLeft: idx === 0 ? '0' : '-10px' }}
+                              title={`${member.firstName} ${member.lastName}`}
+                            >
+                              {member.profileImage ? (
+                                <img
+                                  src={member.profileImage}
+                                  alt={`${member.firstName} ${member.lastName}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span className={getThemeClasses(
+                                  "text-sm font-medium text-white",
+                                  "dark:text-white"
+                                )}>
+                                  {getUserInitials(member)}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                          {projectMembers.length > 3 && (
+                            <div className={getThemeClasses(
+                              "w-8 h-8 flex items-center justify-center px-2 py-1 rounded-full bg-gray-100 border border-gray-200 shadow-sm",
+                              "dark:bg-gray-700 dark:border-gray-600"
+                            )}
+                              style={{ marginLeft: '-10px' }}>
+                              <span className={getThemeClasses(
+                                "text-xs font-medium text-gray-600",
+                                "dark:text-gray-300"
+                              )}>
+                                +{projectMembers.length - 3}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* GitHub Repository Button - Only for owners */}
+                    {isOwner && (
+                      <button
+                        className={getThemeClasses(
+                          "p-1.5 text-gray-500 hover:text-green-500 rounded-full hover:bg-gray-100 transition-colors",
+                          "dark:text-gray-400 dark:hover:text-green-400 dark:hover:bg-gray-700"
+                        )}
+                        title={projectRepository ? "Manage Repository" : "Link GitHub Repository"}
+                        onClick={() => {
+                          if (projectRepository) {
+                            setShowRepositoryModal(true);
+                          } else {
+                            fetchUserRepositories();
+                          }
+                        }}
+                      >
+                        <FaGithub size={20} />
+                      </button>
+                    )}
+                    {/* Project Settings Button - Only for owners */}
+                    {isOwner && (
+                      <button
+                        className={getThemeClasses(
+                          "p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-blue-100 transition-colors",
+                          "dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700"
+                        )}
+                        title="Project Settings"
+                        onClick={() => setShowSettingsModal(true)}
+                      >
+                        <FaCog size={20} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className='w-full flex item-center justify-between gap-6 mt-6'>
               {/* Project Progress Bar */}
               <div className="w-[60%] mb-6">
@@ -2216,14 +2218,8 @@ const ProjectDetailsPage = () => {
           </div>
         ) : activeTab === 'board' ? (
           <div>
-            {/* Board Tab: Kanban Board for this project */}
-            <KanbanBoardForProject
-              projectId={projectId}
-              initialTasks={taskList}
-              initialUserStories={userStories}
-              setTaskList={setTaskList}
-              setUserStories={setUserStories}
-            />
+            {/* Board Tab: Re-using global Kanban board */}
+            <KanbanBoard projectId={projectId} />
           </div>
         ) : activeTab === 'files' ? (
           <ProjectFilesTab projectId={projectId} />

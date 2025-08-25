@@ -96,7 +96,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
     try {
       await authService.logout();
       if (onLogout) onLogout();
-      router.push('/login');
+      router.push('/');
     } catch (error) {
       console.error('Error logging out:', error);
     }

@@ -21,7 +21,7 @@ function AppContainer({ Component, pageProps }) {
   // Check if current page is login, register, or landing page
   const isAuthPage = Component.displayName === 'Login' || Component.displayName === 'Register' || Component.displayName === 'Home' || 
                     pageProps?.isAuthPage || 
-                    (typeof window !== 'undefined' && ['/login', '/register', '/'].includes(window.location.pathname));
+                    (typeof window !== 'undefined' && ['/register', '/'].includes(window.location.pathname));
   
   return (
     <div className={theme} style={{ minHeight: '100vh' }}>
