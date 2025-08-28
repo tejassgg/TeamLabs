@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import api, { authService, taskService, githubService } from '../../services/api';
 import { FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaTasks, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile } from 'react-icons/fa';
+import TaskCollaborationIndicator from '../../components/shared/TaskCollaborationIndicator';
 import AddTaskModal from '../../components/shared/AddTaskModal';
 import CustomModal from '../../components/shared/CustomModal';
 import { useToast } from '../../context/ToastContext';
@@ -1332,7 +1333,7 @@ const ProjectDetailsPage = () => {
       <Head>
         <title>Project - {project?.Name || 'Loading...'} | TeamLabs</title>
       </Head>
-      <div className="mx-auto">
+      <div className="mx-auto" data-project-id={projectId}>
         {/* Tab Navigation */}
         <div className="mb-6">
           <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>

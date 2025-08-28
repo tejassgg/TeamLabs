@@ -11,6 +11,12 @@ export const useWebRTC = (callType, callData, currentUser) => {
     connectionQuality: 'unknown'
   });
 
+  const [screenShareState, setScreenShareState] = useState({
+    isScreenSharing: false,
+    screenStream: null,
+    screenTrack: null
+  });
+
   const peerConnectionRef = useRef(null);
   const localStreamRef = useRef(null);
   const callTimeoutRef = useRef(null);
@@ -31,6 +37,10 @@ export const useWebRTC = (callType, callData, currentUser) => {
 
   const updateConnectionState = useCallback((updates) => {
     setConnectionState(prev => ({ ...prev, ...updates }));
+  }, []);
+
+  const updateScreenShareState = useCallback((updates) => {
+    setScreenShareState(prev => ({ ...prev, ...updates }));
   }, []);
 
   const initializeLocalStream = useCallback(async () => {
@@ -61,6 +71,7 @@ export const useWebRTC = (callType, callData, currentUser) => {
       
       return stream;
     } catch (error) {
+      console.log(error);
       let errorMessage = 'Failed to access camera and microphone.';
       if (error.name === 'NotAllowedError') {
         errorMessage = 'Camera and microphone access denied. Please allow access to use video calling.';
@@ -76,6 +87,119 @@ export const useWebRTC = (callType, callData, currentUser) => {
       return null;
     }
   }, [updateConnectionState]);
+
+  const startScreenShare = useCallback(async () => {
+    try {
+      if (screenShareState.isScreenSharing) {
+        return null;
+      }
+
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          cursor: 'always',
+          displaySurface: 'monitor'
+        },
+        audio: false
+      });
+
+      // Get the video track from screen stream
+      const screenTrack = screenStream.getVideoTracks()[0];
+      
+      if (!screenTrack) {
+        throw new Error('No video track found in screen stream');
+      }
+
+      // Handle screen share stop
+      screenTrack.onended = () => {
+        stopScreenShare();
+      };
+
+      // Replace video track in peer connection
+      if (peerConnectionRef.current) {
+        const senders = peerConnectionRef.current.getSenders();
+        const videoSender = senders.find(sender => 
+          sender.track && sender.track.kind === 'video'
+        );
+        
+        if (videoSender) {
+          await videoSender.replaceTrack(screenTrack);
+        }
+      }
+
+      updateScreenShareState({
+        isScreenSharing: true,
+        screenStream,
+        screenTrack
+      });
+
+      // Notify remote peer about screen sharing
+      if (getSocket()) {
+        const targetId = callType === 'incoming' ? callData.callerId : callData.recipientId;
+        getSocket().emit('call.screen-share.started', {
+          to: targetId,
+          conversationId: callData.conversationId
+        });
+      }
+
+      return screenStream;
+    } catch (error) {
+      console.error('Failed to start screen sharing:', error);
+      let errorMessage = 'Failed to start screen sharing.';
+      if (error.name === 'NotAllowedError') {
+        errorMessage = 'Screen sharing access denied.';
+      } else if (error.name === 'NotSupportedError') {
+        errorMessage = 'Screen sharing is not supported in this browser.';
+      }
+      return null;
+    }
+  }, [screenShareState.isScreenSharing, callType, callData, updateScreenShareState]);
+
+  const stopScreenShare = useCallback(async () => {
+    try {
+      if (!screenShareState.isScreenSharing) {
+        return;
+      }
+
+      // Stop screen track
+      if (screenShareState.screenTrack) {
+        screenShareState.screenTrack.stop();
+      }
+
+      // Stop screen stream
+      if (screenShareState.screenStream) {
+        screenShareState.screenStream.getTracks().forEach(track => track.stop());
+      }
+
+      // Restore original video track if available
+      if (peerConnectionRef.current && localStreamRef.current) {
+        const senders = peerConnectionRef.current.getSenders();
+        const videoSender = senders.find(sender => 
+          sender.track && sender.track.kind === 'video'
+        );
+        
+        if (videoSender && localStreamRef.current.getVideoTracks()[0]) {
+          await videoSender.replaceTrack(localStreamRef.current.getVideoTracks()[0]);
+        }
+      }
+
+      updateScreenShareState({
+        isScreenSharing: false,
+        screenStream: null,
+        screenTrack: null
+      });
+
+      // Notify remote peer about screen sharing stop
+      if (getSocket()) {
+        const targetId = callType === 'incoming' ? callData.callerId : callData.recipientId;
+        getSocket().emit('call.screen-share.stopped', {
+          to: targetId,
+          conversationId: callData.conversationId
+        });
+      }
+    } catch (error) {
+      console.error('Failed to stop screen sharing:', error);
+    }
+  }, [screenShareState, callType, callData, updateScreenShareState]);
 
   const createPeerConnection = useCallback(() => {
     if (peerConnectionRef.current) {
@@ -263,6 +387,9 @@ export const useWebRTC = (callType, callData, currentUser) => {
       localStreamRef.current.getTracks().forEach(track => track.stop());
       localStreamRef.current = null;
     }
+    if (screenShareState.screenStream) {
+      screenShareState.screenStream.getTracks().forEach(track => track.stop());
+    }
     remoteStreamRef.current = null;
     updateConnectionState({
       status: 'idle',
@@ -272,8 +399,13 @@ export const useWebRTC = (callType, callData, currentUser) => {
       error: null,
       connectionQuality: 'unknown'
     });
+    updateScreenShareState({
+      isScreenSharing: false,
+      screenStream: null,
+      screenTrack: null
+    });
     iceConnectionStateRef.current = 'new';
-  }, [updateConnectionState]);
+  }, [updateConnectionState, updateScreenShareState, screenShareState.screenStream]);
 
   const endCall = useCallback((callStartTime, callDuration) => {
     if (getSocket()) {
@@ -340,7 +472,10 @@ export const useWebRTC = (callType, callData, currentUser) => {
 
   return {
     connectionState,
+    screenShareState,
     initializeLocalStream,
+    startScreenShare,
+    stopScreenShare,
     handleAnswer,
     handleOutgoingCall,
     handleCallAnswered,

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { FaCheckCircle, FaClock, FaEdit, FaTrash, FaProjectDiagram, FaCalendarAlt, FaChevronDown, FaPlus, FaTasks } from 'react-icons/fa';
+import TaskCollaborationIndicator from '../../components/shared/TaskCollaborationIndicator';
 import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useToast } from '../../context/ToastContext';
@@ -490,7 +491,7 @@ const TaskDetailsPage = () => {
                 <title>{task.Name} | TeamLabs</title>
             </Head>
             <div className="mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" data-task-id={taskId}>
                     {/* Left/Main Section */}
                     <div className="lg:col-span-2">
                         {/* Task Progress Bar */}
@@ -499,13 +500,18 @@ const TaskDetailsPage = () => {
                                 'bg-white border border-gray-200 rounded-xl p-6 shadow-sm',
                                 'dark:bg-transparent dark:border-gray-700'
                             )}>
-                                <h3 className={getThemeClasses(
-                                    'text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2',
-                                    'dark:text-gray-100'
-                                )}>
-                                    <FaTasks className="text-blue-500 dark:text-blue-400" />
-                                    Task Progress: {getTaskProgressPercentage(task.Status)}%
-                                </h3>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className={getThemeClasses(
+                                        'text-lg font-semibold text-gray-900 flex items-center gap-2',
+                                        'dark:text-gray-100'
+                                    )}>
+                                        <FaTasks className="text-blue-500 dark:text-blue-400" />
+                                        Task Progress: {getTaskProgressPercentage(task.Status)}%
+                                    </h3>
+                                    
+                                    {/* Collaboration Indicator - Moved to right side */}
+                                    <TaskCollaborationIndicator taskId={taskId} projectId={task?.ProjectID_FK} />
+                                </div>
                                 {/* Progress Steps with Progress Bar Behind */}
                                 <div className="relative flex items-center justify-between">
                                     {/* Progress Bar Background */}

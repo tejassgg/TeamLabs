@@ -6,9 +6,10 @@ import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import api, { messagingService } from '../services/api';
 import { connectSocket, getSocket, subscribe } from '../services/socket';
-import { FaPaperPlane, FaPlus, FaSmile, FaImage, FaVideo, FaChevronDown, FaCheck, FaTimes, FaSearch, FaEllipsisV, FaCog, FaTrash, FaSignOutAlt, FaEdit, FaSave, FaPhone } from 'react-icons/fa';
+import { FaPaperPlane, FaPlus, FaSmile, FaImage, FaVideo, FaChevronDown, FaCheck, FaTimes, FaSearch, FaEllipsisV, FaCog, FaTrash, FaSignOutAlt, FaEdit, FaSave, FaPhone, FaMicrophone } from 'react-icons/fa';
 import VideoCallModal from '../components/messages/VideoCallModal';
 import IncomingCallScreen from '../components/messages/IncomingCallScreen';
+// Voice message components removed
 import {
   ConversationSkeleton,
   MessageSkeleton,
@@ -68,6 +69,8 @@ export default function MessagesPage() {
   const [mentionPosition, setMentionPosition] = useState(0);
   const [filteredMembers, setFilteredMembers] = useState([]);
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+  
+  // Voice message state removed
   const mentionDropdownRef = useRef(null);
   const messageInputRef = useRef(null);
   const memberDropdownRef = useRef(null);
@@ -832,6 +835,8 @@ export default function MessagesPage() {
             preview = '📷 Photo';
           } else if (message.type === 'video') {
             preview = '🎥 Video';
+          } else if (message.type === 'voice') {
+            preview = '🎤 Voice Message';
           } else if (message.type === 'system') {
             preview = message.text;
           }
@@ -1067,6 +1072,8 @@ export default function MessagesPage() {
       setIsSending(false);
     }
   };
+
+  // handleVoiceMessage removed
 
   // Load older messages via button
   const handleLoadMore = async () => {
@@ -1847,6 +1854,7 @@ export default function MessagesPage() {
                                   {m.type === 'video' && (
                                     <video src={m.mediaUrl} controls className="rounded-lg max-h-80" />
                                   )}
+                                  {/* voice message UI removed */}
                                   {/* Reaction picker on hover */}
                                   <div className={`absolute -top-3 ${mine ? '-right-1' : '-left-1'} opacity-0 group-hover:opacity-100 transition-opacity`}>
                                     <div className={`flex items-center gap-1 px-1 py-0.5 rounded-full border ${panel}`}>
@@ -1953,6 +1961,8 @@ export default function MessagesPage() {
                         <FaVideo />
                         <input type="file" accept="video/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} />
                       </label>
+                      
+                      {/* Voice Message Recorder removed */}
                       <input
                         className={`flex-1 px-2 lg:px-3 py-2 rounded-lg border ${panel} text-sm lg:text-base`}
                         placeholder={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))

@@ -143,19 +143,33 @@ const TaskAttachments = ({ taskId, userId, initialAttachments }) => {
     }
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('taskId', taskId);
-      formData.append('userId', userId);
-      formData.append('filename', file.name);
-      const response = await attachmentService.uploadAttachment(formData);
-      if (response.success) {
-        const newAttachment = response.attachment;
-        // setAttachments(prev => [newAttachment, ...prev]);
-        showToast('File uploaded successfully', 'success');
-      } else {
-        showToast('Failed to upload file: ' + (response.message || 'Unknown error'), 'error');
+      // 1) Save file locally to client/public/uploads
+      const localForm = new FormData();
+      localForm.append('file', file);
+      localForm.append('filename', file.name);
+      // convert to ArrayBuffer and stream to our local API
+      const arrayBuffer = await file.arrayBuffer();
+      const res = await fetch('/api/local-upload?filename=' + encodeURIComponent(file.name), {
+        method: 'POST',
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+        body: arrayBuffer
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success || !data?.url) {
+        throw new Error(data?.message || 'Local save failed');
       }
+
+      // 2) Persist metadata only to backend
+      const newAttachment = await attachmentService.addAttachment(
+        taskId,
+        file.name,
+        data.url,
+        userId,
+        file.size
+      );
+
+      // setAttachments(prev => [newAttachment, ...prev]);  -Commented out to avoid duplicate attachments
+      showToast('File uploaded successfully', 'success');
     } catch (error) {
       console.error('Error uploading file:', error);
       showToast('Failed to upload file: ' + (error.message || 'Unknown error'), 'error');

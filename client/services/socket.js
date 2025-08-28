@@ -73,6 +73,8 @@ export function connectSocket() {
   socket.on('task.comment.deleted', (payload) => dispatch('task.comment.deleted', payload));
   socket.on('task.attachment.added', (payload) => dispatch('task.attachment.added', payload));
   socket.on('task.attachment.removed', (payload) => dispatch('task.attachment.removed', payload));
+  socket.on('project.attachment.added', (payload) => dispatch('project.attachment.added', payload));
+  socket.on('project.attachment.removed', (payload) => dispatch('project.attachment.removed', payload));
 
   // Phase 6 messaging
   socket.on('chat.message.created', (payload) => dispatch('chat.message.created', payload));
@@ -82,6 +84,13 @@ export function connectSocket() {
   socket.on('chat.conversation.updated', (payload) => dispatch('chat.conversation.updated', payload));
   socket.on('chat.conversation.deleted', (payload) => dispatch('chat.conversation.deleted', payload));
   socket.on('chat.inbox.updated', (payload) => dispatch('chat.inbox.updated', payload));
+
+  // Phase 7: task collaboration (server-driven state)
+  socket.on('task.collaboration.state', (payload) => dispatch('task.collaboration.state', payload));
+
+  // Phase 8: screen sharing
+  socket.on('call.screen-share.started', (payload) => dispatch('call.screen-share.started', payload));
+  socket.on('call.screen-share.stopped', (payload) => dispatch('call.screen-share.stopped', payload));
   socket.on('chat.messages.read', (payload) => dispatch('chat.messages.read', payload));
 
   // Call events

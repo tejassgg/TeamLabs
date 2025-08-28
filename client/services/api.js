@@ -729,16 +729,30 @@ export const attachmentService = {
       throw error.response?.data || { message: 'Failed to upload attachment' };
     }
   },
-  addAttachment: async (taskId, filename, fileUrl, uploadedBy) => {
+  addAttachment: async (taskId, filename, fileUrl, uploadedBy, fileSize) => {
     try {
       const res = await api.post(`/attachments/tasks/${taskId}/attachments`, { 
         Filename: filename, 
         FileURL: fileUrl, 
-        UploadedBy: uploadedBy 
+        UploadedBy: uploadedBy,
+        FileSize: fileSize
       });
       return res.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to add attachment' };
+    }
+  },
+  addProjectAttachment: async (projectId, filename, fileUrl, uploadedBy, fileSize) => {
+    try {
+      const res = await api.post(`/attachments/project/${projectId}/attachments`, { 
+        Filename: filename, 
+        FileURL: fileUrl, 
+        UploadedBy: uploadedBy,
+        FileSize: fileSize
+      });
+      return res.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to add project attachment' };
     }
   },
   updateAttachment: async (attachmentId, updateData) => {
@@ -941,10 +955,37 @@ export const messagingService = {
     return res.data;
   },
   uploadChatMedia: async (formData) => {
-    const res = await api.post('/upload/chat/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    // Stream directly to Next.js local API to save in client/public/uploads
+    // Expecting formData to contain a single 'file' entry
+    let file = formData.get('file');
+    if (!file) throw { message: 'No file provided' };
+
+    // Note: Client-side transcoding removed. Files are uploaded as-is.
+
+    // Convert to ArrayBuffer/Buffer to stream
+    let arrayBuffer;
+    if (file.arrayBuffer) {
+      arrayBuffer = await file.arrayBuffer();
+    } else {
+      // Fallback for Blob polyfills
+      arrayBuffer = await new Response(file).arrayBuffer();
+    }
+    const filename = formData.get('filename') || file.name || `upload-${Date.now()}`;
+
+    const uploadUrl = '/api/local-upload?filename=' + encodeURIComponent(filename);
+    const res = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': file.type || 'application/octet-stream',
+      },
+      body: arrayBuffer,
     });
-    return res.data;
+    const data = await res.json();
+    if (!res.ok || !data?.success) {
+      throw data || { message: 'Upload failed' };
+    }
+    // Return unified shape { url }
+    return { url: data.url };
   },
   deleteConversation: async (conversationId) => {
     const res = await api.delete(`/messages/conversations/${conversationId}`);

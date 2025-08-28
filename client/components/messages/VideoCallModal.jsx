@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { FaPhone, FaPhoneSlash, FaMicrophone, FaMicrophoneSlash, FaVideo, FaVideoSlash, FaTimes, FaVolumeUp, FaVolumeMute, FaSignal } from 'react-icons/fa';
+import { FaPhone, FaPhoneSlash, FaMicrophone, FaMicrophoneSlash, FaVideo, FaVideoSlash, FaTimes, FaVolumeUp, FaVolumeMute, FaSignal, FaDesktop, FaStop } from 'react-icons/fa';
 import { useWebRTC } from '../../hooks/useWebRTC';
 import { useTheme } from '../../context/ThemeContext';
 import { useVideoCall } from '../../context/VideoCallContext';
@@ -43,7 +43,10 @@ const VideoCallModal = ({
 
   const {
     connectionState,
+    screenShareState,
     initializeLocalStream,
+    startScreenShare,
+    stopScreenShare,
     handleAnswer,
     handleOutgoingCall,
     handleCallAnswered,
@@ -345,6 +348,38 @@ const VideoCallModal = ({
     }
   }, [connectionState.status, callData, handleIceCandidate]);
 
+  // Screen sharing events from socket
+  useEffect(() => {
+    if (connectionState.status === 'connected') {
+      const socket = require('../../services/socket').getSocket();
+      if (socket) {
+        const onScreenShareStarted = (payload) => {
+          const { data } = payload || {};
+          if (data && data.conversationId === callData?.conversationId) {
+            // Show notification that remote user started screen sharing
+            console.log(`${data.startedBy} started screen sharing`);
+          }
+        };
+
+        const onScreenShareStopped = (payload) => {
+          const { data } = payload || {};
+          if (data && data.conversationId === callData?.conversationId) {
+            // Show notification that remote user stopped screen sharing
+            console.log(`${data.stoppedBy} stopped screen sharing`);
+          }
+        };
+
+        socket.on('call.screen-share.started', onScreenShareStarted);
+        socket.on('call.screen-share.stopped', onScreenShareStopped);
+
+        return () => {
+          socket.off('call.screen-share.started', onScreenShareStarted);
+          socket.off('call.screen-share.stopped', onScreenShareStopped);
+        };
+      }
+    }
+  }, [connectionState.status, callData]);
+
   const toggleMute = useCallback(() => {
     if (connectionState.localStream) {
       const audioTrack = connectionState.localStream.getAudioTracks()[0];
@@ -448,6 +483,14 @@ const VideoCallModal = ({
               </span>
             </div>
           )}
+
+          {/* Screen sharing indicator */}
+          {screenShareState.isScreenSharing && (
+            <div className="absolute top-3 right-3 bg-orange-500 text-white text-xs px-2 py-1 rounded flex items-center gap-2">
+              <FaDesktop size={12} />
+              <span>Screen Sharing</span>
+            </div>
+          )}
           {/* Remote status chips */}
 
           <div
@@ -528,6 +571,13 @@ const VideoCallModal = ({
                 </button>
                 <button onClick={toggleSpeaker} className={`p-4 rounded-full transition-colors shadow-lg ${isSpeakerOn ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-500 hover:bg-gray-600'} text-white`} title={isSpeakerOn ? 'Mute Speaker' : 'Unmute Speaker'}>
                   {isSpeakerOn ? <FaVolumeUp size={20} /> : <FaVolumeMute size={20} />}
+                </button>
+                <button 
+                  onClick={screenShareState.isScreenSharing ? stopScreenShare : startScreenShare} 
+                  className={`p-4 rounded-full transition-colors shadow-lg ${screenShareState.isScreenSharing ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white`} 
+                  title={screenShareState.isScreenSharing ? 'Stop Screen Sharing' : 'Start Screen Sharing'}
+                >
+                  {screenShareState.isScreenSharing ? <FaStop size={20} /> : <FaDesktop size={20} />}
                 </button>
                 <button onClick={handleEndCall} className="bg-red-500 hover:bg-red-600 text-white p-4 rounded-full transition-colors shadow-lg" title="End Call">
                   <FaPhoneSlash size={20} />

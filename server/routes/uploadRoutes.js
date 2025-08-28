@@ -31,11 +31,21 @@ const imageFileFilter = (req, file, cb) => {
   }
 };
 
-// File filter for attachments - allow common file types
+// File filter for attachments - allow common file types (images, videos, audio, docs)
 const attachmentFileFilter = (req, file, cb) => {
   const allowedMimeTypes = [
     'image/',
     'video/',
+    // Audio for voice messages
+    'audio/',
+    'audio/webm',
+    'audio/ogg',
+    'audio/mpeg',
+    'audio/mp4',
+    'audio/wav',
+    'audio/x-wav',
+    'audio/aac',
+    'audio/3gpp',
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -51,9 +61,11 @@ const attachmentFileFilter = (req, file, cb) => {
     'text/javascript'
   ];
   
-  const isAllowed = allowedMimeTypes.some(type => 
-    file.mimetype.startsWith(type) || file.mimetype === type
-  );
+  const isAllowed = allowedMimeTypes.some((type) => {
+    // If the type ends with '/', treat it as a family prefix (e.g., 'image/', 'audio/', 'video/')
+    if (type.endsWith('/')) return file.mimetype.startsWith(type);
+    return file.mimetype === type;
+  });
   
   if (isAllowed) {
     cb(null, true);

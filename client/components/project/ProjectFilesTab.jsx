@@ -5,6 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import CustomModal from '../shared/CustomModal';
+import { subscribe } from '../../services/socket';
 
 const ProjectFilesTab = ({ projectId }) => {
   const { theme } = useTheme();
@@ -176,6 +177,25 @@ const ProjectFilesTab = ({ projectId }) => {
     }
   }, [projectId]);
 
+  // Realtime project attachment updates
+  useEffect(() => {
+    if (!projectId) return;
+    const offAdded = subscribe('project.attachment.added', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.projectId !== projectId) return;
+      setProjectAttachments((prev) => [data.attachment, ...prev]);
+    });
+    const offRemoved = subscribe('project.attachment.removed', (payload) => {
+      const { data } = payload || {};
+      if (!data || data.projectId !== projectId) return;
+      setProjectAttachments((prev) => prev.filter((a) => a.AttachmentID !== data.attachmentId));
+    });
+    return () => {
+      offAdded && offAdded();
+      offRemoved && offRemoved();
+    };
+  }, [projectId]);
+
   // Handle file upload
   const handleFileUpload = async (files) => {
     if (!files || files.length === 0) return;
@@ -190,23 +210,21 @@ const ProjectFilesTab = ({ projectId }) => {
           return;
         }
         
-        // Create FormData for file upload
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('projectId', projectId);
-        formData.append('userId', user._id);
-        formData.append('filename', file.name);
-        
-        // Upload file using existing attachment upload endpoint
-        const uploadResponse = await api.post('/upload/attachments/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+        // 1) Save file locally to client/public/uploads
+        const arrayBuffer = await file.arrayBuffer();
+        const res = await fetch('/api/local-upload?filename=' + encodeURIComponent(file.name), {
+          method: 'POST',
+          headers: { 'Content-Type': file.type || 'application/octet-stream' },
+          body: arrayBuffer
         });
-        
-        if (uploadResponse.data.success) {
-          showToast(`${file.name} uploaded successfully`, 'success');
+        const data = await res.json();
+        if (!res.ok || !data?.success || !data?.url) {
+          throw new Error(data?.message || 'Local save failed');
         }
+
+        // 2) Persist metadata to backend as a project-level attachment
+        await attachmentService.addProjectAttachment(projectId, file.name, data.url, user._id, file.size);
+        showToast(`${file.name} uploaded successfully`, 'success');
       } catch (error) {
         console.error('Error uploading file:', error);
         showToast(`Failed to upload ${file.name}`, 'error');
