@@ -314,6 +314,24 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: null
   }
+  ,
+  // Google Calendar OAuth fields
+  googleCalendarConnected: {
+    type: Boolean,
+    default: false
+  },
+  googleCalendarAccessToken: {
+    type: String,
+    default: null
+  },
+  googleCalendarRefreshToken: {
+    type: String,
+    default: null
+  },
+  googleCalendarTokenExpiry: {
+    type: Date,
+    default: null
+  }
 });
 
 // Before saving, hash password

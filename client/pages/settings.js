@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { FaMoon, FaSun, FaDesktop, FaShieldAlt, FaSignOutAlt, FaCheck, FaTimes, FaCrown, FaInfinity, FaUsers, FaRocket, FaStar, FaCheckCircle, FaGithub } from 'react-icons/fa';
+import { FaMoon, FaSun, FaDesktop, FaShieldAlt, FaSignOutAlt, FaCheck, FaTimes, FaCrown, FaInfinity, FaUsers, FaRocket, FaStar, FaCheckCircle, FaGithub, FaGoogle } from 'react-icons/fa';
+import { SiGooglecalendar } from "react-icons/si";
 import { useToast } from '../context/ToastContext';
 import TwoFactorAuth from '../components/auth/TwoFactorAuth';
+import { GoogleLogin } from '@react-oauth/google';
 
-import { authService } from '../services/api';
+import { authService, meetingService } from '../services/api';
 import { useRouter } from 'next/router';
 
 const Settings = () => {
@@ -46,6 +48,8 @@ const Settings = () => {
     connectedAt: null
   });
   const [githubLoading, setGithubLoading] = useState(false);
+  const [googleStatus, setGoogleStatus] = useState({ connected: false, email: null, tokenExpiry: null });
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   // Update security settings when user data changes
   useEffect(() => {
@@ -95,6 +99,7 @@ const Settings = () => {
   useEffect(() => {
     if (activeTab === 'integrations' && user?._id) {
       fetchGitHubStatus();
+      fetchGoogleStatus();
     }
   }, [activeTab, user?._id]);
 
@@ -102,7 +107,7 @@ const Settings = () => {
     setLoadingSubscription(true);
     try {
       const response = await authService.getSubscriptionData(user.organizationID);
-      
+
       setSubscriptionData(response.data.subscription);
       setPaymentHistory(response.data.paymentHistory.payments || []);
       setSubscriptionFeatures(response.data.subscriptionFeatures || {
@@ -131,17 +136,55 @@ const Settings = () => {
       setGithubLoading(false);
     }
   };
+  const fetchGoogleStatus = async () => {
+    try {
+      setGoogleLoading(true);
+      const response = await meetingService.getGoogleCalendarStatus(user._id);
+      if (response?.success) {
+        setGoogleStatus({ connected: Boolean(response.connected), email: response.email || null, tokenExpiry: response.tokenExpiry || null });
+      }
+    } catch (error) {
+      // ignore
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleConnectGoogle = async () => {
+    try {
+      setGoogleLoading(true);
+      const res = await meetingService.initiateGoogleCalendarAuth();
+      if (res.success && res.authUrl) window.location.href = res.authUrl;
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleDisconnectGoogle = async () => {
+    try {
+      setGoogleLoading(true);
+      const res = await meetingService.disconnectGoogleCalendar();
+      if (res?.success) {
+        setGoogleStatus({ connected: false });
+        showToast('Google Calendar disconnected successfully', 'success');
+      }
+    } catch (e) {
+      showToast('Failed to disconnect Google Calendar', 'error');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleConnectGitHub = async () => {
     try {
       setGithubLoading(true);
       const response = await authService.initiateGitHubAuth(user._id);
-      
+
       if (response.success) {
         // Store state for verification
         localStorage.setItem('github_state', response.state);
         localStorage.setItem('github_userId', user._id);
-        
+
         // Redirect to GitHub OAuth
         window.location.href = response.authUrl;
       } else {
@@ -159,7 +202,7 @@ const Settings = () => {
     try {
       setGithubLoading(true);
       const response = await authService.disconnectGitHub(user._id);
-      
+
       if (response.success) {
         setGithubStatus({
           connected: false,
@@ -195,11 +238,11 @@ const Settings = () => {
       } else {
         showToast('Invalid GitHub authentication state', 'error');
       }
-      
+
       // Clean up stored data
       localStorage.removeItem('github_state');
       localStorage.removeItem('github_userId');
-      
+
       // Remove URL parameters
       const newUrl = window.location.pathname + '?tab=integrations';
       window.history.replaceState({}, '', newUrl);
@@ -210,7 +253,7 @@ const Settings = () => {
     try {
       setGithubLoading(true);
       const response = await authService.handleGitHubCallback(code, state, userId);
-      
+
       if (response.success) {
         setGithubStatus({
           connected: true,
@@ -312,7 +355,7 @@ const Settings = () => {
         newPlan: 'free',
         userId: user._id
       });
-      
+
       if (response.data.success) {
         showToast(`Successfully downgraded to free plan`, 'success');
         fetchSubscriptionData(); // Refresh subscription data
@@ -333,7 +376,7 @@ const Settings = () => {
         newPlan: 'annual',
         userId: user._id
       });
-      
+
       if (response.data.success) {
         showToast(`Successfully upgraded to annual plan`, 'success');
         fetchSubscriptionData(); // Refresh subscription data
@@ -353,14 +396,14 @@ const Settings = () => {
         newPlan: 'monthly',
         userId: user._id
       });
-      
+
       if (response.data.success) {
         const originalPlan = response.data.data.originalPlan;
         showToast(`Successfully downgraded from ${originalPlan} to monthly plan. Refund amount: $${response.data.data.refundAmount}`, 'success');
-        
+
         // Close modal first
         setShowDowngradeModal(false);
-        
+
         // Add a small delay to ensure backend processing is complete
         setTimeout(() => {
           fetchSubscriptionData(); // Refresh subscription data
@@ -377,13 +420,13 @@ const Settings = () => {
   // Show downgrade confirmation modal
   const showDowngradeConfirmation = async (toPlan) => {
     const currentPlan = getCurrentPlan();
-    
+
     // Handle downgrade to free (any plan to free)
     if (toPlan === 'free' && currentPlan !== 'free') {
       try {
         // Get actual refund amount from backend
         const response = await authService.get(`/payment/calculate-refund/${user.organizationID}?newPlan=${toPlan}`);
-        
+
         if (response.data.success) {
           setDowngradeInfo({
             fromPlan: currentPlan,
@@ -405,7 +448,7 @@ const Settings = () => {
       try {
         // Get actual refund amount from backend
         const response = await authService.get(`/payment/calculate-refund/${user.organizationID}?newPlan=${toPlan}`);
-        
+
         if (response.data.success) {
           setDowngradeInfo({
             fromPlan: currentPlan,
@@ -449,13 +492,13 @@ const Settings = () => {
   const getPlanButtonInfo = (planType) => {
     const currentPlan = getCurrentPlan();
     const planOrder = { free: 0, monthly: 1, annual: 2 };
-    
+
     if (planType === currentPlan) {
       return {
         text: 'Current Plan',
         disabled: true,
-        className: theme === 'dark' 
-          ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
+        className: theme === 'dark'
+          ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
           : 'bg-gray-200 text-gray-500 cursor-not-allowed'
       };
     } else if (planOrder[planType] > planOrder[currentPlan]) {
@@ -644,8 +687,8 @@ const Settings = () => {
                       <button
                         onClick={() => setShow2FASetup(true)}
                         className={`px-4 py-2 rounded-lg transition-colors ${theme === 'dark'
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
                           }`}
                       >
                         Enable 2FA
@@ -654,8 +697,8 @@ const Settings = () => {
                       <button
                         onClick={() => setShow2FADisable(true)}
                         className={`px-4 py-2 rounded-lg transition-colors ${theme === 'dark'
-                            ? 'bg-red-600 hover:bg-red-700 text-white'
-                            : 'bg-red-600 hover:bg-red-700 text-white'
+                          ? 'bg-red-600 hover:bg-red-700 text-white'
+                          : 'bg-red-600 hover:bg-red-700 text-white'
                           }`}
                       >
                         Disable 2FA
@@ -745,7 +788,7 @@ const Settings = () => {
                       Current Plan: {subscriptionData?.hasActiveSubscription ? 'Premium' : 'Free'}
                     </h3>
                     <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
-                      {subscriptionData?.hasActiveSubscription 
+                      {subscriptionData?.hasActiveSubscription
                         ? `Active until ${new Date(subscriptionData.subscription.subscriptionEndDate).toLocaleDateString()}`
                         : 'Limited to 3 projects, 3 user stories, and 20 tasks per user story'
                       }
@@ -760,22 +803,20 @@ const Settings = () => {
                     <button
                       onClick={fetchSubscriptionData}
                       disabled={loadingSubscription}
-                      className={`p-2 rounded-lg transition-colors ${
-                        theme === 'dark' 
-                          ? 'hover:bg-gray-700 text-gray-400 hover:text-white' 
-                          : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'
-                      }`}
+                      className={`p-2 rounded-lg transition-colors ${theme === 'dark'
+                        ? 'hover:bg-gray-700 text-gray-400 hover:text-white'
+                        : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'
+                        }`}
                       title="Refresh subscription data"
                     >
                       <svg className={`w-5 h-5 ${loadingSubscription ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
                     </button>
-                    <div className={`px-4 py-2 rounded-full text-sm font-medium ${
-                      subscriptionData?.hasActiveSubscription
-                        ? theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700'
-                        : theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
-                    }`}>
+                    <div className={`px-4 py-2 rounded-full text-sm font-medium ${subscriptionData?.hasActiveSubscription
+                      ? theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700'
+                      : theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
+                      }`}>
                       {subscriptionData?.hasActiveSubscription ? 'Premium Plan' : 'Free Plan'}
                     </div>
                   </div>
@@ -786,11 +827,10 @@ const Settings = () => {
               <div className="w-4/5 mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {/* Free Plan */}
-                  <div className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
-                    theme === 'dark' 
-                      ? 'bg-transparent border-gray-600 hover:border-gray-500' 
-                      : 'bg-gradient-to-br from-gray-50 to-white border-gray-200 hover:border-gray-300 shadow-lg hover:shadow-xl'
-                  }`}>
+                  <div className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${theme === 'dark'
+                    ? 'bg-transparent border-gray-600 hover:border-gray-500'
+                    : 'bg-gradient-to-br from-gray-50 to-white border-gray-200 hover:border-gray-300 shadow-lg hover:shadow-xl'
+                    }`}>
                     {/* Current Plan Badge */}
                     {getCurrentPlan() === 'free' && (
                       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -799,27 +839,26 @@ const Settings = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Background Pattern */}
-                    <div className={`absolute inset-0 rounded-2xl opacity-5 ${theme === 'dark' ? 'bg-white' : 'bg-gray-900'}`} 
-                         style={{
-                           backgroundImage: `radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px),
+                    <div className={`absolute inset-0 rounded-2xl opacity-5 ${theme === 'dark' ? 'bg-white' : 'bg-gray-900'}`}
+                      style={{
+                        backgroundImage: `radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px),
                                            radial-gradient(circle at 75% 75%, currentColor 1px, transparent 1px)`,
-                           backgroundSize: '20px 20px'
-                         }}>
+                        backgroundSize: '20px 20px'
+                      }}>
                     </div>
-                    
+
                     <div className="relative z-10 flex flex-col h-full">
                       <div className="text-center mb-8">
-                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 group-hover:scale-110 ${
-                          theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-gray-100 to-gray-200'
-                        }`}>
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 group-hover:scale-110 ${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                          }`}>
                           <FaUsers className={`text-2xl ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
                         </div>
                         <h3 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Free</h3>
                         <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Perfect for small teams</p>
                       </div>
-                      
+
                       <div className="text-center mb-8">
                         <div className="flex items-center justify-center gap-1 mb-2">
                           <span className={`text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>$0</span>
@@ -859,11 +898,10 @@ const Settings = () => {
                   </div>
 
                   {/* Monthly Premium */}
-                  <div className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
-                    theme === 'dark'
-                      ? 'bg-transparent border-blue-500/50 hover:border-blue-400'
-                      : 'bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 border-blue-500 hover:border-blue-400 shadow-lg hover:shadow-xl'
-                  }`}>
+                  <div className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${theme === 'dark'
+                    ? 'bg-transparent border-blue-500/50 hover:border-blue-400'
+                    : 'bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 border-blue-500 hover:border-blue-400 shadow-lg hover:shadow-xl'
+                    }`}>
                     {/* Current Plan Badge */}
                     {getCurrentPlan() === 'monthly' && (
                       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -872,7 +910,7 @@ const Settings = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Popular Badge */}
                     {getCurrentPlan() !== 'monthly' && (
                       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -881,16 +919,16 @@ const Settings = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Background Pattern */}
-                    <div className={`absolute inset-0 rounded-2xl opacity-10 ${theme === 'dark' ? 'bg-white' : 'bg-blue-900'}`} 
-                         style={{
-                           backgroundImage: `radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px),
+                    <div className={`absolute inset-0 rounded-2xl opacity-10 ${theme === 'dark' ? 'bg-white' : 'bg-blue-900'}`}
+                      style={{
+                        backgroundImage: `radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px),
                                            radial-gradient(circle at 75% 75%, currentColor 1px, transparent 1px)`,
-                           backgroundSize: '20px 20px'
-                         }}>
+                        backgroundSize: '20px 20px'
+                      }}>
                     </div>
-                    
+
                     <div className="relative z-10 flex flex-col h-full">
                       <div className="text-center mb-8">
                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 group-hover:scale-110 ${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg'}`}>
@@ -899,7 +937,7 @@ const Settings = () => {
                         <h3 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Premium Monthly</h3>
                         <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>For growing organizations</p>
                       </div>
-                      
+
                       <div className="text-center mb-8">
                         <div className="flex items-center justify-center gap-1 mb-2">
                           <span className={`text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>$99</span>
@@ -942,11 +980,10 @@ const Settings = () => {
                   </div>
 
                   {/* Annual Premium */}
-                  <div className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
-                    theme === 'dark'
-                      ? 'bg-transparent border-purple-500/50 hover:border-purple-400'
-                      : 'bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 border-purple-500 hover:border-purple-400 shadow-lg hover:shadow-xl'
-                  }`}>
+                  <div className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${theme === 'dark'
+                    ? 'bg-transparent border-purple-500/50 hover:border-purple-400'
+                    : 'bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 border-purple-500 hover:border-purple-400 shadow-lg hover:shadow-xl'
+                    }`}>
                     {/* Current Plan Badge */}
                     {getCurrentPlan() === 'annual' && (
                       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -955,7 +992,7 @@ const Settings = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Best Value Badge */}
                     {getCurrentPlan() !== 'annual' && (
                       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -964,16 +1001,16 @@ const Settings = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Background Pattern */}
-                    <div className={`absolute inset-0 rounded-2xl opacity-10 ${theme === 'dark' ? 'bg-white' : 'bg-purple-900'}`} 
-                         style={{
-                           backgroundImage: `radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px),
+                    <div className={`absolute inset-0 rounded-2xl opacity-10 ${theme === 'dark' ? 'bg-white' : 'bg-purple-900'}`}
+                      style={{
+                        backgroundImage: `radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px),
                                            radial-gradient(circle at 75% 75%, currentColor 1px, transparent 1px)`,
-                           backgroundSize: '20px 20px'
-                         }}>
+                        backgroundSize: '20px 20px'
+                      }}>
                     </div>
-                    
+
                     <div className="relative z-10 flex flex-col h-full">
                       <div className="text-center mb-8">
                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 group-hover:scale-110 ${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg'}`}>
@@ -982,7 +1019,7 @@ const Settings = () => {
                         <h3 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Premium Annual</h3>
                         <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Save 40% with annual billing</p>
                       </div>
-                      
+
                       <div className="text-center mb-8">
                         <div className="flex items-center justify-center gap-1 mb-2">
                           <span className={`text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent`}>$59</span>
@@ -1002,11 +1039,10 @@ const Settings = () => {
                         <ul className="space-y-4 mb-8">
                           {subscriptionFeatures.annual.map((feature) => (
                             <li key={feature.Code} className="flex items-center gap-3">
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                                feature.Value.toLowerCase().includes('discount') 
-                                  ? 'bg-gradient-to-r from-green-500 to-emerald-500'
-                                  : 'bg-gradient-to-r from-purple-600 to-pink-600'
-                              }`}>
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${feature.Value.toLowerCase().includes('discount')
+                                ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                                : 'bg-gradient-to-r from-purple-600 to-pink-600'
+                                }`}>
                                 {getFeatureIcon(feature)}
                               </div>
                               <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -1048,7 +1084,7 @@ const Settings = () => {
                       Transaction History
                     </h3>
                   </div>
-                  
+
                   <div className="overflow-x-auto">
                     {loadingSubscription ? (
                       <div className="p-6 text-center">
@@ -1095,31 +1131,29 @@ const Settings = () => {
                                 </span>
                               </td>
                               <td className="py-3 px-4">
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                  payment.paymentId?.startsWith('CREDIT_')
-                                    ? theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'
-                                    : payment.paymentId?.startsWith('REFUND_')
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${payment.paymentId?.startsWith('CREDIT_')
+                                  ? theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'
+                                  : payment.paymentId?.startsWith('REFUND_')
                                     ? theme === 'dark' ? 'bg-orange-600/20 text-orange-400' : 'bg-orange-100 text-orange-700'
                                     : payment.paymentId?.startsWith('ANNUAL_') || payment.paymentId?.startsWith('MONTHLY_')
-                                    ? theme === 'dark' ? 'bg-purple-600/20 text-purple-400' : 'bg-purple-100 text-purple-700'
-                                    : theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700'
-                                }`}>
+                                      ? theme === 'dark' ? 'bg-purple-600/20 text-purple-400' : 'bg-purple-100 text-purple-700'
+                                      : theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700'
+                                  }`}>
                                   {payment.paymentId?.startsWith('CREDIT_') ? 'Credit' :
-                                   payment.paymentId?.startsWith('REFUND_') ? 'Refund' :
-                                   payment.paymentId?.startsWith('ANNUAL_') ? 'Upgrade' :
-                                   payment.paymentId?.startsWith('MONTHLY_') ? 'Downgrade' : 'Payment'}
+                                    payment.paymentId?.startsWith('REFUND_') ? 'Refund' :
+                                      payment.paymentId?.startsWith('ANNUAL_') ? 'Upgrade' :
+                                        payment.paymentId?.startsWith('MONTHLY_') ? 'Downgrade' : 'Payment'}
                                 </span>
                               </td>
                               <td className="py-3 px-4">
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                  payment.status === 'completed'
-                                    ? theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700'
-                                    : payment.status === 'pending'
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${payment.status === 'completed'
+                                  ? theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700'
+                                  : payment.status === 'pending'
                                     ? theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'
                                     : payment.status === 'refunded'
-                                    ? theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'
-                                    : theme === 'dark' ? 'bg-red-600/20 text-red-400' : 'bg-red-100 text-red-700'
-                                }`}>
+                                      ? theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'
+                                      : theme === 'dark' ? 'bg-red-600/20 text-red-400' : 'bg-red-100 text-red-700'
+                                  }`}>
                                   {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                                 </span>
                               </td>
@@ -1170,75 +1204,147 @@ const Settings = () => {
           {activeTab === 'integrations' && (
             <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
               <h2 className={`text-xl font-semibold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Integrations</h2>
-              
-              {/* GitHub Integration */}
-              <div className={`mb-6 p-6 rounded-xl border ${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
-                <div className="flex items-center gap-4 mb-4">
-                  <FaGithub size={32} className={theme === 'dark' ? 'text-white' : 'text-gray-900'} />
-                  <div>
-                    <span className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>GitHub</span>
-                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Connect your GitHub account for repository integrations
-                    </p>
-                  </div>
-                </div>
 
-                {githubLoading ? (
-                  <div className="flex items-center gap-3">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-                    <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {githubStatus.connected ? 'Disconnecting...' : 'Connecting...'}
-                    </span>
+              <div className='flex items-center justify-between gap-4'>
+                {/* GitHub Integration */}
+                <div className={`mb-6 p-6 rounded-xl w-full border ${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+                  <div className="flex items-center gap-4 mb-4">
+                    <FaGithub size={32} className={theme === 'dark' ? 'text-white' : 'text-gray-900'} />
+                    <div>
+                      <span className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>GitHub</span>
+                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Connect your GitHub account for repository integrations
+                      </p>
+                    </div>
                   </div>
-                ) : githubStatus.connected ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      {githubStatus.avatarUrl && (
-                        <img 
-                          src={githubStatus.avatarUrl} 
-                          alt="GitHub Avatar" 
-                          className="w-10 h-10 rounded-full"
-                        />
-                      )}
-                      <div>
-                        <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          @{githubStatus.username}
-                        </p>
-                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                          {githubStatus.email}
-                        </p>
-                        {githubStatus.connectedAt && (
-                          <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                            Connected {new Date(githubStatus.connectedAt).toLocaleDateString()}
-                          </p>
+
+                  {githubLoading ? (
+                    <div className="flex items-center gap-3">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {githubStatus.connected ? 'Disconnecting...' : 'Connecting...'}
+                      </span>
+                    </div>
+                  ) : githubStatus.connected ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        {githubStatus.avatarUrl && (
+                          <img
+                            src={githubStatus.avatarUrl}
+                            alt="GitHub Avatar"
+                            className="w-10 h-10 rounded-full"
+                          />
                         )}
+                        <div>
+                          <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            @{githubStatus.username}
+                          </p>
+                          <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {githubStatus.email}
+                          </p>
+                          {githubStatus.connectedAt && (
+                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                              Connected {new Date(githubStatus.connectedAt).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleDisconnectGitHub}
+                        disabled={githubLoading}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors float-end duration-200 ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+                      >
+                        Disconnect
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={handleConnectGitHub}
+                          disabled={githubLoading}
+                          className={`px-6 py-2 rounded-lg font-semibold transition-colors float-end duration-200 ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                        >
+                          Connect GitHub Account
+                        </button>
+                        <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Not connected</span>
+                      </div>
+                      <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                        Connect your GitHub account to enable repository integrations and automations.
                       </div>
                     </div>
-                    <button
-                      onClick={handleDisconnectGitHub}
-                      disabled={githubLoading}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
-                    >
-                      Disconnect GitHub
-                    </button>
+                  )}
+                </div>
+                {/* Google Calendar Integration */}
+                <div className={`mb-6 p-6 rounded-xl w-full border ${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+                  <div className="flex items-center gap-4 mb-4">
+                    <SiGooglecalendar size={28} className={theme === 'dark' ? 'text-white' : 'text-gray-900'} />
+                    <div>
+                      <span className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Google Calendar</span>
+                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Create calendar events with Google Meet links</p>
+                    </div>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
+
+                  {googleLoading ? (
+                    <div className="flex items-center gap-3">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {googleStatus.connected ? 'Disconnecting...' : 'Connecting...'}
+                      </span>
+                    </div>
+                  ) : googleStatus.connected ? (
+                    <div className="space-y-4">
+                      <div className={`text-sm ${theme === 'dark' ? 'text-green-400' : 'text-green-700'}`}>Connected</div>
+                      <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <div><span className="font-medium">Email:</span> {googleStatus.email || user?.email}</div>
+                        {googleStatus.tokenExpiry && (
+                          <div><span className="font-medium">Token Expiry:</span> {new Date(googleStatus.tokenExpiry).toLocaleString()}</div>
+                        )}
+                      </div>
                       <button
-                        onClick={handleConnectGitHub}
-                        disabled={githubLoading}
-                        className={`px-6 py-2 rounded-lg font-semibold transition-colors duration-200 ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                        onClick={handleDisconnectGoogle}
+                        disabled={googleLoading}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors float-end duration-200 ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
                       >
-                        Connect GitHub Account
+                        Disconnect
                       </button>
-                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Not connected</span>
                     </div>
-                    <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                      Connect your GitHub account to enable repository integrations and automations.
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <GoogleLogin
+                          onSuccess={async (credentialResponse) => {
+                            try {
+                              const accessToken = credentialResponse.credential;
+                              await meetingService.attachGoogleCalendarToken({ accessToken });
+                              // Update localStorage user snapshot
+                              const userDataRaw = localStorage.getItem('user');
+                              if (userDataRaw) {
+                                const userData = JSON.parse(userDataRaw);
+                                userData.googleCalendarConnected = true;
+                                localStorage.setItem('user', JSON.stringify(userData));
+                              }
+                              await fetchGoogleStatus();
+                              showToast('Google Calendar connected', 'success');
+                            } catch (e) {
+                              showToast('Failed to connect Google Calendar', 'error');
+                            }
+                          }}
+                          onError={() => showToast('Failed to connect Google Calendar', 'error')}
+                          scope="https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar"
+                          theme="filled_blue"
+                          size="large"
+                          text="continue_with"
+                          shape="rectangular"
+                        />
+                        <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Not connected</span>
+                      </div>
+                      <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                        Connect your Google account so meetings automatically include Google Meet links.
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               {/* Future Integrations Placeholder */}
@@ -1381,11 +1487,10 @@ const Settings = () => {
               </button>
               <button
                 onClick={() => setShowDowngradeModal(false)}
-                className={`w-full py-3 px-4 border rounded-lg font-semibold transition-colors duration-200 ${
-                  theme === 'dark' 
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
+                className={`w-full py-3 px-4 border rounded-lg font-semibold transition-colors duration-200 ${theme === 'dark'
+                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
               >
                 Cancel
               </button>

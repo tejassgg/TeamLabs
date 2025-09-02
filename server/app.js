@@ -24,6 +24,7 @@ const swaggerSpecs = require('./config/swagger');
 const organizationRoutes = require('./routes/organizationRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const subtaskRoutes = require('./routes/subtaskRoutes');
+const meetingRoutes = require('./routes/meetingRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -78,6 +79,7 @@ app.use('/api/landing', landingRoutes);
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/subtasks', subtaskRoutes);
+app.use('/api', meetingRoutes);
 
 // Test route
 app.get('/', (req, res) => {

@@ -34,7 +34,9 @@ const userActivitySchema = new mongoose.Schema({
       // Attachment activities
       'attachment_added', 'attachment_deleted',
       // Subtask activities
-      'subtask_create', 'subtask_update', 'subtask_delete', 'subtask_complete', 'subtask_assign', 'subtask_reorder', 'subtask_uncomplete'
+      'subtask_create', 'subtask_update', 'subtask_delete', 'subtask_complete', 'subtask_assign', 'subtask_reorder', 'subtask_uncomplete',
+      // Meeting activities
+      'team_meeting_create', 'team_meeting_update', 'team_meeting_delete'
     ]
   },
   status: {

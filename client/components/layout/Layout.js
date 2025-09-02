@@ -2,7 +2,7 @@ import Navbar from './Navbar';
 import { useTheme } from '../../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { FaPlus, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaChevronRight, FaRobot} from 'react-icons/fa';
+import { FaCog, FaPlus, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaChevronRight, FaRobot} from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import AddTeamModal from '../team/AddTeamModal';
 import { teamService, projectService, taskService } from '../../services/api';
@@ -343,10 +343,10 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             theme={theme}
           />
           <SidebarButton
-            icon={<FaSignOutAlt className={theme === 'dark' ? 'text-red-400' : 'text-red-600'} />}
-            label="Logout"
+            icon={<FaCog className={theme === 'dark' ? 'text-red-400' : 'text-red-600'} />}
+            label="Settings"
             onClick={async () => {
-              await logout();
+              router.push('/settings');
             }}
             theme={theme}
           />

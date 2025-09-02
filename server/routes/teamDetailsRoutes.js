@@ -8,6 +8,7 @@ const CommonType = require('../models/CommonType');
 const ProjectDetails = require('../models/ProjectDetails');
 const Project = require('../models/Project');
 const UserActivity = require('../models/UserActivity');
+const Meeting = require('../models/Meeting');
 const { logActivity } = require('../services/activityService');
 const { emitToOrg } = require('../socket');
 
@@ -94,6 +95,37 @@ router.get('/:teamId', async (req, res) => {
       };
     }).filter(Boolean);
 
+    // Fetch tasks assigned to team members
+    const TaskDetails = require('../models/TaskDetails');
+    const teamMemberIds = members.map(m => m.MemberID);
+    const teamTasks = [];
+    
+    if (projectIds.length > 0 && teamMemberIds.length > 0) {
+      const tasks = await TaskDetails.find({
+        ProjectID_FK: { $in: projectIds },
+        IsActive: true,
+        Type: { $ne: "User Story" },
+        $or: [
+          { Assignee: { $in: teamMemberIds } },
+          { AssignedTo: { $in: teamMemberIds } }
+        ]
+      }).sort({ CreatedDate: 1 });
+
+      // Map tasks with project names
+      teamTasks.push(...tasks.map(task => {
+        const project = teamProjects.find(p => p.ProjectID === task.ProjectID_FK);
+        return {
+          TaskID: task.TaskID,
+          Title: task.Title,
+          TaskName: task.Name,
+          TaskType: task.Type,
+          Priority: task.Priority,
+          Assignee: task.Assignee || task.AssignedTo,
+          ProjectName: project ? project.Name : 'Unknown Project'
+        };
+      }));
+    }
+
     // Fetch pending join requests for this team
     const pendingRequests = await TeamJoinRequest.find({ 
       teamId: teamId, 
@@ -124,6 +156,9 @@ router.get('/:teamId', async (req, res) => {
       };
     });
 
+    // Fetch team meetings
+    const meetings = await Meeting.find({ TeamID_FK: teamId, IsActive: true }).sort({ CreatedDate: -1 });
+
     res.json({
       team: {
         ...team.toObject(),
@@ -132,7 +167,9 @@ router.get('/:teamId', async (req, res) => {
       members,
       orgUsers,
       activeProjects: teamProjects,
-      pendingRequests: pendingRequestsWithUserDetails
+      teamTasks,
+      pendingRequests: pendingRequestsWithUserDetails,
+      meetings
     });
   } catch (err) {
     console.error('Error fetching team details:', err);

@@ -18,6 +18,15 @@ const { emitToOrg } = require('../socket');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// Helper to build OAuth2 client for Google Calendar
+function buildGoogleOAuthClient() {
+  return new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    `${process.env.SERVER_URL || 'http://localhost:5000'}/api/auth/google-calendar/callback`
+  );
+}
+
 // Generate JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -170,6 +179,10 @@ const loginUser = async (req, res) => {
         sessionTimeout: user.sessionTimeout || 30,
         loginNotifications: user.loginNotifications !== false, // default to true if not set
         status: user.status,
+        // Google Calendar integration snapshot
+        googleCalendarConnected: user.googleCalendarConnected || false,
+        googleCalendarAccessToken: user.googleCalendarAccessToken || null,
+        googleCalendarTokenExpiry: user.googleCalendarTokenExpiry || null
       });
     } else {
       // Log failed login attempt
@@ -255,7 +268,11 @@ const googleLogin = async (req, res) => {
         twoFactorEnabled: user.twoFactorEnabled || false,
         sessionTimeout: user.sessionTimeout || 30,
         loginNotifications: user.loginNotifications !== false, // default to true if not set
-        status: user.status
+        status: user.status,
+        // Google Calendar integration snapshot
+        googleCalendarConnected: user.googleCalendarConnected || false,
+        googleCalendarAccessToken: user.googleCalendarAccessToken || null,
+        googleCalendarTokenExpiry: user.googleCalendarTokenExpiry || null
       });
     } else {
       // If user doesn't exist, create new user with partial profile
@@ -312,7 +329,11 @@ const googleLogin = async (req, res) => {
         twoFactorEnabled: false,
         sessionTimeout: 30,
         loginNotifications: true,
-        status: 'Offline'
+        status: 'Offline',
+        // Google Calendar integration snapshot
+        googleCalendarConnected: false,
+        googleCalendarAccessToken: null,
+        googleCalendarTokenExpiry: null
       });
 
       // Log successful Google login for new user
@@ -333,7 +354,11 @@ const googleLogin = async (req, res) => {
         twoFactorEnabled: false,
         sessionTimeout: 30,
         loginNotifications: true,
-        status: 'Offline'
+        status: 'Offline',
+        // Google Calendar integration snapshot
+        googleCalendarConnected: false,
+        googleCalendarAccessToken: null,
+        googleCalendarTokenExpiry: null
       });
     }
   } catch (error) {

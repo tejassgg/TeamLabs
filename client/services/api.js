@@ -1019,4 +1019,56 @@ export const githubService = {
   }
 };
 
+// Meetings service
+export const meetingService = {
+  listTeamMeetings: async (teamId) => {
+    const res = await api.get(`/teams/${teamId}/meetings`);
+    return res.data;
+  },
+  getMeeting: async (meetingId) => {
+    const res = await api.get(`/meetings/${meetingId}`);
+    return res.data;
+  },
+  createMeeting: async (teamId, payload) => {
+    const res = await api.post(`/teams/${teamId}/meetings`, payload);
+    return res.data;
+  },
+  updateMeeting: async (meetingId, payload) => {
+    const res = await api.put(`/meetings/${meetingId}`, payload);
+    return res.data;
+  },
+  deleteMeeting: async (meetingId) => {
+    const res = await api.delete(`/meetings/${meetingId}`);
+    return res.data;
+  },
+  initiateGoogleCalendarAuth: async () => {
+    const res = await api.post(`/google-calendar/initiate`, {});
+    return res.data;
+  },
+  getGoogleCalendarStatus: async (userId) => {
+    const res = await api.get(`/google-calendar/status/${userId}`);
+    return res.data;
+  },
+  attachGoogleCalendarToken: async ({ accessToken, refreshToken, tokenExpiry }) => {
+    const res = await api.post(`/google-calendar/attach-token`, {
+      accessToken,
+      refreshToken,
+      tokenExpiry
+    });
+    return res.data;
+  },
+  disconnectGoogleCalendar: async () => {
+    const res = await api.post(`/google-calendar/disconnect`, {});
+    return res.data;
+  },
+  // New method to handle Google Calendar access with client-side tokens
+  createMeetingWithGoogleCalendar: async (teamId, payload, accessToken) => {
+    const res = await api.post(`/teams/${teamId}/meetings`, {
+      ...payload,
+      googleAccessToken: accessToken
+    });
+    return res.data;
+  }
+};
+
 export default api; 

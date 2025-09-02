@@ -5,7 +5,6 @@ import { AuthProvider } from '../context/AuthContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { VideoCallProvider } from '../context/VideoCallContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import Head from 'next/head';
 import { GlobalProvider } from '../context/GlobalContext';
 // import { SessionProvider } from 'next-auth/react';
 import { ToastProvider } from '../context/ToastContext';
