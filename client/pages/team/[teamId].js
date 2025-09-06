@@ -130,6 +130,7 @@ const TeamDetailsPage = () => {
           setSettingsForm({
             TeamName: res.data.team.TeamName,
             TeamType: res.data.team.TeamType,
+            TeamDescription: res.data.team.TeamDescription,
             TeamColor: res.data.team.TeamColor
           });
           setActiveProjects(res.data.activeProjects || []);
@@ -841,6 +842,14 @@ const TeamDetailsPage = () => {
                     <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
                     {team.IsActive ? 'Active' : 'InActive'}
                   </div>
+                  {team.teamTypeValue && (
+                    <div className={getThemeClasses(
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200',
+                      'dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50'
+                    )}>
+                      {team.teamTypeValue}
+                    </div>
+                  )}
                   {isOwner && (
                     <button
                       onClick={() => setShowSettingsModal(true)}
@@ -854,14 +863,6 @@ const TeamDetailsPage = () => {
                     </button>
                   )}
                 </div>
-                {team.teamTypeValue && (
-                  <div className={getThemeClasses(
-                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200',
-                    'dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50'
-                  )}>
-                    {team.teamTypeValue}
-                  </div>
-                )}
               </div>
             </div>
 

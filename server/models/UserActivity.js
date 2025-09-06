@@ -12,7 +12,7 @@ const userActivitySchema = new mongoose.Schema({
       // Authentication activities
       'login', 'logout', 'login_failed', 'profile_update', 'password_change', 'email_verification',
       // Team activities
-      'team_create', 'team_update', 'team_delete', 'team_join', 'team_leave', 'team_status_toggle',
+      'team_create', 'team_update', 'team_delete', 'team_join', 'team_leave', 'team_status_toggle','team_status_update',
       // Project activities
       'project_create', 'project_update', 'project_delete', 'project_settings_update',
       // Task activities

@@ -255,14 +255,14 @@ const Profile = () => {
                                   <FaEnvelope className="text-blue-400 text-xl" />
                                   <div>
                                     <div className="font-medium">Email</div>
-                                    <div className="text-gray-700 dark:text-gray-200">{profile?.email || '-'}</div>
+                                    <div className="text-gray-900 ">{profile?.email || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaPhone className="text-blue-400 text-xl" />
                                   <div>
                                     <div className="font-medium">Phone</div>
-                                    <div className="text-gray-700 dark:text-gray-200">{profile?.phone || '-'}</div>
+                                    <div className="text-gray-900 ">{profile?.phone || '-'}</div>
                                   </div>
                                 </li>
                               </ul>
@@ -278,42 +278,42 @@ const Profile = () => {
                                   <FaBuilding className="text-blue-400 text-xl" />
                                   <div>
                                     <div className="font-medium">Address</div>
-                                    <div className="text-gray-700 dark:text-gray-200">{profile?.address || '-'}</div>
+                                    <div className="text-gray-900 ">{profile?.address || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaCity className="text-blue-400 text-xl" />
                                   <div>
                                     <div className="font-medium">City</div>
-                                    <div className="text-gray-700 dark:text-gray-200">{profile?.city || '-'}</div>
+                                    <div className="text-gray-900 ">{profile?.city || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaGlobe className="text-blue-400 text-xl" />
                                   <div>
                                     <div className="font-medium">State</div>
-                                    <div className="text-gray-700 dark:text-gray-200">{profile?.state || '-'}</div>
+                                    <div className="text-gray-900 ">{profile?.state || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaGlobe className="text-blue-400 text-xl" />
                                   <div>
                                     <div className="font-medium">Zip Code</div>
-                                    <div className="text-gray-700 dark:text-gray-200">{profile?.zipCode || '-'}</div>
+                                    <div className="text-gray-900">{profile?.zipCode || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaGlobe className="text-blue-400 text-xl" />
                                   <div>
                                     <div className="font-medium">Country</div>
-                                    <div className="text-gray-700 dark:text-gray-200">{profile?.country || '-'}</div>
+                                    <div className="text-gray-900 ">{profile?.country || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaOrganization className="text-blue-400 text-xl" />
                                   <div>
                                     <div className="font-medium">Organization</div>
-                                    <div className="text-gray-700 dark:text-gray-200">{profile?.organizationName || '-'}</div>
+                                    <div className="text-gray-900 ">{profile?.orgName || profile?.organization?.name || '-'}</div>
                                   </div>
                                 </li>
                               </ul>

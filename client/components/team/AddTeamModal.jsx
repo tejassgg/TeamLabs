@@ -28,6 +28,7 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
     if (isOpen) {
       commonTypeService.getTeamTypes()
         .then((types) => {
+          console.log(types);
           setTeamTypeOptions(types);
           if (types.length > 0) setTeamType(types[0].Code);
         })

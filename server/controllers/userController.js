@@ -88,16 +88,17 @@ exports.getUserOverview = async (req, res) => {
     const teams = await Team.find({
       $or: [
         { OwnerID: user._id },
-        { TeamID: { $in: memberTeamIds } }
-      ]
+        { TeamID: { $in: memberTeamIds } },
+      ],
+        organizationID: user.organizationID
     }).lean();
 
     // Projects: user is owner or in user's org
     const projects = await Project.find({
       $or: [
-        { ProjectOwner: user._id },
-        { OrganizationID: user.organizationID }
-      ]
+        { ProjectOwner: user._id }
+      ],
+      OrganizationID: user.organizationID
     }).lean();
 
     const organization = await Organization.findOne({

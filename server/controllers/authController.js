@@ -515,7 +515,7 @@ const getUserActivities = async (req, res) => {
     const limit = parseInt(req.query.limit) || 5;
 
 
-    let types = ['team_create', 'team_update', 'team_delete', 'team_join', 'team_leave', 'team_status_toggle', 'project_create', 'project_update', 'task_create', 'task_update', 'task_complete', 'task_assign', 'user_story_create', 'user_story_update', 'user_story_delete'];
+    let types = ['team_create', 'team_update', 'team_delete', 'team_join', 'team_leave', 'team_status_toggle', 'team_status_update', 'project_create', 'project_update', 'task_create', 'task_update', 'task_complete', 'task_assign', 'user_story_create', 'user_story_update', 'user_story_delete'];
 
     const result = await UserActivity.find({ user: req.user._id, type: { $in: types } })
       .sort({ timestamp: -1 })

@@ -24,7 +24,7 @@ exports.createOrganization = async (req, res) => {
     const OrganizationID = await generateUniqueOrganizationID();
     const org = new Organization({
       Name: Name.trim(),
-      OwnerID,
+      OwnerID: OwnerID.toString(),
       OrganizationID
     });
     await org.save();
