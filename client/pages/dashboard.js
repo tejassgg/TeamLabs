@@ -64,6 +64,9 @@ const Dashboard = () => {
     };
 
     if (user?.organizationID) {
+      if (user?.role === 'Admin') {
+        setIsAdmin(true); 
+      }
       fetchDashboardStats();
       // Phase 1: connect socket and subscribe to org member presence/updates
       connectSocket();
@@ -175,10 +178,6 @@ const Dashboard = () => {
         unsubTeamDeleted && unsubTeamDeleted();
         unsubTeamStatusUpdated && unsubTeamStatusUpdated();
       };
-    }
-
-    if (user?.role === 'Admin') {
-      setIsAdmin(true);
     }
 
   }, [user]);
@@ -502,7 +501,7 @@ const Dashboard = () => {
                         <th className="py-3 px-4 text-left">Member</th>
                         <th className="py-3 px-4 text-left">Status</th>
                         <th className="py-3 px-4 text-left">Role</th>
-                        {isAdmin && user.organizationID && <th className="py-3 px-4 text-center">Actions</th>}
+                        { isAdmin && <th className="py-3 px-4 text-center">Actions</th>}
                       </tr>
                     </thead>
                     <tbody>
