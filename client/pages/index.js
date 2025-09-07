@@ -911,11 +911,9 @@ function Home() {
       </footer>
 
       {/* Auth Modal */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={modalType === 'login' ? 'Welcome Back' : undefined}>
         {modalType === 'login' ? (
-          <>
-            <LoginForm onSuccess={() => setModalOpen(false)} />            
-          </>
+          <LoginForm onSuccess={() => setModalOpen(false)} />
         ) : (
           <>
             <RegisterForm onSuccess={() => setModalOpen(false)} />

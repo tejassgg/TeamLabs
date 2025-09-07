@@ -69,7 +69,7 @@ const User = require('../models/User');
  *       201:
  *         description: User registered successfully
  *       400:
- *         description: User already exists
+ *         description: Email or Username or phone number already exists
  */
 router.post('/register', registerUser);
 

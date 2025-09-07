@@ -54,14 +54,17 @@ const registerUser = async (req, res) => {
       city,
       state,
       country,
+      profileImage,
       inviteToken
     } = req.body;
+
+    console.log(req.body);
 
     // Check if user already exists
     const userExists = await User.findOne({ $or: [{ email }, { username }, { phone }] });
 
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: 'Email or Username or phone number already exists' });
     }
 
     let organizationID = null;
@@ -104,6 +107,7 @@ const registerUser = async (req, res) => {
       city,
       state,
       country,
+      profileImage: profileImage || '', // Add profile image URL
       role: 'User',
       organizationID: organizationID,
       lastLogin: new Date(),
@@ -120,6 +124,7 @@ const registerUser = async (req, res) => {
         phone: user.phone,
         phoneExtension: user.phoneExtension,
         organizationID: user.organizationID,
+        profileImage: user.profileImage,
         role: user.role,
         token: generateToken(user._id),
         needsAdditionalDetails: !organizationID // Only need additional details if not invited

@@ -8,8 +8,8 @@ export const config = {
   },
 };
 
-function ensureUploadsDir() {
-  const dir = path.join(process.cwd(), 'public', 'uploads');
+function ensureUploadsDir(subDir = '') {
+  const dir = path.join(process.cwd(), 'public', 'uploads', subDir);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -23,10 +23,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    const uploadsDir = ensureUploadsDir();
     const url = new URL(req.url, `http://${req.headers.host}`);
     const filenameParam = url.searchParams.get('filename') || `upload-${Date.now()}`;
-    // Files are saved as-is; no transcoding is performed
+    const uploadType = url.searchParams.get('type') || 'general';
+    
+    // Determine upload directory based on type
+    let uploadsDir, publicUrl;
+    if (uploadType === 'profile') {
+      uploadsDir = ensureUploadsDir('profile');
+      publicUrl = `/uploads/profile/`;
+    } else {
+      uploadsDir = ensureUploadsDir();
+      publicUrl = `/uploads/`;
+    }
 
     // Sanitize filename (basic)
     const safeName = filenameParam.replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -45,8 +54,8 @@ export default async function handler(req, res) {
     const uniqueName = `${uniquePrefix}-${safeName}`;
     const filePath = path.join(uploadsDir, uniqueName);
     fs.writeFileSync(filePath, inputBuffer);
-    const publicUrl = `/uploads/${uniqueName}`;
-    return res.status(200).json({ success: true, url: publicUrl, path: publicUrl });
+    const finalUrl = `${publicUrl}${uniqueName}`;
+    return res.status(200).json({ success: true, url: finalUrl, path: finalUrl });
   } catch (err) {
     console.error('local-upload error:', err);
     return res.status(500).json({ success: false, message: err?.message || 'Failed to save file' });
