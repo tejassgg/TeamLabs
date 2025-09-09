@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Team = require('../models/Team');
 const TeamDetails = require('../models/TeamDetails');
 const Project = require('../models/Project');
+const ProjectDetails = require('../models/ProjectDetails');
 const TaskDetails = require('../models/TaskDetails');
 const CommonType = require('../models/CommonType');
 const Invite = require('../models/Invite');
@@ -13,7 +14,7 @@ const { emitToOrg } = require('../socket');
 exports.updateUser = async (req, res) => {
   try {
     const { firstName, lastName, phone, phoneExtension, address, city, state, zipCode, country } = req.body;
-    
+
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -90,15 +91,23 @@ exports.getUserOverview = async (req, res) => {
         { OwnerID: user._id },
         { TeamID: { $in: memberTeamIds } },
       ],
-        organizationID: user.organizationID
+      organizationID: user.organizationID
     }).lean();
 
-    // Projects: user is owner or in user's org
+    // Projects: user is owner OR assigned to teams where user is a member
+    const projectDetails = await ProjectDetails.find({
+      TeamID: { $in: memberTeamIds },
+      IsActive: true
+    }).lean();
+
+    const assignedProjectIds = projectDetails.map(pd => pd.ProjectID);
+
     const projects = await Project.find({
+      OrganizationID: user.organizationID,
       $or: [
-        { ProjectOwner: user._id }
-      ],
-      OrganizationID: user.organizationID
+        { ProjectOwner: user._id },
+        { ProjectID: { $in: assignedProjectIds } }
+      ]
     }).lean();
 
     const organization = await Organization.findOne({
@@ -132,7 +141,7 @@ exports.getUserOverview = async (req, res) => {
     console.error('Error fetching user overview:', error);
     res.status(500).json({ message: 'Error fetching user overview' });
   }
-}; 
+};
 
 // Get all invites for organization
 exports.getInvites = async (req, res) => {
@@ -163,7 +172,7 @@ exports.resendInvite = async (req, res) => {
   try {
     const { inviteId } = req.params;
     const invite = await Invite.findById(inviteId);
-    
+
     if (!invite) {
       return res.status(404).json({ message: 'Invite not found' });
     }
@@ -198,7 +207,7 @@ exports.deleteInvite = async (req, res) => {
   try {
     const { inviteId } = req.params;
     const invite = await Invite.findById(inviteId);
-    
+
     if (!invite) {
       return res.status(404).json({ message: 'Invite not found' });
     }
@@ -224,9 +233,9 @@ exports.inviteUser = async (req, res) => {
     if (!email) return res.status(400).json({ message: 'Email is required' });
 
     // Check if already invited (pending or not expired)
-    const existing = await Invite.findOne({ 
-      email, 
-      organizationID, 
+    const existing = await Invite.findOne({
+      email,
+      organizationID,
       status: 'Pending',
       expiredAt: { $gt: new Date() }
     });

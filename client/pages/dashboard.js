@@ -29,8 +29,6 @@ try {
   SimpleCharts = require('../components/dashboard/SimpleCharts').default;
 }
 
-
-
 const Dashboard = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
@@ -596,7 +594,7 @@ const Dashboard = () => {
                             <th className="py-3 px-4 text-left">Email</th>
                             <th className="py-3 px-4 text-left">Status</th>
                             <th className="py-3 px-4 text-left">Invited By</th>
-                            <th className="py-3 px-4 text-left">Invited Date</th>
+                            <th className="py-3 px-4 text-left">Invited On</th>
                             <th className="py-3 px-4 text-left">Expires</th>
                             <th className="py-3 px-4 text-center">Actions</th>
                           </tr>
