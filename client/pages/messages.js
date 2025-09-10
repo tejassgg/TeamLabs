@@ -1664,7 +1664,7 @@ export default function MessagesPage() {
                           </div>
                         </div>
                       </button>
-                      {/* Call Button - Only show for direct messages */}
+                      {/* Call Button - Only show for direct messages
                       {!selectedConversation.isGroup && (
                         <button
                           onClick={() => {
@@ -1685,7 +1685,7 @@ export default function MessagesPage() {
                         >
                           <FaVideo size={16} />
                         </button>
-                      )}
+                      )} */}
                       
                       {/* Share Button */}
                       <button

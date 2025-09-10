@@ -8,7 +8,11 @@ import RegisterForm from '../components/auth/RegisterForm';
 import { useTheme } from '../context/ThemeContext';
 import { landingService } from '../services/api';
 import AuthNavbar from '../components/auth/AuthNavbar';
-import { FaRocket, FaChartLine, FaUsers, FaShieldAlt, FaRobot, FaCheckCircle, FaArrowRight, FaPlay, FaStar, FaGithub, FaGoogle, FaSignOutAlt, FaChevronRight, FaChevronDown, FaBars, FaTimes } from 'react-icons/fa';
+import { FaRocket, FaChartLine, FaUsers, FaShieldAlt, FaRobot, FaCheckCircle, FaSignInAlt, FaStar, FaGithub, FaGoogle, FaSignOutAlt, FaChevronRight, FaChevronDown, FaBars, FaTimes } from 'react-icons/fa';
+import PrivacyPolicyModal from '../components/shared/PrivacyPolicyModal';
+import TermsOfServiceModal from '../components/shared/TermsOfServiceModal';
+import CookiePolicyModal from '../components/shared/CookiePolicyModal';
+import ContactSupportModal from '../components/shared/ContactSupportModal';
 
 const testimonials = [
   {
@@ -155,7 +159,7 @@ function useRevealWithType(type = 'fade-up') {
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
-    
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -170,18 +174,18 @@ function useRevealWithType(type = 'fade-up') {
         rootMargin: '0px 0px -50px 0px'
       }
     );
-    
+
     if (node) {
       observer.observe(node);
     }
-    
+
     return () => {
       if (node) {
         observer.unobserve(node);
       }
     };
   }, []);
-  
+
   return ref;
 }
 
@@ -194,16 +198,20 @@ function Home() {
   const [stats, setStats] = useState(defaultStats);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTermsOfService, setShowTermsOfService] = useState(false);
+  const [showCookiePolicy, setShowCookiePolicy] = useState(false);
+  const [showContactSupport, setShowContactSupport] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
-    
+
     // Initialize scroll animations
     const observerOptions = {
       threshold: 0.1,
       rootMargin: '0px 0px -50px 0px'
     };
-    
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -211,11 +219,11 @@ function Home() {
         }
       });
     }, observerOptions);
-    
+
     // Observe all reveal elements
     const revealElements = document.querySelectorAll('.reveal');
     revealElements.forEach((el) => observer.observe(el));
-    
+
     return () => {
       revealElements.forEach((el) => observer.unobserve(el));
     };
@@ -226,7 +234,7 @@ function Home() {
     const fetchLandingStats = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch stats only
         const statsData = await landingService.getStats();
         setStats([
@@ -255,7 +263,7 @@ function Home() {
     setModalType('login');
     setModalOpen(true);
   };
-  
+
   const openRegister = () => {
     setModalType('register');
     setModalOpen(true);
@@ -275,7 +283,7 @@ function Home() {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
         {/* Background */}
         <div className={`absolute inset-0 ${resolvedTheme === 'dark' ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'}`}></div>
-        
+
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className={`absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob ${resolvedTheme === 'dark' ? 'bg-blue-600' : 'bg-blue-400'}`}></div>
@@ -289,7 +297,7 @@ function Home() {
               <FaRocket className="mr-2" />
               Trusted by {stats[0].number}+ teams worldwide
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
                 AI-Powered
@@ -299,12 +307,12 @@ function Home() {
                 Project Management
               </span>
             </h1>
-            
+
             <p className={`text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-              Transform your team's productivity with intelligent task management, real-time collaboration, 
+              Transform your team's productivity with intelligent task management, real-time collaboration,
               and AI-powered insights that drive results.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
               {isAuthenticated ? (
                 <Link href="/dashboard" className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
@@ -316,14 +324,14 @@ function Home() {
                     Start Free Trial
                   </button>
                   <button onClick={openLogin} className={`px-8 py-4 border-2 rounded-xl font-semibold text-lg transition-all flex items-center ${resolvedTheme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`}>
-                    Login
+                    <FaSignInAlt className="mr-2" /> Login
                   </button>
                 </>
               )}
-              <button className={`px-8 py-4 border-2 rounded-xl font-semibold text-lg transition-all flex items-center ${resolvedTheme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`}>
+              {/* <button className={`px-8 py-4 border-2 rounded-xl font-semibold text-lg transition-all flex items-center ${resolvedTheme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`}>
                 <FaPlay className="mr-2" />
                 Watch Demo
-              </button>
+              </button> */}
             </div>
 
             {/* Stats */}
@@ -354,7 +362,7 @@ function Home() {
               Powerful features designed to streamline your workflow and boost team productivity
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => {
               const IconComponent = feature.icon;
@@ -364,7 +372,7 @@ function Home() {
                 green: resolvedTheme === 'dark' ? 'bg-green-900 text-green-400' : 'bg-green-100 text-green-600',
                 red: resolvedTheme === 'dark' ? 'bg-red-900 text-red-400' : 'bg-red-100 text-red-600'
               };
-              
+
               return (
                 <div key={index} className={`reveal reveal-fade-up reveal-delay-${index * 100} p-6 rounded-2xl transition-all hover:transform hover:scale-105 ${resolvedTheme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'}`}>
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${colorClasses[feature.color]}`}>
@@ -394,7 +402,7 @@ function Home() {
               <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 Get real-time insights into your team's performance with AI-powered analytics and beautiful visualizations
               </p>
-              
+
               <div className="space-y-6">
                 <div className="flex items-center space-x-4">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${resolvedTheme === 'dark' ? 'bg-green-900' : 'bg-green-100'}`}>
@@ -416,12 +424,12 @@ function Home() {
                 </div>
               </div>
             </div>
-            
+
             <div className="relative reveal reveal-fade-left">
               <div className="relative z-10">
-                <img 
-                  src="/static/dashboard.jpg" 
-                  alt="Analytics Dashboard" 
+                <img
+                  src="/static/dashboard.jpg"
+                  alt="Analytics Dashboard"
                   className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
                 />
               </div>
@@ -437,15 +445,15 @@ function Home() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="relative order-2 lg:order-1 reveal reveal-fade-right">
               <div className="relative z-10">
-                <img 
-                  src="/static/kanbanboard.jpg" 
-                  alt="Kanban Board" 
+                <img
+                  src="/static/kanbanboard.jpg"
+                  alt="Kanban Board"
                   className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
                 />
               </div>
               <div className={`absolute -inset-4 rounded-2xl opacity-20 blur-xl ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-green-600 to-blue-600' : 'bg-gradient-to-r from-green-400 to-blue-400'}`}></div>
             </div>
-            
+
             <div className="order-1 lg:order-2 reveal reveal-fade-left">
               <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 Kanban Board & Task Management
@@ -453,7 +461,7 @@ function Home() {
               <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 Intuitive drag-and-drop interface with AI-powered task classification and smart automation
               </p>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -488,7 +496,7 @@ function Home() {
               <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 Seamless team communication with group chats, direct messages, and file sharing capabilities
               </p>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -508,12 +516,12 @@ function Home() {
                 </div>
               </div>
             </div>
-            
+
             <div className="relative reveal reveal-fade-left reveal-delay-200">
               <div className="relative z-10">
-                <img 
-                  src="/static/messages.jpg" 
-                  alt="Team Messaging Interface" 
+                <img
+                  src="/static/messages.jpg"
+                  alt="Team Messaging Interface"
                   className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
                 />
               </div>
@@ -529,15 +537,15 @@ function Home() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="relative order-2 lg:order-1 reveal reveal-fade-right reveal-delay-100">
               <div className="relative z-10">
-                <img 
-                  src="/static/queryboard.jpg" 
-                  alt="Query Board Interface" 
+                <img
+                  src="/static/queryboard.jpg"
+                  alt="Query Board Interface"
                   className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
                 />
               </div>
               <div className={`absolute -inset-4 rounded-2xl opacity-20 blur-xl ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-orange-600 to-red-600' : 'bg-gradient-to-r from-orange-400 to-red-400'}`}></div>
             </div>
-            
+
             <div className="order-1 lg:order-2 reveal reveal-fade-left reveal-delay-200">
               <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 Advanced Task Query & Management
@@ -545,7 +553,7 @@ function Home() {
               <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 Powerful search, filtering, and bulk operations for efficient task management and team coordination
               </p>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -580,7 +588,7 @@ function Home() {
               <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 Detailed task views with attachments, comments, subtasks, and real-time collaboration features
               </p>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -600,12 +608,12 @@ function Home() {
                 </div>
               </div>
             </div>
-            
+
             <div className="relative reveal reveal-fade-left reveal-delay-200">
               <div className="relative z-10">
-                <img 
-                  src="/static/taskdetails.jpg" 
-                  alt="Task Details Interface" 
+                <img
+                  src="/static/taskdetails.jpg"
+                  alt="Task Details Interface"
                   className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
                 />
               </div>
@@ -621,15 +629,15 @@ function Home() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="relative order-2 lg:order-1 reveal reveal-fade-right reveal-delay-100">
               <div className="relative z-10">
-                <img 
-                  src="/static/teamdetails.jpg" 
-                  alt="Team Management Interface" 
+                <img
+                  src="/static/teamdetails.jpg"
+                  alt="Team Management Interface"
                   className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
                 />
               </div>
               <div className={`absolute -inset-4 rounded-2xl opacity-20 blur-xl ${resolvedTheme === 'dark' ? 'bg-gradient-to-r from-teal-600 to-green-600' : 'bg-gradient-to-r from-teal-400 to-green-400'}`}></div>
             </div>
-            
+
             <div className="order-1 lg:order-2 reveal reveal-fade-left reveal-delay-200">
               <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 Team Management & Collaboration
@@ -637,7 +645,7 @@ function Home() {
               <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 Comprehensive team management with member roles, permissions, and project assignments
               </p>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -672,7 +680,7 @@ function Home() {
               <p className={`text-xl mb-8 ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 Complete project lifecycle management with teams, user stories, tasks, and progress tracking
               </p>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -692,12 +700,12 @@ function Home() {
                 </div>
               </div>
             </div>
-            
+
             <div className="relative reveal reveal-fade-left reveal-delay-200">
               <div className="relative z-10">
-                <img 
-                  src="/static/projectdetails.jpg" 
-                  alt="Project Management Interface" 
+                <img
+                  src="/static/projectdetails.jpg"
+                  alt="Project Management Interface"
                   className={`rounded-2xl shadow-2xl w-full object-cover border-4 ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-white'}`}
                 />
               </div>
@@ -718,7 +726,7 @@ function Home() {
               See what our customers have to say about TeamLabs
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <div key={index} className={`reveal reveal-fade-up reveal-delay-${index * 200} rounded-2xl p-8 shadow-lg transition-all hover:transform hover:scale-105 ${resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
@@ -731,8 +739,8 @@ function Home() {
                   "{testimonial.content}"
                 </p>
                 <div className="flex items-center">
-                  <img 
-                    src={testimonial.avatar} 
+                  <img
+                    src={testimonial.avatar}
                     alt={testimonial.name}
                     className="w-12 h-12 rounded-full mr-4"
                   />
@@ -760,7 +768,7 @@ function Home() {
               Choose the plan that's right for your team
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {pricing.map((plan, index) => {
               return (
@@ -772,7 +780,7 @@ function Home() {
                       </span>
                     </div>
                   )}
-                  
+
                   <div className="text-center mb-8">
                     <h3 className={`text-2xl font-bold mb-2 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h3>
                     <div className="mb-2">
@@ -788,7 +796,7 @@ function Home() {
                     </div>
                     <p className={`text-sm ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{plan.description}</p>
                   </div>
-                  
+
                   <ul className="space-y-3 mb-8">
                     {plan.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-center">
@@ -797,16 +805,15 @@ function Home() {
                       </li>
                     ))}
                   </ul>
-                  
-                  <button 
+
+                  <button
                     onClick={plan.name === 'Free' ? openRegister : openRegister}
-                    className={`w-full py-3 px-6 rounded-lg font-semibold transition-all ${
-                      plan.highlight 
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700' 
-                        : resolvedTheme === 'dark' 
-                          ? 'bg-gray-700 text-white hover:bg-gray-600' 
+                    className={`w-full py-3 px-6 rounded-lg font-semibold transition-all ${plan.highlight
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                        : resolvedTheme === 'dark'
+                          ? 'bg-gray-700 text-white hover:bg-gray-600'
                           : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                    }`}
+                      }`}
                   >
                     {plan.cta}
                   </button>
@@ -828,24 +835,24 @@ function Home() {
               Join thousands of teams already using TeamLabs to boost their productivity
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {isAuthenticated ? (
-              <Link href="/dashboard" className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all">
-                Go to Dashboard
-              </Link>
-            ) : (
-              <>
-                <button onClick={openRegister} className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all">
-                  Start Free Trial
-                </button>
-                <button onClick={openLogin} className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all">
-                  Login
-                </button>
-              </>
-            )}
-            <button className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all">
-              Schedule Demo
-            </button>
-          </div>
+              {isAuthenticated ? (
+                <Link href="/dashboard" className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all">
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <>
+                  <button onClick={openRegister} className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all">
+                    Start Free Trial
+                  </button>
+                  <button onClick={openLogin} className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all">
+                    Login
+                  </button>
+                </>
+              )}
+              {/* <button className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all">
+                Schedule Demo
+              </button> */}
+            </div>
           </div>
         </div>
       </section>
@@ -858,7 +865,7 @@ function Home() {
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }}></div>
         </div>
-        
+
         <div className="relative w-[90%] mx-auto p-4 sm:px-3 lg:px-4 ">
           {/* Main Footer Content */}
           <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-12 reveal reveal-fade-up">
@@ -872,31 +879,21 @@ function Home() {
                   TeamLabs
                 </span>
               </div>
-              <p className={`text-lg mb-6 max-w-md leading-relaxed ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+              <p className={`text-lg mb-6 max-w-lg leading-relaxed ${resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 Transform your team's productivity with AI-powered project management, real-time collaboration, and intelligent insights.
               </p>
-              
+
               {/* Social Links */}
               <div className="flex space-x-4">
-                <a href="#" className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${resolvedTheme === 'dark' ? 'bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'}`}>
+                <a href="https://github.com/tejassgg" target="_blank" className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${resolvedTheme === 'dark' ? 'bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'}`}>
                   <FaGithub className="w-5 h-5" />
                 </a>
                 <a href="#" className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${resolvedTheme === 'dark' ? 'bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'}`}>
                   <FaGoogle className="w-5 h-5" />
                 </a>
-                <a href="#" className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${resolvedTheme === 'dark' ? 'bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'}`}>
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                  </svg>
-                </a>
-                <a href="#" className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${resolvedTheme === 'dark' ? 'bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'}`}>
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                  </svg>
-                </a>
               </div>
             </div>
-            
+
             {/* Product Links */}
             <div>
               <h3 className={`text-lg font-semibold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Product</h3>
@@ -923,7 +920,7 @@ function Home() {
                 </li>
               </ul>
             </div>
-            
+
             {/* Support Links */}
             <div>
               <h3 className={`text-lg font-semibold mb-6 ${resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Support</h3>
@@ -944,14 +941,17 @@ function Home() {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className={`transition-colors duration-200 hover:text-blue-600 ${resolvedTheme === 'dark' ? 'hover:text-blue-400' : 'hover:text-blue-600'}`}>
+                  <button 
+                    onClick={() => setShowContactSupport(true)}
+                    className={`transition-colors duration-200 hover:text-blue-600 ${resolvedTheme === 'dark' ? 'hover:text-blue-400' : 'hover:text-blue-600'}`}
+                  >
                     Contact Support
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
           </div>
-          
+
           {/* Newsletter Signup
           <div className={`mt-16 p-8 rounded-2xl ${resolvedTheme === 'dark' ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} backdrop-blur-sm`}>
             <div className="text-center max-w-2xl mx-auto">
@@ -973,22 +973,31 @@ function Home() {
               </div>
             </div>
           </div> */}
-          
+
           {/* Bottom Bar */}
-          <div className={`border-t mt-4 pt-8 flex flex-col lg:flex-row justify-between items-center ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
+          <div className={`border-t mt-4 pt-4 flex flex-col lg:flex-row justify-between items-center ${resolvedTheme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
             <p className={`text-sm ${resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
               &copy; {new Date().getFullYear()} TeamLabs. All rights reserved. Built with ❤️ for modern teams.
             </p>
             <div className="flex items-center space-x-6 mt-4 lg:mt-0">
-              <a href="#" className={`text-sm transition-colors ${resolvedTheme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>
+              <button
+                onClick={() => setShowPrivacyPolicy(true)}
+                className={`text-sm transition-colors ${resolvedTheme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+              >
                 Privacy Policy
-              </a>
-              <a href="#" className={`text-sm transition-colors ${resolvedTheme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>
+              </button>
+              <button 
+                onClick={() => setShowTermsOfService(true)}
+                className={`text-sm transition-colors ${resolvedTheme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+              >
                 Terms of Service
-              </a>
-              <a href="#" className={`text-sm transition-colors ${resolvedTheme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>
+              </button>
+              <button 
+                onClick={() => setShowCookiePolicy(true)}
+                className={`text-sm transition-colors ${resolvedTheme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+              >
                 Cookie Policy
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -1008,6 +1017,30 @@ function Home() {
           </>
         )}
       </Modal>
+
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={showPrivacyPolicy}
+        onClose={() => setShowPrivacyPolicy(false)}
+      />
+
+      {/* Terms of Service Modal */}
+      <TermsOfServiceModal
+        isOpen={showTermsOfService}
+        onClose={() => setShowTermsOfService(false)}
+      />
+
+      {/* Cookie Policy Modal */}
+      <CookiePolicyModal
+        isOpen={showCookiePolicy}
+        onClose={() => setShowCookiePolicy(false)}
+      />
+
+      {/* Contact Support Modal */}
+      <ContactSupportModal
+        isOpen={showContactSupport}
+        onClose={() => setShowContactSupport(false)}
+      />
 
       <style jsx global>{`
         /* Base reveal styles */

@@ -7,7 +7,7 @@ import { useGlobal } from '../../context/GlobalContext';
 import api, { authService, teamService, meetingService } from '../../services/api';
 import CustomModal from '../../components/shared/CustomModal';
 import StatusDropdown from '../../components/shared/StatusDropdown';
-import { FaCog, FaTrash, FaTimes, FaPlus, FaExternalLinkAlt, FaClock, FaArrowRight } from 'react-icons/fa';
+import { FaCog, FaTrash, FaTimes, FaPlus, FaExternalLinkAlt, FaClock, FaArrowRight, FaToggleOn } from 'react-icons/fa';
 import { getTaskTypeBadge, getPriorityBadge } from '../../components/task/TaskTypeBadge';
 import TeamDetailsSkeleton from '../../components/skeletons/TeamDetailsSkeleton';
 import { subscribe } from '../../services/socket';
@@ -24,7 +24,25 @@ const TeamDetailsPage = () => {
   const { theme } = useTheme();
   const getThemeClasses = useThemeClasses();
   const { showToast } = useToast();
-  const { formatDateWithTime } = require('../../utils/dateUtils');
+  const { formatDateWithTime, calculateMeetingDays } = require('../../utils/dateUtils');
+
+  // Helper function for meeting days badge colors
+  const getDaysBadgeColor = (status) => {
+    switch (status) {
+      case 'today':
+        return 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200';
+      case 'tomorrow':
+        return 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-green-200';
+      case 'upcoming':
+        return 'bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-700 border-yellow-200';
+      case 'yesterday':
+        return 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-gray-200';
+      case 'past':
+        return 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-red-200';
+      default:
+        return 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-gray-200';
+    }
+  };
 
   const formatForDatetimeLocal = (dateInput) => {
     if (!dateInput) return '';
@@ -901,80 +919,88 @@ const TeamDetailsPage = () => {
                   autoComplete="off"
                 />
                 {isInputFocused && filteredUsers.length > 0 && (
-                  <div className="w-full md:w-96">
-                    <ul className={getThemeClasses(
-                      'border rounded-xl bg-white max-h-48 overflow-y-auto z-10 shadow-md',
-                      'dark:bg-gray-800 dark:border-gray-700'
-                    )}>
-                      {filteredUsers.map((user, index) => (
-                        <li
-                          key={`${user._id}-${index}`}
-                          className={getThemeClasses(
-                            'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150',
-                            'dark:border-gray-700'
-                          )}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className={getThemeClasses(
-                              'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2',
-                              'dark:hover:bg-blue-900/30'
+                  <div className="relative w-full md:w-96">
+                    {/* Overlay backdrop */}
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsInputFocused(false)}
+                    />
+                    {/* Dropdown overlay */}
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1">
+                      <ul className={getThemeClasses(
+                        'border rounded-xl bg-white max-h-48 overflow-y-auto shadow-lg border-gray-200',
+                        'dark:bg-gray-800 dark:border-gray-700'
+                      )}>
+                        {filteredUsers.map((user, index) => (
+                          <li
+                            key={`${user._id}-${index}`}
+                            className={getThemeClasses(
+                              'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150',
+                              'dark:border-gray-700'
                             )}
-                              onClick={() => {
-                                setSelectedUser(user);
-                                setSearch(user.firstName + ' ' + user.lastName + ' (' + user.email + ')');
-                                setIsInputFocused(false);
-                              }}
-                            >
-                              <div className="flex flex-col">
-                                <div className={getThemeClasses(
-                                  'font-medium text-gray-900',
-                                  'dark:text-gray-100'
-                                )}>
-                                  {user.firstName} {user.lastName}
-                                </div>
-                                <div className={getThemeClasses(
-                                  'text-sm text-gray-600',
-                                  'dark:text-gray-400'
-                                )}>
-                                  {user.email}
-                                </div>
-                                <div className={getThemeClasses(
-                                  'text-xs text-gray-400 mt-0.5',
-                                  'dark:text-gray-500'
-                                )}>
-                                  ID: {user._id}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 p-2"
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setSearch(user.firstName + ' ' + user.lastName + ' (' + user.email + ')');
+                                  setIsInputFocused(false);
+                                }}
+                              >
+                                <div className="flex items-center gap-3">
+                                  {/* Member Initials Avatar */}
+                                  <div className={getThemeClasses(
+                                    'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0',
+                                    'dark:from-blue-600 dark:to-blue-700'
+                                  )}>
+                                    {user.firstName?.charAt(0)?.toUpperCase()}{user.lastName?.charAt(0)?.toUpperCase()}
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <div className={getThemeClasses(
+                                      'font-medium text-gray-900',
+                                      'dark:text-gray-100'
+                                    )}>
+                                      {user.firstName} {user.lastName}
+                                    </div>
+                                    <div className={getThemeClasses(
+                                      'text-sm text-gray-600',
+                                      'dark:text-gray-400'
+                                    )}>
+                                      {user.email}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setUserToAdd(user);
+                                  setShowAddMemberDialog(true);
+                                }}
+                                className={getThemeClasses(
+                                  'ml-2 px-3 py-1.5 text-sm text-blue-500 font-medium rounded-lg transition-all duration-200 hover:shadow-sm hover:bg-blue-100',
+                                  'dark:text-blue-400 dark:hover:shadow-sm dark:hover:bg-blue-900/30'
+                                )}
+                              >
+                                <FaPlus size={14} />
+                              </button>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setUserToAdd(user);
-                                setShowAddMemberDialog(true);
-                              }}
-                              className={getThemeClasses(
-                                'ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm',
-                                'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-                              )}
-                            >
-                              Add
-                            </button>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                    {!showAllUsers && orgUsers.length > 10 && (
-                      <button
-                        type="button"
-                        onClick={() => setShowAllUsers(true)}
-                        className={getThemeClasses(
-                          'w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200',
-                          'dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30'
-                        )}
-                      >
-                        Show All Users ({orgUsers.length})
-                      </button>
-                    )}
+                          </li>
+                        ))}
+                      </ul>
+                      {!showAllUsers && orgUsers.length > 10 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowAllUsers(true)}
+                          className={getThemeClasses(
+                            'w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200',
+                            'dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30'
+                          )}
+                        >
+                          Show All Users ({orgUsers.length})
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </form>
@@ -982,7 +1008,7 @@ const TeamDetailsPage = () => {
 
             {/* Join Requests Table (Owner/Admin only) */}
             {isOwner && (
-              <div className={getThemeClasses('rounded-xl border border-gray-200 mb-8', 'dark:border-gray-700')}>
+              <div className={getThemeClasses('rounded-xl border border-gray-200', 'dark:border-gray-700')}>
                 <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
                   <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Join Requests</h2>
                 </div>
@@ -1091,16 +1117,14 @@ const TeamDetailsPage = () => {
 
             {/* Meetings Section */}
             <div className={getThemeClasses('rounded-xl mb-6', 'dark:border-gray-700')}>
-              <div className={getThemeClasses('p-4 flex items-center justify-between', 'dark:border-gray-700')}>
+              <div className={getThemeClasses('px-4 pt-4 flex items-center justify-between', 'dark:border-gray-700')}>
                 <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Team Meetings</h2>
-                {isOwner && (
-                  <button
-                    onClick={openCreateMeeting}
-                    className={getThemeClasses('flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200', 'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800')}
-                  >
-                    <FaPlus size={14} /> Meeting
-                  </button>
-                )}
+                <button
+                  onClick={openCreateMeeting}
+                  className={getThemeClasses('flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200', 'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800')}
+                >
+                  <FaPlus size={14} /> Meeting
+                </button>
               </div>
               <div className="p-4">
                 {loadingMeetings ? (
@@ -1109,37 +1133,60 @@ const TeamDetailsPage = () => {
                   <div className={getThemeClasses('text-gray-500', 'dark:text-gray-400')}>No meetings yet.</div>
                 ) : (
                   <div className="flex items-center justify-unset gap-4">
-                    {meetings.map(m => (
-                      <div key={m.MeetingID} className={getThemeClasses('rounded-xl border border-gray-200 p-4 cursor-pointer hover:shadow-sm transition relative', 'dark:border-gray-700')} onClick={() => openMeetingDetails(m.MeetingID)}>
-                        {/* Delete button for meeting owner */}
-                        {m.OrganizerID === user?._id && (
-                          <button
-                            onClick={(e) => handleDeleteMeeting(m.MeetingID, e)}
-                            className="absolute top-2 right-2 p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-all duration-200 z-10"
-                            title="Delete meeting"
-                          >
-                            <FaTrash size={14} />
-                          </button>
-                        )}
-                        <div className={getThemeClasses('text-lg font-semibold text-gray-900 mb-1', 'dark:text-gray-100')}>{m.Title}</div>
-                        <div className={getThemeClasses('text-sm text-gray-600 line-clamp-2', 'dark:text-gray-400')}>{m.Description || 'No description'}</div>
-                        <div className={getThemeClasses('mt-2 flex items-center gap-3 rounded-lg border border-gray-200 p-3', 'dark:border-gray-700')}>
-                          <FaClock className={getThemeClasses('text-gray-500', 'dark:text-gray-400')} />
-                          <div className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
-                            {formatDateWithTime(m.StartTime || m.startTime)}
+                    {meetings.map(m => {
+                      const meetingDays = calculateMeetingDays(m.StartTime || m.startTime);
+
+                      return (
+                        <div key={m.MeetingID} className={getThemeClasses('rounded-xl border border-gray-200 p-4 cursor-pointer hover:shadow-sm transition', 'dark:border-gray-700')} onClick={() => openMeetingDetails(m.MeetingID)}>
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className={getThemeClasses('text-lg font-semibold text-gray-900 mb-1', 'dark:text-gray-100')}>{m.Title}</div>
+                              <div className={getThemeClasses('text-sm text-gray-600 line-clamp-2', 'dark:text-gray-400')}>{m.Description || 'No description'}</div>
+                            </div>
+                            {/* Actions section similar to Team Members */}
+                            {m.OrganizerID === user?._id && (
+                              <div className="flex items-center justify-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  onClick={(e) => handleDeleteMeeting(m.MeetingID, e)}
+                                  className={getThemeClasses(
+                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                    'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
+                                  )}
+                                  title="Delete meeting"
+                                >
+                                  <FaTrash size={14} />
+                                </button>
+                              </div>
+                            )}
                           </div>
-                          <FaArrowRight className={getThemeClasses('text-gray-400', 'dark:text-gray-500')} />
-                          <div className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
-                            {formatDateWithTime(m.EndTime || m.endTime)}
+                          <div className={getThemeClasses('mt-2 flex items-center gap-3 rounded-lg border border-gray-200 p-3', 'dark:border-gray-700')}>
+                            <FaClock className={getThemeClasses('text-gray-500', 'dark:text-gray-400')} />
+                            <div className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
+                              {formatDateWithTime(m.StartTime || m.startTime)}
+                            </div>
+                            <FaArrowRight className={getThemeClasses('text-gray-400', 'dark:text-gray-500')} />
+                            <div className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
+                              {formatDateWithTime(m.EndTime || m.endTime)}
+                            </div>
+                          </div>
+                          <div className="mt-2 flex items-center justify-between">
+                            {m.GoogleMeetLink && (
+                              <a href={m.GoogleMeetLink} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className={getThemeClasses(
+                                meetingDays.status === 'past' || meetingDays.status === 'yesterday'
+                                  ? 'text-red-600 cursor-not-allowed'
+                                  : 'text-blue-600 hover:underline',
+                                'dark:text-red-400'
+                              )}>
+                                {meetingDays.status === 'past' || meetingDays.status === 'yesterday' ? 'Expired' : 'Join Meeting'}
+                              </a>
+                            )}
+                            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm border ${getDaysBadgeColor(meetingDays.status)}`}>
+                              {meetingDays.text}
+                            </div>
                           </div>
                         </div>
-                        {m.GoogleMeetLink && (
-                          <a href={m.GoogleMeetLink} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className={getThemeClasses('mt-2 inline-block text-blue-600 hover:underline', 'dark:text-blue-400')}>
-                            Join Meeting
-                          </a>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -1221,10 +1268,6 @@ const TeamDetailsPage = () => {
                           'dark:text-gray-300'
                         )}>Date Added</th>
                         <th className={getThemeClasses(
-                          'py-3 px-4 text-left w-[200px] text-gray-700',
-                          'dark:text-gray-300'
-                        )}>Last Active</th>
-                        <th className={getThemeClasses(
                           'hidden md:table-cell py-3 px-4 text-center w-[150px] text-gray-700',
                           'dark:text-gray-300'
                         )}>Status</th>
@@ -1297,29 +1340,6 @@ const TeamDetailsPage = () => {
                           )}>
                             {new Date(member.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
                           </td>
-                          <td className="py-3 px-4">
-                            {member.lastLogin ? (
-                              <div className="flex flex-col">
-                                <span className={getThemeClasses(
-                                  'text-sm text-gray-900',
-                                  'dark:text-gray-100'
-                                )}>
-                                  {new Date(member.lastLogin).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
-                                  <span className={getThemeClasses(
-                                    'text-xs text-gray-500',
-                                    'dark:text-gray-400'
-                                  )}>
-                                    &nbsp; {new Date(member.lastLogin).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                                  </span>
-                                </span>
-                              </div>
-                            ) : (
-                              <span className={getThemeClasses(
-                                'text-sm text-gray-400',
-                                'dark:text-gray-500'
-                              )}>Never</span>
-                            )}
-                          </td>
                           <td className="hidden md:table-cell py-3 px-4 text-center">
                             <div className={getThemeClasses(
                               `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${member.IsMemberActive
@@ -1361,7 +1381,7 @@ const TeamDetailsPage = () => {
                                   title={member.IsMemberActive ? 'Revoke Access' : 'Grant Access'}
                                   disabled={toggling === member.TeamDetailsID}
                                 >
-                                  <FaCog size={14} />
+                                  <FaToggleOn size={14} />
                                 </button>
                                 <button
                                   onClick={() => {
@@ -1380,7 +1400,7 @@ const TeamDetailsPage = () => {
                                   title="Remove Member"
                                   disabled={removing === member.TeamDetailsID}
                                 >
-                                  <FaTrash size={14} />
+                                  <FaTimes size={14} />
                                 </button>
                               </div>
                             </td>
@@ -2197,108 +2217,123 @@ const TeamDetailsPage = () => {
             )}
 
             {/* Meeting Details Modal */}
-            {showMeetingDetailsModal && meetingDetails && (
-              <CustomModal
-                isOpen={showMeetingDetailsModal}
-                onClose={() => setShowMeetingDetailsModal(false)}
-                title={meetingDetails.meeting?.Title || 'Meeting Details'}
-                getThemeClasses={getThemeClasses}
-                actions={
-                  <>
-                    {meetingDetails.meeting?.OrganizerID === user?._id && (
-                      <button
-                        onClick={() => {
-                          // Prefill createMeetingForm with details
-                          setCreateMeetingForm({
-                            title: meetingDetails.meeting?.Title || '',
-                            description: meetingDetails.meeting?.Description || '',
-                            attendeeIds: Array.isArray(meetingDetails.meeting?.AttendeeIDs) ? meetingDetails.meeting.AttendeeIDs : (meetingDetails.attendees || []).map(a => a._id).filter(Boolean),
-                            taskIds: Array.isArray(meetingDetails.meeting?.TaskIDs) ? meetingDetails.meeting.TaskIDs : (meetingDetails.tasks || []).map(t => t.TaskID).filter(Boolean),
-                            startTime: formatForDatetimeLocal(meetingDetails.meeting?.StartTime || meetingDetails.meeting?.startTime),
-                            endTime: formatForDatetimeLocal(meetingDetails.meeting?.EndTime || meetingDetails.meeting?.endTime)
-                          });
-                          setIsEditingMeeting(true);
-                          setShowMeetingDetailsModal(false);
-                          setShowCreateMeetingModal(true);
-                        }}
-                        className={getThemeClasses('px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-200', 'dark:text-gray-300 dark:hover:bg-gray-700')}
-                      >
-                        Edit
-                      </button>
-                    )}
-                    {meetingDetails.meeting?.GoogleMeetLink && (
-                      <button
-                        onClick={() => {
-                          navigator.clipboard?.writeText(meetingDetails.meeting.GoogleMeetLink);
-                          showToast('Link copied to clipboard', 'success');
-                        }}
-                        className={getThemeClasses('px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-200', 'dark:text-gray-300 dark:hover:bg-gray-700')}
-                      >
-                        Copy Link
-                      </button>
-                    )}
-                    {meetingDetails.meeting?.GoogleMeetLink && (
-                      <a
-                        href={meetingDetails.meeting.GoogleMeetLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={getThemeClasses('px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200', 'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800')}
-                      >
-                        Join Meeting
-                      </a>
-                    )}
-                  </>
-                }
-              >
-                <div className="space-y-5">
-                  <div className={getThemeClasses('text-sm text-gray-700', 'dark:text-gray-300')}>
-                    {meetingDetails.meeting?.Description || 'No description'}
-                  </div>
+            {showMeetingDetailsModal && meetingDetails && (() => {
+              const modalMeetingDays = calculateMeetingDays(meetingDetails.meeting?.StartTime || meetingDetails.meeting?.startTime);
+              const isExpired = modalMeetingDays.status === 'past' || modalMeetingDays.status === 'yesterday';
 
-                  <div className={getThemeClasses('flex items-center gap-3 rounded-lg border border-gray-200 p-3', 'dark:border-gray-700')}>
-                    <FaClock className={getThemeClasses('text-gray-500', 'dark:text-gray-400')} />
-                    <div className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
-                      {formatDateWithTime(meetingDetails.meeting?.StartTime || meetingDetails.meeting?.startTime)}
-                    </div>
-                    <FaArrowRight className={getThemeClasses('text-gray-400', 'dark:text-gray-500')} />
-                    <div className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
-                      {formatDateWithTime(meetingDetails.meeting?.EndTime || meetingDetails.meeting?.endTime)}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className={getThemeClasses('font-semibold text-gray-900 mb-2', 'dark:text-gray-100')}>Attendees</div>
-                    <ul className="list-disc pl-5">
-                      {(meetingDetails.attendees || []).map(a => (
-                        <li key={a._id} className={getThemeClasses('text-sm text-gray-700', 'dark:text-gray-300')}>
-                          {a.firstName} {a.lastName} ({a.email})
-                        </li>
-                      ))}
-                      {(!meetingDetails.attendees || meetingDetails.attendees.length === 0) && (
-                        <li className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>No attendees</li>
+              return (
+                <CustomModal
+                  isOpen={showMeetingDetailsModal}
+                  onClose={() => setShowMeetingDetailsModal(false)}
+                  title={meetingDetails.meeting?.Title || 'Meeting Details'}
+                  getThemeClasses={getThemeClasses}
+                  actions={
+                    <>
+                      {meetingDetails.meeting?.OrganizerID === user?._id && (
+                        <button
+                          onClick={() => {
+                            // Prefill createMeetingForm with details
+                            setCreateMeetingForm({
+                              title: meetingDetails.meeting?.Title || '',
+                              description: meetingDetails.meeting?.Description || '',
+                              attendeeIds: Array.isArray(meetingDetails.meeting?.AttendeeIDs) ? meetingDetails.meeting.AttendeeIDs : (meetingDetails.attendees || []).map(a => a._id).filter(Boolean),
+                              taskIds: Array.isArray(meetingDetails.meeting?.TaskIDs) ? meetingDetails.meeting.TaskIDs : (meetingDetails.tasks || []).map(t => t.TaskID).filter(Boolean),
+                              startTime: formatForDatetimeLocal(meetingDetails.meeting?.StartTime || meetingDetails.meeting?.startTime),
+                              endTime: formatForDatetimeLocal(meetingDetails.meeting?.EndTime || meetingDetails.meeting?.endTime)
+                            });
+                            setIsEditingMeeting(true);
+                            setShowMeetingDetailsModal(false);
+                            setShowCreateMeetingModal(true);
+                          }}
+                          className={getThemeClasses('px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-200', 'dark:text-gray-300 dark:hover:bg-gray-700')}
+                        >
+                          Edit
+                        </button>
                       )}
-                    </ul>
-                  </div>
-
-                  <div>
-                    <div className={getThemeClasses('font-semibold text-gray-900 mb-2', 'dark:text-gray-100')}>Discussion For</div>
-                    <ul className="list-disc pl-5">
-                      {(meetingDetails.tasks || []).map(t => (
-                        <li key={t.TaskID} className={getThemeClasses('text-sm text-gray-700', 'dark:text-gray-300')}>
-                          <Link href={{ pathname: '/task/[taskId]', query: { taskId: t.TaskID } }} target="_blank" rel="noreferrer" className={getThemeClasses('inline-flex items-center gap-2 hover:underline', 'dark:hover:text-gray-200')}>
-                            <span>{t.Name}</span>
-                            <FaExternalLinkAlt className="w-3.5 h-3.5 opacity-70" />
-                          </Link>
-                        </li>
-                      ))}
-                      {(!meetingDetails.tasks || meetingDetails.tasks.length === 0) && (
-                        <li className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>No tasks attached</li>
+                      {meetingDetails.meeting?.GoogleMeetLink && (
+                        <button
+                          onClick={() => {
+                            navigator.clipboard?.writeText(meetingDetails.meeting.GoogleMeetLink);
+                            showToast('Link copied to clipboard', 'success');
+                          }}
+                          className={getThemeClasses('px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-200', 'dark:text-gray-300 dark:hover:bg-gray-700')}
+                        >
+                          Copy Link
+                        </button>
                       )}
-                    </ul>
+                      {meetingDetails.meeting?.GoogleMeetLink && (
+                        <a
+                          href={meetingDetails.meeting.GoogleMeetLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={getThemeClasses(
+                            isExpired
+                              ? 'px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-medium cursor-not-allowed'
+                              : 'px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200',
+                            'dark:from-red-600 dark:to-red-700'
+                          )}
+                        >
+                          {isExpired ? 'Expired' : 'Join Meeting'}
+                        </a>
+                      )}
+                    </>
+                  }
+                >
+                  <div className="space-y-5">
+                    <div className="flex items-center justify-between">
+                      <div className={getThemeClasses('text-sm text-gray-700', 'dark:text-gray-300')}>
+                        {meetingDetails.meeting?.Description || 'No description'}
+                      </div>
+                      <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm border ${getDaysBadgeColor(modalMeetingDays.status)}`}>
+                        {modalMeetingDays.text}
+                      </div>
+                    </div>
+
+                    <div className={getThemeClasses('flex items-center gap-3 rounded-lg border border-gray-200 p-3', 'dark:border-gray-700')}>
+                      <FaClock className={getThemeClasses('text-gray-500', 'dark:text-gray-400')} />
+                      <div className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
+                        {formatDateWithTime(meetingDetails.meeting?.StartTime || meetingDetails.meeting?.startTime)}
+                      </div>
+                      <FaArrowRight className={getThemeClasses('text-gray-400', 'dark:text-gray-500')} />
+                      <div className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
+                        {formatDateWithTime(meetingDetails.meeting?.EndTime || meetingDetails.meeting?.endTime)}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className={getThemeClasses('font-semibold text-gray-900 mb-2', 'dark:text-gray-100')}>Attendees</div>
+                      <ul className="list-disc pl-5">
+                        {(meetingDetails.attendees || []).map(a => (
+                          <li key={a._id} className={getThemeClasses('text-sm text-gray-700', 'dark:text-gray-300')}>
+                            {a.firstName} {a.lastName} ({a.email})
+                          </li>
+                        ))}
+                        {(!meetingDetails.attendees || meetingDetails.attendees.length === 0) && (
+                          <li className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>No attendees</li>
+                        )}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <div className={getThemeClasses('font-semibold text-gray-900 mb-2', 'dark:text-gray-100')}>Discussion For</div>
+                      <ul className="list-disc pl-5">
+                        {(meetingDetails.tasks || []).map(t => (
+                          <li key={t.TaskID} className={getThemeClasses('text-sm text-gray-700', 'dark:text-gray-300')}>
+                            <Link href={{ pathname: '/task/[taskId]', query: { taskId: t.TaskID } }} target="_blank" rel="noreferrer" className={getThemeClasses('inline-flex items-center gap-2 hover:underline hover:text-blue-600', 'dark:hover:text-gray-200')}>
+                              <span>{t.Name}</span>
+                              <FaExternalLinkAlt className="w-3.5 h-3.5 opacity-70 text-blue-600" />
+                            </Link>
+                          </li>
+                        ))}
+                        {(!meetingDetails.tasks || meetingDetails.tasks.length === 0) && (
+                          <li className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>No tasks attached</li>
+                        )}
+                      </ul>
+                    </div>
                   </div>
-                </div>
-              </CustomModal>
-            )}
+                </CustomModal>
+              );
+            })()}
 
             {/* Google Calendar Connection Prompt Modal */}
             {showGoogleCalendarPrompt && (

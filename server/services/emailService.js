@@ -529,9 +529,205 @@ async function sendInviteEmail(to, inviteLink, inviterName) {
   }
 }
 
+// Send contact support confirmation email to user
+async function sendContactConfirmation({ to, name, ticketNumber, title, description }) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Support Request Confirmation - TeamLabs</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 520px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+              <tr>
+                <td style="padding: 40px 32px;">
+                  <!-- Header -->
+                  <div style="text-align: center; margin-bottom: 32px;">
+                    <div style="font-size: 24px; font-weight: 700; color: #6B39E7; letter-spacing: -0.5px; margin-bottom: 8px;">TeamLabs</div>
+                    <div style="width: 40px; height: 2px; background: #6B39E7; margin: 0 auto;"></div>
+                  </div>
+                  
+                  <!-- Content -->
+                  <h1 style="color: #1F1F1F; font-size: 20px; font-weight: 600; margin: 0 0 16px 0; text-align: center;">Support Request Received</h1>
+                  <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">Thank you for contacting TeamLabs support, ${name}!</p>
+                  
+                  <!-- Ticket Info -->
+                  <div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+                    <div style="font-size: 13px; color: #6B39E7; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Ticket Information</div>
+                    <div style="font-size: 16px; font-weight: 600; color: #1F1F1F; margin-bottom: 12px;">${title}</div>
+                    <div style="margin-bottom: 12px;">
+                      <span style="font-weight: 600; color: #1F1F1F;">Ticket Number:</span> 
+                      <span style="background: #6B39E7; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-left: 8px;">${ticketNumber}</span>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                      <span style="font-weight: 600; color: #1F1F1F;">Status:</span> 
+                      <span style="background: #fef3c7; color: #d97706; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-left: 8px;">OPEN</span>
+                    </div>
+                    <div style="color: #6b7280; font-size: 14px; line-height: 1.6;">
+                      <div style="font-weight: 600; color: #1F1F1F; margin-bottom: 8px;">Description:</div>
+                      ${description}
+                    </div>
+                  </div>
+                  
+                  <!-- Next Steps -->
+                  <div style="background: #ecfdf5; border: 1px solid #d1fae5; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+                    <div style="font-size: 14px; font-weight: 600; color: #065f46; margin-bottom: 12px;">What happens next?</div>
+                    <ul style="color: #047857; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 16px;">
+                      <li style="margin-bottom: 6px;">Our support team will review your request within 24 hours</li>
+                      <li style="margin-bottom: 6px;">You'll receive an email update when we respond</li>
+                      <li style="margin-bottom: 6px;">We may ask for additional information if needed</li>
+                      <li>You can reference ticket ${ticketNumber} in any follow-up communications</li>
+                    </ul>
+                  </div>
+                  
+                  <!-- Footer -->
+                  <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                    <p style="color: #9ca3af; font-size: 11px; margin: 0;">If you have any urgent issues, please call our support line at +1 (555) 388-6490</p>
+                    <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to,
+      subject: `Support Request Confirmation - ${ticketNumber}`,
+      html
+    });
+    return true;
+  } catch (error) {
+    console.error('Error sending contact confirmation email:', error);
+    return false;
+  }
+}
+
+// Send contact support notification email to support team
+async function sendContactNotification({ ticketNumber, title, description, name, email, attachments }) {
+  const attachmentsList = attachments && attachments.length > 0 ? 
+    attachments.map(att => `<li style="margin-bottom: 4px;">📎 ${att.originalName} (${(att.size / 1024 / 1024).toFixed(2)} MB)</li>`).join('') : 
+    '<li style="color: #9ca3af;">No attachments</li>';
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Support Request - ${ticketNumber}</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+              <tr>
+                <td style="padding: 40px 32px;">
+                  <!-- Header -->
+                  <div style="text-align: center; margin-bottom: 32px;">
+                    <div style="font-size: 24px; font-weight: 700; color: #6B39E7; letter-spacing: -0.5px; margin-bottom: 8px;">TeamLabs Support</div>
+                    <div style="width: 40px; height: 2px; background: #6B39E7; margin: 0 auto;"></div>
+                  </div>
+                  
+                  <!-- Content -->
+                  <h1 style="color: #1F1F1F; font-size: 20px; font-weight: 600; margin: 0 0 16px 0; text-align: center;">New Support Request</h1>
+                  <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">A new support request has been submitted through the contact form.</p>
+                  
+                  <!-- Request Details -->
+                  <div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+                    <div style="font-size: 13px; color: #6B39E7; font-weight: 600; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">Request Details</div>
+                    
+                    <div style="margin-bottom: 16px;">
+                      <div style="font-weight: 600; color: #1F1F1F; margin-bottom: 4px;">Ticket Number:</div>
+                      <div style="background: #6B39E7; color: #ffffff; padding: 6px 12px; border-radius: 4px; font-size: 14px; font-weight: 600; display: inline-block;">${ticketNumber}</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 16px;">
+                      <div style="font-weight: 600; color: #1F1F1F; margin-bottom: 4px;">Title:</div>
+                      <div style="color: #374151; font-size: 16px; font-weight: 600;">${title}</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 16px;">
+                      <div style="font-weight: 600; color: #1F1F1F; margin-bottom: 4px;">Customer Name:</div>
+                      <div style="color: #374151; font-size: 14px;">${name}</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 16px;">
+                      <div style="font-weight: 600; color: #1F1F1F; margin-bottom: 4px;">Customer Email:</div>
+                      <div style="color: #6B39E7; font-size: 14px;">${email}</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 16px;">
+                      <div style="font-weight: 600; color: #1F1F1F; margin-bottom: 8px;">Description:</div>
+                      <div style="color: #374151; font-size: 14px; line-height: 1.6; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                        ${description}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div style="font-weight: 600; color: #1F1F1F; margin-bottom: 8px;">Attachments:</div>
+                      <ul style="color: #374151; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 16px;">
+                        ${attachmentsList}
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <!-- Action Required -->
+                  <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+                    <div style="font-size: 14px; font-weight: 600; color: #d97706; margin-bottom: 8px;">Action Required</div>
+                    <p style="color: #92400e; font-size: 13px; line-height: 1.6; margin: 0;">Please respond to this support request within 24 hours. You can access the full request details in the admin dashboard.</p>
+                  </div>
+                  
+                  <!-- Footer -->
+                  <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                    <p style="color: #9ca3af; font-size: 11px; margin: 0;">This is an automated notification from the TeamLabs support system.</p>
+                    <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to: process.env.GMAIL_USER, // Send to support team
+      subject: `New Support Request - ${ticketNumber}: ${title}`,
+      html
+    });
+    return true;
+  } catch (error) {
+    console.error('Error sending contact notification email:', error);
+    return false;
+  }
+}
+
 module.exports = {
   sendResetEmail,
   sendTaskAssignmentEmail,
   sendCommentMentionEmail,
-  sendInviteEmail
+  sendInviteEmail,
+  sendContactConfirmation,
+  sendContactNotification,
+  emailService: {
+    sendContactConfirmation,
+    sendContactNotification
+  }
 }; 

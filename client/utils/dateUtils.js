@@ -175,6 +175,37 @@ export const formatCommitTime = (dateInput) => {
 };
 
 /**
+ * Calculate days left or passed for a meeting date
+ * @param {Date|string} meetingDate - The meeting date to compare against current date
+ * @returns {Object} - Object containing days count and status
+ */
+export const calculateMeetingDays = (meetingDate) => {
+  if (!meetingDate) return { days: 0, status: 'unknown', text: 'Date not available' };
+  
+  const meeting = new Date(meetingDate);
+  const today = new Date();
+  
+  // Reset time to start of day for accurate day calculation
+  const meetingStartOfDay = new Date(meeting.getFullYear(), meeting.getMonth(), meeting.getDate());
+  const todayStartOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  
+  const diffTime = meetingStartOfDay - todayStartOfDay;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    return { days: 0, status: 'today', text: 'Today' };
+  } else if (diffDays === 1) {
+    return { days: 1, status: 'tomorrow', text: 'Tomorrow' };
+  } else if (diffDays > 1) {
+    return { days: diffDays, status: 'upcoming', text: `${diffDays} days left` };
+  } else if (diffDays === -1) {
+    return { days: 1, status: 'yesterday', text: 'Yesterday' };
+  } else {
+    return { days: Math.abs(diffDays), status: 'past', text: `${Math.abs(diffDays)} days ago` };
+  }
+};
+
+/**
  * Group commits by date with friendly labels
  * @param {Array} commits - Array of commit objects with author.date
  * @returns {Object} - Grouped commits by display date

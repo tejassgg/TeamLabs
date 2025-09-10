@@ -25,6 +25,7 @@ const organizationRoutes = require('./routes/organizationRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const subtaskRoutes = require('./routes/subtaskRoutes');
 const meetingRoutes = require('./routes/meetingRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -80,6 +81,7 @@ app.use('/api/organizations', organizationRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/subtasks', subtaskRoutes);
 app.use('/api', meetingRoutes);
+app.use('/api/contact-support', contactRoutes);
 
 // Test route
 app.get('/', (req, res) => {

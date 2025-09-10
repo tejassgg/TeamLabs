@@ -360,7 +360,8 @@ exports.getGoogleCalendarStatus = async (req, res) => {
       success: true,
       connected: user.googleCalendarConnected || false,
       email: user.email || null,
-      tokenExpiry: user.googleCalendarTokenExpiry || null
+      tokenExpiry: user.googleCalendarTokenExpiry || null,
+      avatarUrl: user.profileImage || null // Include user's profile image (from Google login)
     });
   } catch (error) {
     console.error('getGoogleCalendarStatus error:', error);

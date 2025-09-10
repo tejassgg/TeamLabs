@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import api, { authService, taskService, githubService } from '../../services/api';
-import { FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaTasks, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile } from 'react-icons/fa';
+import { FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile } from 'react-icons/fa';
 import AddTaskModal from '../../components/shared/AddTaskModal';
 import CustomModal from '../../components/shared/CustomModal';
 import { useToast } from '../../context/ToastContext';
@@ -56,6 +56,8 @@ const ProjectDetailsPage = () => {
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [removingTeam, setRemovingTeam] = useState(null);
   const [removing, setRemoving] = useState(false);
+  const [showRevokeDialog, setShowRevokeDialog] = useState(false);
+  const [revokingTeam, setRevokingTeam] = useState(null);
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [addTaskTypeMode, setAddTaskTypeMode] = useState('task'); // 'userStory' or 'task'
   const [taskList, setTaskList] = useState([]);
@@ -655,8 +657,12 @@ const ProjectDetailsPage = () => {
       // Refresh teams
       const res = await api.get(`/project-details/${projectId}`);
       setTeams(res.data.teams);
+      setShowRevokeDialog(false);
+      setRevokingTeam(null);
+      showToast('Team access updated successfully', 'success');
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to update team status');
+      showToast(err?.response?.data?.error || 'Failed to update team status', 'error');
     } finally {
       setToggling('');
     }
@@ -830,61 +836,6 @@ const ProjectDetailsPage = () => {
     return `${baseClasses} ${theme === 'dark' ? darkClasses : ''}`;
   };
 
-  // Helper function to get project progress percentage
-  const getProjectProgressPercentage = (statusCode) => {
-    if (!statusCode) return 0;
-
-    // Calculate percentage to stop at the center of the current status circle
-    // For 6 statuses: 0%, 16.67%, 33.33%, 50%, 66.67%, 83.33%
-    // We want to stop at the center of the current status, not extend beyond it
-    const totalSteps = 6; // Project has 6 statuses
-    const progressPerStep = 100 / totalSteps;
-    const currentIndex = statusCode - 1; // Convert status code to 0-based index
-    const progressToCurrentStep = (currentIndex + 0.7) * progressPerStep; // +0.7 to stop at center
-
-    return Math.round(progressToCurrentStep);
-  };
-
-  // Helper function to get project progress steps based on available statuses
-  const getProjectProgressSteps = () => {
-    return [
-      {
-        status: 1,
-        label: 'Not Assigned',
-        icon: FaTimes
-      },
-      {
-        status: 2,
-        label: 'Assigned',
-        icon: FaCheckCircle
-      },
-      {
-        status: 3,
-        label: 'In Progress',
-        icon: FaClock
-      },
-      {
-        status: 4,
-        label: 'QA',
-        icon: FaShieldAlt
-      },
-      {
-        status: 5,
-        label: 'Deployment',
-        icon: FaRocket
-      },
-      {
-        status: 6,
-        label: 'Completed',
-        icon: FaCheckCircle
-      }
-    ];
-  };
-
-  // Helper function to check if a project step is completed
-  const isProjectStepCompleted = (stepStatus, currentStatus) => {
-    return stepStatus < currentStatus;
-  };
 
   // Update the table container classes - transparent background with borders to blend with page
   const tableContainerClasses = getThemeClasses(
@@ -1237,81 +1188,6 @@ const ProjectDetailsPage = () => {
               </div>
             </div>
             <div className='w-full flex item-center justify-between gap-6 mt-6'>
-              {/* Project Progress Bar */}
-              <div className="w-[60%] mb-6">
-                <div className={getThemeClasses(
-                  'bg-white border border-gray-200 rounded-xl p-6 shadow-sm',
-                  'dark:bg-transparent dark:border-gray-700'
-                )}>
-                  <h3 className={getThemeClasses(
-                    'text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2',
-                    'dark:text-gray-100'
-                  )}>
-                    <FaProjectDiagram className="text-blue-500 dark:text-blue-400" />
-                    Project Progress: {getProjectProgressPercentage(project.ProjectStatusID)}%
-                  </h3>
-
-                  {/* Progress Steps with Progress Bar Behind */}
-                  <div className="relative flex items-center justify-between">
-                    {/* Progress Bar Background */}
-                    <div className={getThemeClasses(
-                      'absolute top-5 left-0 right-0 h-1 bg-gray-200 rounded-full mx-3',
-                      'dark:bg-gray-700'
-                    )}>
-                      <div className="h-full bg-green-500 rounded-full transition-all duration-500 ease-out"
-                        style={{ width: `${getProjectProgressPercentage(project.ProjectStatusID)}%` }}
-                      ></div>
-                    </div>
-
-                    {getProjectProgressSteps().map((step, index) => {
-                      const isCompleted = isProjectStepCompleted(step.status, project.ProjectStatusID);
-                      const isCurrent = step.status === project.ProjectStatusID;
-                      const stepStatusInfo = getProjectStatusStyle(step.status);
-
-                      return (
-                        <div key={step.status} className="flex flex-col items-center relative z-20">
-                          <div className={getThemeClasses(
-                            `w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all duration-300 ${isCompleted
-                              ? 'bg-green-500 text-white shadow-lg'
-                              : isCurrent
-                                ? `${stepStatusInfo.bgColor} ${stepStatusInfo.textColor} bg-gray-200 shadow-lg scale-110`
-                                : `${stepStatusInfo.bgColor} ${stepStatusInfo.textColor} bg-gray-200`
-                            }`,
-                            `dark:${isCompleted
-                              ? 'bg-green-500 text-white'
-                              : isCurrent
-                                ? `${stepStatusInfo.bgColor} ${stepStatusInfo.textColor} shadow-lg scale-110`
-                                : `${stepStatusInfo.bgColor} ${stepStatusInfo.textColor} `
-                            }`
-                          )}>
-                            {isCompleted ? (
-                              <FaCheckCircle size={16} />
-                            ) : (
-                              <stepStatusInfo.icon size={16} />
-                            )}
-                          </div>
-                          <span className={getThemeClasses(
-                            `text-xs font-medium text-center max-w-16 whitespace-nowrap ${isCompleted
-                              ? 'text-green-600 '
-                              : isCurrent
-                                ? `${stepStatusInfo.textColor}`
-                                : `${stepStatusInfo.textColor}`
-                            }`,
-                            `dark:${isCompleted
-                              ? 'text-green-400'
-                              : isCurrent
-                                ? `${stepStatusInfo.textColor}`
-                                : `${stepStatusInfo.textColor}`
-                            }`
-                          )}>
-                            {step.label}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
               {/* Add Team Dropdown */}
               {isOwner && (
                 <div className="w-[40%] mb-6">
@@ -1503,7 +1379,10 @@ const ProjectDetailsPage = () => {
                               <td className="py-3 px-4 text-center">
                                 <div className="flex items-center justify-center gap-2">
                                   <button
-                                    onClick={() => handleToggleTeamStatus(team.TeamID)}
+                                    onClick={() => {
+                                      setRevokingTeam(team);
+                                      setShowRevokeDialog(true);
+                                    }}
                                     className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
                                       ? getThemeClasses(
                                         'bg-blue-100 text-blue-700 hover:bg-blue-200',
@@ -1517,7 +1396,7 @@ const ProjectDetailsPage = () => {
                                     title={team.IsActive ? 'Revoke Access' : 'Grant Access'}
                                     disabled={toggling === team.TeamID}
                                   >
-                                    <FaCog size={14} />
+                                    <FaToggleOn size={14} />
                                   </button>
                                   <button
                                     onClick={() => {
@@ -1531,7 +1410,7 @@ const ProjectDetailsPage = () => {
                                     title="Remove Team"
                                     disabled={removing}
                                   >
-                                    <FaTrash size={14} />
+                                    <FaTimes size={14} />
                                   </button>
                                 </div>
                               </td>
@@ -2305,37 +2184,102 @@ const ProjectDetailsPage = () => {
         )}
         {/* Remove Team Confirmation Dialog */}
         {showRemoveDialog && removingTeam && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                <h3 className="text-lg font-semibold">
-                  Remove Team
-                </h3>
-              </div>
-              <p className="text-gray-600 mb-6">
-                Are you sure you want to remove {orgTeams.find(t => t.TeamID === removingTeam.TeamID)?.TeamName || removingTeam.TeamID} from this project? This action cannot be undone.
-              </p>
-              <div className="flex justify-end gap-3">
+          <CustomModal
+            isOpen={showRemoveDialog}
+            onClose={() => {
+              setShowRemoveDialog(false);
+              setRemovingTeam(null);
+            }}
+            title="Remove Team"
+            getThemeClasses={getThemeClasses}
+            actions={
+              <>
                 <button
                   onClick={() => {
                     setShowRemoveDialog(false);
                     setRemovingTeam(null);
                   }}
-                  className="px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200"
+                  className={getThemeClasses(
+                    'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
+                    'dark:text-gray-400 dark:hover:bg-gray-700'
+                  )}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleRemoveTeam(removingTeam.TeamID)}
-                  className="px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                  className={getThemeClasses(
+                    'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
+                    'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
+                  )}
                   disabled={removing}
                 >
                   {removing ? 'Removing...' : 'Remove'}
                 </button>
-              </div>
-            </div>
-          </div>
+              </>
+            }
+          >
+            <p className={getThemeClasses(
+              'text-gray-600',
+              'dark:text-gray-400'
+            )}>
+              Are you sure you want to remove {orgTeams.find(t => t.TeamID === removingTeam.TeamID)?.TeamName || removingTeam.TeamID} from this project? This action cannot be undone.
+            </p>
+          </CustomModal>
+        )}
+        {/* Revoke Access Confirmation Dialog */}
+        {showRevokeDialog && revokingTeam && (
+          <CustomModal
+            isOpen={showRevokeDialog}
+            onClose={() => {
+              setShowRevokeDialog(false);
+              setRevokingTeam(null);
+            }}
+            title={revokingTeam.IsActive ? 'Revoke Access' : 'Grant Access'}
+            getThemeClasses={getThemeClasses}
+            actions={
+              <>
+                <button
+                  onClick={() => {
+                    setShowRevokeDialog(false);
+                    setRevokingTeam(null);
+                  }}
+                  className={getThemeClasses(
+                    'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
+                    'dark:text-gray-400 dark:hover:bg-gray-700'
+                  )}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleToggleTeamStatus(revokingTeam.TeamID)}
+                  className={getThemeClasses(
+                    `px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 ${revokingTeam.IsActive 
+                      ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
+                      : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                    }`,
+                    `dark:${revokingTeam.IsActive 
+                      ? 'bg-red-900/50 text-red-300 hover:bg-red-900/70'
+                      : 'bg-green-900/50 text-green-300 hover:bg-green-900/70'
+                    }`
+                  )}
+                  disabled={toggling === revokingTeam.TeamID}
+                >
+                  {toggling === revokingTeam.TeamID ? 'Updating...' : 'Confirm'}
+                </button>
+              </>
+            }
+          >
+            <p className={getThemeClasses(
+              'text-gray-600',
+              'dark:text-gray-400'
+            )}>
+              {revokingTeam.IsActive 
+                ? `Are you sure you want to revoke access for ${orgTeams.find(t => t.TeamID === revokingTeam.TeamID)?.TeamName || revokingTeam.TeamID}? This will make the team inactive for this project.`
+                : `Are you sure you want to grant access for ${orgTeams.find(t => t.TeamID === revokingTeam.TeamID)?.TeamName || revokingTeam.TeamID}? This will make the team active for this project.`
+              }
+            </p>
+          </CustomModal>
         )}
         <AddTaskModal
           isOpen={isAddTaskOpen}

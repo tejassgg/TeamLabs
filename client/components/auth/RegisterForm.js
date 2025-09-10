@@ -423,10 +423,25 @@ const RegisterForm = ({ onOpenLogin }) => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-end">
-              <button type="submit" className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2.5 px-4 rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all mt-2">
-                Next
-              </button>
+            <div className="flex items-center justify-between">
+              <div className="flex-1"></div>
+              <div className="flex-1 text-center">
+                <p className={`text-sm ${resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                  }`}>
+                  Already have an account?{' '}
+                  <button type="button" onClick={onOpenLogin} className={`font-medium transition-colors ${resolvedTheme === 'dark'
+                    ? 'text-blue-400 hover:text-blue-300'
+                    : 'text-blue-600 hover:text-blue-700'
+                    }`}>
+                    Sign In
+                  </button>
+                </p>
+              </div>
+              <div className="flex-1 flex items-center justify-end">
+                <button type="submit" className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2.5 px-4 rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
+                  Next
+                </button>
+              </div>
             </div>
           </>
         )}
@@ -583,18 +598,8 @@ const RegisterForm = ({ onOpenLogin }) => {
           </>
         )}
       </form>
-      <div className="mt-6">
-        <p className={`text-center text-sm ${resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-          }`}>
-          Already have an account?{' '}
-          <button onClick={onOpenLogin} className={`font-medium transition-colors ${resolvedTheme === 'dark'
-            ? 'text-blue-400 hover:text-blue-300'
-            : 'text-blue-600 hover:text-blue-700'
-            }`}>
-            Sign In
-          </button>
-        </p>
-        <div className="relative my-6">
+      <div>
+        <div className="relative mb-6">
           <div className="absolute inset-0 flex items-center">
             <div className={`w-full border-t ${resolvedTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'
               }`}></div>

@@ -48,7 +48,7 @@ const Settings = () => {
     connectedAt: null
   });
   const [githubLoading, setGithubLoading] = useState(false);
-  const [googleStatus, setGoogleStatus] = useState({ connected: false, email: null, tokenExpiry: null });
+  const [googleStatus, setGoogleStatus] = useState({ connected: false, email: null, tokenExpiry: null, avatarUrl: null });
   const [googleLoading, setGoogleLoading] = useState(false);
 
   // Update security settings when user data changes
@@ -141,7 +141,12 @@ const Settings = () => {
       setGoogleLoading(true);
       const response = await meetingService.getGoogleCalendarStatus(user._id);
       if (response?.success) {
-        setGoogleStatus({ connected: Boolean(response.connected), email: response.email || null, tokenExpiry: response.tokenExpiry || null });
+        setGoogleStatus({ 
+          connected: Boolean(response.connected), 
+          email: response.email || null, 
+          tokenExpiry: response.tokenExpiry || null,
+          avatarUrl: response.avatarUrl || null
+        });
       }
     } catch (error) {
       // ignore
@@ -1294,12 +1299,27 @@ const Settings = () => {
                     </div>
                   ) : googleStatus.connected ? (
                     <div className="space-y-4">
-                      <div className={`text-sm ${theme === 'dark' ? 'text-green-400' : 'text-green-700'}`}>Connected</div>
-                      <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                        <div><span className="font-medium">Email:</span> {googleStatus.email || user?.email}</div>
-                        {googleStatus.tokenExpiry && (
-                          <div><span className="font-medium">Token Expiry:</span> {new Date(googleStatus.tokenExpiry).toLocaleString()}</div>
+                      <div className="flex items-center gap-4">
+                        {googleStatus.avatarUrl && (
+                          <img
+                            src={googleStatus.avatarUrl}
+                            alt="Google Profile"
+                            className="w-10 h-10 rounded-full"
+                          />
                         )}
+                        <div>
+                          <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            {googleStatus.email || user?.email}
+                          </p>
+                          <p className={`text-sm ${theme === 'dark' ? 'text-green-400' : 'text-green-700'}`}>
+                            Connected
+                          </p>
+                          {googleStatus.tokenExpiry && (
+                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                              Token expires {new Date(googleStatus.tokenExpiry).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <button
                         onClick={handleDisconnectGoogle}
