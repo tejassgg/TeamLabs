@@ -44,8 +44,8 @@ const submitContactRequest = async (req, res) => {
     const month = String(now.getMonth() ).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     const year = String(now.getFullYear()); // Last 3 digits of year
-    const timestamp = String(now.getTime()).slice(-6); // Last 6 digits of timestamp
-    const ticketNumber = `T-${month}${day}${year}-${timestamp}`;
+    const timestamp = String(now.getTime()).slice(-4); // Last 4 digits of timestamp
+    const ticketNumber = `T${month}${day}${year}${timestamp}`;
 
     // Create contact support request
     const contactRequest = new ContactSupport({

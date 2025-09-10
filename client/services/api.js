@@ -367,6 +367,14 @@ export const teamService = {
       throw error.response?.data || { message: 'Failed to fetch teams' };
     }
   },
+  getTeamsOverview: async (userId) => {
+    try {
+      const response = await api.get(`/teams/overview/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch teams overview' };
+    }
+  },
   getTeamsByOrganization: async (organizationId) => {
     try {
       const response = await api.get(`/teams/organization/${organizationId}`);
@@ -511,6 +519,14 @@ export const projectService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch projects' };
+    }
+  },
+  getProjectsOverview: async (userId) => {
+    try {
+      const response = await api.get(`/projects/overview/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch projects overview' };
     }
   },
   addProject: async (projectData) => {

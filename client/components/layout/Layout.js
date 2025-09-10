@@ -294,37 +294,101 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             theme={theme}
           />
 
-          {/* Teams (Collapsible) */}
-          <SidebarCollapsible
-            icon={<FaUsers className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
-            label="Teams"
-            isOpen={isTeamsOpen}
-            onToggle={() => setIsTeamsOpen((prev) => !prev)}
-            items={teams}
-            onAdd={() => setIsAddTeamOpen(true)}
-            activeId={activeTeamId}
-            itemKey={"TeamID"}
-            itemLabel={"TeamName"}
-            onItemClick={(team) => handleNavigation(`/team/${team.TeamID || team._id}`)}
-            canAdd={canManageTeamsAndProjects}
-            theme={theme}
-          />
+          {/* Teams Section */}
+          <div>
+            <div className="flex items-center justify-between">
+              <SidebarButton
+                icon={<FaUsers className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+                label="Teams"
+                active={router.pathname === '/teams'}
+                onClick={() => handleNavigation('/teams')}
+                theme={theme}
+              />
+              {(!isMobile && collapsed) ? null : (
+                <button
+                  className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                  aria-label={`${isTeamsOpen ? 'Collapse' : 'Expand'} Teams`}
+                  onClick={() => setIsTeamsOpen((prev) => !prev)}
+                >
+                  {isTeamsOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+                </button>
+              )}
+            </div>
+            {isTeamsOpen && (!isMobile && collapsed ? false : true) && (
+              <ul className="ml-8 mt-1 space-y-1">
+                {teams.length === 0 ? (
+                  <li key="no-teams" className="text-gray-400 italic">No Teams</li>
+                ) : (
+                  teams.map((team) => {
+                    if (!team || !team.TeamID) return null;
+                    const teamId = team.TeamID || team._id;
+                    const teamName = team.TeamName || 'Unnamed Team';
 
-          {/* Projects (Collapsible) */}
-          <SidebarCollapsible
-            icon={<FaFolder className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
-            label="Projects"
-            isOpen={isProjectsOpen}
-            onToggle={() => setIsProjectsOpen((prev) => !prev)}
-            items={projects}
-            onAdd={() => setIsAddProjectOpen(true)}
-            activeId={activeProjectId}
-            itemKey={"ProjectID"}
-            itemLabel={"Name"}
-            onItemClick={(project) => handleNavigation(`/project/${project.ProjectID || project._id}`)}
-            canAdd={canManageTeamsAndProjects}
-            theme={theme}
-          />
+                    return (
+                      <li key={teamId}>
+                        <button
+                          className={`w-full text-left px-2 py-1 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeTeamId === teamId
+                            ? (theme === 'dark' ? 'bg-blue-900 text-blue-200 font-medium' : 'bg-blue-50 text-blue-600 font-medium')
+                            : (theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-gray-100')}`}
+                          onClick={() => handleNavigation(`/team/${teamId}`)}
+                        >
+                          {teamName}
+                        </button>
+                      </li>
+                    );
+                  }).filter(Boolean)
+                )}
+              </ul>
+            )}
+          </div>
+
+          {/* Projects Section */}
+          <div>
+            <div className="flex items-center justify-between">
+              <SidebarButton
+                icon={<FaFolder className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+                label="Projects"
+                active={router.pathname === '/projects'}
+                onClick={() => handleNavigation('/projects')}
+                theme={theme}
+              />
+              {(!isMobile && collapsed) ? null : (
+                <button
+                  className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                  aria-label={`${isProjectsOpen ? 'Collapse' : 'Expand'} Projects`}
+                  onClick={() => setIsProjectsOpen((prev) => !prev)}
+                >
+                  {isProjectsOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+                </button>
+              )}
+            </div>
+            {isProjectsOpen && (!isMobile && collapsed ? false : true) && (
+              <ul className="ml-8 mt-1 space-y-1">
+                {projects.length === 0 ? (
+                  <li key="no-projects" className="text-gray-400 italic">No Projects</li>
+                ) : (
+                  projects.map((project) => {
+                    if (!project || !project.ProjectID) return null;
+                    const projectId = project.ProjectID || project._id;
+                    const projectName = project.Name || 'Unnamed Project';
+
+                    return (
+                      <li key={projectId}>
+                        <button
+                          className={`w-full text-left px-2 py-1 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeProjectId === projectId
+                            ? (theme === 'dark' ? 'bg-blue-900 text-blue-200 font-medium' : 'bg-blue-50 text-blue-600 font-medium')
+                            : (theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-gray-100')}`}
+                          onClick={() => handleNavigation(`/project/${projectId}`)}
+                        >
+                          {projectName}
+                        </button>
+                      </li>
+                    );
+                  }).filter(Boolean)
+                )}
+              </ul>
+            )}
+          </div>
           <SidebarButton
             icon={<FaBookOpen className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
             label="Messages"
@@ -459,6 +523,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
     // Map routes to titles
     if (path === '/dashboard') return 'Dashboard';
     if (path === '/kanban') return 'Kanban Board';
+    if (path === '/projects') return 'Projects';
     if (path === '/profile') return 'Profile';
     if (path === '/settings') return 'Settings';
     if (path === '/messages') return 'Messages';

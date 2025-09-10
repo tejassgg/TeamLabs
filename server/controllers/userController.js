@@ -110,6 +110,42 @@ exports.getUserOverview = async (req, res) => {
       ]
     }).lean();
 
+    // Get unique member counts for each project
+    const projectMemberCounts = await Promise.all(projects.map(async (project) => {
+      // Get all teams associated with this project
+      const projectTeams = await ProjectDetails.find({ 
+        ProjectID: project.ProjectID || project._id,
+        IsActive: true 
+      }).distinct('TeamID');
+
+      // Get unique members across all project teams
+      const uniqueTeamMembers = await TeamDetails.find({
+        TeamID_FK: { $in: projectTeams },
+        IsMemberActive: true
+      }).distinct('MemberID');
+
+      // Add project owner if not already included
+      const projectOwner = project.ProjectOwner?.toString();
+      const uniqueMembers = projectOwner ? 
+        [...new Set([...uniqueTeamMembers.map(id => id.toString()), projectOwner])] :
+        uniqueTeamMembers;
+
+      return {
+        projectId: project.ProjectID || project._id,
+        memberCount: uniqueMembers.length
+      };
+    }));
+
+    
+
+    // Add unique member counts to projects
+    projects.forEach(project => {
+      const memberData = projectMemberCounts.find(p => 
+        p.projectId.toString() === (project.ProjectID || project._id).toString()
+      );
+      project.memberCount = memberData ? memberData.memberCount : 0;
+    });
+
     const organization = await Organization.findOne({
       OrganizationID: user.organizationID
     });

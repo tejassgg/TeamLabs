@@ -1,8 +1,8 @@
 // Helper function to get deadline status and styling
 export const getDeadlineStatus = (deadlineText) => {
-  if (deadlineText === 'Deadline Passed') {
+  if (deadlineText === 'Overdue') {
     return {
-      text: 'Deadline Passed',
+      text: 'Overdue',
       bgColor: 'from-red-50 to-red-100',
       textColor: 'text-red-700',
       borderColor: 'border-red-200',
@@ -58,7 +58,7 @@ export const calculateDeadlineText = (finishDate) => {
   const diff = finish - now;
 
   if (diff <= 0) {
-    return 'Deadline Passed';
+    return 'Overdue';
   }
 
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));

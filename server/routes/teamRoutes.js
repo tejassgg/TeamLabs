@@ -4,9 +4,113 @@ const Team = require('../models/Team');
 const User = require('../models/User');
 const TeamDetails = require('../models/TeamDetails');
 const TeamJoinRequest = require('../models/TeamJoinRequest');
+const Project = require('../models/Project');
+const ProjectDetails = require('../models/ProjectDetails');
+const TaskDetails = require('../models/TaskDetails');
 const { logActivity } = require('../services/activityService');
 const { checkTeamLimit } = require('../middleware/premiumLimits');
 const { emitToOrg } = require('../socket');
+
+// GET /api/teams/overview/:userId - fetch teams with statistics for teams page
+router.get('/overview/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    let teams;
+    
+    // If user is Admin, get all teams in organization
+    if (user.role === 'Admin' || user.role === 'Owner') {
+      teams = await Team.find({ organizationID: user.organizationID }).sort({ CreatedDate: -1 });
+    } else {
+      // Get teams where user is a member
+      const teamDetails = await TeamDetails.find({
+        MemberID: userId,
+        IsMemberActive: true
+      });
+      const teamIds = teamDetails.map(td => td.TeamID_FK);
+      teams = await Team.find({
+        TeamID: { $in: teamIds }
+      }).sort({ CreatedDate: -1 });
+    }
+
+    // Get statistics for each team
+    const teamsWithStats = await Promise.all(
+      teams.map(async (team) => {
+        try {
+          // Get member count and member details
+          const teamDetails = await TeamDetails.find({
+            TeamID_FK: team.TeamID,
+            IsMemberActive: true
+          });
+          const memberIds = teamDetails.map(td => td.MemberID);
+          const members = await User.find({ _id: { $in: memberIds } });
+          
+          // Format members with basic info
+          const teamMembers = members.map(member => ({
+            _id: member._id,
+            firstName: member.firstName,
+            lastName: member.lastName,
+            email: member.email,
+            username: member.username
+          }));
+
+          // Get projects for this team
+          const projectDetails = await ProjectDetails.find({
+            TeamID: team.TeamID,
+            IsActive: true
+          });
+          const projectIds = projectDetails.map(pd => pd.ProjectID);
+          const projects = await Project.find({ ProjectID: { $in: projectIds } });
+          
+          // Get tasks count for this team's projects
+          const tasksCount = projectIds.length > 0 ? await TaskDetails.countDocuments({
+            ProjectID_FK: { $in: projectIds },
+            IsActive: true
+          }) : 0;
+
+          // Format projects with basic info
+          const teamProjects = projects.map(project => ({
+            ProjectID: project.ProjectID,
+            Name: project.Name,
+            Description: project.Description,
+            ProjectStatusID: project.ProjectStatusID,
+            FinishDate: project.FinishDate,
+            IsActive: project.IsActive
+          }));
+
+          return {
+            ...team.toObject(),
+            membersCount: teamMembers.length,
+            members: teamMembers,
+            projectsCount: projects.length,
+            tasksCount,
+            projects: teamProjects
+          };
+        } catch (error) {
+          console.error(`Error fetching stats for team ${team.TeamID}:`, error);
+          return {
+            ...team.toObject(),
+            membersCount: 0,
+            members: [],
+            projectsCount: 0,
+            tasksCount: 0,
+            projects: []
+          };
+        }
+      })
+    );
+
+    res.json(teamsWithStats);
+  } catch (err) {
+    console.error('Error fetching teams overview:', err);
+    res.status(500).json({ error: 'Failed to fetch teams overview' });
+  }
+});
 
 // GET /api/teams/organization/:organizationId - fetch teams by organization
 router.get('/organization/:organizationId', async (req, res) => {
