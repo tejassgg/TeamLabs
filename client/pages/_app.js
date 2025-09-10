@@ -1,5 +1,6 @@
 import '../styles/globals.css';
 import { useEffect } from 'react';
+import Head from 'next/head';
 import { connectSocket } from '../services/socket';
 import { AuthProvider } from '../context/AuthContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
@@ -23,17 +24,22 @@ function AppContainer({ Component, pageProps }) {
                     (typeof window !== 'undefined' && ['/register', '/'].includes(window.location.pathname));
   
   return (
-    <div className={theme} style={{ minHeight: '100vh' }}>
-      <RouteProtection>
-        {isAuthPage ? (
-          <Component {...pageProps} />
-        ) : (
-          <Layout>
+    <>
+      <Head>
+        <meta name="google-site-verification" content="ivQ4dQ4n6SQQQzFKGvExuXcTIGgarOIRsQrEMhuXg34" />
+      </Head>
+      <div className={theme} style={{ minHeight: '100vh' }}>
+        <RouteProtection>
+          {isAuthPage ? (
             <Component {...pageProps} />
-          </Layout>
-        )}
-      </RouteProtection>
-    </div>
+          ) : (
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          )}
+        </RouteProtection>
+      </div>
+    </>
   );
 }
 
