@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import api, { authService, taskService, githubService } from '../../services/api';
-import { FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile } from 'react-icons/fa';
+import {FaEdit, FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile } from 'react-icons/fa';
 import AddTaskModal from '../../components/shared/AddTaskModal';
 import CustomModal from '../../components/shared/CustomModal';
 import { useToast } from '../../context/ToastContext';
@@ -11,7 +11,7 @@ import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import KanbanBoard from '../kanban';
 import { getPriorityStyle } from '../../components/kanban/kanbanUtils';
-import { getProjectStatusBadge, getProjectStatusStyle } from '../../components/project/ProjectStatusBadge';
+import { getProjectStatusBadge } from '../../components/project/ProjectStatusBadge';
 import ProjectDetailsSkeleton from '../../components/skeletons/ProjectDetailsSkeleton';
 import ProjectFilesTab from '../../components/project/ProjectFilesTab';
 import ProjectActivity from '../../components/project/ProjectActivity';
@@ -45,6 +45,8 @@ const ProjectDetailsPage = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [deadline, setDeadline] = useState('');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [isModalClosing, setIsModalClosing] = useState(false);
+  const [isModalOpening, setIsModalOpening] = useState(false);
   const [settingsForm, setSettingsForm] = useState({
     Name: '',
     Description: '',
@@ -668,6 +670,22 @@ const ProjectDetailsPage = () => {
     }
   };
 
+  const handleOpenModal = () => {
+    setShowSettingsModal(true);
+    setIsModalOpening(true);
+    setTimeout(() => {
+      setIsModalOpening(false);
+    }, 300); // Match the animation duration
+  };
+
+  const handleCloseModal = () => {
+    setIsModalClosing(true);
+    setTimeout(() => {
+      setShowSettingsModal(false);
+      setIsModalClosing(false);
+    }, 300); // Match the animation duration
+  };
+
   const handleSettingsSave = async (e) => {
     e.preventDefault();
     setSavingSettings(true);
@@ -681,7 +699,7 @@ const ProjectDetailsPage = () => {
         ModifiedDate: new Date()
       });
       setProject(res.data);
-      setShowSettingsModal(false);
+      handleCloseModal();
       showToast('Project details updated successfully!', 'success');
     } catch (err) {
       showToast('Failed to update project details', 'error');
@@ -695,7 +713,7 @@ const ProjectDetailsPage = () => {
     try {
       const res = await api.patch(`/projects/${project.ProjectID}/toggle-status`);
       setProject(res.data);
-      setShowSettingsModal(false);
+      handleCloseModal();
     } catch (err) {
       alert('Failed to update project status');
     } finally {
@@ -1172,16 +1190,16 @@ const ProjectDetailsPage = () => {
                     )}
                     {/* Project Settings Button - Only for owners */}
                     {isOwner && (
-                      <button
-                        className={getThemeClasses(
-                          "p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-blue-100 transition-colors",
-                          "dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700"
-                        )}
-                        title="Project Settings"
-                        onClick={() => setShowSettingsModal(true)}
-                      >
-                        <FaCog size={20} />
-                      </button>
+                        <button
+                          className={getThemeClasses(
+                            "p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-blue-100 transition-colors",
+                            "dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700"
+                          )}
+                          title="Project Settings"
+                          onClick={handleOpenModal}
+                        >
+                          <FaCog size={20} />
+                        </button>
                     )}
                   </div>
                 </div>
@@ -1760,7 +1778,7 @@ const ProjectDetailsPage = () => {
                                   )}
                                   title="Edit Task"
                                 >
-                                  <FaCog size={14} />
+                                  <FaEdit size={14} />
                                 </button>
                                 <button
                                   onClick={() => confirmDeleteTask(task)}
@@ -1977,18 +1995,24 @@ const ProjectDetailsPage = () => {
         ) : null}
 
         {showSettingsModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-all duration-300 ${
+            isModalClosing ? 'opacity-0' : 'opacity-100'
+          }`}>
             <div className={getThemeClasses(
-              "bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100",
+              `bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100 transition-all duration-300 transform ${
+                isModalClosing 
+                  ? 'opacity-0 scale-95 translate-y-4' 
+                  : 'opacity-100 scale-100 translate-y-0'
+              }`,
               "dark:bg-[#232323] dark:border-gray-700 dark:text-gray-100"
             )}>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-2 animate-in slide-in-from-top-2 fade-in duration-300 delay-50">
                 <h3 className={getThemeClasses("text-lg font-semibold text-gray-900", "dark:text-gray-100")}>Project Settings</h3>
                 <button
-                  onClick={() => setShowSettingsModal(false)}
+                  onClick={handleCloseModal}
                   className={getThemeClasses(
-                    "text-gray-400 hover:text-gray-500",
-                    "dark:text-gray-400 dark:hover:text-gray-200"
+                    "text-gray-400 hover:text-gray-500 transition-all duration-200 transform hover:scale-110 active:scale-95 p-1 rounded-lg hover:bg-gray-100",
+                    "dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
                   )}
                 >
                   <FaTimes size={20} />
@@ -1996,7 +2020,7 @@ const ProjectDetailsPage = () => {
               </div>
               {project.ModifiedDate && (
                 <div className={getThemeClasses(
-                  "text-sm text-gray-500 mb-4 flex items-center gap-1",
+                  "text-sm text-gray-500 mb-4 flex items-center gap-1 animate-in slide-in-from-left-2 fade-in duration-300 delay-75",
                   "dark:text-gray-400"
                 )}>
                   <FaInfoCircle size={14} />
@@ -2010,34 +2034,34 @@ const ProjectDetailsPage = () => {
                 </div>
               )}
               <form onSubmit={handleSettingsSave} className="space-y-4">
-                <div>
+                <div className="animate-in slide-in-from-left-2 fade-in duration-300 delay-100">
                   <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Project Name</label>
                   <input
                     type="text"
                     value={settingsForm.Name}
                     onChange={e => setSettingsForm(f => ({ ...f, Name: e.target.value }))}
                     className={getThemeClasses(
-                      "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500",
-                      "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                      "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500 hover:border-blue-300",
+                      "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:hover:border-gray-600"
                     )}
                     maxLength={50}
                     required
                   />
                 </div>
-                <div>
+                <div className="animate-in slide-in-from-left-2 fade-in duration-300 delay-150">
                   <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Description</label>
                   <textarea
                     value={settingsForm.Description}
                     onChange={e => setSettingsForm(f => ({ ...f, Description: e.target.value }))}
                     className={getThemeClasses(
-                      "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500",
-                      "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                      "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500 hover:border-blue-300 resize-none",
+                      "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:hover:border-gray-600"
                     )}
                     maxLength={100}
                     rows={3}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-left-2 fade-in duration-300 delay-200">
                   <div>
                     <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Finish Date</label>
                     <input
@@ -2045,8 +2069,8 @@ const ProjectDetailsPage = () => {
                       value={settingsForm.FinishDate}
                       onChange={e => setSettingsForm(f => ({ ...f, FinishDate: e.target.value }))}
                       className={getThemeClasses(
-                        "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500",
-                        "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                        "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500 hover:border-blue-300",
+                        "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:hover:border-gray-600"
                       )}
                     />
                   </div>
@@ -2058,7 +2082,7 @@ const ProjectDetailsPage = () => {
                         onClick={() => setShowStatusDropdown(open => !open)}
                         className={getThemeClasses(
                           "w-full px-4 py-2.5 rounded-xl transition-all duration-200 text-gray-900 flex items-center gap-2",
-                          "dark:text-gray-100"
+                          "dark:text-gray-100 dark:hover:bg-gray-700 dark:border-gray-700 dark:hover:border-gray-600"
                         )}
                       >
                         {getProjectStatusBadge(getProjectStatus(settingsForm.ProjectStatusID), false)}
@@ -2098,7 +2122,7 @@ const ProjectDetailsPage = () => {
 
                 {/* GitHub Repository Information */}
                 {projectRepository && (
-                  <div className={`p-3 rounded-lg border ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700' : 'bg-green-50 border-green-200'}`}>
+                  <div className={`p-3 rounded-lg border animate-in slide-in-from-left-2 fade-in duration-300 delay-250 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700' : 'bg-green-50 border-green-200'}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <FaGithub className="text-green-600" size={16} />
@@ -2155,27 +2179,41 @@ const ProjectDetailsPage = () => {
                   </div>
                 )}
 
-                <div className="flex justify-between items-center pt-4">
+                <div className="flex justify-between items-center pt-4 animate-in slide-in-from-bottom-2 fade-in duration-300 delay-300">
                   <button
                     type="button"
                     onClick={handleToggleProjectStatus}
                     className={getThemeClasses(
-                      `px-4 py-2.5 rounded-xl font-medium transition-all duration-200 ${project.IsActive ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`,
+                      `px-4 py-2.5 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 ${project.IsActive ? 'bg-red-100 text-red-700 hover:bg-red-200 hover:shadow-lg' : 'bg-green-100 text-green-700 hover:bg-green-200 hover:shadow-lg'}`,
                       `${project.IsActive ? 'dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40' : 'dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/40'}`
                     )}
                     disabled={togglingStatus}
                   >
-                    {togglingStatus ? 'Updating...' : project.IsActive ? 'Mark In Active' : 'Mark Active'}
+                    {togglingStatus ? (
+                      <span className="flex items-center gap-2">
+                        <FaSpinner className="animate-spin" size={14} />
+                        Updating...
+                      </span>
+                    ) : (
+                      project.IsActive ? 'Mark In Active' : 'Mark Active'
+                    )}
                   </button>
                   <button
                     type="submit"
                     className={getThemeClasses(
-                      "px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium",
+                      "px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 hover:shadow-lg",
                       "dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800"
                     )}
                     disabled={savingSettings}
                   >
-                    {savingSettings ? 'Saving...' : 'Save Changes'}
+                    {savingSettings ? (
+                      <span className="flex items-center gap-2">
+                        <FaSpinner className="animate-spin" size={14} />
+                        Saving...
+                      </span>
+                    ) : (
+                      'Save Changes'
+                    )}
                   </button>
                 </div>
               </form>

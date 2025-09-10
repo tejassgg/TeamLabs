@@ -6,7 +6,7 @@ import { authService, commonTypeService } from '../../services/api';
 import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCity, FaGlobe, FaTimesCircle, FaUserCircle, FaTimes } from 'react-icons/fa';
 import CustomModal from '../shared/CustomModal';
 
-const CompleteProfileForm = ({ onComplete, onCancel }) => {
+const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
   const { user, updateUser } = useAuth();
   const { theme } = useTheme();
   const { refreshOrganizations } = useGlobal(); // Use global context for refresh
@@ -94,17 +94,20 @@ const CompleteProfileForm = ({ onComplete, onCancel }) => {
     try {
       const data = await authService.completeProfile(formData);
       
-      // Calculate the current onboarding progress
-      const currentProgress = {
-        profileComplete: true, // This step is being completed
-        organizationComplete: false,
-        teamCreated: false,
-        projectCreated: false,
-        onboardingComplete: false
-      };
-      
-      // Advance onboarding step to 'organization' after profile completion
-      await authService.updateOnboardingStatus(false, 'organization', currentProgress);
+      // Only update onboarding status if we're in onboarding mode, not profile editing mode
+      if (mode === 'onboarding') {
+        // Calculate the current onboarding progress
+        const currentProgress = {
+          profileComplete: true, // This step is being completed
+          organizationComplete: false,
+          teamCreated: false,
+          projectCreated: false,
+          onboardingComplete: false
+        };
+        
+        // Advance onboarding step to 'organization' after profile completion
+        await authService.updateOnboardingStatus(false, 'organization', currentProgress);
+      }
       
       // Refresh global context (user overview, onboarding, etc.)
       if (typeof refreshOrganizations === 'function') {

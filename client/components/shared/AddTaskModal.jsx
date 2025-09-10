@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Modal from './Modal';
+import CustomModal from './CustomModal';
 import { commonTypeService } from '../../services/api';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -49,8 +49,8 @@ const BadgeDropdown = ({
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={getThemeClasses(
-          `w-full px-4 py-2.5 rounded-xl bg-white text-left flex items-center justify-between`,
-          `dark:bg-[#232323] dark:text-gray-100`
+          `w-full px-4 py-2.5 rounded-xl bg-white text-left flex items-center justify-between transition-all duration-200`,
+          `dark:bg-[#232323] dark:text-gray-100 dark:hover:bg-gray-700 dark:border-gray-600 dark:hover:border-gray-500`
         )}
       >
         <div className="flex items-center gap-2">
@@ -132,6 +132,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
   const [assignedDate] = useState('');
   const [createdBy] = useState(userDetails?._id || '');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Check if we're in edit mode
   const isEditMode = !!editingTask;
@@ -192,7 +193,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
     }
   }, [isOpen, mode, projectIdDefault, isEditMode, addTaskTypeMode]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!name.trim()) {
@@ -213,6 +214,9 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       return;
     }
 
+    setLoading(true);
+    setError('');
+
     const taskData = {
       Name: name.trim(),
       Description: description.trim(),
@@ -224,43 +228,45 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       CreatedBy: createdBy
     };
 
-    
+    try {
+      if (isEditMode) {
+        // Call update function
+        await onUpdateTask(editingTask.TaskID, taskData);
+      } else {
+        // Call add function
+        await onAddTask(taskData);
+      }
 
-    if (isEditMode) {
-      // Call update function
-      onUpdateTask(editingTask.TaskID, taskData);
-    } else {
-      // Call add function
-      onAddTask(taskData).catch(error => {
-        console.error('Error in onAddTask:', error);
-        // Handle premium limit errors
-        if (error?.response?.status === 403) {
-          const errorData = error.response.data;
-          if (errorData.type === 'userStory') {
-            setError(`You have reached the maximum number of user stories (${errorData.limit}) for free users. Please upgrade to premium for unlimited user stories.`);
-          } else if (errorData.type === 'task') {
-            setError(`You have reached the maximum number of tasks (${errorData.limit}) per user story for free users. Please upgrade to premium for unlimited tasks.`);
-          } else {
-            setError(errorData.message || 'Limit reached. Please upgrade to premium.');
-          }
+      // Reset form
+      setName('');
+      setDescription('');
+      setType(typeOptions[0]?.Value || '');
+      setPriority('Medium');
+      setAssignee(userDetails?._id || '');
+      setAssignedTo('');
+      setProjectId('');
+      setParentId('');
+      setIsActive(true);
+      setError('');
+      onClose();
+    } catch (error) {
+      console.error('Error in task operation:', error);
+      // Handle premium limit errors
+      if (error?.response?.status === 403) {
+        const errorData = error.response.data;
+        if (errorData.type === 'userStory') {
+          setError(`You have reached the maximum number of user stories (${errorData.limit}) for free users. Please upgrade to premium for unlimited user stories.`);
+        } else if (errorData.type === 'task') {
+          setError(`You have reached the maximum number of tasks (${errorData.limit}) per user story for free users. Please upgrade to premium for unlimited tasks.`);
         } else {
-          setError('Failed to add task. Please try again.');
+          setError(errorData.message || 'Limit reached. Please upgrade to premium.');
         }
-      });
+      } else {
+        setError(isEditMode ? 'Failed to update task. Please try again.' : 'Failed to add task. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
-
-    // Reset form
-    setName('');
-    setDescription('');
-    setType(typeOptions[0]?.Value || '');
-    setPriority('Medium');
-    setAssignee(userDetails?._id || '');
-    setAssignedTo('');
-    setProjectId('');
-    setParentId('');
-    setIsActive(true);
-    setError('');
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -270,7 +276,36 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
     : (mode === 'fromSideBar' ? 'Add User Story' : 'Add New Task');
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={modalTitle}>
+    <CustomModal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={modalTitle}
+      getThemeClasses={getThemeClasses}
+      actions={
+        <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className={getThemeClasses(
+                'px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 transform hover:scale-105 active:scale-95',
+                'dark:text-gray-400 dark:hover:bg-gray-700'
+              )}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className={getThemeClasses(
+                'px-4 py-2 rounded-xl text-white font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg',
+                'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
+              )}
+              disabled={loading}
+            >
+              {loading ? 'Saving...' : (isEditMode ? 'Update Task' : 'Add Task')}
+            </button>
+        </div>
+      }
+    >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className={getThemeClasses(
@@ -282,8 +317,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
               value={name}
               onChange={e => setName(e.target.value)}
               className={getThemeClasses(
-                'w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500',
-                'dark:bg-[#232323] dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400'
+                'w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500 hover:border-blue-300',
+                'dark:bg-[#232323] dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:hover:border-gray-500'
               )}
               maxLength={50}
               required
@@ -298,8 +333,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
             value={description}
             onChange={e => setDescription(e.target.value)}
             className={getThemeClasses(
-              'w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500',
-              'dark:bg-[#232323] dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400'
+              'w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500 hover:border-blue-300 resize-none',
+              'dark:bg-[#232323] dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:hover:border-gray-500'
             )}
             maxLength={100}
             rows={3}
@@ -371,8 +406,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
               value={parentId}
               onChange={e => setParentId(e.target.value)}
               className={getThemeClasses(
-                'w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900',
-                'dark:bg-[#232323] dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
+                'w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 hover:border-blue-300',
+                'dark:bg-[#232323] dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:hover:border-gray-500'
               )}
               required
               disabled={userStories && userStories.length === 1}
@@ -390,29 +425,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
           'text-red-500 text-sm',
           'dark:text-red-400'
         )}>{error}</div>}
-        <div className="flex justify-end gap-3 pt-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className={getThemeClasses(
-              'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-colors',
-              'dark:text-gray-400 dark:hover:bg-gray-700 dark:border-gray-600'
-            )}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className={getThemeClasses(
-              'px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-colors',
-              'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-            )}
-          >
-            {isEditMode ? 'Update Task' : 'Add Task'}
-          </button>
-        </div>
       </form>
-    </Modal>
+    </CustomModal>
   );
 };
 

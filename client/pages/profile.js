@@ -232,6 +232,7 @@ const Profile = () => {
                     {isEditing ? (
                       <div className="mt-4">
                         <CompleteProfileForm
+                          mode="editing"
                           onComplete={(updatedProfile) => {
                             setProfile(updatedProfile);
                             setIsEditing(false);
