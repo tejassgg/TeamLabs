@@ -28,6 +28,41 @@ const ProjectCard = ({ project, theme }) => {
     return statusMap[statusId] || 'Unknown';
   };
 
+  const getStatusColor = (status) => {
+    const colorMap = {
+      1: 'bg-gray-500',    // Not Assigned
+      2: 'bg-blue-500',    // Assigned
+      3: 'bg-yellow-500',  // In Progress
+      4: 'bg-indigo-500',  // QA
+      5: 'bg-pink-500',    // Deployment
+      6: 'bg-green-500'    // Completed
+    };
+    return colorMap[status] || 'bg-gray-500';
+  };
+
+  // Helper function to get initials from first and last name
+  const getInitials = (firstName, lastName) => {
+    const first = firstName ? firstName.charAt(0).toUpperCase() : '';
+    const last = lastName ? lastName.charAt(0).toUpperCase() : '';
+    return first + last;
+  };
+
+  // Helper function to get avatar color based on name
+  const getAvatarColor = (name) => {
+    const colors = [
+      'bg-red-500',
+      'bg-blue-500',
+      'bg-green-500',
+      'bg-yellow-500',
+      'bg-purple-500',
+      'bg-pink-500',
+      'bg-indigo-500',
+      'bg-teal-500'
+    ];
+    const index = name.length % colors.length;
+    return colors[index];
+  };
+
   // Calculate deadline text using system logic
   const deadlineText = calculateDeadlineText(project.FinishDate);
 
@@ -78,7 +113,7 @@ const ProjectCard = ({ project, theme }) => {
       onClick={handleCardClick}
     >
       {/* Project Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-6">
         {/* Project Name and Description */}
         <div>
           <h3 className={getThemeClasses(
@@ -117,90 +152,6 @@ const ProjectCard = ({ project, theme }) => {
         </div>
       </div>
 
-      {/* Project Stats - Rectangular Cards */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        {/* Tasks Card */}
-        <div className={ getThemeClasses(
-          'flex items-center justify-between gap-2  bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-3 hover:shadow-md transition-all duration-200',
-          'flex items-center justify-between gap-2 bg-gradient-to-br from-purple-900/20 to-purple-800/20 border border-purple-700/50 rounded-lg p-3 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-200'
-        )}>
-          <div className="flex flex-col items-start gap-2 mb-1">
-            <div className={getThemeClasses(
-              'p-1.5 bg-purple-500 rounded-md',
-              'p-1.5 bg-purple-400 rounded-md'
-            )}>
-              <FaClipboardList className="text-white" size={12} />
-            </div>
-            <span className={getThemeClasses(
-              'text-xs font-medium text-purple-700',
-              'text-xs font-medium text-purple-300'
-            )}>
-              Tasks
-            </span>
-          </div>
-          <div className={getThemeClasses(
-            'text-xl font-bold text-purple-900',
-            'text-xl font-bold text-purple-100'
-          )}>
-            {project.tasksCount || 0}
-          </div>
-        </div>
-
-        {/* Members Card */}
-        <div className={getThemeClasses(
-          'flex items-center justify-between gap-2 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-3 hover:shadow-md transition-all duration-200',
-          'flex items-center justify-between gap-2 bg-gradient-to-br from-blue-900/20 to-blue-800/20 border border-blue-700/50 rounded-lg p-3 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200'
-        )}>
-          <div className="flex flex-col items-start gap-2 mb-1">
-            <div className={getThemeClasses(
-              'p-1.5 bg-blue-500 rounded-md',
-              'p-1.5 bg-blue-400 rounded-md'
-            )}>
-              <FaUsers className="text-white" size={12} />
-            </div>
-            <span className={getThemeClasses(
-              'text-xs font-medium text-blue-700',
-              'text-xs font-medium text-blue-300'
-            )}>
-              Members
-            </span>
-          </div>
-          <div className={getThemeClasses(
-            'ml-2 text-xl font-bold text-blue-900',
-            'ml-2 text-xl font-bold text-blue-100'
-          )}>
-            {project.membersCount || 0}
-          </div>
-        </div>
-
-        {/* Progress Card */}
-        <div className={getThemeClasses(
-          'flex items-center justify-between gap-2 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-3 hover:shadow-md transition-all duration-200',
-          'flex items-center justify-between gap-2 bg-gradient-to-br from-green-900/20 to-green-800/20 border border-green-700/50 rounded-lg p-3 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-200'
-        )}>
-          <div className="flex flex-col items-start gap-2 mb-1">
-            <div className={getThemeClasses(
-              'p-1.5 bg-green-500 rounded-md',
-              'p-1.5 bg-green-400 rounded-md'
-            )}>
-              <FaChartLine className="text-white" size={12} />
-            </div>
-            <span className={getThemeClasses(
-              'text-xs font-medium text-green-700',
-              'text-xs font-medium text-green-300'
-            )}>
-              Progress
-            </span>
-          </div>
-          <div className={getThemeClasses(
-            'text-xl font-bold text-green-900',
-            'text-xl font-bold text-green-100'
-          )}>
-            {progress}%
-          </div>
-        </div>
-      </div>
-
       {/* Assigned Teams */}
       {project.teams && project.teams.length > 0 && (
         <div className="mb-6">
@@ -218,10 +169,10 @@ const ProjectCard = ({ project, theme }) => {
                 'group flex items-center justify-between p-2 rounded-xl hover:bg-gray-100 transition-colors duration-150',
                 'group flex items-center justify-between p-2 rounded-xl hover:bg-gray-700/50 transition-colors duration-150'
               )}>
-                <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className="flex items-start gap-2 flex-1 min-w-0">
                   <div className={getThemeClasses(
-                    'w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0',
-                    'w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0'
+                    'w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0 mt-1.5',
+                    'w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0 mt-1.5'
                   )}></div>
                   <div className="flex-1 min-w-0">
                     <div className={getThemeClasses(
@@ -272,29 +223,67 @@ const ProjectCard = ({ project, theme }) => {
       <div className="space-y-3 mt-auto">
         {/* Progress Bar */}
         <div>
-          <div className={getThemeClasses(
-            'w-full bg-gray-200 rounded-full h-2',
-            'w-full bg-gray-700 rounded-full h-2'
-          )}>
-            <div
-              className="h-2 rounded-full transition-all duration-300 bg-gradient-to-r from-blue-500 to-green-500"
-              style={{ width: `${progress}%` }}
-            ></div>
+          {/* Progress Bar */}
+          <div className="mb-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className={getThemeClasses(
+                'text-sm font-medium text-gray-700',
+                'text-sm font-medium text-gray-300'
+              )}>
+                Progress
+              </span>
+              <span className={getThemeClasses(
+                'text-sm font-semibold text-gray-900',
+                'text-sm font-semibold text-white'
+              )}>
+                {progress}%
+              </span>
+            </div>
+            <div className={getThemeClasses(
+              'w-full bg-gray-200 rounded-full h-2',
+              'w-full bg-gray-700 rounded-full h-2'
+            )}>
+              <div
+                className="h-2 rounded-full transition-all duration-300 bg-gradient-to-r from-blue-500 to-green-500"
+                style={{ width: `${Math.min(progress, 100)}%` }}
+              ></div>
+            </div>
           </div>
         </div>
 
-        {/* Created Date and GitHub Repository */}
+        {/* Project Members and Created Date */}
         <div className="flex items-center justify-between pt-2">
+          {project.members && project.members.length > 0 && (
+            <div className="flex items-center">
+              <div className="flex -space-x-2">
+                {project.members.slice(0, 4).map((member, index) => {
+                  const initials = getInitials(member.firstName, member.lastName);
+                  const avatarColor = getAvatarColor(member.firstName + member.lastName);
+
+                  return (
+                    <div
+                      key={member._id}
+                      className={`w-8 h-8 rounded-full ${avatarColor} flex items-center justify-center text-white text-xs font-medium shadow-sm border-2 ${getThemeClasses('border-white', 'border-gray-800')} relative z-${index + 1}`}
+                      title={`${member.firstName} ${member.lastName}`}
+                      style={{ zIndex: 10 - index }}
+                    >
+                      {initials}
+                    </div>
+                  );
+                })}
+                {project.members.length > 4 && (
+                  <div className={getThemeClasses(
+                    'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-medium shadow-sm border-2 border-white',
+                    'w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-300 text-xs font-medium shadow-sm border-2 border-gray-800'
+                  )}>
+                    +{project.members.length - 4}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           <div className="flex items-center gap-2">
-            <FaCalendarAlt className={getThemeClasses('text-gray-400', 'text-gray-500')} size={12} />
-            <span className={getThemeClasses(
-              'text-sm text-gray-600',
-              'text-sm text-gray-400'
-            )}>
-              Created {project.CreatedDate ? new Date(project.CreatedDate).toLocaleDateString() : 'Unknown'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
+
             {project.githubRepository?.connected && (
               <div className={getThemeClasses(
                 'flex items-center gap-1 text-sm text-gray-900',
@@ -306,6 +295,13 @@ const ProjectCard = ({ project, theme }) => {
                 </span>
               </div>
             )}
+            <FaCalendarAlt className={getThemeClasses('text-gray-400', 'text-gray-500')} size={12} />
+            <span className={getThemeClasses(
+              'text-xs text-gray-900',
+              'text-xs text-gray-400'
+            )}>
+              Created {project.CreatedDate ? new Date(project.CreatedDate).toLocaleDateString() : 'Unknown'}
+            </span>
           </div>
         </div>
       </div>

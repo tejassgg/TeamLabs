@@ -54,9 +54,19 @@ router.get('/overview/:userId', async (req, res) => {
             IsMemberActive: true
           });
 
-          // Get unique member count
+          // Get unique member count and details
           const uniqueMemberIds = [...new Set(allTeamDetails.map(td => td.MemberID))];
           const membersCount = uniqueMemberIds.length;
+          
+          // Get member details
+          const members = await User.find({ _id: { $in: uniqueMemberIds } });
+          const memberDetails = members.map(member => ({
+            _id: member._id,
+            firstName: member.firstName,
+            lastName: member.lastName,
+            email: member.email,
+            username: member.username
+          }));
 
           // Get teams assigned to this project
           const teams = await Team.find({ TeamID: { $in: assignedTeamIds } });
@@ -73,6 +83,7 @@ router.get('/overview/:userId', async (req, res) => {
             ...project.toObject(),
             tasksCount: totalTasks,
             membersCount: membersCount,
+            members: memberDetails,
             progress: progress,
             teams: projectTeams,
             tasks: tasks.map(task => ({
@@ -89,6 +100,7 @@ router.get('/overview/:userId', async (req, res) => {
             ...project.toObject(),
             tasksCount: 0,
             membersCount: 0,
+            members: [],
             progress: 0,
             teams: [],
             tasks: []
