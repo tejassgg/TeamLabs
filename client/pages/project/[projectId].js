@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import StatusPill from '../../components/shared/StatusPill';
 import api, { authService, taskService, githubService } from '../../services/api';
-import {FaEdit, FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile } from 'react-icons/fa';
+import {FaEdit, FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag } from 'react-icons/fa';
 import AddTaskModal from '../../components/shared/AddTaskModal';
 import CustomModal from '../../components/shared/CustomModal';
 import { useToast } from '../../context/ToastContext';
@@ -1376,22 +1377,7 @@ const ProjectDetailsPage = () => {
                               {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
                             </td>
                             <td className="py-3 px-4 text-center">
-                              <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${team.IsActive
-                                ? getThemeClasses(
-                                  'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200',
-                                  'dark:from-green-900/50 dark:to-green-800/50 dark:text-green-300 dark:border-green-700'
-                                )
-                                : getThemeClasses(
-                                  'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200',
-                                  'dark:from-red-900/50 dark:to-red-800/50 dark:text-red-300 dark:border-red-700'
-                                )
-                                }`}>
-                                <span className={`w-2 h-2 rounded-full ${team.IsActive
-                                  ? getThemeClasses('bg-green-500 animate-pulse', 'dark:bg-green-400')
-                                  : getThemeClasses('bg-red-500', 'dark:bg-red-400')
-                                  }`}></span>
-                                {team.IsActive ? 'Active' : 'Inactive'}
-                              </div>
+                              <StatusPill status={team.IsActive ? 'Active' : 'Offline'} theme={theme} showPulseOnActive />
                             </td>
                             {isOwner && (
                               <td className="py-3 px-4 text-center">
@@ -1530,7 +1516,7 @@ const ProjectDetailsPage = () => {
                                   )}
                                   title="Edit User Story"
                                 >
-                                  <FaCog size={14} />
+                                  <FaEdit size={14} />
                                 </button>
                                 <button
                                   onClick={() => confirmDeleteUserStory(story)}
@@ -1995,33 +1981,28 @@ const ProjectDetailsPage = () => {
         ) : null}
 
         {showSettingsModal && (
-          <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-all duration-300 ${
-            isModalClosing ? 'opacity-0' : 'opacity-100'
-          }`}>
-            <div className={getThemeClasses(
-              `bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100 transition-all duration-300 transform ${
-                isModalClosing 
-                  ? 'opacity-0 scale-95 translate-y-4' 
-                  : 'opacity-100 scale-100 translate-y-0'
-              }`,
-              "dark:bg-[#232323] dark:border-gray-700 dark:text-gray-100"
-            )}>
-              <div className="flex items-center justify-between mb-2 animate-in slide-in-from-top-2 fade-in duration-300 delay-50">
-                <h3 className={getThemeClasses("text-lg font-semibold text-gray-900", "dark:text-gray-100")}>Project Settings</h3>
+          <div className="fixed inset-0 z-40">
+            <div
+              className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isModalClosing ? 'opacity-0' : isModalOpening ? 'opacity-0' : 'opacity-100'}`}
+              onClick={handleCloseModal}
+            />
+            <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isModalClosing ? 'translate-x-full' : isModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className={getThemeClasses("text-xl font-semibold text-gray-900", "text-xl font-semibold text-white")}>{settingsForm.Name}</h3>
                 <button
                   onClick={handleCloseModal}
                   className={getThemeClasses(
-                    "text-gray-400 hover:text-gray-500 transition-all duration-200 transform hover:scale-110 active:scale-95 p-1 rounded-lg hover:bg-gray-100",
-                    "dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
+                    "text-gray-400 hover:text-gray-600 text-2xl font-bold",
+                    "text-gray-400 hover:text-gray-300 text-2xl font-bold"
                   )}
                 >
-                  <FaTimes size={20} />
+                  ×
                 </button>
               </div>
               {project.ModifiedDate && (
                 <div className={getThemeClasses(
-                  "text-sm text-gray-500 mb-4 flex items-center gap-1 animate-in slide-in-from-left-2 fade-in duration-300 delay-75",
-                  "dark:text-gray-400"
+                  "text-sm text-gray-500 mb-4 flex items-center gap-1",
+                  "text-sm text-gray-400 mb-4 flex items-center gap-1"
                 )}>
                   <FaInfoCircle size={14} />
                   <span>Last Modified: {new Date(project.ModifiedDate).toLocaleDateString('en-US', {
@@ -2033,176 +2014,206 @@ const ProjectDetailsPage = () => {
                   })}</span>
                 </div>
               )}
-              <form onSubmit={handleSettingsSave} className="space-y-4">
-                <div className="animate-in slide-in-from-left-2 fade-in duration-300 delay-100">
-                  <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Project Name</label>
+              <form onSubmit={handleSettingsSave} className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 min-w-[120px]">
+                    <FaProjectDiagram className={getThemeClasses(
+                      'text-gray-500',
+                      'text-gray-400'
+                    )} size={16} />
+                    <label className={getThemeClasses("text-sm font-medium text-gray-700", "text-sm font-medium text-gray-300")}>Name</label>
+                  </div>
                   <input
                     type="text"
                     value={settingsForm.Name}
                     onChange={e => setSettingsForm(f => ({ ...f, Name: e.target.value }))}
                     className={getThemeClasses(
-                      "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500 hover:border-blue-300",
-                      "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:hover:border-gray-600"
+                      "flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400",
+                      "flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500"
                     )}
                     maxLength={50}
                     required
+                    placeholder="Enter project name"
                   />
                 </div>
-                <div className="animate-in slide-in-from-left-2 fade-in duration-300 delay-150">
-                  <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Description</label>
+                <div className="flex items-start gap-4">
+                  <div className="flex items-center gap-2 min-w-[120px] pt-2">
+                    <FaAlignLeft className={getThemeClasses(
+                      'text-gray-500',
+                      'text-gray-400'
+                    )} size={16} />
+                    <label className={getThemeClasses("text-sm font-medium text-gray-700", "text-sm font-medium text-gray-300")}>Description</label>
+                  </div>
                   <textarea
                     value={settingsForm.Description}
                     onChange={e => setSettingsForm(f => ({ ...f, Description: e.target.value }))}
                     className={getThemeClasses(
-                      "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500 hover:border-blue-300 resize-none",
-                      "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:hover:border-gray-600"
+                      "flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 resize-none",
+                      "flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500 resize-none"
                     )}
                     maxLength={100}
                     rows={3}
+                    placeholder="Enter project description"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-left-2 fade-in duration-300 delay-200">
-                  <div>
-                    <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Finish Date</label>
-                    <input
-                      type="date"
-                      value={settingsForm.FinishDate}
-                      onChange={e => setSettingsForm(f => ({ ...f, FinishDate: e.target.value }))}
-                      className={getThemeClasses(
-                        "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500 hover:border-blue-300",
-                        "dark:bg-[#18191A] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:hover:border-gray-600"
-                      )}
-                    />
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 min-w-[120px]">
+                    <FaCalendarAlt className={getThemeClasses(
+                      'text-gray-500',
+                      'text-gray-400'
+                    )} size={16} />
+                    <label className={getThemeClasses("text-sm font-medium text-gray-700", "text-sm font-medium text-gray-400")}>Finish Date</label>
                   </div>
-                  <div>
-                    <label className={getThemeClasses("block text-sm font-medium text-gray-700 mb-1", "dark:text-gray-300")}>Project Status</label>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setShowStatusDropdown(open => !open)}
-                        className={getThemeClasses(
-                          "w-full px-4 py-2.5 rounded-xl transition-all duration-200 text-gray-900 flex items-center gap-2",
-                          "dark:text-gray-100 dark:hover:bg-gray-700 dark:border-gray-700 dark:hover:border-gray-600"
-                        )}
-                      >
-                        {getProjectStatusBadge(getProjectStatus(settingsForm.ProjectStatusID), false)}
-                        <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                      {showStatusDropdown && (
-                        <div className={getThemeClasses(
-                          "absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-auto",
-                          "dark:bg-[#232323] dark:border-gray-700"
-                        )}>
-                          {[1, 2, 3, 4, 5, 6].map(statusCode => {
-                            const status = getProjectStatus(statusCode);
-                            return (
-                              <button
-                                key={status.Code}
-                                type="button"
-                                onClick={() => {
-                                  setSettingsForm(f => ({ ...f, ProjectStatusID: status.Code }));
-                                  setShowStatusDropdown(false);
-                                }}
-                                className={getThemeClasses(
-                                  'w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2',
-                                  'dark:hover:bg-gray-700'
-                                )}
-                              >
-                                {getProjectStatusBadge(status, false)}
-                              </button>
-                            );
-                          })}
-                        </div>
+                  <input
+                    type="date"
+                    value={settingsForm.FinishDate}
+                    onChange={e => setSettingsForm(f => ({ ...f, FinishDate: e.target.value }))}
+                    className={getThemeClasses(
+                      "flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900",
+                      "flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white"
+                    )}
+                  />
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 min-w-[120px]">
+                    <FaTag className={getThemeClasses(
+                      'text-gray-500',
+                      'text-gray-400'
+                    )} size={16} />
+                    <label className={getThemeClasses("text-sm font-medium text-gray-700", "text-sm font-medium text-gray-300")}>Status</label>
+                  </div>
+                  <div className="flex-1 relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowStatusDropdown(open => !open)}
+                      className={getThemeClasses(
+                        "w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 flex items-center gap-2",
+                        "w-full px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white flex items-center gap-2"
                       )}
-                    </div>
+                    >
+                      {getProjectStatusBadge(getProjectStatus(settingsForm.ProjectStatusID), false)}
+                      <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {showStatusDropdown && (
+                      <div className={getThemeClasses(
+                        "absolute z-50 w-full mt-1 border border-gray-200 rounded-xl shadow-lg",
+                        "absolute z-50 w-full mt-1 bg-[#18181b] border border-gray-600 rounded-xl shadow-lg"
+                      )}>
+                        {[1, 2, 3, 4, 5, 6].map(statusCode => {
+                          const status = getProjectStatus(statusCode);
+                          return (
+                            <button
+                              key={status.Code}
+                              type="button"
+                              onClick={() => {
+                                setSettingsForm(f => ({ ...f, ProjectStatusID: status.Code }));
+                                setShowStatusDropdown(false);
+                              }}
+                              className={getThemeClasses(
+                                'w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2',
+                                'w-full px-4 py-3 text-left hover:bg-[#424242] transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2'
+                              )}
+                            >
+                              {getProjectStatusBadge(status, false)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* GitHub Repository Information */}
                 {projectRepository && (
-                  <div className={`p-3 rounded-lg border animate-in slide-in-from-left-2 fade-in duration-300 delay-250 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700' : 'bg-green-50 border-green-200'}`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <FaGithub className="text-green-600" size={16} />
-                        <div>
-                          <h4 className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                            {projectRepository.repositoryFullName}
-                          </h4>
-                          {projectRepository.repositoryDescription && (
-                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mt-1`}>
-                              {projectRepository.repositoryDescription}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-3 mt-2">
-                            {projectRepository.repositoryLanguage && (
-                              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
-                                <FaCode size={10} />
-                                {projectRepository.repositoryLanguage}
-                              </span>
+                  <div className="flex items-start gap-4">
+                    <div className="flex items-center gap-2 min-w-[120px] pt-2">
+                      <FaGithub className={getThemeClasses(
+                        'text-gray-500',
+                        'text-gray-400'
+                      )} size={16} />
+                      <label className={getThemeClasses(
+                        'text-sm font-medium text-gray-700',
+                        'text-sm font-medium text-gray-400'
+                      )}>
+                        Repository
+                      </label>
+                    </div>
+                    <div className="flex-1">
+                      <div className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-gray-800/30 border-gray-600' : 'bg-green-50 border-green-200'}`}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-1`}>
+                              {projectRepository.repositoryFullName}
+                            </h4>
+                            {projectRepository.repositoryDescription && (
+                              <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-3`}>
+                                {projectRepository.repositoryDescription}
+                              </p>
                             )}
-                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>
-                              <FaStar size={10} />
-                              {projectRepository.repositoryStars}
-                            </span>
-                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
-                              <FaCodeBranch size={10} />
-                              {projectRepository.repositoryForks}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              {projectRepository.repositoryLanguage && (
+                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+                                  <FaCode size={10} />
+                                  {projectRepository.repositoryLanguage}
+                                </span>
+                              )}
+                              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>
+                                <FaStar size={10} />
+                                {projectRepository.repositoryStars}
+                              </span>
+                              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
+                                <FaCodeBranch size={10} />
+                                {projectRepository.repositoryForks}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2 ml-4">
+                            <a
+                              href={projectRepository.repositoryUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'}`}
+                            >
+                              <FaLink size={10} />
+                              View
+                            </a>
+                            {isOwner && (
+                              <button
+                                type="button"
+                                onClick={handleUnlinkRepository}
+                                disabled={unlinkingRepository}
+                                className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+                              >
+                                {unlinkingRepository ? <FaSpinner className="animate-spin" size={10} /> : <FaUnlink size={10} />}
+                                Unlink
+                              </button>
+                            )}
                           </div>
                         </div>
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                        <a
-                          href={projectRepository.repositoryUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'}`}
-                        >
-                          <FaLink size={10} />
-                          View
-                        </a>
-                        {isOwner && (
-                          <button
-                            type="button"
-                            onClick={handleUnlinkRepository}
-                            disabled={unlinkingRepository}
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
-                          >
-                            {unlinkingRepository ? <FaSpinner className="animate-spin" size={10} /> : <FaUnlink size={10} />}
-                            Unlink
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center pt-4 animate-in slide-in-from-bottom-2 fade-in duration-300 delay-300">
+                <div className="flex justify-end gap-3 pt-6">
                   <button
                     type="button"
-                    onClick={handleToggleProjectStatus}
+                    onClick={handleCloseModal}
                     className={getThemeClasses(
-                      `px-4 py-2.5 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 ${project.IsActive ? 'bg-red-100 text-red-700 hover:bg-red-200 hover:shadow-lg' : 'bg-green-100 text-green-700 hover:bg-green-200 hover:shadow-lg'}`,
-                      `${project.IsActive ? 'dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40' : 'dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/40'}`
+                      "px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200",
+                      "px-6 py-2.5 text-gray-300 hover:bg-[#424242] rounded-xl border border-gray-600 transition-all duration-200"
                     )}
-                    disabled={togglingStatus}
                   >
-                    {togglingStatus ? (
-                      <span className="flex items-center gap-2">
-                        <FaSpinner className="animate-spin" size={14} />
-                        Updating...
-                      </span>
-                    ) : (
-                      project.IsActive ? 'Mark In Active' : 'Mark Active'
-                    )}
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     className={getThemeClasses(
-                      "px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 hover:shadow-lg",
-                      "dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800"
+                      "px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200",
+                      "px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200"
                     )}
                     disabled={savingSettings}
                   >

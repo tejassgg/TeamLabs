@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { FaUsers, FaCalendarAlt, FaChevronRight, FaUserPlus, FaProjectDiagram, FaFolder, FaFlag, FaTasks, FaClipboardList } from 'react-icons/fa';
 import { getProjectStatusStyle } from '../project/ProjectStatusBadge';
+import StatusPill from '../shared/StatusPill';
 
 const TeamCard = ({ team, theme }) => {
   const router = useRouter();
@@ -83,48 +84,27 @@ const TeamCard = ({ team, theme }) => {
   return (
     <div
       className={getThemeClasses(
-        'bg-white border border-gray-200 rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex flex-col h-full',
-        'bg-transparent border border-gray-700 hover:bg-gray-800/30 rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex flex-col h-full'
+        'bg-white border border-gray-200 rounded-xl px-6 pt-6 pb-3 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex flex-col h-full',
+        'bg-transparent border border-gray-700 hover:bg-gray-800/30 rounded-xl px-6 pt-6 pb-3 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex flex-col h-full'
       )}
       onClick={handleCardClick}
     >
       {/* Team Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between">
+        {/* Team Name and Description */}
+        <div>
+          <h3 className={getThemeClasses(
+            'text-lg font-semibold text-gray-900',
+            'text-lg font-semibold text-white'
+          )}>
+            {team.TeamName}
+          </h3>
+        </div>
         <div className="flex items-center gap-3">
-          {/* Team Name and Description */}
-          <div>
-            <h3 className={getThemeClasses(
-              'text-lg font-semibold text-gray-900',
-              'text-lg font-semibold text-white'
-            )}>
-              {team.TeamName}
-            </h3>
-            <p className={getThemeClasses(
-              'text-sm text-gray-600',
-              'text-sm text-gray-400'
-            )}>
-              {team.TeamDescription || 'No description available'}
-            </p>
-          </div>
           {/* Team Type Badge and Active Status */}
           <div className="flex items-center gap-2">
-            {/* Active Status Badge */}
-            <span className={getThemeClasses(
-              `inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${team.IsActive
-                ? 'bg-green-100 text-green-800 border border-green-200'
-                : 'bg-gray-100 text-gray-600 border border-gray-200'
-              }`,
-              `inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${team.IsActive
-                ? 'bg-green-900/30 text-green-300 border border-green-600'
-                : 'bg-gray-900/30 text-gray-400 border border-gray-600'
-              }`
-            )}>
-              <div className={getThemeClasses(
-                `w-2 h-2 rounded-full ${team.IsActive ? 'bg-green-500' : 'bg-gray-400'}`,
-                `w-2 h-2 rounded-full ${team.IsActive ? 'bg-green-400' : 'bg-gray-500'}`
-              )}></div>
-              {team.IsActive ? 'Active' : 'Inactive'}
-            </span>
+            {/* Active Status Pill */}
+            <StatusPill status={team.IsActive ? 'Active' : 'Offline'} theme={theme} showPulseOnActive />
 
             {/* Team Type Badge */}
             <span className={getThemeClasses(
@@ -135,97 +115,19 @@ const TeamCard = ({ team, theme }) => {
               {getTeamTypeText(team.TeamType)}
             </span>
           </div>
-        </div>
-        <FaChevronRight className={getThemeClasses('text-gray-400', 'text-gray-500')} size={14} />
-      </div>
-
-      {/* Team Stats - Rectangular Cards */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        {/* Members Card */}
-        <div className={getThemeClasses(
-          'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-3 hover:shadow-md transition-all duration-200',
-          'bg-gradient-to-br from-blue-900/20 to-blue-800/20 border border-blue-700/50 rounded-lg p-3 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200'
-        )}>
-          <div className="flex items-center gap-2 mb-1">
-            <div className={getThemeClasses(
-              'p-1.5 bg-blue-500 rounded-md',
-              'p-1.5 bg-blue-400 rounded-md'
-            )}>
-              <FaUsers className="text-white" size={12} />
-            </div>
-            <span className={getThemeClasses(
-              'text-xs font-medium text-blue-700',
-              'text-xs font-medium text-blue-300'
-            )}>
-              Members
-            </span>
-          </div>
-          <div className={getThemeClasses(
-            'text-xl font-bold text-blue-900',
-            'text-xl font-bold text-blue-100'
-          )}>
-            {team.membersCount || 0}
-          </div>
-        </div>
-
-        {/* Projects Card */}
-        <div className={getThemeClasses(
-          'bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-3 hover:shadow-md transition-all duration-200',
-          'bg-gradient-to-br from-green-900/20 to-green-800/20 border border-green-700/50 rounded-lg p-3 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-200'
-        )}>
-          <div className="flex items-center gap-2 mb-1">
-            <div className={getThemeClasses(
-              'p-1.5 bg-green-500 rounded-md',
-              'p-1.5 bg-green-400 rounded-md'
-            )}>
-              <FaFolder className="text-white" size={12} />
-            </div>
-            <span className={getThemeClasses(
-              'text-xs font-medium text-green-700',
-              'text-xs font-medium text-green-300'
-            )}>
-              Projects
-            </span>
-          </div>
-          <div className={getThemeClasses(
-            'text-xl font-bold text-green-900',
-            'text-xl font-bold text-green-100'
-          )}>
-            {team.projectsCount || 0}
-          </div>
-        </div>
-
-        {/* Tasks Card */}
-        <div className={getThemeClasses(
-          'bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-3 hover:shadow-md transition-all duration-200',
-          'bg-gradient-to-br from-purple-900/20 to-purple-800/20 border border-purple-700/50 rounded-lg p-3 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-200'
-        )}>
-          <div className="flex items-center gap-2 mb-1">
-            <div className={getThemeClasses(
-              'p-1.5 bg-purple-500 rounded-md',
-              'p-1.5 bg-purple-400 rounded-md'
-            )}>
-              <FaClipboardList className="text-white" size={12} />
-            </div>
-            <span className={getThemeClasses(
-              'text-xs font-medium text-purple-700',
-              'text-xs font-medium text-purple-300'
-            )}>
-              Tasks
-            </span>
-          </div>
-          <div className={getThemeClasses(
-            'text-xl font-bold text-purple-900',
-            'text-xl font-bold text-purple-100'
-          )}>
-            {team.tasksCount || 0}
-          </div>
+          <FaChevronRight className={getThemeClasses('text-gray-400', 'text-gray-500')} size={14} />
         </div>
       </div>
+      <p className={getThemeClasses(
+        'mb-4 text-sm text-gray-600',
+        'mb-4 text-sm text-gray-400'
+      )}>
+        {team.TeamDescription || 'No description available'}
+      </p>
 
       {/* Team Projects */}
       {team.projects && team.projects.length > 0 && (
-        <div className="mb-6">
+        <div>
           <div className={getThemeClasses(
             'text-sm font-medium text-gray-700 mb-3',
             'text-sm font-medium text-gray-300 mb-3'
@@ -244,10 +146,10 @@ const TeamCard = ({ team, theme }) => {
                   'group flex items-center justify-between p-2 rounded-xl hover:bg-gray-100 transition-colors duration-150',
                   'group flex items-center justify-between p-2 rounded-xl hover:bg-gray-700/50 transition-colors duration-150'
                 )}>
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className="flex items-start gap-2 flex-1 min-w-0">
                     <div className={getThemeClasses(
-                      'w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0',
-                      'w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0'
+                      'w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0 mt-1.5',
+                      'w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0 mt-1.5'
                     )}></div>
                     <div className="flex-1 min-w-0">
                       <div className={getThemeClasses(
@@ -279,16 +181,16 @@ const TeamCard = ({ team, theme }) => {
 
             {/* Additional Projects Indicator */}
             {team.projects.length > 3 && (
-              <div className={'flex items-center justify-center gap-2 p-2 rounded-md' + getThemeClasses(
+              <div className={'pb-2 rounded-md' + getThemeClasses(
                 'bg-gray-50/50',
                 'bg-gray-800/30'
               )}>
-                <span className={getThemeClasses(
-                  'text-xs text-gray-500',
-                  'text-xs text-gray-400'
+                <p className={getThemeClasses(
+                  'text-center text-xs text-gray-500',
+                  'text-center text-xs text-gray-400'
                 )}>
                   +{team.projects.length - 3} more projects
-                </span>
+                </p>
               </div>
             )}
           </div>
@@ -296,9 +198,9 @@ const TeamCard = ({ team, theme }) => {
       )}
 
       {/* Bottom Section: Created Date and Navigation */}
-      <div className="space-y-3 mt-auto">
+      <div className="mt-auto">
         {/* Team Members and Created Date */}
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center justify-between pt-2 border-t border-gray-200">
           {team.members && team.members.length > 0 && (
             <div className="flex items-center">
               <div className="flex -space-x-2">
@@ -331,8 +233,8 @@ const TeamCard = ({ team, theme }) => {
           <div className="flex items-center gap-2">
             <FaCalendarAlt className={getThemeClasses('text-gray-400', 'text-gray-500')} size={12} />
             <span className={getThemeClasses(
-              'text-sm text-gray-600',
-              'text-sm text-gray-400'
+              'text-xs text-gray-900',
+              'text-xs text-gray-400'
             )}>
               Created {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString() : 'Unknown'}
             </span>

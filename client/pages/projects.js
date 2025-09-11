@@ -88,8 +88,8 @@ const ProjectsPage = () => {
       'mx-auto bg-[#18181b] text-white'
     )}>
       {/* Page Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
           <div>
             <p className={getThemeClasses(
               'text-gray-600 mt-2',

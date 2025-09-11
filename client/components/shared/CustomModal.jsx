@@ -5,16 +5,16 @@ const CustomModal = ({ isOpen, onClose, title, children, actions, getThemeClasse
   const containerClasses = getThemeClasses
     ? getThemeClasses(
         'bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100',
-        'dark:bg-gray-800 dark:border-gray-700'
+        'dark:bg-[#18181b] dark:border-[#232323]'
       )
     : 'bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100';
 
   const titleClasses = getThemeClasses
-    ? getThemeClasses('text-lg font-semibold', 'dark:text-gray-100')
+    ? getThemeClasses('text-lg font-semibold text-gray-900', 'text-lg font-semibold text-white')
     : 'text-lg font-semibold';
 
   const closeBtnClasses = getThemeClasses
-    ? getThemeClasses('text-gray-400 hover:text-gray-600 text-xl font-bold', 'dark:text-gray-500 dark:hover:text-gray-300')
+    ? getThemeClasses('text-gray-400 hover:text-gray-600 text-xl font-bold', 'text-gray-400 hover:text-gray-300 text-xl font-bold')
     : 'text-gray-400 hover:text-gray-600 text-xl font-bold';
 
   return (

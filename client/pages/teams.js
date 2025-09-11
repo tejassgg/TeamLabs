@@ -125,7 +125,7 @@ const TeamsPage = () => {
               )}
             >
               <FaPlus size={16} />
-               new
+               New
             </button>
           )}
         </div>
