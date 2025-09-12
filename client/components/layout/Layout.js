@@ -2,7 +2,7 @@ import Navbar from './Navbar';
 import { useTheme } from '../../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { FaCog, FaPlus, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaChevronRight, FaRobot} from 'react-icons/fa';
+import { FaCog, FaPlus, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaChevronRight, FaRobot } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import AddTeamModal from '../team/AddTeamModal';
 import { teamService, projectService, taskService } from '../../services/api';
@@ -19,20 +19,12 @@ import DynamicBreadcrumb from '../shared/DynamicBreadcrumb';
 
 const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const { theme, toggleTheme } = useTheme();
-  const { logout } = useAuth();
   const router = useRouter();
-  const [isAddTeamOpen, setIsAddTeamOpen] = useState(false);
-  const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
-  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [isTeamsOpen, setIsTeamsOpen] = useState(true);
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
-  const { teams, projects, user, setProjects, setTeams, setTasksDetails, organization, userDetails } = useGlobal();
-  const { showToast } = useToast();
-  const canManageTeamsAndProjects = userDetails?.role === 'Admin' || userDetails?.role === 'Owner';
-
-
+  const { teams, projects, organization } = useGlobal();
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
   const activeProjectId = router.pathname.startsWith('/project/') ? router.query.projectId : null;
 
@@ -47,46 +39,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
       }
     }
   }, [setSidebarCollapsed]);
-
-  const handleAddTeam = async (teamData) => {
-    try {
-      const newTeam = await teamService.addTeam(teamData);
-      setTeams(prevTeams => [...prevTeams, newTeam.team]);
-      showToast('Team added successfully!', 'success');
-      return newTeam;
-    } catch (err) {
-      if (err.status == 403) {
-        showToast(err.message, 'warning');
-      } else {
-        showToast('Failed to add team', 'error');
-      }
-    }
-  };
-
-  const handleAddProject = async (projectData) => {
-    try {
-      const newProject = await projectService.addProject(projectData);
-      setProjects(prevProjects => [...prevProjects, newProject]);
-      showToast('Project added successfully!', 'success');
-      return newProject;
-    } catch (err) {
-      if (err.status == 403) {
-        showToast(err.message, 'warning');
-      } else {
-        showToast('Failed to add project', 'error');
-      }
-    }
-  };
-
-  const handleAddUserStory = async (taskData) => {
-    try {
-      const newTask = await taskService.addTaskDetails(taskData, 'fromSidebar');
-      setTasksDetails(prevTasks => [...prevTasks, newTask]);
-      showToast('Task added successfully!', 'success');
-    } catch (err) {
-      showToast('Failed to add user story', 'error');
-    }
-  };
 
   const handleNavigation = (path) => {
     router.push(path);
@@ -162,81 +114,17 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
     );
   };
 
-  // Collapsible section component
-  const SidebarCollapsible = ({ icon, label, isOpen, onToggle, items, onAdd, activeId, itemKey, itemLabel, onItemClick, canAdd, theme }) => (
-    <div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 flex-1">
-          <SidebarButton
-            icon={icon}
-            label={label}
-            onClick={onToggle}
-            theme={theme}
-          />
-          {(!isMobile && collapsed) ? null : (
-            <button
-              className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
-              aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${label}`}
-              onClick={onToggle}
-            >
-              {isOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
-            </button>
-          )}
-        </div>
-        {(!isMobile && collapsed) ? null : canAdd && (
-          <button
-            className={`ml-2 p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
-            aria-label={`Add ${label}`}
-            onClick={onAdd}
-          >
-            <FaPlus size={14} />
-          </button>
-        )}
-      </div>
-      {isOpen && (!isMobile && collapsed ? false : true) && (
-        <ul className="ml-8 mt-1 space-y-1">
-          {items.length === 0 ? (
-            <li key={`no-${label.toLowerCase()}`} className="text-gray-400 italic">No {label}</li>
-          ) : (
-            items.map((item) => {
-              // Skip rendering if item is undefined or missing required properties
-              if (!item || !itemKey || !itemLabel) return null;
-
-              const itemId = item[itemKey] || item._id || `item-${Math.random()}`;
-              const itemDisplayName = item[itemLabel] || 'Unnamed Item';
-
-              return (
-                <li key={itemId}>
-                  <button
-                    className={`w-full text-left px-2 py-1 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeId === itemId
-                      ? (theme === 'dark' ? 'bg-blue-900 text-blue-200 font-medium' : 'bg-blue-50 text-blue-600 font-medium')
-                      : (theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-gray-100')}`}
-                    onClick={() => onItemClick(item)}
-                  >
-                    {itemDisplayName}
-                  </button>
-                </li>
-              );
-            }).filter(Boolean) // Remove any null items from the array
-          )}
-        </ul>
-      )}
-    </div>
-  );
-
   return (
     <>
-      <aside
-        className={`fixed top-0 left-0 h-screen z-40 transition-all duration-500 ease-in-out
+      <aside className={`fixed top-0 left-0 h-screen z-40 transition-all duration-500 ease-in-out
           ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'}
           flex flex-col justify-between shadow-2xl
           ${isMobile ?
-            `w-72 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}` :
-            `${collapsed ? 'w-20' : 'w-72'}`}
+            `w-64 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}` :
+            `${collapsed ? 'w-16' : 'w-64'}`}
         `}
         style={{
           minHeight: '100vh',
-          width: isMobile ? 288 : (collapsed ? 80 : 288),
           overflow: 'visible',
           transform: isMobile && !isOpen ? 'translateX(-100%)' : 'translateX(0)',
           transition: 'all 500ms cubic-bezier(0.4, 0, 0.2, 1)'
@@ -296,7 +184,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
 
           {/* Teams Section */}
           <div>
-            <div className="flex items-center justify-between">
+            <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
               <SidebarButton
                 icon={<FaUsers className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
                 label="Teams"
@@ -344,7 +232,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
 
           {/* Projects Section */}
           <div>
-            <div className="flex items-center justify-between">
+            <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
               <SidebarButton
                 icon={<FaFolder className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
                 label="Projects"
@@ -406,37 +294,38 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             onClick={() => setIsChatBotOpen(!isChatBotOpen)}
             theme={theme}
           />
-          <SidebarButton
-            icon={<FaCog className={theme === 'dark' ? 'text-red-400' : 'text-red-600'} />}
-            label="Settings"
-            onClick={async () => {
-              router.push('/settings');
-            }}
-            theme={theme}
-          />
-          <button
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] ${(!isMobile && collapsed) ? 'justify-center' : 'justify-start'} ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
-            onClick={toggleTheme}
-            aria-label="Toggle dark/light mode"
-          >
-            <span className="text-lg">{theme === 'dark' ? <FaRegSun /> : <FaRegMoon />}</span>
-            {(!isMobile && collapsed) ? null : (
-              <>
-                <span className="font-medium text-base">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+          <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center ml-6' : 'justify-between'}`}>
+            <SidebarButton
+              icon={<FaCog className='text-red-600' />}
+              label="Settings"
+              onClick={async () => {
+                router.push('/settings');
+              }}
+              theme={theme}
+            />
+            <button
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] ${(!isMobile && collapsed) ? 'justify-center' : 'justify-start'}`}
+              onClick={toggleTheme}
+              aria-label="Toggle dark/light mode"
+            >
+              {(!isMobile && collapsed) ? null : (
                 <span className="ml-auto">
                   <span
                     className={`relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in ml-2 ${theme === 'dark' ? 'bg-blue-700' : 'bg-gray-300'}`}
                     style={{ borderRadius: '9999px' }}
                   >
-                    <span
-                      className={`absolute left-1 top-1 w-4 h-4 rounded-full transition-transform duration-200 ${theme === 'dark' ? 'bg-yellow-300 translate-x-4' : 'bg-white translate-x-0'}`}
-                      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
-                    ></span>
+                    <span className={`absolute left-1 top-1 w-4 h-4 rounded-full flex items-center justify-center transition-transform duration-200 ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'} `}>
+                      {theme === 'dark' ? (
+                        <FaRegSun className="text-yellow-300" size={12} />
+                      ) : (
+                        <FaRegMoon className="text-gray-600" size={12} />
+                      )}
+                    </span>
                   </span>
                 </span>
-              </>
-            )}
-          </button>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Mobile close button */}
@@ -449,28 +338,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           </button>
         )}
       </aside>
-      {canManageTeamsAndProjects && (
-        <>
-          <AddTeamModal
-            isOpen={isAddTeamOpen}
-            onClose={() => setIsAddTeamOpen(false)}
-            onAddTeam={handleAddTeam}
-          />
-          <AddProjectModal
-            isOpen={isAddProjectOpen}
-            onClose={() => setIsAddProjectOpen(false)}
-            onAddProject={handleAddProject}
-            organizationId={userDetails?.organizationID}
-            projectOwner={userDetails?._id}
-          />
-          <AddTaskModal
-            isOpen={isAddTaskOpen}
-            onClose={() => setIsAddTaskOpen(false)}
-            onAddTask={handleAddUserStory}
-            mode="fromSidebar"
-          />
-        </>
-      )}
       {/* ChatBot Component */}
       <ChatBot isOpen={isChatBotOpen} onToggle={setIsChatBotOpen} showButton={false} />
     </>
@@ -812,11 +679,8 @@ const Layout = ({ children, pageProject, pageTitle }) => {
       </div>
       {/* Main Content */}
       <div
-        className={`transition-all duration-500 ease-in-out ${isMobile ? 'ml-0 pt-14' : ''}`}
-        style={{
-          marginLeft: isMobile ? 0 : (sidebarCollapsed ? 80 : 288),
-          transition: 'margin-left 500ms cubic-bezier(0.4, 0, 0.2, 1)'
-        }}
+        className={`transition-all duration-500 ease-in-out ${isMobile ? 'ml-0 pt-14' : ''} ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}
+        style={{ transition: 'margin-left 500ms cubic-bezier(0.4, 0, 0.2, 1)'}}
       >
         {!isMobile && (
           <div className="flex justify-center">
@@ -826,9 +690,8 @@ const Layout = ({ children, pageProject, pageTitle }) => {
           </div>
         )}
         <main className={`overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#18181b] text-white' : ''}`}>
-
           <div className="p-2">
-            <DynamicBreadcrumb 
+            <DynamicBreadcrumb
               teams={teams}
               projects={projects}
               tasksDetails={tasksDetails}

@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Head from 'next/head';
-import { FaSearch, FaDownload, FaSort, FaSortUp, FaSortDown, FaEye, FaEdit, FaTrash, FaFilter } from 'react-icons/fa';
+import CustomDropdown from '../components/shared/CustomDropdown';
+import { FaSearch, FaDownload, FaSort, FaSortUp, FaSortDown, FaExternalLinkAlt, FaTrash, FaFilter } from 'react-icons/fa';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -28,10 +29,38 @@ const QueryBoard = () => {
   });
   const [filters, setFilters] = useState({
     status: 'all',
-    priority: 'all',
+    priority: [], // empty = all priorities
     taskType: 'all',
     assignedTo: 'all'
   });
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filterAnim, setFilterAnim] = useState(false);
+  const filterBtnRef = useRef(null);
+  const filterPopoverRef = useRef(null);
+
+  // Handle click outside to close popover
+  useEffect(() => {
+    if (!showFilterModal) return;
+    const handler = (e) => {
+      const withinPopover = filterPopoverRef.current && filterPopoverRef.current.contains(e.target);
+      const withinButton = filterBtnRef.current && filterBtnRef.current.contains(e.target);
+      if (!withinPopover && !withinButton) {
+        setShowFilterModal(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showFilterModal]);
+
+  // Animate in
+  useEffect(() => {
+    if (showFilterModal) {
+      const id = requestAnimationFrame(() => setFilterAnim(true));
+      return () => cancelAnimationFrame(id);
+    } else {
+      setFilterAnim(false);
+    }
+  }, [showFilterModal]);
 
   // Get theme classes
   const getThemeClasses = (baseClasses, darkClasses) => {
@@ -90,9 +119,9 @@ const QueryBoard = () => {
       filtered = filtered.filter(task => task.Status === parseInt(filters.status));
     }
 
-    // Apply priority filter
-    if (filters.priority !== 'all') {
-      filtered = filtered.filter(task => task.Priority === filters.priority);
+    // Apply priority filter (multi-select)
+    if (Array.isArray(filters.priority) && filters.priority.length > 0) {
+      filtered = filtered.filter(task => filters.priority.includes(task.Priority));
     }
 
     // Apply task type filter
@@ -315,7 +344,7 @@ const QueryBoard = () => {
       </Head>
 
       <div className="mx-auto">
-        {/* Search and Export Bar */}
+        {/* Search, Export, and Filter Bar */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
             <FaSearch className={getThemeClasses("absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400", "dark:text-gray-500")} size={16} />
@@ -330,87 +359,145 @@ const QueryBoard = () => {
               )}
             />
           </div>
-          <button
-            onClick={exportToCSV}
-            className={getThemeClasses(
-              "flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors",
-              "dark:bg-green-500 dark:hover:bg-green-600"
-            )}
-          >
-            <FaDownload />
-            Export CSV
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <button
+                ref={filterBtnRef}
+                onClick={() => setShowFilterModal((v) => !v)}
+                className={getThemeClasses(
+                  "flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-100 hover:bg-blue-500 hover:text-white duration-300 rounded-lg transition-colors",
+                  "bg-blue-500 hover:bg-blue-600 text-white hover:text-white"
+                )}
+                title="Open Filters"
+              >
+                <FaFilter />
+                Filter
+              </button>
+              {showFilterModal && (
+                <div
+                  ref={filterPopoverRef}
+                  className={getThemeClasses(
+                    `absolute right-0 mt-2 w-80 z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-white border-gray-200`,
+                    `absolute right-0 mt-2 w-80 z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-[#232323] border-gray-600`
+                  )}
+                  role="dialog"
+                  aria-label="Filters"
+                >
+                  <div className="grid grid-cols-1 gap-3">
+                    <div>
+                      <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'dark:text-gray-300')}>Status</label>
+                      <CustomDropdown
+                        value={filters.status}
+                        onChange={(val) => setFilters({ ...filters, status: val })}
+                        options={[{ value: 'all', label: 'All Status' }, ...commonTypes.taskStatuses.map(s => ({ value: s.Code, label: s.Value }))]}
+                        placeholder="All Status"
+                        variant="filled"
+                        size="md"
+                        width="w-full"
+                      />
+                    </div>
+
+                    <div>
+                      <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'dark:text-gray-300')}>Priority</label>
+                      <div className="flex flex-wrap gap-2">
+                        {[{ Value: 'all', Label: 'All' }, ...commonTypes.taskPriorities.map(p => ({ Value: p.Value, Label: p.Value }))].map(p => {
+                          const isAll = p.Value === 'all';
+                          const isActive = isAll ? (filters.priority.length === 0) : filters.priority.includes(p.Value);
+                          const togglePriority = () => {
+                            if (isAll) {
+                              setFilters({ ...filters, priority: [] });
+                            } else {
+                              const set = new Set(filters.priority);
+                              if (set.has(p.Value)) set.delete(p.Value); else set.add(p.Value);
+                              setFilters({ ...filters, priority: Array.from(set) });
+                            }
+                          };
+                          return (
+                            <button
+                              key={p.Value}
+                              type="button"
+                              onClick={togglePriority}
+                              className={getThemeClasses(
+                                `px-3 py-1.5 rounded-lg text-sm border transition-colors ${isActive ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'}`,
+                                `${isActive ? 'bg-blue-500 text-white border-blue-500' : 'bg-[#2A2A2A] text-gray-200 border-gray-600 hover:bg-[#333333]'}`
+                              )}
+                              aria-pressed={isActive}
+                            >
+                              {p.Label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'dark:text-gray-300')}>Task Type</label>
+                      <CustomDropdown
+                        value={filters.taskType}
+                        onChange={(val) => setFilters({ ...filters, taskType: val })}
+                        options={[{ value: 'all', label: 'All Types' }, ...commonTypes.taskTypes.map(t => ({ value: t.Value, label: t.Value }))]}
+                        placeholder="All Types"
+                        variant="filled"
+                        size="md"
+                        width="w-full"
+                        showSearch={true}
+                      />
+                    </div>
+
+                    <div>
+                      <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'dark:text-gray-300')}>Assigned To</label>
+                      <CustomDropdown
+                        value={filters.assignedTo}
+                        onChange={(val) => setFilters({ ...filters, assignedTo: val })}
+                        options={[{ value: 'all', label: 'All Assignees' }, ...Array.from(new Set(tasks.map(task => task.AssignedTo).filter(Boolean))).map(userId => {
+                          const t = tasks.find(tt => tt.AssignedTo === userId);
+                          return { value: userId, label: t?.AssignedToDetails?.fullName || userId };
+                        })]}
+                        placeholder="All Assignees"
+                        variant="filled"
+                        size="md"
+                        width="w-full"
+                        showSearch={true}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <button
+                      onClick={() => setFilters({ status: 'all', priority: [], taskType: 'all', assignedTo: 'all' })}
+                      className={getThemeClasses(
+                        'px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50',
+                        'dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800'
+                      )}
+                    >
+                      Reset
+                    </button>
+                    <button
+                      onClick={() => setShowFilterModal(false)}
+                      className={getThemeClasses(
+                        'px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700',
+                        'dark:bg-blue-500 dark:hover:bg-blue-600'
+                      )}
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={exportToCSV}
+              className={getThemeClasses(
+                "flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors",
+                "dark:bg-green-500 dark:hover:bg-green-600"
+              )}
+            >
+              <FaDownload />
+              Export CSV
+            </button>
+          </div>
         </div>
 
-        {/* Filters */}
-        <div className="max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <select
-            value={filters.status}
-            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-            className={getThemeClasses(
-              "px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-              "dark:bg-transparent dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
-            )}
-          >
-            <option value="all">All Status</option>
-            {commonTypes.taskStatuses.map(status => (
-              <option key={status.Code} value={status.Code}>
-                {status.Value}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={filters.priority}
-            onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
-            className={getThemeClasses(
-              "px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-              "dark:bg-transparent dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
-            )}
-          >
-            <option value="all">All Priority</option>
-            {commonTypes.taskPriorities.map(priority => (
-              <option key={priority.Code} value={priority.Value}>
-                {priority.Value}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={filters.taskType}
-            onChange={(e) => setFilters({ ...filters, taskType: e.target.value })}
-            className={getThemeClasses(
-              "px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-              "dark:bg-transparent dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
-            )}
-          >
-            <option value="all">All Types</option>
-            {commonTypes.taskTypes.map(type => (
-              <option key={type.Code} value={type.Value}>
-                {type.Value}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={filters.assignedTo}
-            onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value })}
-            className={getThemeClasses(
-              "px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-              "dark:bg-transparent dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
-            )}
-          >
-            <option value="all">All Assignees</option>
-            {Array.from(new Set(tasks.map(task => task.AssignedTo).filter(Boolean))).map(userId => {
-              const task = tasks.find(t => t.AssignedTo === userId);
-              return (
-                <option key={userId} value={userId}>
-                  {task?.AssignedToDetails?.fullName || userId}
-                </option>
-              );
-            })}
-          </select>
-        </div>
+        {/* Filters moved to modal */}
 
         {/* Results Count */}
         <div className={getThemeClasses("text-sm text-gray-600 mb-4", "dark:text-gray-400")}>
@@ -500,7 +587,7 @@ const QueryBoard = () => {
                 <tbody>
                   {filteredTasks.map(task => (
                     <tr key={task.TaskID} className={getThemeClasses("border-b border-gray-200 hover:bg-gray-50", "dark:border-gray-700 dark:hover:bg-gray-800")}>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 flex flex-col">
                         <button
                           onClick={() => window.open(`/task/${task.TaskID}`, '_blank')}
                           className={getThemeClasses(
@@ -511,6 +598,11 @@ const QueryBoard = () => {
                         >
                           {task.Name}
                         </button>
+                        {task.Description && (
+                          <span className={getThemeClasses("text-xs text-gray-500", "dark:text-gray-400")}>
+                            {task.Description}
+                          </span>
+                        )}
                       </td>
                       <td className="py-3 px-4">
                         <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
@@ -518,7 +610,7 @@ const QueryBoard = () => {
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           {getUserInitialsBadge(task.AssignedToDetails)}
                           <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
                             {task.AssignedToDetails?.fullName || '-'}
@@ -526,7 +618,7 @@ const QueryBoard = () => {
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           {getUserInitialsBadge(task.AssigneeDetails)}
                           <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
                             {task.AssigneeDetails?.fullName || '-'}
@@ -585,6 +677,7 @@ const QueryBoard = () => {
         onConfirm={deleteTask}
         confirmButtonClass="bg-red-600 hover:bg-red-700"
       />
+
     </>
   );
 };

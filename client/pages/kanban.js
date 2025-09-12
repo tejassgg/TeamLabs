@@ -17,11 +17,12 @@ import {
 } from '../components/kanban/kanbanUtils';
 
 
-const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
+const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp = undefined }) => {
   const { projects, userDetails } = useGlobal();
   const { showToast } = useToast();
   const [selectedProject, setSelectedProject] = useState(forcedProjectId || null);
   const [tasks, setTasks] = useState([]);
+  const [allTasks, setAllTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [draggingTask, setDraggingTask] = useState(null);
@@ -31,6 +32,7 @@ const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
   const [isOverDeleteArea, setIsOverDeleteArea] = useState(false);
   const [draggedCardDimensions, setDraggedCardDimensions] = useState(null);
   const [userStories, setUserStories] = useState([]);
+  const [selectedUserStory, setSelectedUserStory] = useState(selectedUserStoryProp ?? 'all');
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const getThemeClasses = useThemeClasses();
 
@@ -42,6 +44,12 @@ const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
     }
   }, [projects, selectedProject, forcedProjectId]);
 
+  // Helper to apply user story filter
+  const applyUserStoryFilter = (sourceTasks, storyId) => {
+    if (!storyId || storyId === 'all') return sourceTasks;
+    return (sourceTasks || []).filter(t => t.ParentID === storyId);
+  };
+
   // Fetch tasks and user stories when a project is selected
   useEffect(() => {
     const fetchTasksAndUserStories = async () => {
@@ -49,7 +57,8 @@ const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
       setLoading(true);
       try {
         const { tasks: fetchedTasks, userStories: fetchedUserStories } = await taskService.getKanbanData(selectedProject);
-        setTasks(fetchedTasks || []);
+        setAllTasks(fetchedTasks || []);
+        setTasks(applyUserStoryFilter(fetchedTasks || [], selectedUserStory));
         setUserStories(fetchedUserStories || []);
       } catch (err) {
         setError('Failed to fetch tasks');
@@ -70,6 +79,18 @@ const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
       }
     };
   }, [selectedProject]);
+
+  // Re-apply filter when selection or source tasks change
+  useEffect(() => {
+    setTasks(applyUserStoryFilter(allTasks, selectedUserStoryProp ?? selectedUserStory));
+  }, [allTasks, selectedUserStory, selectedUserStoryProp]);
+
+  // Sync internal selection if parent prop changes
+  useEffect(() => {
+    if (selectedUserStoryProp !== undefined && selectedUserStoryProp !== selectedUserStory) {
+      setSelectedUserStory(selectedUserStoryProp);
+    }
+  }, [selectedUserStoryProp]);
 
   // Handle project selection change
   const handleProjectChange = (e) => {
@@ -145,8 +166,8 @@ const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
       await taskService.deleteTask(draggingTask.TaskID);
 
       // Update local state by removing the task
-      const updatedTasks = tasks.filter(task => task.TaskID !== draggingTask.TaskID);
-      setTasks(updatedTasks);
+      const updatedAllTasks = allTasks.filter(task => task.TaskID !== draggingTask.TaskID);
+      setAllTasks(updatedAllTasks);
 
       showToast('Task removed successfully', 'success');
     } catch (err) {
@@ -172,12 +193,12 @@ const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
   // Function to update task status
   const updateTaskStatus = async (task, statusCode) => {
     // Optimistically update UI
-    const updatedTasks = tasks.map(t =>
+    const updatedAllTasks = allTasks.map(t =>
       t.TaskID === task.TaskID
         ? { ...t, Status: statusCode }
         : t
     );
-    setTasks(updatedTasks);
+    setAllTasks(updatedAllTasks);
 
     try {
       // Call API to update task status
@@ -185,12 +206,12 @@ const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
       showToast(`Task moved to ${statusMap[statusCode]}`, 'success');
     } catch (err) {
       // Revert changes if API call fails
-      const originalTasks = tasks.map(t =>
+      const originalAll = allTasks.map(t =>
         t.TaskID === task.TaskID
           ? task
           : t
       );
-      setTasks(originalTasks);
+      setAllTasks(originalAll);
       showToast('Failed to update task status', 'error');
     }
 
@@ -203,7 +224,7 @@ const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
     const offCreated = subscribe('kanban.task.created', (payload) => {
       const { data } = payload || {};
       if (!data || data.projectId !== selectedProject) return;
-      setTasks((prev) => {
+      setAllTasks((prev) => {
         if (prev.find(t => t.TaskID === data.task.TaskID)) return prev;
         return [...prev, data.task];
       });
@@ -212,22 +233,22 @@ const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
       const { data } = payload || {};
       if (!data || data.projectId !== selectedProject) return;
       const task = data.task;
-      setTasks((prev) => prev.map(t => t.TaskID === task.TaskID ? { ...t, ...task } : t));
+      setAllTasks((prev) => prev.map(t => t.TaskID === task.TaskID ? { ...t, ...task } : t));
     });
     const offStatus = subscribe('kanban.task.status.updated', (payload) => {
       const { data } = payload || {};
       if (!data || data.projectId !== selectedProject) return;
-      setTasks((prev) => prev.map(t => t.TaskID === data.taskId ? { ...t, Status: data.status } : t));
+      setAllTasks((prev) => prev.map(t => t.TaskID === data.taskId ? { ...t, Status: data.status } : t));
     });
     const offDeleted = subscribe('kanban.task.deleted', (payload) => {
       const { data } = payload || {};
       if (!data || data.projectId !== selectedProject) return;
-      setTasks((prev) => prev.filter(t => t.TaskID !== data.taskId));
+      setAllTasks((prev) => prev.filter(t => t.TaskID !== data.taskId));
     });
     const offAssigned = subscribe('kanban.task.assigned', (payload) => {
       const { data } = payload || {};
       if (!data || data.projectId !== selectedProject) return;
-      setTasks((prev) => prev.map(t => t.TaskID === data.taskId ? { ...t, AssignedTo: data.assignedTo, Status: data.status } : t));
+      setAllTasks((prev) => prev.map(t => t.TaskID === data.taskId ? { ...t, AssignedTo: data.assignedTo, Status: data.status } : t));
     });
     return () => {
       offCreated && offCreated();
@@ -240,7 +261,7 @@ const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
 
   // Handle task assignment and status update
   const handleAssignTask = (updatedTask) => {
-    const updatedTasks = tasks.map(task =>
+    const updatedTasks = allTasks.map(task =>
       task.TaskID === updatedTask.TaskID
         ? {
           ...updatedTask,
@@ -248,7 +269,7 @@ const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
         }
         : task
     );
-    setTasks(updatedTasks);
+    setAllTasks(updatedTasks);
 
     // Update the status after assignment is complete
     taskService.updateTaskStatus(updatedTask.TaskID, targetStatus)
@@ -321,6 +342,8 @@ const KanbanBoard = ({ projectId: forcedProjectId = null }) => {
             </div>
           </div>
         )}
+        {/* Filter UI is now provided by Project Details tab bar when embedded */}
+
         {loading && tasks.length === 0 ? (
           <div className="flex items-center justify-center py-16">
             <div className={getThemeClasses(

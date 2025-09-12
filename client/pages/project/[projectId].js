@@ -7,6 +7,7 @@ import api, { authService, taskService, githubService } from '../../services/api
 import {FaEdit, FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag } from 'react-icons/fa';
 import AddTaskModal from '../../components/shared/AddTaskModal';
 import CustomModal from '../../components/shared/CustomModal';
+import CustomDropdown from '../../components/shared/CustomDropdown';
 import { useToast } from '../../context/ToastContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -73,6 +74,7 @@ const ProjectDetailsPage = () => {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [activeTab, setActiveTab] = useState('manage');
+  const [selectedUserStory, setSelectedUserStory] = useState('all');
   const [showDeleteUserStoryDialog, setShowDeleteUserStoryDialog] = useState(false);
   const [userStoryToDelete, setUserStoryToDelete] = useState(null);
   const [deletingUserStory, setDeletingUserStory] = useState(false);
@@ -195,6 +197,26 @@ const ProjectDetailsPage = () => {
       fetchIssues(1);
     }
   }, [activeTab, projectRepository]);
+
+  // Handle clicking outside repository dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showRepositoryList) {
+        const dropdown = event.target.closest('[data-repository-dropdown]');
+        if (!dropdown) {
+          setShowRepositoryList(false);
+        }
+      }
+    };
+
+    if (showRepositoryList) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showRepositoryList]);
 
 
 
@@ -993,7 +1015,8 @@ const ProjectDetailsPage = () => {
         {/* Tab Navigation */}
         <div className="mb-6">
           <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-            <nav className="-mb-px flex space-x-8">
+            <div className="-mb-px flex items-center justify-between">
+              <nav className="flex space-x-8">
               <button
                 onClick={() => setActiveTab('manage')}
                 className={`${activeTab === 'manage'
@@ -1052,7 +1075,37 @@ const ProjectDetailsPage = () => {
                   <span>Repo</span>
                 </button>
               )}
-            </nav>
+              </nav>
+              {activeTab === 'board' && (
+                <div className="ml-auto py-2">
+                  <CustomDropdown
+                    value={selectedUserStory}
+                    onChange={(val) => setSelectedUserStory(val)}
+                    options={[{ value: 'all', label: 'All user stories' }, ...(userStories || []).map(us => ({ value: us.TaskID, label: us.Name }))]}
+                    placeholder={userStories.length === 0 ? 'No user stories' : 'Filter by user story'}
+                    disabled={userStories.length === 0}
+                    variant="filled"
+                    size="md"
+                    width="w-64"
+                  />
+                </div>
+              )}
+              {isOwner && (
+                <div className="ml-4 py-2">
+                  <button
+                    className={getThemeClasses(
+                      "flex items-center gap-2 p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors",
+                      "dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-800"
+                    )}
+                    title="Project Settings"
+                    onClick={handleOpenModal}
+                  >
+                    <FaCog size={18} />
+                    {/* Settings */}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1171,7 +1224,7 @@ const ProjectDetailsPage = () => {
                     )}
 
                     {/* GitHub Repository Button - Only for owners */}
-                    {isOwner && (
+                    {isOwner && projectRepository && (
                       <button
                         className={getThemeClasses(
                           "p-1.5 text-gray-500 hover:text-green-500 rounded-full hover:bg-gray-100 transition-colors",
@@ -1189,19 +1242,7 @@ const ProjectDetailsPage = () => {
                         <FaGithub size={20} />
                       </button>
                     )}
-                    {/* Project Settings Button - Only for owners */}
-                    {isOwner && (
-                        <button
-                          className={getThemeClasses(
-                            "p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-blue-100 transition-colors",
-                            "dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700"
-                          )}
-                          title="Project Settings"
-                          onClick={handleOpenModal}
-                        >
-                          <FaCog size={20} />
-                        </button>
-                    )}
+                    {/* Project Settings moved to Tab bar */}
                   </div>
                 </div>
               </div>
@@ -1445,7 +1486,7 @@ const ProjectDetailsPage = () => {
                     <button
                       onClick={() => { setAddTaskTypeMode('userStory'); setIsAddTaskOpen(true); }}
                       className={getThemeClasses(
-                        'inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm',
+                        'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
                         'dark:bg-blue-500 dark:hover:bg-blue-600'
                       )}
                     >
@@ -1578,7 +1619,7 @@ const ProjectDetailsPage = () => {
                         <button
                           onClick={() => { setAddTaskTypeMode('task'); setIsAddTaskOpen(true); }}
                           className={getThemeClasses(
-                            'inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm',
+                            'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
                             'dark:bg-blue-500 dark:hover:bg-blue-600'
                           )}
                         >
@@ -1797,7 +1838,7 @@ const ProjectDetailsPage = () => {
         ) : activeTab === 'board' ? (
           <div>
             {/* Board Tab: Re-using global Kanban board */}
-            <KanbanBoard projectId={projectId} />
+            <KanbanBoard projectId={projectId} selectedUserStoryProp={selectedUserStory} />
           </div>
         ) : activeTab === 'files' ? (
           <ProjectFilesTab projectId={projectId} />
@@ -1986,7 +2027,7 @@ const ProjectDetailsPage = () => {
               className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isModalClosing ? 'opacity-0' : isModalOpening ? 'opacity-0' : 'opacity-100'}`}
               onClick={handleCloseModal}
             />
-            <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isModalClosing ? 'translate-x-full' : isModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
+            <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-xl ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isModalClosing ? 'translate-x-full' : isModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
               <div className="flex items-center justify-between mb-6">
                 <h3 className={getThemeClasses("text-xl font-semibold text-gray-900", "text-xl font-semibold text-white")}>{settingsForm.Name}</h3>
                 <button
@@ -2098,10 +2139,11 @@ const ProjectDetailsPage = () => {
                       </svg>
                     </button>
                     {showStatusDropdown && (
-                      <div className={getThemeClasses(
-                        "absolute z-50 w-full mt-1 border border-gray-200 rounded-xl shadow-lg",
-                        "absolute z-50 w-full mt-1 bg-[#18181b] border border-gray-600 rounded-xl shadow-lg"
-                      )}>
+                      <div className={`absolute z-50 w-full mt-1 border rounded-xl shadow-lg ${
+                        theme === 'dark' 
+                          ? 'bg-[#18181b] border-gray-600' 
+                          : 'bg-white border-gray-200'
+                      }`}>
                         {[1, 2, 3, 4, 5, 6].map(statusCode => {
                           const status = getProjectStatus(statusCode);
                           return (
@@ -2112,10 +2154,11 @@ const ProjectDetailsPage = () => {
                                 setSettingsForm(f => ({ ...f, ProjectStatusID: status.Code }));
                                 setShowStatusDropdown(false);
                               }}
-                              className={getThemeClasses(
-                                'w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2',
-                                'w-full px-4 py-3 text-left hover:bg-[#424242] transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2'
-                              )}
+                              className={`w-full px-4 py-3 text-left transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2 ${
+                                theme === 'dark'
+                                  ? 'text-gray-300 hover:bg-gray-800'
+                                  : 'text-gray-900 hover:bg-gray-100'
+                              }`}
                             >
                               {getProjectStatusBadge(status, false)}
                             </button>
@@ -2126,9 +2169,8 @@ const ProjectDetailsPage = () => {
                   </div>
                 </div>
 
-                {/* GitHub Repository Information */}
-                {projectRepository && (
-                  <div className="flex items-start gap-4">
+                {/* GitHub Repository Selection/Information */}
+                <div className="flex items-start gap-4">
                     <div className="flex items-center gap-2 min-w-[120px] pt-2">
                       <FaGithub className={getThemeClasses(
                         'text-gray-500',
@@ -2142,61 +2184,226 @@ const ProjectDetailsPage = () => {
                       </label>
                     </div>
                     <div className="flex-1">
-                      <div className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-gray-800/30 border-gray-600' : 'bg-green-50 border-green-200'}`}>
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-1`}>
-                              {projectRepository.repositoryFullName}
-                            </h4>
-                            {projectRepository.repositoryDescription && (
-                              <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-3`}>
-                                {projectRepository.repositoryDescription}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-2">
-                              {projectRepository.repositoryLanguage && (
-                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
-                                  <FaCode size={10} />
-                                  {projectRepository.repositoryLanguage}
-                                </span>
+                      {projectRepository ? (
+                        <div className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-gray-800/30 border-gray-600' : 'bg-green-50 border-green-200'}`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h4 className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-1`}>
+                                {projectRepository.repositoryFullName}
+                              </h4>
+                              {projectRepository.repositoryDescription && (
+                                <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-3`}>
+                                  {projectRepository.repositoryDescription}
+                                </p>
                               )}
-                              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>
-                                <FaStar size={10} />
-                                {projectRepository.repositoryStars}
-                              </span>
-                              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
-                                <FaCodeBranch size={10} />
-                                {projectRepository.repositoryForks}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                {projectRepository.repositoryLanguage && (
+                                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+                                    <FaCode size={10} />
+                                    {projectRepository.repositoryLanguage}
+                                  </span>
+                                )}
+                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>
+                                  <FaStar size={10} />
+                                  {projectRepository.repositoryStars}
+                                </span>
+                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
+                                  <FaCodeBranch size={10} />
+                                  {projectRepository.repositoryForks}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-2 ml-4">
+                              <a
+                                href={projectRepository.repositoryUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'}`}
+                              >
+                                <FaLink size={10} />
+                                View
+                              </a>
+                              {isOwner && (
+                                <div className="flex flex-col items-end gap-2 relative">
+                                  <button
+                                    type="button"
+                                    onClick={handleUnlinkRepository}
+                                    disabled={unlinkingRepository}
+                                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+                                  >
+                                    {unlinkingRepository ? <FaSpinner className="animate-spin" size={10} /> : <FaUnlink size={10} />}
+                                    Unlink
+                                  </button>
+                                  
+                                  <div className="relative" data-repository-dropdown>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setShowRepositoryList(true);
+                                        if (userRepositories.length === 0) fetchUserRepositories();
+                                      }}
+                                      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                                    >
+                                      <FaGithub size={10} />
+                                      Change
+                                    </button>
+                                    
+                                    {showRepositoryList && (
+                                      <div className="absolute top-full right-0 mt-2 w-80 z-50">
+                                        <div className={`rounded-lg shadow-lg border ${theme === 'dark' ? 'bg-gray-100 border-gray-700' : 'bg-white border-gray-200'}`}>
+                                          <div className="p-3">
+                                            <div className="flex justify-between items-center mb-3">
+                                              <h4 className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                                Select Repository
+                                              </h4>
+                                              <button
+                                                onClick={() => setShowRepositoryList(false)}
+                                                className={`p-1 rounded hover:bg-opacity-10 ${theme === 'dark' ? 'hover:bg-white text-gray-400' : 'hover:bg-gray-900 text-gray-500'}`}
+                                              >
+                                                <FaTimes size={12} />
+                                              </button>
+                                            </div>
+                                            
+                                            {repositoryLoading ? (
+                                              <div className="flex items-center justify-center py-4">
+                                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                                                <span className={`ml-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Loading...</span>
+                                              </div>
+                                            ) : userRepositories.length > 0 ? (
+                                              <div className="max-h-60 overflow-y-auto">
+                                                <div className="space-y-2">
+                                                  {userRepositories.map((repo) => (
+                                                    <button
+                                                      key={repo.id}
+                                                      type="button"
+                                                      className={`w-full text-left p-3 rounded-lg border transition-colors ${theme === 'dark' ? 'border-gray-700 hover:border-blue-600 hover:bg-gray-700/50' : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'}`}
+                                                      onClick={() => handleLinkRepository(repo)}
+                                                    >
+                                                      <div className="flex items-start gap-2">
+                                                        <FaGithub className="text-green-600 mt-0.5" size={12} />
+                                                        <div className="flex-1 min-w-0">
+                                                          <div className={`text-sm font-medium truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                                            {repo.full_name}
+                                                          </div>
+                                                          {repo.description && (
+                                                            <div className={`text-xs truncate mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                              {repo.description}
+                                                            </div>
+                                                          )}
+                                                          <div className="mt-1 flex items-center gap-2 text-xs">
+                                                            {repo.language && (
+                                                              <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{repo.language}</span>
+                                                            )}
+                                                            <span className={`${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>★ {repo.stargazers_count}</span>
+                                                            <span className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}>⑂ {repo.forks_count}</span>
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                    </button>
+                                                  ))}
+                                                </div>
+                                              </div>
+                                            ) : (
+                                              <div className={`text-center py-4 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                No repositories found
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                          <div className="flex flex-col items-end gap-2 ml-4">
-                            <a
-                              href={projectRepository.repositoryUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'}`}
-                            >
-                              <FaLink size={10} />
-                              View
-                            </a>
-                            {isOwner && (
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          {isOwner && (
+                            <div className="relative" data-repository-dropdown>
                               <button
                                 type="button"
-                                onClick={handleUnlinkRepository}
-                                disabled={unlinkingRepository}
-                                className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+                                onClick={() => {
+                                  setShowRepositoryList(true);
+                                  if (userRepositories.length === 0) fetchUserRepositories();
+                                }}
+                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-blue-700 hover:bg-blue-800 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
                               >
-                                {unlinkingRepository ? <FaSpinner className="animate-spin" size={10} /> : <FaUnlink size={10} />}
-                                Unlink
+                                <FaGithub size={14} />
+                                Select GitHub Repository
                               </button>
-                            )}
-                          </div>
+                              
+                              {showRepositoryList && (
+                                <div className="absolute top-full left-0 mt-2 w-80 z-50">
+                                  <div className={`rounded-lg shadow-lg border ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                                    <div className="p-3">
+                                      <div className="flex justify-between items-center mb-3">
+                                        <h4 className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                          Select Repository
+                                        </h4>
+                                        <button
+                                          onClick={() => setShowRepositoryList(false)}
+                                          className={`p-1 rounded hover:bg-opacity-10 ${theme === 'dark' ? 'hover:bg-white text-gray-400' : 'hover:bg-gray-900 text-gray-500'}`}
+                                        >
+                                          <FaTimes size={12} />
+                                        </button>
+                                      </div>
+                                      
+                                      {repositoryLoading ? (
+                                        <div className="flex items-center justify-center py-4">
+                                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                                          <span className={`ml-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Loading...</span>
+                                        </div>
+                                      ) : userRepositories.length > 0 ? (
+                                        <div className="max-h-60 overflow-y-auto">
+                                          <div className="space-y-2">
+                                            {userRepositories.map((repo) => (
+                                              <button
+                                                key={repo.id}
+                                                type="button"
+                                                className={`w-full text-left p-3 rounded-lg border transition-colors ${theme === 'dark' ? 'border-gray-700 hover:border-blue-600 hover:bg-gray-700/50' : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'}`}
+                                                onClick={() => handleLinkRepository(repo)}
+                                              >
+                                                <div className="flex items-start gap-2">
+                                                  <FaGithub className="text-green-600 mt-0.5" size={12} />
+                                                  <div className="flex-1 min-w-0">
+                                                    <div className={`text-sm font-medium truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                                      {repo.full_name}
+                                                    </div>
+                                                    {repo.description && (
+                                                      <div className={`text-xs truncate mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                        {repo.description}
+                                                      </div>
+                                                    )}
+                                                    <div className="mt-1 flex items-center gap-2 text-xs">
+                                                      {repo.language && (
+                                                        <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{repo.language}</span>
+                                                      )}
+                                                      <span className={`${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>★ {repo.stargazers_count}</span>
+                                                      <span className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}>⑂ {repo.forks_count}</span>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </button>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className={`text-center py-4 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                          No repositories found
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
-                )}
 
                 <div className="flex justify-end gap-3 pt-6">
                   <button
@@ -2549,113 +2756,6 @@ const ProjectDetailsPage = () => {
           </div>
         </CustomModal>
 
-        {/* GitHub Repository Selection Modal */}
-        {showRepositoryList && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className={`max-w-2xl w-full mx-4 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                    Select GitHub Repository
-                  </h3>
-                  <button
-                    onClick={() => setShowRepositoryList(false)}
-                    className={`p-2 rounded-lg hover:bg-opacity-10 ${theme === 'dark' ? 'hover:bg-white text-white' : 'hover:bg-gray-900 text-gray-900'}`}
-                  >
-                    <FaTimes className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {repositoryLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                    <span className={`ml-3 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Loading repositories...
-                    </span>
-                  </div>
-                ) : userRepositories.length > 0 ? (
-                  <div className="max-h-96 overflow-y-auto">
-                    <div className="grid gap-3">
-                      {userRepositories.map((repo) => (
-                        <div
-                          key={repo.id}
-                          className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-md cursor-pointer ${theme === 'dark'
-                            ? 'border-gray-700 hover:border-gray-600 bg-gray-700/50'
-                            : 'border-gray-200 hover:border-blue-300 bg-white'
-                            }`}
-                          onClick={() => handleLinkRepository(repo)}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <FaGithub className="text-green-600" size={16} />
-                                <h4 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                  {repo.full_name}
-                                </h4>
-                                {repo.private && (
-                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-600 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
-                                    Private
-                                  </span>
-                                )}
-                              </div>
-                              {repo.description && (
-                                <p className={`text-sm mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                                  {repo.description}
-                                </p>
-                              )}
-                              <div className="flex items-center gap-4">
-                                {repo.language && (
-                                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-600 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
-                                    <FaCode size={10} />
-                                    {repo.language}
-                                  </span>
-                                )}
-                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>
-                                  <FaStar size={10} />
-                                  {repo.stargazers_count}
-                                </span>
-                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
-                                  <FaCodeBranch size={10} />
-                                  {repo.forks_count}
-                                </span>
-                                <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                  Updated {new Date(repo.updated_at).toLocaleDateString()}
-                                </span>
-                              </div>
-                            </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleLinkRepository(repo);
-                              }}
-                              disabled={linkingRepository}
-                              className={`ml-4 px-4 py-2 rounded-lg font-medium transition-colors ${theme === 'dark'
-                                ? 'bg-green-600 hover:bg-green-700 text-white'
-                                : 'bg-green-600 hover:bg-green-700 text-white'
-                                }`}
-                            >
-                              {linkingRepository ? (
-                                <FaSpinner className="animate-spin" size={14} />
-                              ) : (
-                                <FaLink size={14} />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                    <FaGithub className="mx-auto mb-4" size={32} />
-                    <p>No repositories found</p>
-                    <p className="text-sm mt-2">Make sure your GitHub account is connected and you have repositories.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* GitHub Repository Management Modal */}
         {showRepositoryModal && projectRepository && (

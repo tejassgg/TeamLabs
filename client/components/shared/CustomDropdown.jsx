@@ -178,9 +178,8 @@ const CustomDropdown = ({
         className={`
           ${sizeClasses[size]}
           ${variantClasses[variant]}
-          w-full rounded-xl border transition-all duration-200
+          w-full rounded-xl transition-all duration-200
           flex items-center justify-between gap-2
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
           disabled:opacity-50 disabled:cursor-not-allowed
           ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}
         `}
