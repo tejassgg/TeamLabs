@@ -106,6 +106,38 @@ router.get('/subscription-features', async (req, res) => {
   }
 });
 
+// GET /api/common-types/subscription-prices - Get all subscription prices
+// (Removed) standalone subscription-prices endpoints in favor of combined subscription-catalog
+
+// GET /api/common-types/subscription-catalog - Combined features and prices
+router.get('/subscription-catalog', async (req, res) => {
+  try {
+    const [featuresAll, pricesAll] = await Promise.all([
+      CommonType.find({ MasterType: 'SubscriptionFeatures' }).sort({ Code: 1 }),
+      CommonType.find({ MasterType: 'SubscriptionPrice' }).sort({ Code: 1 })
+    ]);
+
+    const groupByPlan = (plan) => featuresAll.filter(f => f.Description === plan);
+    const getPrice = (desc) => pricesAll.find(p => p.Description === desc)?.Value;
+
+    res.json({
+      features: {
+        free: groupByPlan('free'),
+        monthly: groupByPlan('monthly'),
+        annual: groupByPlan('annual')
+      },
+      prices: {
+        freeMonthly: getPrice('free_monthly') || '0',
+        premiumMonthly: getPrice('premium_monthly') || '79',
+        premiumAnnualMonthlyEq: getPrice('premium_annual_monthly_equivalent') || '47.4',
+        premiumAnnualYearly: getPrice('premium_annual_yearly_total') || '569'
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch subscription catalog' });
+  }
+});
+
 // GET /api/common-types/dropdown-data - Get orgs, roles, phone extensions
 router.get('/dropdown-data', async (req, res) => {
   try {

@@ -498,6 +498,15 @@ export const commonTypeService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch dropdown data' };
     }
+  },
+  // (Removed) standalone subscription price getters; use getSubscriptionCatalog instead
+  getSubscriptionCatalog: async () => {
+    try {
+      const response = await api.get('/common-types/subscription-catalog');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch subscription catalog' };
+    }
   }
 };
 

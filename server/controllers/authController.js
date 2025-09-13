@@ -592,7 +592,7 @@ const generate2FA = async (req, res) => {
     });
 
     // Generate QR code
-    const qrCode = await QRCode.toDataURL(secret.otpauth_url);
+    const qrCode = await qrcode.toDataURL(secret.otpauth_url);
 
     // Store temporary secret in database
     user.tempTwoFactorSecret = secret.base32;
@@ -1032,8 +1032,9 @@ const handleGitHubCallback = async (req, res) => {
 
     // Log the activity
     await UserActivity.create({
-      userId: userId,
+      user: userId,
       type: 'github_connected',
+      status: 'success',
       details: `Connected GitHub account: ${githubUser.login}`,
       ipAddress: req.ip,
       userAgent: req.get('User-Agent')
@@ -1106,8 +1107,9 @@ const disconnectGitHub = async (req, res) => {
 
     // Log the activity
     await UserActivity.create({
-      userId: userId,
+      user: userId,
       type: 'github_disconnected',
+      status: 'success',
       details: 'Disconnected GitHub account',
       ipAddress: req.ip,
       userAgent: req.get('User-Agent')

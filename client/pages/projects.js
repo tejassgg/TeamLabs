@@ -78,6 +78,22 @@ const ProjectsPage = () => {
     }
   }, [userDetails?._id]);
 
+  // Auto-open Add Project modal if query param addProject=1 is present
+  useEffect(() => {
+    if (!router || !router.isReady) return;
+    const shouldOpen = router.query?.addProject === '1';
+    if (shouldOpen) {
+      setIsAddProjectOpen(true);
+      // Clean the URL without reloading the page
+      const { pathname, query } = router;
+      if (query.addProject) {
+        const newQuery = { ...query };
+        delete newQuery.addProject;
+        router.replace({ pathname, query: newQuery }, undefined, { shallow: true });
+      }
+    }
+  }, [router, router.isReady, router.query]);
+
   if (loading && projectsWithStats.length === 0) {
     return <ProjectsSkeleton />;
   }

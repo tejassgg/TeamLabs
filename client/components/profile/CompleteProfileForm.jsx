@@ -5,6 +5,7 @@ import { useGlobal } from '../../context/GlobalContext';
 import { authService, commonTypeService } from '../../services/api';
 import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCity, FaGlobe, FaTimesCircle, FaUserCircle, FaTimes } from 'react-icons/fa';
 import CustomModal from '../shared/CustomModal';
+import CustomDropdown from '../shared/CustomDropdown';
 
 const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
   const { user, updateUser } = useAuth();
@@ -133,25 +134,33 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
             {/* Row 1: First Name | Last Name */}
             <div className="flex gap-4">
               <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>First Name</label>
                 <input
                   type="text"
                   name="firstName"
                   value={formData.firstName}
                   onChange={e => setFormData({ ...formData, firstName: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                  }`}
                   required
                   placeholder="First Name"
                 />
               </div>
               <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Last Name</label>
                 <input
                   type="text"
                   name="lastName"
                   value={formData.lastName}
                   onChange={e => setFormData({ ...formData, lastName: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                  }`}
                   required
                   placeholder="Last Name"
                 />
@@ -160,38 +169,52 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
             {/* Row 2: Middle Name | Ext | Phone Number */}
             <div className="flex gap-4 mt-4">
               <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Middle Name</label>
+                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Middle Name</label>
                 <input
                   type="text"
                   name="middleName"
                   value={formData.middleName}
                   onChange={e => setFormData({ ...formData, middleName: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                  }`}
                   placeholder="Optional"
                 />
               </div>
-              <div className="w-[8%] min-w-[70px]">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Ext</label>
-                <select
-                  name="phoneExtension"
-                  value={formData.phoneExtension}
-                  onChange={e => setFormData({ ...formData, phoneExtension: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                  required
-                >
-                  {phoneExtensions.map(ext => (
-                    <option key={ext.Code} value={ext.Value}>{ext.Value}</option>
-                  ))}
-                </select>
+              <div className="w-[12%] min-w-[70px]">
+                <div className="relative z-[9999]" >
+                  <CustomDropdown
+                    value={formData.phoneExtension}
+                    onChange={(value) => setFormData({ ...formData, phoneExtension: value })}
+                    options={phoneExtensions.map(ext => ({
+                      value: ext.Value,
+                      label: ext.Value + ' - ' + ext.Description
+                    }))}
+                    placeholder="Ext"
+                    label="Ext"
+                    required={true}
+                    variant="default"
+                    size="md"
+                    width="w-full"
+                    maxHeight="max-h-64"
+                    className="[&>button]:border [&>button]:border-solid"
+                  />
+                </div>
               </div>
-              <div className="w-[38%]">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+              <div className="w-[36%]">
+                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Phone Number</label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                  }`}
                   required
                   placeholder="+1 (555) 555-5555"
                 />
@@ -200,19 +223,24 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
             {/* Row 3: Role */}
             <div className="flex gap-4 mt-4">
               <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={e => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                  required
-                >
-                  <option value="">Select Role</option>
-                  {roleOptions.map(role => (
-                    <option key={role.Code} value={role.Value}>{role.Value}</option>
-                  ))}
-                </select>
+                <div className="relative z-[9999]">
+                  <CustomDropdown
+                    value={formData.role}
+                    onChange={(value) => setFormData({ ...formData, role: value })}
+                    options={roleOptions.map(role => ({
+                      value: role.Value,
+                      label: role.Value
+                    }))}
+                    placeholder="Select Role"
+                    label="Role"
+                    required={true}
+                    variant="default"
+                    size="md"
+                    width="w-full"
+                    maxHeight="max-h-64"
+                    className="[&>button]:border [&>button]:border-solid"
+                  />
+                </div>
               </div>
             </div>
           </>
@@ -222,25 +250,33 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
           <>
             <div className="flex gap-4">
               <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Address</label>
                 <input
                   type="text"
                   name="address"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                  }`}
                   required
                   placeholder="Enter your street address"
                 />
               </div>
               <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Apartment/Suite Number</label>
+                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Apartment/Suite Number</label>
                 <input
                   type="text"
                   name="aptNumber"
                   value={formData.aptNumber}
                   onChange={(e) => setFormData({ ...formData, aptNumber: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                  }`}
                   placeholder="Optional"
                 />
               </div>
@@ -248,25 +284,33 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
 
             <div className="flex gap-4 mt-4">
               <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
+                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>ZIP Code</label>
                 <input
                   type="text"
                   name="zipCode"
                   value={formData.zipCode}
                   onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                  }`}
                   required
                   placeholder="12345"
                 />
               </div>
               <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>City</label>
                 <input
                   type="text"
                   name="city"
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                  }`}
                   required
                   placeholder="New York"
                 />
@@ -274,25 +318,33 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
             </div>
             <div className="flex gap-4 mt-4">
               <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>State</label>
                 <input
                   type="text"
                   name="state"
                   value={formData.state}
                   onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                  }`}
                   required
                   placeholder="NY"
                 />
               </div>
               <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Country</label>
                 <input
                   type="text"
                   name="country"
                   value={formData.country}
                   onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                  }`}
                   required
                   placeholder="United States"
                 />
@@ -400,7 +452,7 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-700">Update Profile Information</h3>
+        <h3 className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Update Profile Information</h3>
         <button
           onClick={onCancel}
           className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"

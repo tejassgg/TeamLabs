@@ -120,8 +120,8 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'}
           flex flex-col justify-between shadow-2xl
           ${isMobile ?
-            `w-64 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}` :
-            `${collapsed ? 'w-16' : 'w-64'}`}
+          `w-64 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}` :
+          `${collapsed ? 'w-16' : 'w-64'}`}
         `}
         style={{
           minHeight: '100vh',
@@ -326,6 +326,30 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
               )}
             </button>
           </div>
+          {collapsed && (
+            <button
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] ${(!isMobile && collapsed) ? 'justify-center' : 'justify-start'}`}
+              onClick={toggleTheme}
+              aria-label="Toggle dark/light mode"
+            >
+              {(isMobile) ? null : (
+                <span className="ml-auto">
+                  <span
+                    className={`relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in ml-2 ${theme === 'dark' ? 'bg-blue-700' : 'bg-gray-300'}`}
+                    style={{ borderRadius: '9999px' }}
+                  >
+                    <span className={`absolute left-1 top-1 w-4 h-4 rounded-full flex items-center justify-center transition-transform duration-200 ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'} `}>
+                      {theme === 'dark' ? (
+                        <FaRegSun className="text-yellow-300" size={12} />
+                      ) : (
+                        <FaRegMoon className="text-gray-600" size={12} />
+                      )}
+                    </span>
+                  </span>
+                </span>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Mobile close button */}
@@ -680,7 +704,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
       {/* Main Content */}
       <div
         className={`transition-all duration-500 ease-in-out ${isMobile ? 'ml-0 pt-14' : ''} ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}
-        style={{ transition: 'margin-left 500ms cubic-bezier(0.4, 0, 0.2, 1)'}}
+        style={{ transition: 'margin-left 500ms cubic-bezier(0.4, 0, 0.2, 1)' }}
       >
         {!isMobile && (
           <div className="flex justify-center">

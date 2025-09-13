@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { useGlobal } from '../context/GlobalContext';
 import { useTheme } from '../context/ThemeContext';
 import { teamService } from '../services/api';
@@ -10,6 +11,7 @@ import { useToast } from '../context/ToastContext';
 
 const TeamsPage = () => {
   const { setTeams, userDetails } = useGlobal();
+  const router = useRouter();
   const { theme } = useTheme();
   const { showToast } = useToast();
   const [isAddTeamOpen, setIsAddTeamOpen] = useState(false);
@@ -75,6 +77,22 @@ const TeamsPage = () => {
       fetchTeamsWithStats();
     }
   }, [userDetails?._id]);
+
+  // Auto-open Add Team modal if query param addTeam=1 is present
+  useEffect(() => {
+    if (!router || !router.isReady) return;
+    const shouldOpen = router.query?.addTeam === '1';
+    if (shouldOpen) {
+      setIsAddTeamOpen(true);
+      // Clean the URL without reloading the page
+      const { pathname, query } = router;
+      if (query.addTeam) {
+        const newQuery = { ...query };
+        delete newQuery.addTeam;
+        router.replace({ pathname, query: newQuery }, undefined, { shallow: true });
+      }
+    }
+  }, [router, router.isReady, router.query]);
 
   if (loading && teamsWithStats.length === 0) {
     return <TeamsSkeleton />;

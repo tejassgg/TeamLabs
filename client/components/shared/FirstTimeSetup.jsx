@@ -1003,7 +1003,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                   ))}
                 </ul>
               </div>
-              <div className="mt-6 flex gap-3" style={{ marginTop: '250px' }}>
+              <div className="mt-6 flex gap-3 justify-between" style={{ marginTop: '250px' }}>
                 <button
                   onClick={onPrevious}
                   className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
@@ -1014,12 +1014,25 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                 >
                   Back
                 </button>
-                <button
-                  onClick={onNext}
-                  className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200"
-                >
-                  Continue
-                </button>
+                
+                <div className="flex gap-3">
+                  <button
+                    onClick={onSkip}
+                    className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
+                      theme === 'dark' 
+                        ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' 
+                        : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                    }`}
+                  >
+                    Skip for Now
+                  </button>
+                  <button
+                    onClick={onNext}
+                    className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200"
+                  >
+                    Continue
+                  </button>
+                </div>
               </div>
             </>
           ) : (
@@ -1130,7 +1143,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                 </div>
               )}
 
-              <div className="mt-6 flex gap-3" style={{ marginTop: pendingRequests.length > 0 ? '24px' : '250px' }}>
+              <div className="mt-6 flex gap-3 justify-between" style={{ marginTop: pendingRequests.length > 0 ? '24px' : '250px' }}>
                 <button
                   onClick={onPrevious}
                   className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
@@ -1141,13 +1154,26 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                 >
                   Back
                 </button>
-                <button
-                  onClick={onNext}
-                  disabled={!(selectedTeamId || hasRequestedToJoinAnyTeam)}
-                  className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Continue
-                </button>
+                
+                <div className="flex gap-3">
+                  <button
+                    onClick={onSkip}
+                    className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
+                      theme === 'dark' 
+                        ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' 
+                        : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                    }`}
+                  >
+                    Skip for Now
+                  </button>
+                  <button
+                    onClick={onNext}
+                    disabled={!(selectedTeamId || hasRequestedToJoinAnyTeam)}
+                    className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Continue
+                  </button>
+                </div>
               </div>
             </>
           )}

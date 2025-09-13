@@ -16,6 +16,7 @@ import { authService } from '../services/api';
 import { connectSocket, subscribe } from '../services/socket';
 import OnboardingProgress from '../components/dashboard/OnboardingProgress';
 import OnboardingGuide from '../components/dashboard/OnboardingGuide';
+import AdminWelcomeMessage from '../components/dashboard/AdminWelcomeMessage';
 
 // Dynamic import for charts
 let DashboardCharts = null;
@@ -32,7 +33,7 @@ try {
 const Dashboard = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
-  const { projectStatuses, getProjectStatus } = useGlobal();
+  const { projectStatuses, getProjectStatus, teams, projects, userDetails } = useGlobal();
   const { showToast } = useToast();
   const router = useRouter();
   const [stats, setStats] = useState(null);
@@ -47,6 +48,9 @@ const Dashboard = () => {
   const [inviteStatus, setInviteStatus] = useState('');
   const [invitedEmails, setInvitedEmails] = useState([]);
   const [showOnboardingGuide, setShowOnboardingGuide] = useState(false);
+
+  // Check if Admin has zero teams and projects
+  const shouldShowWelcomeMessage = isAdmin && teams.length === 0 && projects.length === 0;
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
@@ -355,58 +359,68 @@ const Dashboard = () => {
         />
 
         {/* Tab Navigation */}
-        <div className="mb-6">
-          <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-            <nav className="-mb-px flex items-center justify-between">
-              <div className="flex space-x-8">
+        {!shouldShowWelcomeMessage && (
+          <div className="mb-6">
+            <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+              <nav className="-mb-px flex items-center justify-between">
+                <div className="flex space-x-8">
+                  <button
+                    onClick={() => setActiveTab('metrics')}
+                    className={`${activeTab === 'metrics'
+                      ? theme === 'dark'
+                        ? 'border-blue-400 text-blue-400'
+                        : 'border-blue-600 text-blue-600'
+                      : theme === 'dark'
+                        ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                  >
+                    <FaChartBar size={16} />
+                    <span>Metrics & Analytics</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('manage')}
+                    className={`${activeTab === 'manage'
+                      ? theme === 'dark'
+                        ? 'border-blue-400 text-blue-400'
+                        : 'border-blue-600 text-blue-600'
+                      : theme === 'dark'
+                        ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                  >
+                    <FaProjectDiagram size={16} />
+                    <span>Manage Organization</span>
+                  </button>
+                </div>
+                
+                {/* Setup Guide Button - Now positioned on the right side */}
                 <button
-                  onClick={() => setActiveTab('metrics')}
-                  className={`${activeTab === 'metrics'
-                    ? theme === 'dark'
-                      ? 'border-blue-400 text-blue-400'
-                      : 'border-blue-600 text-blue-600'
-                    : theme === 'dark'
-                      ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                  onClick={() => setShowOnboardingGuide(true)}
+                  className={`px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${
+                    theme === 'dark' 
+                      ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  }`}
                 >
-                  <FaChartBar size={16} />
-                  <span>Metrics & Analytics</span>
+                  <FaRocket size={14} />
+                  Setup Guide
                 </button>
-                <button
-                  onClick={() => setActiveTab('manage')}
-                  className={`${activeTab === 'manage'
-                    ? theme === 'dark'
-                      ? 'border-blue-400 text-blue-400'
-                      : 'border-blue-600 text-blue-600'
-                    : theme === 'dark'
-                      ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
-                >
-                  <FaProjectDiagram size={16} />
-                  <span>Manage Organization</span>
-                </button>
-              </div>
-              
-              {/* Setup Guide Button - Now positioned on the right side */}
-              <button
-                onClick={() => setShowOnboardingGuide(true)}
-                className={`px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${
-                  theme === 'dark' 
-                    ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                }`}
-              >
-                <FaRocket size={14} />
-                Setup Guide
-              </button>
-            </nav>
+              </nav>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Welcome Message for Admins with zero teams and projects */}
+        {shouldShowWelcomeMessage && (
+          <AdminWelcomeMessage 
+            onOpenSetupGuide={() => setShowOnboardingGuide(true)}
+            onOpenInvite={() => setShowInviteModal(true)}
+          />
+        )}
 
         {/* Tab Content */}
-        {activeTab === 'metrics' && (
+        {!shouldShowWelcomeMessage && activeTab === 'metrics' && (
           <div className="space-y-6">
             {/* Dashboard Charts */}
             {DashboardCharts ? (
@@ -424,7 +438,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {activeTab === 'manage' && (
+        {!shouldShowWelcomeMessage && activeTab === 'manage' && (
           <div className="space-y-6">
             {/* Recent Projects and Organization Members - Single Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

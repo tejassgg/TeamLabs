@@ -36,7 +36,9 @@ const userActivitySchema = new mongoose.Schema({
       // Subtask activities
       'subtask_create', 'subtask_update', 'subtask_delete', 'subtask_complete', 'subtask_assign', 'subtask_reorder', 'subtask_uncomplete',
       // Meeting activities
-      'team_meeting_create', 'team_meeting_update', 'team_meeting_delete'
+      'team_meeting_create', 'team_meeting_update', 'team_meeting_delete',
+      // Settings activities
+      'settings_update','github_connected', 'github_disconnected'
     ]
   },
   status: {

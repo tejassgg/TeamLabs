@@ -30,16 +30,43 @@ const SubscriptionFeatures = [
   { Value: 'Basic Support', Code: 17, MasterType: 'SubscriptionFeatures', Description: 'free' }
 ];
 
+// Subscription Prices
+// Stored in CommonType with MasterType: 'SubscriptionPrice'
+// Value is the numeric price as string to conform with schema; Description clarifies context
+const SubscriptionPrices = [
+  // Free plan
+  { Value: '0', Code: 100, MasterType: 'SubscriptionPrice', Description: 'free_monthly' },
+
+  // Premium Monthly
+  { Value: '79', Code: 101, MasterType: 'SubscriptionPrice', Description: 'premium_monthly' },
+
+  // Premium Annual (monthly equivalent and yearly total)
+  { Value: '47.4', Code: 102, MasterType: 'SubscriptionPrice', Description: 'premium_annual_monthly_equivalent' },
+  { Value: '569', Code: 103, MasterType: 'SubscriptionPrice', Description: 'premium_annual_yearly_total' }
+];
+
 (async () => {
   try {
+    // Clear and seed features
     await CommonType.deleteMany({ MasterType: 'SubscriptionFeatures' });
     await CommonType.insertMany(SubscriptionFeatures);
+
+    // Clear and seed prices
+    await CommonType.deleteMany({ MasterType: 'SubscriptionPrice' });
+    await CommonType.insertMany(SubscriptionPrices);
     console.log('✅ Seeded Subscription Features successfully!');
     console.log(`📊 Total features seeded: ${SubscriptionFeatures.length}`);
     console.log('📋 Features by plan:');
     console.log(`   - Free: ${SubscriptionFeatures.filter(f => f.Description === 'free').length} features`);
     console.log(`   - Monthly: ${SubscriptionFeatures.filter(f => f.Description === 'monthly').length} features`);
     console.log(`   - Annual: ${SubscriptionFeatures.filter(f => f.Description === 'annual').length} features`);
+
+    console.log('✅ Seeded Subscription Prices successfully!');
+    console.log(`💲 Prices seeded: ${SubscriptionPrices.length}`);
+    const getPrice = (desc) => SubscriptionPrices.find(p => p.Description === desc)?.Value;
+    console.log(`   - Free: $${getPrice('free_monthly')}/month`);
+    console.log(`   - Premium Monthly: $${getPrice('premium_monthly')}/month`);
+    console.log(`   - Premium Annual: $${getPrice('premium_annual_monthly_equivalent')}/month (=$${getPrice('premium_annual_yearly_total')}/year)`);
   } catch (error) {
     console.error('❌ Error seeding subscription features:', error);
   } finally {

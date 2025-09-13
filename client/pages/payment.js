@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import { FaCreditCard, FaUniversity, FaLock, FaCheck, FaTimes, FaEye, FaEyeSlash, FaSave, FaArrowLeft, FaChevronDown, FaInfinity, FaRocket, FaStar, FaUsers, FaCheckCircle } from 'react-icons/fa';
-import api from '../services/api';
+import api, { commonTypeService } from '../services/api';
 
 // US Banks data with logos
 const US_BANKS = [
@@ -151,6 +151,12 @@ const Payment = () => {
   const [showBankDropdown, setShowBankDropdown] = useState(false);
   const [selectedBank, setSelectedBank] = useState(null);
   const [subscriptionFeatures, setSubscriptionFeatures] = useState([]);
+  const [subscriptionPrices, setSubscriptionPrices] = useState({
+    freeMonthly: '0',
+    premiumMonthly: '99',
+    premiumAnnualMonthlyEq: '47.4',
+    premiumAnnualYearly: '708'
+  });
 
   // Card payment form
   const [cardForm, setCardForm] = useState({
@@ -182,21 +188,21 @@ const Payment = () => {
       case 'monthly':
         return {
           name: 'Premium Monthly',
-          price: 99,
+          price: subscriptionPrices.premiumMonthly,
           period: 'month',
           description: 'Unlimited projects, tasks, and premium features'
         };
       case 'annual':
         return {
           name: 'Premium Annual',
-          price: 708,
+          price: subscriptionPrices.premiumAnnualYearly,
           period: 'year',
           description: 'Unlimited projects, tasks, and premium features with 40% discount'
         };
       default:
         return {
           name: 'Premium Monthly',
-          price: 99,
+          price: subscriptionPrices.premiumMonthly,
           period: 'month',
           description: 'Unlimited projects, tasks, and premium features'
         };
@@ -205,14 +211,26 @@ const Payment = () => {
 
   const planDetails = getPlanDetails();
 
-  // Fetch subscription features
-  const fetchSubscriptionFeatures = async () => {
+  // Fetch subscription catalog (features and prices)
+  const fetchSubscriptionCatalog = async () => {
     try {
-      const planType = plan === 'annual' ? 'annual' : 'monthly';
-      const response = await api.get(`/common-types/subscription-features/${planType}`);
-      setSubscriptionFeatures(response.data || []);
+      const catalog = await commonTypeService.getSubscriptionCatalog();
+      
+      if (catalog?.features) {
+        const planType = plan === 'annual' ? 'annual' : 'monthly';
+        setSubscriptionFeatures(catalog.features[planType] || []);
+      }
+      
+      if (catalog?.prices) {
+        setSubscriptionPrices({
+          freeMonthly: catalog.prices.freeMonthly || '0',
+          premiumMonthly: catalog.prices.premiumMonthly || '99',
+          premiumAnnualMonthlyEq: catalog.prices.premiumAnnualMonthlyEq || '47.4',
+          premiumAnnualYearly: catalog.prices.premiumAnnualYearly || '708'
+        });
+      }
     } catch (error) {
-      console.error('Error fetching subscription features:', error);
+      console.error('Error fetching subscription catalog:', error);
     }
   };
 
@@ -220,17 +238,17 @@ const Payment = () => {
   const getFeatureIcon = (feature) => {
     const featureText = feature.Value.toLowerCase();
     if (featureText.includes('unlimited')) {
-      return <FaInfinity className="text-white text-xs" />;
+      return <FaInfinity className="text-sm text-white" />;
     } else if (featureText.includes('analytics')) {
-      return <FaRocket className="text-white text-xs" />;
+      return <FaRocket className="text-sm text-white" />;
     } else if (featureText.includes('support')) {
-      return <FaStar className="text-white text-xs" />;
+      return <FaStar className="text-sm text-white" />;
     } else if (featureText.includes('members')) {
-      return <FaUsers className="text-white text-xs" />;
+      return <FaUsers className="text-sm text-white" />;
     } else if (featureText.includes('discount')) {
-      return <FaCheckCircle className="text-white text-xs" />;
+      return <FaCheckCircle className="text-sm text-white" />;
     } else {
-      return <FaCheck className="text-white text-xs" />;
+      return <FaCheck className="text-sm text-white" />;
     }
   };
 
@@ -326,10 +344,10 @@ const Payment = () => {
     yearOptions.push(currentYear + i);
   }
 
-  // Fetch subscription features on component mount and plan change
+  // Fetch subscription catalog on component mount and plan change
   useEffect(() => {
     if (plan) {
-      fetchSubscriptionFeatures();
+      fetchSubscriptionCatalog();
     }
   }, [plan]);
 
@@ -363,9 +381,9 @@ const Payment = () => {
         <title>Payment | TeamLabs</title>
       </Head>
       
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-5xl">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-4">
           <button
             onClick={() => router.back()}
             className={`flex items-center gap-2 mb-4 text-sm transition-colors duration-200 ${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
@@ -374,11 +392,11 @@ const Payment = () => {
             Back to Subscription
           </button>
           
-          <div className="text-center">
+          {/* <div className="text-center">
             <p className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
               Secure payment for <span className="font-semibold text-blue-600">{planDetails.name}</span>
             </p>
-          </div>
+          </div> */}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -939,7 +957,7 @@ const Payment = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Plan</span>
-                    <span className={`font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
+                    <span className={`font-semibold bg-gradient-to-r ${plan === 'annual' ? 'from-purple-600 to-pink-600' : 'from-blue-600 to-purple-600'} bg-clip-text text-transparent`}>
                       {planDetails.name}
                     </span>
                   </div>
@@ -953,37 +971,51 @@ const Payment = () => {
 
                   {plan === 'annual' && (
                     <div className="flex justify-between items-center">
-                      <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Discount</span>
-                      <span className="font-bold text-green-500 bg-green-100 px-2 py-1 rounded-lg">-40%</span>
+                      <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Annual Discount</span>
+                      <span className="font-bold text-green-600 bg-gradient-to-r from-green-100 to-emerald-100 px-3 py-1 rounded-lg flex items-center gap-1">
+                        <FaCheckCircle className="text-green-600 text-xs" />
+                        -40%
+                      </span>
                     </div>
                   )}
 
-                  <div className={`border-t pt-4 ${theme === 'dark' ? 'border-gray-700' : 'border-purple-200'}`}>
+                  <div className={`border-t pt-6 ${theme === 'dark' ? 'border-gray-700' : 'border-purple-200'}`}>
                     <div className="flex justify-between items-center">
-                      <span className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      <span className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                         Total
                       </span>
-                      <span className={`text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent`}>
-                        ${planDetails.price}
-                      </span>
+                      <div className="text-right">
+                        <span className={`text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent`}>
+                          ${planDetails.price}
+                        </span>
+                        <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
+                          {planDetails.period === 'month' ? '/mo' : '/yr'}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className={`mt-6 p-4 rounded-xl ${theme === 'dark' ? 'bg-gradient-to-r from-gray-800/50 to-gray-700/50' : 'bg-gradient-to-r from-purple-50 to-pink-50'}`}>
-                  <h3 className={`font-semibold mb-3 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                    <div className="w-5 h-5 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                      <FaCheck className="text-white text-xs" />
+                <div className={`mt-6 p-6 rounded-xl ${theme === 'dark' ? 'bg-gradient-to-r from-gray-800/50 to-gray-700/50' : 'bg-gradient-to-r from-purple-50 to-pink-50'} border ${theme === 'dark' ? 'border-gray-600' : 'border-purple-200'}`}>
+                  <h3 className={`font-semibold mb-4 flex items-center gap-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+                      <FaCheck className="text-white text-sm" />
                     </div>
                     What's included:
                   </h3>
-                  <ul className={`space-y-2 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <ul className={`space-y-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                     {subscriptionFeatures.map((feature) => (
-                      <li key={feature._id} className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
+                      <li key={feature._id} className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                          feature.Value.toLowerCase().includes('discount')
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                            : plan === 'annual'
+                              ? 'bg-gradient-to-r from-purple-600 to-pink-600'
+                              : 'bg-gradient-to-r from-blue-600 to-purple-600'
+                        }`}>
                           {getFeatureIcon(feature)}
                         </div>
-                        <span>{feature.Value}</span>
+                        <span className="text-md">{feature.Value}</span>
                       </li>
                     ))}
                   </ul>

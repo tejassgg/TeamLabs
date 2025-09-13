@@ -178,40 +178,41 @@ const Profile = () => {
             Manage your profile information and view your activity history
           </p>
 
+          {/* Full Width Tabs */}
+          <div className="mb-6">
+            <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  className={`${activeTab === 'profile'
+                    ? theme === 'dark' ? 'border-blue-400 text-blue-400' : 'border-blue-500 text-blue-600'
+                    : theme === 'dark' ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+                >
+                  <FaUserCircle size={16} />
+                  <span>Profile Information</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('activity')}
+                  className={`${activeTab === 'activity'
+                    ? theme === 'dark' ? 'border-blue-400 text-blue-400' : 'border-blue-500 text-blue-600'
+                    : theme === 'dark' ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+                >
+                  <FaChartLine size={16} />
+                  <span>Activity History</span>
+                </button>
+              </nav>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Tabs and Content */}
+            {/* Left Column - Content */}
             <div className="lg:col-span-2">
-              {/* Tabs */}
-              <div className="mb-6">
-                <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <nav className="-mb-px flex space-x-8">
-                    <button
-                      onClick={() => setActiveTab('profile')}
-                      className={`${activeTab === 'profile'
-                        ? theme === 'dark' ? 'border-blue-400 text-blue-400' : 'border-blue-500 text-blue-600'
-                        : theme === 'dark' ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
-                    >
-                      <FaUserCircle size={16} />
-                      <span>Profile Information</span>
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('activity')}
-                      className={`${activeTab === 'activity'
-                        ? theme === 'dark' ? 'border-blue-400 text-blue-400' : 'border-blue-500 text-blue-600'
-                        : theme === 'dark' ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
-                    >
-                      <FaChartLine size={16} />
-                      <span>Activity History</span>
-                    </button>
-                  </nav>
-                </div>
-              </div>
 
               {/* Profile Information Tab */}
               {activeTab === 'profile' && (
-                <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-lg border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                   <div className="p-8">
                     <div className="flex justify-between items-center mb-8">
                       <h2 className={`text-2xl font-bold flex items-center gap-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -255,15 +256,15 @@ const Profile = () => {
                                 <li className="flex items-center gap-4">
                                   <FaEnvelope className="text-blue-400 text-xl" />
                                   <div>
-                                    <div className="font-medium">Email</div>
-                                    <div className="text-gray-900 ">{profile?.email || '-'}</div>
+                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Email</div>
+                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.email || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaPhone className="text-blue-400 text-xl" />
                                   <div>
-                                    <div className="font-medium">Phone</div>
-                                    <div className="text-gray-900 ">{profile?.phone || '-'}</div>
+                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Phone</div>
+                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.phone || '-'}</div>
                                   </div>
                                 </li>
                               </ul>
@@ -278,43 +279,43 @@ const Profile = () => {
                                 <li className="flex items-center gap-4">
                                   <FaBuilding className="text-blue-400 text-xl" />
                                   <div>
-                                    <div className="font-medium">Address</div>
-                                    <div className="text-gray-900 ">{profile?.address || '-'}</div>
+                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Address</div>
+                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.address || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaCity className="text-blue-400 text-xl" />
                                   <div>
-                                    <div className="font-medium">City</div>
-                                    <div className="text-gray-900 ">{profile?.city || '-'}</div>
+                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>City</div>
+                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.city || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaGlobe className="text-blue-400 text-xl" />
                                   <div>
-                                    <div className="font-medium">State</div>
-                                    <div className="text-gray-900 ">{profile?.state || '-'}</div>
+                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>State</div>
+                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.state || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaGlobe className="text-blue-400 text-xl" />
                                   <div>
-                                    <div className="font-medium">Zip Code</div>
-                                    <div className="text-gray-900">{profile?.zipCode || '-'}</div>
+                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Zip Code</div>
+                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.zipCode || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaGlobe className="text-blue-400 text-xl" />
                                   <div>
-                                    <div className="font-medium">Country</div>
-                                    <div className="text-gray-900 ">{profile?.country || '-'}</div>
+                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Country</div>
+                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.country || '-'}</div>
                                   </div>
                                 </li>
                                 <li className="flex items-center gap-4">
                                   <FaOrganization className="text-blue-400 text-xl" />
                                   <div>
-                                    <div className="font-medium">Organization</div>
-                                    <div className="text-gray-900 ">{profile?.orgName || profile?.organization?.name || '-'}</div>
+                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Organization</div>
+                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.orgName || profile?.organization?.name || '-'}</div>
                                   </div>
                                 </li>
                               </ul>
