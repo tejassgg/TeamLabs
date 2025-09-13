@@ -104,20 +104,9 @@ const TeamsPage = () => {
       'mx-auto bg-[#18181b] text-white'
     )}>
       {/* Page Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <p className={getThemeClasses(
-              'text-gray-600 mt-2',
-              'text-gray-400 mt-2'
-            )}>
-              Manage and collaborate with your teams
-            </p>
-          </div>
-        </div>
-
+      <div className="mb-4">
         {/* Search Bar */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-4">
           <div className="relative max-w-2xl">
             <FaSearch className={getThemeClasses(
               'absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400',

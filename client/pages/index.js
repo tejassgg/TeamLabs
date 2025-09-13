@@ -315,9 +315,17 @@ function Home() {
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
               {isAuthenticated ? (
-                <Link href="/dashboard" className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
-                  Go to Dashboard
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                  <Link href="/dashboard" className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
+                    Go to Dashboard
+                  </Link>
+                  <button 
+                    onClick={handleLogout}
+                    className={`px-6 py-3 border-2 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 ${resolvedTheme === 'dark' ? 'border-gray-600 text-gray-300 hover:bg-gray-800 hover:border-gray-500' : 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'} flex items-center gap-2`}
+                  >
+                    <FaSignOutAlt className="text-sm" /> Logout
+                  </button>
+                </div>
               ) : (
                 <>
                   <button onClick={openRegister} className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
@@ -836,9 +844,17 @@ function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {isAuthenticated ? (
-                <Link href="/dashboard" className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all">
-                  Go to Dashboard
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                  <Link href="/dashboard" className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all">
+                    Go to Dashboard
+                  </Link>
+                  <button 
+                    onClick={handleLogout}
+                    className="px-6 py-3 border-2 border-white text-white rounded-xl font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all flex items-center gap-2"
+                  >
+                    <FaSignOutAlt className="text-sm" /> Logout
+                  </button>
+                </div>
               ) : (
                 <>
                   <button onClick={openRegister} className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all">

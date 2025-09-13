@@ -146,13 +146,13 @@ const LoginForm = ({ onSuccess }) => {
           <input
             type="text"
             placeholder="Enter your username or email"
-            className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${resolvedTheme === 'dark' ? 'bg-gray-900 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
+            className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${resolvedTheme === 'dark' ? 'bg-transparent border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
             {...register("usernameOrEmail", {
               required: "Username or email is required"
             })}
           />
           {errors.usernameOrEmail && (
-            <p className="mt-1 text-sm text-red-600">{errors.usernameOrEmail.message}</p>
+            <p className={`mt-1 text-sm ${resolvedTheme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>{errors.usernameOrEmail.message}</p>
           )}
         </div>
 
@@ -162,7 +162,7 @@ const LoginForm = ({ onSuccess }) => {
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
-              className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${resolvedTheme === 'dark' ? 'bg-gray-900 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
+              className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${resolvedTheme === 'dark' ? 'bg-transparent border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
               {...register("password", {
                 required: "Password is required",
                 minLength: {
@@ -180,7 +180,7 @@ const LoginForm = ({ onSuccess }) => {
             </button>
           </div>
           {errors.password && (
-            <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+            <p className={`mt-1 text-sm ${resolvedTheme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>{errors.password.message}</p>
           )}
         </div>
 

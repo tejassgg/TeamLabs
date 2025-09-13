@@ -355,7 +355,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
         {/* Mobile close button */}
         {isMobile && (
           <button
-            className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 z-50"
+            className={`absolute top-4 right-4 z-50 p-2 rounded-lg transition-all duration-200 ${theme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-gray-800' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'}`}
             onClick={() => setIsOpen(false)}
           >
             <FaTimes size={24} />
@@ -592,6 +592,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
       setIsMobile(window.innerWidth < 1024);
     };
     checkIsMobile();
+    console.log('isMobile', isMobile);
     window.addEventListener('resize', checkIsMobile);
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
@@ -676,11 +677,11 @@ const Layout = ({ children, pageProject, pageTitle }) => {
         <Sidebar isMobile={isMobile} isOpen={isMobileSidebarOpen} setIsOpen={setIsMobileSidebarOpen} setSidebarCollapsed={setSidebarCollapsed} />
       </div>
       {/* Mobile Navbar with Hamburger */}
-      <div className={`lg:hidden fixed top-0 left-0 right-0 z-30 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gray-200'} shadow-md`}>
-        <div className="px-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      <div className={`lg:hidden fixed top-0 left-0 right-0 z-30 ${theme === 'dark' ? 'bg-[#232323]/95 backdrop-blur-sm border-b border-gray-800' : 'bg-white/95 backdrop-blur-sm border-b border-gray-200'} shadow-md`}>
+        <div className="px-4 flex items-center justify-between h-16">
+          <div className="flex items-center gap-3">
             <button
-              className="sidebar-toggle p-2 rounded-lg text-gray-600 hover:bg-gray-300 transition-all duration-300 ease-in-out transform hover:scale-110"
+              className={`sidebar-toggle p-2 rounded-lg transition-all duration-200 ${theme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-gray-800' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'} transform hover:scale-110`}
               onClick={() => setIsMobileSidebarOpen(true)}
               aria-label="Open sidebar"
             >
@@ -703,7 +704,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
       </div>
       {/* Main Content */}
       <div
-        className={`transition-all duration-500 ease-in-out ${isMobile ? 'ml-0 pt-14' : ''} ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}
+        className={`transition-all duration-500 ease-in-out ${sidebarCollapsed ? 'ml-16' : !isMobile ? 'ml-64' : ''} ${isMobile ? 'ml-0 pt-14' : ''}`}
         style={{ transition: 'margin-left 500ms cubic-bezier(0.4, 0, 0.2, 1)' }}
       >
         {!isMobile && (

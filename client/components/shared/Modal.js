@@ -18,7 +18,7 @@ const Modal = ({ isOpen, onClose, children, title }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 transition-opacity duration-300">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ${theme === 'dark' ? 'bg-black bg-opacity-60' : 'bg-black bg-opacity-40'}`}>
       <div className={`rounded-xl shadow-lg p-6 relative w-full max-w-md mx-4 animate-fadeIn transition-colors duration-300 ${theme === 'dark' ? 'bg-[#232323] text-white' : 'bg-white text-gray-900'}`}>
         {/* Header with centered title and close button */}
         <div className="mb-4">
@@ -46,14 +46,14 @@ const Modal = ({ isOpen, onClose, children, title }) => {
                   </div>
                 </div> */}
               </div>
-              <button className="text-2xl text-gray-400 hover:text-primary focus:outline-none transition-colors flex justify-end w-[10%]" onClick={onClose} aria-label="Close" >
+              <button className={`text-2xl transition-colors flex justify-end w-[10%] focus:outline-none ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`} onClick={onClose} aria-label="Close" >
                 &times;
               </button>
             </div>
           ) : (
             <div className="flex justify-end">
               <button
-                className="text-2xl text-gray-400 hover:text-primary focus:outline-none transition-colors"
+                className={`text-2xl transition-colors focus:outline-none ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}
                 onClick={onClose}
                 aria-label="Close"
               >

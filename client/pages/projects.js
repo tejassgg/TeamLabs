@@ -105,19 +105,8 @@ const ProjectsPage = () => {
     )}>
       {/* Page Header */}
       <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <p className={getThemeClasses(
-              'text-gray-600 mt-2',
-              'text-gray-400 mt-2'
-            )}>
-              Manage and view all your projects
-            </p>
-          </div>
-        </div>
-
         {/* Search Bar */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-4">
           <div className="relative max-w-2xl">
             <FaSearch className={getThemeClasses(
               'absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400',

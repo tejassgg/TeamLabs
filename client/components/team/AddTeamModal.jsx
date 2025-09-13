@@ -51,7 +51,6 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
     if (isOpen) {
       commonTypeService.getTeamTypes()
         .then((types) => {
-          console.log(types);
           setTeamTypeOptions(types);
           if (types.length > 0) setTeamType(types[0].Code);
         })
@@ -98,7 +97,7 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
           <h3 className={getThemeClasses(
             'text-xl font-semibold text-gray-900',
             'text-xl font-semibold text-white'
-          )}>Add New Team</h3>
+          )}>Create New Team</h3>
           <button
             onClick={handleClose}
             className={getThemeClasses(
@@ -216,7 +215,7 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
                     key={color.value}
                     type="button"
                     onClick={() => setTeamColor(color.value)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                    className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
                       teamColor === color.value 
                         ? 'ring-2 ring-offset-2 ring-gray-400' 
                         : 'hover:ring-2 hover:ring-offset-2 hover:ring-gray-200'
@@ -249,7 +248,7 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
               type="submit"
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200"
             >
-              Add Team
+              Create
             </button>
           </div>
         </form>

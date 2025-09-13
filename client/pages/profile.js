@@ -172,12 +172,7 @@ const Profile = () => {
       </Head>
       <div className="mx-auto">
 
-        <div className="mx-auto sm:px-6 lg:px-1">
-          {/* Welcome Message */}
-          <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mt-2`}>
-            Manage your profile information and view your activity history
-          </p>
-
+        <div className="mx-auto">
           {/* Full Width Tabs */}
           <div className="mb-6">
             <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>

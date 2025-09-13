@@ -81,7 +81,7 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
           <h3 className={getThemeClasses(
             'text-xl font-semibold text-gray-900',
             'text-xl font-semibold text-white'
-          )}>Add New Project</h3>
+          )}>Create New Project</h3>
           <button
             onClick={handleClose}
             className={getThemeClasses(
@@ -190,7 +190,7 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
               type="submit"
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200"
             >
-              Add Project
+              Create
             </button>
           </div>
         </form>

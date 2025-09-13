@@ -614,7 +614,7 @@ const Settings = () => {
         {/* Settings Navigation */}
         <div className="">
           <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-            <nav className="-mb-px flex space-x-8">
+            <nav className="-mb-px flex space-x-8 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -1147,19 +1147,21 @@ const Settings = () => {
 
           {/* Integrations Tab */}
           {activeTab === 'integrations' && (
-            <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+            <div className={`p-4 md:p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
               <h2 className={`text-xl font-semibold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Integrations</h2>
 
-              <div className='flex items-center justify-between gap-4'>
+              <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4'>
                 {/* GitHub Integration */}
-                <div className={`mb-6 p-6 rounded-xl w-full border ${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
-                  <div className="flex items-center gap-4 mb-4">
-                    <FaGithub size={32} className={theme === 'dark' ? 'text-white' : 'text-gray-900'} />
-                    <div>
-                      <span className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>GitHub</span>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                        Connect your GitHub account for repository integrations
-                      </p>
+                <div className={`mb-6 p-4 md:p-6 rounded-xl w-full border ${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+                    <div className="flex items-center gap-4">
+                      <FaGithub size={32} className={theme === 'dark' ? 'text-white' : 'text-gray-900'} />
+                      <div>
+                        <span className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>GitHub</span>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                          Connect your GitHub account for repository integrations
+                        </p>
+                      </div>
                     </div>
                   </div>
 
@@ -1172,35 +1174,37 @@ const Settings = () => {
                     </div>
                   ) : githubStatus.connected ? (
                     <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        {githubStatus.avatarUrl && (
-                          <img
-                            src={githubStatus.avatarUrl}
-                            alt="GitHub Avatar"
-                            className="w-10 h-10 rounded-full"
-                          />
-                        )}
-                        <div>
-                          <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                            @{githubStatus.username}
-                          </p>
-                          <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                            {githubStatus.email}
-                          </p>
-                          {githubStatus.connectedAt && (
-                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                              Connected {new Date(githubStatus.connectedAt).toLocaleDateString()}
-                            </p>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div className="flex items-center gap-4">
+                          {githubStatus.avatarUrl && (
+                            <img
+                              src={githubStatus.avatarUrl}
+                              alt="GitHub Avatar"
+                              className="w-10 h-10 rounded-full flex-shrink-0"
+                            />
                           )}
+                          <div className="min-w-0 flex-1">
+                            <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} truncate`}>
+                              @{githubStatus.username}
+                            </p>
+                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} truncate`}>
+                              {githubStatus.email}
+                            </p>
+                            {githubStatus.connectedAt && (
+                              <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                                Connected {new Date(githubStatus.connectedAt).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
                         </div>
+                        <button
+                          onClick={handleDisconnectGitHub}
+                          disabled={githubLoading}
+                          className={`w-full sm:w-auto px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+                        >
+                          Disconnect
+                        </button>
                       </div>
-                      <button
-                        onClick={handleDisconnectGitHub}
-                        disabled={githubLoading}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors float-end duration-200 ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
-                      >
-                        Disconnect
-                      </button>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -1221,12 +1225,14 @@ const Settings = () => {
                   )}
                 </div>
                 {/* Google Calendar Integration */}
-                <div className={`mb-6 p-6 rounded-xl w-full border ${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
-                  <div className="flex items-center gap-4 mb-4">
-                    <SiGooglecalendar size={28} className={theme === 'dark' ? 'text-white' : 'text-gray-900'} />
-                    <div>
-                      <span className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Google Calendar</span>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Create calendar events with Google Meet links</p>
+                <div className={`mb-6 p-4 md:p-6 rounded-xl w-full border ${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+                    <div className="flex items-center gap-4">
+                      <SiGooglecalendar size={28} className={theme === 'dark' ? 'text-white' : 'text-gray-900'} />
+                      <div>
+                        <span className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Google Calendar</span>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Create calendar events with Google Meet links</p>
+                      </div>
                     </div>
                   </div>
 
@@ -1239,35 +1245,37 @@ const Settings = () => {
                     </div>
                   ) : googleStatus.connected ? (
                     <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        {googleStatus.avatarUrl && (
-                          <img
-                            src={googleStatus.avatarUrl}
-                            alt="Google Profile"
-                            className="w-10 h-10 rounded-full"
-                          />
-                        )}
-                        <div>
-                          <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                            {googleStatus.email || user?.email}
-                          </p>
-                          <p className={`text-sm ${theme === 'dark' ? 'text-green-400' : 'text-green-700'}`}>
-                            Connected
-                          </p>
-                          {googleStatus.tokenExpiry && (
-                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                              Token expires {new Date(googleStatus.tokenExpiry).toLocaleDateString()}
-                            </p>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div className="flex items-center gap-4">
+                          {googleStatus.avatarUrl && (
+                            <img
+                              src={googleStatus.avatarUrl}
+                              alt="Google Profile"
+                              className="w-10 h-10 rounded-full flex-shrink-0"
+                            />
                           )}
+                          <div className="min-w-0 flex-1">
+                            <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} truncate`}>
+                              {googleStatus.email || user?.email}
+                            </p>
+                            <p className={`text-sm ${theme === 'dark' ? 'text-green-400' : 'text-green-700'}`}>
+                              Connected
+                            </p>
+                            {googleStatus.tokenExpiry && (
+                              <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                                Token expires {new Date(googleStatus.tokenExpiry).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
                         </div>
+                        <button
+                          onClick={handleDisconnectGoogle}
+                          disabled={googleLoading}
+                          className={`w-full sm:w-auto px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+                        >
+                          Disconnect
+                        </button>
                       </div>
-                      <button
-                        onClick={handleDisconnectGoogle}
-                        disabled={googleLoading}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors float-end duration-200 ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
-                      >
-                        Disconnect
-                      </button>
                     </div>
                   ) : (
                     <div className="space-y-4">

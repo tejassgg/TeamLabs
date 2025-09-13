@@ -122,7 +122,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
   // If in mobile navbar, show only the user profile button
   if (isMobile) {
     return (
-      <div className={`flex items-center gap-1.5 ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900'} p-2 rounded-xl border ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'} shadow-sm`}>
+      <div className={`flex items-center gap-1.5 p-2`}>
         {/* Status Dropdown */}
         <StatusDropdown
           currentStatus={userStatus}
