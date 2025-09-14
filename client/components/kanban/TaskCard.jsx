@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
 import { useRouter } from 'next/router';
-import { useTheme } from '../../context/ThemeContext';
 import { getTaskTypeDetails, getPriorityStyle, useThemeClasses } from './kanbanUtils';
-import { FaComment, FaPaperclip, FaCalendarAlt, FaFlag } from 'react-icons/fa';
+import { FaRegComment  } from 'react-icons/fa';
+import { TiAttachment } from "react-icons/ti";
 
 const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssignedToUser, bgColor }) => {
   const router = useRouter();
@@ -248,7 +248,7 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
               'flex items-center gap-1 text-xs text-gray-600',
               'dark:text-gray-400'
             )}>
-              <FaComment className="w-3 h-3" />
+              <FaRegComment size={12} />
               <span>{task.commentsCount}</span>
             </div>
           )}
@@ -257,7 +257,7 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
               'flex items-center gap-1 text-xs text-gray-600',
               'dark:text-gray-400'
             )}>
-              <FaPaperclip className="w-3 h-3" />
+              <TiAttachment size={16} />
               <span>{task.attachmentsCount}</span>
             </div>
           )}

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
 import { FaInfoCircle, FaExclamationCircle, FaProjectDiagram, FaTrashAlt, FaTasks } from 'react-icons/fa';
 import { useGlobal } from '../context/GlobalContext';
-import { taskService, projectService} from '../services/api';
+import { taskService, projectService } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { connectSocket, subscribe, getSocket } from '../services/socket';
 import AssignTaskModal from '../components/shared/AssignTaskModal';
@@ -301,10 +301,10 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
       <div className="mx-auto">
 
         {!forcedProjectId && (
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between gap-4 flex-col-reverse sm:flex-row mt-2 mb-4">
             {/* Project Info Banner */}
             <div className={getThemeClasses(
-              'bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 flex items-center gap-3 border border-blue-100',
+              'hidden sm:flex bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 flex items-center gap-3 border border-blue-100',
               'dark:from-blue-900/30 dark:to-indigo-900/30 dark:border-blue-800/50'
             )}>
               <FaInfoCircle className={getThemeClasses(
@@ -324,22 +324,20 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
                 )}>Drag and drop tasks to update their status</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <CustomDropdown
-                value={selectedProject || ''}
-                onChange={handleProjectChange}
-                options={projects.length === 0 ? [] : projects.map(project => ({
-                  value: project.ProjectID || project._id,
-                  label: project.Name,
-                  icon: <FaProjectDiagram className="w-4 h-4" />
-                }))}
-                placeholder={projects.length === 0 ? "No projects available" : "Select a project"}
-                disabled={projects.length === 0}
-                variant="filled"
-                size="md"
-                width="w-64"
-              />
-            </div>
+            <CustomDropdown
+              value={selectedProject || ''}
+              onChange={handleProjectChange}
+              options={projects.length === 0 ? [] : projects.map(project => ({
+                value: project.ProjectID || project._id,
+                label: project.Name,
+                icon: <FaProjectDiagram className="w-4 h-4" />
+              }))}
+              placeholder={projects.length === 0 ? "No projects available" : "Select a project"}
+              disabled={projects.length === 0}
+              variant="filled"
+              size="md"
+              className="w-full sm:w-64"
+            />
           </div>
         )}
         {/* Filter UI is now provided by Project Details tab bar when embedded */}

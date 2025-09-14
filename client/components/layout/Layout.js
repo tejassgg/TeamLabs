@@ -420,6 +420,8 @@ const Layout = ({ children, pageProject, pageTitle }) => {
     if (path === '/messages') return 'Messages';
     if (path === '/payment') return 'Payment';
     if (path === '/query') return 'Query Board';
+    if (path === '/teams') return 'Teams';
+    if (path === '/projects') return 'Projects';
 
     // Dynamic routes
     if (path === '/task/[taskId]') {
@@ -464,6 +466,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
 
   const currentPageTitle = getPageTitle();
   const currentPageProject = getPageProject();
+  const hideTitleOnMobile = isMobile && (router.pathname === '/project/[projectId]' || router.pathname === '/task/[taskId]');
 
   // Inline editing functions
   const handleEditProjectName = (project) => {
@@ -687,7 +690,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
             >
               <FaBars size={22} />
             </button>
-            {currentPageTitle ? (
+            {!hideTitleOnMobile && currentPageTitle ? (
               <div className="text-2xl font-bold text-gray-900 dark:text-white select-none">
                 {currentPageTitle}
               </div>

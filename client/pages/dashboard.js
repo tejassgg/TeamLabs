@@ -393,21 +393,25 @@ const Dashboard = () => {
                     <span>Manage Organization</span>
                   </button>
                 </div>
-                
-                {/* Setup Guide Button - Now positioned on the right side */}
-                <button
-                  onClick={() => setShowOnboardingGuide(true)}
-                  className={`px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${
-                    theme === 'dark' 
-                      ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
-                >
-                  <FaRocket size={14} />
-                  Setup Guide
-                </button>
               </nav>
             </div>
+          </div>
+        )}
+
+        {/* Setup Guide Button - Now positioned prominently below tabs */}
+        {!shouldShowWelcomeMessage && (
+          <div className="mb-6 flex justify-center">
+            <button
+              onClick={() => setShowOnboardingGuide(true)}
+              className={`px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                theme === 'dark' 
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white' 
+                  : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white'
+              }`}
+            >
+              <FaRocket size={16} />
+              <span className="font-medium">Get Started with Setup Guide</span>
+            </button>
           </div>
         )}
 

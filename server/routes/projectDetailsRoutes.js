@@ -34,6 +34,22 @@ router.get('/:projectId', async (req, res) => {
     const userStories = await TaskDetails.find({ ProjectID_FK: projectId, Type: "User Story" });
     const taskListss = await TaskDetails.find({ ProjectID_FK: projectId, Type: { $ne: "User Story" } });
 
+    // Process user stories with comment and attachment counts
+    const processedUserStories = await Promise.all(userStories.map(async (userStory) => {
+      const newUserStory = userStory.toObject();
+
+      // Fetch comment and attachment counts for this user story
+      const [commentsCount, attachmentsCount] = await Promise.all([
+        Comment.countDocuments({ TaskID: userStory.TaskID }),
+        Attachment.countDocuments({ TaskID: userStory.TaskID })
+      ]);
+
+      newUserStory.commentCount = commentsCount;
+      newUserStory.attachmentCount = attachmentsCount;
+
+      return newUserStory;
+    }));
+
     // Use Promise.all to properly wait for all user details to be fetched
     const newTaskList = await Promise.all(taskListss.map(async (task) => {
       const newTask = task.toObject();
@@ -83,8 +99,8 @@ router.get('/:projectId', async (req, res) => {
         Attachment.countDocuments({ TaskID: task.TaskID })
       ]);
 
-      newTask.commentsCount = commentsCount;
-      newTask.attachmentsCount = attachmentsCount;
+      newTask.commentCount = commentsCount;
+      newTask.attachmentCount = attachmentsCount;
 
       return newTask;
     }));
@@ -102,7 +118,7 @@ router.get('/:projectId', async (req, res) => {
       project,
       teams: projectDetails,
       orgTeams: teamMemberCounts,
-      userStories: userStories,
+      userStories: processedUserStories,
       taskList: newTaskList,
       projectMembers,
       activity

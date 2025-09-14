@@ -862,9 +862,9 @@ const TeamDetailsPage = () => {
           <>
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
 
-              {/* Team Description - Enhanced UI */}
+              {/* Team Description - Desktop View */}
               <div className={getThemeClasses(
-                'flex w-full items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm',
+                'hidden md:flex w-full items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm',
                 'dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none'
               )}>
                 <div className="flex items-center gap-3">
@@ -911,6 +911,74 @@ const TeamDetailsPage = () => {
                       {team.teamTypeValue}
                     </div>
                   )}
+                  {isOwner && (
+                    <button
+                      onClick={handleOpenSettingsModal}
+                      className={getThemeClasses(
+                        'p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors',
+                        'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700'
+                      )}
+                      title="Team Settings"
+                    >
+                      <FaCog size={20} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Team Description - Mobile View */}
+              <div className={getThemeClasses(
+                'md:hidden bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm space-y-4',
+                'dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none'
+              )}>
+                {/* Description Section */}
+                <div className="flex items-start gap-3">
+                  <div className={getThemeClasses(
+                    'flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center',
+                    'dark:bg-blue-900/50'
+                  )}>
+                    <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={getThemeClasses(
+                      'text-sm font-semibold text-blue-800 mb-2',
+                      'dark:text-blue-300'
+                    )}>
+                      Team Description
+                    </h3>
+                    {team.TeamDescription ? (
+                      <p className={getThemeClasses(
+                        'text-sm text-blue-700 leading-relaxed break-words',
+                        'dark:text-blue-200'
+                      )}>
+                        {team.TeamDescription}
+                      </p>
+                    ) : (
+                      <p className={getThemeClasses(
+                        'text-sm text-blue-600 italic',
+                        'dark:text-blue-300'
+                      )}>
+                        No description provided
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Status and Controls Section */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <StatusPill status={team.IsActive ? 'Active' : 'Offline'} theme={theme} showPulseOnActive />
+                    {team.teamTypeValue && (
+                      <div className={getThemeClasses(
+                        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200',
+                        'dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50'
+                      )}>
+                        {team.teamTypeValue}
+                      </div>
+                    )}
+                  </div>
                   {isOwner && (
                     <button
                       onClick={handleOpenSettingsModal}
@@ -1703,11 +1771,11 @@ const TeamDetailsPage = () => {
                   className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isSettingsModalClosing ? 'opacity-0' : 'opacity-100'}`}
                   onClick={handleCloseSettingsModal}
                 />
-                <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isSettingsModalClosing ? 'translate-x-full' : isSettingsModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
-                  <div className="flex items-center justify-between mb-6">
+                <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-4 lg:p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isSettingsModalClosing ? 'translate-x-full' : isSettingsModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
+                  <div className="flex items-center justify-between mb-4 lg:mb-6">
                     <h3 className={getThemeClasses(
-                      'text-xl font-semibold text-gray-900',
-                      'text-xl font-semibold text-white'
+                      'text-lg lg:text-xl font-semibold text-gray-900',
+                      'text-lg lg:text-xl font-semibold text-white'
                     )}>Team Settings</h3>
                     <button
                       onClick={handleCloseSettingsModal}
@@ -1719,18 +1787,18 @@ const TeamDetailsPage = () => {
                       ×
                     </button>
                   </div>
-                  <form onSubmit={handleSettingsSave} className="space-y-6">
-                    <div className="flex items-center gap-4">
+                  <form onSubmit={handleSettingsSave} className="space-y-4">
+                    <div className="flex flex-row justify-center sm:justify-start gap-4">
                       <div className="flex items-center gap-2 min-w-[120px]">
                         <FaUsers className={getThemeClasses(
                           'text-gray-500',
-                          'text-gray-400'
+                          'text-white'
                         )} size={16} />
                         <label className={getThemeClasses(
                           'text-sm font-medium text-gray-700',
-                          'text-sm font-medium text-gray-300'
+                          'text-sm font-medium text-white'
                         )}>
-                          Team Name<span className="text-red-500 ml-1">*</span>
+                          Name<span className="text-red-500 ml-1">*</span>
                         </label>
                       </div>
                       <input
@@ -1744,15 +1812,15 @@ const TeamDetailsPage = () => {
                         required
                       />
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2 min-w-[120px]">
+                    <div className="flex flex-row justify-center sm:justify-start gap-4">
+                      <div className="flex items-center gap-2 min-w-[120px] pt-2">
                         <FaAlignLeft className={getThemeClasses(
                           'text-gray-500',
-                          'text-gray-400'
+                          'text-white'
                         )} size={16} />
                         <label className={getThemeClasses(
                           'text-sm font-medium text-gray-700',
-                          'text-sm font-medium text-gray-300'
+                          'text-sm font-medium text-white'
                         )}>
                           Description
                         </label>
@@ -1767,15 +1835,15 @@ const TeamDetailsPage = () => {
                         rows="3"
                       />
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-row justify-center sm:justify-start gap-4">
                       <div className="flex items-center gap-2 min-w-[120px]">
                         <FaTag className={getThemeClasses(
                           'text-gray-500',
-                          'text-gray-400'
+                          'text-white'
                         )} size={16} />
                         <label className={getThemeClasses(
                           'text-sm font-medium text-gray-700',
-                          'text-sm font-medium text-gray-300'
+                          'text-sm font-medium text-white'
                         )}>
                           Team Type
                         </label>
@@ -1796,12 +1864,29 @@ const TeamDetailsPage = () => {
                             </option>
                           ))}
                         </select>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-4 pt-4 mt-4 sm:mt-2">
+                      <div className="flex flex-row justify-center gap-3">
+                        {isOwner && (
+                          <button
+                            type="button"
+                            onClick={() => setShowDeleteDialog(true)}
+                            className={getThemeClasses(
+                              `inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200`,
+                              `dark:bg-red-900/50 text-red-300 hover:bg-red-900/70`
+                            )}
+                          >
+                            <FaTrash className="w-4 h-4" />
+                            Delete Team
+                          </button>
+                        )}
                         {isOwner && (
                           <button
                             type="button"
                             onClick={() => setShowConfirmDialog(true)}
                             className={getThemeClasses(
-                              `inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200' : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'} ${togglingTeam ? 'opacity-50 cursor-not-allowed' : ''}`,
+                              `inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200' : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'} ${togglingTeam ? 'opacity-50 cursor-not-allowed' : ''}`,
                               `dark:${team.IsActive ? 'bg-red-900/50 text-red-300 hover:bg-red-900/70' : 'bg-green-900/50 text-green-300 hover:bg-green-900/70'} ${togglingTeam ? 'opacity-50 cursor-not-allowed' : ''}`
                             )}
                             disabled={togglingTeam}
@@ -1811,24 +1896,7 @@ const TeamDetailsPage = () => {
                           </button>
                         )}
                       </div>
-                    </div>
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200 mt-6">
-                      <div className="flex gap-3">
-                        {isOwner && (
-                          <button
-                            type="button"
-                            onClick={() => setShowDeleteDialog(true)}
-                            className={getThemeClasses(
-                              'inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200 transition-all duration-200',
-                              'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
-                            )}
-                          >
-                            <FaTrash className="w-4 h-4" />
-                            Delete Team
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex gap-3">
+                      <div className="flex flex-row justify-end gap-3">
                         <button
                           type="button"
                           onClick={handleCloseSettingsModal}
@@ -2162,10 +2230,10 @@ const TeamDetailsPage = () => {
                           'text-sm font-medium text-gray-700',
                           'text-sm font-medium text-gray-300'
                         )}>
-                          Team Members<span className="text-red-500 ml-1">*</span>
+                          Members<span className="text-red-500 ml-1">*</span>
                         </label>
                       </div>
-                      
+
                       {/* Selected Members Display */}
                       {createMeetingForm.attendeeIds.length > 0 && (
                         <div className="mb-4">
@@ -2217,7 +2285,7 @@ const TeamDetailsPage = () => {
                             'text-gray-500',
                             'text-gray-400'
                           )}>
-                            {createMeetingForm.attendeeIds.length > 0 
+                            {createMeetingForm.attendeeIds.length > 0
                               ? `${createMeetingForm.attendeeIds.length} member(s) selected`
                               : 'Select team members'
                             }
@@ -2248,11 +2316,10 @@ const TeamDetailsPage = () => {
                                     'w-full px-4 py-3 text-left hover:bg-[#424242] transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-3'
                                   )}
                                 >
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                                    createMeetingForm.attendeeIds.includes(member.MemberID)
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${createMeetingForm.attendeeIds.includes(member.MemberID)
                                       ? 'bg-blue-500 text-white'
                                       : getThemeClasses('bg-gray-100 text-gray-700', 'bg-gray-700 text-gray-300')
-                                  }`}>
+                                    }`}>
                                     {member.name.split(' ').map(n => n[0]).join('')}
                                   </div>
                                   <div className="flex-1 min-w-0">

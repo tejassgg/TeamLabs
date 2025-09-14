@@ -345,7 +345,7 @@ const QueryBoard = () => {
 
       <div className="mx-auto">
         {/* Search, Export, and Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex gap-4 mt-4 mb-4">
           <div className="flex-1 relative">
             <FaSearch className={getThemeClasses("absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400", "dark:text-gray-500")} size={16} />
             <input
@@ -359,26 +359,26 @@ const QueryBoard = () => {
               )}
             />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <div className="relative">
               <button
                 ref={filterBtnRef}
                 onClick={() => setShowFilterModal((v) => !v)}
                 className={getThemeClasses(
-                  "flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-100 hover:bg-blue-500 hover:text-white duration-300 rounded-lg transition-colors",
+                  "flex items-center gap-2 px-3 sm:px-4 py-2 text-blue-600 bg-blue-100 hover:bg-blue-500 hover:text-white duration-300 rounded-lg transition-colors text-sm",
                   "bg-blue-500 hover:bg-blue-600 text-white hover:text-white"
                 )}
                 title="Open Filters"
               >
                 <FaFilter />
-                Filter
+                <span className="hidden sm:inline">Filter</span>
               </button>
               {showFilterModal && (
                 <div
                   ref={filterPopoverRef}
                   className={getThemeClasses(
-                    `absolute right-0 mt-2 w-80 z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-white border-gray-200`,
-                    `absolute right-0 mt-2 w-80 z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-[#232323] border-gray-600`
+                    `absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-white border-gray-200`,
+                    `absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-[#232323] border-gray-600`
                   )}
                   role="dialog"
                   aria-label="Filters"
@@ -487,12 +487,12 @@ const QueryBoard = () => {
             <button
               onClick={exportToCSV}
               className={getThemeClasses(
-                "flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors",
+                "flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm",
                 "dark:bg-green-500 dark:hover:bg-green-600"
               )}
             >
               <FaDownload />
-              Export CSV
+              <span className="hidden sm:inline">Export CSV</span>
             </button>
           </div>
         </div>
@@ -511,148 +511,237 @@ const QueryBoard = () => {
             <span className={getThemeClasses("ml-3 text-gray-500", "dark:text-gray-400")}>Loading tasks...</span>
           </div>
         ) : (
-          <div className={getThemeClasses("bg-white border border-gray-200 rounded-xl shadow overflow-hidden", "dark:bg-transparent dark:border-gray-700")}>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className={getThemeClasses("border-b border-gray-200", "dark:border-gray-700")}>
-                    <th
-                      className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
-                      onClick={() => sortData('Name')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Task Name
-                        {getSortIcon('Name')}
-                      </div>
-                    </th>
-                    <th
-                      className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
-                      onClick={() => sortData('AssignedDate')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Assigned Date
-                        {getSortIcon('AssignedDate')}
-                      </div>
-                    </th>
-                    <th
-                      className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
-                      onClick={() => sortData('AssignedToDetails')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Assigned To
-                        {getSortIcon('AssignedToDetails')}
-                      </div>
-                    </th>
-                    <th
-                      className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
-                      onClick={() => sortData('AssigneeDetails')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Assigned By
-                        {getSortIcon('AssigneeDetails')}
-                      </div>
-                    </th>
-                    <th
-                      className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
-                      onClick={() => sortData('Status')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Status
-                        {getSortIcon('Status')}
-                      </div>
-                    </th>
-                    <th
-                      className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
-                      onClick={() => sortData('Priority')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Priority
-                        {getSortIcon('Priority')}
-                      </div>
-                    </th>
-                    <th
-                      className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
-                      onClick={() => sortData('Type')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Task Type
-                        {getSortIcon('Type')}
-                      </div>
-                    </th>
-                    <th className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900", "dark:text-gray-100")}>
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredTasks.map(task => (
-                    <tr key={task.TaskID} className={getThemeClasses("border-b border-gray-200 hover:bg-gray-50", "dark:border-gray-700 dark:hover:bg-gray-800")}>
-                      <td className="py-3 px-4 flex flex-col">
-                        <button
-                          onClick={() => window.open(`/task/${task.TaskID}`, '_blank')}
-                          className={getThemeClasses(
-                            "text-gray-900 font-medium hover:text-blue-600 hover:underline transition-colors duration-200 text-left",
-                            "dark:text-gray-100 dark:hover:text-blue-400"
-                          )}
-                          title="View Task Details"
-                        >
-                          {task.Name}
-                        </button>
-                        {task.Description && (
-                          <span className={getThemeClasses("text-xs text-gray-500", "dark:text-gray-400")}>
-                            {task.Description}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
-                          {task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString() : '-'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-1">
-                          {getUserInitialsBadge(task.AssignedToDetails)}
-                          <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
-                            {task.AssignedToDetails?.fullName || '-'}
-                          </span>
+          <>
+            {/* Desktop Table View */}
+            <div className={getThemeClasses("bg-white border border-gray-200 rounded-xl shadow overflow-hidden hidden lg:block", "dark:bg-transparent dark:border-gray-700")}>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className={getThemeClasses("border-b border-gray-200", "dark:border-gray-700")}>
+                      <th
+                        className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
+                        onClick={() => sortData('Name')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Task Name
+                          {getSortIcon('Name')}
                         </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-1">
-                          {getUserInitialsBadge(task.AssigneeDetails)}
-                          <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
-                            {task.AssigneeDetails?.fullName || '-'}
-                          </span>
+                      </th>
+                      <th
+                        className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
+                        onClick={() => sortData('AssignedDate')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Assigned Date
+                          {getSortIcon('AssignedDate')}
                         </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        {getStatusBadge(task.Status)}
-                      </td>
-                      <td className="py-3 px-4">
-                        {getPriorityBadgeComponent(task.Priority)}
-                      </td>
-                      <td className="py-3 px-4">
-                        {task.Type ? getTaskTypeBadge(task.Type) : (
-                          <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
-                            -
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        <button
-                          onClick={() => handleDeleteClick(task)}
-                          className={getThemeClasses("p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full", "dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30")}
-                          title="Delete Task"
-                        >
-                          <FaTrash size={14} />
-                        </button>
-                      </td>
+                      </th>
+                      <th
+                        className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
+                        onClick={() => sortData('AssignedToDetails')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Assigned To
+                          {getSortIcon('AssignedToDetails')}
+                        </div>
+                      </th>
+                      <th
+                        className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
+                        onClick={() => sortData('AssigneeDetails')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Assigned By
+                          {getSortIcon('AssigneeDetails')}
+                        </div>
+                      </th>
+                      <th
+                        className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
+                        onClick={() => sortData('Status')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Status
+                          {getSortIcon('Status')}
+                        </div>
+                      </th>
+                      <th
+                        className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
+                        onClick={() => sortData('Priority')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Priority
+                          {getSortIcon('Priority')}
+                        </div>
+                      </th>
+                      <th
+                        className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900 cursor-pointer", "dark:text-gray-100")}
+                        onClick={() => sortData('Type')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Task Type
+                          {getSortIcon('Type')}
+                        </div>
+                      </th>
+                      <th className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900", "dark:text-gray-100")}>
+                        Actions
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filteredTasks.map(task => (
+                      <tr key={task.TaskID} className={getThemeClasses("border-b border-gray-200 hover:bg-gray-50", "dark:border-gray-700 dark:hover:bg-gray-800")}>
+                        <td className="py-3 px-4 flex flex-col">
+                          <button
+                            onClick={() => window.open(`/task/${task.TaskID}`, '_blank')}
+                            className={getThemeClasses(
+                              "text-gray-900 font-medium hover:text-blue-600 hover:underline transition-colors duration-200 text-left",
+                              "dark:text-gray-100 dark:hover:text-blue-400"
+                            )}
+                            title="View Task Details"
+                          >
+                            {task.Name}
+                          </button>
+                          {task.Description && (
+                            <span className={getThemeClasses("text-xs text-gray-500", "dark:text-gray-400")}>
+                              {task.Description}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
+                            {task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString() : '-'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-1">
+                            {getUserInitialsBadge(task.AssignedToDetails)}
+                            <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
+                              {task.AssignedToDetails?.fullName || '-'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-1">
+                            {getUserInitialsBadge(task.AssigneeDetails)}
+                            <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
+                              {task.AssigneeDetails?.fullName || '-'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          {getStatusBadge(task.Status)}
+                        </td>
+                        <td className="py-3 px-4">
+                          {getPriorityBadgeComponent(task.Priority)}
+                        </td>
+                        <td className="py-3 px-4">
+                          {task.Type ? getTaskTypeBadge(task.Type) : (
+                            <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
+                              -
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <button
+                            onClick={() => handleDeleteClick(task)}
+                            className={getThemeClasses("p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full", "dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30")}
+                            title="Delete Task"
+                          >
+                            <FaTrash size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden space-y-4">
+              {filteredTasks.map(task => (
+                <div key={task.TaskID} className={getThemeClasses("bg-white border border-gray-200 rounded-xl shadow p-4", "dark:bg-transparent dark:border-gray-700")}>
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <button
+                        onClick={() => window.open(`/task/${task.TaskID}`, '_blank')}
+                        className={getThemeClasses(
+                          "text-gray-900 font-medium hover:text-blue-600 hover:underline transition-colors duration-200 text-left text-base",
+                          "dark:text-gray-100 dark:hover:text-blue-400"
+                        )}
+                        title="View Task Details"
+                      >
+                        {task.Name}
+                      </button>
+                      {task.Description && (
+                        <p className={getThemeClasses("text-xs text-gray-500 mt-1", "dark:text-gray-400")}>
+                          {task.Description}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleDeleteClick(task)}
+                      className={getThemeClasses("p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full ml-2", "dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30")}
+                      title="Delete Task"
+                    >
+                      <FaTrash size={14} />
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className={getThemeClasses("text-gray-500 font-medium", "dark:text-gray-400")}>Assigned Date:</span>
+                      <div className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
+                        {task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString() : '-'}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <span className={getThemeClasses("text-gray-500 font-medium", "dark:text-gray-400")}>Status:</span>
+                      <div className="mt-1">
+                        {getStatusBadge(task.Status)}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <span className={getThemeClasses("text-gray-500 font-medium", "dark:text-gray-400")}>Assigned To:</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        {getUserInitialsBadge(task.AssignedToDetails)}
+                        <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
+                          {task.AssignedToDetails?.fullName || '-'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <span className={getThemeClasses("text-gray-500 font-medium", "dark:text-gray-400")}>Priority:</span>
+                      <div className="mt-1">
+                        {getPriorityBadgeComponent(task.Priority)}
+                      </div>
+                    </div>
+                    
+                    <div className="col-span-2">
+                      <span className={getThemeClasses("text-gray-500 font-medium", "dark:text-gray-400")}>Assigned By:</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        {getUserInitialsBadge(task.AssigneeDetails)}
+                        <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>
+                          {task.AssigneeDetails?.fullName || '-'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {task.Type && (
+                      <div className="col-span-2">
+                        <span className={getThemeClasses("text-gray-500 font-medium", "dark:text-gray-400")}>Task Type:</span>
+                        <div className="mt-1">
+                          {getTaskTypeBadge(task.Type)}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {!loading && filteredTasks.length === 0 && (
