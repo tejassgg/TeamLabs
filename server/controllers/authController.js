@@ -951,7 +951,7 @@ const initiateGitHubAuth = async (req, res) => {
 
     // Store state in session or temporary storage (for production, use Redis)
     // For now, we'll use a simple approach
-    const redirectUri = `${process.env.CLIENT_URL || 'http://localhost:3000'}/github-callback`;
+    const redirectUri = `${process.env.FRONTEND_URL}/github-callback`;
     const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&scope=repo,user:email&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
     res.json({

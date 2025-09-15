@@ -247,7 +247,7 @@ router.delete('/bulk-delete', async (req, res) => {
     
     // Ask client to remove physical files via its API (best-effort)
     try {
-      const base = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      const base = process.env.FRONTEND_URL;
       for (const attachment of attachments) {
         if (attachment.FileURL) {
           fetch(`${base}/api/local-delete?path=${encodeURIComponent(attachment.FileURL)}`, { method: 'DELETE' }).catch(() => {});

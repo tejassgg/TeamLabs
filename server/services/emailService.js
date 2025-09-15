@@ -247,7 +247,7 @@ async function sendResetEmail(to, username, link) {
 
 // Helper to send task assignment email
 async function sendTaskAssignmentEmail(to, taskName, taskDetails, assignedBy, priority, status, taskType, taskId, project, historyItems, attachments, comments) {
-  const taskUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/task/${taskId}`;
+  const taskUrl = `${process.env.FRONTEND_URL}/task/${taskId}`;
   const taskDetailsObj = parseTaskDetails(taskDetails);
   const assignedDateFormatted = formatDate(taskDetailsObj['Assigned Date']);
 
@@ -344,7 +344,7 @@ async function sendTaskAssignmentEmail(to, taskName, taskDetails, assignedBy, pr
 // Helper to send comment mention email
 async function sendCommentMentionEmail(to, mentionTo, commentContent, taskName, taskId, project, taskType, status, priority, mentionedBy) {
   const highlightedContent = highlightMentions(commentContent);
-  const taskUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/task/${taskId}`;
+  const taskUrl = `${process.env.FRONTEND_URL}/task/${taskId}`;
 
   // Professional badge HTML generators
   const badgeStyle = 'display:inline-flex;align-items:center;justify-content:center;min-width:70px;max-width:110px;padding:4px 12px;border-radius:6px;font-size:11px;font-weight:600;margin-right:8px;box-sizing:border-box;line-height:1.2;border:1px solid;text-transform:uppercase;letter-spacing:0.5px;';

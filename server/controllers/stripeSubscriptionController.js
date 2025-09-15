@@ -40,8 +40,8 @@ exports.createCheckoutSession = async (req, res) => {
       mode: 'subscription',
       customer: customerId,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
-      success_url: successUrl || `${process.env.APP_BASE_URL || 'http://localhost:3000'}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `${process.env.APP_BASE_URL || 'http://localhost:3000'}/settings?tab=subscription`,
+      success_url: successUrl || `${process.env.FRONTEND_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl || `${process.env.FRONTEND_URL}/settings?tab=subscription`,
       metadata: { organizationID: String(organizationID), userId: String(userId), plan: plan || null },
       subscription_data: {
         metadata: { organizationID: String(organizationID), userId: String(userId), plan: plan || null },
@@ -246,7 +246,7 @@ exports.createBillingPortalSession = async (req, res) => {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${process.env.APP_BASE_URL || 'http://localhost:3000'}/settings?tab=subscription`,
+      return_url: `${process.env.FRONTEND_URL}/settings?tab=subscription`,
     });
 
     return res.json({ success: true, url: session.url });
