@@ -222,22 +222,7 @@ const ProjectFilesTab = ({ projectId }) => {
           if (!uploaded || !uploaded.FileURL) {
             throw new Error('Upload failed');
           }
-
-          const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.fullName || user.name || user.email || 'User';
-
-          const shapedAttachment = {
-            ...uploaded,
-            ProjectID: projectId,
-            uploaderDetails: {
-              _id: user._id,
-              fullName,
-              email: user.email,
-            },
-            taskDetails: null,
-            isProjectAttachment: projectId,
-          };
-
-          // setProjectAttachments((prev) => [shapedAttachment, ...prev]);
+          
           showToast(`${file.name} uploaded successfully`, 'success');
         } catch (error) {
           console.error('Error uploading file:', error);

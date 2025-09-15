@@ -787,6 +787,7 @@ export const attachmentService = {
       });
       return res.data;
     } catch (error) {
+      console.log('File Upload API Call Error', error);
       throw error.response?.data || { message: 'Failed to upload attachment' };
     }
   },
