@@ -228,7 +228,7 @@ exports.resendInvite = async (req, res) => {
     await invite.save();
 
     // Send new invite email
-    const inviteLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/register?invite=${invite.token}`;
+    const inviteLink = `${process.env.FRONTEND_URL}/register?invite=${invite.token}`;
     await emailService.sendInviteEmail(invite.email, inviteLink, req.user.firstName || 'A TeamLabs Admin');
 
     res.json({ message: 'Invite resent successfully', invite });
@@ -282,7 +282,7 @@ exports.inviteUser = async (req, res) => {
     const invite = await Invite.create({ email, organizationID, inviter, token });
 
     // Send invite email
-    const inviteLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/register?invite=${token}`;
+    const inviteLink = `${process.env.FRONTEND_URL}/register?invite=${token}`;
     await emailService.sendInviteEmail(email, inviteLink, req.user.firstName || 'A TeamLabs Admin');
 
     res.status(201).json({ message: 'Invite sent', invite });

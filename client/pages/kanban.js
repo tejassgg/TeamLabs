@@ -17,7 +17,7 @@ import {
 } from '../components/kanban/kanbanUtils';
 
 
-const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp = undefined }) => {
+const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp = undefined, projectMembersProp = undefined }) => {
   const { projects, userDetails } = useGlobal();
   const { showToast } = useToast();
   const [selectedProject, setSelectedProject] = useState(forcedProjectId || null);
@@ -32,6 +32,7 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
   const [isOverDeleteArea, setIsOverDeleteArea] = useState(false);
   const [draggedCardDimensions, setDraggedCardDimensions] = useState(null);
   const [userStories, setUserStories] = useState([]);
+  const [projectMembers, setProjectMembers] = useState(projectMembersProp || []);
   const [selectedUserStory, setSelectedUserStory] = useState(selectedUserStoryProp ?? 'all');
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const getThemeClasses = useThemeClasses();
@@ -56,10 +57,11 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
       if (!selectedProject) return;
       setLoading(true);
       try {
-        const { tasks: fetchedTasks, userStories: fetchedUserStories } = await taskService.getKanbanData(selectedProject);
+        const { tasks: fetchedTasks, userStories: fetchedUserStories, projectMembers: fetchedMembers } = await taskService.getKanbanData(selectedProject);
         setAllTasks(fetchedTasks || []);
         setTasks(applyUserStoryFilter(fetchedTasks || [], selectedUserStory));
         setUserStories(fetchedUserStories || []);
+        if (!projectMembersProp) setProjectMembers(fetchedMembers || []);
       } catch (err) {
         setError('Failed to fetch tasks');
         showToast('Failed to fetch tasks', 'error');
@@ -92,12 +94,11 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
     }
   }, [selectedUserStoryProp]);
 
-  // Handle project selection change
-  const handleProjectChange = (e) => {
-    const newProjectId = e.target.value;
-    if (newProjectId !== selectedProject) {
-      setSelectedProject(newProjectId);
-    }
+  // Handle project selection change (CustomDropdown passes value directly)
+  const handleProjectChange = (newProjectId) => {
+    if (!newProjectId || newProjectId === selectedProject) return;
+    setSelectedUserStory('all');
+    setSelectedProject(newProjectId);
   };
 
   // Function to check if a task is assigned to the current user
@@ -614,6 +615,7 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
           mode="fromProject"
           projectIdDefault={selectedProject}
           userStories={userStories}
+          projectMembers={projectMembers}
         />
 
         {/* Instructions */}

@@ -3,6 +3,7 @@ import { commonTypeService } from '../../services/api';
 import { authService } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import { FaCircle, FaUsers, FaAlignLeft, FaTag, FaPalette } from 'react-icons/fa';
+import CustomDropdown from '../shared/CustomDropdown';
 
 const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
   const { theme } = useTheme();
@@ -176,20 +177,20 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
                 Team Type
               </label>
             </div>
-            <select
-              value={teamType}
-              onChange={e => setTeamType(e.target.value)}
-              className={getThemeClasses(
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-              )}
-              required
-            >
-              {teamTypeOptions.length === 0 && <option value="">Loading...</option>}
-              {teamTypeOptions.map(option => (
-                <option key={option.Code} value={option.Code}>{option.Value}</option>
-              ))}
-            </select>
+            <div className="flex-1">
+              <CustomDropdown
+                value={teamType}
+                onChange={setTeamType}
+                options={teamTypeOptions.map(opt => ({ value: opt.Code, label: opt.Value }))}
+                placeholder={teamTypeOptions.length === 0 ? 'Loading...' : 'Select team type'}
+                required
+                disabled={teamTypeOptions.length === 0}
+                size="md"
+                variant="default"
+                width="w-full"
+                className="border-b-2"
+              />
+            </div>
           </div>
           
           <div className="flex items-start gap-4">

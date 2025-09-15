@@ -1,30 +1,31 @@
 import { useState, useEffect } from 'react';
 import CustomModal from './CustomModal';
+import CustomDropdown from './CustomDropdown';
 import { commonTypeService } from '../../services/api';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { getTaskTypeBadge, getPriorityBadge } from '../task/TaskTypeBadge';
-import { FaTasks, FaAlignLeft, FaTag, FaExclamationTriangle, FaFolder, FaList } from 'react-icons/fa';
+import { FaTasks, FaAlignLeft, FaTag, FaExclamationTriangle, FaFolder, FaList, FaUsers, FaCalendarAlt } from 'react-icons/fa';
 
 // Custom Badge Dropdown Component
-const BadgeDropdown = ({ 
-  value, 
-  onChange, 
-  options, 
-  placeholder, 
-  required = false, 
+const BadgeDropdown = ({
+  value,
+  onChange,
+  options,
+  placeholder,
+  required = false,
   disabled = false,
   badgeType = 'taskType', // 'taskType' or 'priority'
   className = ''
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { theme } = useTheme();
-  
+
   const getThemeClasses = (lightClasses, darkClasses) => {
     return theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
   };
 
-  const selectedOption = options.find(opt => 
+  const selectedOption = options.find(opt =>
     badgeType === 'taskType' ? opt.Value === value : badgeType === 'userStory' ? opt.TaskID === value : opt === value
   );
 
@@ -58,10 +59,13 @@ const BadgeDropdown = ({
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={getThemeClasses(
-          `w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 flex items-center justify-between`,
-          `w-full px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white flex items-center justify-between`
-        )}
+        className={
+          `w-full px-0 py-2 border-0 border-b-2 
+          ${theme === 'dark' ? 'bg-[#232323]' : 'bg-white'} 
+          ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'} 
+          ${theme === 'dark' ? 'focus:border-gray-600' : 'focus:border-gray-200'} focus:outline-none bg-transparent 
+          ${theme === 'dark' ? 'text-white' : 'text-gray-900'} flex items-center justify-between`
+        }
       >
         <div className="flex items-center gap-2">
           {selectedOption ? (
@@ -75,10 +79,10 @@ const BadgeDropdown = ({
             </span>
           )}
         </div>
-        <svg 
-          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
-          fill="none" 
-          stroke="currentColor" 
+        <svg
+          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
           viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -86,10 +90,7 @@ const BadgeDropdown = ({
       </button>
 
       {isOpen && (
-        <div className={getThemeClasses(
-          'absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-auto',
-          'absolute z-50 w-full mt-1 bg-[#18181b] border border-gray-600 rounded-xl shadow-lg overflow-auto'
-        )}>
+        <div className={`absolute z-50 w-full mt-1 ${theme === 'dark' ? 'bg-[#18181b] border-gray-600' : 'bg-white border-gray-200'} border rounded-xl shadow-lg overflow-auto`}>
           {options.map((option, index) => {
             const optionKey = badgeType === 'taskType' ? index : badgeType === 'userStory' ? option.TaskID : index;
             return (
@@ -111,8 +112,8 @@ const BadgeDropdown = ({
 
       {/* Click outside to close */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
+        <div
+          className="fixed inset-0 z-40"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -120,15 +121,15 @@ const BadgeDropdown = ({
   );
 };
 
-const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSideBar', projectIdDefault, userStories, editingTask = null, addTaskTypeMode = 'task' }) => {
-
+const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSideBar', projectIdDefault, userStories, editingTask = null, addTaskTypeMode = 'task', projectMembers = [] }) => {
+  console.log(editingTask);
   const { projects, userDetails } = useGlobal();
   const { theme } = useTheme();
-  
+
   const getThemeClasses = (lightClasses, darkClasses) => {
     return theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
   };
-  
+
   const [isAnimating, setIsAnimating] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -139,6 +140,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
   const [assignedTo, setAssignedTo] = useState('');
   const [projectId, setProjectId] = useState(projectIdDefault || '');
   const [parentId, setParentId] = useState("");
+  const [finishDate, setFinishDate] = useState('');
+  // projectMembers are now passed from parent; no fetching here
   const [isActive, setIsActive] = useState(true);
   const [createdDate] = useState(new Date());
   const [assignedDate] = useState('');
@@ -177,6 +180,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       setProjectId(editingTask.ProjectID_FK || projectIdDefault || '');
       setParentId(editingTask.ParentID || '');
       setIsActive(editingTask.IsActive !== undefined ? editingTask.IsActive : true);
+      setFinishDate(editingTask.FinishDate ? new Date(editingTask.FinishDate).toISOString().split('T')[0] : '');
     } else if (isOpen && !editingTask) {
       setName('');
       setDescription('');
@@ -196,6 +200,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       } else {
         setType('');
       }
+      setFinishDate('');
     }
   }, [isOpen, editingTask, projectIdDefault, userDetails, addTaskTypeMode, userStories]);
 
@@ -232,6 +237,10 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       setError('Task Type is required');
       return;
     }
+    if (type === 'User Story' && !finishDate) {
+      setError('Finish Date is required for User Story');
+      return;
+    }
     if (!projectId) {
       setError('Project is required');
       return;
@@ -253,6 +262,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       Assignee: assignee,
       ProjectID_FK: projectId,
       ParentID: mode === 'fromProject' && type !== 'User Story' ? parentId : null,
+      AssignedTo: mode === 'fromProject' && type !== 'User Story' ? (assignedTo || undefined) : undefined,
+      FinishDate: type === 'User Story' && finishDate ? new Date(finishDate) : undefined,
       CreatedBy: createdBy
     };
 
@@ -301,7 +312,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
 
   const modalTitle = isEditMode
     ? (mode === 'fromSideBar' ? 'Edit User Story' : name)
-    : (mode === 'fromSideBar' ? 'Add User Story' : 'Add New Task');
+    : (mode === 'fromSideBar' ? 'Add User Story' : (addTaskTypeMode === 'userStory' ? 'Add New User Story' : 'Add New Task'));
 
   return (
     <div className="fixed inset-0 z-40">
@@ -310,7 +321,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
         onClick={handleClose}
       />
       <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
-        
+
         <div className="flex items-center justify-between mb-6">
           <h3 className={getThemeClasses(
             'text-xl font-semibold text-gray-900',
@@ -326,7 +337,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
             ×
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 min-w-[120px]">
@@ -336,7 +347,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
               )} size={16} />
               <label className={getThemeClasses(
                 'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-gray-300'
+                'text-sm font-medium text-white'
               )}>
                 Name<span className="text-red-500 ml-1">*</span>
               </label>
@@ -354,7 +365,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
               placeholder="Enter task name"
             />
           </div>
-          
+
           <div className="flex items-start gap-4">
             <div className="flex items-center gap-2 min-w-[120px] pt-2">
               <FaAlignLeft className={getThemeClasses(
@@ -363,7 +374,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
               )} size={16} />
               <label className={getThemeClasses(
                 'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-gray-300'
+                'text-sm font-medium text-white'
               )}>
                 Description<span className="text-red-500 ml-1">*</span>
               </label>
@@ -381,7 +392,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
               placeholder="Enter task description"
             />
           </div>
-          
+
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 min-w-[120px]">
               <FaTag className={getThemeClasses(
@@ -390,7 +401,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
               )} size={16} />
               <label className={getThemeClasses(
                 'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-gray-300'
+                'text-sm font-medium text-white'
               )}>
                 Type<span className="text-red-500 ml-1">*</span>
               </label>
@@ -407,7 +418,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
               />
             </div>
           </div>
-          
+
           {type !== 'User Story' && (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 min-w-[120px]">
@@ -417,7 +428,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 )} size={16} />
                 <label className={getThemeClasses(
                   'text-sm font-medium text-gray-700',
-                  'text-sm font-medium text-gray-300'
+                  'text-sm font-medium text-white'
                 )}>
                   Priority<span className="text-red-500 ml-1">*</span>
                 </label>
@@ -434,7 +445,33 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
               </div>
             </div>
           )}
-          
+          {type === 'User Story' && (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 min-w-[120px]">
+                <FaCalendarAlt className={getThemeClasses(
+                  'text-gray-500',
+                  'text-gray-400'
+                )} size={16} />
+                <label className={getThemeClasses(
+                  'text-sm font-medium text-gray-700',
+                  'text-sm font-medium text-white'
+                )}>
+                  Finish Date<span className="text-red-500 ml-1">*</span>
+                </label>
+              </div>
+              <input
+                type="date"
+                value={finishDate}
+                onChange={(e) => setFinishDate(e.target.value)}
+                className={getThemeClasses(
+                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
+                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
+                )}
+                required
+              />
+            </div>
+          )}
+
           {mode === 'fromSideBar' && (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 min-w-[120px]">
@@ -444,7 +481,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 )} size={16} />
                 <label className={getThemeClasses(
                   'text-sm font-medium text-gray-700',
-                  'text-sm font-medium text-gray-300'
+                  'text-sm font-medium text-white'
                 )}>
                   Project<span className="text-red-500 ml-1">*</span>
                 </label>
@@ -465,7 +502,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
               </select>
             </div>
           )}
-          
+
           {/* User Story Dropdown (only for tasks, not user stories) */}
           {mode === 'fromProject' && type !== 'User Story' && (
             <div className="flex items-center gap-4">
@@ -476,7 +513,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 )} size={16} />
                 <label className={getThemeClasses(
                   'text-sm font-medium text-gray-700',
-                  'text-sm font-medium text-gray-300'
+                  'text-sm font-medium text-white'
                 )}>
                   User Story<span className="text-red-500 ml-1">*</span>
                 </label>
@@ -495,11 +532,47 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
             </div>
           )}
 
+          {/* Team member dropdown for assignment (hide for User Story) */}
+          {type !== 'User Story' && Array.isArray(projectMembers) && projectMembers.length > 0 && (
+            <div className="mt-3 flex items-center gap-4">
+              <div className="flex items-center gap-2 min-w-[120px]">
+                <FaUsers className={getThemeClasses('text-gray-500', 'text-gray-400')} size={16} />
+                <label className={getThemeClasses('text-sm font-medium text-gray-700', 'text-sm font-medium text-white')}>
+                  Assign To
+                </label>
+              </div>
+              <div className="flex-1">
+                <CustomDropdown
+                  value={assignedTo}
+                  onChange={setAssignedTo}
+                  options={projectMembers.map((m) => {
+                    const id = m._id || m.id;
+                    const fullName = [m.firstName, m.lastName].filter(Boolean).join(' ') || m.fullName || m.email || 'Member';
+                    const initials = fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+                    const icon = (
+                      <span className={getThemeClasses(
+                        'inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-medium border border-blue-200',
+                        'inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-900/40 text-blue-300 text-xs font-medium border border-blue-800/40'
+                      )}>{initials}</span>
+                    );
+                    return { value: id, label: fullName, icon };
+                  })}
+                  placeholder="Select member"
+                  variant="outline"
+                  size="md"
+                  width="w-full"
+                  showSearch={true}
+                  className="border-b-2"
+                />
+              </div>
+            </div>
+          )}
+
           {error && <div className={getThemeClasses(
             'text-red-500 text-sm mt-4',
             'text-red-400 text-sm mt-4'
           )}>{error}</div>}
-          
+
           <div className="flex justify-end gap-3 pt-6">
             <button
               type="button"

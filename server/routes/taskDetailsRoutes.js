@@ -43,9 +43,26 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
             taskData.AssignedDate = "";
             taskData.Status = 2;
         }
-        else { taskData.Status = 1; }
+        else {
+            taskData.Status = 1;
+            // If task is created already assigned, set date and status to Assigned
+            if (taskData.AssignedTo) {
+                taskData.AssignedDate = new Date();
+                taskData.Status = 2;
+            }
+        }
         taskData.IsActive = true;
-        taskData.CreatedBy = taskData.Assignee;
+        // taskData.CreatedBy = taskData.Assignee;
+        // Ensure FinishDate for user stories to satisfy schema requirement
+        if (taskData.Type === 'User Story') {
+            if (!taskData.FinishDate) {
+                const base = taskData.CreatedDate || new Date();
+                taskData.FinishDate = new Date(base.getTime() + 7 * 24 * 60 * 60 * 1000);
+            } else {
+                taskData.FinishDate = new Date(taskData.FinishDate);
+            }
+        }
+
         const newTaskDetail = new TaskDetails(taskData);
         const savedTaskDetail = await newTaskDetail.save();
 
@@ -1039,6 +1056,14 @@ router.patch('/:taskId', async (req, res) => {
         if (updateData.Priority !== undefined) task.Priority = updateData.Priority;
         if (updateData.ParentID !== undefined) task.ParentID = updateData.ParentID;
         if (updateData.IsActive !== undefined) task.IsActive = updateData.IsActive;
+        if (updateData.FinishDate !== undefined) task.FinishDate = updateData.FinishDate ? new Date(updateData.FinishDate) : null;
+
+        // Ensure FinishDate present for user stories to satisfy schema requirement
+        if (task.Type === 'User Story' && !task.FinishDate) {
+            const base = task.CreatedDate ? new Date(task.CreatedDate) : new Date();
+            const fallback = new Date(base.getTime() + 7 * 24 * 60 * 60 * 1000);
+            task.FinishDate = fallback;
+        }
 
         await task.save();
 

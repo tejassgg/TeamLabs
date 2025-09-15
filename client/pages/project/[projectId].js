@@ -26,6 +26,7 @@ const ProjectDetailsPage = () => {
   const { projectId } = router.query;
   const { theme } = useTheme();
   const {
+    userDetails,
     getProjectStatus,
     getProjectStatusBadgeComponent,
     getTaskTypeBadgeComponent,
@@ -62,6 +63,20 @@ const ProjectDetailsPage = () => {
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [removingTeam, setRemovingTeam] = useState(null);
   const [removing, setRemoving] = useState(false);
+  
+  // Helpers: show "You" for current user and format date/time
+  const isMe = (userId) => {
+    if (!userId || !userDetails?._id) return false;
+    try {
+      return String(userId) === String(userDetails._id);
+    } catch (_) {
+      return false;
+    }
+  };
+  const displayName = (details, id) => {
+    return (details?.fullName || '-') + (isMe(id) ? ' (You)' : '');
+  };
+
   const [showRevokeDialog, setShowRevokeDialog] = useState(false);
   const [revokingTeam, setRevokingTeam] = useState(null);
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
@@ -162,6 +177,7 @@ const ProjectDetailsPage = () => {
       // Fetch all project details in one call
       api.get(`/project-details/${projectId}`)
         .then(res => {
+          console.log(res.data.userStories);
           setProject(res.data.project);
           setTeams(res.data.teams);
           setOrgTeams(res.data.orgTeams);
@@ -911,6 +927,14 @@ const ProjectDetailsPage = () => {
     'dark:text-gray-400'
   );
 
+  // Use UTC when rendering specific dates to avoid TZ off-by-one on client
+  const formatDateUTC = (dateLike) => {
+    if (!dateLike) return '-';
+    const d = new Date(dateLike);
+    if (isNaN(d)) return '-';
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  };
+
   // Function to handle task deletion
   const handleDeleteTask = async (taskId) => {
     try {
@@ -936,6 +960,7 @@ const ProjectDetailsPage = () => {
   // Function to open edit task modal
   const handleEditTask = (task) => {
     setEditingTask(task);
+    setAddTaskTypeMode(task?.Type === 'User Story' ? 'userStory' : 'task');
     setIsAddTaskOpen(true);
   };
 
@@ -1642,7 +1667,7 @@ const ProjectDetailsPage = () => {
                       onClick={() => { setAddTaskTypeMode('userStory'); setIsAddTaskOpen(true); }}
                       className={getThemeClasses(
                         'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                        'dark:bg-blue-500 dark:hover:bg-blue-600'
+                        'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
                       )}
                     >
                       <FaPlus size={14} />
@@ -1663,7 +1688,7 @@ const ProjectDetailsPage = () => {
                       <thead>
                         <tr className={tableHeaderClasses}>
                           <th className={`py-3 px-4 text-left w-[300px] ${tableHeaderTextClasses}`}>Name</th>
-                          <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Date Created</th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Finish Date</th>
                           <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Status</th>
                           <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Actions</th>
                         </tr>
@@ -1684,11 +1709,7 @@ const ProjectDetailsPage = () => {
                               </div>
                             </td>
                             <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
-                              {new Date(story.CreatedDate).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: '2-digit',
-                                year: 'numeric'
-                              })}
+                              <span>{formatDateUTC(story.FinishDate)}</span>
                             </td>
                             <td className="py-3 px-4 text-center">
                               {(() => {
@@ -1775,7 +1796,7 @@ const ProjectDetailsPage = () => {
                           onClick={() => { setAddTaskTypeMode('task'); setIsAddTaskOpen(true); }}
                           className={getThemeClasses(
                             'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                            'dark:bg-blue-500 dark:hover:bg-blue-600'
+                            'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
                           )}
                         >
                           <FaPlus size={14} />
@@ -1872,7 +1893,7 @@ const ProjectDetailsPage = () => {
                                     {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
                                   </div>
                                   <div className="flex flex-col">
-                                    <span className={tableTextClasses}>{task.AssignedToDetails.fullName}</span>
+                                    <span className={tableTextClasses}>{task.AssignedToDetails.fullName} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
                                     {task.AssignedToDetails.teamName && (
                                       <span className={tableSecondaryTextClasses}>{task.AssignedToDetails.teamName}</span>
                                     )}
@@ -1894,7 +1915,7 @@ const ProjectDetailsPage = () => {
                                     {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
                                   </div>
                                   <div className="flex flex-col">
-                                    <span className={tableTextClasses}>{task.AssigneeDetails.fullName}</span>
+                                    <span className={tableTextClasses}>{task.AssigneeDetails.fullName} <span className={'text-xs'}>{isMe(task.Assignee) ? ' (You)' : ''}</span></span>
                                     {task.AssigneeDetails.teamName && (
                                       <span className={tableSecondaryTextClasses}>{task.AssigneeDetails.teamName}</span>
                                     )}
@@ -1913,11 +1934,16 @@ const ProjectDetailsPage = () => {
                               )}
                             </td>
                             <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
-                              {task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric'
-                              }) : '-'}
+                              {task.AssignedDate ? (
+                                <div className="flex flex-col leading-tight">
+                                  <span>{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                                  <span className={getThemeClasses('text-xs text-gray-500', 'text-xs text-gray-400')}>
+                                    {new Date(task.AssignedDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                  </span>
+                                </div>
+                              ) : (
+                                '-'
+                              )}
                             </td>
                             <td className="hidden md:table-cell py-3 px-4">
                               <div className="flex items-center gap-1.5">
@@ -1993,7 +2019,7 @@ const ProjectDetailsPage = () => {
         ) : activeTab === 'board' ? (
           <div>
             {/* Board Tab: Re-using global Kanban board */}
-            <KanbanBoard projectId={projectId} selectedUserStoryProp={selectedUserStory} />
+            <KanbanBoard projectId={projectId} selectedUserStoryProp={selectedUserStory} projectMembersProp={projectMembers} />
           </div>
         ) : activeTab === 'timeline' ? (
           <GanttChart tasks={taskList} userStories={userStories} project={project} />
@@ -2706,6 +2732,7 @@ const ProjectDetailsPage = () => {
           userStories={userStories}
           editingTask={editingTask}
           addTaskTypeMode={addTaskTypeMode}
+          projectMembers={projectMembers}
         />
 
         {/* Delete Task Confirmation Dialog */}

@@ -363,16 +363,6 @@ const ProjectFilesTab = ({ projectId }) => {
           <FaFile size={48} className="mx-auto mb-4 opacity-50" />
           <p className="text-lg font-medium mb-2">No files found</p>
           <p className="text-sm">Upload files to this project or files uploaded to tasks will appear here.</p>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className={getThemeClasses(
-              "mt-4 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors",
-              "dark:bg-blue-500 dark:hover:bg-blue-600"
-            )}
-          >
-            <FaUpload />
-            Upload Files
-          </button>
         </div>
       ) : (
         <div>

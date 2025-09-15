@@ -63,6 +63,13 @@ const TaskDetailsSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  FinishDate: {
+    type: Date,
+    default: null,
+    required: function() {
+      return this.Type === 'User Story';
+    }
+  },
   ModifiedDate: {
     type: Date,
     default: null

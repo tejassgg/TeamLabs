@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FaCalendarAlt, FaTimes, FaComment, FaPaperclip, FaChevronLeft, FaChevronRight, FaRegComment  } from 'react-icons/fa';
+import { FaCalendarAlt, FaTimes, FaComment, FaPaperclip, FaChevronLeft, FaChevronRight, FaRegComment } from 'react-icons/fa';
 import { TiAttachment } from "react-icons/ti";
 import { useTheme } from '../../context/ThemeContext';
 import { getTaskTypeBadge, getPriorityBadge } from '../task/TaskTypeBadge';
@@ -55,10 +55,26 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
             projectEnd.setDate(currentWeekStart.getDate() + 13); // 2 weeks total
         }
 
+        // Pre-compute end dates for user stories
+        const userStoryEndById = new Map();
+        for (const us of userStories) {
+            const usStart = us.CreatedDate ? new Date(us.CreatedDate) : projectStart;
+            const usFinish = us.FinishDate ? new Date(us.FinishDate) : (us.AssignedDate ? new Date(us.AssignedDate) : new Date(usStart.getTime() + 7 * 24 * 60 * 60 * 1000));
+            userStoryEndById.set(us.TaskID || us._id, usFinish);
+        }
+
         // Calculate item positions and durations
         const itemsWithTimeline = allItems.map(item => {
             const startDate = item.CreatedDate ? new Date(item.CreatedDate) : projectStart;
-            const endDate = item.AssignedDate ? new Date(item.AssignedDate) : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000); // Default 7 days
+            // For tasks, use their parent user story's FinishDate; for user stories, use their own FinishDate
+            let endDate;
+            if (item.Type === 'User Story') {
+                endDate = userStoryEndById.get(item.TaskID || item._id) || (item.FinishDate ? new Date(item.FinishDate) : (item.AssignedDate ? new Date(item.AssignedDate) : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000)));
+            } else if (item.ParentID && userStoryEndById.has(item.ParentID)) {
+                endDate = new Date(userStoryEndById.get(item.ParentID));
+            } else {
+                endDate = item.AssignedDate ? new Date(item.AssignedDate) : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+            }
 
             // Calculate position as percentage of total timeline
             const totalDuration = projectEnd.getTime() - projectStart.getTime();
@@ -148,13 +164,12 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
         return statusMap[status] || statusMap[1];
     };
 
-    // Format date for display
-    const formatDate = (date) => {
-        return date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
+    // Use UTC when rendering specific dates to avoid TZ off-by-one on client
+    const formatDateUTC = (dateLike) => {
+        if (!dateLike) return '-';
+        const d = new Date(dateLike);
+        if (isNaN(d)) return '-';
+        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
     };
 
     // Get user initials
@@ -376,7 +391,7 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
                                                 minWidth: '20px'
                                             }}
                                             onClick={() => setSelectedTask(item)}
-                                            title={`${item.Name} - ${formatDate(item.startDate)} to ${formatDate(item.endDate)}`}
+                                            title={`${item.Name} - ${formatDateUTC(item.startDate)} to ${formatDateUTC(item.endDate)}`}
                                         >
                                             <div className={`h-full flex items-center px-2 ${theme === 'dark' ? 'text-white' : 'text-white'
                                                 }`}>

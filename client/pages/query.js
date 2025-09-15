@@ -31,7 +31,8 @@ const QueryBoard = () => {
     status: 'all',
     priority: [], // empty = all priorities
     taskType: 'all',
-    assignedTo: 'all'
+    assignedTo: 'all',
+    assignedBy: 'all'
   });
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filterAnim, setFilterAnim] = useState(false);
@@ -107,10 +108,12 @@ const QueryBoard = () => {
 
     // Apply search filter
     if (searchTerm) {
+      const q = searchTerm.toLowerCase();
       filtered = filtered.filter(task =>
-        task.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.AssigneeDetails?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.AssignedToDetails?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
+        task.Name?.toLowerCase().includes(q) ||
+        task.Description?.toLowerCase().includes(q) ||
+        task.AssigneeDetails?.fullName?.toLowerCase().includes(q) ||
+        task.AssignedToDetails?.fullName?.toLowerCase().includes(q)
       );
     }
 
@@ -132,6 +135,11 @@ const QueryBoard = () => {
     // Apply assigned to filter
     if (filters.assignedTo !== 'all') {
       filtered = filtered.filter(task => task.AssignedTo === filters.assignedTo);
+    }
+
+    // Apply assigned by filter
+    if (filters.assignedBy !== 'all') {
+      filtered = filtered.filter(task => task.Assignee === filters.assignedBy);
     }
 
     setFilteredTasks(filtered);
@@ -460,10 +468,27 @@ const QueryBoard = () => {
                         showSearch={true}
                       />
                     </div>
+
+                    <div>
+                      <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'dark:text-gray-300')}>Assigned By</label>
+                      <CustomDropdown
+                        value={filters.assignedBy}
+                        onChange={(val) => setFilters({ ...filters, assignedBy: val })}
+                        options={[{ value: 'all', label: 'All Assigners' }, ...Array.from(new Set(tasks.map(task => task.Assignee).filter(Boolean))).map(userId => {
+                          const t = tasks.find(tt => tt.Assignee === userId);
+                          return { value: userId, label: t?.AssigneeDetails?.fullName || userId };
+                        })]}
+                        placeholder="All Assigners"
+                        variant="filled"
+                        size="md"
+                        width="w-full"
+                        showSearch={true}
+                      />
+                    </div>
                   </div>
                   <div className="flex justify-end gap-2 mt-4">
                     <button
-                      onClick={() => setFilters({ status: 'all', priority: [], taskType: 'all', assignedTo: 'all' })}
+                      onClick={() => setFilters({ status: 'all', priority: [], taskType: 'all', assignedTo: 'all', assignedBy: 'all' })}
                       className={getThemeClasses(
                         'px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50',
                         'dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800'

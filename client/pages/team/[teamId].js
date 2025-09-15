@@ -1090,7 +1090,7 @@ const TeamDetailsPage = () => {
                                 }}
                                 className={getThemeClasses(
                                   'ml-2 px-3 py-1.5 text-sm text-blue-500 font-medium rounded-lg transition-all duration-200 hover:shadow-sm hover:bg-blue-100',
-                                  'dark:text-blue-400 dark:hover:shadow-sm dark:hover:bg-blue-900/30'
+                                  'dark:text-white dark:hover:shadow-sm dark:hover:bg-blue-900/30'
                                 )}
                               >
                                 <FaPlus size={14} />
