@@ -6,6 +6,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import CustomModal from '../shared/CustomModal';
 import { subscribe } from '../../services/socket';
+import { attachmentService } from '../../services/api';
 
 const ProjectFilesTab = ({ projectId }) => {
   const { theme } = useTheme();
@@ -144,10 +145,9 @@ const ProjectFilesTab = ({ projectId }) => {
     if (!attachmentToDelete) return;
     
     try {
-      await api.deleteAttachment(attachmentToDelete.AttachmentID);
+      await attachmentService.deleteAttachment(attachmentToDelete.AttachmentID);
       showToast('Attachment deleted successfully', 'success');
-      // Refresh the attachments list
-      fetchProjectAttachments();
+      setProjectAttachments((prev) => prev.filter((a) => a.AttachmentID !== attachmentToDelete.AttachmentID));
       setShowDeleteModal(false);
       setAttachmentToDelete(null);
     } catch (error) {
@@ -182,6 +182,7 @@ const ProjectFilesTab = ({ projectId }) => {
     if (!projectId) return;
     const offAdded = subscribe('project.attachment.added', (payload) => {
       const { data } = payload || {};
+      console.log('data', data.attachment);
       if (!data || data.projectId !== projectId) return;
       setProjectAttachments((prev) => [data.attachment, ...prev]);
     });
@@ -199,41 +200,53 @@ const ProjectFilesTab = ({ projectId }) => {
   // Handle file upload
   const handleFileUpload = async (files) => {
     if (!files || files.length === 0) return;
-    
-    setUploading(true);
-    
-    for (const file of files) {
-      try {
-        // Get current user from AuthContext
-        if (!user) {
-          showToast('User not authenticated', 'error');
-          return;
-        }
-        
-        // 1) Save file locally to client/public/uploads
-        const arrayBuffer = await file.arrayBuffer();
-        const res = await fetch('/api/local-upload?filename=' + encodeURIComponent(file.name), {
-          method: 'POST',
-          headers: { 'Content-Type': file.type || 'application/octet-stream' },
-          body: arrayBuffer
-        });
-        const data = await res.json();
-        if (!res.ok || !data?.success || !data?.url) {
-          throw new Error(data?.message || 'Local save failed');
-        }
 
-        // 2) Persist metadata to backend as a project-level attachment
-        await attachmentService.addProjectAttachment(projectId, file.name, data.url, user._id, file.size);
-        showToast(`${file.name} uploaded successfully`, 'success');
-      } catch (error) {
-        console.error('Error uploading file:', error);
-        showToast(`Failed to upload ${file.name}`, 'error');
-      }
+    if (!user) {
+      showToast('User not authenticated', 'error');
+      return;
     }
-    
-    setUploading(false);
-    showToast('Files uploaded successfully', 'success');
-    fetchProjectAttachments(); // Refresh the list
+
+    setUploading(true);
+    try {
+      for (const file of files) {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('projectId', projectId);
+          formData.append('userId', user._id);
+          formData.append('filename', file.name);
+
+          const uploadRes = await attachmentService.uploadAttachment(formData);
+          const uploaded = uploadRes?.attachment || uploadRes; // tolerate either shape
+
+          if (!uploaded || !uploaded.FileURL) {
+            throw new Error('Upload failed');
+          }
+
+          const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.fullName || user.name || user.email || 'User';
+
+          const shapedAttachment = {
+            ...uploaded,
+            ProjectID: projectId,
+            uploaderDetails: {
+              _id: user._id,
+              fullName,
+              email: user.email,
+            },
+            taskDetails: null,
+            isProjectAttachment: projectId,
+          };
+
+          // setProjectAttachments((prev) => [shapedAttachment, ...prev]);
+          showToast(`${file.name} uploaded successfully`, 'success');
+        } catch (error) {
+          console.error('Error uploading file:', error);
+          showToast(`Failed to upload ${file.name}`, 'error');
+        }
+      }
+    } finally {
+      setUploading(false);
+    }
   };
 
   // Handle file input change

@@ -78,8 +78,32 @@ router.post('/project/:projectId/attachments', async (req, res) => {
       UploadedAt: new Date()
     });
     await attachment.save();
-    try { emitToProject(projectId, 'project.attachment.added', { event: 'project.attachment.added', version: 1, data: { projectId, attachment }, meta: { emittedAt: new Date().toISOString() } }); } catch (e) {}
-    return res.status(201).json(attachment);
+
+    // Enrich payload to match consumer expectations
+    let uploader = null;
+    try {
+      uploader = await User.findById(UploadedBy);
+    } catch (_) {}
+
+    const shaped = {
+      AttachmentID: attachment.AttachmentID,
+      Filename: attachment.Filename,
+      FileURL: attachment.FileURL,
+      FileSize: attachment.FileSize,
+      UploadedAt: attachment.UploadedAt,
+      ProjectID: projectId,
+      uploaderDetails: uploader ? {
+        _id: uploader._id,
+        fullName: `${uploader.firstName} ${uploader.lastName}`.trim(),
+        email: uploader.email
+      } : null,
+      taskDetails: null,
+      isProjectAttachment: projectId
+    };
+
+    try { emitToProject(projectId, 'project.attachment.added', { event: 'project.attachment.added', version: 1, data: { projectId, attachment: shaped }, meta: { emittedAt: new Date().toISOString() } }); } catch (e) {}
+
+    return res.status(201).json(shaped);
   } catch (err) {
     console.error('Error adding project attachment:', err);
     res.status(500).json({ error: 'Failed to add project attachment' });
@@ -125,8 +149,38 @@ router.post('/tasks/:taskId/attachments', async (req, res) => {
     });
     
     await attachment.save();
-    try { emitToTask(taskId, 'task.attachment.added', { event: 'task.attachment.added', version: 1, data: { taskId, attachment }, meta: { emittedAt: new Date().toISOString() } }); } catch (e) {}
-    res.status(201).json(attachment);
+    // Enrich payload to match consumer expectations
+    let uploader = null;
+    let task = null;
+    try {
+      uploader = await User.findById(UploadedBy);
+    } catch (_) {}
+    try {
+      task = await TaskDetails.findOne({ TaskID: taskId });
+    } catch (_) {}
+
+    const shaped = {
+      AttachmentID: attachment.AttachmentID,
+      Filename: attachment.Filename,
+      FileURL: attachment.FileURL,
+      FileSize: attachment.FileSize,
+      UploadedAt: attachment.UploadedAt,
+      ProjectID: task ? task.ProjectID_FK : null,
+      uploaderDetails: uploader ? {
+        _id: uploader._id,
+        fullName: `${uploader.firstName} ${uploader.lastName}`.trim(),
+        email: uploader.email
+      } : null,
+      taskDetails: task ? {
+        TaskID: task.TaskID,
+        Name: task.Name,
+        Type: task.Type
+      } : null,
+      isProjectAttachment: null
+    };
+
+    try { emitToTask(taskId, 'task.attachment.added', { event: 'task.attachment.added', version: 1, data: { taskId, attachment: shaped }, meta: { emittedAt: new Date().toISOString() } }); } catch (e) {}
+    res.status(201).json(shaped);
   } catch (err) {
     console.error('Error adding attachment:', err);
     res.status(500).json({ error: 'Failed to add attachment' });

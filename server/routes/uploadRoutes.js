@@ -139,30 +139,57 @@ router.post('/attachments/upload', attachmentUpload.single('file'), async (req, 
 
     await attachment.save();
 
-    // Emit real-time event for task attachments
+    // Build enriched payloads
+    let uploader = null;
+    try {
+      const User = require('../models/User');
+      uploader = await User.findById(userId);
+    } catch (_) {}
+
+    const uploaderDetails = uploader ? {
+      _id: uploader._id,
+      fullName: `${uploader.firstName} ${uploader.lastName}`.trim(),
+      email: uploader.email
+    } : null;
+
+    // Emit real-time event for attachments with enriched shape
     try {
       if (taskId) {
-        emitToTask(taskId, 'task.attachment.added', {
-          event: 'task.attachment.added',
-          version: 1,
-          data: { taskId, attachment: {
-            AttachmentID: attachment.AttachmentID,
-            Filename: attachment.Filename,
-            FileURL: attachment.FileURL,
-            FileSize: attachment.FileSize,
-            UploadedAt: attachment.UploadedAt
-          } },
-          meta: { emittedAt: new Date().toISOString() }
-        });
-      } else if (projectId) {
-        // Optional: emit project-level event if needed later
-        try { emitToProject(projectId, 'project.attachment.added', { event: 'project.attachment.added', version: 1, data: { projectId, attachment: {
+        let task = null;
+        try {
+          const TaskDetails = require('../models/TaskDetails');
+          task = await TaskDetails.findOne({ TaskID: taskId });
+        } catch (_) {}
+        const shaped = {
           AttachmentID: attachment.AttachmentID,
           Filename: attachment.Filename,
           FileURL: attachment.FileURL,
           FileSize: attachment.FileSize,
-          UploadedAt: attachment.UploadedAt
-        } }, meta: { emittedAt: new Date().toISOString() } }); } catch (e) {}
+          UploadedAt: attachment.UploadedAt,
+          ProjectID: task ? task.ProjectID_FK : null,
+          uploaderDetails,
+          taskDetails: task ? { TaskID: task.TaskID, Name: task.Name, Type: task.Type } : null,
+          isProjectAttachment: null
+        };
+        emitToTask(taskId, 'task.attachment.added', {
+          event: 'task.attachment.added',
+          version: 1,
+          data: { taskId, attachment: shaped },
+          meta: { emittedAt: new Date().toISOString() }
+        });
+      } else if (projectId) {
+        const shaped = {
+          AttachmentID: attachment.AttachmentID,
+          Filename: attachment.Filename,
+          FileURL: attachment.FileURL,
+          FileSize: attachment.FileSize,
+          UploadedAt: attachment.UploadedAt,
+          ProjectID: projectId,
+          uploaderDetails,
+          taskDetails: null,
+          isProjectAttachment: projectId
+        };
+        try { emitToProject(projectId, 'project.attachment.added', { event: 'project.attachment.added', version: 1, data: { projectId, attachment: shaped }, meta: { emittedAt: new Date().toISOString() } }); } catch (e) {}
       }
     } catch (e) { }
 
@@ -223,7 +250,11 @@ router.post('/attachments/upload', attachmentUpload.single('file'), async (req, 
         Filename: attachment.Filename,
         FileURL: attachment.FileURL,
         FileSize: attachment.FileSize,
-        UploadedAt: attachment.UploadedAt
+        UploadedAt: attachment.UploadedAt,
+        ProjectID: projectId || null,
+        uploaderDetails,
+        taskDetails: taskId ? undefined : null,
+        isProjectAttachment: projectId || null
       }
     });
   } catch (error) {

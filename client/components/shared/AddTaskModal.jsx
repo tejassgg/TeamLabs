@@ -122,7 +122,6 @@ const BadgeDropdown = ({
 };
 
 const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSideBar', projectIdDefault, userStories, editingTask = null, addTaskTypeMode = 'task', projectMembers = [] }) => {
-  console.log(editingTask);
   const { projects, userDetails } = useGlobal();
   const { theme } = useTheme();
 
