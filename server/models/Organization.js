@@ -19,7 +19,8 @@ const organizationSchema = new mongoose.Schema({
     plan: { type: String, default: 'free' },
     startDate: { type: Date },
     endDate: { type: Date }
-  }
+  },
+  stripeCustomerId: { type: String, default: null }
 });
 
 organizationSchema.methods.incrementUsage = async function(type) {

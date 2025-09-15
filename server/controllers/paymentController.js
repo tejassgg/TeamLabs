@@ -2,6 +2,7 @@ const Payment = require('../models/Payment');
 const User = require('../models/User');
 const CommonType = require('../models/CommonType');
 const Organization = require('../models/Organization');
+const stripe = require('../services/stripe');
 
 // Generate unique payment ID
 const generatePaymentId = () => {
@@ -224,12 +225,8 @@ const cancelSubscription = async (req, res) => {
 
     // Find active subscription
     const activeSubscription = await Payment.getActiveSubscription(organizationID);
-    
     if (!activeSubscription) {
-      return res.status(404).json({
-        success: false,
-        message: 'No active subscription found'
-      });
+      return res.status(404).json({ success: false, message: 'No active subscription found' });
     }
 
     // Admin check
@@ -238,16 +235,46 @@ const cancelSubscription = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Only the organization admin can cancel the subscription.' });
     }
 
-    // Update subscription to not auto-renew
-    activeSubscription.autoRenew = false;
-    await activeSubscription.save();
+    // Mirror downgrade to free (with prorated refund when eligible)
+    // Eligibility: completed, not expired, and >= 1 day remaining
+    const now = new Date();
+    const hasExpired = now >= activeSubscription.subscriptionEndDate;
+    let refundResult = null;
+    if (activeSubscription.status === 'completed' && !hasExpired) {
+      const remainingDays = Math.ceil((activeSubscription.subscriptionEndDate - now) / (1000 * 60 * 60 * 24));
+      if (remainingDays >= 1) {
+        try {
+          refundResult = await Payment.createDowngradeRefund(activeSubscription, 'free', userId);
+          await issueStripeRefundIfApplicable(activeSubscription, refundResult.refundAmount);
+        } catch (refundError) {
+          console.error('Refund processing error (cancel):', refundError);
+          return res.status(500).json({ success: false, message: 'Failed to process refund during cancellation.' });
+        }
+      }
+    }
 
-    // Deactivate premium for all users in organization
+    // Cancel Stripe subscription (stop auto payments) if tracked
+    try {
+      const subscriptionId = activeSubscription?.gatewayResponse?.subscriptionId;
+      if (subscriptionId) {
+        await stripe.subscriptions.cancel(String(subscriptionId));
+      }
+    } catch (e) {
+      console.error('Stripe subscription cancel failed:', e?.message || e);
+      // Continue; we still deactivate locally
+    }
+
+    // Deactivate premium immediately
     await deactivateOrganizationPremium(organizationID);
 
-    res.json({
+    return res.json({
       success: true,
-      message: 'Subscription cancelled successfully'
+      message: 'Subscription cancelled and downgraded to Free',
+      data: refundResult ? {
+        refundAmount: refundResult.refundAmount,
+        remainingDays: refundResult.remainingDays,
+        refundPaymentId: refundResult.refundPayment?.paymentId
+      } : null
     });
   } catch (error) {
     console.error('Cancel subscription error:', error);
@@ -320,6 +347,8 @@ const downgradeSubscription = async (req, res) => {
 
       try {
         refundResult = await Payment.createDowngradeRefund(activeSubscription, newPlan, userId);
+        // Attempt Stripe refund for prorated amount if Stripe-backed payment
+        await issueStripeRefundIfApplicable(activeSubscription, refundResult.refundAmount);
       } catch (refundError) {
         console.error('Refund processing error:', refundError);
         return res.status(500).json({
@@ -340,6 +369,8 @@ const downgradeSubscription = async (req, res) => {
 
       try {
         refundResult = await Payment.createDowngradeRefund(activeSubscription, newPlan, userId);
+        // Attempt Stripe refund for prorated amount if Stripe-backed payment
+        await issueStripeRefundIfApplicable(activeSubscription, refundResult.refundAmount);
       } catch (refundError) {
         console.error('Refund processing error:', refundError);
         return res.status(500).json({
@@ -753,3 +784,31 @@ module.exports = {
   upgradeSubscription,
   getOrganizationPaymentData
 }; 
+
+// Helper: create Stripe refund against the invoice's charge, when possible
+async function issueStripeRefundIfApplicable(activeSubscription, refundAmountDollars) {
+  try {
+    // Only attempt if we have Stripe context
+    const gatewaySubId = activeSubscription?.gatewayResponse?.subscriptionId;
+    const invoiceId = activeSubscription?.transactionId; // we store latest_invoice id for Stripe payments
+    if (!invoiceId) return;
+
+    // Retrieve invoice to get charge id
+    const invoice = await stripe.invoices.retrieve(String(invoiceId));
+    const chargeId = invoice?.charge;
+    if (!chargeId) return;
+
+    // Create partial refund in cents
+    const amountCents = Math.max(0, Math.round((refundAmountDollars || 0) * 100));
+    if (amountCents <= 0) return;
+
+    await stripe.refunds.create({
+      charge: chargeId,
+      amount: amountCents,
+      reason: 'requested_by_customer'
+    });
+  } catch (e) {
+    // Log and continue; internal refund record already created
+    console.error('Stripe refund attempt failed:', e?.message || e);
+  }
+}

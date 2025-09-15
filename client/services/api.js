@@ -320,6 +320,42 @@ export const authService = {
     }
   },
 
+  // Payments - Subscription management
+  calculateRefund: async (organizationID, newPlan) => {
+    try {
+      const response = await api.get(`/payment/calculate-refund/${organizationID}?newPlan=${encodeURIComponent(newPlan)}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to calculate refund' };
+    }
+  },
+
+  downgradeSubscription: async (organizationID, newPlan, userId) => {
+    try {
+      const response = await api.post(`/payment/downgrade/${organizationID}`, { newPlan, userId });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to downgrade subscription' };
+    }
+  },
+
+  upgradeSubscription: async (organizationID, userId) => {
+    try {
+      const response = await api.post(`/payment/upgrade/${organizationID}`, { newPlan: 'annual', userId });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to upgrade subscription' };
+    }
+  },
+  cancelSubscription: async (organizationID, userId) => {
+    try {
+      const response = await api.post(`/payment/cancel/${organizationID}`, { userId });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to cancel subscription' };
+    }
+  },
+
   // GitHub Repository methods
   getUserRepositories: async (userId) => {
     try {
@@ -1093,6 +1129,56 @@ export const meetingService = {
       googleAccessToken: accessToken
     });
     return res.data;
+  }
+};
+
+export const paymentService = {
+  createCheckoutSession: async ({ organizationID, userId, plan, priceId, successUrl, cancelUrl }) => {
+    try {
+      const response = await api.post('/payment/create-checkout-session', {
+        organizationID,
+        userId,
+        plan,
+        priceId,
+        successUrl,
+        cancelUrl,
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to create checkout session' };
+    }
+  },
+  createBillingPortalSession: async (organizationID) => {
+    try {
+      const response = await api.post('/payment/create-billing-portal', { organizationID });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to create billing portal session' };
+    }
+  },
+  getCheckoutSession: async (sessionId) => {
+    try {
+      const response = await api.get(`/payment/checkout-sessions/${sessionId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch checkout session' };
+    }
+  },
+  confirmCheckoutSession: async (sessionId) => {
+    try {
+      const response = await api.post('/payment/checkout-sessions/confirm', { sessionId });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to confirm checkout session' };
+    }
+  },
+  getStripeTransactions: async (organizationID) => {
+    try {
+      const response = await api.get(`/payment/organization/${organizationID}/invoices`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch transactions' };
+    }
   }
 };
 

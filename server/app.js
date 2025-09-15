@@ -35,6 +35,9 @@ connectDB();
 
 // Initialize app
 const app = express();
+// Stripe webhook must use raw body for signature verification; mount before json parser
+const stripeWebhook = require('./webhooks/stripeWebhook');
+app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), stripeWebhook.handle);
 const server = http.createServer(app);
 const { initSocket } = require('./socket');
 

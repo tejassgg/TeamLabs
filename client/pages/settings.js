@@ -9,12 +9,28 @@ import TwoFactorAuth from '../components/auth/TwoFactorAuth';
 import { GoogleLogin } from '@react-oauth/google';
 
 import { authService, meetingService, commonTypeService } from '../services/api';
+import { paymentService } from '../services/api';
 import { useRouter } from 'next/router';
 
 const Settings = () => {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { logout, user } = useAuth();
+
+  // Helper function to get theme-aware classes
+  const getThemeClasses = (baseClasses, darkClasses) => {
+    return `${baseClasses} ${theme === 'dark' ? darkClasses : ''}`;
+  };
+
+  // Check if user has Admin role
+  const isAdmin = user?.role === 'Admin' || user?.role === 1;
   const [activeTab, setActiveTab] = useState('appearance');
+
+  // Redirect non-admin users away from subscription tab
+  useEffect(() => {
+    if (!isAdmin && activeTab === 'subscription') {
+      setActiveTab('appearance');
+    }
+  }, [isAdmin, activeTab]);
   const [loading, setLoading] = useState(false);
   const [show2FASetup, setShow2FASetup] = useState(false);
   const [show2FADisable, setShow2FADisable] = useState(false);
@@ -27,6 +43,8 @@ const Settings = () => {
   const router = useRouter();
   const [subscriptionData, setSubscriptionData] = useState(null);
   const [paymentHistory, setPaymentHistory] = useState([]);
+  const [stripeInvoices, setStripeInvoices] = useState([]);
+  const [loadingStripeInvoices, setLoadingStripeInvoices] = useState(false);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
   const [subscriptionFeatures, setSubscriptionFeatures] = useState({
     free: [],
@@ -56,6 +74,7 @@ const Settings = () => {
   const [githubLoading, setGithubLoading] = useState(false);
   const [googleStatus, setGoogleStatus] = useState({ connected: false, email: null, tokenExpiry: null, avatarUrl: null });
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   // Update security settings when user data changes
   useEffect(() => {
@@ -72,15 +91,27 @@ const Settings = () => {
   // This allows direct navigation to specific tabs via URL (e.g., /settings?tab=subscription)
   useEffect(() => {
     if (router.query.tab) {
-      const validTabs = ['appearance', 'security', 'subscription', 'integrations'];
+      const validTabs = ['appearance', 'security', 'integrations'];
+      // Only add subscription tab for admin users
+      if (isAdmin) {
+        validTabs.push('subscription');
+      }
+      
       if (validTabs.includes(router.query.tab)) {
         setActiveTab(router.query.tab);
+      } else if (router.query.tab === 'subscription' && !isAdmin) {
+        // Redirect non-admin users trying to access subscription tab
+        setActiveTab('appearance');
+        router.push({
+          pathname: router.pathname,
+          query: { ...router.query, tab: 'appearance' }
+        }, undefined, { shallow: true });
       }
     } else if (router.isReady) {
       // Default to appearance tab if no tab parameter is provided
       setActiveTab('appearance');
     }
-  }, [router.query.tab, router.isReady]);
+  }, [router.query.tab, router.isReady, isAdmin]);
 
   // Save theme to localStorage whenever it changes
   useEffect(() => {
@@ -111,6 +142,8 @@ const Settings = () => {
           }
         })
         .catch(() => {/* ignore; fallback defaults stay */ });
+      // Fetch Stripe invoices
+      fetchStripeInvoices();
     }
   }, [activeTab, user?.organizationID]);
 
@@ -147,6 +180,23 @@ const Settings = () => {
       setLoadingSubscription(false);
     }
   };
+
+  const fetchStripeInvoices = async () => {
+    try {
+      setLoadingStripeInvoices(true);
+      const res = await paymentService.getStripeTransactions(user.organizationID);
+      if (res?.success) {
+        console.log(res.data);
+        const invoices = res.data || [];
+        setStripeInvoices(invoices);
+      }
+    } catch (e) {
+      // ignore errors; just don't show stripe section
+    } finally {
+      setLoadingStripeInvoices(false);
+    }
+  };
+
 
   const fetchGitHubStatus = async () => {
     try {
@@ -320,6 +370,12 @@ const Settings = () => {
   };
 
   const handleTabChange = (tabId) => {
+    // Prevent non-admin users from accessing subscription tab
+    if (tabId === 'subscription' && !isAdmin) {
+      showToast('Access denied. Admin role required.', 'error');
+      return;
+    }
+    
     setActiveTab(tabId);
     // Update URL without page reload
     router.push({
@@ -355,41 +411,77 @@ const Settings = () => {
   // Handle downgrade to free
   const handleDowngradeToFree = async () => {
     try {
-      const response = await authService.post(`/payment/downgrade/${user.organizationID}`, {
-        newPlan: 'free',
-        userId: user._id
-      });
+      const response = await authService.downgradeSubscription(user.organizationID, 'free', user._id);
 
-      if (response.data.success) {
+      if (response.success) {
         showToast(`Successfully downgraded to free plan`, 'success');
         fetchSubscriptionData(); // Refresh subscription data
         setShowDowngradeModal(false);
       } else {
-        showToast(response.data.message || 'Failed to downgrade', 'error');
+        showToast(response.message || 'Failed to downgrade', 'error');
       }
     } catch (error) {
       console.error('Downgrade error:', error);
-      showToast(error.response?.data?.message || 'Failed to downgrade. Please try again.', 'error');
+      showToast(error.message || 'Failed to downgrade. Please try again.', 'error');
     }
   };
 
-  // Handle upgrade to annual
+  // Start Stripe Checkout for monthly/annual
+  const startStripeCheckout = async (selectedPlan) => {
+    try {
+      const priceId = selectedPlan === 'annual'
+        ? process.env.NEXT_PUBLIC_STRIPE_PRICE_ANNUAL
+        : process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY;
+
+      if (!priceId) {
+        showToast('Stripe price not configured for selected plan', 'error');
+        return;
+      }
+
+      const { success, url } = await paymentService.createCheckoutSession({
+        organizationID: user.organizationID,
+        userId: user._id,
+        plan: selectedPlan,
+        priceId,
+      });
+      if (success && url) {
+        window.location.href = url;
+      } else {
+        showToast('Failed to start checkout', 'error');
+      }
+    } catch (e) {
+      showToast(e.message || 'Failed to start checkout', 'error');
+    }
+  };
+
+  // Open Stripe Billing Portal
+  const openBillingPortal = async () => {
+    try {
+      const { success, url } = await paymentService.createBillingPortalSession(user.organizationID);
+      if (success && url) {
+        window.location.href = url;
+      } else {
+        showToast('Failed to open billing portal', 'error');
+      }
+    } catch (e) {
+      showToast(e.message || 'Failed to open billing portal', 'error');
+    }
+  };
+
+  // Handle upgrade to annual (existing immediate backend path retained for monthly->annual within app)
   const handleUpgradeToAnnual = async () => {
     try {
-      const response = await authService.post(`/payment/upgrade/${user.organizationID}`, {
-        newPlan: 'annual',
-        userId: user._id
-      });
+      const response = await authService.upgradeSubscription(user.organizationID, user._id);
 
-      if (response.data.success) {
+      if (response.success) {
         showToast(`Successfully upgraded to annual plan`, 'success');
         fetchSubscriptionData(); // Refresh subscription data
       } else {
-        showToast(response.data.message || 'Failed to upgrade', 'error');
+        showToast(response.message || 'Failed to upgrade', 'error');
       }
     } catch (error) {
       console.error('Upgrade error:', error);
-      showToast(error.response?.data?.message || 'Failed to upgrade. Please try again.', 'error');
+      showToast(error.message || 'Failed to upgrade. Please try again.', 'error');
     }
   };
 
@@ -428,45 +520,43 @@ const Settings = () => {
     // Handle downgrade to free (any plan to free)
     if (toPlan === 'free' && currentPlan !== 'free') {
       try {
-        // Get actual refund amount from backend
-        const response = await authService.get(`/payment/calculate-refund/${user.organizationID}?newPlan=${toPlan}`);
+        const response = await authService.calculateRefund(user.organizationID, toPlan);
 
-        if (response.data.success) {
+        if (response.success) {
           setDowngradeInfo({
             fromPlan: currentPlan,
             toPlan: toPlan,
-            refundAmount: response.data.data.refundAmount,
-            remainingDays: response.data.data.remainingDays
+            refundAmount: response.data.refundAmount,
+            remainingDays: response.data.remainingDays
           });
           setShowDowngradeModal(true);
         } else {
-          showToast(response.data.message || 'Failed to calculate refund', 'error');
+          showToast(response.message || 'Failed to calculate refund', 'error');
         }
       } catch (error) {
         console.error('Error calculating refund:', error);
-        showToast(error.response?.data?.message || 'Failed to calculate refund. Please try again.', 'error');
+        showToast(error.message || 'Failed to calculate refund. Please try again.', 'error');
       }
     }
     // Handle downgrade from annual to monthly
     else if (currentPlan === 'annual' && toPlan === 'monthly') {
       try {
-        // Get actual refund amount from backend
-        const response = await authService.get(`/payment/calculate-refund/${user.organizationID}?newPlan=${toPlan}`);
+        const response = await authService.calculateRefund(user.organizationID, toPlan);
 
-        if (response.data.success) {
+        if (response.success) {
           setDowngradeInfo({
             fromPlan: currentPlan,
             toPlan: toPlan,
-            refundAmount: response.data.data.refundAmount,
-            remainingDays: response.data.data.remainingDays
+            refundAmount: response.data.refundAmount,
+            remainingDays: response.data.remainingDays
           });
           setShowDowngradeModal(true);
         } else {
-          showToast(response.data.message || 'Failed to calculate refund', 'error');
+          showToast(response.message || 'Failed to calculate refund', 'error');
         }
       } catch (error) {
         console.error('Error calculating refund:', error);
-        showToast(error.response?.data?.message || 'Failed to calculate refund. Please try again.', 'error');
+        showToast(error.message || 'Failed to calculate refund. Please try again.', 'error');
       }
     } else {
       // Direct downgrade without refund
@@ -601,7 +691,7 @@ const Settings = () => {
   const tabs = [
     { id: 'appearance', label: 'Appearance', icon: resolvedTheme === 'dark' ? FaMoon : FaSun },
     { id: 'security', label: 'Security', icon: FaShieldAlt },
-    { id: 'subscription', label: 'Subscription', icon: FaCrown },
+    ...(isAdmin ? [{ id: 'subscription', label: 'Subscription', icon: FaCrown }] : []),
     { id: 'integrations', label: 'Integrations', icon: FaGithub }, // New Integrations tab
   ];
 
@@ -861,7 +951,7 @@ const Settings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                      Current Plan: {subscriptionData?.hasActiveSubscription ? 'Premium' : 'Free'}
+                      Current Plan: {subscriptionData?.hasActiveSubscription ? `Premium ${subscriptionData?.subscription?.plan === 'annual' ? '(Annual)' : '(Monthly)'}` : 'Free'}
                     </h3>
                     <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
                       {subscriptionData?.hasActiveSubscription
@@ -889,6 +979,17 @@ const Settings = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
                     </button>
+                    {subscriptionData?.hasActiveSubscription && (
+                      <button
+                        onClick={() => setShowCancelModal(true)}
+                        className={`px-4 py-2 rounded-xl text-sm font-semibold shadow transition-all duration-200 ${theme === 'dark'
+                          ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white hover:shadow-md'
+                          : 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white hover:shadow-md'
+                          }`}
+                      >
+                        Cancel Subscription
+                      </button>
+                    )}
                     <div className={`px-4 py-2 rounded-full text-sm font-medium ${subscriptionData?.hasActiveSubscription
                       ? theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700'
                       : theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
@@ -971,12 +1072,12 @@ const Settings = () => {
                               {plan.features.map((feature) => (
                                 <li key={feature.Code} className="flex items-center gap-3">
                                   <div className={`w-6 h-6 rounded-full flex items-center justify-center ${plan.id === 'free'
-                                      ? theme === 'dark' ? 'bg-green-600/20' : 'bg-green-400'
-                                      : feature.Value.toLowerCase().includes('discount')
-                                        ? 'bg-gradient-to-r from-green-500 to-emerald-500'
-                                        : plan.id === 'monthly'
-                                          ? 'bg-gradient-to-r from-blue-600 to-purple-600'
-                                          : 'bg-gradient-to-r from-purple-600 to-pink-600'
+                                    ? theme === 'dark' ? 'bg-green-600/20' : 'bg-green-400'
+                                    : feature.Value.toLowerCase().includes('discount')
+                                      ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                                      : plan.id === 'monthly'
+                                        ? 'bg-gradient-to-r from-blue-600 to-purple-600'
+                                        : 'bg-gradient-to-r from-purple-600 to-pink-600'
                                     }`}>
                                     {getFeatureIcon(feature)}
                                   </div>
@@ -998,15 +1099,14 @@ const Settings = () => {
                                 if (getCurrentPlan() === 'annual') {
                                   showDowngradeConfirmation('monthly');
                                 } else if (getCurrentPlan() !== 'monthly') {
-                                  router.push(`/payment?plan=monthly&amount=99`);
+                                  // Use Stripe Checkout for monthly
+                                  startStripeCheckout('monthly');
                                 }
                               } else if (plan.id === 'annual') {
                                 if (getCurrentPlan() === 'monthly') {
-                                  handleUpgradeToAnnual();
-                                } else if (getCurrentPlan() === 'free') {
-                                  router.push(`/payment?plan=annual&amount=708`);
+                                  startStripeCheckout('monthly');
                                 } else if (getCurrentPlan() !== 'annual') {
-                                  handleUpgradeToAnnual();
+                                  startStripeCheckout('annual');
                                 }
                               }
                             }}
@@ -1021,8 +1121,8 @@ const Settings = () => {
                 </div>
               </div>
 
-              {/* Transaction History */}
-              {paymentHistory.length > 0 && (
+              {/* Transaction History (internal DB) - temporarily hidden */}
+              {false && paymentHistory.length > 0 && (
                 <div className={`mt-8 rounded-xl shadow-sm border ${theme === 'dark' ? 'bg-transparent border-gray-700' : 'bg-white border-gray-200'}`}>
                   <div className={`p-6 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                     <h3 className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -1117,6 +1217,374 @@ const Settings = () => {
               )}
 
               {/* Additional Information */}
+              <div className={`mt-8`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'} text-2xl font-semibold`}>Transaction History</h3>
+                  {/* <button onClick={openBillingPortal} className={`px-4 py-2 rounded-lg font-medium ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}>
+                    Open Stripe Billing Portal
+                  </button> */}
+                </div>
+                <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-lg`}>Manage payment methods, invoices, and subscription in Stripe.</p>
+
+                {/* Stripe Transactions */}
+                <div className={`mt-6 rounded-xl border shadow-sm`}>
+                  <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
+                    <div className="flex items-center justify-between">
+                      <h4 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Recent Stripe Transactions</h4>
+                      <button
+                        onClick={fetchStripeInvoices}
+                        disabled={loadingStripeInvoices}
+                        className={`p-2 rounded-lg transition-colors ${theme === 'dark'
+                          ? 'hover:bg-gray-700 text-gray-400 hover:text-white'
+                          : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'
+                          }`}
+                        title="Refresh transaction data"
+                      >
+                        <svg className={`w-5 h-5 ${loadingStripeInvoices ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    {loadingStripeInvoices ? (
+                      <div className={getThemeClasses(
+                        'text-center py-8 text-gray-400',
+                        'dark:text-gray-500'
+                      )}>
+                        Loading Stripe transactions...
+                      </div>
+                    ) : stripeInvoices.length === 0 ? (
+                      <div className={getThemeClasses(
+                        'text-center py-8 text-gray-400',
+                        'dark:text-gray-500'
+                      )}>
+                        No Stripe transactions found.
+                      </div>
+                    ) : (
+                      <table className="w-full">
+                        <thead>
+                          <tr className={getThemeClasses('border-b border-gray-200', 'dark:border-gray-700')}>
+                            <th className={`py-3 px-4 text-left ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>Subscribed By</th>
+                            <th className={`py-3 px-4 text-left ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>Date</th>
+                            <th className={`py-3 px-4 text-left ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>Invoice #</th>
+                            <th className={`py-3 px-4 text-left ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>Description</th>
+                            <th className={`py-3 px-4 text-left ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>Amount</th>
+                            <th className={`py-3 px-4 text-left ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>Status</th>
+                            <th className={`py-3 px-4 text-left ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stripeInvoices.map((inv) => (
+                            <tr key={inv.id} className={getThemeClasses('border-b border-gray-100 hover:bg-gray-50/50 transition-colors last:border-b-0', 'dark:border-gray-700 dark:hover:bg-gray-700/30')}>
+                              <td className={`py-3 px-4 text-sm ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>
+                                {inv.userDetails ? (
+                                  <div className="flex items-center gap-3">
+                                    {inv.userDetails.profileImage && (
+                                      <img 
+                                        src={inv.userDetails.profileImage} 
+                                        alt={inv.userDetails.fullName}
+                                        className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
+                                        onError={(e) => {
+                                          e.target.style.display = 'none';
+                                        }}
+                                      />
+                                    )}
+                                    <div className="flex flex-col items-start">
+                                      <span className={`font-medium ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>
+                                        {inv.userDetails.fullName}
+                                      </span>
+                                      <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>
+                                        {inv.userDetails.email}
+                                      </span>
+                                      {inv.userDetails.role && (
+                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium mt-1 ${
+                                          inv.userDetails.role === 'Admin' || inv.userDetails.role === 1
+                                            ? (theme === 'dark' ? 'bg-purple-600/20 text-purple-400' : 'bg-purple-100 text-purple-700')
+                                            : inv.userDetails.role === 'Developer' || inv.userDetails.role === 3
+                                              ? (theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700')
+                                              : inv.userDetails.role === 'Project Manager' || inv.userDetails.role === 7
+                                                ? (theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700')
+                                                : (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700')
+                                        }`}>
+                                          {typeof inv.userDetails.role === 'number' 
+                                            ? ['', 'Admin', 'User', 'Developer', 'Tester', 'Support Engineer', 'Deployment Engineer', 'Project Manager', 'Client'][inv.userDetails.role] || 'Unknown'
+                                            : inv.userDetails.role
+                                          }
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : inv.subscription_details?.metadata?.userId ? (
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                      <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                      </svg>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className={`font-medium ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>
+                                        Unknown User
+                                      </span>
+                                      <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>
+                                        ID: {inv.subscription_details.metadata.userId.substring(0, 8)}...
+                                      </span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                      <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                      </svg>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className={`font-medium ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>
+                                        System
+                                      </span>
+                                      <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>
+                                        No user data
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+                              </td>
+                              <td className={`py-3 px-4 text-sm ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>
+                                <div className="flex flex-col">
+                                  <span className="font-medium">
+                                    {new Date((inv.created || inv.created_at || inv.status_transitions?.finalized_at || inv.effective_at) * 1000).toLocaleDateString('en-US', {
+                                      year: 'numeric', month: 'short', day: 'numeric'
+                                    })}
+                                  </span>
+                                  <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>
+                                    {new Date((inv.created || inv.created_at || inv.status_transitions?.finalized_at || inv.effective_at) * 1000).toLocaleTimeString('en-US', {
+                                      hour: '2-digit', minute: '2-digit'
+                                    })}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className={`py-3 px-4 text-sm ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>
+                                <div className="flex flex-col">
+                                  <span className="font-mono text-xs">{inv.number || inv.id}</span>
+                                  {inv.type === 'refund' ? (
+                                    <span className={`text-xs ${getThemeClasses('text-red-600', 'dark:text-red-400')}`}>
+                                      Refund ID
+                                    </span>
+                                  ) : (
+                                    inv.customer && (
+                                      <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>
+                                        {inv.customer}
+                                      </span>
+                                    )
+                                  )}
+                                </div>
+                              </td>
+                              <td className={`py-3 px-4 text-sm ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>
+                                <div className="flex flex-col">
+                                  {inv.type === 'refund' ? (
+                                    <>
+                                      <span className="font-medium text-red-600 dark:text-red-400">
+                                        Refund
+                                      </span>
+                                      {inv.reason && (
+                                        <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>
+                                          Reason: {inv.reason.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                        </span>
+                                      )}
+                                      {inv.relatedInvoice && (
+                                        <span className={`text-xs ${getThemeClasses('text-blue-600', 'dark:text-blue-400')}`}>
+                                          For: {inv.relatedInvoice.number || inv.relatedInvoice.id}
+                                        </span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      {inv.lines?.data?.[0]?.description ? (
+                                        <span className="font-medium">{inv.lines.data[0].description}</span>
+                                      ) : (
+                                        <span className="font-medium">{inv.billing_reason?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Subscription'}</span>
+                                      )}
+                                      {inv.lines?.data?.[0]?.price?.nickname && (
+                                        <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>
+                                          {inv.lines.data[0].price.nickname}
+                                        </span>
+                                      )}
+                                      {inv.subscription && (
+                                        <span className={`text-xs ${getThemeClasses('text-blue-600', 'dark:text-blue-400')}`}>
+                                          Subscription
+                                        </span>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                              <td className={`py-3 px-4 text-sm font-medium ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>
+                                <div className="flex flex-col">
+                                  {inv.type === 'refund' ? (
+                                    <>
+                                      <span className="font-semibold text-red-600 dark:text-red-400">
+                                        -${((inv.amount || 0) / 100).toFixed(2)}
+                                      </span>
+                                      <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>
+                                        {inv.currency?.toUpperCase()}
+                                      </span>
+                                      {inv.amount !== inv.total && (
+                                        <span className={`text-xs ${getThemeClasses('text-orange-600', 'dark:text-orange-400')}`}>
+                                          Partial refund
+                                        </span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="font-semibold">${((inv.total || 0) / 100).toFixed(2)}</span>
+                                      <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>
+                                        {inv.currency?.toUpperCase()}
+                                      </span>
+                                      {inv.amount_paid !== inv.total && (
+                                        <span className={`text-xs ${getThemeClasses('text-orange-600', 'dark:text-orange-400')}`}>
+                                          ${((inv.amount_paid || 0) / 100).toFixed(2)} paid
+                                        </span>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 text-sm">
+                                <div className="flex flex-col items-start gap-1">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    inv.type === 'refund' 
+                                      ? (inv.status === 'succeeded' 
+                                          ? (theme === 'dark' ? 'bg-red-600/20 text-red-400' : 'bg-red-100 text-red-700')
+                                          : inv.status === 'pending'
+                                            ? (theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700')
+                                            : inv.status === 'failed'
+                                              ? (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700')
+                                              : (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700')
+                                        )
+                                      : (inv.status === 'paid'
+                                          ? (theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700')
+                                          : inv.status === 'open'
+                                            ? (theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700')
+                                            : inv.status === 'void'
+                                              ? (theme === 'dark' ? 'bg-red-600/20 text-red-400' : 'bg-red-100 text-red-700')
+                                              : (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700')
+                                        )
+                                    }`}>
+                                    {inv.type === 'refund' 
+                                      ? (inv.status === 'succeeded' ? 'Refunded' : inv.status?.charAt(0).toUpperCase() + inv.status?.slice(1))
+                                      : (inv.status?.charAt(0).toUpperCase() + inv.status?.slice(1))
+                                    }
+                                  </span>
+                                  {inv.type === 'refund' && inv.status === 'succeeded' && inv.created && (
+                                    <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>
+                                      Processed {new Date(inv.created * 1000).toLocaleDateString('en-US', {
+                                        month: 'short', day: 'numeric'
+                                      })}
+                                    </span>
+                                  )}
+                                  {inv.type !== 'refund' && inv.attempt_count > 1 && (
+                                    <span className={`text-xs ${getThemeClasses('text-orange-600', 'dark:text-orange-400')}`}>
+                                      {inv.attempt_count} attempts
+                                    </span>
+                                  )}
+                                  {inv.type !== 'refund' && inv.status_transitions?.paid_at && (
+                                    <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>
+                                      Paid {new Date(inv.status_transitions.paid_at * 1000).toLocaleDateString('en-US', {
+                                        month: 'short', day: 'numeric'
+                                      })}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 text-sm">
+                                <div className="flex items-center justify-center gap-2">
+                                  {inv.type === 'refund' ? (
+                                    <>
+                                      {inv.receipt_url && (
+                                        <button
+                                          onClick={() => window.open(inv.receipt_url, '_blank')}
+                                          className={getThemeClasses(
+                                            'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-red-100 text-red-700 hover:bg-red-200',
+                                            'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-800/50'
+                                          )}
+                                          title="View Refund Receipt"
+                                        >
+                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                          </svg>
+                                        </button>
+                                      )}
+                                      {inv.id && (
+                                        <button
+                                          onClick={() => window.open(`https://dashboard.stripe.com/refunds/${inv.id}`, '_blank')}
+                                          className={getThemeClasses(
+                                            'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                            'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
+                                          )}
+                                          title="View Refund in Stripe"
+                                        >
+                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                          </svg>
+                                        </button>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      {inv.hosted_invoice_url && (
+                                        <button
+                                          onClick={() => window.open(inv.hosted_invoice_url, '_blank')}
+                                          className={getThemeClasses(
+                                            'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                            'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
+                                          )}
+                                          title="View Invoice"
+                                        >
+                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                          </svg>
+                                        </button>
+                                      )}
+                                      {inv.invoice_pdf && (
+                                        <button
+                                          onClick={() => window.open(inv.invoice_pdf, '_blank')}
+                                          className={getThemeClasses(
+                                            'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 shadow-sm transition-all duration-200',
+                                            'dark:text-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600'
+                                          )}
+                                          title="Download PDF"
+                                        >
+                                          <svg className="w-4 h-4 text-red-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                          </svg>
+                                        </button>
+                                      )}
+                                      {inv.payment_intent && (
+                                        <button
+                                          onClick={() => window.open(`https://dashboard.stripe.com/payments/${inv.payment_intent}`, '_blank')}
+                                          className={getThemeClasses(
+                                            'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 shadow-sm transition-all duration-200',
+                                            'dark:text-green-400 dark:bg-green-900/50 dark:hover:bg-green-800/50'
+                                          )}
+                                          title="View Payment"
+                                        >
+                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                          </svg>
+                                        </button>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </div>
+              </div>
               <div className={`mt-8 p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                 <h3 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                   What's included in Premium?
@@ -1409,16 +1877,16 @@ const Settings = () => {
       {showDowngradeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className={`max-w-md w-full mx-4 p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-2xl`}>
-            <div className="text-center mb-6">
-              <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-yellow-600/20' : 'bg-yellow-100'}`}>
-                <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
+            <div className={`border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}`}>
+              <div className="flex items-center gap-3 justify-start">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600`}>
+                  <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <h3 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Confirm Downgrade</h3>
               </div>
-              <h3 className={`text-xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                Confirm Downgrade
-              </h3>
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm text-center mt-3 mb-4`}>
                 You're about to downgrade from {downgradeInfo.fromPlan} to {downgradeInfo.toPlan} plan
               </p>
             </div>
@@ -1449,7 +1917,10 @@ const Settings = () => {
                     handleDowngradeToMonthly();
                   }
                 }}
-                className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                className={`w-full py-3 px-4 rounded-xl font-semibold text-white shadow transition-all duration-200 ${theme === 'dark'
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                  : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                  }`}
               >
                 Confirm Downgrade
               </button>
@@ -1461,6 +1932,57 @@ const Settings = () => {
                   }`}
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Cancel Subscription Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className={`max-w-md w-full mx-4 rounded-2xl shadow-2xl border-2 ${theme === 'dark' ? 'border-gray-700 bg-[#111214]' : 'border-gray-200 bg-white'}`}>
+            <div className={`p-6 border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}`}>
+              <div className="flex items-center gap-3 justify-start">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.721-1.36 3.486 0l6.518 11.59c.75 1.335-.213 3.01-1.743 3.01H3.482c-1.53 0-2.493-1.675-1.743-3.01L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a1 1 0 01-1-1V8a1 1 0 112 0v3a1 1 0 01-1 1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h3 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Cancel Premium Subscription</h3>
+              </div>
+              <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm text-center mt-3`}>
+                This will stop auto‑renewal. You will retain premium access until your current billing period ends.
+              </p>
+            </div>
+            <div className="p-6 space-y-3">
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await authService.cancelSubscription(user.organizationID, user._id);
+                    if (res?.success) {
+                      setShowCancelModal(false);
+                      showToast('Subscription cancelled successfully', 'success');
+                      fetchSubscriptionData();
+                    } else {
+                      showToast(res?.message || 'Failed to cancel subscription', 'error');
+                    }
+                  } catch (e) {
+                    showToast(e?.message || 'Failed to cancel subscription', 'error');
+                  }
+                }}
+                className={`w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-200 shadow ${theme === 'dark'
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                  : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'}`}
+              >
+                Confirm Cancellation
+              </button>
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className={`w-full py-3 px-4 rounded-xl font-semibold transition-colors duration-200 ${theme === 'dark'
+                  ? 'bg-gray-800 text-gray-200 hover:bg-gray-700'
+                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+              >
+                Keep Subscription
               </button>
             </div>
           </div>

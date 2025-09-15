@@ -11,9 +11,17 @@ const {
   getOrganizationPaymentData
 } = require('../controllers/paymentController');
 const { protect } = require('../middleware/auth');
+const { createCheckoutSession, createBillingPortalSession, getCheckoutSession, confirmCheckoutSession, listCustomerInvoices } = require('../controllers/stripeSubscriptionController');
 
 // Process payment
 router.post('/process', protect, processPayment);
+
+// Stripe Checkout for subscriptions
+router.post('/create-checkout-session', protect, createCheckoutSession);
+router.post('/create-billing-portal', protect, createBillingPortalSession);
+router.get('/checkout-sessions/:sessionId', protect, getCheckoutSession);
+router.post('/checkout-sessions/confirm', protect, confirmCheckoutSession);
+router.get('/organization/:organizationID/invoices', protect, listCustomerInvoices);
 
 // Get payment history for organization
 router.get('/history/:organizationID', protect, getPaymentHistory);
