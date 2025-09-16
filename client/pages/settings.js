@@ -96,7 +96,7 @@ const Settings = () => {
       if (isAdmin) {
         validTabs.push('subscription');
       }
-      
+
       if (validTabs.includes(router.query.tab)) {
         setActiveTab(router.query.tab);
       } else if (router.query.tab === 'subscription' && !isAdmin) {
@@ -375,7 +375,7 @@ const Settings = () => {
       showToast('Access denied. Admin role required.', 'error');
       return;
     }
-    
+
     setActiveTab(tabId);
     // Update URL without page reload
     router.push({
@@ -651,9 +651,7 @@ const Settings = () => {
       iconColor: theme === 'dark' ? 'text-gray-400' : 'text-gray-600',
       titleGradient: theme === 'dark' ? 'from-blue-400 via-purple-400 to-blue-400' : 'from-blue-600 via-purple-600 to-blue-600',
       descriptionColor: theme === 'dark' ? 'text-gray-400' : 'text-gray-500',
-      badge: getCurrentPlan() === 'monthly'
-        ? { text: '✓ CURRENT PLAN', color: theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white' }
-        : { text: '⭐ POPULAR', color: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' },
+      badge: getCurrentPlan() === 'monthly' && { text: '✓ CURRENT PLAN', color: theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white' },
       showPrice: true,
       showSavings: false,
       priceUnit: '/mo',
@@ -675,9 +673,7 @@ const Settings = () => {
       iconColor: theme === 'dark' ? 'text-gray-400' : 'text-gray-600',
       titleGradient: theme === 'dark' ? 'from-blue-400 via-purple-400 to-blue-400' : 'from-blue-600 via-purple-600 to-blue-600',
       descriptionColor: theme === 'dark' ? 'text-gray-400' : 'text-gray-500',
-      badge: getCurrentPlan() === 'annual'
-        ? { text: '✓ CURRENT PLAN', color: theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white' }
-        : { text: '🏆 BEST VALUE', color: 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' },
+      badge: getCurrentPlan() === 'annual' && { text: '✓ CURRENT PLAN', color: theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white' },
       showPrice: true,
       showSavings: true,
       priceUnit: '/yr',
@@ -937,17 +933,8 @@ const Settings = () => {
           {/* Subscription Settings */}
           {activeTab === 'subscription' && (
             <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
-              <div className="mb-4">
-                <h2 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Subscription Plans
-                </h2>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Choose the perfect plan for your organization's needs
-                </p>
-              </div>
-
               {/* Current Plan Status */}
-              <div className={`mb-8 p-6 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-gray-50'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className={`mb-4 p-6 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-gray-50'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -999,11 +986,22 @@ const Settings = () => {
                   </div>
                 </div>
               </div>
+              {subscriptionData?.hasActiveSubscription && (
+                <div className="flex flex-col items-center justify-center gap-2 mb-12">
+                  <h2 className={`text-5xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    Choose Your Plan
+                  </h2>
+                  <p className={`text-lg w-1/3 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Select the perfect plan for your organization's needs and start building amazing projects today
+                  </p>
+                </div>
+              )}
 
               {/* Subscription Cards */}
               <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {subscriptionPlans.map((plan) => {
+                    console.log(plan);
                     const IconComponent = plan.icon;
                     return (
                       <div key={plan.id} className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 ${plan.id === 'monthly' ? 'scale-105' : ''} hover:scale-105 hover:shadow-2xl ${plan.backgroundGradient} ${plan.borderColor} ${theme === 'dark' ? '' : 'shadow-lg hover:shadow-xl'}`}>
@@ -1018,10 +1016,7 @@ const Settings = () => {
 
                         <div className="relative z-10 flex flex-col h-full">
                           {/* Plan Header */}
-                          <div className="flex flex-col items-start mb-2">
-                            <div className={`mb-2 w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${plan.iconBg}`}>
-                              <IconComponent className={`text-2xl ${plan.iconColor}`} />
-                            </div>
+                          <div className="flex flex-col items-center mb-4">
                             <h3 className={`mb-1 text-3xl font-bold bg-gradient-to-r ${plan.titleGradient} bg-clip-text text-transparent`}>
                               {plan.name}
                             </h3>
@@ -1029,7 +1024,7 @@ const Settings = () => {
                           </div>
 
                           {/* Price Section */}
-                          <div className="text-center mb-4">
+                          <div className="text-center mb-6">
                             {plan.showPrice && (
                               <>
                                 <div className="flex items-center justify-center gap-1 mb-2">
@@ -1041,10 +1036,10 @@ const Settings = () => {
                                       <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>/yr</span>
                                     </div>
                                   )}
-                                  <span className={`text-3xl font-bold bg-gradient-to-r ${plan.priceGradient} bg-clip-text text-transparent`}>
+                                  <span className={`text-5xl font-bold bg-gradient-to-r ${plan.priceGradient} bg-clip-text text-transparent`}>
                                     ${plan.priceValue}
                                   </span>
-                                  <span className={`text-md ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                  <span className={`text-md mt-6 font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-800'}`}>
                                     {plan.priceUnit}
                                   </span>
                                 </div>
@@ -1056,8 +1051,10 @@ const Settings = () => {
                                       </span>
                                       <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>/mo</span>
                                     </div>
-                                    <div className={`px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white`}>
-                                      Save ${plan.savingsAmount}/yr
+                                    <div className="absolute -top-12 -right-1 transform translate-x-1/4">
+                                      <div className={`px-4 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg`}>
+                                        Save 40%
+                                      </div>
                                     </div>
                                   </div>
                                 )}
@@ -1281,8 +1278,8 @@ const Settings = () => {
                                 {inv.userDetails ? (
                                   <div className="flex items-center gap-3">
                                     {inv.userDetails.profileImage && (
-                                      <img 
-                                        src={inv.userDetails.profileImage} 
+                                      <img
+                                        src={inv.userDetails.profileImage}
                                         alt={inv.userDetails.fullName}
                                         className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
                                         onError={(e) => {
@@ -1298,16 +1295,15 @@ const Settings = () => {
                                         {inv.userDetails.email}
                                       </span>
                                       {inv.userDetails.role && (
-                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium mt-1 ${
-                                          inv.userDetails.role === 'Admin' || inv.userDetails.role === 1
-                                            ? (theme === 'dark' ? 'bg-purple-600/20 text-purple-400' : 'bg-purple-100 text-purple-700')
-                                            : inv.userDetails.role === 'Developer' || inv.userDetails.role === 3
-                                              ? (theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700')
-                                              : inv.userDetails.role === 'Project Manager' || inv.userDetails.role === 7
-                                                ? (theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700')
-                                                : (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700')
-                                        }`}>
-                                          {typeof inv.userDetails.role === 'number' 
+                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium mt-1 ${inv.userDetails.role === 'Admin' || inv.userDetails.role === 1
+                                          ? (theme === 'dark' ? 'bg-purple-600/20 text-purple-400' : 'bg-purple-100 text-purple-700')
+                                          : inv.userDetails.role === 'Developer' || inv.userDetails.role === 3
+                                            ? (theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700')
+                                            : inv.userDetails.role === 'Project Manager' || inv.userDetails.role === 7
+                                              ? (theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700')
+                                              : (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700')
+                                          }`}>
+                                          {typeof inv.userDetails.role === 'number'
                                             ? ['', 'Admin', 'User', 'Developer', 'Tester', 'Support Engineer', 'Deployment Engineer', 'Project Manager', 'Client'][inv.userDetails.role] || 'Unknown'
                                             : inv.userDetails.role
                                           }
@@ -1451,26 +1447,25 @@ const Settings = () => {
                               </td>
                               <td className="py-3 px-4 text-sm">
                                 <div className="flex flex-col items-start gap-1">
-                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                    inv.type === 'refund' 
-                                      ? (inv.status === 'succeeded' 
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${inv.type === 'refund'
+                                    ? (inv.status === 'succeeded'
+                                      ? (theme === 'dark' ? 'bg-red-600/20 text-red-400' : 'bg-red-100 text-red-700')
+                                      : inv.status === 'pending'
+                                        ? (theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700')
+                                        : inv.status === 'failed'
+                                          ? (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700')
+                                          : (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700')
+                                    )
+                                    : (inv.status === 'paid'
+                                      ? (theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700')
+                                      : inv.status === 'open'
+                                        ? (theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700')
+                                        : inv.status === 'void'
                                           ? (theme === 'dark' ? 'bg-red-600/20 text-red-400' : 'bg-red-100 text-red-700')
-                                          : inv.status === 'pending'
-                                            ? (theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700')
-                                            : inv.status === 'failed'
-                                              ? (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700')
-                                              : (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700')
-                                        )
-                                      : (inv.status === 'paid'
-                                          ? (theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700')
-                                          : inv.status === 'open'
-                                            ? (theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700')
-                                            : inv.status === 'void'
-                                              ? (theme === 'dark' ? 'bg-red-600/20 text-red-400' : 'bg-red-100 text-red-700')
-                                              : (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700')
-                                        )
+                                          : (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700')
+                                    )
                                     }`}>
-                                    {inv.type === 'refund' 
+                                    {inv.type === 'refund'
                                       ? (inv.status === 'succeeded' ? 'Refunded' : inv.status?.charAt(0).toUpperCase() + inv.status?.slice(1))
                                       : (inv.status?.charAt(0).toUpperCase() + inv.status?.slice(1))
                                     }

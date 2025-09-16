@@ -2,10 +2,10 @@ import Navbar from './Navbar';
 import { useTheme } from '../../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { FaCog, FaPlus, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaChevronRight, FaRobot } from 'react-icons/fa';
+import { FaCog, FaPlus, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaCrown } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import AddTeamModal from '../team/AddTeamModal';
-import { teamService, projectService, taskService } from '../../services/api';
+import { teamService, projectService, taskService, authService } from '../../services/api';
 import AddProjectModal from '../project/AddProjectModal';
 import { useGlobal } from '../../context/GlobalContext';
 import AddTaskModal from '../shared/AddTaskModal';
@@ -25,6 +25,10 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
   const { teams, projects, organization } = useGlobal();
+  const { user } = useAuth();
+  const [subscriptionData, setSubscriptionData] = useState(null);
+  const [loadingSubscription, setLoadingSubscription] = useState(false);
+  const [showUpgradeSuccess, setShowUpgradeSuccess] = useState(false);
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
   const activeProjectId = router.pathname.startsWith('/project/') ? router.query.projectId : null;
 
@@ -39,6 +43,78 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
       }
     }
   }, [setSidebarCollapsed]);
+
+  // Fetch subscription data for admin users
+  const fetchSubscriptionData = async () => {
+    if (user?.role === 'Admin' || user?.role === 1) {
+      setLoadingSubscription(true);
+      try {
+        const response = await authService.getSubscriptionData(user.organizationID);
+        const newSubscriptionData = response.data.subscription;
+        
+        // Check if user just upgraded (wasn't premium before, now is)
+        if (!subscriptionData?.hasActiveSubscription && newSubscriptionData?.hasActiveSubscription) {
+          setShowUpgradeSuccess(true);
+          // Hide success message after 5 seconds
+          setTimeout(() => setShowUpgradeSuccess(false), 5000);
+        }
+        
+        setSubscriptionData(newSubscriptionData);
+      } catch (error) {
+        console.error('Error fetching subscription data:', error);
+      } finally {
+        setLoadingSubscription(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (user?.organizationID) {
+      fetchSubscriptionData();
+    }
+  }, [user?.organizationID, user?.role]);
+
+  // Refresh subscription data when returning from payment success or settings
+  useEffect(() => {
+    const handleRouteChange = () => {
+      // Refresh subscription data when navigating to/from settings or payment pages
+      if (router.pathname === '/settings' || router.pathname === '/payment/success') {
+        fetchSubscriptionData();
+      }
+    };
+
+    router.events.on('routeChangeComplete', handleRouteChange);
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange);
+    };
+  }, [router, user?.organizationID, user?.role]);
+
+  // Refresh subscription data when component becomes visible (user returns from payment)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user?.organizationID) {
+        fetchSubscriptionData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user?.organizationID, user?.role]);
+
+  // Periodic refresh of subscription data (every 30 seconds when on relevant pages)
+  useEffect(() => {
+    if (!user?.organizationID) return;
+
+    const interval = setInterval(() => {
+      if (router.pathname === '/settings' || router.pathname === '/payment/success') {
+        fetchSubscriptionData();
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [router.pathname, user?.organizationID, user?.role]);
 
   const handleNavigation = (path) => {
     router.push(path);
@@ -288,6 +364,51 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
 
         {/* Bottom: Logout & Theme Switch */}
         <div className={`flex flex-col gap-2 p-4 border-t ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
+          {/* Upgrade Success Message */}
+          {showUpgradeSuccess && (
+            <div className="mb-3">
+              <div className={`p-3 rounded-xl border-2 ${theme === 'dark' ? 'border-green-500/50 bg-green-500/10' : 'border-green-400 bg-green-50'}`}>
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0">
+                    <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  {(!isMobile && collapsed) ? null : (
+                    <div className="flex flex-col">
+                      <span className={`text-sm font-bold ${theme === 'dark' ? 'text-green-400' : 'text-green-700'}`}>
+                        Premium Activated!
+                      </span>
+                      <span className={`text-xs ${theme === 'dark' ? 'text-green-300' : 'text-green-600'}`}>
+                        Welcome to premium features
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Upgrade to Premium Button - Only show for admin users without premium */}
+          {(user?.role === 'Admin' || user?.role === 1) && !subscriptionData?.hasActiveSubscription && (
+            <div className="mb-3">
+              <button
+                onClick={() => handleNavigation('/settings?tab=subscription')}
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl font-semibold transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg ${
+                  (!isMobile && collapsed) ? 'justify-center' : 'justify-start'
+                } bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md`}
+              >
+                <FaCrown className="text-lg text-yellow-300" />
+                {(!isMobile && collapsed) ? null : (
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm font-bold">Upgrade to Premium</span>
+                    <span className="text-xs opacity-90">Unlock unlimited features</span>
+                  </div>
+                )}
+              </button>
+            </div>
+          )}
+          
           <SidebarButton
             icon={<FaRobot className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
             label="AI Assistant"
