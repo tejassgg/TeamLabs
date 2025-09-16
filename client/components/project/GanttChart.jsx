@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { FaCalendarAlt, FaTimes, FaComment, FaPaperclip, FaChevronLeft, FaChevronRight, FaRegComment } from 'react-icons/fa';
+import { getTaskTypeStyle } from '../task/TaskTypeBadge';
 import { TiAttachment } from "react-icons/ti";
 import { useTheme } from '../../context/ThemeContext';
 import { getTaskTypeBadge, getPriorityBadge } from '../task/TaskTypeBadge';
@@ -150,18 +151,24 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
     // Get status color
     const getStatusColor = (status, type) => {
         const statusMap = {
-            1: theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300', // Not Started
-            2: theme === 'dark' ? 'bg-blue-600' : 'bg-blue-400', // In Progress
-            3: theme === 'dark' ? 'bg-green-600' : 'bg-green-400', // Completed
-            4: theme === 'dark' ? 'bg-red-600' : 'bg-red-400', // Blocked
-            5: theme === 'dark' ? 'bg-yellow-600' : 'bg-yellow-400' // On Hold
+            1: theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300',      // Not Assigned
+            2: theme === 'dark' ? 'bg-indigo-600' : 'bg-indigo-400',  // Assigned
+            3: theme === 'dark' ? 'bg-blue-600' : 'bg-blue-400',      // In Progress
+            4: theme === 'dark' ? 'bg-yellow-600' : 'bg-yellow-400',  // QA
+            5: theme === 'dark' ? 'bg-orange-600' : 'bg-orange-400',  // Deployment
+            6: theme === 'dark' ? 'bg-green-600' : 'bg-green-400'     // Completed
         };
 
         if (type === 'User Story') {
             return theme === 'dark' ? 'bg-purple-600' : 'bg-purple-400';
         }
 
-        return statusMap[status] || statusMap[1];
+        return statusMap[status] || (theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300');
+    };
+
+    const renderTaskTypeIcon = (type) => {
+        const style = getTaskTypeStyle(type);
+        return <span className="mr-1.5 opacity-90 inline-flex items-center">{style.icon}</span>;
     };
 
     // Use UTC when rendering specific dates to avoid TZ off-by-one on client
@@ -370,7 +377,6 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
                                 {/* Timeline Bar */}
                                 <div className="flex-1 relative p-3">
                                     <div className="relative h-8">
-                                        {/* Background Grid */}
                                         <div className="absolute inset-0 flex">
                                             {timelineHeaders.map((_, headerIndex) => (
                                                 <div
@@ -382,20 +388,13 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
                                         </div>
 
                                         {/* Task Bar */}
-                                        <div
-                                            className={`absolute top-1 h-6 rounded-md cursor-pointer transition-all hover:opacity-80 ${getStatusColor(item.Status, item.Type)
-                                                } border-2`}
-                                            style={{
-                                                left: `${item.startPercentage}%`,
-                                                width: `${Math.max(item.durationPercentage, 2)}%`,
-                                                minWidth: '20px'
-                                            }}
+                                        <div className={`absolute top-1 px-1 py-2 rounded-lg cursor-pointer transition-all hover:opacity-80 ${getStatusColor(item.Status, item.Type)} border-2`}
+                                            style={{ left: `${item.startPercentage}%`, width: `${Math.max(item.durationPercentage, 2)}%`, minWidth: '20px' }}
                                             onClick={() => setSelectedTask(item)}
-                                            title={`${item.Name} - ${formatDateUTC(item.startDate)} to ${formatDateUTC(item.endDate)}`}
-                                        >
-                                            <div className={`h-full flex items-center px-2 ${theme === 'dark' ? 'text-white' : 'text-white'
-                                                }`}>
-                                                <span className="text-xs font-medium truncate">
+                                            title={`$ {item.Name} - ${formatDateUTC(item.startDate)} to ${formatDateUTC(item.endDate)}`} >
+                                            <div className={`h-full flex items-center px-2 ${theme === 'dark' ? 'text-white' : 'text-white'}`}>
+                                                {renderTaskTypeIcon(item.Type)}
+                                                <span className="flex items-center text-sm font-medium truncate">
                                                     {item.Name}
                                                 </span>
                                             </div>
@@ -410,7 +409,7 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
 
             {/* Legend */}
             <div className={`p-4 border-t ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'}`}>
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-6 flex-wrap">
                     <div className="flex items-center gap-2">
                         <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                             Legend:
@@ -418,11 +417,23 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
                     </div>
                     <div className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
-                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Not Started</span>
+                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Not Assigned</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${theme === 'dark' ? 'bg-indigo-600' : 'bg-indigo-400'}`}></div>
+                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Assigned</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${theme === 'dark' ? 'bg-blue-600' : 'bg-blue-400'}`}></div>
                         <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>In Progress</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${theme === 'dark' ? 'bg-yellow-600' : 'bg-yellow-400'}`}></div>
+                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>QA</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${theme === 'dark' ? 'bg-orange-600' : 'bg-orange-400'}`}></div>
+                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Deployment</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${theme === 'dark' ? 'bg-green-600' : 'bg-green-400'}`}></div>
