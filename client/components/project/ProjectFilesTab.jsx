@@ -182,7 +182,6 @@ const ProjectFilesTab = ({ projectId }) => {
     if (!projectId) return;
     const offAdded = subscribe('project.attachment.added', (payload) => {
       const { data } = payload || {};
-      console.log('data', data.attachment);
       if (!data || data.projectId !== projectId) return;
       setProjectAttachments((prev) => [data.attachment, ...prev]);
     });

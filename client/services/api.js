@@ -1103,8 +1103,8 @@ export const meetingService = {
     const res = await api.delete(`/meetings/${meetingId}`);
     return res.data;
   },
-  initiateGoogleCalendarAuth: async () => {
-    const res = await api.post(`/google-calendar/initiate`, {});
+  initiateGoogleCalendarAuth: async (returnUrl) => {
+    const res = await api.post(`/google-calendar/initiate`, { returnUrl });
     return res.data;
   },
   getGoogleCalendarStatus: async (userId) => {

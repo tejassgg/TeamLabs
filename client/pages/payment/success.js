@@ -23,7 +23,6 @@ const PaymentSuccess = () => {
         // 1) Load the session details for display
         const res = await paymentService.getCheckoutSession(sessionId);
         if (res?.success) {
-          console.log('Session details', res.data);
           setSession(res.data);
         }
         // 2) Confirm internally (no user action needed)
@@ -99,10 +98,10 @@ const PaymentSuccess = () => {
 
           <div className="mt-6 flex items-center justify-center gap-3">
             <button
-              onClick={() => router.replace('/settings?tab=subscription')}
+              onClick={() => router.replace('/settings?tab=billing')}
               className={`px-5 py-2.5 rounded-lg font-semibold ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
             >
-              Go to Subscription Settings
+              Go to Billing Settings
             </button>
           </div>
 

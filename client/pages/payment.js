@@ -304,7 +304,7 @@ const Payment = () => {
       
       if (response.data.success) {
         showToast('Payment successful! Your subscription has been activated.', 'success');
-        router.push('/settings?tab=subscription');
+        router.push('/settings?tab=billing');
       } else {
         showToast(response.data.message || 'Payment failed. Please try again.', 'error');
       }

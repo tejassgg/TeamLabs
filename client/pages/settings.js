@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { FaMoon, FaSun, FaDesktop, FaShieldAlt, FaSignOutAlt, FaCheck, FaTimes, FaCrown, FaInfinity, FaUsers, FaRocket, FaStar, FaCheckCircle, FaGithub, FaGoogle } from 'react-icons/fa';
+import { FaMoon, FaSun, FaDesktop, FaCheck, FaTimes, FaCrown, FaInfinity, FaUsers, FaRocket, FaStar, FaCheckCircle, FaGithub } from 'react-icons/fa';
+import { MdOutlinePayments } from "react-icons/md";
 import { SiGooglecalendar } from "react-icons/si";
 import { useToast } from '../context/ToastContext';
 import TwoFactorAuth from '../components/auth/TwoFactorAuth';
@@ -23,12 +24,12 @@ const Settings = () => {
 
   // Check if user has Admin role
   const isAdmin = user?.role === 'Admin' || user?.role === 1;
-  const [activeTab, setActiveTab] = useState('appearance');
+  const [activeTab, setActiveTab] = useState('general');
 
-  // Redirect non-admin users away from subscription tab
+  // Redirect non-admin users away from billing tab
   useEffect(() => {
-    if (!isAdmin && activeTab === 'subscription') {
-      setActiveTab('appearance');
+    if (!isAdmin && activeTab === 'billing') {
+      setActiveTab('general');
     }
   }, [isAdmin, activeTab]);
   const [loading, setLoading] = useState(false);
@@ -53,9 +54,9 @@ const Settings = () => {
   });
   const [subscriptionPrices, setSubscriptionPrices] = useState({
     freeMonthly: '0',
-    premiumMonthly: '79',
-    premiumAnnualMonthlyEq: '47.4',
-    premiumAnnualYearly: '569'
+    premiumMonthly: '49',
+    premiumAnnualMonthlyEq: '34.92',
+    premiumAnnualYearly: '419'
   });
   const [showDowngradeModal, setShowDowngradeModal] = useState(false);
   const [downgradeInfo, setDowngradeInfo] = useState({
@@ -75,6 +76,7 @@ const Settings = () => {
   const [googleStatus, setGoogleStatus] = useState({ connected: false, email: null, tokenExpiry: null, avatarUrl: null });
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Update security settings when user data changes
   useEffect(() => {
@@ -88,28 +90,28 @@ const Settings = () => {
   }, [user]);
 
   // Set active tab based on URL query parameter
-  // This allows direct navigation to specific tabs via URL (e.g., /settings?tab=subscription)
+  // This allows direct navigation to specific tabs via URL (e.g., /settings?tab=billing)
   useEffect(() => {
     if (router.query.tab) {
-      const validTabs = ['appearance', 'security', 'integrations'];
-      // Only add subscription tab for admin users
+      const validTabs = ['general', 'integrations'];
+      // Only add billing tab for admin users
       if (isAdmin) {
-        validTabs.push('subscription');
+        validTabs.push('billing');
       }
 
       if (validTabs.includes(router.query.tab)) {
         setActiveTab(router.query.tab);
-      } else if (router.query.tab === 'subscription' && !isAdmin) {
-        // Redirect non-admin users trying to access subscription tab
-        setActiveTab('appearance');
+      } else if (router.query.tab === 'billing' && !isAdmin) {
+        // Redirect non-admin users trying to access billing tab
+        setActiveTab('general');
         router.push({
           pathname: router.pathname,
-          query: { ...router.query, tab: 'appearance' }
+          query: { ...router.query, tab: 'general' }
         }, undefined, { shallow: true });
       }
     } else if (router.isReady) {
-      // Default to appearance tab if no tab parameter is provided
-      setActiveTab('appearance');
+      // Default to general tab if no tab parameter is provided
+      setActiveTab('general');
     }
   }, [router.query.tab, router.isReady, isAdmin]);
 
@@ -118,9 +120,9 @@ const Settings = () => {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  // Fetch subscription data when subscription tab is active
+  // Fetch billing data when billing tab is active
   useEffect(() => {
-    if (activeTab === 'subscription' && user?.organizationID) {
+    if (activeTab === 'billing' && user?.organizationID) {
       fetchSubscriptionData();
       // Use single catalog API for features and prices
       commonTypeService.getSubscriptionCatalog()
@@ -135,9 +137,9 @@ const Settings = () => {
           if (catalog?.prices) {
             setSubscriptionPrices({
               freeMonthly: catalog.prices.freeMonthly || '0',
-              premiumMonthly: catalog.prices.premiumMonthly || '79',
-              premiumAnnualMonthlyEq: catalog.prices.premiumAnnualMonthlyEq || '47.4',
-              premiumAnnualYearly: catalog.prices.premiumAnnualYearly || '569'
+              premiumMonthly: catalog.prices.premiumMonthly || '49',
+              premiumAnnualMonthlyEq: catalog.prices.premiumAnnualMonthlyEq || '34.92',
+              premiumAnnualYearly: catalog.prices.premiumAnnualYearly || '419'
             });
           }
         })
@@ -186,7 +188,6 @@ const Settings = () => {
       setLoadingStripeInvoices(true);
       const res = await paymentService.getStripeTransactions(user.organizationID);
       if (res?.success) {
-        console.log(res.data);
         const invoices = res.data || [];
         setStripeInvoices(invoices);
       }
@@ -196,7 +197,6 @@ const Settings = () => {
       setLoadingStripeInvoices(false);
     }
   };
-
 
   const fetchGitHubStatus = async () => {
     try {
@@ -371,7 +371,7 @@ const Settings = () => {
 
   const handleTabChange = (tabId) => {
     // Prevent non-admin users from accessing subscription tab
-    if (tabId === 'subscription' && !isAdmin) {
+    if (tabId === 'billing' && !isAdmin) {
       showToast('Access denied. Admin role required.', 'error');
       return;
     }
@@ -454,33 +454,22 @@ const Settings = () => {
     }
   };
 
-  // Open Stripe Billing Portal
-  const openBillingPortal = async () => {
-    try {
-      const { success, url } = await paymentService.createBillingPortalSession(user.organizationID);
-      if (success && url) {
-        window.location.href = url;
-      } else {
-        showToast('Failed to open billing portal', 'error');
-      }
-    } catch (e) {
-      showToast(e.message || 'Failed to open billing portal', 'error');
-    }
-  };
-
   // Handle upgrade to annual (existing immediate backend path retained for monthly->annual within app)
   const handleUpgradeToAnnual = async () => {
     try {
-      const response = await authService.upgradeSubscription(user.organizationID, user._id);
-
-      if (response.success) {
-        showToast(`Successfully upgraded to annual plan`, 'success');
-        fetchSubscriptionData(); // Refresh subscription data
-      } else {
-        showToast(response.message || 'Failed to upgrade', 'error');
+      // 1) Cancel current subscription first (prorated refund if eligible)
+      const cancelRes = await authService.cancelSubscription(user.organizationID, user._id);
+      if (!cancelRes?.success) {
+        showToast(cancelRes?.message || 'Failed to cancel current subscription', 'error');
+        return;
       }
+
+      showToast('Current subscription cancelled. Redirecting to annual checkout...', 'success');
+
+      // 2) Redirect to Annual payment page (Stripe Checkout)
+      await startStripeCheckout('annual');
     } catch (error) {
-      console.error('Upgrade error:', error);
+      console.error('Upgrade to annual error:', error);
       showToast(error.message || 'Failed to upgrade. Please try again.', 'error');
     }
   };
@@ -685,9 +674,8 @@ const Settings = () => {
   ];
 
   const tabs = [
-    { id: 'appearance', label: 'Appearance', icon: resolvedTheme === 'dark' ? FaMoon : FaSun },
-    { id: 'security', label: 'Security', icon: FaShieldAlt },
-    ...(isAdmin ? [{ id: 'subscription', label: 'Subscription', icon: FaCrown }] : []),
+    { id: 'general', label: 'General', icon: resolvedTheme === 'dark' ? FaMoon : FaSun },
+    ...(isAdmin ? [{ id: 'billing', label: 'Subscription', icon: MdOutlinePayments }] : []),
     { id: 'integrations', label: 'Integrations', icon: FaGithub }, // New Integrations tab
   ];
 
@@ -727,13 +715,18 @@ const Settings = () => {
 
         {/* Settings Content */}
         <div className={`shadow-sm ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
-          {/* Appearance Settings */}
-          {activeTab === 'appearance' && (
+          {/* Appearance & Security Settings */}
+          {activeTab === 'general' && (
             <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
               <h2 className={`text-xl font-semibold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>Theme Settings</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button onClick={() => handleThemeChange('light')}
+                }`}>General</h2>
+              <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} p-6`}>
+                <div className="mb-4">
+                  <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Theme</h3>
+                  <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Choose your display theme preference.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <button onClick={() => handleThemeChange('light')}
                   className={`p-4 rounded-xl border-2 transition-all duration-200 ${theme === 'light'
                     ? theme === 'dark'
                       ? 'border-blue-400 bg-blue-900/20'
@@ -743,20 +736,20 @@ const Settings = () => {
                       : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
                 >
-                  <div className="flex flex-col items-center gap-3">
-                    <FaSun className={`text-2xl ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-500'}`} />
-                    <span className={`font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Light</span>
-                    {theme === 'light' && (
-                      <span className={`text-sm px-2 py-1 rounded-full ${theme === 'dark'
-                        ? 'bg-blue-900/30 text-blue-400'
-                        : 'bg-blue-100 text-blue-600'
-                        }`}>
-                        Current Theme
-                      </span>
-                    )}
-                  </div>
-                </button>
-                <button
+                    <div className="flex flex-col items-center gap-3">
+                      <FaSun className={`text-2xl ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-500'}`} />
+                      <span className={`font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Light</span>
+                      {theme === 'light' && (
+                        <span className={`text-sm px-2 py-1 rounded-full ${theme === 'dark'
+                          ? 'bg-blue-900/30 text-blue-400'
+                          : 'bg-blue-100 text-blue-600'
+                          }`}>
+                          Current Theme
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                  <button
                   onClick={() => handleThemeChange('dark')}
                   className={`p-4 rounded-xl border-2 transition-all duration-200 ${theme === 'dark'
                     ? theme === 'dark'
@@ -767,20 +760,20 @@ const Settings = () => {
                       : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
                 >
-                  <div className="flex flex-col items-center gap-3">
-                    <FaMoon className={`text-2xl ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
-                    <span className={`font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Dark</span>
-                    {theme === 'dark' && (
-                      <span className={`text-sm px-2 py-1 rounded-full ${theme === 'dark'
-                        ? 'bg-blue-900/30 text-blue-400'
-                        : 'bg-blue-100 text-blue-600'
-                        }`}>
-                        Current Theme
-                      </span>
-                    )}
-                  </div>
-                </button>
-                <button
+                    <div className="flex flex-col items-center gap-3">
+                      <FaMoon className={`text-2xl ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
+                      <span className={`font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Dark</span>
+                      {theme === 'dark' && (
+                        <span className={`text-sm px-2 py-1 rounded-full ${theme === 'dark'
+                          ? 'bg-blue-900/30 text-blue-400'
+                          : 'bg-blue-100 text-blue-600'
+                          }`}>
+                          Current Theme
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                  <button
                   onClick={() => handleThemeChange('system')}
                   className={`p-4 rounded-xl border-2 transition-all duration-200 ${theme === 'system'
                     ? theme === 'dark'
@@ -791,41 +784,40 @@ const Settings = () => {
                       : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
                 >
-                  <div className="flex flex-col items-center gap-3">
-                    <FaDesktop className={`text-2xl ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                    <span className={`font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>System</span>
-                    {theme === 'system' && (
-                      <span className={`text-sm px-2 py-1 rounded-full ${theme === 'dark'
-                        ? 'bg-blue-900/30 text-blue-400'
-                        : 'bg-blue-100 text-blue-600'
-                        }`}>
-                        Current Theme
-                      </span>
-                    )}
-                  </div>
-                </button>
+                    <div className="flex flex-col items-center gap-3">
+                      <FaDesktop className={`text-2xl ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                      <span className={`font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>System</span>
+                      {theme === 'system' && (
+                        <span className={`text-sm px-2 py-1 rounded-full ${theme === 'dark'
+                          ? 'bg-blue-900/30 text-blue-400'
+                          : 'bg-blue-100 text-blue-600'
+                          }`}>
+                          Current Theme
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                </div>
+                <div className={`mt-4 p-4 rounded-lg ${theme === 'dark' ? 'bg-transparent' : 'bg-white'
+                  } border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+                  }`}>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Current theme: <span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      {resolvedTheme.charAt(0).toUpperCase() + resolvedTheme.slice(1)}
+                    </span>
+                  </p>
+                  <p className={`mt-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Your theme preference will be saved and applied across all your devices.
+                  </p>
+                </div>
               </div>
-              <div className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-transparent' : 'bg-white'
-                } border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-                }`}>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Current theme: <span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                    {resolvedTheme.charAt(0).toUpperCase() + resolvedTheme.slice(1)}
-                  </span>
-                </p>
-                <p className={`mt-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Your theme preference will be saved and applied across all your devices.
-                </p>
-              </div>
-            </div>
-          )}
 
-          {/* Security Settings */}
-          {activeTab === 'security' && (
-            <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
-              <h2 className={`text-xl font-semibold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>Security Settings</h2>
-              <div className={`p-6 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-gray-50'}`}>
+              {/* Security section card */}
+              <div className={`mt-6 rounded-xl border p-6 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className="mb-4">
+                  <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Security</h3>
+                  <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Manage account security preferences.</p>
+                </div>
                 <div className="space-y-6">
                   {/* Two-Factor Authentication */}
                   <div className={`flex items-center justify-between p-4 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-white'
@@ -914,8 +906,7 @@ const Settings = () => {
                     </label>
                   </div>
                 </div>
-              </div>
-              <div className="mt-6 flex justify-end">
+                <div className="mt-6 flex justify-end">
                 <button
                   onClick={handleSecuritySave}
                   disabled={loading}
@@ -926,12 +917,13 @@ const Settings = () => {
                 >
                   <span>{loading ? 'Saving...' : 'Save Security Settings'}</span>
                 </button>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Subscription Settings */}
-          {activeTab === 'subscription' && (
+          {/* Billing Settings */}
+          {activeTab === 'billing' && (
             <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
               {/* Current Plan Status */}
               <div className={`mb-4 p-6 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-gray-50'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
@@ -986,7 +978,7 @@ const Settings = () => {
                   </div>
                 </div>
               </div>
-              {subscriptionData?.hasActiveSubscription && (
+              {!subscriptionData?.hasActiveSubscription && (
                 <div className="flex flex-col items-center justify-center gap-2 mb-12">
                   <h2 className={`text-5xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                     Choose Your Plan
@@ -998,11 +990,9 @@ const Settings = () => {
               )}
 
               {/* Subscription Cards */}
-              <div className="max-w-7xl mx-auto">
+              <div className={`max-w-7xl mx-auto ${subscriptionData?.hasActiveSubscription ? 'mt-12' : ''}`}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {subscriptionPlans.map((plan) => {
-                    console.log(plan);
-                    const IconComponent = plan.icon;
                     return (
                       <div key={plan.id} className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 ${plan.id === 'monthly' ? 'scale-105' : ''} hover:scale-105 hover:shadow-2xl ${plan.backgroundGradient} ${plan.borderColor} ${theme === 'dark' ? '' : 'shadow-lg hover:shadow-xl'}`}>
                         {/* Plan Badge */}
@@ -1101,7 +1091,8 @@ const Settings = () => {
                                 }
                               } else if (plan.id === 'annual') {
                                 if (getCurrentPlan() === 'monthly') {
-                                  startStripeCheckout('monthly');
+                                  // Show confirm modal: cancel current, then redirect to annual
+                                  setShowUpgradeModal(true);
                                 } else if (getCurrentPlan() !== 'annual') {
                                   startStripeCheckout('annual');
                                 }
@@ -1743,31 +1734,22 @@ const Settings = () => {
                   ) : (
                     <div className="space-y-4">
                       <div className="flex items-center gap-4">
-                        <GoogleLogin
-                          onSuccess={async (credentialResponse) => {
+                        <button
+                          onClick={async () => {
                             try {
-                              const accessToken = credentialResponse.credential;
-                              await meetingService.attachGoogleCalendarToken({ accessToken });
-                              // Update localStorage user snapshot
-                              const userDataRaw = localStorage.getItem('user');
-                              if (userDataRaw) {
-                                const userData = JSON.parse(userDataRaw);
-                                userData.googleCalendarConnected = true;
-                                localStorage.setItem('user', JSON.stringify(userData));
+                              const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+                              const res = await meetingService.initiateGoogleCalendarAuth(currentUrl);
+                              if (res?.success && res?.authUrl) {
+                                window.location.href = res.authUrl;
                               }
-                              await fetchGoogleStatus();
-                              showToast('Google Calendar connected', 'success');
-                            } catch (e) {
-                              showToast('Failed to connect Google Calendar', 'error');
+                            } catch (_) {
+                              showToast('Failed to start Google authorization', 'error');
                             }
                           }}
-                          onError={() => showToast('Failed to connect Google Calendar', 'error')}
-                          scope="https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar"
-                          theme="filled_blue"
-                          size="large"
-                          text="continue_with"
-                          shape="rectangular"
-                        />
+                          className={`px-6 py-2 rounded-lg font-semibold transition-colors duration-200 ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                        >
+                          Connect Google Calendar
+                        </button>
                         <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Not connected</span>
                       </div>
                       <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
@@ -1978,6 +1960,46 @@ const Settings = () => {
                   : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
               >
                 Keep Subscription
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className={`max-w-md w-full mx-4 rounded-2xl shadow-2xl border-2 ${theme === 'dark' ? 'border-gray-700 bg-[#111214]' : 'border-gray-200 bg-white'}`}>
+            <div className={`p-6 border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}`}>
+              <div className="flex items-center gap-3 justify-start">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 13V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.414-1.414A2 2 0 009.172 3H6a2 2 0 00-2 2v8a2 2 0 002 2h10a2 2 0 002-2zM7 9h6a1 1 0 110 2H7a1 1 0 110-2z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h3 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Upgrade to Annual</h3>
+              </div>
+              <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm text-center mt-3`}>
+                We will cancel your current monthly subscription and issue a prorated refund when eligible, then redirect you to the Annual payment page.
+              </p>
+            </div>
+            <div className="p-6 space-y-3">
+              <button
+                onClick={async () => {
+                  setShowUpgradeModal(false);
+                  await handleUpgradeToAnnual();
+                }}
+                className={`w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-200 shadow ${theme === 'dark'
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                  : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'}`}
+              >
+                Confirm Upgrade
+              </button>
+              <button
+                onClick={() => setShowUpgradeModal(false)}
+                className={`w-full py-3 px-4 rounded-xl font-semibold transition-colors duration-200 ${theme === 'dark'
+                  ? 'bg-gray-800 text-gray-200 hover:bg-gray-700'
+                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+              >
+                Cancel
               </button>
             </div>
           </div>

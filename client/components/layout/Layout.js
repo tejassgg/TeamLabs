@@ -393,7 +393,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           {(user?.role === 'Admin' || user?.role === 1) && !subscriptionData?.hasActiveSubscription && (
             <div className="mb-3">
               <button
-                onClick={() => handleNavigation('/settings?tab=subscription')}
+                onClick={() => handleNavigation('/settings?tab=billing')}
                 className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl font-semibold transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg ${
                   (!isMobile && collapsed) ? 'justify-center' : 'justify-start'
                 } bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md`}

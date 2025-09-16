@@ -19,92 +19,53 @@ const TeamCardSkeleton = ({ theme, delay = 0 }) => {
         'absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent'
       )}></div>
       
-      {/* Team Header Skeleton */}
+      {/* Header */}
       <div className="flex items-start justify-between mb-4 relative z-10">
         <div className="flex items-center gap-3">
-          {/* Team Icon Skeleton */}
-          <div className={getThemeClasses(
-            'w-12 h-12 bg-gray-200 rounded-lg',
-            'w-12 h-12 bg-gray-700 rounded-lg'
-          )}></div>
+          <div className={getThemeClasses('w-10 h-10 bg-gray-200 rounded-lg','w-10 h-10 bg-gray-700 rounded-lg')}></div>
           <div className="flex-1">
-            {/* Team Title Skeleton */}
-            <div className={getThemeClasses(
-              'h-5 bg-gray-200 rounded mb-2 w-3/4',
-              'h-5 bg-gray-700 rounded mb-2 w-3/4'
-            )}></div>
-            {/* Team Description Skeleton */}
-            <div className={getThemeClasses(
-              'h-4 bg-gray-200 rounded w-full',
-              'h-4 bg-gray-700 rounded w-full'
-            )}></div>
+            <div className={getThemeClasses('h-5 bg-gray-200 rounded w-40 mb-2','h-5 bg-gray-700 rounded w-40 mb-2')}></div>
+            <div className={getThemeClasses('h-3 bg-gray-200 rounded w-56','h-3 bg-gray-700 rounded w-56')}></div>
           </div>
         </div>
-        {/* Team Type Badge Skeleton */}
-        <div className={getThemeClasses(
-          'w-20 h-6 bg-gray-200 rounded-full',
-          'w-20 h-6 bg-gray-700 rounded-full'
-        )}></div>
+        <div className="flex items-center gap-2">
+          <div className={getThemeClasses('h-6 w-16 bg-gray-200 rounded-full','h-6 w-16 bg-gray-700 rounded-full')}></div>
+          <div className={getThemeClasses('h-6 w-24 bg-gray-200 rounded-full','h-6 w-24 bg-gray-700 rounded-full')}></div>
+        </div>
       </div>
 
-      {/* Team Stats Skeleton */}
-      <div className="grid grid-cols-3 gap-4 mb-6 relative z-10">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="text-center">
-            <div className={getThemeClasses(
-              'h-8 bg-gray-200 rounded mb-1',
-              'h-8 bg-gray-700 rounded mb-1'
-            )}></div>
-            <div className={getThemeClasses(
-              'h-3 bg-gray-200 rounded w-12 mx-auto',
-              'h-3 bg-gray-700 rounded w-12 mx-auto'
-            )}></div>
+      {/* Active Projects header */}
+      <div className="mb-3 relative z-10">
+        <div className={getThemeClasses('h-4 bg-gray-200 rounded w-32','h-4 bg-gray-700 rounded w-32')}></div>
+      </div>
+
+      {/* Project list */}
+      <div className="space-y-3 relative z-10">
+        {[1,2,3].map(i => (
+          <div key={i} className="flex items-start justify-between">
+            <div className="flex items-start gap-2">
+              <div className={getThemeClasses('w-2 h-2 mt-1.5 bg-gray-300 rounded-full','w-2 h-2 mt-1.5 bg-gray-700 rounded-full')}></div>
+              <div>
+                <div className={getThemeClasses('h-3.5 bg-gray-200 rounded w-56 mb-1','h-3.5 bg-gray-700 rounded w-56 mb-1')}></div>
+                <div className={getThemeClasses('h-3 bg-gray-200 rounded w-40','h-3 bg-gray-700 rounded w-40')}></div>
+              </div>
+            </div>
+            <div className={getThemeClasses('h-6 w-20 bg-gray-200 rounded-full','h-6 w-20 bg-gray-700 rounded-full')}></div>
           </div>
         ))}
       </div>
 
-      {/* Bottom Section Skeleton */}
-      <div className="space-y-3 mt-auto relative z-10">
-        {/* Team Activity Skeleton */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className={getThemeClasses(
-              'w-2 h-2 bg-gray-200 rounded-full',
-              'w-2 h-2 bg-gray-700 rounded-full'
-            )}></div>
-            <div className={getThemeClasses(
-              'h-3 bg-gray-200 rounded w-12',
-              'h-3 bg-gray-700 rounded w-12'
-            )}></div>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className={getThemeClasses(
-              'w-3 h-3 bg-gray-200 rounded',
-              'w-3 h-3 bg-gray-700 rounded'
-            )}></div>
-            <div className={getThemeClasses(
-              'h-3 bg-gray-200 rounded w-8',
-              'h-3 bg-gray-700 rounded w-8'
-            )}></div>
-          </div>
+      {/* Footer */}
+      <div className="mt-5 flex items-center justify-between relative z-10">
+        <div className="flex -space-x-2">
+          {[1,2,3,4].map(i => (
+            <div key={i} className={getThemeClasses('w-7 h-7 rounded-full bg-gray-200 border-2 border-white','w-7 h-7 rounded-full bg-gray-700 border-2 border-[#111214]')}></div>
+          ))}
+          <div className={getThemeClasses('w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs','w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-xs')}></div>
         </div>
-
-        {/* Created Date and Navigation Skeleton */}
-        <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center gap-2">
-            <div className={getThemeClasses(
-              'w-3 h-3 bg-gray-200 rounded',
-              'w-3 h-3 bg-gray-700 rounded'
-            )}></div>
-            <div className={getThemeClasses(
-              'h-3 bg-gray-200 rounded w-24',
-              'h-3 bg-gray-700 rounded w-24'
-            )}></div>
-          </div>
-          <div className={getThemeClasses(
-            'w-3 h-3 bg-gray-200 rounded',
-            'w-3 h-3 bg-gray-700 rounded'
-          )}></div>
+        <div className="flex items-center gap-2">
+          <div className={getThemeClasses('w-3 h-3 bg-gray-200 rounded','w-3 h-3 bg-gray-700 rounded')}></div>
+          <div className={getThemeClasses('h-3 bg-gray-200 rounded w-28','h-3 bg-gray-700 rounded w-28')}></div>
         </div>
       </div>
     </div>
@@ -153,8 +114,8 @@ const TeamsSkeleton = () => {
       </div>
 
       {/* Teams Grid Skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-stretch">
-        {Array.from({ length: 8 }).map((_, index) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+        {Array.from({ length: 6 }).map((_, index) => (
           <TeamCardSkeleton 
             key={index} 
             theme={theme} 

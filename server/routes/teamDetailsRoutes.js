@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { protect } = require('../middleware/auth');
 const Team = require('../models/Team');
 const TeamDetails = require('../models/TeamDetails');
 const TeamJoinRequest = require('../models/TeamJoinRequest');
@@ -22,12 +23,38 @@ async function checkOwner(req, res, next) {
   next();
 }
 
-// GET /api/team-details/:teamId - Get team details with members and active projects
-router.get('/:teamId', async (req, res) => {
+// Middleware to ensure the authenticated user is a member (or owner) of the team
+async function ensureTeamMember(req, res, next) {
   try {
     const teamId = req.params.teamId;
     const team = await Team.findOne({ TeamID: teamId });
     if (!team) return res.status(404).json({ error: 'Team not found' });
+
+    // Owner always allowed
+    if (String(team.OwnerID) === String(req.user?._id)) {
+      req.team = team;
+      return next();
+    }
+
+    // Check membership
+    const membership = await TeamDetails.findOne({ TeamID_FK: teamId, MemberID: req.user?._id });
+    if (!membership) {
+      return res.status(403).json({ error: 'Access denied. You are not a member of this team.' });
+    }
+
+    req.team = team;
+    next();
+  } catch (e) {
+    console.error('ensureTeamMember error:', e?.message || e);
+    res.status(500).json({ error: 'Failed to verify team membership' });
+  }
+}
+
+// GET /api/team-details/:teamId - Get team details with members and active projects
+router.get('/:teamId', protect, ensureTeamMember, async (req, res) => {
+  try {
+    const teamId = req.params.teamId;
+    const team = req.team;
 
     // Fetch team type value from CommonTypes
     const teamType = await CommonType.findOne({ 
@@ -426,7 +453,7 @@ router.delete('/:teamId/member/:memberId', checkOwner, async (req, res) => {
 });
 
 // GET /api/team-details/:teamId/active-projects - List all projects for a team
-router.get('/:teamId/active-projects', async (req, res) => {
+router.get('/:teamId/active-projects', protect, ensureTeamMember, async (req, res) => {
   try {
     const teamId = req.params.teamId;
     // Find all project assignments for this team

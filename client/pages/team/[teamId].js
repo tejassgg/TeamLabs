@@ -148,14 +148,17 @@ const TeamDetailsPage = () => {
       setLoading(true);
       api.get(`/team-details/${teamId}`)
         .then(res => {
+          if (!res?.data?.team) {
+            throw new Error('Team not available');
+          }
           setTeam(res.data.team);
-          setMembers(res.data.members);
-          setOrgUsers(res.data.orgUsers);
+          setMembers(res.data.members || []);
+          setOrgUsers(res.data.orgUsers || []);
           setSettingsForm({
-            TeamName: res.data.team.TeamName,
-            TeamType: res.data.team.TeamType,
-            TeamDescription: res.data.team.TeamDescription,
-            TeamColor: res.data.team.TeamColor
+            TeamName: res.data.team.TeamName || '',
+            TeamType: res.data.team.TeamType || '',
+            TeamDescription: res.data.team.TeamDescription || '',
+            TeamColor: res.data.team.TeamColor || ''
           });
           setActiveProjects(res.data.activeProjects || []);
           setTeamTasks(res.data.teamTasks || []);
@@ -168,7 +171,16 @@ const TeamDetailsPage = () => {
         })
         .catch(err => {
           console.error('Error fetching team:', err);
-          router.push('/dashboard');
+          // If unauthorized or forbidden, redirect away with a toast message
+          try {
+            if (err?.response?.status === 403) {
+              setError(err?.response?.data?.error);
+              showToast(err?.response?.data?.error, 'error');
+            } else if (err?.response?.status === 404) {
+              setError(err?.response?.data?.error);
+              showToast(err?.response?.data?.error, 'error');
+            }
+          } catch (_) { /* ignore toast errors */ }
         })
         .finally(() => setLoading(false));
       setGoogleAccessToken(user?.googleCalendarAccessToken);
@@ -666,6 +678,12 @@ const TeamDetailsPage = () => {
       return;
     }
 
+    // Require Google Calendar connection before creating meeting
+    if (!isGoogleCalendarConnected) {
+      setShowGoogleCalendarPrompt(true);
+      return;
+    }
+
     setCreatingMeeting(true);
     try {
       const payload = {
@@ -700,7 +718,7 @@ const TeamDetailsPage = () => {
       }
     } catch (err) {
       console.error('Error creating meeting:', err);
-      showToast('Failed to save meeting. Please try again.', 'error');
+      showToast('Failed to Create Meeting. Please try again.', 'error');
     } finally {
       setCreatingMeeting(false);
     }
@@ -726,18 +744,19 @@ const TeamDetailsPage = () => {
         const res = await meetingService.deleteMeeting(meetingId);
         if (res.success) {
           setMeetings(prev => prev.filter(m => m.MeetingID !== meetingId));
-          showToast('Meeting deleted successfully', 'success');
+          showToast('Meeting Deleted successfully', 'success');
         }
       } catch (error) {
         console.error('Error deleting meeting:', error);
-        showToast('Failed to delete meeting', 'error');
+        showToast('Failed to delete Meeting', 'error');
       }
     }
   };
 
   const handleInitiateGoogleCalendarAuth = async () => {
     try {
-      const res = await meetingService.initiateGoogleCalendarAuth();
+      const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+      const res = await meetingService.initiateGoogleCalendarAuth(currentUrl);
       if (res.success && res.authUrl) {
         window.location.href = res.authUrl;
       }
@@ -854,14 +873,41 @@ const TeamDetailsPage = () => {
         {loading ? (
           <TeamDetailsSkeleton />
         ) : error ? (
-          <div className={getThemeClasses(
-            'text-center text-red-500',
-            'dark:text-red-400'
-          )}>{error}</div>
+          <div className="flex items-center justify-center py-16">
+            <div className={getThemeClasses(
+              'max-w-xl w-full mx-4 rounded-2xl border bg-white text-gray-800',
+              'max-w-xl w-full mx-4 rounded-2xl border border-gray-700 bg-[#111214] text-gray-100'
+            )}>
+              <div className={getThemeClasses(
+                'p-6 border-b border-gray-200',
+                'p-6 border-b border-gray-800'
+              )}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/10 text-red-600 dark:text-red-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.721-1.36 3.486 0l6.518 11.59c.75 1.335-.213 3.01-1.743 3.01H3.482c-1.53 0-2.493-1.675-1.743-3.01L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a1 1 0 01-1-1V8a1 1 0 112 0v3a1 1 0 01-1 1z" clipRule="evenodd"/></svg>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold">Cannot view this team</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{error}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 flex flex-col sm:flex-row gap-3 sm:justify-end">
+                <button
+                  onClick={() => router.push('/dashboard')}
+                  className={getThemeClasses(
+                    'w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-700',
+                    'w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-700 hover:bg-gray-800 text-gray-200'
+                  )}
+                >
+                  Go to Dashboard
+                </button>
+              </div>
+            </div>
+          </div>
         ) : (
           <>
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
               {/* Team Description - Desktop View */}
               <div className={getThemeClasses(
                 'hidden md:flex w-full items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm',
@@ -1227,7 +1273,7 @@ const TeamDetailsPage = () => {
             )}
 
             {/* Meetings Section */}
-            <div className={getThemeClasses('rounded-xl mb-6', 'dark:border-gray-700')}>
+            <div className={getThemeClasses('rounded-xl mb-4', 'dark:border-gray-700')}>
               <div className={getThemeClasses('px-4 pt-4 flex items-center justify-between', 'dark:border-gray-700')}>
                 <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Team Meetings</h2>
                 <button

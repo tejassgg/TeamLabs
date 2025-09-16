@@ -11,7 +11,7 @@ function buildGoogleOAuthClient() {
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.SERVER_URL || 'http://localhost:5000'}/api/google-calendar/callback`
+    `${process.env.SERVER_URL}/api/google-calendar/callback`
   );
 }
 
@@ -379,7 +379,9 @@ exports.initiateGoogleCalendarAuth = async (req, res) => {
       'https://www.googleapis.com/auth/calendar.events',
       'https://www.googleapis.com/auth/calendar'
     ];
-    const state = Buffer.from(JSON.stringify({ userId })).toString('base64url');
+    // Persist return URL (current page) in state so we can redirect back after OAuth
+    const returnUrl = req.body?.returnUrl || req.headers?.referer || `${process.env.FRONTEND_URL}`;
+    const state = Buffer.from(JSON.stringify({ userId, returnUrl })).toString('base64url');
     const url = oauth2Client.generateAuthUrl({ access_type: 'offline', scope: scopes, prompt: 'consent', state });
     res.json({ success: true, authUrl: url });
   } catch (error) {
@@ -394,9 +396,11 @@ exports.handleGoogleCalendarCallback = async (req, res) => {
     const { code, state } = req.query;
     if (!code || !state) return res.status(400).json({ success: false, message: 'Missing code or state' });
     let userId = null;
+    let returnUrl = null;
     try {
       const parsed = JSON.parse(Buffer.from(String(state), 'base64').toString('utf8'));
       userId = parsed.userId;
+      returnUrl = parsed.returnUrl || null;
     } catch (_) { }
     if (!userId) return res.status(400).json({ success: false, message: 'Invalid state' });
     const oauth2Client = buildGoogleOAuthClient();
@@ -407,8 +411,8 @@ exports.handleGoogleCalendarCallback = async (req, res) => {
       googleCalendarRefreshToken: tokens.refresh_token || null,
       googleCalendarTokenExpiry: tokens.expiry_date ? new Date(tokens.expiry_date) : null
     });
-    // Redirect back to client app after successful connection
-    const redirectTo = `${process.env.FRONTEND_URL}/team/${teamId}?googleCalendar=connected`;
+    // Redirect back to original page after successful connection
+    const redirectTo = (returnUrl || `${process.env.FRONTEND_URL}`) + (returnUrl && returnUrl.includes('?') ? '&' : '?') + 'googleCalendar=connected';
     res.redirect(302, redirectTo);
   } catch (error) {
     console.error('handleGoogleCalendarCallback error:', error);

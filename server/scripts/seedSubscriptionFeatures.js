@@ -38,11 +38,11 @@ const SubscriptionPrices = [
   { Value: '0', Code: 100, MasterType: 'SubscriptionPrice', Description: 'free_monthly' },
 
   // Premium Monthly
-  { Value: '79', Code: 101, MasterType: 'SubscriptionPrice', Description: 'premium_monthly' },
+  { Value: '49', Code: 101, MasterType: 'SubscriptionPrice', Description: 'premium_monthly' },
 
   // Premium Annual (monthly equivalent and yearly total)
-  { Value: '47.4', Code: 102, MasterType: 'SubscriptionPrice', Description: 'premium_annual_monthly_equivalent' },
-  { Value: '569', Code: 103, MasterType: 'SubscriptionPrice', Description: 'premium_annual_yearly_total' }
+  { Value: '34.91', Code: 102, MasterType: 'SubscriptionPrice', Description: 'premium_annual_monthly_equivalent' },
+  { Value: '419', Code: 103, MasterType: 'SubscriptionPrice', Description: 'premium_annual_yearly_total' }
 ];
 
 (async () => {

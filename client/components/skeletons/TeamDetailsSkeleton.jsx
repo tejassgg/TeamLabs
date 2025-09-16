@@ -11,34 +11,60 @@ const TeamDetailsSkeleton = () => {
 
   return (
     <div className="mx-auto">
-      {/* Header Section */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          {/* Team Name Skeleton */}
-          <div className={`h-8 w-48 ${skeletonClass}`}></div>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Status Badge Skeleton */}
-          <div className={`h-8 w-20 ${skeletonClass}`}></div>
-          {/* Settings Button Skeleton */}
-          <div className={`h-8 w-8 ${skeletonClass}`}></div>
+      {/* Top Info Card */}
+      <div className={`rounded-xl ${isDark ? 'bg-[#0f1729]/40 border border-gray-700' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100'} p-4 mb-4`}>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <div className={`h-4 w-40 ${skeletonClass} mb-2`}></div>
+            <div className={`h-5 w-72 ${skeletonClass}`}></div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className={`h-7 w-16 ${skeletonClass}`}></div>
+            <div className={`h-7 w-24 ${skeletonClass}`}></div>
+            <div className={`h-8 w-8 ${skeletonClass}`}></div>
+          </div>
         </div>
       </div>
 
-      {/* Description Section */}
-      <div className="flex items-center gap-4 mb-4">
-        {/* Description Text Skeleton */}
-        <div className={`h-5 w-96 ${skeletonClass}`}></div>
-        {/* Team Type Badge Skeleton */}
-        <div className={`h-6 w-24 ${skeletonClass}`}></div>
+      {/* Search Member */}
+      <div className="mb-4">
+        <div className={`h-10 w-full ${skeletonClass}`}></div>
       </div>
 
-      {/* Add Member Form Skeleton */}
-      <div className="mb-4 flex flex-col gap-2">
-        {/* Label Skeleton */}
-        <div className={`h-5 w-64 ${skeletonClass}`}></div>
-        {/* Input Field Skeleton */}
-        <div className={`h-10 w-96 ${skeletonClass}`}></div>
+      {/* Join Requests */}
+      <div className={`rounded-xl ${isDark ? 'border border-gray-700' : 'border border-gray-200'} mb-4`}>
+        <div className={`px-4 py-3 ${isDark ? 'border-b border-gray-700' : 'border-b border-gray-200'}`}>
+          <div className={`h-5 w-32 ${skeletonClass}`}></div>
+        </div>
+        <div className="p-4">
+          <div className={`h-4 w-56 ${skeletonClass}`}></div>
+        </div>
+      </div>
+
+      {/* Team Meetings */}
+      <div className="mb-4">
+        <div className={`h-6 w-40 ${skeletonClass} mb-3`}></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[1,2].map(i => (
+            <div key={i} className={`rounded-xl ${isDark ? 'border border-gray-700' : 'border border-gray-200'} p-4`}>
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <div className={`h-4 w-56 ${skeletonClass} mb-2`}></div>
+                  <div className={`h-3 w-44 ${skeletonClass}`}></div>
+                </div>
+                <div className={`h-8 w-8 ${skeletonClass}`}></div>
+              </div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`h-4 w-4 ${skeletonClass}`}></div>
+                <div className={`h-4 w-64 ${skeletonClass}`}></div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`h-8 w-24 ${skeletonClass}`}></div>
+                <div className={`h-6 w-16 ${skeletonClass}`}></div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Team Members and Projects Tables Grid */}
@@ -181,10 +207,10 @@ const TeamDetailsSkeleton = () => {
         </div>
       </div>
 
-      {/* Action Buttons Skeleton */}
-      <div className="mt-6 flex items-center gap-4">
-        <div className={`h-10 w-32 ${skeletonClass}`}></div>
+      {/* Footer Actions */}
+      <div className="mt-6 flex items-center gap-3">
         <div className={`h-10 w-28 ${skeletonClass}`}></div>
+        <div className={`h-10 w-24 ${skeletonClass}`}></div>
       </div>
     </div>
   );

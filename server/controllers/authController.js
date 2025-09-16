@@ -114,6 +114,21 @@ const registerUser = async (req, res) => {
     });
 
     if (user) {
+      // If joined via invite and organization is premium, grant premium to the new user
+      try {
+        if (organizationID) {
+          const org = await Organization.findOne({ OrganizationID: organizationID });
+          if (org?.isPremium && org?.subscription?.endDate && new Date(org.subscription.endDate) > new Date()) {
+            const plan = org.subscription.plan || 'monthly';
+            const startDate = org.subscription.startDate || new Date();
+            const endDate = org.subscription.endDate;
+            await user.activatePremium(plan, startDate, endDate);
+          }
+        }
+      } catch (e) {
+        // Non-fatal: log and continue response
+        console.error('Auto-activate premium for invited user failed:', e?.message || e);
+      }
       // Log the user creation and last login
       res.status(201).json({
         _id: user._id,
@@ -158,6 +173,17 @@ const loginUser = async (req, res) => {
       // Update last login and set status to Active
       user.lastLogin = new Date();
       user.status = 'Active';
+
+      // If Google Calendar token is expired, clear related fields
+      try {
+        if (user.googleCalendarTokenExpiry && new Date(user.googleCalendarTokenExpiry) <= new Date()) {
+          user.googleCalendarConnected = false;
+          user.googleCalendarAccessToken = null;
+          user.googleCalendarRefreshToken = null;
+          user.googleCalendarTokenExpiry = null;
+        }
+      } catch (_) { /* ignore */ }
+
       await user.save();
 
       // Log successful login
@@ -252,6 +278,17 @@ const googleLogin = async (req, res) => {
       // If user exists, update last login
       user.lastLogin = new Date();
       user.status = 'Active';
+
+      // If Google Calendar token is expired, clear related fields
+      try {
+        if (user.googleCalendarTokenExpiry && new Date(user.googleCalendarTokenExpiry) <= new Date()) {
+          user.googleCalendarConnected = false;
+          user.googleCalendarAccessToken = null;
+          user.googleCalendarRefreshToken = null;
+          user.googleCalendarTokenExpiry = null;
+        }
+      } catch (_) { /* ignore */ }
+
       await user.save();
 
       // Log successful Google login
@@ -340,6 +377,22 @@ const googleLogin = async (req, res) => {
         googleCalendarAccessToken: null,
         googleCalendarTokenExpiry: null
       });
+
+      // If joined via invite and organization is premium, grant premium to the new user
+      try {
+        if (organizationID) {
+          const org = await Organization.findOne({ OrganizationID: organizationID });
+          if (org?.isPremium && org?.subscription?.endDate && new Date(org.subscription.endDate) > new Date()) {
+            const plan = org.subscription.plan || 'monthly';
+            const startDate = org.subscription.startDate || new Date();
+            const endDate = org.subscription.endDate;
+            await user.activatePremium(plan, startDate, endDate);
+          }
+        }
+      } catch (e) {
+        // Non-fatal: log and continue
+        console.error('Auto-activate premium for invited user (Google) failed:', e?.message || e);
+      }
 
       // Log successful Google login for new user
       await logActivity(user._id, 'login', 'success', 'New user registered and logged in via Google', req, { provider: 'google' });

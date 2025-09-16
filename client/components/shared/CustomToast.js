@@ -3,7 +3,7 @@ import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react
 import { useTheme } from '../../context/ThemeContext';
 
 // Fixed import path for component reorganization
-const CustomToast = ({ message, type = 'success', onClose, duration = 5000 }) => {
+const CustomToast = ({ message, type = 'success', onClose, duration = 3500 }) => {
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -16,11 +16,11 @@ const CustomToast = ({ message, type = 'success', onClose, duration = 5000 }) =>
   }, [duration, onClose]);
 
   const getToastStyles = () => {
-    const baseStyles = 'fixed top-16 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg transform transition-all duration-500 ease-in-out animate-slide-in';
-    
+    const baseStyles = 'fixed top-20 right-6 z-50 flex items-start gap-4 px-5 py-4 rounded-xl shadow-2xl transform transition-all duration-500 ease-in-out animate-slide-in w-[420px] max-w-[90vw]';
+
     const typeStyles = {
-      success: theme === 'dark' 
-        ? 'bg-green-900/90 text-green-100 border border-green-800/50' 
+      success: theme === 'dark'
+        ? 'bg-green-900/90 text-green-100 border border-green-800/50'
         : 'bg-green-50 text-green-800 border border-green-200',
       error: theme === 'dark'
         ? 'bg-red-900/90 text-red-100 border border-red-800/50'
@@ -37,7 +37,7 @@ const CustomToast = ({ message, type = 'success', onClose, duration = 5000 }) =>
   };
 
   const getIcon = () => {
-    const iconProps = { size: 20 };
+    const iconProps = { size: 24 };
     switch (type) {
       case 'success':
         return <FaCheckCircle className="flex-shrink-0" {...iconProps} />;
@@ -55,17 +55,16 @@ const CustomToast = ({ message, type = 'success', onClose, duration = 5000 }) =>
   return (
     <div className={getToastStyles()}>
       {getIcon()}
-      <p className="text-sm font-medium">{message}</p>
+      <p className="text-base font-semibold leading-snug break-words flex-1">{message}</p>
       <button
         onClick={onClose}
-        className={`ml-2 p-1 rounded-full hover:bg-opacity-20 transition-colors duration-200 ${
-          theme === 'dark' ? 'hover:bg-white/20' : 'hover:bg-black/10'
-        }`}
+        className={`ml-2 p-1.5 rounded-full hover:bg-opacity-20 transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-white/20' : 'hover:bg-black/10'
+          }`}
       >
-        <FaTimes size={14} />
+        <FaTimes size={16} />
       </button>
       {/* Progress bar */}
-      <div className="absolute bottom-0 left-0 h-1 bg-current opacity-20 animate-progress" />
+      <div className="absolute bottom-0 left-0 h-2 bg-current opacity-20 animate-progress rounded-b-xl" />
     </div>
   );
 };
