@@ -496,7 +496,7 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
                                     Timeline:
                                 </span>
                                 <p className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                    {formatDate(selectedTask.startDate)} - {formatDate(selectedTask.endDate)}
+                                    {formatDateUTC(selectedTask.startDate)} - {formatDateUTC(selectedTask.endDate)}
                                 </p>
                             </div>
 
