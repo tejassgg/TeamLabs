@@ -77,6 +77,14 @@ const Settings = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showSessionTimeoutDropdown, setShowSessionTimeoutDropdown] = useState(false);
+  const sessionTimeoutOptions = [
+    { value: 15, label: '15 minutes' },
+    { value: 30, label: '30 minutes' },
+    { value: 60, label: '1 hour' },
+    { value: 120, label: '2 hours' },
+    { value: 240, label: '4 hours' }
+  ];
 
   // Update security settings when user data changes
   useEffect(() => {
@@ -679,7 +687,7 @@ const Settings = () => {
   ];
 
   const tabs = [
-    { id: 'general', label: 'General', icon: resolvedTheme === 'dark' ? FaMoon : FaSun },
+    { id: 'general', label: 'General', icon: FaSun },
     ...(isAdmin ? [{ id: 'billing', label: 'Billings', icon: MdOutlinePayments }] : []),
     { id: 'integrations', label: 'Integrations', icon: FaGithub }, // New Integrations tab
   ];
@@ -722,7 +730,8 @@ const Settings = () => {
         <div className={`shadow-sm ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
           {/* Appearance & Security Settings */}
           {activeTab === 'general' && (
-            <div className='p-6 max-w-7xl'>
+            <div className='p-6 max-w-4xl'>
+               {/* Security section card */}
               <div>
                 <div className="mb-4">
                   <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Theme</h3>
@@ -816,16 +825,14 @@ const Settings = () => {
               </div>
 
               {/* Security section card */}
-              <div className={`mt-6`}>
+              <div className='mt-6'>
                 <div className="mb-4">
                   <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Security</h3>
                   <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Manage account security preferences.</p>
                 </div>
                 <div className="space-y-6">
                   {/* Two-Factor Authentication */}
-                  <div className={`flex items-center justify-between p-4 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-white'
-                    } border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-                    }`}>
+                  <div className={`flex items-center justify-between ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
                     <div>
                       <h3 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                         Two-Factor Authentication
@@ -862,36 +869,56 @@ const Settings = () => {
                       </button>
                     )}
                   </div>
-                  <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-white'
-                    } border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-                    }`}>
+                  <div className='flex items-center justify-between gap-2 relative'>
                     <div className="mb-4">
-                      <h3 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }`}>Session Timeout</h3>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}>Automatically log out after period of inactivity</p>
+                      <h3 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900' }`}>Session Timeout</h3>
+                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Automatically log out after inactivity for</p>
                     </div>
-                    <select
-                      value={securitySettings.sessionTimeout}
-                      onChange={(e) => setSecuritySettings(prev => ({ ...prev, sessionTimeout: Number(e.target.value) }))}
-                      className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
-                        ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400'
-                        : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500'
-                        }`}
-                    >
-                      <option value={15}>15 minutes</option>
-                      <option value={30}>30 minutes</option>
-                      <option value={60}>1 hour</option>
-                      <option value={120}>2 hours</option>
-                      <option value={240}>4 hours</option>
-                    </select>
+                    <div className="w-1/4">
+                      <button
+                        type="button"
+                        onClick={() => setShowSessionTimeoutDropdown(v => !v)}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
+                          ? 'border-gray-700 bg-transparent text-white hover:bg-[#232323]'
+                          : 'border-gray-200 bg-white text-gray-900 hover:bg-gray-50'
+                          }`}
+                      >
+                        <span>
+                          {sessionTimeoutOptions.find(o => o.value === securitySettings.sessionTimeout)?.label || 'Select timeout'}
+                        </span>
+                        <svg className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`} viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                      {showSessionTimeoutDropdown && (
+                        <div className={`absolute right-0 mt-2 w-1/4 z-20 rounded-xl shadow-lg border ${theme === 'dark' ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
+                          <ul className="max-h-60 overflow-auto py-1">
+                            {sessionTimeoutOptions.map(opt => (
+                              <li key={opt.value}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSecuritySettings(prev => ({ ...prev, sessionTimeout: opt.value }));
+                                    setShowSessionTimeoutDropdown(false);
+                                  }}
+                                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                                    opt.value === securitySettings.sessionTimeout
+                                      ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700')
+                                      : (theme === 'dark' ? 'hover:bg-[#232323] text-gray-200' : 'hover:bg-gray-50 text-gray-700')
+                                  }`}
+                                >
+                                  {opt.label}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className={`flex items-center justify-between p-4 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-white'
-                    } border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-                    }`}>
+                  <div className='flex items-center justify-between'>
                     <div>
-                      <h3 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }`}>Login Notifications</h3>
+                      <h3 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Login Notifications</h3>
                       <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                         }`}>Get notified when someone logs into your account</p>
                     </div>
