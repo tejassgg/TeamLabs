@@ -317,7 +317,6 @@ router.get('/all', async (req, res) => {
 // GET /api/task-details/:taskId - Get a single task by ID
 router.get('/:taskId', async (req, res) => {
     try {
-        console.log(req.params);
         const taskId = req.params.taskId;
         const task = await TaskDetails.findOne({ TaskID: taskId, IsActive: true });
 

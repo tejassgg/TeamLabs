@@ -2,7 +2,7 @@ import Navbar from './Navbar';
 import { useTheme } from '../../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { FaCog, FaPlus, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaSignOutAlt, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaCrown } from 'react-icons/fa';
+import { FaCog, FaPlus, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaExternalLinkAlt } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import AddTeamModal from '../team/AddTeamModal';
 import { teamService, projectService, taskService, authService } from '../../services/api';
@@ -28,7 +28,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const { user } = useAuth();
   const [subscriptionData, setSubscriptionData] = useState(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
-  const [showUpgradeSuccess, setShowUpgradeSuccess] = useState(false);
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
   const activeProjectId = router.pathname.startsWith('/project/') ? router.query.projectId : null;
 
@@ -51,14 +50,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
       try {
         const response = await authService.getSubscriptionData(user.organizationID);
         const newSubscriptionData = response.data.subscription;
-        
-        // Check if user just upgraded (wasn't premium before, now is)
-        if (!subscriptionData?.hasActiveSubscription && newSubscriptionData?.hasActiveSubscription) {
-          setShowUpgradeSuccess(true);
-          // Hide success message after 5 seconds
-          setTimeout(() => setShowUpgradeSuccess(false), 5000);
-        }
-        
         setSubscriptionData(newSubscriptionData);
       } catch (error) {
         console.error('Error fetching subscription data:', error);
@@ -364,51 +355,21 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
 
         {/* Bottom: Logout & Theme Switch */}
         <div className={`flex flex-col gap-2 p-4 border-t ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
-          {/* Upgrade Success Message */}
-          {showUpgradeSuccess && (
-            <div className="mb-3">
-              <div className={`p-3 rounded-xl border-2 ${theme === 'dark' ? 'border-green-500/50 bg-green-500/10' : 'border-green-400 bg-green-50'}`}>
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0">
-                    <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  {(!isMobile && collapsed) ? null : (
-                    <div className="flex flex-col">
-                      <span className={`text-sm font-bold ${theme === 'dark' ? 'text-green-400' : 'text-green-700'}`}>
-                        Premium Activated!
-                      </span>
-                      <span className={`text-xs ${theme === 'dark' ? 'text-green-300' : 'text-green-600'}`}>
-                        Welcome to premium features
-                      </span>
-                    </div>
-                  )}
-                </div>
+          {/* Upgrade to Premium Button - Only show for admin users without premium */}
+          {(user?.role === 'Admin' || user?.role === 1) && !subscriptionData?.hasActiveSubscription && (!isMobile && !collapsed) && (
+            <button onClick={() => handleNavigation('/settings?tab=billing')}
+              className={`w-full flex items-center ${(!isMobile && collapsed) ? 'justify-center gap-2' : 'justify-between gap-3'} px-3 py-2 rounded-xl font-medium transition-all duration-200 border ${theme === 'dark' ? 'bg-[#232323] border-[#424242] text-[#F3F6FA] hover:bg-[#2a2a2a]' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                }`} >
+              <div className="flex items-center gap-2">
+                <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Upgrade to</span>
+                <span className="px-2 py-0.5 rounded-md bg-black text-white text-xs font-semibold tracking-wide">PRO</span>
               </div>
-            </div>
+              <div className={`flex items-center justify-center w-6 h-6 rounded-full ${theme === 'dark' ? 'bg-[#1a1a1a] text-gray-200' : 'bg-white text-gray-600'} border ${theme === 'dark' ? 'border-[#2e2e2e]' : 'border-gray-200'}`}>
+                <FaArrowRight size={12} className='-rotate-45 hover:transform hover:-rotate-90 transition-all duration-200' />
+              </div>
+            </button>
           )}
 
-          {/* Upgrade to Premium Button - Only show for admin users without premium */}
-          {(user?.role === 'Admin' || user?.role === 1) && !subscriptionData?.hasActiveSubscription && (
-            <div className="mb-3">
-              <button
-                onClick={() => handleNavigation('/settings?tab=billing')}
-                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl font-semibold transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg ${
-                  (!isMobile && collapsed) ? 'justify-center' : 'justify-start'
-                } bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md`}
-              >
-                <FaCrown className="text-lg text-yellow-300" />
-                {(!isMobile && collapsed) ? null : (
-                  <div className="flex flex-col items-start">
-                    <span className="text-sm font-bold">Upgrade to Premium</span>
-                    <span className="text-xs opacity-90">Unlock unlimited features</span>
-                  </div>
-                )}
-              </button>
-            </div>
-          )}
-          
           <SidebarButton
             icon={<FaRobot className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
             label="AI Assistant"

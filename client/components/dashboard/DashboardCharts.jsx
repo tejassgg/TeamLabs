@@ -43,8 +43,10 @@ const DashboardCharts = ({ stats, theme }) => {
   const prepareChartData = () => {
     const charts = stats.charts;
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const color = (lightHex, darkHex) => (theme === 'dark' ? darkHex : lightHex);
 
     // Project Status Distribution
+    console.log(charts.projectStatusDistribution);
     const projectStatusLabels = Object.keys(charts.projectStatusDistribution);
     const projectStatusValues = Object.values(charts.projectStatusDistribution);
     const projectStatusData = {
@@ -52,15 +54,13 @@ const DashboardCharts = ({ stats, theme }) => {
       datasets: [{
         data: projectStatusValues,
         backgroundColor: [
-          '#6B7280', // Gray - Not Assigned
-          '#3B82F6', // Blue - Assigned
-          '#F59E0B', // Yellow - In Progress
-          '#8B5CF6', // Purple - Development
-          '#F97316', // Orange - Testing
-          '#6366F1', // Indigo - QA
-          '#EC4899', // Pink - Deployment
-          '#10B981', // Green - Completed
-          '#EF4444', // Red - Other
+          color('#6B7280', '#4B5563'), // Gray - Not Assigned
+          color('#3B82F6', '#2563EB'), // Blue - Assigned
+          color('#F59E0B', '#D97706'), // Yellow - In Progress
+          color('#6366F1', '#4F46E5'), // Indigo - QA
+          color('#EC4899', '#DB2777'), // Pink - Deployment
+          color('#10B981', '#059669'), // Green - Completed
+          color('#EF4444', '#DC2626'), // Red - Other
         ].slice(0, projectStatusLabels.length),
         borderWidth: 2,
         borderColor: theme === 'dark' ? '#424242' : '#ffffff',
@@ -141,7 +141,7 @@ const DashboardCharts = ({ stats, theme }) => {
       datasets: [{
         data: activityValues,
         backgroundColor: [
-          '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', 
+          '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
           '#6366F1', '#EC4899', '#6B7280', '#F97316', '#059669'
         ].slice(0, activityLabels.length),
         borderWidth: 2,
@@ -211,6 +211,8 @@ const DashboardCharts = ({ stats, theme }) => {
     }
   };
 
+  console.log(chartData.projectStatus);
+
   if (loading || !stats?.charts) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -233,58 +235,74 @@ const DashboardCharts = ({ stats, theme }) => {
   return (
     <div className="space-y-6 mb-8">
       {/* Statistics Cards and Task Completion Summary - Side by Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-8 gap-6">
         {/* Statistics Cards - 2x2 Grid (1/4th width) */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-2">
           <div className="h-full grid grid-cols-2 gap-4">
             {/* Projects Card */}
             <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-4' : 'bg-white text-gray-900 border-gray-100 rounded-xl shadow-sm p-4 border'} transition-all duration-200`}>
-              <div className="flex flex-col items-center text-center">
-                <div className={`p-2 rounded-lg mb-2 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-blue-50 to-blue-100'}`}>
-                  <FaProjectDiagram className={theme === 'dark' ? 'text-blue-400' : 'text-blue-500'} size={16} />
+              <div className="grid grid-cols-2 items-center h-full">
+                <div className='flex flex-col justify-between h-full'>
+                  <div className={`w-8 h-8 p-2 flex flex-col items-start rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-blue-50 to-blue-100'}`}>
+                    <FaProjectDiagram className={theme === 'dark' ? 'text-blue-400' : 'text-blue-500'} size={18} />
+                  </div>
+                  <p className={`text-md font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>Total Projects</p>
                 </div>
-                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total Projects</p>
-                <p className={`text-lg font-bold mt-1 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalProjects || 0}</p>
+                <div className='flex items-center justify-center'>
+                  <h1 className={`text-4xl text-center font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{stats?.totalProjects || 0}</h1>
+                </div>
               </div>
             </div>
 
             {/* Teams Card */}
             <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-4' : 'bg-white text-gray-900 border-gray-100 rounded-xl shadow-sm p-4 border'} transition-all duration-200`}>
-              <div className="flex flex-col items-center text-center">
-                <div className={`p-2 rounded-lg mb-2 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-green-50 to-green-100'}`}>
-                  <FaUsers className={theme === 'dark' ? 'text-green-400' : 'text-green-500'} size={16} />
+              <div className="grid grid-cols-2 items-center h-full">
+                <div className='flex flex-col justify-between h-full w-[60%]'>
+                  <div className={`w-8 h-8 p-2 flex flex-col items-start rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-green-50 to-green-100'}`}>
+                    <FaUsers className={theme === 'dark' ? 'text-green-400' : 'text-green-500'} size={18} />
+                  </div>
+                  <p className={`text-md font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>Total Teams</p>
                 </div>
-                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total Teams</p>
-                <p className={`text-lg font-bold mt-1 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalTeams || 0}</p>
+                <div className='flex items-center justify-center'>
+                  <h1 className={`text-4xl text-center font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{stats?.totalTeams || 0}</h1>
+                </div>
               </div>
             </div>
 
             {/* Deadlines Card */}
             <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-4' : 'bg-white text-gray-900 border-gray-100 rounded-xl shadow-sm p-4 border'} transition-all duration-200`}>
-              <div className="flex flex-col items-center text-center">
-                <div className={`p-2 rounded-lg mb-2 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-yellow-50 to-yellow-100'}`}>
-                  <FaClock className={theme === 'dark' ? 'text-yellow-300' : 'text-yellow-500'} size={16} />
+              <div className="grid grid-cols-2 items-center h-full">
+                <div className='flex flex-col justify-between h-full'>
+                  <div className={`w-8 h-8 p-2 flex flex-col items-start rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-yellow-50 to-yellow-100'}`}>
+                    <FaClock className={theme === 'dark' ? 'text-yellow-300' : 'text-yellow-500'} size={18} />
+                  </div>
+                  <p className={`text-md font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>Upcoming Deadlines</p>
                 </div>
-                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Upcoming Deadlines</p>
-                <p className={`text-lg font-bold mt-1 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.upcomingDeadlines || 0}</p>
+                <div className='flex items-center justify-center'>
+                  <h1 className={`text-4xl text-center font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{stats?.upcomingDeadlines || 0}</h1>
+                </div>
               </div>
             </div>
 
             {/* People Card */}
             <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-4' : 'bg-white text-gray-900 border-gray-100 rounded-xl shadow-sm p-4 border'} transition-all duration-200`}>
-              <div className="flex flex-col items-center text-center">
-                <div className={`p-2 rounded-lg mb-2 ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-purple-50 to-purple-100'}`}>
-                  <FaUserFriends className={theme === 'dark' ? 'text-purple-300' : 'text-purple-500'} size={16} />
+              <div className="grid grid-cols-2 items-center h-full">
+                <div className='flex flex-col justify-between h-full'>
+                  <div className={`w-8 h-8 p-2 flex flex-col items-start rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-purple-50 to-purple-100'}`}>
+                    <FaUserFriends className={theme === 'dark' ? 'text-purple-300' : 'text-purple-500'} size={18} />
+                  </div>
+                  <p className={`text-md font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>Total People</p>
                 </div>
-                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Total People</p>
-                <p className={`text-lg font-bold mt-1 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{stats?.totalUsers || 0}</p>
+                <div className='flex items-center justify-center'>
+                  <h1 className={`text-4xl text-center font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{stats?.totalUsers || 0}</h1>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Task Completion Summary - 3/4th width */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-6">
           <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
             <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
               <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Task Completion Summary</h2>
@@ -307,15 +325,15 @@ const DashboardCharts = ({ stats, theme }) => {
               </div>
               <div className="mt-6">
                 <div className={`w-full bg-gray-200 rounded-full h-2 ${theme === 'dark' ? 'bg-[#424242]' : 'bg-gray-200'}`}>
-                  <div 
+                  <div
                     className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500"
-                    style={{ 
-                      width: `${stats.charts.totalTasks > 0 ? (stats.charts.completedTasks / stats.charts.totalTasks) * 100 : 0}%` 
+                    style={{
+                      width: `${stats.charts.totalTasks > 0 ? (stats.charts.completedTasks / stats.charts.totalTasks) * 100 : 0}%`
                     }}
                   ></div>
                 </div>
                 <div className={`text-sm mt-2 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
-                  Completion Rate: {stats.charts.totalTasks > 0 ? Math.round((stats.charts.completedTasks / stats.charts.totalTasks) * 100) : 0}%
+                  Completed: {stats.charts.totalTasks > 0 ? Math.round((stats.charts.completedTasks / stats.charts.totalTasks) * 100) : 0}%
                 </div>
               </div>
             </div>

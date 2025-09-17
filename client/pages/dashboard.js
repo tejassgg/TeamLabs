@@ -67,7 +67,7 @@ const Dashboard = () => {
 
     if (user?.organizationID) {
       if (user?.role === 'Admin') {
-        setIsAdmin(true); 
+        setIsAdmin(true);
       }
       fetchDashboardStats();
       // Phase 1: connect socket and subscribe to org member presence/updates
@@ -100,11 +100,11 @@ const Dashboard = () => {
           const exists = (prev.members || []).some((m) => m.id === member.userId);
           const updatedMembers = exists
             ? prev.members.map((m) => (m.id === member.userId ? {
-                ...m,
-                name: member.name || m.name,
-                role: member.role || m.role,
-                status: member.status || m.status
-              } : m))
+              ...m,
+              name: member.name || m.name,
+              role: member.role || m.role,
+              status: member.status || m.status
+            } : m))
             : [member, ...(prev.members || [])];
           return { ...prev, members: updatedMembers };
         });
@@ -141,7 +141,7 @@ const Dashboard = () => {
         if (!data || !data.team) return;
         setStats((prev) => {
           if (!prev) return prev;
-          const updatedTeams = (prev.teams || []).map(t => 
+          const updatedTeams = (prev.teams || []).map(t =>
             t.TeamID === data.teamId ? data.team : t
           );
           return { ...prev, teams: updatedTeams };
@@ -163,7 +163,7 @@ const Dashboard = () => {
         if (!data || !data.team) return;
         setStats((prev) => {
           if (!prev) return prev;
-          const updatedTeams = (prev.teams || []).map(t => 
+          const updatedTeams = (prev.teams || []).map(t =>
             t.TeamID === data.teamId ? data.team : t
           );
           return { ...prev, teams: updatedTeams };
@@ -337,7 +337,7 @@ const Dashboard = () => {
               projectCreated: true,
               onboardingComplete: true
             });
-            
+
             // Refresh the global context to update onboarding data
             const overview = await authService.getUserOverview();
             if (overview) {
@@ -353,9 +353,9 @@ const Dashboard = () => {
         }} />
 
         {/* Onboarding Guide Modal */}
-        <OnboardingGuide 
-          isOpen={showOnboardingGuide} 
-          onClose={() => setShowOnboardingGuide(false)} 
+        <OnboardingGuide
+          isOpen={showOnboardingGuide}
+          onClose={() => setShowOnboardingGuide(false)}
         />
 
         {/* Tab Navigation */}
@@ -399,28 +399,23 @@ const Dashboard = () => {
         )}
 
         {/* Setup Guide Button - Now positioned prominently below tabs */}
-        {!shouldShowWelcomeMessage && (
-          <div className="mb-6 flex justify-center">
-            <button
-              onClick={() => setShowOnboardingGuide(true)}
-              className={`px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                theme === 'dark' 
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white' 
-                  : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white'
-              }`}
-            >
-              <FaRocket size={16} />
-              <span className="font-medium">Get Started with Setup Guide</span>
-            </button>
-          </div>
-        )}
-
         {/* Welcome Message for Admins with zero teams and projects */}
         {shouldShowWelcomeMessage && (
-          <AdminWelcomeMessage 
-            onOpenSetupGuide={() => setShowOnboardingGuide(true)}
-            onOpenInvite={() => setShowInviteModal(true)}
-          />
+          <>
+            {/* <div className="mb-6 flex justify-center">
+              <button
+                onClick={() => setShowOnboardingGuide(true)}
+                className={`px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 ${theme === 'dark'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
+                    : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white'
+                  }`}
+              >
+                <FaRocket size={16} />
+                <span className="font-medium">Get Started with Setup Guide</span>
+              </button>
+            </div> */}
+            <AdminWelcomeMessage onOpenSetupGuide={() => setShowOnboardingGuide(true)} onOpenInvite={() => setShowInviteModal(true)} />
+          </>
         )}
 
         {/* Tab Content */}
@@ -517,7 +512,7 @@ const Dashboard = () => {
                         <th className="py-3 px-4 text-left">Member</th>
                         <th className="py-3 px-4 text-left">Status</th>
                         <th className="py-3 px-4 text-left">Role</th>
-                        { isAdmin && <th className="py-3 px-4 text-center">Actions</th>}
+                        {isAdmin && <th className="py-3 px-4 text-center">Actions</th>}
                       </tr>
                     </thead>
                     <tbody>

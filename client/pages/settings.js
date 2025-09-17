@@ -92,6 +92,11 @@ const Settings = () => {
   // Set active tab based on URL query parameter
   // This allows direct navigation to specific tabs via URL (e.g., /settings?tab=billing)
   useEffect(() => {
+    if(router.query.googleCalendar){
+      if(router.query.googleCalendar === 'connected'){
+       showToast('Google Calendar connected successfully', 'success');
+      }
+    }
     if (router.query.tab) {
       const validTabs = ['general', 'integrations'];
       // Only add billing tab for admin users
@@ -714,13 +719,11 @@ const Settings = () => {
         </div>
 
         {/* Settings Content */}
-        <div className={`shadow-sm ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+        <div className={`shadow-sm max-w-7xl ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
           {/* Appearance & Security Settings */}
           {activeTab === 'general' && (
-            <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
-              <h2 className={`text-xl font-semibold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>General</h2>
-              <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} p-6`}>
+            <div className='p-6'>
+              <div>
                 <div className="mb-4">
                   <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Theme</h3>
                   <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Choose your display theme preference.</p>
@@ -813,7 +816,7 @@ const Settings = () => {
               </div>
 
               {/* Security section card */}
-              <div className={`mt-6 rounded-xl border p-6 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className={`mt-6`}>
                 <div className="mb-4">
                   <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Security</h3>
                   <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Manage account security preferences.</p>
