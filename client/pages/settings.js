@@ -680,7 +680,7 @@ const Settings = () => {
 
   const tabs = [
     { id: 'general', label: 'General', icon: resolvedTheme === 'dark' ? FaMoon : FaSun },
-    ...(isAdmin ? [{ id: 'billing', label: 'Subscription', icon: MdOutlinePayments }] : []),
+    ...(isAdmin ? [{ id: 'billing', label: 'Billings', icon: MdOutlinePayments }] : []),
     { id: 'integrations', label: 'Integrations', icon: FaGithub }, // New Integrations tab
   ];
 
@@ -719,10 +719,10 @@ const Settings = () => {
         </div>
 
         {/* Settings Content */}
-        <div className={`shadow-sm max-w-7xl ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+        <div className={`shadow-sm ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
           {/* Appearance & Security Settings */}
           {activeTab === 'general' && (
-            <div className='p-6'>
+            <div className='p-6 max-w-7xl'>
               <div>
                 <div className="mb-4">
                   <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Theme</h3>
