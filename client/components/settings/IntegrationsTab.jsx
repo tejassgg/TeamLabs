@@ -6,15 +6,12 @@ import { authService, meetingService } from '../../services/api';
 import {
   FaGithub,
   FaCalendarAlt,
-  FaVideo,
   FaGoogleDrive,
   FaDropbox,
   FaSlack,
-  FaMicrosoft,
-  FaEllipsisV,
   FaCog
 } from 'react-icons/fa';
-import { getIntegrationIcon, getIntegrationName } from '../../utils/integrationIcons';
+import { SiGooglemeet } from "react-icons/si";
 
 const IntegrationsTab = ({ getThemeClasses }) => {
   const { user } = useAuth();
@@ -23,6 +20,8 @@ const IntegrationsTab = ({ getThemeClasses }) => {
 
   const [integrations, setIntegrations] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedIntegration, setSelectedIntegration] = useState(null);
 
   useEffect(() => {
     if (!user?._id) return;
@@ -110,11 +109,10 @@ const IntegrationsTab = ({ getThemeClasses }) => {
     const iconMap = {
       FaGithub: FaGithub,
       FaCalendarAlt: FaCalendarAlt,
-      FaVideo: FaVideo,
+      FaVideo: SiGooglemeet,
       FaGoogleDrive: FaGoogleDrive,
       FaDropbox: FaDropbox,
       FaSlack: FaSlack,
-      FaMicrosoft: FaMicrosoft
     };
     return iconMap[iconName] || FaGithub;
   };
@@ -122,16 +120,13 @@ const IntegrationsTab = ({ getThemeClasses }) => {
   // Helper function to get icon color based on integration type
   const getIconColor = (integrationType) => {
     const colorMap = {
-      github: '#333',
+      github: '#4A154B',
       google_calendar: '#4285F4',
       google_meet: '#00AC47',
       google_drive: '#4285F4',
       dropbox: '#0061FF',
       slack: '#4A154B',
       zoom: '#2D8CFF',
-      microsoft_teams: '#6264A7',
-      onedrive: '#0078D4',
-      microsoft_outlook: '#0078D4'
     };
     return colorMap[integrationType] || '#6B7280';
   };
@@ -245,12 +240,10 @@ const IntegrationsTab = ({ getThemeClasses }) => {
                 </div>
 
                 {/* Controls */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mt-12">
                   <button
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${theme === 'dark'
-                      ? 'text-gray-400 hover:text-white hover:bg-gray-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                      }`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border  text-sm font-medium transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-gray-700 border-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-gray-200' }`}
+                    onClick={() => { setSelectedIntegration(integration); setShowDetailsModal(true); }}
                   >
                     <FaCog size={14} />
                     Details
@@ -278,6 +271,89 @@ const IntegrationsTab = ({ getThemeClasses }) => {
               </div>
             );
           })}
+        </div>
+      )}
+      {showDetailsModal && selectedIntegration && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowDetailsModal(false)} />
+          <div className={`relative w-full max-w-lg mx-4 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#1F1F1F] border border-gray-700' : 'bg-white border border-gray-200'}`}>
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  {(() => {
+                    const IconComponent = getIconComponent(selectedIntegration.icon);
+                    const iconColor = getIconColor(selectedIntegration.type);
+                    return (
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${getIconColor(selectedIntegration.type)}15` }}>
+                        <IconComponent size={20} style={{ color: iconColor }} />
+                      </div>
+                    );
+                  })()}
+                  <div>
+                    <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{selectedIntegration.name}</h3>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{selectedIntegration.description}</p>
+                  </div>
+                </div>
+                <button
+                  className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
+                  onClick={() => setShowDetailsModal(false)}
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                <div className="space-y-1">
+                  <div className="text-sm opacity-70">Status</div>
+                  <div className="font-medium">
+                    {selectedIntegration.connected ? (
+                      <span className="inline-flex items-center gap-2 text-green-600 dark:text-green-400">
+                        <span className="inline-block w-2 h-2 rounded-full bg-green-600 dark:bg-green-400" />
+                        Connected
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                        <span className="inline-block w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500" />
+                        Not connected
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-sm opacity-70">Connected At</div>
+                  <div className="font-medium">{selectedIntegration.connectedAt ? new Date(selectedIntegration.connectedAt).toLocaleString() : '-'}</div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-sm opacity-70">Token Expiry</div>
+                  <div className="font-medium">
+                    {selectedIntegration.tokenExpiry ? new Date(selectedIntegration.tokenExpiry).toLocaleString() : 'Never'}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-sm opacity-70">Username</div>
+                  <div className="font-medium">{selectedIntegration.username || '-'}</div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-sm opacity-70">Email</div>
+                  <div className="font-medium break-all">{selectedIntegration.email || '-'}</div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                  onClick={() => setShowDetailsModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -7,14 +7,16 @@ const {
   createMeeting,
   updateMeeting,
   deleteMeeting,
+  attachGoogleCalendarToken,
+} = require('../controllers/meetingController');
+const {
   initiateGoogleAuth,
   getGoogleCalendarStatus,
   handleGoogleCallback,
-  attachGoogleCalendarToken,
-  disconnectGoogleCalendar,
   getGoogleDriveStatus,
+  disconnectGoogleCalendar,
   disconnectGoogleDrive
-} = require('../controllers/meetingController');
+} = require('../controllers/integrationController');
 
 // Meetings
 router.get('/teams/:teamId/meetings', protect, listTeamMeetings);

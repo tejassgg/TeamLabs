@@ -94,9 +94,9 @@ const Settings = () => {
   // Set active tab based on URL query parameter
   // This allows direct navigation to specific tabs via URL (e.g., /settings?tab=billing)
   useEffect(() => {
-    if(router.query.googleCalendar){
-      if(router.query.googleCalendar === 'connected'){
-       showToast('Google Calendar connected successfully', 'success');
+    if (router.query.googleCalendar) {
+      if (router.query.googleCalendar === 'connected') {
+        showToast('Google Calendar connected successfully', 'success');
       }
     }
     if (router.query.tab) {
@@ -126,15 +126,6 @@ const Settings = () => {
   useEffect(() => {
     localStorage.setItem('theme', theme);
   }, [theme]);
-
-
-
-
-
-
-
-
-
 
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
@@ -230,39 +221,37 @@ const Settings = () => {
       </Head>
       <div className="mx-auto">
         {/* Settings Navigation */}
-        <div className="">
-          <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-            <nav className="-mb-px flex space-x-8 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => handleTabChange(tab.id)}
-                    className={`${activeTab === tab.id
-                      ? theme === 'dark'
-                        ? 'border-blue-400 text-blue-400'
-                        : 'border-blue-600 text-blue-600'
-                      : theme === 'dark'
-                        ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
-                  >
-                    <Icon size={16} />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
+        <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+          <nav className="-mb-px flex space-x-8 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`${activeTab === tab.id
+                    ? theme === 'dark'
+                      ? 'border-blue-400 text-blue-400'
+                      : 'border-blue-600 text-blue-600'
+                    : theme === 'dark'
+                      ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                >
+                  <Icon size={16} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
         {/* Settings Content */}
-        <div className={`shadow-sm ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+        <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
           {/* Appearance & Security Settings */}
           {activeTab === 'general' && (
             <div className='p-6 max-w-4xl'>
-               {/* Security section card */}
+              {/* Security section card */}
               <div>
                 <div className="mb-4">
                   <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Theme</h3>
@@ -270,15 +259,15 @@ const Settings = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <button onClick={() => handleThemeChange('light')}
-                  className={`p-4 rounded-xl border-2 transition-all duration-200 ${theme === 'light'
-                    ? theme === 'dark'
-                      ? 'border-blue-400 bg-blue-900/20'
-                      : 'border-blue-500 bg-blue-50'
-                    : theme === 'dark'
-                      ? 'border-gray-700 hover:border-gray-600 bg-transparent'
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
-                >
+                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${theme === 'light'
+                      ? theme === 'dark'
+                        ? 'border-blue-400 bg-blue-900/20'
+                        : 'border-blue-500 bg-blue-50'
+                      : theme === 'dark'
+                        ? 'border-gray-700 hover:border-gray-600 bg-transparent'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                  >
                     <div className="flex flex-col items-center gap-3">
                       <FaSun className={`text-2xl ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-500'}`} />
                       <span className={`font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Light</span>
@@ -293,16 +282,16 @@ const Settings = () => {
                     </div>
                   </button>
                   <button
-                  onClick={() => handleThemeChange('dark')}
-                  className={`p-4 rounded-xl border-2 transition-all duration-200 ${theme === 'dark'
-                    ? theme === 'dark'
-                      ? 'border-blue-400 bg-blue-900/20'
-                      : 'border-blue-500 bg-blue-50'
-                    : theme === 'dark'
-                      ? 'border-gray-700 hover:border-gray-600 bg-transparent'
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
-                >
+                    onClick={() => handleThemeChange('dark')}
+                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${theme === 'dark'
+                      ? theme === 'dark'
+                        ? 'border-blue-400 bg-blue-900/20'
+                        : 'border-blue-500 bg-blue-50'
+                      : theme === 'dark'
+                        ? 'border-gray-700 hover:border-gray-600 bg-transparent'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                  >
                     <div className="flex flex-col items-center gap-3">
                       <FaMoon className={`text-2xl ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
                       <span className={`font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Dark</span>
@@ -317,16 +306,16 @@ const Settings = () => {
                     </div>
                   </button>
                   <button
-                  onClick={() => handleThemeChange('system')}
-                  className={`p-4 rounded-xl border-2 transition-all duration-200 ${theme === 'system'
-                    ? theme === 'dark'
-                      ? 'border-blue-400 bg-blue-900/20'
-                      : 'border-blue-500 bg-blue-50'
-                    : theme === 'dark'
-                      ? 'border-gray-700 hover:border-gray-600 bg-transparent'
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
-                >
+                    onClick={() => handleThemeChange('system')}
+                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${theme === 'system'
+                      ? theme === 'dark'
+                        ? 'border-blue-400 bg-blue-900/20'
+                        : 'border-blue-500 bg-blue-50'
+                      : theme === 'dark'
+                        ? 'border-gray-700 hover:border-gray-600 bg-transparent'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                  >
                     <div className="flex flex-col items-center gap-3">
                       <FaDesktop className={`text-2xl ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                       <span className={`font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>System</span>
@@ -390,11 +379,10 @@ const Settings = () => {
                                   setUserSettings(prev => ({ ...prev, fontFamily: font.value }));
                                   setShowFontDropdown(false);
                                 }}
-                                className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                                  font.value === userSettings.fontFamily
+                                className={`w-full text-left px-4 py-2 text-sm transition-colors ${font.value === userSettings.fontFamily
                                     ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700')
                                     : (theme === 'dark' ? 'hover:bg-[#232323] text-gray-200' : 'hover:bg-gray-50 text-gray-700')
-                                }`}
+                                  }`}
                                 style={{ fontFamily: font.fontFamily }}
                               >
                                 {font.label}
@@ -467,7 +455,7 @@ const Settings = () => {
                   </div>
                   <div className='flex items-center justify-between gap-2 relative'>
                     <div className="mb-4">
-                      <h3 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900' }`}>Session Timeout</h3>
+                      <h3 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Session Timeout</h3>
                       <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Automatically log out after inactivity for</p>
                     </div>
                     <div className="w-1/4">
@@ -497,11 +485,10 @@ const Settings = () => {
                                     setSecuritySettings(prev => ({ ...prev, sessionTimeout: opt.value }));
                                     setShowSessionTimeoutDropdown(false);
                                   }}
-                                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                                    opt.value === securitySettings.sessionTimeout
+                                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${opt.value === securitySettings.sessionTimeout
                                       ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700')
                                       : (theme === 'dark' ? 'hover:bg-[#232323] text-gray-200' : 'hover:bg-gray-50 text-gray-700')
-                                  }`}
+                                    }`}
                                 >
                                   {opt.label}
                                 </button>
@@ -533,16 +520,16 @@ const Settings = () => {
                   </div>
                 </div>
                 <div className="mt-6 flex justify-end">
-                <button
-                  onClick={handleSecuritySave}
-                  disabled={loading}
-                  className={`flex items-center gap-2 px-6 py-2.5 font-medium rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark'
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
-                    : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'
-                    }`}
-                >
-                  <span>{loading ? 'Saving...' : 'Save Security Settings'}</span>
-                </button>
+                  <button
+                    onClick={handleSecuritySave}
+                    disabled={loading}
+                    className={`flex items-center gap-2 px-6 py-2.5 font-medium rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+                      : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'
+                      }`}
+                  >
+                    <span>{loading ? 'Saving...' : 'Save Security Settings'}</span>
+                  </button>
                 </div>
               </div>
             </div>

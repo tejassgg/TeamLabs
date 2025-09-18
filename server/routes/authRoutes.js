@@ -20,17 +20,16 @@ const {
   forgotPassword,
   resetPassword,
   verifyResetPassword,
+  updateOnboardingStatus,
+} = require('../controllers/authController');
+const {
   initiateGitHubAuth,
   handleGitHubCallback,
   disconnectGitHub,
   getGitHubStatus,
   getIntegrationsStatus,
   getUserRepositories,
-  linkRepositoryToProject,
-  unlinkRepositoryFromProject,
-  getProjectRepository,
-  updateOnboardingStatus,
-} = require('../controllers/authController');
+} = require('../controllers/integrationController');
 const { protect } = require('../middleware/auth');
 const User = require('../models/User');
 

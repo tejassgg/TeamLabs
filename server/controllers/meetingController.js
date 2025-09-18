@@ -561,7 +561,6 @@ exports.disconnectGoogleCalendar = async (req, res) => {
   }
 };
 
-
 exports.getGoogleDriveStatus = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -586,7 +585,6 @@ exports.getGoogleDriveStatus = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to get Google Drive status' });
   }
 };
-
 
 exports.disconnectGoogleDrive = async (req, res) => {
   try {

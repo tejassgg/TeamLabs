@@ -328,7 +328,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                 }`} >
               <div className="flex items-center gap-2">
                 <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Upgrade to</span>
-                <span className="px-2 py-0.5 rounded-md bg-black text-white text-xs font-semibold tracking-wide">PRO</span>
+                <span className="px-2 py-1 rounded-md bg-black text-white text-xs font-semibold tracking-wide">PRO</span>
               </div>
               <div className={`flex items-center justify-center w-6 h-6 rounded-full ${theme === 'dark' ? 'bg-[#1a1a1a] text-gray-200' : 'bg-white text-gray-600'} border ${theme === 'dark' ? 'border-[#2e2e2e]' : 'border-gray-200'}`}>
                 <FaArrowRight size={12} className='-rotate-45 hover:transform hover:-rotate-90 transition-all duration-200' />
