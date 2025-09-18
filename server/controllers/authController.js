@@ -17,16 +17,6 @@ require('dotenv').config();
 const { emitToOrg } = require('../socket');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-// Helper to build OAuth2 client for Google Calendar
-function buildGoogleOAuthClient() {
-  return new OAuth2Client(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.SERVER_URL || 'http://localhost:5000'}/api/auth/google-calendar/callback`
-  );
-}
-
 // Generate JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -174,15 +164,6 @@ const loginUser = async (req, res) => {
       user.lastLogin = new Date();
       user.status = 'Active';
 
-      // If Google Calendar token is expired, clear related fields
-      try {
-        if (user.googleCalendarTokenExpiry && new Date(user.googleCalendarTokenExpiry) <= new Date()) {
-          user.googleCalendarConnected = false;
-          user.googleCalendarAccessToken = null;
-          user.googleCalendarRefreshToken = null;
-          user.googleCalendarTokenExpiry = null;
-        }
-      } catch (_) { /* ignore */ }
 
       await user.save();
 
@@ -210,10 +191,6 @@ const loginUser = async (req, res) => {
         sessionTimeout: user.sessionTimeout || 30,
         loginNotifications: user.loginNotifications !== false, // default to true if not set
         status: user.status,
-        // Google Calendar integration snapshot
-        googleCalendarConnected: user.googleCalendarConnected || false,
-        googleCalendarAccessToken: user.googleCalendarAccessToken || null,
-        googleCalendarTokenExpiry: user.googleCalendarTokenExpiry || null
       });
     } else {
       // Log failed login attempt
@@ -279,15 +256,6 @@ const googleLogin = async (req, res) => {
       user.lastLogin = new Date();
       user.status = 'Active';
 
-      // If Google Calendar token is expired, clear related fields
-      try {
-        if (user.googleCalendarTokenExpiry && new Date(user.googleCalendarTokenExpiry) <= new Date()) {
-          user.googleCalendarConnected = false;
-          user.googleCalendarAccessToken = null;
-          user.googleCalendarRefreshToken = null;
-          user.googleCalendarTokenExpiry = null;
-        }
-      } catch (_) { /* ignore */ }
 
       await user.save();
 
@@ -311,10 +279,6 @@ const googleLogin = async (req, res) => {
         sessionTimeout: user.sessionTimeout || 30,
         loginNotifications: user.loginNotifications !== false, // default to true if not set
         status: user.status,
-        // Google Calendar integration snapshot
-        googleCalendarConnected: user.googleCalendarConnected || false,
-        googleCalendarAccessToken: user.googleCalendarAccessToken || null,
-        googleCalendarTokenExpiry: user.googleCalendarTokenExpiry || null
       });
     } else {
       // If user doesn't exist, create new user with partial profile
@@ -372,10 +336,6 @@ const googleLogin = async (req, res) => {
         sessionTimeout: 30,
         loginNotifications: true,
         status: 'Offline',
-        // Google Calendar integration snapshot
-        googleCalendarConnected: false,
-        googleCalendarAccessToken: null,
-        googleCalendarTokenExpiry: null
       });
 
       // If joined via invite and organization is premium, grant premium to the new user
@@ -413,10 +373,6 @@ const googleLogin = async (req, res) => {
         sessionTimeout: 30,
         loginNotifications: true,
         status: 'Offline',
-        // Google Calendar integration snapshot
-        googleCalendarConnected: false,
-        googleCalendarAccessToken: null,
-        googleCalendarTokenExpiry: null
       });
     }
   } catch (error) {
@@ -822,6 +778,26 @@ const updateSecuritySettings = async (req, res) => {
   }
 };
 
+// @desc    Update User Settings
+// @route   PUT /api/auth/user-settings
+// @access  Private
+const updateUserSettings = async (req, res) => {
+  try {
+    const { fontFamily, userId } = req.body;
+
+    await User.findByIdAndUpdate(userId, {
+      $set: {
+        fontFamily: fontFamily
+      }
+    });
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('User Settings Update Error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 // @desc    Update User Status
 // @route   PUT /api/auth/status
 // @access  Private
@@ -1051,7 +1027,6 @@ const handleGitHubCallback = async (req, res) => {
         'Accept': 'application/vnd.github.v3+json'
       }
     });
-
     const githubUser = userResponse.data;
 
     // Get user's email from GitHub
@@ -1061,27 +1036,35 @@ const handleGitHubCallback = async (req, res) => {
         'Accept': 'application/vnd.github.v3+json'
       }
     });
-
     const primaryEmail = emailsResponse.data.find(email => email.primary)?.email || githubUser.email;
 
     // Update user with GitHub information
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      {
-        githubConnected: true,
-        githubAccessToken: access_token,
-        githubUserId: githubUser.id.toString(),
-        githubUsername: githubUser.login,
-        githubEmail: primaryEmail,
-        githubAvatarUrl: githubUser.avatar_url,
-        githubConnectedAt: new Date()
-      },
-      { new: true }
-    );
-
-    if (!updatedUser) {
+    const Integration = require('../models/Integration');
+    const user = await User.findById(userId).select('organizationID');
+    
+    if (!user) {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
+    
+    await Integration.findOneAndUpdate(
+      { userId, integrationType: 'github' },
+      {
+        userId,
+        organizationId: user.organizationID,
+        integrationType: 'github',
+        isConnected: true,
+        connectedAt: new Date(),
+        accessToken: access_token,
+        externalId: githubUser.id.toString(),
+        externalUsername: githubUser.login,
+        externalEmail: primaryEmail,
+        externalAvatarUrl: githubUser.avatar_url,
+        status: 'active',
+        lastUsedAt: new Date(),
+        tokenExpiry: tokenResponse.data.expires_in ? new Date(Date.now() + tokenResponse.data.expires_in * 1000) : null,
+      },
+      { upsert: true }
+    );
 
     // Log the activity
     await UserActivity.create({
@@ -1116,25 +1099,23 @@ const disconnectGitHub = async (req, res) => {
       return res.status(400).json({ success: false, error: 'User ID is required' });
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
-
-    if (!user.githubConnected) {
+    const Integration = require('../models/Integration');
+    const integration = await Integration.findOne({ userId, integrationType: 'github' });
+    
+    if (!integration || !integration.isConnected) {
       return res.status(400).json({ success: false, error: 'GitHub account is not connected' });
     }
 
     // Revoke GitHub access token
-    if (user.githubAccessToken) {
+    if (integration.accessToken) {
       try {
         await axios.delete(`https://api.github.com/applications/${process.env.GITHUB_CLIENT_ID}/token`, {
           headers: {
-            'Authorization': `token ${user.githubAccessToken}`,
+            'Authorization': `token ${integration.accessToken}`,
             'Accept': 'application/vnd.github.v3+json'
           },
           data: {
-            access_token: user.githubAccessToken
+            access_token: integration.accessToken
           }
         });
       } catch (error) {
@@ -1143,19 +1124,19 @@ const disconnectGitHub = async (req, res) => {
       }
     }
 
-    // Update user to remove GitHub connection
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
+    // Update integration to remove GitHub connection
+    await Integration.findOneAndUpdate(
+      { userId, integrationType: 'github' },
       {
-        githubConnected: false,
-        githubAccessToken: null,
-        githubUserId: null,
-        githubUsername: null,
-        githubEmail: null,
-        githubAvatarUrl: null,
-        githubConnectedAt: null
-      },
-      { new: true }
+        isConnected: false,
+        accessToken: null,
+        externalId: null,
+        externalUsername: null,
+        externalEmail: null,
+        externalAvatarUrl: null,
+        connectedAt: null,
+        status: 'revoked'
+      }
     );
 
     // Log the activity
@@ -1186,26 +1167,118 @@ const getGitHubStatus = async (req, res) => {
       return res.status(400).json({ success: false, error: 'User ID is required' });
     }
 
-    const user = await User.findById(userId).select('githubConnected githubUsername githubEmail githubAvatarUrl githubConnectedAt');
+    const Integration = require('../models/Integration');
+    const integration = await Integration.findOne({ userId, integrationType: 'github' });
 
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
+    if (!integration) {
+      return res.json({
+        success: true,
+        githubStatus: {
+          connected: false,
+          username: null,
+          email: null,
+          avatarUrl: null,
+          connectedAt: null
+        }
+      });
     }
 
     res.json({
       success: true,
       githubStatus: {
-        connected: user.githubConnected,
-        username: user.githubUsername,
-        email: user.githubEmail,
-        avatarUrl: user.githubAvatarUrl,
-        connectedAt: user.githubConnectedAt
+        connected: integration.isConnected,
+        username: integration.externalUsername,
+        email: integration.externalEmail,
+        avatarUrl: integration.externalAvatarUrl,
+        connectedAt: integration.connectedAt
       }
     });
   } catch (error) {
     console.error('GitHub status error:', error);
     res.status(500).json({ success: false, error: 'Failed to get GitHub status' });
   }
+};
+
+const getIntegrationsStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'User ID is required' });
+    }
+
+    const Integration = require('../models/Integration');
+    const CommonType = require('../models/CommonType');
+    const user = await User.findById(userId).select('email profileImage organizationID');
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Get all available integrations from CommonType
+    const availableIntegrations = await CommonType.find({ MasterType: 'Integrations' }).sort({ Code: 1 });
+
+    // Get user's connected integrations
+    const userIntegrations = await Integration.find({ userId }).select('integrationType isConnected connectedAt externalUsername externalEmail externalAvatarUrl tokenExpiry');
+
+    // Create a map of user's connected integrations
+    const userIntegrationsMap = {};
+    userIntegrations.forEach(integration => {
+      userIntegrationsMap[integration.integrationType] = {
+        connected: integration.isConnected,
+        username: integration.externalUsername || null,
+        email: integration.externalEmail || null,
+        avatarUrl: integration.externalAvatarUrl || null,
+        connectedAt: integration.connectedAt || null,
+        tokenExpiry: integration.tokenExpiry || null
+      };
+    });
+
+    // Format all integrations with their status
+    const allIntegrations = availableIntegrations.map(integration => {
+      const integrationType = integration.Description;
+      const userIntegration = userIntegrationsMap[integrationType];
+      
+      return {
+        id: integration.Code,
+        name: integration.Value,
+        type: integrationType,
+        icon: integration.FaIcon,
+        description: getIntegrationDescription(integrationType),
+        connected: userIntegration?.connected || false,
+        username: userIntegration?.username || null,
+        email: userIntegration?.email || null,
+        avatarUrl: userIntegration?.avatarUrl || null,
+        connectedAt: userIntegration?.connectedAt || null,
+        tokenExpiry: userIntegration?.tokenExpiry || null
+      };
+    });
+
+    res.json({
+      success: true,
+      integrations: allIntegrations
+    });
+  } catch (error) {
+    console.error('Integrations status error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get integrations status' });
+  }
+};
+
+// Helper function to get integration description
+const getIntegrationDescription = (integrationType) => {
+  const descriptions = {
+    github: 'Code repository management and collaboration',
+    google_calendar: 'Auto-sync meetings & set reminders',
+    google_meet: 'Sync meeting notes with AI-generated highlights',
+    google_drive: 'Save meeting notes and attachments securely',
+    dropbox: 'Store and share files directly from your meetings',
+    slack: 'Get instant meeting summaries & action items in your team channels',
+    zoom: 'AI-powered meeting transcriptions & summaries',
+    microsoft_teams: 'Capture key discussions & automate action items',
+    onedrive: 'Sync meeting documents across your devices',
+    microsoft_outlook: 'Schedule and track discussions effortlessly'
+  };
+  return descriptions[integrationType] || 'Integration description not available';
 };
 
 // GitHub Repository methods
@@ -1217,19 +1290,17 @@ const getUserRepositories = async (req, res) => {
       return res.status(400).json({ success: false, error: 'User ID is required' });
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
-
-    if (!user.githubConnected) {
+    const Integration = require('../models/Integration');
+    const integration = await Integration.findOne({ userId, integrationType: 'github' });
+    
+    if (!integration || !integration.isConnected) {
       return res.status(400).json({ success: false, error: 'GitHub account not connected' });
     }
 
     // Fetch user's repositories from GitHub
     const response = await axios.get('https://api.github.com/user/repos', {
       headers: {
-        'Authorization': `token ${user.githubAccessToken}`,
+        'Authorization': `token ${integration.accessToken}`,
         'Accept': 'application/vnd.github.v3+json'
       },
       params: {
@@ -1274,8 +1345,10 @@ const linkRepositoryToProject = async (req, res) => {
     }
 
     // Check if user has GitHub connected
-    const user = await User.findById(userId);
-    if (!user || !user.githubConnected) {
+    const Integration = require('../models/Integration');
+    const integration = await Integration.findOne({ userId, integrationType: 'github' });
+    
+    if (!integration || !integration.isConnected) {
       return res.status(400).json({ success: false, error: 'GitHub account not connected' });
     }
 
@@ -1493,8 +1566,13 @@ const getProjectCommits = async (req, res) => {
     }
 
     // Get the user who linked the repository
-    const linkingUser = await User.findById(project.githubRepository.connectedBy);
-    if (!linkingUser || !linkingUser.githubConnected) {
+    const Integration = require('../models/Integration');
+    const linkingIntegration = await Integration.findOne({ 
+      userId: project.githubRepository.connectedBy, 
+      integrationType: 'github' 
+    });
+    
+    if (!linkingIntegration || !linkingIntegration.isConnected) {
       return res.status(400).json({ success: false, error: 'Repository owner not connected to GitHub' });
     }
 
@@ -1503,7 +1581,7 @@ const getProjectCommits = async (req, res) => {
       `https://api.github.com/repos/${project.githubRepository.repositoryFullName}/commits`,
       {
         headers: {
-          'Authorization': `token ${linkingUser.githubAccessToken}`,
+          'Authorization': `token ${linkingIntegration.accessToken}`,
           'Accept': 'application/vnd.github.v3+json'
         },
         params: {
@@ -1576,8 +1654,13 @@ const getProjectIssues = async (req, res) => {
     }
 
     // Get the user who linked the repository
-    const linkingUser = await User.findById(project.githubRepository.connectedBy);
-    if (!linkingUser || !linkingUser.githubConnected) {
+    const Integration = require('../models/Integration');
+    const linkingIntegration = await Integration.findOne({ 
+      userId: project.githubRepository.connectedBy, 
+      integrationType: 'github' 
+    });
+    
+    if (!linkingIntegration || !linkingIntegration.isConnected) {
       return res.status(400).json({ success: false, error: 'Repository owner not connected to GitHub' });
     }
 
@@ -1586,7 +1669,7 @@ const getProjectIssues = async (req, res) => {
       `https://api.github.com/repos/${project.githubRepository.repositoryFullName}/issues`,
       {
         headers: {
-          'Authorization': `token ${linkingUser.githubAccessToken}`,
+          'Authorization': `token ${linkingIntegration.accessToken}`,
           'Accept': 'application/vnd.github.v3+json'
         },
         params: {
@@ -1653,6 +1736,7 @@ module.exports = {
   verifyLogin2FA,
   getSecuritySettings,
   updateSecuritySettings,
+  updateUserSettings,
   updateUserStatus,
   forgotPassword,
   resetPassword,
@@ -1661,6 +1745,7 @@ module.exports = {
   handleGitHubCallback,
   disconnectGitHub,
   getGitHubStatus,
+  getIntegrationsStatus,
   getUserRepositories,
   linkRepositoryToProject,
   unlinkRepositoryFromProject,

@@ -15,6 +15,7 @@ const {
   verifyLogin2FA,
   getSecuritySettings,
   updateSecuritySettings,
+  updateUserSettings,
   updateUserStatus,
   forgotPassword,
   resetPassword,
@@ -23,6 +24,7 @@ const {
   handleGitHubCallback,
   disconnectGitHub,
   getGitHubStatus,
+  getIntegrationsStatus,
   getUserRepositories,
   linkRepositoryToProject,
   unlinkRepositoryFromProject,
@@ -256,7 +258,10 @@ router.post('/2fa/verify-login', verifyLogin2FA);
 
 // Security settings routes
 router.get('/security-settings', protect, getSecuritySettings);
-router.post('/security-settings', protect, updateSecuritySettings);
+router.put('/security-settings', protect, updateSecuritySettings);
+
+// User settings routes
+router.put('/user-settings', protect, updateUserSettings);
 
 // User status route
 router.put('/status', protect, updateUserStatus);
@@ -271,6 +276,9 @@ router.post('/github/callback', handleGitHubCallback);
 router.post('/github/disconnect', protect, disconnectGitHub);
 router.get('/github/status/:userId', protect, getGitHubStatus);
 router.get('/github/repositories/:userId', protect, getUserRepositories);
+
+// Integrations routes
+router.get('/integrations/:userId', protect, getIntegrationsStatus);
 
 // Socket registration removed
 

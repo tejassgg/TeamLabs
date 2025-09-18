@@ -6,12 +6,13 @@ const TeamDetails = require('../models/TeamDetails');
 const TaskDetails = require('../models/TaskDetails');
 const User = require('../models/User');
 const { logActivity } = require('../services/activityService');
+const Integration = require('../models/Integration');
 
 function buildGoogleOAuthClient() {
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.SERVER_URL}/api/google-calendar/callback`
+    `${process.env.SERVER_URL}/api/google/callback`
   );
 }
 
@@ -26,10 +27,14 @@ function assertGoogleOAuthEnvOrThrow() {
   }
 }
 
-async function ensureGoogleAccessToken(user) {
-  if (!user.googleCalendarRefreshToken) return null;
+async function ensureGoogleAccessToken(userId) {
+  const integration = await Integration.findOne({ userId, integrationType: 'google_calendar' });
+
+  if (!integration || !integration.refreshToken) return null;
+
   const oauth2Client = buildGoogleOAuthClient();
-  oauth2Client.setCredentials({ refresh_token: user.googleCalendarRefreshToken });
+  oauth2Client.setCredentials({ refresh_token: integration.refreshToken });
+
   // Try refreshing tokens; if library deprecates refreshAccessToken, fallback to getAccessToken
   let accessToken = null;
   let expiryDate = null;
@@ -42,12 +47,19 @@ async function ensureGoogleAccessToken(user) {
     accessToken = tokenResponse?.token || null;
     // Expiry not available via getAccessToken reliably
   }
+
   if (!accessToken) return null;
-  await User.findByIdAndUpdate(user._id, {
-    googleCalendarAccessToken: accessToken,
-    googleCalendarTokenExpiry: expiryDate,
-    googleCalendarConnected: true
-  });
+
+  await Integration.findOneAndUpdate(
+    { userId, integrationType: 'google_calendar' },
+    {
+      accessToken: accessToken,
+      tokenExpiry: expiryDate,
+      isConnected: true,
+      lastUsedAt: new Date()
+    }
+  );
+
   return accessToken;
 }
 
@@ -102,18 +114,15 @@ exports.createMeeting = async (req, res) => {
       // Prefer client-provided access token. Otherwise use stored token if not expired,
       // and finally attempt to refresh using the stored refresh token.
       let accessTokenToUse = googleAccessToken || null;
-      const organizer = await User.findById(organizerId);
       if (!accessTokenToUse) {
-        if (organizer?.googleCalendarAccessToken) {
-          const isExpired = organizer.googleCalendarTokenExpiry && new Date(organizer.googleCalendarTokenExpiry) <= new Date();
-          if (!isExpired) {
-            accessTokenToUse = organizer.googleCalendarAccessToken;
-          }
+        const integration = await Integration.findOne({ userId: organizerId, integrationType: 'google_calendar' });
+        if (integration?.accessToken && !integration.isTokenExpired()) {
+          accessTokenToUse = integration.accessToken;
         }
       }
-      if (!accessTokenToUse && organizer?.googleCalendarRefreshToken) {
+      if (!accessTokenToUse) {
         try {
-          const refreshed = await ensureGoogleAccessToken(organizer);
+          const refreshed = await ensureGoogleAccessToken(organizerId);
           if (refreshed) {
             accessTokenToUse = refreshed;
           }
@@ -128,6 +137,7 @@ exports.createMeeting = async (req, res) => {
             if (u.email) attendeesPayload.push({ email: u.email });
           });
         }
+        const organizer = await User.findById(organizerId);
         // Ensure organizer is included as attendee if they have an email
         if (organizer?.email && !attendeesPayload.find(a => a.email === organizer.email)) {
           attendeesPayload.push({ email: organizer.email });
@@ -199,6 +209,7 @@ exports.createMeeting = async (req, res) => {
         res.status(400).json({ success: false, message: 'Google Calendar not connected. Provide googleAccessToken or connect account.' });
       }
     } catch (googleErr) {
+      console.log('googleErr', googleErr);
       console.error('Google Calendar create event failed:', googleErr?.response?.data || googleErr.message);
       res.status(502).json({ success: false, message: 'Google Calendar create event failed' });
     }
@@ -226,8 +237,7 @@ exports.deleteMeeting = async (req, res) => {
     // Delete from Google Calendar if event exists
     if (meeting.GoogleEventId) {
       try {
-        const organizer = await User.findById(userId);
-        const accessToken = await ensureGoogleAccessToken(organizer);
+        const accessToken = await ensureGoogleAccessToken(userId);
         if (accessToken) {
           const oauth2Client = buildGoogleOAuthClient();
           oauth2Client.setCredentials({ access_token: accessToken });
@@ -286,8 +296,7 @@ exports.updateMeeting = async (req, res) => {
     // Attempt to update Google Calendar event if it exists
     if (meeting.GoogleEventId) {
       try {
-        const organizer = await User.findById(userId);
-        const accessToken = await ensureGoogleAccessToken(organizer);
+        const accessToken = await ensureGoogleAccessToken(userId);
         if (accessToken) {
           const oauth2Client = buildGoogleOAuthClient();
           oauth2Client.setCredentials({ access_token: accessToken });
@@ -351,17 +360,30 @@ exports.updateMeeting = async (req, res) => {
 exports.getGoogleCalendarStatus = async (req, res) => {
   try {
     const { userId } = req.params;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('email profileImage');
+
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
+    const integration = await Integration.findOne({ userId, integrationType: 'google_calendar' });
+
+    if (!integration) {
+      return res.json({
+        success: true,
+        connected: false,
+        email: user.email || null,
+        tokenExpiry: null,
+        avatarUrl: user.profileImage || null
+      });
+    }
+
     res.json({
       success: true,
-      connected: user.googleCalendarConnected || false,
+      connected: integration.isConnected || false,
       email: user.email || null,
-      tokenExpiry: user.googleCalendarTokenExpiry || null,
-      avatarUrl: user.profileImage || null // Include user's profile image (from Google login)
+      tokenExpiry: integration.tokenExpiry || null,
+      avatarUrl: user.profileImage || null
     });
   } catch (error) {
     console.error('getGoogleCalendarStatus error:', error);
@@ -369,53 +391,110 @@ exports.getGoogleCalendarStatus = async (req, res) => {
   }
 };
 
-exports.initiateGoogleCalendarAuth = async (req, res) => {
+exports.initiateGoogleAuth = async (req, res) => {
   try {
     assertGoogleOAuthEnvOrThrow();
     const userId = req.user?._id || req.body.userId;
     if (!userId) return res.status(400).json({ success: false, message: 'userId required' });
+
+    const { service } = req.body;
+    if (!service || !['google_calendar', 'google_drive'].includes(service)) {
+      return res.status(400).json({ success: false, message: 'Invalid service. Must be google_calendar or google_drive' });
+    }
+
+    // Define scopes based on service
+    const scopeMap = {
+      google_calendar: [
+        'https://www.googleapis.com/auth/calendar.events',
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/userinfo.profile'
+      ],
+      google_drive: [
+        'https://www.googleapis.com/auth/drive.file',
+        'https://www.googleapis.com/auth/drive.readonly',
+        'https://www.googleapis.com/auth/userinfo.profile'
+      ]
+    };
+
     const oauth2Client = buildGoogleOAuthClient();
-    const scopes = [
-      'https://www.googleapis.com/auth/calendar.events',
-      'https://www.googleapis.com/auth/calendar'
-    ];
+    const scopes = scopeMap[service];
+
     // Persist return URL (current page) in state so we can redirect back after OAuth
     const returnUrl = req.body?.returnUrl || req.headers?.referer || `${process.env.FRONTEND_URL}`;
-    const state = Buffer.from(JSON.stringify({ userId, returnUrl })).toString('base64url');
+    const state = Buffer.from(JSON.stringify({ userId, returnUrl, service })).toString('base64url');
     const url = oauth2Client.generateAuthUrl({ access_type: 'offline', scope: scopes, prompt: 'consent', state });
     res.json({ success: true, authUrl: url });
   } catch (error) {
-    console.error('initiateGoogleCalendarAuth error:', error);
+    console.error('initiateGoogleAuth error:', error);
     res.status(500).json({ success: false, message: 'Failed to initiate Google auth' });
   }
 };
 
-exports.handleGoogleCalendarCallback = async (req, res) => {
+exports.handleGoogleCallback = async (req, res) => {
   try {
     assertGoogleOAuthEnvOrThrow();
     const { code, state } = req.query;
     if (!code || !state) return res.status(400).json({ success: false, message: 'Missing code or state' });
+
     let userId = null;
     let returnUrl = null;
+    let service = null;
     try {
       const parsed = JSON.parse(Buffer.from(String(state), 'base64').toString('utf8'));
       userId = parsed.userId;
       returnUrl = parsed.returnUrl || null;
+      service = parsed.service || 'google_calendar'; // Default to calendar for backward compatibility
     } catch (_) { }
+
     if (!userId) return res.status(400).json({ success: false, message: 'Invalid state' });
+
     const oauth2Client = buildGoogleOAuthClient();
     const { tokens } = await oauth2Client.getToken(code);
-    await User.findByIdAndUpdate(userId, {
-      googleCalendarConnected: true,
-      googleCalendarAccessToken: tokens.access_token || null,
-      googleCalendarRefreshToken: tokens.refresh_token || null,
-      googleCalendarTokenExpiry: tokens.expiry_date ? new Date(tokens.expiry_date) : null
+
+    // Get user info from Google (with fallback)
+    let userInfo = { data: {} };
+    oauth2Client.setCredentials({
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      scope: tokens.scope,
+      token_type: tokens.token_type,
+      expiry_date: tokens.expiry_date
     });
+
+    const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+    userInfo = await oauth2.userinfo.get();
+
+    const user = await User.findById(userId).select('organizationID');
+
+    const integrationData = {
+      userId,
+      organizationId: user.organizationID,
+      integrationType: service,
+      isConnected: true,
+      connectedAt: new Date(),
+      accessToken: tokens.access_token || null,
+      refreshToken: tokens.refresh_token || null,
+      tokenExpiry: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+      externalId: userInfo.data.id,
+      externalUsername: userInfo.data.name,
+      externalEmail: userInfo.data.email,
+      externalAvatarUrl: userInfo.data.picture,
+      status: 'active',
+      lastUsedAt: new Date()
+    };
+
+    await Integration.findOneAndUpdate(
+      { userId, integrationType: service },
+      integrationData,
+      { upsert: true }
+    );
+
     // Redirect back to original page after successful connection
-    const redirectTo = (returnUrl || `${process.env.FRONTEND_URL}`) + (returnUrl && returnUrl.includes('?') ? '&' : '?') + 'googleCalendar=connected';
+    const redirectParam = service === 'google_drive' ? 'googleDrive=connected' : 'googleCalendar=connected';
+    const redirectTo = (returnUrl || `${process.env.FRONTEND_URL}`) + (returnUrl && returnUrl.includes('?') ? '&' : '?') + redirectParam;
     res.redirect(302, redirectTo);
   } catch (error) {
-    console.error('handleGoogleCalendarCallback error:', error);
+    console.error('handleGoogleCallback error:', error);
     res.status(500).json({ success: false, message: 'Failed to complete Google auth' });
   }
 };
@@ -429,14 +508,26 @@ exports.attachGoogleCalendarToken = async (req, res) => {
     const { accessToken, refreshToken = null, tokenExpiry = null } = req.body;
     if (!accessToken) return res.status(400).json({ success: false, message: 'Missing accessToken' });
 
-    const update = {
-      googleCalendarConnected: true,
-      googleCalendarAccessToken: accessToken,
-    };
-    if (refreshToken) update.googleCalendarRefreshToken = refreshToken;
-    if (tokenExpiry) update.googleCalendarTokenExpiry = new Date(tokenExpiry);
+    const user = await User.findById(userId).select('organizationID');
 
-    await User.findByIdAndUpdate(userId, update);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    await Integration.findOneAndUpdate(
+      { userId, integrationType: 'google_calendar' },
+      {
+        userId,
+        organizationId: user.organizationID,
+        integrationType: 'google_calendar',
+        isConnected: true,
+        accessToken,
+        refreshToken,
+        tokenExpiry: tokenExpiry ? new Date(tokenExpiry) : null,
+        status: 'active',
+        lastUsedAt: new Date()
+      },
+      { upsert: true }
+    );
+
     return res.json({ success: true });
   } catch (error) {
     console.error('attachGoogleCalendarToken error:', error);
@@ -450,17 +541,75 @@ exports.disconnectGoogleCalendar = async (req, res) => {
     const userId = req.user?._id || req.body.userId;
     if (!userId) return res.status(400).json({ success: false, message: 'Missing userId' });
 
-    await User.findByIdAndUpdate(userId, {
-      googleCalendarConnected: false,
-      googleCalendarAccessToken: null,
-      googleCalendarRefreshToken: null,
-      googleCalendarTokenExpiry: null
-    });
+    // Update or create integration record to mark as disconnected
+    await Integration.findOneAndUpdate(
+      { userId, integrationType: 'google_calendar' },
+      {
+        isConnected: false,
+        accessToken: null,
+        refreshToken: null,
+        tokenExpiry: null,
+        status: 'revoked'
+      },
+      { upsert: true }
+    );
 
     return res.json({ success: true, message: 'Google Calendar disconnected' });
   } catch (error) {
     console.error('disconnectGoogleCalendar error:', error);
     return res.status(500).json({ success: false, message: 'Failed to disconnect Google Calendar' });
+  }
+};
+
+
+exports.getGoogleDriveStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) return res.status(400).json({ success: false, message: 'Missing userId' });
+    const integration = await Integration.findOne({ userId, integrationType: 'google_drive' });
+
+    if (!integration || !integration.isConnected) {
+      return res.json({ success: true, connected: false });
+    }
+
+    res.json({
+      success: true,
+      connected: true,
+      connectedAt: integration.connectedAt,
+      tokenExpiry: integration.tokenExpiry,
+      externalEmail: integration.externalEmail,
+      externalUsername: integration.externalUsername,
+      externalAvatarUrl: integration.externalAvatarUrl
+    });
+  } catch (error) {
+    console.error('getGoogleDriveStatus error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get Google Drive status' });
+  }
+};
+
+
+exports.disconnectGoogleDrive = async (req, res) => {
+  try {
+    const userId = req.user?._id || req.body.userId;
+    if (!userId) return res.status(400).json({ success: false, message: 'Missing userId' });
+
+    // Update or create integration record to mark as disconnected
+    await Integration.findOneAndUpdate(
+      { userId, integrationType: 'google_drive' },
+      {
+        isConnected: false,
+        accessToken: null,
+        refreshToken: null,
+        tokenExpiry: null,
+        status: 'revoked'
+      },
+      { upsert: true }
+    );
+
+    return res.json({ success: true, message: 'Google Drive disconnected' });
+  } catch (error) {
+    console.error('disconnectGoogleDrive error:', error);
+    res.status(500).json({ success: false, message: 'Failed to disconnect Google Drive' });
   }
 };
 

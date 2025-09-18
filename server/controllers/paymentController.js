@@ -713,7 +713,7 @@ const saveUserPaymentMethod = async (userId, paymentMethod, details) => {
   }
 };
 
-// Get all payment data for organization (subscription status + payment history + subscription features)
+// Get all payment data for organization (subscription status + payment history + subscription features + subscription catalog)
 const getOrganizationPaymentData = async (req, res) => {
   try {
     const { organizationID } = req.params;
@@ -726,17 +726,28 @@ const getOrganizationPaymentData = async (req, res) => {
     const premiumUsers = await User.getPremiumUsers(organizationID);
 
     // Get payment history
-    const payments = await Payment.getPaymentHistory(organizationID, parseInt(limit));
     const total = await Payment.countDocuments({ organizationID });
 
-    // Get subscription features
-    const allFeatures = await CommonType.find({ MasterType: 'SubscriptionFeatures' }).sort({ Code: 1 });
+    // Get subscription catalog data (features and prices) in parallel
+    const [featuresAll, pricesAll] = await Promise.all([
+      CommonType.find({ MasterType: 'SubscriptionFeatures' }).sort({ Code: 1 }),
+      CommonType.find({ MasterType: 'SubscriptionPrice' }).sort({ Code: 1 })
+    ]);
     
     // Group features by plan type
     const subscriptionFeatures = {
-      free: allFeatures.filter(feature => feature.Description === 'free'),
-      monthly: allFeatures.filter(feature => feature.Description === 'monthly'),
-      annual: allFeatures.filter(feature => feature.Description === 'annual')
+      free: featuresAll.filter(feature => feature.Description === 'free'),
+      monthly: featuresAll.filter(feature => feature.Description === 'monthly'),
+      annual: featuresAll.filter(feature => feature.Description === 'annual')
+    };
+
+    // Get subscription prices
+    const getPrice = (desc) => pricesAll.find(p => p.Description === desc)?.Value;
+    const subscriptionPrices = {
+      freeMonthly: getPrice('free_monthly') || '0',
+      premiumMonthly: getPrice('premium_monthly') || '79',
+      premiumAnnualMonthlyEq: getPrice('premium_annual_monthly_equivalent') || '47.4',
+      premiumAnnualYearly: getPrice('premium_annual_yearly_total') || '569'
     };
 
     res.json({
@@ -753,16 +764,8 @@ const getOrganizationPaymentData = async (req, res) => {
             subscriptionEndDate: user.subscriptionEndDate
           }))
         },
-        paymentHistory: {
-          payments,
-          pagination: {
-            current: parseInt(page),
-            total: Math.ceil(total / limit),
-            hasNext: skip + payments.length < total,
-            hasPrev: page > 1
-          }
-        },
-        subscriptionFeatures
+        subscriptionFeatures,
+        subscriptionPrices
       }
     });
   } catch (error) {

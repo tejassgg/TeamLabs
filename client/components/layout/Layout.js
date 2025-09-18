@@ -59,27 +59,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
     }
   };
 
-  useEffect(() => {
-    if (user?.organizationID) {
-      fetchSubscriptionData();
-    }
-  }, [user?.organizationID, user?.role]);
-
-  // Refresh subscription data when returning from payment success or settings
-  useEffect(() => {
-    const handleRouteChange = () => {
-      // Refresh subscription data when navigating to/from settings or payment pages
-      if (router.pathname === '/settings' || router.pathname === '/payment/success') {
-        fetchSubscriptionData();
-      }
-    };
-
-    router.events.on('routeChangeComplete', handleRouteChange);
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange);
-    };
-  }, [router, user?.organizationID, user?.role]);
-
   // Refresh subscription data when component becomes visible (user returns from payment)
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -93,19 +72,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [user?.organizationID, user?.role]);
-
-  // Periodic refresh of subscription data (every 30 seconds when on relevant pages)
-  useEffect(() => {
-    if (!user?.organizationID) return;
-
-    const interval = setInterval(() => {
-      if (router.pathname === '/settings' || router.pathname === '/payment/success') {
-        fetchSubscriptionData();
-      }
-    }, 30000); // 30 seconds
-
-    return () => clearInterval(interval);
-  }, [router.pathname, user?.organizationID, user?.role]);
 
   const handleNavigation = (path) => {
     router.push(path);
@@ -147,7 +113,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
       <div className="relative">
         <button
           ref={btnRef}
-          className={`flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-sm
+          className={`flex items-center gap-3 w-full px-3 py-1 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-sm
             ${active
               ? `${theme === 'dark'
                 ? 'bg-blue-800 text-white font-bold border-l-4 border-blue-400'
@@ -479,6 +445,27 @@ const Layout = ({ children, pageProject, pageTitle }) => {
   const { teams, projects, tasksDetails, userDetails, loading: globalLoading, setProjects, setTasksDetails } = useGlobal();
   const [showFirstTimeSetup, setShowFirstTimeSetup] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+
+  // Apply user's font preference on mount
+  useEffect(() => {
+    if (user?.fontFamily) {
+      const fontOptions = [
+        { value: 'Inter', fontFamily: 'Inter, sans-serif' },
+        { value: 'Roboto', fontFamily: 'Roboto, sans-serif' },
+        { value: 'Open Sans', fontFamily: 'Open Sans, sans-serif' },
+        { value: 'Lato', fontFamily: 'Lato, sans-serif' },
+        { value: 'Montserrat', fontFamily: 'Montserrat, sans-serif' },
+        { value: 'Poppins', fontFamily: 'Poppins, sans-serif' },
+        { value: 'Source Sans Pro', fontFamily: 'Source Sans Pro, sans-serif' },
+        { value: 'Nunito', fontFamily: 'Nunito, sans-serif' },
+        { value: 'JetBrains Mono', fontFamily: 'JetBrains Mono, monospace' }
+      ];
+      const selectedFont = fontOptions.find(f => f.value === user.fontFamily);
+      if (selectedFont) {
+        document.documentElement.style.setProperty('--font-family', selectedFont.fontFamily);
+      }
+    }
+  }, [user?.fontFamily]);
 
   // Inline editing states
   const [editingProjectId, setEditingProjectId] = useState(null);

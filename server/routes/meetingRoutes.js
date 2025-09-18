@@ -7,11 +7,13 @@ const {
   createMeeting,
   updateMeeting,
   deleteMeeting,
-  initiateGoogleCalendarAuth,
+  initiateGoogleAuth,
   getGoogleCalendarStatus,
-  handleGoogleCalendarCallback,
+  handleGoogleCallback,
   attachGoogleCalendarToken,
-  disconnectGoogleCalendar
+  disconnectGoogleCalendar,
+  getGoogleDriveStatus,
+  disconnectGoogleDrive
 } = require('../controllers/meetingController');
 
 // Meetings
@@ -21,11 +23,13 @@ router.post('/teams/:teamId/meetings', protect, createMeeting);
 router.put('/meetings/:meetingId', protect, updateMeeting);
 router.delete('/meetings/:meetingId', protect, deleteMeeting);
 
-// Google Calendar OAuth
-router.post('/google-calendar/initiate', protect, initiateGoogleCalendarAuth);
+// Google OAuth (unified for Calendar and Drive)
+router.post('/google/initiate', protect, initiateGoogleAuth);
 router.get('/google-calendar/status/:userId', protect, getGoogleCalendarStatus);
-router.get('/google-calendar/callback', handleGoogleCalendarCallback);
+router.get('/google-drive/status/:userId', protect, getGoogleDriveStatus);
+router.get('/google/callback', handleGoogleCallback);
 router.post('/google-calendar/attach-token', protect, attachGoogleCalendarToken);
 router.post('/google-calendar/disconnect', protect, disconnectGoogleCalendar);
+router.post('/google-drive/disconnect', protect, disconnectGoogleDrive);
 
 module.exports = router;

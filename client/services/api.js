@@ -219,6 +219,15 @@ export const authService = {
       throw error.response?.data || { message: 'Failed to update security settings' };
     }
   },
+
+  updateUserSettings: async (userSettings) => {
+    try {
+      const response = await api.put('/auth/user-settings', userSettings);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to update user settings' };
+    }
+  },
   
   updateUserStatus: async (status, userId) => {
     try {
@@ -308,6 +317,15 @@ export const authService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to get GitHub status' };
+    }
+  },
+
+  getIntegrationsStatus: async (userId) => {
+    try {
+      const response = await api.get(`/auth/integrations/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to get integrations status' };
     }
   },
 
@@ -1103,8 +1121,8 @@ export const meetingService = {
     const res = await api.delete(`/meetings/${meetingId}`);
     return res.data;
   },
-  initiateGoogleCalendarAuth: async (returnUrl) => {
-    const res = await api.post(`/google-calendar/initiate`, { returnUrl });
+  initiateGoogleAuth: async (service, returnUrl) => {
+    const res = await api.post(`/google/initiate`, { service, returnUrl });
     return res.data;
   },
   getGoogleCalendarStatus: async (userId) => {
@@ -1121,6 +1139,14 @@ export const meetingService = {
   },
   disconnectGoogleCalendar: async () => {
     const res = await api.post(`/google-calendar/disconnect`, {});
+    return res.data;
+  },
+  getGoogleDriveStatus: async (userId) => {
+    const res = await api.get(`/google-drive/status/${userId}`);
+    return res.data;
+  },
+  disconnectGoogleDrive: async () => {
+    const res = await api.post(`/google-drive/disconnect`, {});
     return res.data;
   },
   // New method to handle Google Calendar access with client-side tokens
@@ -1146,6 +1172,7 @@ export const paymentService = {
       });
       return response.data;
     } catch (error) {
+      console.error('Error creating checkout session:', error);
       throw error.response?.data || { message: 'Failed to create checkout session' };
     }
   },

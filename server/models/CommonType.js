@@ -15,6 +15,10 @@ const CommonTypeSchema = new mongoose.Schema({
   },
   Description: {
     type: String
+  },
+  FaIcon: {
+    type: String,
+    default: null
   }
 });
 

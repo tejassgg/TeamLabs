@@ -197,6 +197,11 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  fontFamily: {
+    type: String,
+    default: 'Inter',
+    enum: ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Source Sans Pro', 'Nunito', 'JetBrains Mono']
+  },
   tempTwoFactorSecret: {
     type: String,
     select: false
@@ -285,53 +290,6 @@ const UserSchema = new mongoose.Schema({
     }
   },
 
-  // GitHub Integration fields
-  githubConnected: {
-    type: Boolean,
-    default: false
-  },
-  githubAccessToken: {
-    type: String,
-    default: null
-  },
-  githubUserId: {
-    type: String,
-    default: null
-  },
-  githubUsername: {
-    type: String,
-    default: null
-  },
-  githubEmail: {
-    type: String,
-    default: null
-  },
-  githubAvatarUrl: {
-    type: String,
-    default: null
-  },
-  githubConnectedAt: {
-    type: Date,
-    default: null
-  }
-  ,
-  // Google Calendar OAuth fields
-  googleCalendarConnected: {
-    type: Boolean,
-    default: false
-  },
-  googleCalendarAccessToken: {
-    type: String,
-    default: null
-  },
-  googleCalendarRefreshToken: {
-    type: String,
-    default: null
-  },
-  googleCalendarTokenExpiry: {
-    type: Date,
-    default: null
-  }
 });
 
 // Before saving, hash password

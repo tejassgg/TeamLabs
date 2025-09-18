@@ -29,7 +29,7 @@ router.get('/history/:organizationID', protect, getPaymentHistory);
 // Get subscription status
 router.get('/subscription/:organizationID', protect, getSubscriptionStatus);
 
-// Get all payment data for organization (subscription + history)
+// Get all payment data for organization (subscription status + payment history + subscription features + subscription catalog)
 router.get('/organization/:organizationID', protect, getOrganizationPaymentData);
 
 // Cancel subscription
