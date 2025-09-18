@@ -48,6 +48,21 @@ const Settings = () => {
   const [userSettings, setUserSettings] = useState({
     fontFamily: user?.fontFamily || 'Inter'
   });
+  const [subscriptionData, setSubscriptionData] = useState(null);
+  const [subscriptionFeatures, setSubscriptionFeatures] = useState({
+    free: [],
+    monthly: [],
+    annual: []
+  });
+  const [subscriptionPrices, setSubscriptionPrices] = useState({
+    freeMonthly: '0',
+    premiumMonthly: '49',
+    premiumAnnualMonthlyEq: '34.92',
+    premiumAnnualYearly: '419'
+  });
+  const [loadingSubscription, setLoadingSubscription] = useState(false);
+  const [integrations, setIntegrations] = useState([]);
+  const [loadingIntegrations, setLoadingIntegrations] = useState(false);
   const sessionTimeoutOptions = [
     { value: 15, label: '15 minutes' },
     { value: 30, label: '30 minutes' },
@@ -90,6 +105,53 @@ const Settings = () => {
       }
     }
   }, [userSettings.fontFamily]);
+
+  // Fetch subscription data on component mount for admin users
+  const fetchSubscriptionData = async () => {
+    if (!user?.organizationID || !isAdmin) return;
+    
+    setLoadingSubscription(true);
+    try {
+      const response = await authService.getSubscriptionData(user.organizationID);
+      setSubscriptionData(response.data.subscription);
+      setSubscriptionFeatures(response.data.subscriptionFeatures || { free: [], monthly: [], annual: [] });
+      setSubscriptionPrices(response.data.subscriptionPrices || { 
+        freeMonthly: '0', 
+        premiumMonthly: '49', 
+        premiumAnnualMonthlyEq: '34.92', 
+        premiumAnnualYearly: '419' 
+      });
+    } catch (error) {
+      console.error('Error fetching subscription data:', error);
+    } finally {
+      setLoadingSubscription(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubscriptionData();
+  }, [user?.organizationID, isAdmin]);
+
+  // Fetch integrations data on component mount
+  const fetchIntegrationsData = async () => {
+    if (!user?._id) return;
+    
+    setLoadingIntegrations(true);
+    try {
+      const response = await authService.getIntegrationsStatus(user._id);
+      if (response.success) {
+        setIntegrations(response.integrations);
+      }
+    } catch (error) {
+      console.error('Error fetching integrations data:', error);
+    } finally {
+      setLoadingIntegrations(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchIntegrationsData();
+  }, [user?._id]);
 
   // Set active tab based on URL query parameter
   // This allows direct navigation to specific tabs via URL (e.g., /settings?tab=billing)
@@ -351,7 +413,7 @@ const Settings = () => {
                     <h3 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Font Family</h3>
                     <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Select a font that will be applied system-wide</p>
                   </div>
-                  <div className="w-1/4">
+                  <div className="lg:w-1/4 w-full">
                     <button
                       type="button"
                       onClick={() => setShowFontDropdown(v => !v)}
@@ -369,7 +431,7 @@ const Settings = () => {
                       </svg>
                     </button>
                     {showFontDropdown && (
-                      <div className={`absolute right-0 mt-2 w-1/4 z-20 rounded-xl shadow-lg border ${theme === 'dark' ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
+                      <div className={`absolute right-0 mt-2 lg:w-1/4 w-1/2 z-20 rounded-xl shadow-lg border ${theme === 'dark' ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
                         <ul className="max-h-60 overflow-auto py-1">
                           {fontOptions.map(font => (
                             <li key={font.value}>
@@ -458,7 +520,7 @@ const Settings = () => {
                       <h3 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Session Timeout</h3>
                       <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Automatically log out after inactivity for</p>
                     </div>
-                    <div className="w-1/4">
+                    <div className="lg:w-1/4 w-full">
                       <button
                         type="button"
                         onClick={() => setShowSessionTimeoutDropdown(v => !v)}
@@ -475,7 +537,7 @@ const Settings = () => {
                         </svg>
                       </button>
                       {showSessionTimeoutDropdown && (
-                        <div className={`absolute right-0 mt-2 w-1/4 z-20 rounded-xl shadow-lg border ${theme === 'dark' ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
+                        <div className={`absolute right-0 mt-2 lg:w-1/4 w-1/2 z-20 rounded-xl shadow-lg border ${theme === 'dark' ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
                           <ul className="max-h-60 overflow-auto py-1">
                             {sessionTimeoutOptions.map(opt => (
                               <li key={opt.value}>
@@ -537,12 +599,24 @@ const Settings = () => {
 
           {/* Billing Settings */}
           {activeTab === 'billing' && (
-            <BillingTab getThemeClasses={getThemeClasses} />
+            <BillingTab 
+              getThemeClasses={getThemeClasses} 
+              subscriptionData={subscriptionData}
+              subscriptionFeatures={subscriptionFeatures}
+              subscriptionPrices={subscriptionPrices}
+              loadingSubscription={loadingSubscription}
+              onRefreshSubscription={fetchSubscriptionData}
+            />
           )}
 
           {/* Integrations Tab */}
           {activeTab === 'integrations' && (
-            <IntegrationsTab getThemeClasses={getThemeClasses} />
+            <IntegrationsTab 
+              getThemeClasses={getThemeClasses} 
+              integrations={integrations}
+              loadingIntegrations={loadingIntegrations}
+              onRefreshIntegrations={fetchIntegrationsData}
+            />
           )}
         </div>
       </div>

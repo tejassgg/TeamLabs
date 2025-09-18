@@ -6,21 +6,28 @@ import { authService } from '../../services/api';
 import { paymentService } from '../../services/api';
 import { FaUsers, FaCrown, FaStar, FaInfinity, FaCheckCircle, FaCheck } from 'react-icons/fa';
 
-const BillingTab = ({ getThemeClasses }) => {
+const BillingTab = ({ 
+  getThemeClasses, 
+  subscriptionData: prefetchedSubscriptionData,
+  subscriptionFeatures: prefetchedSubscriptionFeatures,
+  subscriptionPrices: prefetchedSubscriptionPrices,
+  loadingSubscription: prefetchedLoadingSubscription,
+  onRefreshSubscription
+}) => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const { showToast } = useToast();
 
-  const [subscriptionData, setSubscriptionData] = useState(null);
+  const [subscriptionData, setSubscriptionData] = useState(prefetchedSubscriptionData || null);
   const [stripeInvoices, setStripeInvoices] = useState([]);
   const [loadingStripeInvoices, setLoadingStripeInvoices] = useState(false);
-  const [loadingSubscription, setLoadingSubscription] = useState(false);
-  const [subscriptionFeatures, setSubscriptionFeatures] = useState({
+  const [loadingSubscription, setLoadingSubscription] = useState(prefetchedLoadingSubscription || false);
+  const [subscriptionFeatures, setSubscriptionFeatures] = useState(prefetchedSubscriptionFeatures || {
     free: [],
     monthly: [],
     annual: []
   });
-  const [subscriptionPrices, setSubscriptionPrices] = useState({
+  const [subscriptionPrices, setSubscriptionPrices] = useState(prefetchedSubscriptionPrices || {
     freeMonthly: '0',
     premiumMonthly: '49',
     premiumAnnualMonthlyEq: '34.92',
@@ -38,28 +45,24 @@ const BillingTab = ({ getThemeClasses }) => {
 
   useEffect(() => {
     if (!user?.organizationID) return;
-    fetchSubscriptionData();
     fetchStripeInvoices();
   }, []);
 
-  const fetchSubscriptionData = async () => {
-    setLoadingSubscription(true);
-    try {
-      const response = await authService.getSubscriptionData(user.organizationID);
-      setSubscriptionData(response.data.subscription);
-      setSubscriptionFeatures(response.data.subscriptionFeatures || { free: [], monthly: [], annual: [] });
-      setSubscriptionPrices(response.data.subscriptionPrices || { 
-        freeMonthly: '0', 
-        premiumMonthly: '49', 
-        premiumAnnualMonthlyEq: '34.92', 
-        premiumAnnualYearly: '419' 
-      });
-    } catch (error) {
-      console.error('Error fetching subscription data:', error);
-    } finally {
-      setLoadingSubscription(false);
+  // Sync with prefetched data when props change
+  useEffect(() => {
+    if (prefetchedSubscriptionData !== undefined) {
+      setSubscriptionData(prefetchedSubscriptionData);
     }
-  };
+    if (prefetchedSubscriptionFeatures !== undefined) {
+      setSubscriptionFeatures(prefetchedSubscriptionFeatures);
+    }
+    if (prefetchedSubscriptionPrices !== undefined) {
+      setSubscriptionPrices(prefetchedSubscriptionPrices);
+    }
+    if (prefetchedLoadingSubscription !== undefined) {
+      setLoadingSubscription(prefetchedLoadingSubscription);
+    }
+  }, [prefetchedSubscriptionData, prefetchedSubscriptionFeatures, prefetchedSubscriptionPrices, prefetchedLoadingSubscription]);
 
   const fetchStripeInvoices = async () => {
     try {
@@ -165,7 +168,7 @@ const BillingTab = ({ getThemeClasses }) => {
       const response = await authService.downgradeSubscription(user.organizationID, 'free', user._id);
       if (response.success) {
         showToast('Successfully downgraded to free plan', 'success');
-        fetchSubscriptionData();
+        onRefreshSubscription();
         setShowDowngradeModal(false);
       } else {
         showToast(response.message || 'Failed to downgrade', 'error');
@@ -183,7 +186,7 @@ const BillingTab = ({ getThemeClasses }) => {
         const originalPlan = response.data.data.originalPlan;
         showToast(`Successfully downgraded from ${originalPlan} to monthly plan. Refund amount: $${response.data.data.refundAmount}`, 'success');
         setShowDowngradeModal(false);
-        setTimeout(() => { fetchSubscriptionData(); }, 500);
+        setTimeout(() => { onRefreshSubscription(); }, 500);
       } else {
         showToast(response.data.message || 'Failed to downgrade', 'error');
       }
@@ -325,7 +328,7 @@ const BillingTab = ({ getThemeClasses }) => {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={fetchSubscriptionData}
+                onClick={onRefreshSubscription}
                 disabled={loadingSubscription}
                 className={`p-2 rounded-lg transition-colors ${theme === 'dark'
                   ? 'hover:bg-gray-700 text-gray-400 hover:text-white'
@@ -360,10 +363,10 @@ const BillingTab = ({ getThemeClasses }) => {
 
         {!subscriptionData?.hasActiveSubscription && (
           <div className="flex flex-col items-center justify-center gap-2 mb-12">
-            <h2 className={`text-5xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`lg:text-5xl text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Choose Your Plan
             </h2>
-            <p className={`text-lg w-1/3 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={`lg:text-lg text-sm lg:w-1/3 w-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
               Select the perfect plan for your organization's needs and start building amazing projects today
             </p>
           </div>
@@ -835,7 +838,7 @@ const BillingTab = ({ getThemeClasses }) => {
               </p>
             </div>
             <div className="p-6 space-y-3">
-              <button onClick={async () => { try { const res = await authService.cancelSubscription(user.organizationID, user._id); if (res?.success) { setShowCancelModal(false); showToast('Subscription cancelled successfully', 'success'); fetchSubscriptionData(); } else { showToast(res?.message || 'Failed to cancel subscription', 'error'); } } catch (e) { showToast(e?.message || 'Failed to cancel subscription', 'error'); } }} className={`w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-200 shadow ${'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'}`}>
+              <button onClick={async () => { try { const res = await authService.cancelSubscription(user.organizationID, user._id); if (res?.success) { setShowCancelModal(false); showToast('Subscription cancelled successfully', 'success'); onRefreshSubscription(); } else { showToast(res?.message || 'Failed to cancel subscription', 'error'); } } catch (e) { showToast(e?.message || 'Failed to cancel subscription', 'error'); } }} className={`w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-200 shadow ${'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'}`}>
                 Confirm Cancellation
               </button>
               <button onClick={() => setShowCancelModal(false)} className={`w-full py-3 px-4 rounded-xl font-semibold transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 hover:bg-gray-700' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}>

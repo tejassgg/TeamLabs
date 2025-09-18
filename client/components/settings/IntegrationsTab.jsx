@@ -13,21 +13,35 @@ import {
 } from 'react-icons/fa';
 import { SiGooglemeet } from "react-icons/si";
 
-const IntegrationsTab = ({ getThemeClasses }) => {
+const IntegrationsTab = ({ 
+  getThemeClasses, 
+  integrations: prefetchedIntegrations,
+  loadingIntegrations: prefetchedLoadingIntegrations,
+  onRefreshIntegrations
+}) => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const { showToast } = useToast();
 
-  const [integrations, setIntegrations] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [integrations, setIntegrations] = useState(prefetchedIntegrations || []);
+  const [loading, setLoading] = useState(prefetchedLoadingIntegrations || false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState(null);
 
   useEffect(() => {
     if (!user?._id) return;
-    fetchIntegrationsStatus();
     handleIntegrationCallbacks();
   }, [user?._id]);
+
+  // Sync with prefetched data when props change
+  useEffect(() => {
+    if (prefetchedIntegrations !== undefined) {
+      setIntegrations(prefetchedIntegrations);
+    }
+    if (prefetchedLoadingIntegrations !== undefined) {
+      setLoading(prefetchedLoadingIntegrations);
+    }
+  }, [prefetchedIntegrations, prefetchedLoadingIntegrations]);
 
   // Handle GitHub and Google Calendar callbacks
   const handleIntegrationCallbacks = () => {
@@ -45,7 +59,7 @@ const IntegrationsTab = ({ getThemeClasses }) => {
         authService.handleGitHubCallback(githubCode || code, state)
           .then(() => {
             showToast('GitHub account connected successfully!', 'success');
-            fetchIntegrationsStatus();
+            onRefreshIntegrations();
             // Clean up URL
             const newUrl = window.location.pathname + '?tab=integrations';
             window.history.replaceState({}, '', newUrl);
@@ -64,7 +78,7 @@ const IntegrationsTab = ({ getThemeClasses }) => {
     // Handle Google Calendar callback - check for success parameter
     if (urlParams.get('googleCalendar') === 'connected') {
       showToast('Google Calendar connected successfully!', 'success');
-      fetchIntegrationsStatus();
+      onRefreshIntegrations();
       // Clean up URL
       const newUrl = window.location.pathname + '?tab=integrations';
       window.history.replaceState({}, '', newUrl);
@@ -73,7 +87,7 @@ const IntegrationsTab = ({ getThemeClasses }) => {
     // Handle Google Drive callback - check for success parameter
     if (urlParams.get('googleDrive') === 'connected') {
       showToast('Google Drive connected successfully!', 'success');
-      fetchIntegrationsStatus();
+      onRefreshIntegrations();
       // Clean up URL
       const newUrl = window.location.pathname + '?tab=integrations';
       window.history.replaceState({}, '', newUrl);
@@ -89,20 +103,6 @@ const IntegrationsTab = ({ getThemeClasses }) => {
   };
 
 
-  const fetchIntegrationsStatus = async () => {
-    try {
-      setLoading(true);
-      const response = await authService.getIntegrationsStatus(user._id);
-      if (response.success) {
-        setIntegrations(response.integrations);
-      }
-    } catch (error) {
-      console.error('Error fetching integrations status:', error);
-      showToast('Failed to fetch integrations status', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Helper function to get the appropriate icon component
   const getIconComponent = (iconName) => {
@@ -179,7 +179,7 @@ const IntegrationsTab = ({ getThemeClasses }) => {
       }
 
       // Refresh integrations status only if not redirecting
-      await fetchIntegrationsStatus();
+      await onRefreshIntegrations();
     } catch (error) {
       console.error('Error toggling integration:', error);
       showToast(`Failed to ${integration.connected ? 'disconnect' : 'connect'} ${integration.name}`, 'error');
@@ -240,7 +240,7 @@ const IntegrationsTab = ({ getThemeClasses }) => {
                 </div>
 
                 {/* Controls */}
-                <div className="flex items-center justify-between mt-12">
+                <div className="flex items-center justify-between lg:mt-12 mt-6">
                   <button
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg border  text-sm font-medium transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-gray-700 border-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-gray-200' }`}
                     onClick={() => { setSelectedIntegration(integration); setShowDetailsModal(true); }}
