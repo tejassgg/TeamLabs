@@ -266,7 +266,7 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
                 />
               </div>
               <div className="w-1/2">
-                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Apartment/Suite Number</label>
+                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Apt/Suite Number</label>
                 <input
                   type="text"
                   name="aptNumber"

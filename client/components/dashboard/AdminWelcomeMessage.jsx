@@ -134,10 +134,10 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
           <h1 className={`text-5xl font-bold mb-6 bg-gradient-to-r ${theme === 'dark' ? 'from-blue-400 via-purple-400 to-blue-400' : 'from-blue-600 via-purple-600 to-blue-600'} bg-clip-text text-transparent`}>
             Welcome to TeamLabs!
           </h1>
-          <p className={`text-2xl mb-6 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'} font-medium`}>
+          <p className={`text-2xl lg:mb-6 mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'} font-medium`}>
             You're all set up as an Admin
           </p>
-          <p className={`text-lg mb-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto leading-relaxed`}>
+          <p className={`text-lg lg:mb-8 mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto leading-relaxed`}>
             Let's get your workspace organized and start collaborating with your team. Choose an action below to get started, or explore our features to see what TeamLabs can do for you.
           </p>
           

@@ -424,30 +424,30 @@ const WelcomeStep = ({ step, onNext, onPrevious }) => {
 
   return (
     <div className="p-8 text-center">
-      <div className="mb-6">
+      <div className="lg:mb-6 mb-2">
         {step.icon}
       </div>
-      <h2 className="text-3xl font-bold mb-4">{step.title}</h2>
-      <p className={`text-lg mb-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+      <h2 className="text-3xl font-bold lg:mb-4 mb-2">{step.title}</h2>
+      <p className={`text-lg lg:mb-8 mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
         {step.description}
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:gap-6 gap-2 lg:mb-8">
+        <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
           <FaUser className="text-blue-500 mx-auto mb-2" size={24} />
           <h3 className="font-semibold mb-2">Complete Profile</h3>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
             Add your personal information
           </p>
         </div>
-        <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+        <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
           <FaBuilding className="text-purple-500 mx-auto mb-2" size={24} />
           <h3 className="font-semibold mb-2">Organization</h3>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
             Set up your workspace
           </p>
         </div>
-        <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+        <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
           <FaUsers className="text-orange-500 mx-auto mb-2" size={24} />
           <h3 className="font-semibold mb-2">Team & Projects</h3>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -487,12 +487,12 @@ const ProfileStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selected
 
   return (
     <div className="p-8">
-      <div className="text-center mb-8">
+      <div className="text-center lg:mb-8 mb-2">
         <div className="mb-4">{step.icon}</div>
         <h2 className="text-2xl font-bold mb-2">{step.title}</h2>
         <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
       </div>
-      <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Profile Information</h3>
           {profileCompleted && (
@@ -627,7 +627,7 @@ const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, sel
         </p>
       </div>
 
-      <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Organization Details</h3>
           {setupProgress.organizationComplete && (
@@ -973,12 +973,12 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
 
   return (
     <div className="p-8">
-      <div className="text-center mb-8">
+      <div className="text-center lg:mb-8 mb-2">
         <div className="mb-4">{step.icon}</div>
         <h2 className="text-2xl font-bold mb-2">Join an Existing Team or Create Your Own</h2>
         <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
       </div>
-      <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}> 
+      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}> 
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Team Selection</h3>
           {setupProgress.teamCreated && (
@@ -988,7 +988,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
             </span>
           )}
         </div>
-        <div className="space-y-4">
+        <div className="">
           {isMemberOfAnyTeam ? (
             <>
               <div className="mb-4">
@@ -1003,7 +1003,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                   ))}
                 </ul>
               </div>
-              <div className="mt-6 flex gap-3 justify-between" style={{ marginTop: '250px' }}>
+              <div className="flex gap-3 justify-between" style={{ marginTop: '250px' }}>
                 <button
                   onClick={onPrevious}
                   className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
@@ -1024,7 +1024,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                         : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                     }`}
                   >
-                    Skip for Now
+                    Skip
                   </button>
                   <button
                     onClick={onNext}
@@ -1037,13 +1037,6 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
             </>
           ) : (
             <>
-              {selectedOrganization && (
-                <div className="flex items-center gap-3 mb-4">
-                  <FaBuilding className="text-purple-500" size={16} />
-                  <span>Organization:</span>
-                  <span className={`ml-2 px-3 py-1 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-700'}`}>{selectedOrganization.name || selectedOrganization.Name}</span>
-                </div>
-              )}
               <div>
                 <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Select Team</label>
                 {loadingTeams ? (
@@ -1143,7 +1136,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                 </div>
               )}
 
-              <div className="mt-6 flex gap-3 justify-between" style={{ marginTop: pendingRequests.length > 0 ? '24px' : '250px' }}>
+              <div className="mt-6 flex gap-3 justify-between" style={{ marginTop: pendingRequests.length > 0 ? '24px' : '230px' }}>
                 <button
                   onClick={onPrevious}
                   className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
@@ -1164,7 +1157,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                         : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                     }`}
                   >
-                    Skip for Now
+                    Skip
                   </button>
                   <button
                     onClick={onNext}
@@ -1322,13 +1315,13 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip }) => {
 
   return (
     <div className="p-8">
-      <div className="text-center mb-8">
+      <div className="text-center lg:mb-8 mb-2">
         <div className="mb-4">{step.icon}</div>
         <h2 className="text-2xl font-bold mb-2">{step.title}</h2>
         <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
       </div>
       
-      <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}> 
+      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}> 
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-semibold">Create Your First Project</h3>
           {(setupProgress.projectCreated || projectCreated) && (
@@ -1381,32 +1374,10 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip }) => {
               </button>
             </div>
           )}
-
-          {/* Benefits section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-              <div className="flex items-center gap-3 mb-2">
-                <FaUsers className="text-blue-500" size={20} />
-                <h5 className="font-medium">Team Collaboration</h5>
-              </div>
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                Organize tasks and collaborate with team members
-              </p>
-            </div>
-            <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-              <div className="flex items-center gap-3 mb-2">
-                <FaRocket className="text-purple-500" size={20} />
-                <h5 className="font-medium">Project Management</h5>
-              </div>
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                Track progress and manage project milestones
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Navigation buttons */}
-        <div className="mt-8 flex gap-3 justify-between">
+        <div className="mt-20 flex gap-3 justify-between">
           <button
             onClick={onPrevious}
             className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
@@ -1427,7 +1398,7 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip }) => {
                   : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
               }`}
             >
-              Skip for Now
+              Skip
             </button>
             <button
               onClick={onNext}
