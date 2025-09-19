@@ -494,6 +494,17 @@ export const teamService = {
       throw error.response?.data || { message: 'Failed to fetch pending requests' };
     }
   },
+  leaveTeam: async (teamId, userId, newAdminId = null) => {
+    try {
+      const response = await api.post(`/teams/${teamId}/leave`, { 
+        userId, 
+        ...(newAdminId && { newAdminId })
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to leave team' };
+    }
+  },
 };
 
 export const commonTypeService = {

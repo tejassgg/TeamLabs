@@ -68,6 +68,11 @@ const TeamsPage = () => {
     }
   };
 
+  const handleRequestSent = async (teamId) => {
+    // Refresh teams to update the request status
+    await fetchTeamsWithStats(false);
+  };
+
   const getThemeClasses = (lightClass, darkClass) => {
     return theme === 'dark' ? darkClass : lightClass;
   };
@@ -185,6 +190,7 @@ const TeamsPage = () => {
               key={team.TeamID || team._id}
               team={team}
               theme={theme}
+              onRequestSent={handleRequestSent}
             />
           ))}
         </div>

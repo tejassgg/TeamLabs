@@ -38,7 +38,11 @@ const userActivitySchema = new mongoose.Schema({
       // Meeting activities
       'team_meeting_create', 'team_meeting_update', 'team_meeting_delete',
       // Settings activities
-      'settings_update','github_connected', 'github_disconnected'
+      'settings_update','github_connected', 'github_disconnected',
+      // Team Transfer Admin activities
+      'team_transfer_admin',
+      // Team Become Admin activities
+      'team_become_admin'
     ]
   },
   status: {

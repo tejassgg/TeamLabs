@@ -7,7 +7,7 @@ import { useGlobal } from '../../context/GlobalContext';
 import api, { authService, teamService, meetingService } from '../../services/api';
 import CustomModal from '../../components/shared/CustomModal';
 import StatusDropdown from '../../components/shared/StatusDropdown';
-import { FaCog, FaTrash, FaTimes, FaPlus, FaExternalLinkAlt, FaClock, FaArrowRight, FaToggleOn, FaUsers, FaAlignLeft, FaTag, FaCalendarAlt, FaUserFriends } from 'react-icons/fa';
+import { FaCog, FaTrash, FaTimes, FaPlus, FaExternalLinkAlt, FaClock, FaArrowRight, FaToggleOn, FaUsers, FaAlignLeft, FaTag, FaCalendarAlt, FaUserFriends, FaSignOutAlt, FaCheck } from 'react-icons/fa';
 import { getTaskTypeBadge, getPriorityBadge } from '../../components/task/TaskTypeBadge';
 import TeamDetailsSkeleton from '../../components/skeletons/TeamDetailsSkeleton';
 import { subscribe } from '../../services/socket';
@@ -100,6 +100,10 @@ const TeamDetailsPage = () => {
   const [selectedProjects, setSelectedProjects] = useState([]);
   const [bulkRemovingProjects, setBulkRemovingProjects] = useState(false);
   const [showBulkRemoveProjectsDialog, setShowBulkRemoveProjectsDialog] = useState(false);
+  const [showLeaveTeamDialog, setShowLeaveTeamDialog] = useState(false);
+  const [leavingTeam, setLeavingTeam] = useState(false);
+  const [showTransferAdminDialog, setShowTransferAdminDialog] = useState(false);
+  const [selectedNewAdmin, setSelectedNewAdmin] = useState(null);
   const [joinRequests, setJoinRequests] = useState([]);
   const [processingRequest, setProcessingRequest] = useState('');
   const [meetings, setMeetings] = useState([]);
@@ -335,6 +339,8 @@ const TeamDetailsPage = () => {
   }, []);
 
   const isOwner = currentUser && team && currentUser._id === team.OwnerID;
+  const isMember = currentUser && members && members.some(member => member.MemberID === currentUser._id);
+  const isTeamMember = isOwner || isMember;
 
   // Filter users as search changes
   useEffect(() => {
@@ -476,6 +482,48 @@ const TeamDetailsPage = () => {
       setShowCreateMeetingModal(false);
       setIsMeetingModalClosing(false);
     }, 300);
+  };
+
+  const handleLeaveTeam = async () => {
+    if (!currentUser || !team) return;
+    
+    setLeavingTeam(true);
+    try {
+      if (isOwner) {
+        // If owner is leaving, show transfer admin dialog
+        setShowLeaveTeamDialog(false);
+        setShowTransferAdminDialog(true);
+        return;
+      }
+      
+      // For regular members, leave the team
+      await teamService.leaveTeam(team.TeamID, currentUser._id);
+      showToast('You have left the team successfully', 'success');
+      router.push('/teams');
+    } catch (error) {
+      console.error('Error leaving team:', error);
+      showToast(error.message || 'Failed to leave team', 'error');
+    } finally {
+      setLeavingTeam(false);
+    }
+  };
+
+  const handleTransferAdminAndLeave = async () => {
+    if (!currentUser || !team || !selectedNewAdmin) return;
+    
+    setLeavingTeam(true);
+    try {
+      await teamService.leaveTeam(team.TeamID, currentUser._id, selectedNewAdmin);
+      showToast('Admin transferred and you have left the team successfully', 'success');
+      router.push('/teams');
+    } catch (error) {
+      console.error('Error transferring admin and leaving:', error);
+      showToast(error.message || 'Failed to transfer admin and leave team', 'error');
+    } finally {
+      setLeavingTeam(false);
+      setShowTransferAdminDialog(false);
+      setSelectedNewAdmin(null);
+    }
   };
 
   const handleMemberSelect = (memberId) => {
@@ -842,6 +890,7 @@ const TeamDetailsPage = () => {
       const res = await api.get(`/team-details/${teamId}`);
       setMembers(res.data.members);
       setJoinRequests(res.data.pendingRequests || []);
+      showToast('Request accepted successfully', 'success');
     } catch (err) {
       // Optionally show error
     } finally {
@@ -855,6 +904,7 @@ const TeamDetailsPage = () => {
       // Refresh team data to get updated pending requests
       const res = await api.get(`/team-details/${teamId}`);
       setJoinRequests(res.data.pendingRequests || []);
+      showToast('Request rejected successfully', 'success');
     } catch (err) {
       // Optionally show error
     } finally {
@@ -957,17 +1007,29 @@ const TeamDetailsPage = () => {
                       {team.teamTypeValue}
                     </div>
                   )}
-                  {isOwner && (
-                    <button
-                      onClick={handleOpenSettingsModal}
-                      className={getThemeClasses(
-                        'p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors',
-                        'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700'
-                      )}
-                      title="Team Settings"
-                    >
-                      <FaCog size={20} />
-                    </button>
+                  {isTeamMember && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleOpenSettingsModal}
+                        className={getThemeClasses(
+                          'p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors',
+                          'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700'
+                        )}
+                        title="Team Settings"
+                      >
+                        <FaCog size={20} />
+                      </button>
+                      <button
+                        onClick={() => setShowLeaveTeamDialog(true)}
+                        className={getThemeClasses(
+                          'p-1.5 text-gray-500 text-red-500 rounded-full hover:text-red-600 transition-colors',
+                          'dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-gray-700'
+                        )}
+                        title={isOwner ? 'Transfer Admin & Leave' : 'Leave Team'}
+                      >
+                        <FaSignOutAlt size={20} />
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -1025,17 +1087,29 @@ const TeamDetailsPage = () => {
                       </div>
                     )}
                   </div>
-                  {isOwner && (
-                    <button
-                      onClick={handleOpenSettingsModal}
-                      className={getThemeClasses(
-                        'p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors',
-                        'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700'
-                      )}
-                      title="Team Settings"
-                    >
-                      <FaCog size={20} />
-                    </button>
+                  {isTeamMember && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleOpenSettingsModal}
+                        className={getThemeClasses(
+                          'p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors',
+                          'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700'
+                        )}
+                        title="Team Settings"
+                      >
+                        <FaCog size={20} />
+                      </button>
+                      <button
+                        onClick={() => setShowLeaveTeamDialog(true)}
+                        className={getThemeClasses(
+                          'p-1.5 text-gray-500 hover:text-orange-500 rounded-full hover:bg-gray-100 transition-colors',
+                          'dark:text-gray-400 dark:hover:text-orange-400 dark:hover:bg-gray-700'
+                        )}
+                        title={isOwner ? 'Transfer Admin & Leave' : 'Leave Team'}
+                      >
+                        <FaSignOutAlt size={20} />
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -1248,20 +1322,30 @@ const TeamDetailsPage = () => {
                             </td>
                             <td className="py-2 px-4">{new Date(req.requestedAt).toLocaleString()}</td>
                             <td className="py-2 px-4">
-                              <button
-                                className="mr-2 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium disabled:opacity-60"
-                                onClick={() => handleAcceptRequest(req._id, req.userId?._id)}
-                                disabled={processingRequest === req._id + '-accept'}
-                              >
-                                Accept
-                              </button>
-                              <button
-                                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium disabled:opacity-60"
-                                onClick={() => handleRejectRequest(req._id)}
-                                disabled={processingRequest === req._id + '-reject'}
-                              >
-                                Reject
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  className={getThemeClasses(
+                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed',
+                                    'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70'
+                                  )}
+                                  onClick={() => handleAcceptRequest(req._id, req.userId?._id)}
+                                  disabled={processingRequest === req._id + '-accept'}
+                                  title="Accept Request"
+                                >
+                                  <FaCheck size={14} />
+                                </button>
+                                <button
+                                  className={getThemeClasses(
+                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed',
+                                    'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
+                                  )}
+                                  onClick={() => handleRejectRequest(req._id)}
+                                  disabled={processingRequest === req._id + '-reject'}
+                                  title="Reject Request"
+                                >
+                                  <FaTimes size={14} />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -1913,6 +1997,7 @@ const TeamDetailsPage = () => {
                       </div>
                     </div>
                     <div className="flex flex-col gap-4 pt-4 mt-4 sm:mt-2">
+                      {/* Admin-only actions */}
                       <div className="flex flex-row justify-center gap-3">
                         {isOwner && (
                           <button
@@ -1942,28 +2027,49 @@ const TeamDetailsPage = () => {
                           </button>
                         )}
                       </div>
-                      <div className="flex flex-row justify-end gap-3">
-                        <button
-                          type="button"
-                          onClick={handleCloseSettingsModal}
-                          className={getThemeClasses(
-                            'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                            'dark:text-gray-400 dark:hover:bg-gray-700'
-                          )}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className={getThemeClasses(
-                            'px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200',
-                            'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-                          )}
-                          disabled={savingSettings}
-                        >
-                          {savingSettings ? 'Saving...' : 'Save Changes'}
-                        </button>
-                      </div>
+                      
+                      
+                      {/* Action buttons - only show Save/Cancel for owners */}
+                      {isOwner && (
+                        <div className="flex flex-row justify-end gap-3">
+                          <button
+                            type="button"
+                            onClick={handleCloseSettingsModal}
+                            className={getThemeClasses(
+                              'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
+                              'dark:text-gray-400 dark:hover:bg-gray-700'
+                            )}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className={getThemeClasses(
+                              'px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200',
+                              'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
+                            )}
+                            disabled={savingSettings}
+                          >
+                            {savingSettings ? 'Saving...' : 'Save Changes'}
+                          </button>
+                        </div>
+                      )}
+                      
+                      {/* Close button for non-owners */}
+                      {!isOwner && (
+                        <div className="flex flex-row justify-end gap-3">
+                          <button
+                            type="button"
+                            onClick={handleCloseSettingsModal}
+                            className={getThemeClasses(
+                              'px-6 py-2.5 rounded-xl bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-medium transition-all duration-200',
+                              'dark:from-gray-600 dark:to-gray-700 dark:hover:from-gray-700 dark:hover:to-gray-800'
+                            )}
+                          >
+                            Close
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </form>
                 </div>
@@ -2745,6 +2851,125 @@ const TeamDetailsPage = () => {
                 )}>
                   Are you sure you want to remove {selectedProjects.length} selected project{selectedProjects.length !== 1 ? 's' : ''} from the team? This action cannot be undone.
                 </p>
+              </CustomModal>
+            )}
+
+            {/* Leave Team Dialog */}
+            {showLeaveTeamDialog && (
+              <CustomModal
+                isOpen={showLeaveTeamDialog}
+                onClose={() => setShowLeaveTeamDialog(false)}
+                title={isOwner ? 'Transfer Admin & Leave Team' : 'Leave Team'}
+                getThemeClasses={getThemeClasses}
+                actions={
+                  <>
+                    <button
+                      onClick={() => setShowLeaveTeamDialog(false)}
+                      className={getThemeClasses(
+                        'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
+                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                      )}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleLeaveTeam}
+                      className={getThemeClasses(
+                        'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
+                        'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
+                      )}
+                      disabled={leavingTeam}
+                    >
+                      {leavingTeam ? 'Processing...' : (isOwner ? 'Transfer & Leave' : 'Leave Team')}
+                    </button>
+                  </>
+                }
+              >
+                <p className={getThemeClasses(
+                  'text-gray-600',
+                  'dark:text-gray-400'
+                )}>
+                  {isOwner 
+                    ? 'As the team owner, you must transfer admin rights to another member before leaving. You will be redirected to select a new admin.'
+                    : 'Are you sure you want to leave this team? You will lose access to all team resources and projects.'
+                  }
+                </p>
+              </CustomModal>
+            )}
+
+            {/* Transfer Admin Dialog */}
+            {showTransferAdminDialog && (
+              <CustomModal
+                isOpen={showTransferAdminDialog}
+                onClose={() => {
+                  setShowTransferAdminDialog(false);
+                  setSelectedNewAdmin(null);
+                }}
+                title="Transfer Admin Rights"
+                getThemeClasses={getThemeClasses}
+                actions={
+                  <>
+                    <button
+                      onClick={() => {
+                        setShowTransferAdminDialog(false);
+                        setSelectedNewAdmin(null);
+                      }}
+                      className={getThemeClasses(
+                        'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
+                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                      )}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleTransferAdminAndLeave}
+                      disabled={!selectedNewAdmin || leavingTeam}
+                      className={getThemeClasses(
+                        'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed',
+                        'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-900/70'
+                      )}
+                    >
+                      {leavingTeam ? 'Transferring...' : 'Transfer & Leave'}
+                    </button>
+                  </>
+                }
+              >
+                <div className="space-y-4">
+                  <p className={getThemeClasses(
+                    'text-gray-600',
+                    'dark:text-gray-400'
+                  )}>
+                    Select a team member to transfer admin rights to:
+                  </p>
+                  <div className="space-y-2">
+                    {members.filter(member => member.MemberID !== currentUser._id).map((member) => (
+                      <label key={member.MemberID} className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="newAdmin"
+                          value={member.MemberID}
+                          checked={selectedNewAdmin === member.MemberID}
+                          onChange={(e) => setSelectedNewAdmin(e.target.value)}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className={getThemeClasses(
+                          'text-gray-900',
+                          'dark:text-gray-100'
+                        )}>
+                          {member.name}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  {members.filter(member => member.MemberID !== currentUser._id).length === 0 && (
+                    <p className={getThemeClasses(
+                      'text-gray-500 text-sm',
+                      'dark:text-gray-400'
+                    )}>
+                      No other team members available to transfer admin rights to.
+                    </p>
+                  )}
+                </div>
               </CustomModal>
             )}
           </>

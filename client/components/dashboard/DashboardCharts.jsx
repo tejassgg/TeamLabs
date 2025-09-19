@@ -46,7 +46,6 @@ const DashboardCharts = ({ stats, theme }) => {
     const color = (lightHex, darkHex) => (theme === 'dark' ? darkHex : lightHex);
 
     // Project Status Distribution
-    console.log(charts.projectStatusDistribution);
     const projectStatusLabels = Object.keys(charts.projectStatusDistribution);
     const projectStatusValues = Object.values(charts.projectStatusDistribution);
     const projectStatusData = {
@@ -210,8 +209,6 @@ const DashboardCharts = ({ stats, theme }) => {
       }
     }
   };
-
-  console.log(chartData.projectStatus);
 
   if (loading || !stats?.charts) {
     return (

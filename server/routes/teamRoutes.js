@@ -21,22 +21,22 @@ router.get('/overview/:userId', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    let teams;
+    // Get all teams in the organization
+    const teams = await Team.find({ organizationID: user.organizationID }).sort({ CreatedDate: -1 });
     
-    // If user is Admin, get all teams in organization
-    if (user.role === 'Admin' || user.role === 'Owner') {
-      teams = await Team.find({ organizationID: user.organizationID }).sort({ CreatedDate: -1 });
-    } else {
-      // Get teams where user is a member
-      const teamDetails = await TeamDetails.find({
-        MemberID: userId,
-        IsMemberActive: true
-      });
-      const teamIds = teamDetails.map(td => td.TeamID_FK);
-      teams = await Team.find({
-        TeamID: { $in: teamIds }
-      }).sort({ CreatedDate: -1 });
-    }
+    // Get user's team memberships
+    const userTeamDetails = await TeamDetails.find({
+      MemberID: userId,
+      IsMemberActive: true
+    });
+    const userTeamIds = userTeamDetails.map(td => td.TeamID_FK);
+    
+    // Get user's pending join requests
+    const pendingRequests = await TeamJoinRequest.find({ 
+      userId, 
+      status: 'pending' 
+    });
+    const pendingTeamIds = pendingRequests.map(req => req.teamId);
 
     // Get statistics for each team
     const teamsWithStats = await Promise.all(
@@ -83,23 +83,44 @@ router.get('/overview/:userId', async (req, res) => {
             IsActive: project.IsActive
           }));
 
+          // Determine user's relationship to this team
+          const isOwner = team.OwnerID.toString() === userId;
+          const isMember = userTeamIds.includes(team.TeamID);
+          const hasPendingRequest = pendingTeamIds.includes(team.TeamID);
+
           return {
             ...team.toObject(),
             membersCount: teamMembers.length,
             members: teamMembers,
             projectsCount: projects.length,
             tasksCount,
-            projects: teamProjects
+            projects: teamProjects,
+            userRelationship: {
+              isOwner,
+              isMember,
+              hasPendingRequest,
+              canRequestJoin: !isOwner && !isMember && !hasPendingRequest
+            }
           };
         } catch (error) {
           console.error(`Error fetching stats for team ${team.TeamID}:`, error);
+          const isOwner = team.OwnerID.toString() === userId;
+          const isMember = userTeamIds.includes(team.TeamID);
+          const hasPendingRequest = pendingTeamIds.includes(team.TeamID);
+          
           return {
             ...team.toObject(),
             membersCount: 0,
             members: [],
             projectsCount: 0,
             tasksCount: 0,
-            projects: []
+            projects: [],
+            userRelationship: {
+              isOwner,
+              isMember,
+              hasPendingRequest,
+              canRequestJoin: !isOwner && !isMember && !hasPendingRequest
+            }
           };
         }
       })
@@ -333,9 +354,18 @@ router.post('/:teamId/join-requests/:requestId/accept', async (req, res) => {
     request.respondedAt = new Date();
     request.respondedBy = adminId;
     await request.save();
-    // Add user to TeamDetails
+    // Add user to TeamDetails (or update existing entry)
     const TeamDetails = require('../models/TeamDetails');
-    await TeamDetails.create({ TeamID_FK: teamId, MemberID: request.userId, IsMemberActive: true, CreatedDate: new Date(), ModifiedBy: adminId });
+    await TeamDetails.findOneAndUpdate(
+      { TeamID_FK: teamId, MemberID: request.userId },
+      { 
+        IsMemberActive: true, 
+        ModifiedDate: new Date(), 
+        ModifiedBy: adminId,
+        $setOnInsert: { CreatedDate: new Date() } // Only set CreatedDate if creating new document
+      },
+      { upsert: true, new: true }
+    );
     res.json({ message: 'Request accepted', request });
 
           // Emit real-time join request accepted event
@@ -428,6 +458,165 @@ router.get('/user/:userId/pending-requests', async (req, res) => {
   } catch (error) {
     console.error('Error fetching user pending requests:', error);
     res.status(500).json({ message: 'Failed to fetch pending requests' });
+  }
+});
+
+// POST /api/teams/:teamId/leave - leave team (handles both member and admin leaving)
+router.post('/:teamId/leave', async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const { userId, newAdminId } = req.body;
+
+    if (!userId) return res.status(400).json({ error: 'userId is required' });
+    
+    // Check if user is a member of the team
+    const teamDetail = await TeamDetails.findOne({ 
+      TeamID_FK: teamId, 
+      MemberID: userId, 
+      IsMemberActive: true 
+    });
+    
+    if (!teamDetail) {
+      return res.status(404).json({ error: 'User is not a member of this team' });
+    }
+
+    // Get team info
+    const team = await Team.findOne({ TeamID: teamId });
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    // Check if user is the owner
+    const isOwner = team.OwnerID.toString() === userId;
+    
+    if (isOwner) {
+      // Admin is leaving - need to transfer admin rights
+      if (!newAdminId) {
+        return res.status(400).json({ 
+          error: 'newAdminId is required when team owner is leaving' 
+        });
+      }
+
+      // Check if new admin is a member of the team
+      const newAdminMember = await TeamDetails.findOne({ 
+        TeamID_FK: teamId, 
+        MemberID: newAdminId, 
+        IsMemberActive: true 
+      });
+      
+      if (!newAdminMember) {
+        return res.status(404).json({ error: 'New admin is not a member of this team' });
+      }
+
+      // Start transaction for atomic operation
+      const session = await Team.startSession();
+      session.startTransaction();
+
+      try {
+        // Transfer ownership
+        await Team.findOneAndUpdate(
+          { TeamID: teamId },
+          { OwnerID: newAdminId, ModifiedDate: new Date() },
+          { session }
+        );
+
+        // Remove old owner from team
+        await TeamDetails.findOneAndUpdate(
+          { TeamID_FK: teamId, MemberID: userId },
+          { IsMemberActive: false, ModifiedDate: new Date() },
+          { session }
+        );
+
+        // Log activities
+        await logActivity(
+          userId,
+          'team_transfer_admin',
+          'success',
+          `Transferred admin rights for team "${team.TeamName}" to new admin and left`,
+          req,
+          {
+            teamId,
+            teamName: team.TeamName,
+            newAdminId
+          }
+        );
+
+        await logActivity(
+          newAdminId,
+          'team_become_admin',
+          'success',
+          `Became admin of team "${team.TeamName}"`,
+          req,
+          {
+            teamId,
+            teamName: team.TeamName,
+            previousAdminId: userId
+          }
+        );
+
+        // Commit transaction
+        await session.commitTransaction();
+        session.endSession();
+
+        // Emit real-time events
+        try {
+          emitToOrg(team.organizationID, 'team.admin_transferred', {
+            event: 'team.admin_transferred',
+            version: 1,
+            data: { 
+              organizationId: String(team.organizationID), 
+              teamId: teamId,
+              team: await Team.findOne({ TeamID: teamId }),
+              previousAdminId: userId,
+              newAdminId: newAdminId
+            },
+            meta: { emittedAt: new Date().toISOString() }
+          });
+
+          // Emit dashboard metrics update
+          const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
+          emitDashboardMetrics(team.organizationID);
+        } catch (e) { /* ignore */ }
+
+        res.json({ 
+          message: 'Successfully transferred admin rights and left the team',
+          action: 'admin_transferred_and_left',
+          newAdminId 
+        });
+      } catch (error) {
+        // If an error occurs, abort the transaction
+        await session.abortTransaction();
+        session.endSession();
+        throw error;
+      }
+    } else {
+      // Regular member is leaving
+      await TeamDetails.findOneAndUpdate(
+        { TeamID_FK: teamId, MemberID: userId },
+        { IsMemberActive: false, ModifiedDate: new Date() }
+      );
+      
+      // Log the activity
+      await logActivity(
+        userId,
+        'team_leave',
+        'success',
+        `Left team "${team.TeamName}"`,
+        req,
+        {
+          teamId,
+          teamName: team.TeamName
+        }
+      );
+
+      res.json({ 
+        message: 'Successfully left the team',
+        action: 'member_left'
+      });
+    }
+  } catch (err) {
+    console.error('Error leaving team:', err);
+    res.status(500).json({ error: 'Failed to leave team' });
   }
 });
 

@@ -1,16 +1,43 @@
 import { useRouter } from 'next/router';
-import { FaUsers, FaCalendarAlt, FaChevronRight, FaUserPlus, FaProjectDiagram, FaFolder, FaFlag, FaTasks, FaClipboardList } from 'react-icons/fa';
+import { FaUsers, FaCalendarAlt, FaChevronRight, FaProjectDiagram, FaRegHandshake } from 'react-icons/fa';
 import { getProjectStatusStyle } from '../project/ProjectStatusBadge';
 import StatusPill from '../shared/StatusPill';
+import { teamService } from '../../services/api';
+import { useToast } from '../../context/ToastContext';
+import { useGlobal } from '../../context/GlobalContext';
+import { useState } from 'react';
 
-const TeamCard = ({ team, theme }) => {
+const TeamCard = ({ team, theme, onRequestSent }) => {
   const router = useRouter();
+  const { showToast } = useToast();
+  const { userDetails } = useGlobal();
+  const [isRequesting, setIsRequesting] = useState(false);
+  
   const getThemeClasses = (lightClass, darkClass) => {
     return theme === 'dark' ? darkClass : lightClass;
   };
 
   const handleCardClick = () => {
     router.push(`/team/${team.TeamID}`);
+  };
+
+  const handleRequestToJoin = async (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent card click
+    setIsRequesting(true);
+    
+    try {
+      await teamService.requestToJoinTeam(team.TeamID, userDetails._id);
+      showToast('Join request sent successfully!', 'success');
+      if (onRequestSent) {
+        onRequestSent(team.TeamID);
+      }
+    } catch (error) {
+      console.error('Error requesting to join team:', error);
+      showToast(error.message || 'Failed to send join request', 'error');
+    } finally {
+      setIsRequesting(false);
+    }
   };
 
   // Get team type color based on TeamType
@@ -240,6 +267,42 @@ const TeamCard = ({ team, theme }) => {
             </span>
           </div>
         </div>
+
+        {/* Request to Join Button - Show for non-members */}
+        {team.userRelationship && team.userRelationship.canRequestJoin && (
+          <div 
+            className="mt-3 pt-3 border-t border-gray-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={handleRequestToJoin}
+              disabled={isRequesting}
+              className={getThemeClasses(
+                'w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+                'w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+              )}
+            >
+              <FaRegHandshake size={16} />
+              {isRequesting ? 'Sending...' : 'Request to Join'}
+            </button>
+          </div>
+        )}
+
+        {/* Pending Request Status */}
+        {team.userRelationship && team.userRelationship.hasPendingRequest && (
+          <div 
+            className="mt-3 pt-3 border-t border-gray-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={getThemeClasses(
+              'w-full flex items-center justify-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg border border-yellow-200',
+              'w-full flex items-center justify-center gap-2 px-4 py-2 bg-yellow-900/30 text-yellow-300 rounded-lg border border-yellow-600'
+            )}>
+              <FaRegHandshake size={14} />
+              Request Pending
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
