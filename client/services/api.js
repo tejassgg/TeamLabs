@@ -1221,4 +1221,127 @@ export const paymentService = {
   }
 };
 
+// Report services
+export const reportService = {
+  // Generate a new report
+  generateReport: async (projectId, options = {}) => {
+    try {
+      const response = await api.post('/reports/generate', {
+        projectId,
+        ...options
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to generate report' };
+    }
+  },
+
+  // Get all reports for a user
+  getReports: async (filters = {}) => {
+    try {
+      const params = new URLSearchParams();
+      Object.keys(filters).forEach(key => {
+        if (filters[key]) {
+          params.append(key, filters[key]);
+        }
+      });
+      
+      const response = await api.get(`/reports?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch reports' };
+    }
+  },
+
+  // Get a specific report
+  getReport: async (reportId) => {
+    try {
+      const response = await api.get(`/reports/${reportId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch report' };
+    }
+  },
+
+  // Create report configuration
+  createConfig: async (configData) => {
+    try {
+      const response = await api.post('/reports/config', configData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to create report configuration' };
+    }
+  },
+
+  // Get all configurations
+  getConfigs: async (filters = {}) => {
+    try {
+      const params = new URLSearchParams();
+      Object.keys(filters).forEach(key => {
+        if (filters[key]) {
+          params.append(key, filters[key]);
+        }
+      });
+      
+      const response = await api.get(`/reports/configs?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch configurations' };
+    }
+  },
+
+  // Get specific configuration
+  getConfig: async (configId) => {
+    try {
+      const response = await api.get(`/reports/config/${configId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch configuration' };
+    }
+  },
+
+  // Update configuration
+  updateConfig: async (configId, updates) => {
+    try {
+      const response = await api.put(`/reports/config/${configId}`, updates);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to update configuration' };
+    }
+  },
+
+  // Delete configuration
+  deleteConfig: async (configId) => {
+    try {
+      const response = await api.delete(`/reports/config/${configId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to delete configuration' };
+    }
+  },
+
+  // Submit feedback for a report
+  submitFeedback: async (reportId, rating, comments = '') => {
+    try {
+      const response = await api.post(`/reports/${reportId}/feedback`, {
+        rating,
+        comments
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to submit feedback' };
+    }
+  },
+
+  // Delete a report
+  deleteReport: async (reportId) => {
+    try {
+      const response = await api.delete(`/reports/${reportId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to delete report' };
+    }
+  }
+};
+
 export default api; 

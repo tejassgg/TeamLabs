@@ -42,7 +42,9 @@ const userActivitySchema = new mongoose.Schema({
       // Team Transfer Admin activities
       'team_transfer_admin',
       // Team Become Admin activities
-      'team_become_admin'
+      'team_become_admin',
+      // Report activities
+      'report_generated', 'report_deleted'
     ]
   },
   status: {

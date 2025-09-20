@@ -26,6 +26,8 @@ const messageRoutes = require('./routes/messageRoutes');
 const subtaskRoutes = require('./routes/subtaskRoutes');
 const meetingRoutes = require('./routes/meetingRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const reportSchedulingService = require('./services/reportSchedulingService');
 
 // Load environment variables
 dotenv.config();
@@ -85,6 +87,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/subtasks', subtaskRoutes);
 app.use('/api', meetingRoutes);
 app.use('/api/contact-support', contactRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Test route
 app.get('/', (req, res) => {
@@ -107,6 +110,10 @@ server.listen(PORT, () => {
   } catch (e) {
     console.error('Failed to initialize Socket.IO', e);
   }
+  
+  // Initialize report scheduling service
+  reportSchedulingService.initialize();
+  
   console.log(`Server running on port ${PORT}`);
   console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
 });

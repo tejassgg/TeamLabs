@@ -2,9 +2,9 @@ import Navbar from './Navbar';
 import { useTheme } from '../../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { FaCog, FaPlus, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaExternalLinkAlt } from 'react-icons/fa';
+import { FaCog, FaPlus, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaExternalLinkAlt, FaFileAlt } from 'react-icons/fa';
 import { useRouter } from 'next/router';
-import AddTeamModal from '../team/AddTeamModal';
+import AddTeamModal from '../team/AddTeamModal.jsx';
 import { teamService, projectService, taskService, authService } from '../../services/api';
 import AddProjectModal from '../project/AddProjectModal';
 import { useGlobal } from '../../context/GlobalContext';
@@ -212,6 +212,13 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             label="Query Board"
             active={router.pathname === '/query'}
             onClick={() => handleNavigation('/query')}
+            theme={theme}
+          />
+          <SidebarButton
+            icon={<FaFileAlt className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+            label="AI Reports"
+            active={router.pathname === '/reports'}
+            onClick={() => handleNavigation('/reports')}
             theme={theme}
           />
 
@@ -491,6 +498,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
     if (path === '/query') return 'Query Board';
     if (path === '/teams') return 'Teams';
     if (path === '/projects') return 'Projects';
+    if (path === '/reports') return 'AI Reports';
 
     // Dynamic routes
     if (path === '/task/[taskId]') {

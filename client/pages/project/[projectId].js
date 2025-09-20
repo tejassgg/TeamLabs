@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import StatusPill from '../../components/shared/StatusPill';
 import api, { authService, taskService, githubService } from '../../services/api';
-import { FaEdit, FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt } from 'react-icons/fa';
 import { FaTimeline } from "react-icons/fa6";
 import AddTaskModal from '../../components/shared/AddTaskModal';
 import CustomModal from '../../components/shared/CustomModal';
@@ -19,6 +19,7 @@ import ProjectDetailsSkeleton from '../../components/skeletons/ProjectDetailsSke
 import ProjectFilesTab from '../../components/project/ProjectFilesTab';
 import ProjectActivity from '../../components/project/ProjectActivity';
 import GanttChart from '../../components/project/GanttChart';
+import ReportGenerator from '../../components/reports/ReportGenerator';
 import { connectSocket, subscribe, getSocket } from '../../services/socket';
 
 const ProjectDetailsPage = () => {
@@ -63,6 +64,7 @@ const ProjectDetailsPage = () => {
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [removingTeam, setRemovingTeam] = useState(null);
   const [removing, setRemoving] = useState(false);
+  const [showReportGenerator, setShowReportGenerator] = useState(false);
   
   // Helpers: show "You" for current user and format date/time
   const isMe = (userId) => {
@@ -1149,6 +1151,19 @@ const ProjectDetailsPage = () => {
                     </button>
                   </div>
                 )}
+                <div className="py-2">
+                  <button
+                    className={getThemeClasses(
+                      "flex items-center gap-2 p-2 text-gray-500 hover:text-green-600 rounded-lg hover:bg-green-50 transition-colors",
+                      "dark:text-gray-400 dark:hover:text-green-400 dark:hover:bg-gray-800"
+                    )}
+                    title="Generate AI Report"
+                    onClick={() => setShowReportGenerator(true)}
+                  >
+                    <FaFileAlt size={18} />
+                    {/* Generate Report */}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1424,6 +1439,18 @@ const ProjectDetailsPage = () => {
                       <FaGithub size={18} />
                     </button>
                   )}
+
+                  {/* Generate Report Button */}
+                  <button
+                    className={getThemeClasses(
+                      "p-2 text-gray-500 hover:text-green-500 rounded-full hover:bg-gray-100 transition-colors",
+                      "dark:text-gray-400 dark:hover:text-green-400 dark:hover:bg-gray-700"
+                    )}
+                    title="Generate AI Report"
+                    onClick={() => setShowReportGenerator(true)}
+                  >
+                    <FaFileAlt size={18} />
+                  </button>
                 </div>
               </div>
             </div>
@@ -3013,6 +3040,15 @@ const ProjectDetailsPage = () => {
           </div>
         )}
       </div>
+
+      {/* Report Generator Modal */}
+      {showReportGenerator && (
+        <ReportGenerator
+          projectId={projectId}
+          projectName={project?.Name}
+          onClose={() => setShowReportGenerator(false)}
+        />
+      )}
     </>
   );
 }
