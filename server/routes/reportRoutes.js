@@ -7,6 +7,7 @@ const ReportConfig = require('../models/ReportConfig');
 const GeneratedReport = require('../models/GeneratedReport');
 const Project = require('../models/Project');
 const { logActivity } = require('../services/activityService');
+const User = require('../models/User');
 
 /**
  * @swagger
@@ -129,7 +130,7 @@ const { logActivity } = require('../services/activityService');
  */
 router.post('/generate', auth, async (req, res) => {
   try {
-    const { projectId, reportType = 'executive', startDate, endDate, configId } = req.body;
+    const { projectId, reportType = 'executive', startDate, endDate, configId, advancedOptions } = req.body;
 
     if (!projectId) {
       return res.status(400).json({ 
@@ -155,14 +156,33 @@ router.post('/generate', auth, async (req, res) => {
       });
     }
 
-    // Check report limit (5 reports per project)
+    // Check user subscription and apply appropriate limits
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Determine report limit based on subscription
+    const isPremium = user.isPremiumMember && user.isSubscriptionActive();
+    const maxReports = isPremium ? 10 : 1;
+    
+    // Check report limit
     const existingReportsCount = await GeneratedReport.countDocuments({ projectId });
-    if (existingReportsCount >= 5) {
+    if (existingReportsCount >= maxReports) {
+      const errorMessage = isPremium 
+        ? 'Maximum of 10 reports allowed per project for premium users. Please delete an existing report to generate a new one.'
+        : 'You have reached your trial limit of 1 report. Upgrade to premium for up to 10 reports per project.';
+      
       return res.status(400).json({
         success: false,
-        error: 'Maximum of 5 reports allowed per project. Please delete an existing report to generate a new one.',
-        maxReports: 5,
-        currentCount: existingReportsCount
+        error: errorMessage,
+        maxReports,
+        currentCount: existingReportsCount,
+        isPremium,
+        upgradeRequired: !isPremium
       });
     }
 
@@ -174,10 +194,16 @@ router.post('/generate', auth, async (req, res) => {
       reportType,
       startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null,
-      configId
+      configId,
+      advancedOptions: advancedOptions || {}
     };
 
     const report = await reportService.generateReport(config);
+
+    // Increment usage count for free users
+    if (!isPremium) {
+      await user.incrementUsage('report');
+    }
 
     // Log the activity
     await logActivity(
@@ -751,6 +777,11 @@ router.get('/', auth, async (req, res) => {
       query.reportType = reportType;
     }
 
+    // Get user subscription info
+    const user = await User.findById(req.user._id);
+    const isPremium = user ? user.isPremiumMember && user.isSubscriptionActive() : false;
+    const maxReports = isPremium ? 10 : 1;
+
     const reports = await GeneratedReport.find(query)
       .sort({ generatedAt: -1 })
       .skip(skip)
@@ -765,6 +796,11 @@ router.get('/', auth, async (req, res) => {
         current: parseInt(page),
         pages: Math.ceil(total / limit),
         total
+      },
+      subscription: {
+        isPremium,
+        maxReports,
+        currentCount: total
       }
     });
   } catch (error) {

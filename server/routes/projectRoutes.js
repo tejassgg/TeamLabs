@@ -12,15 +12,17 @@ const { protect } = require('../middleware/auth');
 const { linkRepositoryToProject, unlinkRepositoryFromProject, getProjectRepository, getProjectCommits, getProjectIssues } = require('../controllers/authController');
 const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
 
-// GET /api/projects/overview/:userId - fetch projects with statistics for projects page
-router.get('/overview/:userId', async (req, res) => {
+// GET /api/projects/overview - fetch projects with statistics for projects page
+router.get('/overview', protect, async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const userId = req.user._id;
 
     let projects = [];
     // 1. Find all TeamIDs where user is a member
     const teamDetails = await TeamDetails.find({ MemberID: userId, IsMemberActive: true });
-    const teamIds = teamDetails.map(td => td.TeamID_FK);
+    let teamIds = teamDetails.map(td => td.TeamID_FK);
+    const teamsForOrg = await Team.find({ TeamID: { $in: teamIds }, organizationID: req.user.organizationID });
+    teamIds = teamsForOrg.map(td => td.TeamID);
     // 2. Find all ProjectIDs from ProjectDetails where TeamID is in that list
     const projectDetails = await ProjectDetails.find({ TeamID: { $in: teamIds }, IsActive: true });
     const projectIds = projectDetails.map(pd => pd.ProjectID);

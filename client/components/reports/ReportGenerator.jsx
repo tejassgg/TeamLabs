@@ -13,8 +13,20 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
   const [generatedReport, setGeneratedReport] = useState(null);
   const [error, setError] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [advancedOptions, setAdvancedOptions] = useState({
+    includeMetrics: true,
+    includeRiskAssessment: true,
+    includeTeamPerformance: true,
+    reportDepth: 'standard', // 'brief', 'standard', 'detailed'
+    focusAreas: [],
+    customPrompt: '',
+    includeCharts: false,
+    language: 'en',
+    format: 'professional' // 'professional', 'casual', 'technical'
+  });
   const [existingReports, setExistingReports] = useState([]);
   const [loadingReports, setLoadingReports] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] = useState({ isPremium: false, maxReports: 1, currentCount: 0 });
   const [activeTab, setActiveTab] = useState('generate'); // 'generate' or 'view'
   const [deletingReportId, setDeletingReportId] = useState(null);
 
@@ -43,6 +55,11 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
       const response = await reportService.getReports({ projectId });
       if (response.success) {
         setExistingReports(response.reports || []);
+        
+        // Update subscription info if available
+        if (response.subscription) {
+          setSubscriptionInfo(response.subscription);
+        }
       }
     } catch (err) {
       console.error('Error fetching reports:', err);
@@ -66,7 +83,8 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
       const response = await reportService.generateReport(projectId, {
         reportType,
         startDate: startDate ? new Date(startDate).toISOString() : null,
-        endDate: endDate ? new Date(endDate).toISOString() : null
+        endDate: endDate ? new Date(endDate).toISOString() : null,
+        advancedOptions: showAdvanced && subscriptionInfo.isPremium ? advancedOptions : null
       });
 
       if (response.success) {
@@ -84,10 +102,10 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
       setError(errorMessage);
       showToast(errorMessage, 'error');
 
-      // If it's a limit error, switch to view tab to show existing reports
-      if (err.error && err.error.includes('Maximum of 5 reports')) {
-        setActiveTab('view');
-      }
+        // If it's a limit error, switch to view tab to show existing reports
+        if (err.error && (err.error.includes('Maximum of') || err.error.includes('trial limit'))) {
+          setActiveTab('view');
+        }
     } finally {
       setIsGenerating(false);
     }
@@ -281,6 +299,21 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                   } transition-colors duration-300`}>
                   {projectName}
                 </p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${subscriptionInfo.isPremium
+                    ? theme === 'dark'
+                      ? 'bg-green-900/30 text-green-400 border border-green-800'
+                      : 'bg-green-100 text-green-800 border border-green-200'
+                    : theme === 'dark'
+                      ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-800'
+                      : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                    }`}>
+                    {subscriptionInfo.isPremium 
+                      ? `Premium: ${existingReports.length}/${subscriptionInfo.maxReports} reports` 
+                      : `Free Trial: ${existingReports.length}/${subscriptionInfo.maxReports} reports`
+                    }
+                  </span>
+                </div>
               </div>
             </div>
             <button
@@ -323,7 +356,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
                 }`}
             >
-              View Reports ({existingReports.length}/5)
+              View Reports ({existingReports.length}/{subscriptionInfo.maxReports})
             </button>
           </div>
         </div>
@@ -454,6 +487,14 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                   >
                     <FaCog className="text-sm" />
                     <span>Advanced Options</span>
+                    {!subscriptionInfo.isPremium && (
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${theme === 'dark'
+                        ? 'bg-purple-900/30 text-purple-400 border border-purple-800'
+                        : 'bg-purple-100 text-purple-800 border border-purple-200'
+                        }`}>
+                        Premium Only
+                      </span>
+                    )}
                   </button>
 
                   {showAdvanced && (
@@ -461,12 +502,263 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                       ? 'bg-gray-800 border border-gray-700'
                       : 'bg-gray-100 border border-gray-200'
                       }`}>
-                      <p className={`text-sm ${theme === 'dark'
-                        ? 'text-gray-400'
-                        : 'text-gray-600'
-                        } transition-colors duration-300`}>
-                        Advanced options will be available in future updates.
-                      </p>
+                      {subscriptionInfo.isPremium ? (
+                        <div className="space-y-6">
+                          {/* Report Depth */}
+                          <div>
+                            <label className={`block text-sm font-medium mb-3 ${theme === 'dark'
+                              ? 'text-gray-300'
+                              : 'text-gray-700'
+                              } transition-colors duration-300`}>
+                              Report Depth
+                            </label>
+                            <div className="grid grid-cols-3 gap-3">
+                              {[
+                                { value: 'brief', label: 'Brief', description: 'Quick overview' },
+                                { value: 'standard', label: 'Standard', description: 'Balanced detail' },
+                                { value: 'detailed', label: 'Detailed', description: 'Comprehensive analysis' }
+                              ].map((depth) => (
+                                <button
+                                  key={depth.value}
+                                  onClick={() => setAdvancedOptions(prev => ({ ...prev, reportDepth: depth.value }))}
+                                  className={`p-3 rounded-xl text-sm font-medium transition-all duration-300 ${advancedOptions.reportDepth === depth.value
+                                    ? theme === 'dark'
+                                      ? 'bg-blue-500/20 border-2 border-blue-400 text-blue-400'
+                                      : 'bg-blue-50 border-2 border-blue-500 text-blue-600'
+                                    : theme === 'dark'
+                                      ? 'bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600'
+                                      : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                                    }`}
+                                >
+                                  <div className="font-semibold">{depth.label}</div>
+                                  <div className="text-xs opacity-75">{depth.description}</div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Content Sections */}
+                          <div>
+                            <label className={`block text-sm font-medium mb-3 ${theme === 'dark'
+                              ? 'text-gray-300'
+                              : 'text-gray-700'
+                              } transition-colors duration-300`}>
+                              Include Sections
+                            </label>
+                            <div className="space-y-3">
+                              {[
+                                { key: 'includeMetrics', label: 'Project Metrics', description: 'Task counts, completion rates, etc.' },
+                                { key: 'includeRiskAssessment', label: 'Risk Assessment', description: 'Project risks and mitigation strategies' },
+                                { key: 'includeTeamPerformance', label: 'Team Performance', description: 'Individual and team productivity analysis' }
+                              ].map((section) => (
+                                <label key={section.key} className="flex items-center space-x-3 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={advancedOptions[section.key]}
+                                    onChange={(e) => setAdvancedOptions(prev => ({ 
+                                      ...prev, 
+                                      [section.key]: e.target.checked 
+                                    }))}
+                                    className={`w-4 h-4 rounded border-2 transition-all duration-300 ${
+                                      advancedOptions[section.key]
+                                        ? theme === 'dark'
+                                          ? 'bg-blue-500 border-blue-400'
+                                          : 'bg-blue-500 border-blue-500'
+                                        : theme === 'dark'
+                                          ? 'border-gray-600 bg-gray-700'
+                                          : 'border-gray-300 bg-white'
+                                      }`}
+                                  />
+                                  <div>
+                                    <div className={`text-sm font-medium ${theme === 'dark'
+                                      ? 'text-gray-300'
+                                      : 'text-gray-700'
+                                      } transition-colors duration-300`}>
+                                      {section.label}
+                                    </div>
+                                    <div className={`text-xs ${theme === 'dark'
+                                      ? 'text-gray-500'
+                                      : 'text-gray-500'
+                                      }`}>
+                                      {section.description}
+                                    </div>
+                                  </div>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Report Format */}
+                          <div>
+                            <label className={`block text-sm font-medium mb-3 ${theme === 'dark'
+                              ? 'text-gray-300'
+                              : 'text-gray-700'
+                              } transition-colors duration-300`}>
+                              Report Format
+                            </label>
+                            <div className="grid grid-cols-3 gap-3">
+                              {[
+                                { value: 'professional', label: 'Professional', description: 'Formal business style' },
+                                { value: 'casual', label: 'Casual', description: 'Friendly, conversational' },
+                                { value: 'technical', label: 'Technical', description: 'Detailed, data-focused' }
+                              ].map((format) => (
+                                <button
+                                  key={format.value}
+                                  onClick={() => setAdvancedOptions(prev => ({ ...prev, format: format.value }))}
+                                  className={`p-3 rounded-xl text-sm font-medium transition-all duration-300 ${advancedOptions.format === format.value
+                                    ? theme === 'dark'
+                                      ? 'bg-blue-500/20 border-2 border-blue-400 text-blue-400'
+                                      : 'bg-blue-50 border-2 border-blue-500 text-blue-600'
+                                    : theme === 'dark'
+                                      ? 'bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600'
+                                      : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                                    }`}
+                                >
+                                  <div className="font-semibold">{format.label}</div>
+                                  <div className="text-xs opacity-75">{format.description}</div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Custom Prompt */}
+                          <div>
+                            <label className={`block text-sm font-medium mb-3 ${theme === 'dark'
+                              ? 'text-gray-300'
+                              : 'text-gray-700'
+                              } transition-colors duration-300`}>
+                              Custom Instructions (Optional)
+                            </label>
+                            <textarea
+                              value={advancedOptions.customPrompt}
+                              onChange={(e) => setAdvancedOptions(prev => ({ ...prev, customPrompt: e.target.value }))}
+                              placeholder="Add specific instructions for the AI report generation..."
+                              rows={3}
+                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${theme === 'dark'
+                                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
+                                }`}
+                            />
+                          </div>
+
+                          {/* Language Selection */}
+                          <div>
+                            <label className={`block text-sm font-medium mb-3 ${theme === 'dark'
+                              ? 'text-gray-300'
+                              : 'text-gray-700'
+                              } transition-colors duration-300`}>
+                              Report Language
+                            </label>
+                            <select
+                              value={advancedOptions.language}
+                              onChange={(e) => setAdvancedOptions(prev => ({ ...prev, language: e.target.value }))}
+                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                                ? 'bg-gray-700 border-gray-600 text-white'
+                                : 'bg-gray-50 border-gray-300 text-gray-900'
+                                }`}
+                            >
+                              <option value="en">English</option>
+                              <option value="es">Spanish</option>
+                              <option value="fr">French</option>
+                              <option value="de">German</option>
+                              <option value="it">Italian</option>
+                              <option value="pt">Portuguese</option>
+                              <option value="zh">Chinese</option>
+                              <option value="ja">Japanese</option>
+                            </select>
+                          </div>
+                        </div>
+                      ) : (
+                        // Non-premium user content
+                        <div className="text-center py-8">
+                          <div className={`p-6 rounded-2xl mx-auto max-w-md ${theme === 'dark'
+                            ? 'bg-purple-900/20 border border-purple-800'
+                            : 'bg-purple-50 border border-purple-200'
+                            }`}>
+                            <div className={`p-4 rounded-xl mx-auto mb-4 w-fit ${theme === 'dark'
+                              ? 'bg-purple-500/20 text-purple-400'
+                              : 'bg-purple-100 text-purple-600'
+                              }`}>
+                              <FaCog className="text-2xl" />
+                            </div>
+                            <h4 className={`text-xl font-semibold mb-3 ${theme === 'dark'
+                              ? 'text-white'
+                              : 'text-gray-900'
+                              } transition-colors duration-300`}>
+                              Advanced Options
+                            </h4>
+                            <p className={`text-sm mb-6 ${theme === 'dark'
+                              ? 'text-gray-400'
+                              : 'text-gray-600'
+                              } transition-colors duration-300`}>
+                              Unlock powerful customization features with premium access:
+                            </p>
+                            <div className="space-y-3 text-left">
+                              <div className={`flex items-center space-x-3 ${theme === 'dark'
+                                ? 'text-gray-300'
+                                : 'text-gray-700'
+                                }`}>
+                                <div className={`w-2 h-2 rounded-full ${theme === 'dark'
+                                  ? 'bg-purple-400'
+                                  : 'bg-purple-500'
+                                  }`}></div>
+                                <span className="text-sm">Custom report depth (Brief/Standard/Detailed)</span>
+                              </div>
+                              <div className={`flex items-center space-x-3 ${theme === 'dark'
+                                ? 'text-gray-300'
+                                : 'text-gray-700'
+                                }`}>
+                                <div className={`w-2 h-2 rounded-full ${theme === 'dark'
+                                  ? 'bg-purple-400'
+                                  : 'bg-purple-500'
+                                  }`}></div>
+                                <span className="text-sm">Choose report format (Professional/Casual/Technical)</span>
+                              </div>
+                              <div className={`flex items-center space-x-3 ${theme === 'dark'
+                                ? 'text-gray-300'
+                                : 'text-gray-700'
+                                }`}>
+                                <div className={`w-2 h-2 rounded-full ${theme === 'dark'
+                                  ? 'bg-purple-400'
+                                  : 'bg-purple-500'
+                                  }`}></div>
+                                <span className="text-sm">Multi-language support (8 languages)</span>
+                              </div>
+                              <div className={`flex items-center space-x-3 ${theme === 'dark'
+                                ? 'text-gray-300'
+                                : 'text-gray-700'
+                                }`}>
+                                <div className={`w-2 h-2 rounded-full ${theme === 'dark'
+                                  ? 'bg-purple-400'
+                                  : 'bg-purple-500'
+                                  }`}></div>
+                                <span className="text-sm">Custom AI instructions</span>
+                              </div>
+                              <div className={`flex items-center space-x-3 ${theme === 'dark'
+                                ? 'text-gray-300'
+                                : 'text-gray-700'
+                                }`}>
+                                <div className={`w-2 h-2 rounded-full ${theme === 'dark'
+                                  ? 'bg-purple-400'
+                                  : 'bg-purple-500'
+                                  }`}></div>
+                                <span className="text-sm">Selective content sections</span>
+                              </div>
+                            </div>
+                            <div className={`mt-6 p-4 rounded-xl ${theme === 'dark'
+                              ? 'bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-800'
+                              : 'bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200'
+                              }`}>
+                              <p className={`text-sm font-medium ${theme === 'dark'
+                                ? 'text-purple-300'
+                                : 'text-purple-700'
+                                }`}>
+                                Upgrade to Premium to unlock these advanced features
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -501,39 +793,39 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                   >
                     Cancel
                   </button>
-                  <button
-                    onClick={handleGenerateReport}
-                    disabled={isGenerating || existingReports.length >= 5}
-                    className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-3 ${isGenerating || existingReports.length >= 5
-                      ? theme === 'dark'
-                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : theme === 'dark'
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/25'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/25'
-                      }`}
-                  >
-                    {isGenerating ? (
-                      <>
-                        <FaSpinner className="animate-spin" />
-                        <span>Generating...</span>
-                      </>
-                    ) : existingReports.length >= 5 ? (
-                      <>
-                        <FaExclamationTriangle />
-                        <span>Limit Reached (5/5)</span>
-                      </>
-                    ) : (
-                      <>
-                        <FaFileAlt />
-                        <span>Generate Report</span>
-                      </>
-                    )}
-                  </button>
+            <button
+              onClick={handleGenerateReport}
+              disabled={isGenerating || existingReports.length >= subscriptionInfo.maxReports}
+              className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-3 ${isGenerating || existingReports.length >= subscriptionInfo.maxReports
+                ? theme === 'dark'
+                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : theme === 'dark'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/25'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/25'
+                }`}
+            >
+              {isGenerating ? (
+                <>
+                  <FaSpinner className="animate-spin" />
+                  <span>Generating...</span>
+                </>
+              ) : existingReports.length >= subscriptionInfo.maxReports ? (
+                <>
+                  <FaExclamationTriangle />
+                  <span>{subscriptionInfo.isPremium ? 'Limit Reached (10/10)' : 'Trial Limit Reached (1/1)'}</span>
+                </>
+              ) : (
+                <>
+                  <FaFileAlt />
+                  <span>Generate Report</span>
+                </>
+              )}
+            </button>
                 </div>
 
                 {/* Report Limit Info */}
-                {existingReports.length >= 5 && (
+                {existingReports.length >= subscriptionInfo.maxReports && (
                   <div className={`p-4 rounded-xl border transition-all duration-300 ${theme === 'dark'
                     ? 'bg-yellow-500/10 border-yellow-500/20'
                     : 'bg-yellow-50 border-yellow-200'
@@ -548,13 +840,19 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                           ? 'text-yellow-400'
                           : 'text-yellow-700'
                           }`}>
-                          Maximum of 5 reports reached for this project
+                          {subscriptionInfo.isPremium 
+                            ? `Maximum of ${subscriptionInfo.maxReports} reports reached for this project`
+                            : `You have reached your trial limit of ${subscriptionInfo.maxReports} report`
+                          }
                         </p>
                         <p className={`text-xs mt-1 ${theme === 'dark'
                           ? 'text-yellow-300'
                           : 'text-yellow-600'
                           }`}>
-                          Delete an existing report to generate a new one
+                          {subscriptionInfo.isPremium 
+                            ? 'Delete an existing report to generate a new one'
+                            : `Upgrade to premium for up to ${subscriptionInfo.maxReports * 10} reports per project`
+                          }
                         </p>
                       </div>
                     </div>
@@ -882,7 +1180,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                   ? 'text-white'
                   : 'text-gray-900'
                   } transition-colors duration-300`}>
-                  Existing Reports
+                  Existing Reports ({existingReports.length}/{subscriptionInfo.maxReports})
                 </h3>
                 <button
                   onClick={fetchExistingReports}

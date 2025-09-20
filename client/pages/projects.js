@@ -32,7 +32,7 @@ const ProjectsPage = () => {
       if (showLoading) {
         setLoading(true);
       }
-      const projectsData = await projectService.getProjectsOverview(userDetails._id);
+      const projectsData = await projectService.getProjectsOverview();
       setProjectsWithStats(projectsData);
     } catch (error) {
       console.error('Error fetching projects overview:', error);

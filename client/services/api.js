@@ -595,9 +595,9 @@ export const projectService = {
       throw error.response?.data || { message: 'Failed to fetch projects' };
     }
   },
-  getProjectsOverview: async (userId) => {
+  getProjectsOverview: async () => {
     try {
-      const response = await api.get(`/projects/overview/${userId}`);
+      const response = await api.get(`/projects/overview`);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch projects overview' };

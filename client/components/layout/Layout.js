@@ -2,13 +2,10 @@ import Navbar from './Navbar';
 import { useTheme } from '../../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { FaCog, FaPlus, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaExternalLinkAlt, FaFileAlt } from 'react-icons/fa';
+import { FaCog, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaExternalLinkAlt, FaFileAlt } from 'react-icons/fa';
 import { useRouter } from 'next/router';
-import AddTeamModal from '../team/AddTeamModal.jsx';
-import { teamService, projectService, taskService, authService } from '../../services/api';
-import AddProjectModal from '../project/AddProjectModal';
+import { projectService, taskService, authService } from '../../services/api';
 import { useGlobal } from '../../context/GlobalContext';
-import AddTaskModal from '../shared/AddTaskModal';
 import { useToast } from '../../context/ToastContext';
 import TooltipPortal from '../shared/TooltipPortal';
 import Link from 'next/link';
@@ -24,7 +21,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const [isTeamsOpen, setIsTeamsOpen] = useState(true);
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
-  const { teams, projects, organization } = useGlobal();
+  const { teams, projects, organization, userDetails } = useGlobal();
   const { user } = useAuth();
   const [subscriptionData, setSubscriptionData] = useState(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
@@ -329,7 +326,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
         {/* Bottom: Logout & Theme Switch */}
         <div className={`flex flex-col gap-2 p-4 border-t ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
           {/* Upgrade to Premium Button - Only show for admin users without premium */}
-          {(user?.role === 'Admin' || user?.role === 1) && !subscriptionData?.hasActiveSubscription && (!isMobile && !collapsed) && (
+          {user?.role === 'Admin' && !userDetails?.isPremiumMember && (!isMobile && !collapsed) && (
             <button onClick={() => handleNavigation('/settings?tab=billing')}
               className={`w-full flex items-center ${(!isMobile && collapsed) ? 'justify-center gap-2' : 'justify-between gap-3'} px-3 py-2 rounded-xl font-medium transition-all duration-200 border ${theme === 'dark' ? 'bg-[#232323] border-[#424242] text-[#F3F6FA] hover:bg-[#2a2a2a]' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
                 }`} >
@@ -672,7 +669,6 @@ const Layout = ({ children, pageProject, pageTitle }) => {
       setIsMobile(window.innerWidth < 1024);
     };
     checkIsMobile();
-    console.log('isMobile', isMobile);
     window.addEventListener('resize', checkIsMobile);
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);

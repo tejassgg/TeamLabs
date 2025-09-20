@@ -287,6 +287,10 @@ const UserSchema = new mongoose.Schema({
     tasksCreated: {
       type: Number,
       default: 0
+    },
+    reportsGenerated: {
+      type: Number,
+      default: 0
     }
   },
 
@@ -368,6 +372,8 @@ UserSchema.methods.incrementUsage = function(type) {
     this.usageLimits.userStoriesCreated += 1;
   } else if (type === 'task') {
     this.usageLimits.tasksCreated += 1;
+  } else if (type === 'report') {
+    this.usageLimits.reportsGenerated += 1;
   }
   return this.save();
 };

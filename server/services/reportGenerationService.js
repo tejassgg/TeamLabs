@@ -45,7 +45,7 @@ class ReportGenerationService {
       );
 
       // Generate LLM prompt
-      const prompt = this.generateReportPrompt(projectData, config.reportType, config.sections);
+      const prompt = this.generateReportPrompt(projectData, config.reportType, config.sections, config.advancedOptions);
 
       // Call LLM for report generation
       const llmResponse = await this.callLLM(prompt);
@@ -380,11 +380,23 @@ class ReportGenerationService {
    * @param {Object} projectData - Processed project data
    * @param {String} reportType - Type of report to generate
    * @param {Array} sections - Custom sections to include
+   * @param {Object} advancedOptions - Advanced configuration options
    * @returns {String} Generated prompt
    */
-  generateReportPrompt(projectData, reportType, sections = []) {
-    const basePrompt = `
-You are an expert project management analyst. Generate a comprehensive ${reportType} progress report based on the following project data:
+  generateReportPrompt(projectData, reportType, sections = [], advancedOptions = {}) {
+    // Extract advanced options with defaults
+    const {
+      includeMetrics = true,
+      includeRiskAssessment = true,
+      includeTeamPerformance = true,
+      reportDepth = 'standard',
+      format = 'professional',
+      customPrompt = '',
+      language = 'en'
+    } = advancedOptions;
+
+    // Build dynamic prompt based on options
+    let basePrompt = `You are an expert project management analyst. Generate a ${reportDepth} ${reportType} progress report based on the following project data:
 
 PROJECT INFORMATION:
 - Name: ${projectData.project.name}
@@ -394,7 +406,11 @@ PROJECT INFORMATION:
 - Finish Date: ${projectData.project.finishDate || 'Not set'}
 - Created: ${projectData.project.createdAt}
 
-PERIOD: ${projectData.period.startDate.toDateString()} to ${projectData.period.endDate.toDateString()}
+PERIOD: ${projectData.period.startDate.toDateString()} to ${projectData.period.endDate.toDateString()}`;
+
+    // Add metrics section if enabled
+    if (includeMetrics) {
+      basePrompt += `
 
 PROJECT METRICS:
 - Total Tasks: ${projectData.metrics.totalTasks}
@@ -409,18 +425,56 @@ TASK BREAKDOWN:
 ${projectData.taskAnalysis.totalTasks} total tasks
 Task Types: ${JSON.stringify(projectData.taskAnalysis.taskTypes)}
 Priorities: ${JSON.stringify(projectData.taskAnalysis.priorities)}
-Statuses: ${JSON.stringify(projectData.taskAnalysis.statuses)}
+Statuses: ${JSON.stringify(projectData.taskAnalysis.statuses)}`;
+    }
+
+    // Add team information if enabled
+    if (includeTeamPerformance) {
+      basePrompt += `
 
 TEAM INFORMATION:
 - Active Members: ${projectData.metrics.activeMembers}/${projectData.metrics.totalMembers}
-- Team Members: ${projectData.teamMembers.map(m => m.name).join(', ')}
+- Team Members: ${projectData.teamMembers.map(m => m.name).join(', ')}`;
+    }
+
+    // Add risk assessment if enabled
+    if (includeRiskAssessment) {
+      basePrompt += `
 
 RISK ASSESSMENT:
 - High Risk: ${projectData.riskAssessment.high.join(', ') || 'None'}
 - Medium Risk: ${projectData.riskAssessment.medium.join(', ') || 'None'}
-- Low Risk: ${projectData.riskAssessment.low.join(', ') || 'None'}
+- Low Risk: ${projectData.riskAssessment.low.join(', ') || 'None'}`;
+    }
 
-REPORT REQUIREMENTS:
+    // Add report requirements based on depth
+    let reportRequirements = '';
+    if (reportDepth === 'brief') {
+      reportRequirements = `
+REPORT REQUIREMENTS (BRIEF):
+1. Provide a concise executive summary (1-2 paragraphs, under 100 words)
+2. Highlight key metrics and progress
+3. Identify top 2-3 risks or bottlenecks
+4. Provide 2-3 actionable recommendations
+5. Suggest immediate next steps
+
+FORMAT: Concise, bullet-point style, easy to scan`;
+    } else if (reportDepth === 'detailed') {
+      reportRequirements = `
+REPORT REQUIREMENTS (DETAILED):
+1. Provide a comprehensive executive summary (3-4 paragraphs, 200-300 words)
+2. Analyze project progress with detailed metrics and trends
+3. Identify and analyze all risks and bottlenecks with specific data points
+4. Provide 5-7 actionable recommendations with implementation details
+5. Include detailed team performance analysis and individual insights
+6. Suggest next steps, priorities, and long-term strategies
+7. Include budget analysis, timeline tracking, and resource utilization insights
+8. Provide detailed quality metrics and stakeholder communication analysis
+
+FORMAT: Comprehensive, analytical, with detailed explanations`;
+    } else {
+      reportRequirements = `
+REPORT REQUIREMENTS (STANDARD):
 1. Provide an executive summary (2-3 paragraphs, under 200 words)
 2. Analyze project progress and identify key metrics
 3. Highlight risks and bottlenecks with specific data points
@@ -428,6 +482,38 @@ REPORT REQUIREMENTS:
 5. Include team performance insights
 6. Suggest next steps and priorities
 7. Use specific percentages and numbers from the data
+
+FORMAT: Balanced detail, professional business report style`;
+    }
+
+    // Add format-specific instructions
+    let formatInstructions = '';
+    if (format === 'casual') {
+      formatInstructions = `
+TONE: Friendly, conversational, and approachable
+STYLE: Casual business communication, easy to understand
+LANGUAGE: Use "we" and "our team" instead of formal third person`;
+    } else if (format === 'technical') {
+      formatInstructions = `
+TONE: Technical, data-driven, and analytical
+STYLE: Detailed technical analysis with specific metrics
+LANGUAGE: Use technical terminology and precise data references`;
+    } else {
+      formatInstructions = `
+TONE: Professional, analytical, and actionable
+STYLE: Formal business report format`;
+    }
+
+    // Add language instruction
+    const languageInstruction = language !== 'en' ? `
+LANGUAGE: Generate the report in ${this.getLanguageName(language)}` : '';
+
+    // Add custom prompt if provided
+    const customInstructions = customPrompt ? `
+CUSTOM INSTRUCTIONS: ${customPrompt}` : '';
+
+    // Add print-friendly formatting
+    const printFormatting = `
 
 FORMAT REQUIREMENTS FOR PRINT-FRIENDLY PDF STYLE:
 - Use plain text formatting without special characters or symbols
@@ -442,15 +528,38 @@ FORMAT REQUIREMENTS FOR PRINT-FRIENDLY PDF STYLE:
 - Ensure content flows logically from section to section
 - Make it easy to print on standard 8.5" x 11" paper
 
-TONE: Professional, analytical, and actionable
-STYLE: Plain text business report format optimized for printing
+STYLE: Plain text business report format optimized for printing`;
 
-${sections.length > 0 ? `CUSTOM SECTIONS TO INCLUDE: ${sections.map(s => s.name).join(', ')}` : ''}
+    // Add custom sections if any
+    const customSections = sections.length > 0 ? `
+CUSTOM SECTIONS TO INCLUDE: ${sections.map(s => s.name).join(', ')}` : '';
+
+    // Combine all parts
+    basePrompt += reportRequirements + formatInstructions + languageInstruction + customInstructions + printFormatting + customSections + `
 
 Generate the report now:
 `;
 
     return basePrompt;
+  }
+
+  /**
+   * Get language name from language code
+   * @param {String} languageCode - Language code (e.g., 'es', 'fr')
+   * @returns {String} Language name
+   */
+  getLanguageName(languageCode) {
+    const languages = {
+      'en': 'English',
+      'es': 'Spanish',
+      'fr': 'French',
+      'de': 'German',
+      'it': 'Italian',
+      'pt': 'Portuguese',
+      'zh': 'Chinese',
+      'ja': 'Japanese'
+    };
+    return languages[languageCode] || 'English';
   }
 
   /**
@@ -518,7 +627,8 @@ Generate the report now:
         accuracy: this.calculateAccuracy(projectData),
         llmModel: 'gemini-2.5-flash',
         promptTokens: llmResponse.usageMetadata?.promptTokenCount || 0,
-        responseTokens: llmResponse.usageMetadata?.candidatesTokenCount || 0
+        responseTokens: llmResponse.usageMetadata?.candidatesTokenCount || 0,
+        advancedOptions: config.advancedOptions || {}
       },
       status: 'completed'
     };
