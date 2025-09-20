@@ -310,7 +310,7 @@ const BillingTab = ({
     <>
       <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
         <div className={`mb-4 p-6 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-gray-50'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 Current Plan: {subscriptionData?.hasActiveSubscription ? `Premium ${subscriptionData?.subscription?.plan === 'annual' ? '(Annual)' : '(Monthly)'}` : 'Free'}
@@ -326,16 +326,12 @@ const BillingTab = ({
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 md:flex-shrink-0">
               <button
                 onClick={onRefreshSubscription}
                 disabled={loadingSubscription}
-                className={`p-2 rounded-lg transition-colors ${theme === 'dark'
-                  ? 'hover:bg-gray-700 text-gray-400 hover:text-white'
-                  : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'
-                  }`}
-                title="Refresh subscription data"
-              >
+                className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700' }`}
+                title="Refresh subscription data" >
                 <svg className={`w-5 h-5 ${loadingSubscription ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
@@ -351,7 +347,7 @@ const BillingTab = ({
                   Cancel Subscription
                 </button>
               )}
-              <div className={`px-4 py-2 rounded-full text-sm font-medium ${subscriptionData?.hasActiveSubscription
+              <div className={`px-4 py-2 rounded-full text-sm text-center font-medium ${subscriptionData?.hasActiveSubscription
                 ? theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700'
                 : theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
                 }`}>
