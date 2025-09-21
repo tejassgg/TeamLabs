@@ -187,8 +187,6 @@ router.post('/tasks/:taskId/attachments', async (req, res) => {
   }
 });
 
-
-
 // Delete an attachment
 // DELETE /api/attachments/:attachmentId
 router.delete('/:attachmentId', async (req, res) => {

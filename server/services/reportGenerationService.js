@@ -1,6 +1,8 @@
 const { GoogleGenAI } = require('@google/genai');
 const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs').promises;
+const path = require('path');
 
 // Import models
 const Project = require('../models/Project');
@@ -9,6 +11,7 @@ const User = require('../models/User');
 const Team = require('../models/Team');
 const GeneratedReport = require('../models/GeneratedReport');
 const ReportConfig = require('../models/ReportConfig');
+const RAGService = require('./ragService');
 
 /**
  * Report Generation Service
@@ -22,6 +25,7 @@ class ReportGenerationService {
     }
 
     this.geminiAI = new GoogleGenAI({});
+    this.ragService = new RAGService();
     this.startTime = null;
   }
 
@@ -44,11 +48,26 @@ class ReportGenerationService {
         config.endDate || new Date()
       );
 
-      // Generate LLM prompt
-      const prompt = this.generateReportPrompt(projectData, config.reportType, config.sections, config.advancedOptions);
+      // Retrieve relevant context using RAG
+      const relevantContext = await this.retrieveRelevantContext(projectData, config);
+
+      // Generate LLM prompt with RAG context
+      const prompt = this.generateReportPrompt(projectData, config.reportType, config.sections, config.advancedOptions, relevantContext);
 
       // Call LLM for report generation
       const llmResponse = await this.callLLM(prompt);
+
+      // Save debug information to file
+      // await this.saveDebugInfo(config, {
+      //   relevantContext,
+      //   prompt,
+      //   llmResponse,
+      //   projectData: {
+      //     name: projectData.project.name,
+      //     id: projectData.project.ProjectID,
+      //     organizationId: projectData.organizationId
+      //   }
+      // });
 
       // Post-process and structure the report
       const structuredReport = await this.postProcessReport(
@@ -136,7 +155,7 @@ class ReportGenerationService {
 
       // Assess risks
       const riskAssessment = this.assessProjectRisks(project, tasks, teamMembers);
-      
+
       let projectOwnerName = 'Unknown';
       const owner = await User.findById(project.ProjectOwner).select('firstName lastName');
       if (owner) {
@@ -151,7 +170,8 @@ class ReportGenerationService {
           status: project.ProjectStatusID,
           ownerName: projectOwnerName,
           finishDate: project.FinishDate,
-          createdAt: project.CreatedDate
+          createdAt: project.CreatedDate,
+          organizationID: project.OrganizationID
         },
         tasks: tasks.map(task => ({
           id: task._id,
@@ -184,7 +204,7 @@ class ReportGenerationService {
         period: {
           startDate,
           endDate
-        } 
+        }
       };
       return projectData;
     } catch (error) {
@@ -376,6 +396,113 @@ class ReportGenerationService {
   }
 
   /**
+   * Retrieve relevant context using RAG
+   * @param {Object} projectData - Project data
+   * @param {Object} config - Report configuration
+   * @returns {string} Relevant context string
+   */
+  async retrieveRelevantContext(projectData, config) {
+    try {
+      // Build query based on report type and project data
+      const query = this.buildRAGQuery(projectData, config);
+
+      // Retrieve relevant documents
+      const relevantDocs = await this.ragService.retrieveRelevantDocuments(query, {
+        organizationID: projectData.project.organizationID,
+        projectId: config.projectId,
+        sourceTypes: ['project', 'task', 'report', 'user_activity', 'team'],
+        limit: 8,
+        similarityThreshold: 0.6
+      });
+
+      // Build context string
+      return this.ragService.buildReportContext(relevantDocs, config.reportType);
+    } catch (error) {
+      console.error('Error retrieving RAG context:', error);
+      return 'No additional context available for this report.';
+    }
+  }
+
+  /**
+   * Build RAG query based on project data and report configuration
+   * @param {Object} projectData - Project data
+   * @param {Object} config - Report configuration
+   * @returns {string} RAG query string
+   */
+  buildRAGQuery(projectData, config) {
+    let query = `Project: ${projectData.project.name} `;
+    query += `Report type: ${config.reportType} `;
+
+    // Add project description and details
+    if (projectData.project.description) {
+      query += `Project description: ${projectData.project.description} `;
+    }
+
+    if (projectData.project.status) {
+      query += `Project status: ${projectData.project.status} `;
+    }
+
+    // Add advanced options context
+    if (config.advancedOptions?.includeMetrics) {
+      query += `project metrics performance completion rate progress tracking `;
+    }
+
+    if (config.advancedOptions?.includeRiskAssessment) {
+      query += `risks issues problems challenges mitigation strategies `;
+    }
+
+    if (config.advancedOptions?.includeTeamPerformance) {
+      query += `team performance collaboration productivity individual contributions `;
+    }
+
+    // Add team member context
+    if (projectData.teamMembers?.length > 0) {
+      query += `team members: ${projectData.teamMembers.map(m => m.name).join(' ')} `;
+    }
+
+    // Add task context
+    if (projectData.tasks?.length > 0) {
+      query += `tasks completion progress status assignments deadlines `;
+    }
+
+    // Add project metrics context
+    if (projectData.metrics) {
+      query += `completion rate ${projectData.metrics.completionRate}% `;
+      if (projectData.metrics.totalTasks > 0) {
+        query += `total tasks ${projectData.metrics.totalTasks} `;
+      }
+      if (projectData.metrics.overdueTasks > 0) {
+        query += `overdue tasks ${projectData.metrics.overdueTasks} `;
+      }
+    }
+
+    // Add period context
+    if (projectData.period) {
+      query += `report period ${projectData.period.startDate.toDateString()} to ${projectData.period.endDate.toDateString()} `;
+    }
+
+    // Add custom prompt context if available
+    if (config.advancedOptions?.customPrompt) {
+      query += `custom focus: ${config.advancedOptions.customPrompt} `;
+    }
+
+    // Add general project management terms
+    query += `project management timeline deadline milestone deliverables scope budget quality `;
+
+    // Add report depth context
+    if (config.advancedOptions?.reportDepth) {
+      query += `report depth: ${config.advancedOptions.reportDepth} `;
+    }
+
+    // Add format context
+    if (config.advancedOptions?.format) {
+      query += `report format: ${config.advancedOptions.format} `;
+    }
+
+    return query.trim();
+  }
+
+  /**
    * Generate LLM prompt for report generation
    * @param {Object} projectData - Processed project data
    * @param {String} reportType - Type of report to generate
@@ -383,7 +510,7 @@ class ReportGenerationService {
    * @param {Object} advancedOptions - Advanced configuration options
    * @returns {String} Generated prompt
    */
-  generateReportPrompt(projectData, reportType, sections = [], advancedOptions = {}) {
+  generateReportPrompt(projectData, reportType, sections = [], advancedOptions = {}, ragContext = '') {
     // Extract advanced options with defaults
     const {
       includeMetrics = true,
@@ -534,8 +661,12 @@ STYLE: Plain text business report format optimized for printing`;
     const customSections = sections.length > 0 ? `
 CUSTOM SECTIONS TO INCLUDE: ${sections.map(s => s.name).join(', ')}` : '';
 
+    // Add RAG context if available
+    const ragContextSection = ragContext ? `
+${ragContext}` : '';
+
     // Combine all parts
-    basePrompt += reportRequirements + formatInstructions + languageInstruction + customInstructions + printFormatting + customSections + `
+    basePrompt += reportRequirements + formatInstructions + languageInstruction + customInstructions + printFormatting + customSections + ragContextSection + `
 
 Generate the report now:
 `;
@@ -682,6 +813,55 @@ Generate the report now:
     } catch (error) {
       console.error('Error saving report:', error);
       throw new Error(`Failed to save report: ${error.message}`);
+    }
+  }
+
+  /**
+   * Save debug information to file for analysis
+   * @param {Object} config - Report configuration
+   * @param {Object} debugInfo - Debug information to save
+   */
+  async saveDebugInfo(config, debugInfo) {
+    try {
+      // Create debug directory if it doesn't exist
+      const debugDir = path.join(__dirname, '..', '..', 'debug', 'reports');
+      await fs.mkdir(debugDir, { recursive: true });
+
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = `report-debug-${config.projectId}-${timestamp}.json`;
+      const filepath = path.join(debugDir, filename);
+
+      // Prepare debug data
+      const debugData = {
+        timestamp: new Date().toISOString(),
+        reportConfig: {
+          projectId: config.projectId,
+          userId: config.userId,
+          reportType: config.reportType,
+          sections: config.sections,
+          advancedOptions: config.advancedOptions,
+          startDate: config.startDate,
+          endDate: config.endDate
+        },
+        projectData: debugInfo.projectData,
+        relevantContext: debugInfo.relevantContext,
+        prompt: debugInfo.prompt,
+        llmResponse: debugInfo.llmResponse,
+        metadata: {
+          promptLength: debugInfo.prompt.length,
+          contextLength: debugInfo.relevantContext.length,
+          responseLength: debugInfo.llmResponse.length,
+          organizationId: debugInfo.projectData.organizationId
+        }
+      };
+
+      // Write to file
+      await fs.writeFile(filepath, JSON.stringify(debugData, null, 2), 'utf8');
+      console.log(`Debug information saved to: ${filepath}`);
+    } catch (error) {
+      console.error('Error saving debug information:', error);
+      // Don't throw error - debug saving failure shouldn't break report generation
     }
   }
 

@@ -136,8 +136,18 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
       const response = await reportService.deleteReport(reportId);
       if (response.success) {
         showToast('Report deleted successfully!', 'success');
-        // Refresh the reports list
-        fetchExistingReports();
+        
+        // Remove the deleted report from local state instead of refetching
+        setExistingReports(prevReports => 
+          prevReports.filter(report => report.reportId !== reportId)
+        );
+        
+        // Update subscription info if needed (decrease current count)
+        setSubscriptionInfo(prevInfo => ({
+          ...prevInfo,
+          currentCount: Math.max(0, prevInfo.currentCount - 1)
+        }));
+        
         // If we're viewing the deleted report, clear it
         if (generatedReport && generatedReport.reportId === reportId) {
           setGeneratedReport(null);

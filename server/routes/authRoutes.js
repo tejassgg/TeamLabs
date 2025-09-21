@@ -1,26 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const {
-  registerUser,
-  loginUser,
-  googleLogin,
-  getUserProfile,
-  completeUserProfile,
-  getUserActivities,
-  logoutUser,
-  getUserOrganizations,
-  generate2FA,
-  verify2FA,
-  disable2FA,
-  verifyLogin2FA,
-  getSecuritySettings,
-  updateSecuritySettings,
-  updateUserSettings,
-  updateUserStatus,
-  forgotPassword,
-  resetPassword,
-  verifyResetPassword,
-  updateOnboardingStatus,
+  registerUser, loginUser, googleLogin, getUserProfile, completeUserProfile, getUserActivities, logoutUser,
+  getUserOrganizations, generate2FA, verify2FA, disable2FA, verifyLogin2FA, getSecuritySettings, updateOnboardingStatus,
+  updateSecuritySettings, updateUserSettings, updateUserStatus, forgotPassword, resetPassword, verifyResetPassword
 } = require('../controllers/authController');
 const {
   initiateGitHubAuth,
@@ -248,7 +231,6 @@ router.post('/logout', protect, logoutUser);
 //Update user status route
 router.put('/status', protect, updateUserStatus);
 
-
 // 2FA routes
 router.post('/2fa/generate', protect, generate2FA);
 router.post('/2fa/verify', protect, verify2FA);
@@ -265,6 +247,7 @@ router.put('/user-settings', protect, updateUserSettings);
 // User status route
 router.put('/status', protect, updateUserStatus);
 
+//Password routes
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.post('/verify-reset-password', verifyResetPassword);
@@ -278,7 +261,5 @@ router.get('/github/repositories/:userId', protect, getUserRepositories);
 
 // Integrations routes
 router.get('/integrations/:userId', protect, getIntegrationsStatus);
-
-// Socket registration removed
 
 module.exports = router; 
