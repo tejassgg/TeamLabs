@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import StatusPill from '../../components/shared/StatusPill';
 import api, { authService, taskService, githubService } from '../../services/api';
-import { FaEdit, FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot } from 'react-icons/fa';
 import { FaTimeline } from "react-icons/fa6";
 import AddTaskModal from '../../components/shared/AddTaskModal';
 import CustomModal from '../../components/shared/CustomModal';
@@ -13,27 +13,37 @@ import { useToast } from '../../context/ToastContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import KanbanBoard from '../kanban';
-import { getPriorityStyle } from '../../components/kanban/kanbanUtils';
 import { getProjectStatusBadge } from '../../components/project/ProjectStatusBadge';
 import ProjectDetailsSkeleton from '../../components/skeletons/ProjectDetailsSkeleton';
 import ProjectFilesTab from '../../components/project/ProjectFilesTab';
 import ProjectActivity from '../../components/project/ProjectActivity';
 import GanttChart from '../../components/project/GanttChart';
 import ReportGenerator from '../../components/reports/ReportGenerator';
+import RAGManagement from '../../components/rag/RAGManagement';
 import { connectSocket, subscribe, getSocket } from '../../services/socket';
+import { useThemeClasses } from '../../components/shared/hooks/useThemeClasses';
 
 const ProjectDetailsPage = () => {
   const router = useRouter();
   const { projectId } = router.query;
   const { theme } = useTheme();
   const {
-    userDetails,
     getProjectStatus,
     getProjectStatusBadgeComponent,
     getTaskTypeBadgeComponent,
     getTaskStatusText,
     getDeadlineStatusComponent,
-    calculateDeadlineTextComponent
+    calculateDeadlineTextComponent,
+    getTableHeaderClasses,
+    getTableHeaderTextClasses,
+    getTableRowClasses,
+    getTableTextClasses,
+    getTableSecondaryTextClasses,
+    isMe,
+    formatDateUTC,
+    getPriorityStyle,
+    getUserInitials,
+    formatTimeAgo
   } = useGlobal();
   const { showToast } = useToast();
   const [project, setProject] = useState(null);
@@ -56,7 +66,7 @@ const ProjectDetailsPage = () => {
   const [settingsForm, setSettingsForm] = useState({
     Name: '',
     Description: '',
-    FinishDate: '',
+    DueDate: '',
     ProjectStatusID: 1 // Default to 'Not Assigned'
   });
   const [savingSettings, setSavingSettings] = useState(false);
@@ -65,19 +75,7 @@ const ProjectDetailsPage = () => {
   const [removingTeam, setRemovingTeam] = useState(null);
   const [removing, setRemoving] = useState(false);
   const [showReportGenerator, setShowReportGenerator] = useState(false);
-  
-  // Helpers: show "You" for current user and format date/time
-  const isMe = (userId) => {
-    if (!userId || !userDetails?._id) return false;
-    try {
-      return String(userId) === String(userDetails._id);
-    } catch (_) {
-      return false;
-    }
-  };
-  const displayName = (details, id) => {
-    return (details?.fullName || '-') + (isMe(id) ? ' (You)' : '');
-  };
+
 
   const [showRevokeDialog, setShowRevokeDialog] = useState(false);
   const [revokingTeam, setRevokingTeam] = useState(null);
@@ -129,6 +127,8 @@ const ProjectDetailsPage = () => {
   const [hasMoreIssues, setHasMoreIssues] = useState(true);
   const [projectActivity, setProjectActivity] = useState([]);
 
+  const getThemeClasses = useThemeClasses();
+
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
   }, []);
@@ -179,7 +179,6 @@ const ProjectDetailsPage = () => {
       // Fetch all project details in one call
       api.get(`/project-details/${projectId}`)
         .then(res => {
-          console.log(res.data.userStories);
           setProject(res.data.project);
           setTeams(res.data.teams);
           setOrgTeams(res.data.orgTeams);
@@ -196,12 +195,6 @@ const ProjectDetailsPage = () => {
     }
   }, [projectId, router]);
 
-  // Function to get initials for a user
-  const getUserInitials = (user) => {
-    const firstName = user.firstName || '';
-    const lastName = user.lastName || '';
-    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-  };
 
   // Fetch project repository information
   useEffect(() => {
@@ -542,26 +535,6 @@ const ProjectDetailsPage = () => {
     return groups;
   };
 
-  // Format relative time
-  const formatRelativeTime = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-
-    if (diffInMinutes < 1) return 'just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays}d ago`;
-
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
   useEffect(() => {
     setFilteredTeams([]);
@@ -622,9 +595,9 @@ const ProjectDetailsPage = () => {
 
   // Calculate deadline timer
   useEffect(() => {
-    if (project && project.FinishDate) {
+    if (project && project.DueDate) {
       const interval = setInterval(() => {
-        setDeadline(calculateDeadlineTextComponent(project.FinishDate));
+        setDeadline(calculateDeadlineTextComponent(project.DueDate));
       }, 1000);
       return () => clearInterval(interval);
     } else {
@@ -637,7 +610,7 @@ const ProjectDetailsPage = () => {
       setSettingsForm({
         Name: project.Name || '',
         Description: project.Description || '',
-        FinishDate: project.FinishDate ? new Date(project.FinishDate).toISOString().slice(0, 10) : '',
+        DueDate: project.DueDate ? new Date(project.DueDate).toISOString().slice(0, 10) : '',
         ProjectStatusID: project.ProjectStatusID || 1
       });
     }
@@ -736,7 +709,7 @@ const ProjectDetailsPage = () => {
       const res = await api.patch(`/projects/${project.ProjectID}`, {
         Name: settingsForm.Name,
         Description: settingsForm.Description,
-        FinishDate: settingsForm.FinishDate,
+        DueDate: settingsForm.DueDate,
         ProjectStatusID: settingsForm.ProjectStatusID,
         ModifiedBy: currentUser._id,
         ModifiedDate: new Date()
@@ -892,10 +865,6 @@ const ProjectDetailsPage = () => {
     return styles[statusCode] || styles[1];
   };
 
-  // Helper function to get theme-aware classes
-  const getThemeClasses = (baseClasses, darkClasses) => {
-    return `${baseClasses} ${theme === 'dark' ? darkClasses : ''}`;
-  };
 
 
   // Update the table container classes - transparent background with borders to blend with page
@@ -904,38 +873,13 @@ const ProjectDetailsPage = () => {
     'dark:border-gray-700'
   );
 
-  const tableHeaderClasses = getThemeClasses(
-    'border-b border-gray-200',
-    'dark:border-gray-700'
-  );
+  // Table styling classes from GlobalContext for consistency
+  const tableHeaderClasses = getTableHeaderClasses();
+  const tableHeaderTextClasses = getTableHeaderTextClasses();
+  const tableRowClasses = getTableRowClasses();
+  const tableTextClasses = getTableTextClasses();
+  const tableSecondaryTextClasses = getTableSecondaryTextClasses();
 
-  const tableHeaderTextClasses = getThemeClasses(
-    'text-gray-900',
-    'dark:text-gray-100'
-  );
-
-  const tableRowClasses = getThemeClasses(
-    'border-b border-gray-100 hover:bg-gray-50/50 transition-colors last:border-b-0',
-    'dark:border-gray-700 dark:hover:bg-gray-700/30'
-  );
-
-  const tableTextClasses = getThemeClasses(
-    'text-gray-900',
-    'dark:text-gray-100'
-  );
-
-  const tableSecondaryTextClasses = getThemeClasses(
-    'text-gray-500',
-    'dark:text-gray-400'
-  );
-
-  // Use UTC when rendering specific dates to avoid TZ off-by-one on client
-  const formatDateUTC = (dateLike) => {
-    if (!dateLike) return '-';
-    const d = new Date(dateLike);
-    if (isNaN(d)) return '-';
-    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
-  };
 
   // Function to handle task deletion
   const handleDeleteTask = async (taskId) => {
@@ -1119,6 +1063,22 @@ const ProjectDetailsPage = () => {
                       <span>Repo</span>
                     </button>
                   )}
+                  {currentUser?.role === 'Admin' && (
+                    <button
+                      onClick={() => setActiveTab('knowledge')}
+                      className={`${activeTab === 'knowledge'
+                        ? theme === 'dark'
+                          ? 'border-blue-400 text-blue-400'
+                          : 'border-blue-600 text-blue-600'
+                        : theme === 'dark'
+                          ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                    >
+                      <FaRobot size={16} />
+                      <span>Knowledge Base</span>
+                    </button>
+                  )}
                 </nav>
               </div>
               <div className="flex items-center gap-4 ml-4 flex-shrink-0">
@@ -1151,7 +1111,7 @@ const ProjectDetailsPage = () => {
                     </button>
                   </div>
                 )}
-                <div className="py-2">
+                <div className="py-2 flex gap-2">
                   <button
                     className={getThemeClasses(
                       "flex items-center gap-2 p-2 text-gray-500 hover:text-green-600 rounded-lg hover:bg-green-50 transition-colors",
@@ -1213,7 +1173,7 @@ const ProjectDetailsPage = () => {
 
               <div className="flex items-center justify-between gap-2">
                 {/* Right side - Deadline Status */}
-                {project.FinishDate && (
+                {project.DueDate && (
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {(() => {
                       const status = getDeadlineStatusComponent(deadline);
@@ -1360,7 +1320,7 @@ const ProjectDetailsPage = () => {
                   )}
 
                   {/* Deadline Status */}
-                  {project.FinishDate && (
+                  {project.DueDate && (
                     <div className="flex-shrink-0">
                       {(() => {
                         const status = getDeadlineStatusComponent(deadline);
@@ -1715,7 +1675,7 @@ const ProjectDetailsPage = () => {
                       <thead>
                         <tr className={tableHeaderClasses}>
                           <th className={`py-3 px-4 text-left w-[300px] ${tableHeaderTextClasses}`}>Name</th>
-                          <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Finish Date</th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Due Date</th>
                           <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Status</th>
                           <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Actions</th>
                         </tr>
@@ -1736,7 +1696,7 @@ const ProjectDetailsPage = () => {
                               </div>
                             </td>
                             <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
-                              <span>{formatDateUTC(story.FinishDate)}</span>
+                              <span>{formatDateUTC(story.DueDate)}</span>
                             </td>
                             <td className="py-3 px-4 text-center">
                               {(() => {
@@ -2125,7 +2085,7 @@ const ProjectDetailsPage = () => {
                                       <div className="flex items-center gap-2">
                                         <span>by {commit.author.name}</span>
                                         <span>•</span>
-                                        <span>{formatRelativeTime(commit.author.date)}</span>
+                                        <span>{formatTimeAgo(commit.author.date)}</span>
                                       </div>
 
                                       <a
@@ -2229,6 +2189,8 @@ const ProjectDetailsPage = () => {
               </div>
             </div>
           </div>
+        ) : activeTab === 'knowledge' && currentUser?.role === 'Admin' ? (
+          <RAGManagement organizationId={project?.OrganizationID} />
         ) : null}
 
         {showSettingsModal && (
@@ -2313,12 +2275,12 @@ const ProjectDetailsPage = () => {
                       'text-gray-500',
                       'text-white'
                     )} size={16} />
-                    <label className={getThemeClasses("text-sm font-medium text-gray-700", "text-sm font-medium text-white")}>Finish Date</label>
+                    <label className={getThemeClasses("text-sm font-medium text-gray-700", "text-sm font-medium text-white")}>Due Date</label>
                   </div>
                   <input
                     type="date"
-                    value={settingsForm.FinishDate}
-                    onChange={e => setSettingsForm(f => ({ ...f, FinishDate: e.target.value }))}
+                    value={settingsForm.DueDate}
+                    onChange={e => setSettingsForm(f => ({ ...f, DueDate: e.target.value }))}
                     className={getThemeClasses(
                       "flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900",
                       "flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white"

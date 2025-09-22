@@ -3,10 +3,10 @@ import { FaTimes, FaCookieBite, FaShieldAlt, FaCog, FaChartBar, FaUser, FaExclam
 import { useTheme } from '../../context/ThemeContext';
 
 const CookiePolicyModal = ({ isOpen, onClose }) => {
-  const { theme, resolvedTheme } = useTheme();
+  const { theme } = useTheme();
 
   const getThemeClasses = (lightClasses, darkClasses) => 
-    resolvedTheme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
+    theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
 
   if (!isOpen) return null;
 

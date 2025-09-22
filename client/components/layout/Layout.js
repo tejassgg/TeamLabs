@@ -2,7 +2,7 @@ import Navbar from './Navbar';
 import { useTheme } from '../../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { FaCog, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaExternalLinkAlt, FaFileAlt } from 'react-icons/fa';
+import { FaCog, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaRegClipboard, FaProjectDiagram } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { projectService, taskService, authService } from '../../services/api';
 import { useGlobal } from '../../context/GlobalContext';
@@ -12,7 +12,7 @@ import Link from 'next/link';
 import FirstTimeSetup from '../shared/FirstTimeSetup';
 import ChatBot from '../shared/ChatBot';
 import DynamicBreadcrumb from '../shared/DynamicBreadcrumb';
-
+import { useThemeClasses } from '../shared/hooks/useThemeClasses';
 
 const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const { theme, toggleTheme } = useTheme();
@@ -27,6 +27,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const [loadingSubscription, setLoadingSubscription] = useState(false);
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
   const activeProjectId = router.pathname.startsWith('/project/') ? router.query.projectId : null;
+  const getThemeClasses = useThemeClasses();
 
   // Load collapsed state from localStorage after component mounts
   useEffect(() => {
@@ -199,26 +200,39 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           />
           <SidebarButton
             icon={<FaTasks className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+            label="My Tasks"
+            active={router.pathname === '/my-tasks'}
+            onClick={() => handleNavigation('/my-tasks')}
+            theme={theme}
+          />
+          {/* Messages Section */}
+          <div className={`border-b ${getThemeClasses('border-gray-200', 'border-gray-700')} pb-2`}>
+            <SidebarButton
+              icon={<FaBookOpen className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+              label="Messages"
+              active={router.pathname === '/messages'}
+              onClick={() => handleNavigation('/messages')}
+              theme={theme}
+            />
+          </div>
+
+          <SidebarButton
+            icon={<FaRegClipboard className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
             label="Kanban Board"
             active={router.pathname === '/kanban'}
             onClick={() => handleNavigation('/kanban')}
             theme={theme}
           />
-          <SidebarButton
-            icon={<FaBookOpen className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
-            label="Query Board"
-            active={router.pathname === '/query'}
-            onClick={() => handleNavigation('/query')}
-            theme={theme}
-          />
-          <SidebarButton
-            icon={<FaFileAlt className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
-            label="AI Reports"
-            active={router.pathname === '/reports'}
-            onClick={() => handleNavigation('/reports')}
-            theme={theme}
-          />
 
+          <div className={`border-b ${getThemeClasses('border-gray-200', 'border-gray-700')} pb-2`}>
+            <SidebarButton
+              icon={<FaBookOpen className={getThemeClasses('text-blue-600', 'text-blue-300')} />}
+              label="Query Board"
+              active={router.pathname === '/query'}
+              onClick={() => handleNavigation('/query')}
+              theme={theme}
+            />
+          </div>
           {/* Teams Section */}
           <div>
             <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
@@ -271,7 +285,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           <div>
             <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
               <SidebarButton
-                icon={<FaFolder className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+                icon={<FaProjectDiagram className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
                 label="Projects"
                 active={router.pathname === '/projects'}
                 onClick={() => handleNavigation('/projects')}
@@ -314,13 +328,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
               </ul>
             )}
           </div>
-          <SidebarButton
-            icon={<FaBookOpen className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
-            label="Messages"
-            active={router.pathname === '/messages'}
-            onClick={() => handleNavigation('/messages')}
-            theme={theme}
-          />
+
         </nav>
 
         {/* Bottom: Logout & Theme Switch */}
@@ -439,7 +447,7 @@ const isProfileComplete = (userDetails) => {
 };
 
 const Layout = ({ children, pageProject, pageTitle }) => {
-  const { theme, toggleTheme, resolvedTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const { logout, user } = useAuth();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -488,6 +496,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
     if (path === '/dashboard') return 'Dashboard';
     if (path === '/kanban') return 'Kanban Board';
     if (path === '/projects') return 'Projects';
+    if (path === '/my-tasks') return 'My Tasks';
     if (path === '/profile') return 'Profile';
     if (path === '/settings') return 'Settings';
     if (path === '/messages') return 'Messages';
@@ -495,7 +504,6 @@ const Layout = ({ children, pageProject, pageTitle }) => {
     if (path === '/query') return 'Query Board';
     if (path === '/teams') return 'Teams';
     if (path === '/projects') return 'Projects';
-    if (path === '/reports') return 'AI Reports';
 
     // Dynamic routes
     if (path === '/task/[taskId]') {

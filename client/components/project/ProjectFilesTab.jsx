@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
+import { useGlobal } from '../../context/GlobalContext';
 import CustomModal from '../shared/CustomModal';
 import { subscribe } from '../../services/socket';
 import { attachmentService } from '../../services/api';
@@ -12,6 +13,7 @@ const ProjectFilesTab = ({ projectId }) => {
   const { theme } = useTheme();
   const { showToast } = useToast();
   const { user } = useAuth();
+  const { getUserInitials, formatFileSize } = useGlobal();
 
   // Add CSS animations
   useEffect(() => {
@@ -111,23 +113,7 @@ const ProjectFilesTab = ({ projectId }) => {
     return ['mp4', 'avi', 'mov', 'wmv', 'webm'].includes(extension);
   };
 
-  // Function to format file size
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
 
-  // Function to get user initials
-  const getUserInitials = (user) => {
-    if (!user) return '';
-    let split = user.fullName.split(' ');
-    return (split[0].charAt(0) + split[split.length - 1].charAt(0)).toUpperCase();
-  };
 
   // Function to get theme classes
   const getThemeClasses = (baseClasses, darkClasses) => {

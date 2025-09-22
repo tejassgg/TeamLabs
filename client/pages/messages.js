@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
+import { useGlobal } from '../context/GlobalContext';
 import api, { messagingService } from '../services/api';
 import { connectSocket, getSocket, subscribe } from '../services/socket';
 import { FaPaperPlane, FaPlus, FaSmile, FaImage, FaVideo, FaChevronDown, FaCheck, FaTimes, FaSearch, FaEllipsisV, FaCog, FaTrash, FaSignOutAlt, FaEdit, FaSave, FaPhone, FaMicrophone } from 'react-icons/fa';
@@ -24,6 +25,7 @@ export default function MessagesPage() {
   const { user } = useAuth();
   const { theme } = useTheme();
   const { showToast } = useToast();
+  const { formatTimeAgo } = useGlobal();
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -94,23 +96,6 @@ export default function MessagesPage() {
     return `${baseClasses} ${theme === 'dark' ? darkClasses : ''}`;
   };
 
-  const formatTimeAgo = (date) => {
-    if (!date) return '';
-    const now = new Date();
-    const messageDate = new Date(date);
-    const diffInMinutes = Math.floor((now - messageDate) / (1000 * 60));
-
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays}d ago`;
-
-    return messageDate.toLocaleDateString();
-  };
 
   const renderMessageText = (text) => {
     if (!text) return '';

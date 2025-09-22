@@ -48,14 +48,14 @@ export const getDeadlineStatus = (deadlineText) => {
 };
 
 // Helper function to calculate deadline text
-export const calculateDeadlineText = (finishDate) => {
-  if (!finishDate) {
+export const calculateDeadlineText = (dueDate) => {
+  if (!dueDate) {
     return 'No Deadline';
   }
 
   const now = new Date();
-  const finish = new Date(finishDate);
-  const diff = finish - now;
+  const due = new Date(dueDate);
+  const diff = due - now;
 
   if (diff <= 0) {
     return 'Overdue';

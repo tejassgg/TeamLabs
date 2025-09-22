@@ -139,7 +139,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
   const [assignedTo, setAssignedTo] = useState('');
   const [projectId, setProjectId] = useState(projectIdDefault || '');
   const [parentId, setParentId] = useState("");
-  const [finishDate, setFinishDate] = useState('');
+  const [dueDate, setDueDate] = useState('');
   // projectMembers are now passed from parent; no fetching here
   const [isActive, setIsActive] = useState(true);
   const [createdDate] = useState(new Date());
@@ -179,7 +179,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       setProjectId(editingTask.ProjectID_FK || projectIdDefault || '');
       setParentId(editingTask.ParentID || '');
       setIsActive(editingTask.IsActive !== undefined ? editingTask.IsActive : true);
-      setFinishDate(editingTask.FinishDate ? new Date(editingTask.FinishDate).toISOString().split('T')[0] : '');
+      setDueDate(editingTask.DueDate ? new Date(editingTask.DueDate).toISOString().split('T')[0] : '');
     } else if (isOpen && !editingTask) {
       setName('');
       setDescription('');
@@ -199,7 +199,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       } else {
         setType('');
       }
-      setFinishDate('');
+      setDueDate('');
     }
   }, [isOpen, editingTask, projectIdDefault, userDetails, addTaskTypeMode, userStories]);
 
@@ -236,8 +236,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       setError('Task Type is required');
       return;
     }
-    if (type === 'User Story' && !finishDate) {
-      setError('Finish Date is required for User Story');
+    if (type === 'User Story' && !dueDate) {
+      setError('Due Date is required for User Story');
       return;
     }
     if (!projectId) {
@@ -262,7 +262,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       ProjectID_FK: projectId,
       ParentID: mode === 'fromProject' && type !== 'User Story' ? parentId : null,
       AssignedTo: mode === 'fromProject' && type !== 'User Story' ? (assignedTo || undefined) : undefined,
-      FinishDate: type === 'User Story' && finishDate ? new Date(finishDate) : undefined,
+      DueDate: type === 'User Story' && dueDate ? new Date(dueDate) : undefined,
       CreatedBy: createdBy
     };
 
@@ -359,7 +359,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
                 'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
               )}
-              maxLength={50}
+              maxLength={150}
               required
               placeholder="Enter task name"
             />
@@ -385,7 +385,6 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 resize-none',
                 'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500 resize-none'
               )}
-              maxLength={100}
               rows={3}
               required
               placeholder="Enter task description"
@@ -455,13 +454,13 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                   'text-sm font-medium text-gray-700',
                   'text-sm font-medium text-white'
                 )}>
-                  Finish Date<span className="text-red-500 ml-1">*</span>
+                  Due Date<span className="text-red-500 ml-1">*</span>
                 </label>
               </div>
               <input
                 type="date"
-                value={finishDate}
-                onChange={(e) => setFinishDate(e.target.value)}
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
                 className={getThemeClasses(
                   'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
                   'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'

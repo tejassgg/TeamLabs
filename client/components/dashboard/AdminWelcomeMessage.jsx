@@ -8,8 +8,6 @@ import {
   FaRocket, 
   FaPlus, 
   FaLightbulb,
-  FaChartBar,
-  FaCog,
   FaArrowRight,
   FaStar,
   FaCheckCircle

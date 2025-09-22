@@ -3,10 +3,10 @@ import { FaTimes, FaFileContract, FaUser, FaShieldAlt, FaExclamationTriangle, Fa
 import { useTheme } from '../../context/ThemeContext';
 
 const TermsOfServiceModal = ({ isOpen, onClose }) => {
-  const { theme, resolvedTheme } = useTheme();
+  const { theme } = useTheme();
 
   const getThemeClasses = (lightClasses, darkClasses) => 
-    resolvedTheme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
+    theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
 
   if (!isOpen) return null;
 

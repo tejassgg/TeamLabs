@@ -3,10 +3,10 @@ import { FaTimes, FaShieldAlt, FaUser, FaDatabase, FaLock, FaGlobe, FaEnvelope, 
 import { useTheme } from '../../context/ThemeContext';
 
 const PrivacyPolicyModal = ({ isOpen, onClose }) => {
-  const { theme, resolvedTheme } = useTheme();
+  const { theme } = useTheme();
 
   const getThemeClasses = (lightClasses, darkClasses) => 
-    resolvedTheme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
+    theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
 
   if (!isOpen) return null;
 

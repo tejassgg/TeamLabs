@@ -14,7 +14,7 @@ const responses = {
     help: {
         registration: {
             text: "To register, click on the 'Register' button and fill out the form with your details. You'll need to provide your name, email, and create a password.",
-            links: [{ text: "Register Now", url: "/register", type: "action" }]
+            links: [{ text: "Register Now", url: "/auth", type: "action" }]
         },
         login: {
             text: "To log in, click the 'Login' button and enter your email/username and password. You can also use Google Sign-In if you prefer.",
@@ -83,7 +83,7 @@ const processMessage = (message) => {
             text: getRandomResponse(responses.greetings),
             links: [
                 { text: "Login", url: "/", type: "action" },
-                { text: "Register", url: "/register", type: "action" },
+                { text: "Register", url: "/auth", type: "action" },
                 { text: "Learn More", url: "/", type: "action" }
             ]
         };

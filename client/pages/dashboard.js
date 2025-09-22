@@ -33,7 +33,7 @@ try {
 const Dashboard = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
-  const { projectStatuses, getProjectStatus, teams, projects, userDetails } = useGlobal();
+  const { projectStatuses, getProjectStatus, teams, projects, userDetails, formatDateWithTime } = useGlobal();
   const { showToast } = useToast();
   const router = useRouter();
   const [stats, setStats] = useState(null);
@@ -279,16 +279,6 @@ const Dashboard = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   const getTimeUntilExpiry = (expiryDate) => {
     if (!expiryDate) return 'N/A';
@@ -633,7 +623,7 @@ const Dashboard = () => {
                                 </td>
                                 <td className="py-3 px-4">
                                   <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
-                                    {formatDate(invite.invitedAt)}
+                                    {formatDateWithTime(invite.invitedAt)}
                                   </span>
                                 </td>
                                 <td className="py-3 px-4">

@@ -210,7 +210,7 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
                         Login
                       </Link>
                       <Link
-                        href="/register"
+                        href="/auth"
                         className={`inline-block px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                           theme === 'dark'
                             ? 'bg-blue-600 hover:bg-blue-700 text-white'

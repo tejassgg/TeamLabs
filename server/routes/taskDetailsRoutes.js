@@ -53,13 +53,13 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
         }
         taskData.IsActive = true;
         // taskData.CreatedBy = taskData.Assignee;
-        // Ensure FinishDate for user stories to satisfy schema requirement
+        // Ensure DueDate for user stories to satisfy schema requirement
         if (taskData.Type === 'User Story') {
-            if (!taskData.FinishDate) {
+            if (!taskData.DueDate) {
                 const base = taskData.CreatedDate || new Date();
-                taskData.FinishDate = new Date(base.getTime() + 7 * 24 * 60 * 60 * 1000);
+                taskData.DueDate = new Date(base.getTime() + 7 * 24 * 60 * 60 * 1000);
             } else {
-                taskData.FinishDate = new Date(taskData.FinishDate);
+                taskData.DueDate = new Date(taskData.DueDate);
             }
         }
 
@@ -1055,13 +1055,13 @@ router.patch('/:taskId', async (req, res) => {
         if (updateData.Priority !== undefined) task.Priority = updateData.Priority;
         if (updateData.ParentID !== undefined) task.ParentID = updateData.ParentID;
         if (updateData.IsActive !== undefined) task.IsActive = updateData.IsActive;
-        if (updateData.FinishDate !== undefined) task.FinishDate = updateData.FinishDate ? new Date(updateData.FinishDate) : null;
+        if (updateData.DueDate !== undefined) task.DueDate = updateData.DueDate ? new Date(updateData.DueDate) : null;
 
-        // Ensure FinishDate present for user stories to satisfy schema requirement
-        if (task.Type === 'User Story' && !task.FinishDate) {
+        // Ensure DueDate present for user stories to satisfy schema requirement
+        if (task.Type === 'User Story' && !task.DueDate) {
             const base = task.CreatedDate ? new Date(task.CreatedDate) : new Date();
             const fallback = new Date(base.getTime() + 7 * 24 * 60 * 60 * 1000);
-            task.FinishDate = fallback;
+            task.DueDate = fallback;
         }
 
         await task.save();

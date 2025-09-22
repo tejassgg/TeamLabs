@@ -15,7 +15,7 @@ const BillingTab = dynamic(() => import('../components/settings/BillingTab'), { 
 const IntegrationsTab = dynamic(() => import('../components/settings/IntegrationsTab'), { ssr: false });
 
 const Settings = () => {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const { logout, user } = useAuth();
 
   // Helper function to get theme-aware classes
@@ -397,7 +397,7 @@ const Settings = () => {
                   }`}>
                   <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                     Current theme: <span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                      {resolvedTheme.charAt(0).toUpperCase() + resolvedTheme.slice(1)}
+                      {theme.charAt(0).toUpperCase() + theme.slice(1)}
                     </span>
                   </p>
                   <p className={`mt-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>

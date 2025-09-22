@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 
-const Modal = ({ isOpen, onClose, children, title }) => {
+const Modal = ({ isOpen, onClose, children, title, maxWidth = 'max-w-md' }) => {
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -19,7 +19,7 @@ const Modal = ({ isOpen, onClose, children, title }) => {
 
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ${theme === 'dark' ? 'bg-black bg-opacity-60' : 'bg-black bg-opacity-40'}`}>
-      <div className={`rounded-xl shadow-lg p-6 relative w-full max-w-md mx-4 animate-fadeIn transition-colors duration-300 ${theme === 'dark' ? 'bg-[#232323] text-white' : 'bg-white text-gray-900'}`}>
+      <div className={`rounded-xl shadow-lg p-6 relative w-full ${maxWidth} mx-4 animate-fadeIn transition-colors duration-300 ${theme === 'dark' ? 'bg-[#232323] text-white' : 'bg-white text-gray-900'}`}>
         {/* Header with centered title and close button */}
         <div className="mb-4">
           {title ? (

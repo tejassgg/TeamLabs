@@ -2,12 +2,11 @@ import { useRouter } from 'next/router';
 import { FaFolder, FaCalendarAlt, FaChevronRight, FaGithub, FaClock, FaUsers, FaClipboardList, FaChartLine } from 'react-icons/fa';
 import { getProjectStatusStyle } from './ProjectStatusBadge';
 import { getDeadlineStatus, calculateDeadlineText } from '../shared/DeadlineStatusBadge';
+import { useGlobal } from '../../context/GlobalContext';
 
 const ProjectCard = ({ project, theme }) => {
   const router = useRouter();
-  const getThemeClasses = (lightClass, darkClass) => {
-    return theme === 'dark' ? darkClass : lightClass;
-  };
+  const { getThemeClasses, getInitials, getAvatarColor } = useGlobal();
 
   const handleCardClick = () => {
     router.push(`/project/${project.ProjectID || project._id}`);
@@ -40,31 +39,9 @@ const ProjectCard = ({ project, theme }) => {
     return colorMap[status] || 'bg-gray-500';
   };
 
-  // Helper function to get initials from first and last name
-  const getInitials = (firstName, lastName) => {
-    const first = firstName ? firstName.charAt(0).toUpperCase() : '';
-    const last = lastName ? lastName.charAt(0).toUpperCase() : '';
-    return first + last;
-  };
-
-  // Helper function to get avatar color based on name
-  const getAvatarColor = (name) => {
-    const colors = [
-      'bg-red-500',
-      'bg-blue-500',
-      'bg-green-500',
-      'bg-yellow-500',
-      'bg-purple-500',
-      'bg-pink-500',
-      'bg-indigo-500',
-      'bg-teal-500'
-    ];
-    const index = name.length % colors.length;
-    return colors[index];
-  };
 
   // Calculate deadline text using system logic
-  const deadlineText = calculateDeadlineText(project.FinishDate);
+  const deadlineText = calculateDeadlineText(project.DueDate);
 
   // Get team type text based on TeamType
   const getTeamTypeText = (teamType) => {

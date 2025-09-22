@@ -4,44 +4,27 @@ const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState('light');
-  const [resolvedTheme, setResolvedTheme] = useState('light');
 
   // On mount, load theme from localStorage
   useEffect(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('theme') : null;
-    if (stored) setTheme(stored);
-  }, []);
-
-  // Listen for system theme changes if 'system' is selected
-  useEffect(() => {
-    const getSystemTheme = () => {
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark';
-      }
-      return 'light';
-    };
-    if (theme === 'system') {
-      setResolvedTheme(getSystemTheme());
-      const listener = (e) => setResolvedTheme(e.matches ? 'dark' : 'light');
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', listener);
-      return () => window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', listener);
-    } else {
-      setResolvedTheme(theme);
+    if (stored && (stored === 'light' || stored === 'dark')) {
+      setTheme(stored);
     }
-  }, [theme]);
+  }, []);
 
   // Apply theme to document and save to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('theme', theme);
-      document.documentElement.className = resolvedTheme;
+      document.documentElement.className = theme;
     }
-  }, [resolvedTheme, theme]);
+  }, [theme]);
 
-  const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : t === 'dark' ? 'system' : 'light'));
+  const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'));
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

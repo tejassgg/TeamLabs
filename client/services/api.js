@@ -175,6 +175,16 @@ export const authService = {
     }
   },
 
+  getMyTasksData: async () => {
+    try {
+      const response = await api.get('/auth/my-tasks-data');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching my tasks data:', error);
+      throw error.response?.data || { message: 'Failed to fetch user tasks data' };
+    }
+  },
+
   getUserOrganizations: async () => {
     try {
       const response = await api.get('/auth/organizations');

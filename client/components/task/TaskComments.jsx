@@ -2,8 +2,10 @@ import { useEffect, useState, useRef } from 'react';
 import { FaTrash, FaEdit, FaCheck, FaTimes, FaUserCircle, FaReply, FaPaperPlane, FaAt } from 'react-icons/fa';
 import { commentService } from '../../services/api';
 import { useThemeClasses } from '../kanban/kanbanUtils';
+import { useGlobal } from '../../context/GlobalContext';
 
 const TaskComments = ({ taskId, userId, userName, initialComments, projectMembers = [] }) => {
+  const { formatTimeAgo } = useGlobal();
   const [comments, setComments] = useState(initialComments || []);
   const [newComment, setNewComment] = useState('');
   const [editingId, setEditingId] = useState(null);
@@ -72,22 +74,6 @@ const TaskComments = ({ taskId, userId, userName, initialComments, projectMember
     fetchComments();
   };
 
-  const formatTimeAgo = (date) => {
-    const now = new Date();
-    const commentDate = new Date(date);
-    const diffInMinutes = Math.floor((now - commentDate) / (1000 * 60));
-
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays}d ago`;
-
-    return commentDate.toLocaleDateString();
-  };
 
   const handleCommentChange = (e) => {
     const value = e.target.value;

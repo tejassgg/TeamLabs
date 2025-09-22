@@ -21,29 +21,12 @@ const TeamDetailsPage = () => {
   const router = useRouter();
   const { user } = useAuth();
   const { teamId } = router.query;
-  const { teams, setTeams, getProjectStatusBadgeComponent, getProjectStatusStyle, getProjectStatus } = useGlobal();
+  const { teams, setTeams, getProjectStatusBadgeComponent, getProjectStatusStyle, getProjectStatus, getDaysBadgeColor } = useGlobal();
   const { theme } = useTheme();
   const getThemeClasses = useThemeClasses();
   const { showToast } = useToast();
   const { formatDateWithTime, calculateMeetingDays } = require('../../utils/dateUtils');
 
-  // Helper function for meeting days badge colors
-  const getDaysBadgeColor = (status) => {
-    switch (status) {
-      case 'today':
-        return 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200';
-      case 'tomorrow':
-        return 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-green-200';
-      case 'upcoming':
-        return 'bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-700 border-yellow-200';
-      case 'yesterday':
-        return 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-gray-200';
-      case 'past':
-        return 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-red-200';
-      default:
-        return 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-gray-200';
-    }
-  };
 
   const formatForDatetimeLocal = (dateInput) => {
     if (!dateInput) return '';
@@ -1778,7 +1761,7 @@ const TeamDetailsPage = () => {
                                 'py-3 px-4 text-gray-600',
                                 'dark:text-gray-400'
                               )}>
-                                {proj.FinishDate ? new Date(proj.FinishDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
+                                {proj.DueDate ? new Date(proj.DueDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
                               </td>
                               <td className="py-3 px-4 text-center">
                                 {getProjectStatusBadgeComponent(proj.ProjectStatusID)}

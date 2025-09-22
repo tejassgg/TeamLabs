@@ -10,12 +10,9 @@ import { useState } from 'react';
 const TeamCard = ({ team, theme, onRequestSent }) => {
   const router = useRouter();
   const { showToast } = useToast();
-  const { userDetails } = useGlobal();
+  const { userDetails, getInitials, getAvatarColor, getThemeClasses } = useGlobal();
   const [isRequesting, setIsRequesting] = useState(false);
   
-  const getThemeClasses = (lightClass, darkClass) => {
-    return theme === 'dark' ? darkClass : lightClass;
-  };
 
   const handleCardClick = () => {
     router.push(`/team/${team.TeamID}`);
@@ -91,22 +88,6 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
     return statusMap[statusId] || 'Unknown';
   };
 
-  // Generate initials from name
-  const getInitials = (firstName, lastName) => {
-    const first = firstName ? firstName.charAt(0).toUpperCase() : '';
-    const last = lastName ? lastName.charAt(0).toUpperCase() : '';
-    return first + last;
-  };
-
-  // Generate random color for avatar
-  const getAvatarColor = (name) => {
-    const colors = [
-      'bg-blue-400', 'bg-green-400', 'bg-purple-400', 'bg-pink-400',
-      'bg-indigo-400', 'bg-yellow-400', 'bg-red-400', 'bg-teal-400'
-    ];
-    const index = name.length % colors.length;
-    return colors[index];
-  };
 
   return (
     <div

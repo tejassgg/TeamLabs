@@ -9,8 +9,8 @@ const IncomingCallScreen = ({
   onDecline, 
   onClose 
 }) => {
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === 'dark';
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [ringStartTime, setRingStartTime] = useState(null);
   const autoDeclinedRef = useRef(false);
 

@@ -10,7 +10,7 @@ import ProjectsSkeleton from '../components/skeletons/ProjectsSkeleton';
 import { useToast } from '../context/ToastContext';
 
 const ProjectsPage = () => {
-  const { setProjects, userDetails } = useGlobal();
+  const { setProjects, userDetails, getThemeClasses } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
   const router = useRouter();
@@ -68,9 +68,6 @@ const ProjectsPage = () => {
     }
   };
 
-  const getThemeClasses = (lightClass, darkClass) => {
-    return theme === 'dark' ? darkClass : lightClass;
-  };
 
   useEffect(() => {
     if (userDetails?._id) {

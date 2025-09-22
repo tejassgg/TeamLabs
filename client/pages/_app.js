@@ -18,10 +18,10 @@ function AppContainer({ Component, pageProps }) {
   }, []);
   const { theme } = useTheme();
   
-  // Check if current page is login, register, or landing page
-  const isAuthPage = Component.displayName === 'Login' || Component.displayName === 'Register' || Component.displayName === 'Home' || 
+  // Check if current page is auth-related or landing page
+  const isAuthPage = Component.displayName === 'Login' || Component.displayName === 'Register' || Component.displayName === 'Auth' || Component.displayName === 'Home' || 
                     pageProps?.isAuthPage || 
-                    (typeof window !== 'undefined' && ['/register', '/'].includes(window.location.pathname));
+                    (typeof window !== 'undefined' && ['/auth', '/'].includes(window.location.pathname));
   
   return (
     <>

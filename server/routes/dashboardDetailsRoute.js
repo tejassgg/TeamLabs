@@ -62,9 +62,9 @@ router.get('/:organizationId', async (req, res) => {
     const now = new Date();
     
     const upcomingDeadlines = projects.filter(project => {
-      if (!project.FinishDate) return false;
-      const finish = new Date(project.FinishDate);
-      const diff = finish - now;
+      if (!project.DueDate) return false;
+      const due = new Date(project.DueDate);
+      const diff = due - now;
       return diff > 0; // Only include projects that haven't passed their deadline
     });
 
@@ -151,7 +151,7 @@ router.get('/:organizationId', async (req, res) => {
       recentProjects: projects.slice(0, 5).map(project => ({
         id: project.ProjectID,
         name: project.Name,
-        deadline: project.FinishDate,
+        deadline: project.DueDate,
         isActive: project.IsActive,
         projectStatusId: project.ProjectStatusID,
         projectStatus: projStatus.find(item => item.Code === project.ProjectStatusID)?.Value || 'Unknown Status',
@@ -163,13 +163,13 @@ router.get('/:organizationId', async (req, res) => {
         memberCount: team.members?.length || 0
       })),
       deadlineDetails: upcomingDeadlines.map(project => {
-        const finish = new Date(project.FinishDate);
-        const diff = finish - now;
+        const due = new Date(project.DueDate);
+        const diff = due - now;
         const daysRemaining = Math.floor(diff / (1000 * 60 * 60 * 24));
         return {
           id: project._id,
           name: project.Name,
-          deadline: project.FinishDate,
+          deadline: project.DueDate,
           daysRemaining: daysRemaining
         };
       }),

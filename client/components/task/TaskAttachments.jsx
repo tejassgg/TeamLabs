@@ -4,6 +4,7 @@ import { FaPaperclip, FaTimes, FaDownload, FaFile, FaFileImage, FaFilePdf, FaFil
 import { attachmentService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { useThemeClasses } from '../kanban/kanbanUtils';
+import { useGlobal } from '../../context/GlobalContext';
 import { subscribe } from '../../services/socket';
 
 const TaskAttachments = ({ taskId, userId, initialAttachments }) => {
@@ -13,6 +14,26 @@ const TaskAttachments = ({ taskId, userId, initialAttachments }) => {
   const fileInputRef = useRef();
   const { showToast } = useToast();
   const getThemeClasses = useThemeClasses();
+  const { formatFileSize, getFileIconType, formatTimeAgo } = useGlobal();
+
+  // Helper function to get file icon JSX based on type
+  const getFileIcon = (filename) => {
+    const iconType = getFileIconType(filename);
+    switch (iconType) {
+      case 'image':
+        return <FaFileImage className="text-blue-500" />;
+      case 'pdf':
+        return <FaFilePdf className="text-red-500" />;
+      case 'word':
+        return <FaFileWord className="text-blue-600" />;
+      case 'excel':
+        return <FaFileExcel className="text-green-600" />;
+      case 'code':
+        return <FaFileCode className="text-purple-500" />;
+      default:
+        return <FaFile className="text-gray-500" />;
+    }
+  };
 
   useEffect(() => {
     if (initialAttachments) {
@@ -52,59 +73,7 @@ const TaskAttachments = ({ taskId, userId, initialAttachments }) => {
     }
   };
 
-  const getFileIcon = (filename) => {
-    const extension = filename.split('.').pop()?.toLowerCase();
-    switch (extension) {
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-      case 'gif':
-      case 'bmp':
-      case 'svg':
-        return <FaFileImage className="text-blue-500" />;
-      case 'pdf':
-        return <FaFilePdf className="text-red-500" />;
-      case 'doc':
-      case 'docx':
-        return <FaFileWord className="text-blue-600" />;
-      case 'xls':
-      case 'xlsx':
-        return <FaFileExcel className="text-green-600" />;
-      case 'js':
-      case 'jsx':
-      case 'ts':
-      case 'tsx':
-      case 'html':
-      case 'css':
-      case 'json':
-      case 'xml':
-        return <FaFileCode className="text-purple-500" />;
-      default:
-        return <FaFile className="text-gray-500" />;
-    }
-  };
 
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(0)) + ' ' + sizes[i];
-  };
-
-  const formatTimeAgo = (date) => {
-    if (!date) return '';
-    const now = new Date();
-    const fileDate = new Date(date);
-    const diffInMinutes = Math.floor((now - fileDate) / (1000 * 60));
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays}d ago`;
-    return fileDate.toLocaleDateString();
-  };
 
   const validateFileType = (file) => {
     const allowedTypes = [

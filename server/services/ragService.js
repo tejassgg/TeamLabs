@@ -145,7 +145,7 @@ class RAGService {
           Project Owner: ${document.ProjectOwner}
           Status: ${document.ProjectStatusID}
           Created Date: ${document.CreatedDate}
-          Finish Date: ${document.FinishDate || 'Not set'}
+          Due Date: ${document.DueDate || 'Not set'}
           Organization ID: ${document.OrganizationID}
           ${document.githubRepository?.connected ? `
           GitHub Repository: ${document.githubRepository.repositoryName}
@@ -169,7 +169,7 @@ class RAGService {
           Project ID: ${document.ProjectID_FK}
           Created Date: ${document.CreatedDate}
           Assigned Date: ${document.AssignedDate || 'Not assigned'}
-          Finish Date: ${document.FinishDate || 'Not set'}
+          Due Date: ${document.DueDate || 'Not set'}
           Created By: ${document.CreatedBy}
           Modified By: ${document.ModifiedBy || 'Not modified'}
         `.trim();

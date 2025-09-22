@@ -509,7 +509,7 @@ class KnowledgeBaseSyncService {
           Owner: ${document.ProjectOwner || 'Unknown'}
           Organization ID: ${document.OrganizationID}
           Created Date: ${document.CreatedDate}
-          Finish Date: ${document.FinishDate || 'Not set'}
+          Due Date: ${document.DueDate || 'Not set'}
           GitHub Repository: ${document.githubRepository?.repositoryFullName || 'Not connected'}
         `.trim();
         break;

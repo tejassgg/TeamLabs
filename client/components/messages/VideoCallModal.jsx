@@ -18,9 +18,9 @@ const VideoCallModal = ({
   autoAnswer = false,
   initialAction = null
 }) => {
-  const { resolvedTheme } = useTheme();
+  const { theme } = useTheme();
   const { ringDuration } = useVideoCall();
-  const isDark = resolvedTheme === 'dark';
+  const isDark = theme === 'dark';
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);

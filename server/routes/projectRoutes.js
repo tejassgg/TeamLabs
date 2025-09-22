@@ -140,7 +140,7 @@ router.get('/:userId', async (req, res) => {
 // POST /api/projects - add a new project
 router.post('/', checkProjectLimit, async (req, res) => {
   try {
-    const { Name, Description, ProjectOwner, OrganizationID, FinishDate } = req.body;
+    const { Name, Description, ProjectOwner, OrganizationID, DueDate } = req.body;
     if (!Name) return res.status(400).json({ error: 'Project Name is required' });
     if (!OrganizationID) return res.status(400).json({ error: 'OrganisationID is required' });
     if (!ProjectOwner) return res.status(401).json({ error: 'Unauthorized: ProjectOwner not found' });
@@ -150,7 +150,7 @@ router.post('/', checkProjectLimit, async (req, res) => {
       Description,
       ProjectOwner,
       OrganizationID,
-      FinishDate: new Date(FinishDate),
+      DueDate: new Date(DueDate),
       IsActive: true,
       ProjectStatusID: 1
     });
@@ -170,7 +170,7 @@ router.post('/', checkProjectLimit, async (req, res) => {
         projectId: newProject.ProjectID,
         projectName: Name,
         organizationId: OrganizationID,
-        finishDate: FinishDate
+        dueDate: DueDate
       }
     );
 
@@ -201,7 +201,7 @@ router.post('/', checkProjectLimit, async (req, res) => {
 // PATCH /api/projects/:projectId - update project info
 router.patch('/:projectId', async (req, res) => {
   try {
-    const { Name, Description, FinishDate, ProjectStatusID } = req.body;
+    const { Name, Description, DueDate, ProjectStatusID } = req.body;
 
     // Try to find project by _id first, then by ProjectID
     let project = await Project.findOne({ ProjectID: req.params.projectId });
@@ -210,13 +210,13 @@ router.patch('/:projectId', async (req, res) => {
     const oldValues = {
       name: project.Name,
       description: project.Description,
-      finishDate: project.FinishDate,
+      dueDate: project.DueDate,
       statusId: project.ProjectStatusID
     };
 
     if (Name) project.Name = Name;
     if (Description !== undefined) project.Description = Description;
-    if (FinishDate !== undefined) project.FinishDate = FinishDate ? new Date(FinishDate) : null;
+    if (DueDate !== undefined) project.DueDate = DueDate ? new Date(DueDate) : null;
     if (ProjectStatusID !== undefined) project.ProjectStatusID = ProjectStatusID;
     project.ModifiedDate = new Date();
     await project.save();
@@ -235,7 +235,7 @@ router.patch('/:projectId', async (req, res) => {
         newValues: {
           name: project.Name,
           description: project.Description,
-          finishDate: project.FinishDate,
+          dueDate: project.DueDate,
           statusId: project.ProjectStatusID
         }
       }

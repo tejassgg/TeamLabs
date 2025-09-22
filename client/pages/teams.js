@@ -10,7 +10,7 @@ import TeamsSkeleton from '../components/skeletons/TeamsSkeleton';
 import { useToast } from '../context/ToastContext';
 
 const TeamsPage = () => {
-  const { setTeams, userDetails } = useGlobal();
+  const { setTeams, userDetails, getThemeClasses } = useGlobal();
   const router = useRouter();
   const { theme } = useTheme();
   const { showToast } = useToast();
@@ -73,9 +73,6 @@ const TeamsPage = () => {
     await fetchTeamsWithStats(false);
   };
 
-  const getThemeClasses = (lightClass, darkClass) => {
-    return theme === 'dark' ? darkClass : lightClass;
-  };
 
   useEffect(() => {
     if (userDetails?._id) {

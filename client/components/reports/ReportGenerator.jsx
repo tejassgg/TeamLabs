@@ -115,6 +115,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
     try {
       const response = await reportService.getReport(reportId);
       if (response.success) {
+        console.log(response.report);
         setGeneratedReport(response.report);
         setActiveTab('generate'); // Switch to generate tab to show the report
       } else {
@@ -136,18 +137,18 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
       const response = await reportService.deleteReport(reportId);
       if (response.success) {
         showToast('Report deleted successfully!', 'success');
-        
+
         // Remove the deleted report from local state instead of refetching
-        setExistingReports(prevReports => 
+        setExistingReports(prevReports =>
           prevReports.filter(report => report.reportId !== reportId)
         );
-        
+
         // Update subscription info if needed (decrease current count)
         setSubscriptionInfo(prevInfo => ({
           ...prevInfo,
           currentCount: Math.max(0, prevInfo.currentCount - 1)
         }));
-        
+
         // If we're viewing the deleted report, clear it
         if (generatedReport && generatedReport.reportId === reportId) {
           setGeneratedReport(null);
@@ -282,7 +283,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
       <div className={`${theme === 'dark'
         ? 'bg-gray-900 border border-gray-700 shadow-2xl'
         : 'bg-white border border-gray-200 shadow-2xl'
-        } rounded-2xl max-w-5xl w-full mx-4 h-[90vh] overflow-hidden transition-all duration-300`}>
+        } rounded-2xl max-w-7xl w-full mx-4 h-[90vh] overflow-hidden transition-all duration-300`}>
         {/* Header */}
         <div className={`p-6 ${theme === 'dark'
           ? 'bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700'
@@ -290,23 +291,14 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
           } transition-all duration-300`}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-start space-x-4">
-              <div className={`p-3 rounded-xl ${theme === 'dark'
-                ? 'bg-blue-500/20 text-blue-400'
-                : 'bg-blue-100 text-blue-600'
-                } transition-all duration-300`}>
+              <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600' } transition-all duration-300`}>
                 <FaFileAlt className="text-xl" />
               </div>
               <div>
-                <h2 className={`text-2xl font-bold ${theme === 'dark'
-                  ? 'text-white'
-                  : 'text-gray-900'
-                  } transition-colors duration-300`}>
+                <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900' } transition-colors duration-300`}>
                   Progress Reports
                 </h2>
-                <p className={`text-sm ${theme === 'dark'
-                  ? 'text-gray-400'
-                  : 'text-gray-600'
-                  } transition-colors duration-300`}>
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600' } transition-colors duration-300`}>
                   {projectName}
                 </p>
                 <div className="flex items-center space-x-2 mt-1">
@@ -956,7 +948,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                         } transition-colors duration-300`}>
                         <span>All project tasks</span>
                         <div className="relative group">
-                          <FaInfoCircle className={`text-xs ${theme === 'dark' ? 'text-blue-300' : 'text-blue-500'} cursor-help`} />
+                          <FaInfoCircle className={`text-sm sm:text-base ${theme === 'dark' ? 'text-blue-300' : 'text-blue-500'} cursor-help`} />
                           <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-gray-900 text-white border border-gray-600'}`}>
                             Total number of tasks created for this project
                             <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${theme === 'dark' ? 'border-t-gray-800' : 'border-t-gray-900'}`}></div>
@@ -992,7 +984,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                         } transition-colors duration-300`}>
                         <span>Finished tasks</span>
                         <div className="relative group">
-                          <FaInfoCircle className={`text-xs ${theme === 'dark' ? 'text-green-300' : 'text-green-500'} cursor-help`} />
+                          <FaInfoCircle className={`text-sm sm:text-base ${theme === 'dark' ? 'text-green-300' : 'text-green-500'} cursor-help`} />
                           <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-gray-900 text-white border border-gray-600'}`}>
                             Number of tasks that have been completed
                             <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${theme === 'dark' ? 'border-t-gray-800' : 'border-t-gray-900'}`}></div>
@@ -1028,7 +1020,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                         } transition-colors duration-300`}>
                         <span>Progress percentage</span>
                         <div className="relative group">
-                          <FaInfoCircle className={`text-xs ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-500'} cursor-help`} />
+                          <FaInfoCircle className={`text-sm sm:text-base ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-500'} cursor-help`} />
                           <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-gray-900 text-white border border-gray-600'}`}>
                             Percentage of tasks completed out of total tasks
                             <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${theme === 'dark' ? 'border-t-gray-800' : 'border-t-gray-900'}`}></div>
@@ -1058,10 +1050,10 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                           <div className="text-xs sm:text-sm font-medium">Health Score</div>
                         </div>
                       </div>
-                      <div className={`flex items-center justify-between text-xs mt-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600' } transition-colors duration-300`}>
+                      <div className={`flex items-center justify-between text-xs mt-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} transition-colors duration-300`}>
                         <span>Overall project health</span>
                         <div className="relative group">
-                          <FaInfoCircle className={`text-xs ${theme === 'dark' ? 'text-purple-300' : 'text-purple-500'} cursor-help`} />
+                          <FaInfoCircle className={`text-sm sm:text-base ${theme === 'dark' ? 'text-purple-300' : 'text-purple-500'} cursor-help`} />
                           <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-gray-900 text-white border border-gray-600'}`}>
                             Overall project health based on completion rate, deadlines, and team utilization
                             <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${theme === 'dark' ? 'border-t-gray-800' : 'border-t-gray-900'}`}></div>
@@ -1083,7 +1075,6 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                       <div className={`text-sm sm:text-base leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} transition-colors duration-300`}>
                         {generatedReport.content.rawContent.split('\n').map((line, index) => {
                           const trimmedLine = line.trim();
-
                           // // Skip empty lines
                           // if (!trimmedLine) {
                           //   return <br key={index} />;
@@ -1099,18 +1090,20 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                           }
 
                           // Project title (all caps)
-                          if (trimmedLine.startsWith('PROJECT NAME:') || trimmedLine.startsWith('REPORTING PERIOD:') || trimmedLine.startsWith('REPORT DATE:')) {
+                          if (trimmedLine.startsWith('PROJECT:') || trimmedLine.startsWith('REPORTING PERIOD:') || trimmedLine.startsWith('REPORT DATE:') || trimmedLine.startsWith('DATE GENERATED:')) {
                             return (
                               <div className='flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2'>
                                 <div key={index} className={`text-xs sm:text-sm font-semibold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
-                                  {trimmedLine.split(':')[0].trim()}:
+                                  {console.log(trimmedLine.split(':')[0].trim())} {trimmedLine.split(':')[0].trim()}:
                                 </div>
                                 <div key={index} className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
                                   {trimmedLine.startsWith('REPORTING PERIOD:') ? (
                                     <div className='flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2'>
-                                      <span>{new Date(trimmedLine.split(':')[1].split('TO')[0].trim()).toLocaleDateString()}</span>
-                                      <FaArrowRight className="hidden sm:block" />
-                                      <span>{new Date(trimmedLine.split(':')[1].split('TO')[1].trim()).toLocaleDateString()}</span>
+                                      <span>{trimmedLine.split(':')[1].trim()}</span>
+                                    </div>
+                                  ) : trimmedLine.startsWith('DATE GENERATED:') ? (
+                                    <div className='flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2'>
+                                      <span>{new Date(generatedReport.generatedAt).toLocaleDateString()}</span>
                                     </div>
                                   ) : (
                                     <div className="break-words">
@@ -1269,7 +1262,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                                 {report.reportType.charAt(0).toUpperCase() + report.reportType.slice(1)} Report
                               </h4>
                             </div>
-                            <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full mt-1 ${report.status === 'completed'
+                            <span className={` float-left inline-block px-3 py-1 text-xs font-medium rounded-full mt-1 ${report.status === 'completed'
                               ? theme === 'dark'
                                 ? 'bg-green-900/30 text-green-400 border border-green-800'
                                 : 'bg-green-100 text-green-800 border border-green-200'
@@ -1280,10 +1273,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                               {report.status}
                             </span>
                           </div>
-                          <div className={`text-xs sm:text-sm space-y-2 ${theme === 'dark'
-                            ? 'text-gray-400'
-                            : 'text-gray-600'
-                            } transition-colors duration-300`}>
+                          <div className={`text-xs sm:text-sm space-y-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600' } transition-colors duration-300`}>
                             <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 space-y-1 sm:space-y-0">
                               <span className="flex items-center space-x-2">
                                 <FaClock className="text-xs flex-shrink-0" />

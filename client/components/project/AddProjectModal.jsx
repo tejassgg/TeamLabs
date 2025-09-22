@@ -7,7 +7,7 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
   const { theme } = useTheme();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [finishDate, setFinishDate] = useState('');
+  const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -42,14 +42,14 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
       await onAddProject({
         Name: name.trim(),
         Description: description.trim(),
-        FinishDate: finishDate ? new Date(finishDate) : null,
+        DueDate: dueDate ? new Date(dueDate) : null,
         ProjectOwner: projectOwner,
         OrganizationID: organizationId,
         IsActive: false
       });
       setName('');
       setDescription('');
-      setFinishDate('');
+      setDueDate('');
       setError('');
       handleClose();
     } catch (error) {
@@ -159,13 +159,13 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
                 'text-sm font-medium text-gray-700',
                 'text-sm font-medium text-gray-300'
               )}>
-                Finish Date
+                Due Date
               </label>
             </div>
             <input
               type="date"
-              value={finishDate}
-              onChange={e => setFinishDate(e.target.value)}
+              value={dueDate}
+              onChange={e => setDueDate(e.target.value)}
               className={getThemeClasses(
                 'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
                 'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'

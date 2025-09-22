@@ -492,7 +492,7 @@ const ProfileStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selected
         <h2 className="text-2xl font-bold mb-2">{step.title}</h2>
         <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
       </div>
-      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Profile Information</h3>
           {profileCompleted && (
@@ -627,7 +627,7 @@ const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, sel
         </p>
       </div>
 
-      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Organization Details</h3>
           {setupProgress.organizationComplete && (
@@ -978,7 +978,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
         <h2 className="text-2xl font-bold mb-2">Join an Existing Team or Create Your Own</h2>
         <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
       </div>
-      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}> 
+      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}> 
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Team Selection</h3>
           {setupProgress.teamCreated && (
@@ -1321,7 +1321,7 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip }) => {
         <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
       </div>
       
-      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}> 
+      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}> 
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-semibold">Create Your First Project</h3>
           {(setupProgress.projectCreated || projectCreated) && (
@@ -1436,14 +1436,14 @@ const CompleteStep = ({ step, onComplete, onPrevious, loading }) => {
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+        <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
           <FaHome className="text-blue-500 mx-auto mb-2" size={24} />
           <h3 className="font-semibold mb-2">Dashboard</h3>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
             View your workspace overview
           </p>
         </div>
-        <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+        <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
           <FaLightbulb className="text-yellow-500 mx-auto mb-2" size={24} />
           <h3 className="font-semibold mb-2">Tips & Tricks</h3>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>

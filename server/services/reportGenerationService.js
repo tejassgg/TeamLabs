@@ -133,7 +133,7 @@ class ReportGenerationService {
         $or: [
           { CreatedDate: { $gte: new Date(startDate), $lte: new Date(endDate) } },
           { ModifiedDate: { $gte: new Date(startDate), $lte: new Date(endDate) } },
-          { FinishDate: { $gte: new Date(startDate), $lte: new Date(endDate) } }
+          { DueDate: { $gte: new Date(startDate), $lte: new Date(endDate) } }
         ]
       }).sort({ CreatedDate: -1 });
 
@@ -169,7 +169,7 @@ class ReportGenerationService {
           description: project.Description,
           status: project.ProjectStatusID,
           ownerName: projectOwnerName,
-          finishDate: project.FinishDate,
+          dueDate: project.DueDate,
           createdAt: project.CreatedDate,
           organizationID: project.OrganizationID
         },
@@ -183,7 +183,7 @@ class ReportGenerationService {
           assignee: task.Assignee,
           createdDate: task.CreatedDate,
           assignedDate: task.AssignedDate,
-          finishDate: task.FinishDate,
+          dueDate: task.DueDate,
           modifiedDate: task.ModifiedDate
         })),
         teamMembers: teamMembers.map(member => ({
@@ -224,8 +224,8 @@ class ReportGenerationService {
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter(task => task.Status === 6).length;
     const overdueTasks = tasks.filter(task =>
-      task.FinishDate &&
-      new Date(task.FinishDate) < new Date() &&
+      task.DueDate &&
+      new Date(task.DueDate) < new Date() &&
       task.Status !== 6
     ).length;
 
@@ -233,8 +233,8 @@ class ReportGenerationService {
 
     // Calculate average completion time
     const completedTaskTimes = tasks
-      .filter(task => task.Status === 6 && task.AssignedDate && task.FinishDate)
-      .map(task => new Date(task.FinishDate) - new Date(task.AssignedDate));
+      .filter(task => task.Status === 6 && task.AssignedDate && task.DueDate)
+      .map(task => new Date(task.DueDate) - new Date(task.AssignedDate));
 
     const averageCompletionTime = completedTaskTimes.length > 0
       ? completedTaskTimes.reduce((sum, time) => sum + time, 0) / completedTaskTimes.length
@@ -273,8 +273,8 @@ class ReportGenerationService {
 
     // Deduct points for overdue tasks
     const overdueTasks = tasks.filter(task =>
-      task.FinishDate &&
-      new Date(task.FinishDate) < new Date() &&
+      task.DueDate &&
+      new Date(task.DueDate) < new Date() &&
       task.Status !== 6
     ).length;
 
@@ -289,8 +289,8 @@ class ReportGenerationService {
     }
 
     // Deduct points for approaching deadline
-    if (project.FinishDate) {
-      const daysUntilDeadline = (new Date(project.FinishDate) - new Date()) / (1000 * 60 * 60 * 24);
+    if (project.DueDate) {
+      const daysUntilDeadline = (new Date(project.DueDate) - new Date()) / (1000 * 60 * 60 * 24);
       if (daysUntilDeadline < 7) {
         score -= 20;
       } else if (daysUntilDeadline < 30) {
@@ -348,8 +348,8 @@ class ReportGenerationService {
 
     // High risk: Many overdue tasks
     const overdueTasks = tasks.filter(task =>
-      task.FinishDate &&
-      new Date(task.FinishDate) < new Date() &&
+      task.DueDate &&
+      new Date(task.DueDate) < new Date() &&
       task.Status !== 6
     );
 
@@ -358,8 +358,8 @@ class ReportGenerationService {
     }
 
     // High risk: Approaching deadline with low completion
-    if (project.FinishDate) {
-      const daysUntilDeadline = (new Date(project.FinishDate) - new Date()) / (1000 * 60 * 60 * 24);
+    if (project.DueDate) {
+      const daysUntilDeadline = (new Date(project.DueDate) - new Date()) / (1000 * 60 * 60 * 24);
       const totalTasks = tasks.length;
       const completedTasks = tasks.filter(task => task.Status === 6).length;
       const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -530,7 +530,7 @@ PROJECT INFORMATION:
 - Description: ${projectData.project.description}
 - Status: ${projectData.project.status}
 - Owner: ${projectData.project.owner}
-- Finish Date: ${projectData.project.finishDate || 'Not set'}
+- Due Date: ${projectData.project.dueDate || 'Not set'}
 - Created: ${projectData.project.createdAt}
 
 PERIOD: ${projectData.period.startDate.toDateString()} to ${projectData.period.endDate.toDateString()}`;

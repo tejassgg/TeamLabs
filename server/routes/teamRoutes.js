@@ -79,7 +79,7 @@ router.get('/overview/:userId', async (req, res) => {
             Name: project.Name,
             Description: project.Description,
             ProjectStatusID: project.ProjectStatusID,
-            FinishDate: project.FinishDate,
+            DueDate: project.DueDate,
             IsActive: project.IsActive
           }));
 

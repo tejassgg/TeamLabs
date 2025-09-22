@@ -3,10 +3,12 @@ import { FaCalendarAlt, FaTimes, FaComment, FaPaperclip, FaChevronLeft, FaChevro
 import { getTaskTypeStyle } from '../task/TaskTypeBadge';
 import { TiAttachment } from "react-icons/ti";
 import { useTheme } from '../../context/ThemeContext';
+import { useGlobal } from '../../context/GlobalContext';
 import { getTaskTypeBadge, getPriorityBadge } from '../task/TaskTypeBadge';
 
 const GanttChart = ({ tasks = [], userStories = [], project }) => {
     const { theme } = useTheme();
+    const { formatDateUTC, getUserInitials } = useGlobal();
     const [viewMode, setViewMode] = useState('week'); // 'week', 'month', 'quarter'
     const [currentDate, setCurrentDate] = useState(new Date());
     const [currentWeekStart, setCurrentWeekStart] = useState(() => {
@@ -45,7 +47,7 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
         const allItems = [...userStories, ...tasks];
         // Calculate project start and end dates
         let projectStart = project?.CreatedDate ? new Date(project.CreatedDate) : new Date();
-        let projectEnd = project?.FinishDate ? new Date(project.FinishDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+        let projectEnd = project?.DueDate ? new Date(project.DueDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
 
         // For week view, adjust the timeline to show the current week
         if (viewMode === 'week') {
@@ -60,17 +62,17 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
         const userStoryEndById = new Map();
         for (const us of userStories) {
             const usStart = us.CreatedDate ? new Date(us.CreatedDate) : projectStart;
-            const usFinish = us.FinishDate ? new Date(us.FinishDate) : (us.AssignedDate ? new Date(us.AssignedDate) : new Date(usStart.getTime() + 7 * 24 * 60 * 60 * 1000));
+            const usFinish = us.DueDate ? new Date(us.DueDate) : (us.AssignedDate ? new Date(us.AssignedDate) : new Date(usStart.getTime() + 7 * 24 * 60 * 60 * 1000));
             userStoryEndById.set(us.TaskID || us._id, usFinish);
         }
 
         // Calculate item positions and durations
         const itemsWithTimeline = allItems.map(item => {
             const startDate = item.CreatedDate ? new Date(item.CreatedDate) : projectStart;
-            // For tasks, use their parent user story's FinishDate; for user stories, use their own FinishDate
+            // For tasks, use their parent user story's DueDate; for user stories, use their own DueDate
             let endDate;
             if (item.Type === 'User Story') {
-                endDate = userStoryEndById.get(item.TaskID || item._id) || (item.FinishDate ? new Date(item.FinishDate) : (item.AssignedDate ? new Date(item.AssignedDate) : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000)));
+                endDate = userStoryEndById.get(item.TaskID || item._id) || (item.DueDate ? new Date(item.DueDate) : (item.AssignedDate ? new Date(item.AssignedDate) : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000)));
             } else if (item.ParentID && userStoryEndById.has(item.ParentID)) {
                 endDate = new Date(userStoryEndById.get(item.ParentID));
             } else {
@@ -171,22 +173,7 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
         return <span className="mr-1.5 opacity-90 inline-flex items-center">{style.icon}</span>;
     };
 
-    // Use UTC when rendering specific dates to avoid TZ off-by-one on client
-    const formatDateUTC = (dateLike) => {
-        if (!dateLike) return '-';
-        const d = new Date(dateLike);
-        if (isNaN(d)) return '-';
-        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
-    };
 
-    // Get user initials
-    const getUserInitials = (userDetails) => {
-        if (!userDetails?.fullName) return '??';
-        const names = userDetails.fullName.split(' ');
-        const firstName = names[0] || '';
-        const lastName = names[names.length - 1] || '';
-        return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-    };
 
     return (
         <div className={`w-full ${theme === 'dark' ? 'bg-transparent' : 'bg-white'} overflow-hidden`}>

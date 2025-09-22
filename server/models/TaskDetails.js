@@ -16,11 +16,10 @@ const TaskDetailsSchema = new mongoose.Schema({
   Name: {
     type: String,
     required: true,
-    maxlength: 50
+    maxlength: 150
   },
   Description: {
-    type: String,
-    maxlength: 100
+    type: String
   },
   Status: {
     type: Number,
@@ -63,7 +62,7 @@ const TaskDetailsSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
-  FinishDate: {
+  DueDate: {
     type: Date,
     default: null,
     required: function() {

@@ -62,8 +62,8 @@ router.get('/completed-projects', async (req, res) => {
       ProjectStatusID: 6, // Completed status
       IsActive: true 
     })
-      .select('ProjectID Name Description FinishDate CreatedDate')
-      .sort({ FinishDate: -1 }) // Most recently completed first
+      .select('ProjectID Name Description DueDate CreatedDate')
+      .sort({ DueDate: -1 }) // Most recently completed first
       .limit(limit);
 
     res.json(completedProjects);
@@ -99,8 +99,8 @@ router.get('/overview', async (req, res) => {
       ProjectStatusID: 6,
       IsActive: true 
     })
-      .select('ProjectID Name Description FinishDate CreatedDate')
-      .sort({ FinishDate: -1 })
+      .select('ProjectID Name Description DueDate CreatedDate')
+      .sort({ DueDate: -1 })
       .limit(5);
 
     // Calculate completion percentage

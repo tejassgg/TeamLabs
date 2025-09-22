@@ -115,7 +115,7 @@ router.get('/:teamId', protect, ensureTeamMember, async (req, res) => {
         ProjectID: proj.ProjectID,
         Name: proj.Name,
         AssignedDate: a.CreatedDate,
-        FinishDate: proj.FinishDate,
+        DueDate: proj.DueDate,
         IsActive: proj.IsActive,
         TeamIsActive: a.IsActive,
         ProjectStatusID: proj.ProjectStatusID
@@ -469,7 +469,7 @@ router.get('/:teamId/active-projects', protect, ensureTeamMember, async (req, re
         ProjectID: proj.ProjectID,
         Name: proj.Name,
         AssignedDate: a.CreatedDate,
-        FinishDate: proj.FinishDate,
+        DueDate: proj.DueDate,
         IsActive: proj.IsActive,
         TeamIsActive: a.IsActive
       };

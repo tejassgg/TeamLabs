@@ -32,7 +32,7 @@ const ProjectSchema = new mongoose.Schema({
     type: Number,
     default: 1 // Default to 'Not Assigned'
   },
-  FinishDate: {
+  DueDate: {
     type: Date
   },
   CreatedDate: {

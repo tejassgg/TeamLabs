@@ -23,7 +23,7 @@ const TaskDetailsPage = () => {
     const router = useRouter();
     const { taskId } = router.query;
     const { theme } = useTheme();
-    const { userDetails } = useGlobal();
+    const { userDetails, formatTimeAgo } = useGlobal();
     const { showToast } = useToast();
     const getThemeClasses = useThemeClasses();
     const { user } = useAuth();
@@ -333,23 +333,6 @@ const TaskDetailsPage = () => {
         }
     };
 
-    const formatTimeAgo = (date) => {
-        if (!date) return '';
-        const now = new Date();
-        const taskDate = new Date(date);
-        const diffInMinutes = Math.floor((now - taskDate) / (1000 * 60));
-
-        if (diffInMinutes < 1) return 'Just now';
-        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-
-        const diffInHours = Math.floor(diffInMinutes / 60);
-        if (diffInHours < 24) return `${diffInHours}h ago`;
-
-        const diffInDays = Math.floor(diffInHours / 24);
-        if (diffInDays < 7) return `${diffInDays}d ago`;
-
-        return taskDate.toLocaleDateString();
-    };
 
     // Helper function to get user initials
     const getUserInitials = (fullName) => {
@@ -885,7 +868,7 @@ const TaskDetailsPage = () => {
                                             </div>
                                         </div>
                                     )}
-                                    {project.FinishDate && (
+                                    {project.DueDate && (
                                         <div>
                                             <div className={getThemeClasses(
                                                 "text-sm font-medium text-gray-500 mb-1",
@@ -895,7 +878,7 @@ const TaskDetailsPage = () => {
                                                 "text-gray-900 font-medium",
                                                 "dark:text-gray-100"
                                             )}>
-                                                {new Date(project.FinishDate).toLocaleDateString()}
+                                                {new Date(project.DueDate).toLocaleDateString()}
                                             </div>
                                         </div>
                                     )}
