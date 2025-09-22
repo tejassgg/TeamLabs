@@ -53,8 +53,8 @@ const Auth = () => {
           <div className={`absolute top-40 left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000 ${theme === 'dark' ? 'bg-pink-600' : 'bg-pink-400'}`}></div>
         </div>
 
-        <div className={`relative w-full ${showLogin ? 'max-w-2xl' : 'max-w-5xl'} px-8 z-10`}>
-          <div className={`rounded-xl overflow-hidden shadow-lg p-8 transition-all duration-700 ease-in-out transform ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className={`relative w-full ${showLogin ? 'max-w-2xl' : 'max-w-5xl'} px-4 sm:px-6 lg:px-8 z-10`}>
+          <div className={`rounded-xl overflow-hidden shadow-lg p-4 sm:p-6 lg:p-8 transition-all duration-700 ease-in-out transform ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
             <div className="relative overflow-hidden">
               <div className={`transition-all duration-500 ease-in-out transform ${
                 showLogin 

@@ -137,47 +137,44 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
       )}
 
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row mb-6 w-full">
-        {/* Left Side - Header */}
-        <div className="flex flex-col justify-center w-[70%]">
-          <div className="text-center lg:text-left">
-            <h1 className={`text-4xl md:text-5xl font-bold mb-4 w-full ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              Welcome <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Back</span>
-            </h1>
-            <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-              Sign in to your account to continue your journey
-            </p>
-            <div className="mt-4 flex flex-wrap gap-4 justify-center lg:justify-start">
-              <div className={`flex items-center px-3 py-2 rounded-lg ${theme === 'dark'
-                ? 'bg-blue-900/30 text-blue-300 border border-blue-700'
-                : 'bg-blue-100 text-blue-800 border border-blue-200'
-                }`}>
-                <span className="text-sm font-medium">✓ Secure Login</span>
-              </div>
-              <div className={`flex items-center px-3 py-2 rounded-lg ${theme === 'dark'
-                ? 'bg-green-900/30 text-green-300 border border-green-700'
-                : 'bg-green-100 text-green-800 border border-green-200'
-                }`}>
-                <span className="text-sm font-medium">✓ Quick Access</span>
-              </div>
+      <div className="mb-6 w-full">
+        <div className="text-left">
+          <h1 className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            Welcome <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Back</span>
+          </h1>
+          <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+            Sign in to your account to continue your journey
+          </p>
+          <div className="mt-3 sm:mt-4 flex flex-wrap gap-2 sm:gap-4 justify-start">
+            <div className={`flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg ${theme === 'dark'
+              ? 'bg-blue-900/30 text-blue-300 border border-blue-700'
+              : 'bg-blue-100 text-blue-800 border border-blue-200'
+              }`}>
+              <span className="text-xs sm:text-sm font-medium">✓ Secure Login</span>
+            </div>
+            <div className={`flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg ${theme === 'dark'
+              ? 'bg-green-900/30 text-green-300 border border-green-700'
+              : 'bg-green-100 text-green-800 border border-green-200'
+              }`}>
+              <span className="text-xs sm:text-sm font-medium">✓ Quick Access</span>
             </div>
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
         <div>
           <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Username or Email Address</label>
           <input
             type="text"
             placeholder="Enter your username or email"
-            className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${theme === 'dark' ? 'bg-transparent border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
+            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base ${theme === 'dark' ? 'bg-transparent border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
             {...register("usernameOrEmail", {
               required: "Username or email is required"
             })}
           />
           {errors.usernameOrEmail && (
-            <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>{errors.usernameOrEmail.message}</p>
+            <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>{errors.usernameOrEmail.message}</p>
           )}
         </div>
 
@@ -187,7 +184,7 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
-              className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${theme === 'dark' ? 'bg-transparent border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base ${theme === 'dark' ? 'bg-transparent border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
               {...register("password", {
                 required: "Password is required",
                 minLength: {
@@ -201,15 +198,15 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
               onClick={() => setShowPassword(!showPassword)}
               className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 ${theme === 'dark' ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
             >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
+              {showPassword ? <FaEyeSlash className="text-sm sm:text-base" /> : <FaEye className="text-sm sm:text-base" />}
             </button>
           </div>
           {errors.password && (
-            <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>{errors.password.message}</p>
+            <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>{errors.password.message}</p>
           )}
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -225,25 +222,25 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
             Forgot password?
           </Link>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
           <button
             type="submit"
-            className={`w-1/2 py-3 px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-lg ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 text-white hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'}`}
+            className={`w-full sm:w-1/2 py-3 px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base sm:text-lg ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 text-white hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'}`}
             disabled={isLoading}
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
 
           {/* Google Login button with overlayed real GoogleLogin */}
-          <div className="relative w-1/2">
+          <div className="relative w-full sm:w-1/2">
             <button
               type="button"
-              className={`w-full py-3 px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-lg flex items-center justify-center gap-3 ${theme === 'dark' 
+              className={`w-full py-3 px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base sm:text-lg flex items-center justify-center gap-2 sm:gap-3 ${theme === 'dark' 
                 ? 'bg-white hover:bg-gray-100 focus:ring-gray-500 border border-gray-300' 
                 : 'bg-white hover:bg-gray-50 focus:ring-gray-500 border border-gray-300'
               }`}
             >
-              <FcGoogle className="text-lg" />
+              <FcGoogle className="text-base sm:text-lg" />
               <span>Sign in with Google</span>
             </button>
             <div className="absolute inset-0 z-10 opacity-0">
@@ -257,18 +254,18 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
         </div>
       </form>
 
-      <div className="text-center mt-4">
-        <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Don't have an account? </span>
+      <div className="text-center mt-4 sm:mt-6">
+        <span className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Don't have an account? </span>
         {onOpenRegister ? (
           <button
             type="button"
             onClick={onOpenRegister}
-            className={`font-bold hover:underline ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}
+            className={`font-bold hover:underline text-sm sm:text-base ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}
           >
             Sign Up
           </button>
         ) : (
-          <Link href="/auth" className={`font-bold hover:underline ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}>Sign Up</Link>
+          <Link href="/auth" className={`font-bold hover:underline text-sm sm:text-base ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}>Sign Up</Link>
         )}
       </div>
     </div>

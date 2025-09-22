@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { GoogleLogin } from '@react-oauth/google';
 import { commonTypeService } from '../../services/api';
+import CustomDropdown from '../shared/CustomDropdown';
 
 const RegisterForm = ({ onOpenLogin }) => {
   const [error, setError] = useState('');
@@ -50,7 +51,7 @@ const RegisterForm = ({ onOpenLogin }) => {
   }, []);
 
   // Use a single form for both steps, but validate fields per step
-  const { register, handleSubmit, watch, trigger, formState: { errors }, getValues } = useForm();
+  const { register, handleSubmit, watch, trigger, formState: { errors }, getValues, setValue } = useForm();
   const password = watch('password');
 
   const handleImageChange = (e) => {
@@ -196,7 +197,7 @@ const RegisterForm = ({ onOpenLogin }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {error && (
         <div className={`px-4 py-3 rounded-lg text-sm ${theme === 'dark'
           ? 'bg-red-900/20 border border-red-800 text-red-400'
@@ -205,48 +206,48 @@ const RegisterForm = ({ onOpenLogin }) => {
           {error}
         </div>
       )}
-      <form onSubmit={step === 2 ? handleSubmit(onSubmit) : handleNext} className="space-y-4">
+      <form onSubmit={step === 2 ? handleSubmit(onSubmit) : handleNext} className="space-y-3 sm:space-y-4">
         {step === 1 && (
           <>
             {/* Header and Profile Image Section */}
             <div className="flex flex-col lg:flex-row mb-4 w-full">
               {/* Left Side - Header */}
-              <div className="flex flex-col justify-center w-[70%]">
-                <div className="text-center lg:text-left">
-                  <h1 className={`text-4xl md:text-5xl font-bold mb-4 w-full ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+              <div className="flex flex-col justify-start w-full lg:w-[70%]">
+                <div className="text-left">
+                  <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4 w-full ${theme === 'dark' ? 'text-white' : 'text-gray-900'
                     }`}>
                     Create Your <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Account</span>
                   </h1>
-                  <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                  <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                     }`}>
                     Join thousands of teams already using TeamLabs to boost their productivity
                   </p>
-                  <div className="mt-4 flex flex-wrap gap-4 justify-center lg:justify-start">
-                    <div className={`flex items-center px-3 py-2 rounded-lg ${theme === 'dark'
+                  <div className="mt-3 sm:mt-4 flex flex-row gap-2 sm:gap-4 justify-start">
+                    <div className={`flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg ${theme === 'dark'
                       ? 'bg-blue-900/30 text-blue-300 border border-blue-700'
                       : 'bg-blue-100 text-blue-800 border border-blue-200'
                       }`}>
-                      <span className="text-sm font-medium">✓ Free Trial</span>
+                      <span className="text-xs sm:text-sm font-medium">✓ Free Trial</span>
                     </div>
-                    <div className={`flex items-center px-3 py-2 rounded-lg ${theme === 'dark'
+                    <div className={`flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg ${theme === 'dark'
                       ? 'bg-green-900/30 text-green-300 border border-green-700'
                       : 'bg-green-100 text-green-800 border border-green-200'
                       }`}>
-                      <span className="text-sm font-medium">✓ No Credit Card</span>
+                      <span className="text-xs sm:text-sm font-medium">✓ No Credit Card</span>
                     </div>
                   </div>
                 </div>
               </div>
               {/* Right Side - Profile Image */}
-              <div className="flex flex-col items-center justify-center w-[30%]">
-                <div className={`w-32 h-32 rounded-full flex items-center justify-center overflow-hidden mb-4 border-2 ${theme === 'dark'
+              <div className="flex flex-col items-center justify-center w-full lg:w-[30%] mt-4 lg:mt-0">
+                <div className={`w-24 h-24 sm:w-32 sm:h-32 rounded-full flex items-center justify-center overflow-hidden mb-3 sm:mb-4 border-2 ${theme === 'dark'
                   ? 'bg-gray-800 border-gray-700'
                   : 'bg-gray-100 border-gray-200'
                   }`}>
                   {profileImagePreview ? (
                     <img src={profileImagePreview} alt="Profile Preview" className="object-cover w-full h-full" />
                   ) : (
-                    <span className={`text-lg ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+                    <span className={`text-sm sm:text-lg ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
                       }`}>No Image</span>
                   )}
                 </div>
@@ -257,11 +258,11 @@ const RegisterForm = ({ onOpenLogin }) => {
                   onChange={handleImageChange}
                   className="hidden"
                 />
-                <div className="flex gap-2 items-center">
+                <div className="flex flex-row gap-2 items-center">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current.click()}
-                    className={`text-sm font-medium p-2 rounded-lg transition-colors ${theme === 'dark'
+                    className={`text-xs sm:text-sm font-medium p-2 rounded-lg transition-colors ${theme === 'dark'
                       ? 'text-blue-400 hover:text-blue-300 hover:bg-blue-900/20'
                       : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
                       }`}
@@ -272,7 +273,7 @@ const RegisterForm = ({ onOpenLogin }) => {
                     <button
                       type="button"
                       onClick={handleRemoveImage}
-                      className={`text-sm font-medium p-2 rounded-lg transition-colors ${theme === 'dark'
+                      className={`text-xs sm:text-sm font-medium p-2 rounded-lg transition-colors ${theme === 'dark'
                         ? 'text-red-400 hover:text-red-300 hover:bg-red-900/20'
                         : 'text-red-600 hover:text-red-700 hover:bg-red-50'
                         }`}
@@ -284,20 +285,20 @@ const RegisterForm = ({ onOpenLogin }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>First Name</label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                     ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                     }`}
                   {...register("firstName", { required: "First name is required" })}
                 />
                 {errors.firstName && (
-                  <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                  <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
                     }`}>{errors.firstName.message}</p>
                 )}
               </div>
@@ -306,25 +307,25 @@ const RegisterForm = ({ onOpenLogin }) => {
                   }`}>Last Name</label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                     ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                     }`}
                   {...register("lastName", { required: "Last name is required" })}
                 />
                 {errors.lastName && (
-                  <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                  <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
                     }`}>{errors.lastName.message}</p>
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>Middle Name (Optional)</label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                     ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                     }`}
@@ -332,33 +333,32 @@ const RegisterForm = ({ onOpenLogin }) => {
                 />
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>Role</label>
-                <select
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
-                    ? 'bg-gray-800 border-gray-600 text-white'
-                    : 'bg-white border-gray-200 text-gray-900'
-                    }`}
-                  {...register("role", { required: "Role is required" })}
-                >
-                  <option value="">Select Role</option>
-                  {roleOptions.map(role =>
-                    <option key={role.Code} value={role.Value}>{role.Value}</option>
-                  )}
-                </select>
-                {errors.role && (
-                  <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
-                    }`}>{errors.role.message}</p>
-                )}
+                <CustomDropdown
+                  value={watch('role') || ''}
+                  onChange={(value) => setValue('role', value)}
+                  options={roleOptions.map(role => ({
+                    value: role.Value,
+                    label: role.Value,
+                    id: role.Code
+                  }))}
+                  placeholder="Select Role"
+                  required={true}
+                  size="sm"
+                  variant="default"
+                  className="text-sm sm:text-base"
+                  error={!!errors.role}
+                  errorMessage={errors.role?.message}
+                  label="Role"
+                />
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>Email</label>
                 <input
                   type="email"
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                     ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                     }`}
@@ -371,7 +371,7 @@ const RegisterForm = ({ onOpenLogin }) => {
                   })}
                 />
                 {errors.email && (
-                  <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                  <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
                     }`}>{errors.email.message}</p>
                 )}
               </div>
@@ -380,25 +380,25 @@ const RegisterForm = ({ onOpenLogin }) => {
                   }`}>Username</label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                     ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                     }`}
                   {...register("username", { required: "Username is required" })}
                 />
                 {errors.username && (
-                  <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                  <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
                     }`}>{errors.username.message}</p>
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4">
-              <div className="flex gap-4">
-                <div className="w-[18%]">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4">
+              <div className="flex gap-2 sm:gap-4">
+                <div className="w-[25%] sm:w-[20%] lg:w-[18%]">
                   <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                     }`}>Ext</label>
                   <select
-                    className={`w-full px-2 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                    className={`w-full px-1 sm:px-2 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm ${theme === 'dark'
                       ? 'bg-transparent border-gray-600 text-white'
                       : 'bg-white border-gray-200 text-gray-900'
                       }`}
@@ -407,7 +407,7 @@ const RegisterForm = ({ onOpenLogin }) => {
                   >
                     {phoneExtensions.map(ext => (
                       <option key={ext.Code} value={ext.Code}>
-                        ({ext.Value}) - {ext.Description}
+                        {ext.Value}
                       </option>
                     ))}
                   </select>
@@ -417,7 +417,7 @@ const RegisterForm = ({ onOpenLogin }) => {
                     }`}>Phone Number</label>
                   <input
                     type="tel"
-                    className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                       ? 'bg-transparent border-gray-600 text-white placeholder-gray-400'
                       : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                       }`}
@@ -431,15 +431,15 @@ const RegisterForm = ({ onOpenLogin }) => {
                     placeholder="(123) 456-7890"
                   />
                   {errors.phone && (
-                    <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                    <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
                       }`}>{errors.phone.message}</p>
                   )}
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex-1"></div>
-              <div className="flex-1 text-center">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+              <div className="flex-1 hidden sm:block"></div>
+              <div className="flex-1 text-center order-3 sm:order-2">
                 <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                   }`}>
                   Already have an account?{' '}
@@ -451,8 +451,8 @@ const RegisterForm = ({ onOpenLogin }) => {
                   </button>
                 </p>
               </div>
-              <div className="flex-1 flex items-center justify-end">
-                <button type="submit" className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2.5 px-4 rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
+              <div className="flex-1 flex items-center justify-center sm:justify-end order-1 sm:order-3">
+                <button type="submit" className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2.5 sm:py-3 px-6 sm:px-8 rounded-lg sm:rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm sm:text-base">
                   Next
                 </button>
               </div>
@@ -467,7 +467,7 @@ const RegisterForm = ({ onOpenLogin }) => {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                     ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                     }`}
@@ -485,11 +485,11 @@ const RegisterForm = ({ onOpenLogin }) => {
                   className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'
                     }`}
                 >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  {showPassword ? <FaEyeSlash className="text-sm sm:text-base" /> : <FaEye className="text-sm sm:text-base" />}
                 </button>
               </div>
               {errors.password && (
-                <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
                   }`}>{errors.password.message}</p>
               )}
             </div>
@@ -498,7 +498,7 @@ const RegisterForm = ({ onOpenLogin }) => {
                 }`}>Confirm Password</label>
               <input
                 type="password"
-                className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                   ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                   : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                   }`}
@@ -508,17 +508,17 @@ const RegisterForm = ({ onOpenLogin }) => {
                 })}
               />
               {errors.confirmPassword && (
-                <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
                   }`}>{errors.confirmPassword.message}</p>
               )}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>Address</label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                     ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                     }`}
@@ -530,7 +530,7 @@ const RegisterForm = ({ onOpenLogin }) => {
                   }`}>Apt Number</label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                     ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                     }`}
@@ -538,13 +538,13 @@ const RegisterForm = ({ onOpenLogin }) => {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>City</label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                     ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                     }`}
@@ -556,7 +556,7 @@ const RegisterForm = ({ onOpenLogin }) => {
                   }`}>State</label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                     ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                     }`}
@@ -564,13 +564,13 @@ const RegisterForm = ({ onOpenLogin }) => {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>Zip Code</label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                     ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                     }`}
@@ -582,7 +582,7 @@ const RegisterForm = ({ onOpenLogin }) => {
                   }`}>Country</label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
                     ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                     }`}
@@ -590,11 +590,11 @@ const RegisterForm = ({ onOpenLogin }) => {
                 />
               </div>
             </div>
-            <div className="flex gap-2 mt-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 mt-4">
               <button
                 type="button"
                 onClick={handleBack}
-                className={`w-1/2 py-2.5 px-4 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all ${theme === 'dark'
+                className={`w-full sm:w-1/2 py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm sm:text-base ${theme === 'dark'
                   ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
@@ -603,7 +603,7 @@ const RegisterForm = ({ onOpenLogin }) => {
               </button>
               <button
                 type="submit"
-                className="w-1/2 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2.5 px-4 rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+                className="w-full sm:w-1/2 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm sm:text-base"
                 disabled={isLoading}
               >
                 {isLoading ? 'Creating Account...' : 'Create Account'}
@@ -629,12 +629,12 @@ const RegisterForm = ({ onOpenLogin }) => {
           {/* Custom Google Sign Up Button (visible) */}
           <button
             type="button"
-            className={`w-full py-3 px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-lg flex items-center justify-center gap-3 ${theme === 'dark' 
+            className={`w-full py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base sm:text-lg flex items-center justify-center gap-2 sm:gap-3 ${theme === 'dark' 
               ? 'bg-white hover:bg-gray-100 focus:ring-gray-500 border border-gray-300' 
               : 'bg-white hover:bg-gray-50 focus:ring-gray-500 border border-gray-300'
             }`}
           >
-            <FcGoogle className="text-lg" />
+            <FcGoogle className="text-base sm:text-lg" />
             <span>Sign up with Google</span>
           </button>
 
