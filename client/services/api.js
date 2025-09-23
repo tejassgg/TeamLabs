@@ -146,9 +146,20 @@ export const authService = {
     return !!token;
   },
 
-  completeProfile: async (profileData) => {
+  completeProfile: async (profileData, onboarding = false, nextStep = null) => {
     try {
+      // If onboarding, call complete-profile, then update onboarding in the same chain to reduce extra calls
       const response = await api.put('/auth/complete-profile', profileData);
+      if (onboarding) {
+        const progress = {
+          profileComplete: true,
+          organizationComplete: false,
+          teamCreated: false,
+          projectCreated: false,
+          onboardingComplete: false
+        };
+        await api.put('/auth/onboarding', { completed: false, step: nextStep || 'organization', progress });
+      }
       // Update localStorage with the new user data
       const currentUser = JSON.parse(localStorage.getItem('user'));
       if (currentUser) {

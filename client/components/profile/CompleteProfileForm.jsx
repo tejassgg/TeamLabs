@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { authService, commonTypeService } from '../../services/api';
@@ -7,8 +6,8 @@ import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCity, FaGlobe, FaTimesCi
 import CustomModal from '../shared/CustomModal';
 import CustomDropdown from '../shared/CustomDropdown';
 
-const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
-  const { user, updateUser } = useAuth();
+const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding', profileDraft, setProfileDraft }) => {
+  const {userDetails} = useGlobal();
   const { theme } = useTheme();
   const { refreshOrganizations } = useGlobal(); // Use global context for refresh
   const [currentStep, setCurrentStep] = useState(1);
@@ -31,12 +30,18 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Fetch and populate user profile data
+  // Initialize from draft if available, else fetch user profile once
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    let mounted = true;
+    const init = async () => {
+      if (profileDraft) {
+        setFormData(prev => ({ ...prev, ...profileDraft }));
+        return;
+      }
       try {
         const profile = await authService.getUserProfile();
-        setFormData({
+        if (!mounted) return;
+        const next = {
           firstName: profile.firstName || '',
           lastName: profile.lastName || '',
           phone: profile.phone || '',
@@ -49,14 +54,16 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
           country: profile.country || '',
           role: profile.role || 'User',
           phoneExtension: profile.phoneExtension || ''
-        });
+        };
+        setFormData(next);
+        setProfileDraft && setProfileDraft(next);
       } catch (err) {
         console.error('Error fetching user profile:', err);
       }
     };
-
-    fetchUserProfile();
-  }, []);
+    init();
+    return () => { mounted = false; };
+  }, [profileDraft, setProfileDraft]);
 
   // Fetch roles and phone extensions for dropdowns
   useEffect(() => {
@@ -64,8 +71,9 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
       try {
         const { userRoles, phoneExtensions } = await commonTypeService.getDropdownData();
         // Filter out Admin role if user is not an admin
+        console.log('user?.role', userDetails?.role)
         const filteredRoles = userRoles.filter(role => {
-          if (user?.role !== 'Admin' && role.Value === 'Admin') {
+          if (userDetails?.role !== 'Admin' && role.Value === 'Admin') {
             return false;
           }
           return true;
@@ -78,7 +86,7 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
       }
     };
     fetchDropdownData();
-  }, [user?.role]);
+  }, [userDetails?.role]);
 
   const totalSteps = 3;
 
@@ -86,6 +94,8 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
     e.preventDefault();
     if (currentStep < totalSteps) {
       setCurrentStep(prev => prev + 1);
+      // persist draft on step advance
+      setProfileDraft && setProfileDraft(formData);
       return;
     }
 
@@ -93,27 +103,7 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
     setError('');
 
     try {
-      const data = await authService.completeProfile(formData);
-      
-      // Only update onboarding status if we're in onboarding mode, not profile editing mode
-      if (mode === 'onboarding') {
-        // Calculate the current onboarding progress
-        const currentProgress = {
-          profileComplete: true, // This step is being completed
-          organizationComplete: false,
-          teamCreated: false,
-          projectCreated: false,
-          onboardingComplete: false
-        };
-        
-        // Advance onboarding step to 'organization' after profile completion
-        await authService.updateOnboardingStatus(false, 'organization', currentProgress);
-      }
-      
-      // Refresh global context (user overview, onboarding, etc.)
-      if (typeof refreshOrganizations === 'function') {
-        await refreshOrganizations();
-      }
+      const data = await authService.completeProfile(formData, mode === 'onboarding', 'organization');
       
       // Pass profile completion data without organization info
       onComplete({
@@ -132,59 +122,42 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
         return (
           <>
             {/* Row 1: First Name | Last Name */}
-            <div className="flex gap-4">
-              <div className="w-1/2">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="w-full sm:w-1/2">
                 <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>First Name</label>
                 <input
                   type="text"
                   name="firstName"
                   value={formData.firstName}
-                  onChange={e => setFormData({ ...formData, firstName: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
-                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
-                  }`}
+          onChange={e => { const v = e.target.value; setFormData({ ...formData, firstName: v }); setProfileDraft && setProfileDraft({ ...formData, firstName: v }); }}
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
+                    ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                    : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                    }`}
                   required
                   placeholder="First Name"
                 />
               </div>
-              <div className="w-1/2">
+              <div className="w-full sm:w-1/2">
                 <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Last Name</label>
                 <input
                   type="text"
                   name="lastName"
                   value={formData.lastName}
-                  onChange={e => setFormData({ ...formData, lastName: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
-                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
-                  }`}
+          onChange={e => { const v = e.target.value; setFormData({ ...formData, lastName: v }); setProfileDraft && setProfileDraft({ ...formData, lastName: v }); }}
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
+                    ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                    : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                    }`}
                   required
                   placeholder="Last Name"
                 />
               </div>
             </div>
-            {/* Row 2: Middle Name | Ext | Phone Number */}
-            <div className="flex gap-4 mt-4">
-              <div className="w-1/2">
-                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Middle Name</label>
-                <input
-                  type="text"
-                  name="middleName"
-                  value={formData.middleName}
-                  onChange={e => setFormData({ ...formData, middleName: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
-                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
-                  }`}
-                  placeholder="Optional"
-                />
-              </div>
-              <div className="w-[12%] min-w-[70px]">
-                <div className="relative z-[9999]" >
+            {/* Row 2:  | Ext | Phone Number */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-4">
+              <div className="flex gap-4 w-full sm:w-1/2">
+                <div className="w-[30%] sm:w-[24%] relative z-[9999]" >
                   <CustomDropdown
                     value={formData.phoneExtension}
                     onChange={(value) => setFormData({ ...formData, phoneExtension: value })}
@@ -202,31 +175,27 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
                     className="[&>button]:border [&>button]:border-solid"
                   />
                 </div>
-              </div>
-              <div className="w-[36%]">
-                <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Phone Number</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
-                    theme === 'dark'
+                <div className="w-[70%] sm:w-[76%]">
+                  <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Phone Number</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={e => { const v = e.target.value; setFormData({ ...formData, phone: v }); setProfileDraft && setProfileDraft({ ...formData, phone: v }); }}
+                    className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
                       ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
                       : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
-                  }`}
-                  required
-                  placeholder="+1 (555) 555-5555"
-                />
+                      }`}
+                    required
+                    placeholder="+1 (555) 555-5555"
+                  />
+                </div>
               </div>
-            </div>
-            {/* Row 3: Role */}
-            <div className="flex gap-4 mt-4">
-              <div className="w-1/2">
-                <div className="relative z-[9999]">
+              <div className="w-full sm:w-1/2">
+                <div className="relative z-[9998]">
                   <CustomDropdown
                     value={formData.role}
-                    onChange={(value) => setFormData({ ...formData, role: value })}
+                    onChange={(value) => { setFormData({ ...formData, role: value }); setProfileDraft && setProfileDraft({ ...formData, role: value }); }}
                     options={roleOptions.map(role => ({
                       value: role.Value,
                       label: role.Value
@@ -248,103 +217,97 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
       case 2:
         return (
           <>
-            <div className="flex gap-4">
-              <div className="w-1/2">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="w-full sm:w-1/2">
                 <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Address</label>
                 <input
                   type="text"
                   name="address"
                   value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
-                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
-                  }`}
+                  onChange={(e) => { const v = e.target.value; setFormData({ ...formData, address: v }); setProfileDraft && setProfileDraft({ ...formData, address: v }); }}
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
+                    ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                    : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                    }`}
                   required
                   placeholder="Enter your street address"
                 />
               </div>
-              <div className="w-1/2">
+              <div className="w-full sm:w-1/2">
                 <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Apt/Suite Number</label>
                 <input
                   type="text"
                   name="aptNumber"
                   value={formData.aptNumber}
-                  onChange={(e) => setFormData({ ...formData, aptNumber: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
-                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
-                  }`}
+                  onChange={(e) => { const v = e.target.value; setFormData({ ...formData, aptNumber: v }); setProfileDraft && setProfileDraft({ ...formData, aptNumber: v }); }}
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
+                    ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                    : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                    }`}
                   placeholder="Optional"
                 />
               </div>
             </div>
 
-            <div className="flex gap-4 mt-4">
-              <div className="w-1/2">
+            <div className="flex flex-col sm:flex-row gap-4 mt-4">
+              <div className="w-full sm:w-1/2">
                 <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>ZIP Code</label>
                 <input
                   type="text"
                   name="zipCode"
                   value={formData.zipCode}
-                  onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
-                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
-                  }`}
+                  onChange={(e) => { const v = e.target.value; setFormData({ ...formData, zipCode: v }); setProfileDraft && setProfileDraft({ ...formData, zipCode: v }); }}
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
+                    ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                    : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                    }`}
                   required
                   placeholder="12345"
                 />
               </div>
-              <div className="w-1/2">
+              <div className="w-full sm:w-1/2">
                 <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>City</label>
                 <input
                   type="text"
                   name="city"
                   value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
-                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
-                  }`}
+                  onChange={(e) => { const v = e.target.value; setFormData({ ...formData, city: v }); setProfileDraft && setProfileDraft({ ...formData, city: v }); }}
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
+                    ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                    : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                    }`}
                   required
                   placeholder="New York"
                 />
               </div>
             </div>
-            <div className="flex gap-4 mt-4">
-              <div className="w-1/2">
+            <div className="flex flex-col sm:flex-row gap-4 mt-4">
+              <div className="w-full sm:w-1/2">
                 <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>State</label>
                 <input
                   type="text"
                   name="state"
                   value={formData.state}
-                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
-                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
-                  }`}
+                  onChange={(e) => { const v = e.target.value; setFormData({ ...formData, state: v }); setProfileDraft && setProfileDraft({ ...formData, state: v }); }}
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
+                    ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                    : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                    }`}
                   required
                   placeholder="NY"
                 />
               </div>
-              <div className="w-1/2">
+              <div className="w-full sm:w-1/2">
                 <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Country</label>
                 <input
                   type="text"
                   name="country"
                   value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
-                      : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
-                  }`}
+                  onChange={(e) => { const v = e.target.value; setFormData({ ...formData, country: v }); setProfileDraft && setProfileDraft({ ...formData, country: v }); }}
+                  className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
+                    ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
+                    : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
+                    }`}
                   required
                   placeholder="United States"
                 />
@@ -369,7 +332,7 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
                       <FaEnvelope className="text-blue-400 text-xl" />
                       <div>
                         <span className="block text-xs text-gray-400 dark:text-gray-500">Email Address</span>
-                        <span className={`block text-base font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{user?.email}</span>
+                        <span className={`block text-base font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{userDetails?.email}</span>
                       </div>
                     </li>
                     <li className="flex items-center gap-4">
@@ -451,7 +414,7 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      {/* <div className="flex justify-between items-center">
         <h3 className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Update Profile Information</h3>
         <button
           onClick={onCancel}
@@ -459,7 +422,7 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding' }) => {
         >
           <FaTimes className="w-4 h-4" />
         </button>
-      </div>
+      </div> */}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="flex flex-col gap-4">

@@ -58,117 +58,21 @@ const getJoinRequestStatusStyle = (status) => {
 const renderStatusBadge = (status, theme) => {
   const statusStyle = getJoinRequestStatusStyle(status);
   const StatusIcon = statusStyle.icon;
-  
+
   // Enhanced dark theme support
   const darkThemeClasses = theme === 'dark' ? {
     'pending': 'dark:from-yellow-900/50 dark:to-yellow-800/50 dark:text-yellow-200 dark:border-yellow-700',
     'accepted': 'dark:from-green-900/50 dark:to-green-800/50 dark:text-green-200 dark:border-green-700',
     'rejected': 'dark:from-red-900/50 dark:to-red-800/50 dark:text-red-200 dark:border-red-700'
   } : {};
-  
+
   const darkThemeClass = darkThemeClasses[status] || '';
-  
+
   return (
     <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.textColor} border ${statusStyle.borderColor} ${darkThemeClass} transition-all duration-200`}>
       <StatusIcon className={`${statusStyle.iconColor} ${theme === 'dark' ? 'dark:text-current' : ''}`} size={12} />
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
-  );
-};
-
-// OrganizationDropdown: Custom dropdown for organizations
-const OrganizationDropdown = ({ value, onChange, options, placeholder = 'Select Organization', required = false, disabled = false, className = '', onCreateOrg, setDropdownOpen }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { theme } = useTheme();
-  const [search, setSearch] = useState('');
-  const dropdownRef = React.useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    if (setDropdownOpen) setDropdownOpen(isOpen);
-  }, [isOpen, setDropdownOpen]);
-
-  const getThemeClasses = (light, dark) => theme === 'dark' ? `${light} ${dark}` : light;
-  const selectedOption = options.find(org => org.OrganizationID?.toString() === value?.toString());
-  const filteredOptions = options.filter(org => org.Name.toLowerCase().includes(search.toLowerCase()));
-
-  return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
-      <button
-        type="button"
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        disabled={disabled}
-        className={getThemeClasses(
-          'w-full px-4 py-2.5 rounded-xl bg-white text-left flex items-center justify-between border border-gray-200',
-          'dark:bg-[#232323] dark:text-gray-100 dark:border-gray-600'
-        )}
-      >
-        <div className="flex items-center gap-2">
-          {selectedOption ? (
-            <span>{selectedOption.Name}</span>
-          ) : (
-            <span className={getThemeClasses('text-gray-500', 'dark:text-gray-400')}>{placeholder}</span>
-          )}
-        </div>
-        <svg className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      {isOpen && (
-        <div className={getThemeClasses(
-          'absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-auto',
-          'dark:bg-[#232323] dark:border-gray-600'
-        )}>
-          <div className="p-2">
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search organizations..."
-              className={getThemeClasses(
-                'w-full px-3 py-2 mb-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                'dark:bg-[#232323] dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
-              )}
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => { setIsOpen(false); setSearch(''); onCreateOrg && onCreateOrg(); }}
-            className={getThemeClasses(
-              'w-full px-4 py-2 text-left text-blue-600 hover:bg-blue-50 rounded-t-xl font-medium',
-              'dark:text-blue-300 dark:hover:bg-[#232345]'
-            )}
-          >
-            + Create Your Organization
-          </button>
-          {filteredOptions.length === 0 && (
-            <div className={getThemeClasses('px-4 py-2 text-gray-500', 'dark:text-gray-400')}>No organizations found</div>
-          )}
-          {filteredOptions.map((org, idx) => (
-            <button
-              key={org._id}
-              type="button"
-              onClick={() => { onChange(org.OrganizationID?.toString()); setIsOpen(false); setSearch(''); }}
-              className={getThemeClasses(
-                `w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors ${idx === filteredOptions.length - 1 ? 'last:rounded-b-xl' : ''} ${value?.toString() === org.OrganizationID?.toString() ? 'bg-blue-50 text-blue-700 font-semibold' : ''}`,
-                'dark:hover:bg-gray-700 dark:text-gray-100 dark:bg-transparent dark:font-normal'
-              )}
-            >
-              {org.Name}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
   );
 };
 
@@ -189,6 +93,8 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
   });
   const [loading, setLoading] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState(null);
+  const [profileDraft, setProfileDraft] = useState(null);
+  const [footerState, setFooterState] = useState({ canContinue: true, showSkip: false, continueLabel: 'Continue', showContinue: true });
   const [orgOptions, setOrgOptions] = useState([]);
   const [showOrgModal, setShowOrgModal] = useState(false);
   const [newOrgName, setNewOrgName] = useState('');
@@ -263,7 +169,7 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
   const checkSetupProgress = () => {
     const progress = {
       profileComplete: isProfileComplete(userDetails),
-      organizationComplete: !!organization,
+      organizationComplete: !!(userDetails?.organizationID),
       teamCreated: teams.length > 0,
       projectCreated: projects.length > 0,
       onboardingComplete: false
@@ -300,11 +206,11 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
         projectCreated: setupProgress.projectCreated,
         onboardingComplete: true
       };
-      
+
       // Mark onboarding as complete
       await authService.updateOnboardingStatus(true, 'complete', finalProgress);
       setSetupProgress(prev => ({ ...prev, onboardingComplete: true }));
-      
+
       // Refresh user data in global context to ensure all data is up to date
       try {
         const overview = await authService.getUserOverview();
@@ -317,7 +223,7 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
       } catch (refreshError) {
         console.error('Error refreshing user data:', refreshError);
       }
-      
+
       showToast('Setup completed successfully!', 'success');
       onComplete();
       router.push('/dashboard');
@@ -375,21 +281,21 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
             {setupSteps.map((step, index) => (
               <div key={step.id} className="flex items-center">
                 <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${index < currentStep
-                    ? 'bg-green-500 text-white'
-                    : index === currentStep
-                      ? 'bg-blue-500 text-white'
-                      : theme === 'dark'
-                        ? 'bg-gray-600 text-gray-300'
-                        : 'bg-gray-200 text-gray-600'
+                  ? 'bg-green-500 text-white'
+                  : index === currentStep
+                    ? 'bg-blue-500 text-white'
+                    : theme === 'dark'
+                      ? 'bg-gray-600 text-gray-300'
+                      : 'bg-gray-200 text-gray-600'
                   }`}>
                   {index + 1}
                 </div>
                 {index < setupSteps.length - 1 && (
                   <div className={`w-16 h-0.5 mx-2 ${index < currentStep
-                      ? 'bg-green-500'
-                      : theme === 'dark'
-                        ? 'bg-gray-600'
-                        : 'bg-gray-200'
+                    ? 'bg-green-500'
+                    : theme === 'dark'
+                      ? 'bg-gray-600'
+                      : 'bg-gray-200'
                     }`} />
                 )}
               </div>
@@ -410,7 +316,43 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
               loading={loading}
               selectedOrganization={selectedOrganization}
               setSelectedOrganization={setSelectedOrganization}
+              profileDraft={profileDraft}
+              setProfileDraft={setProfileDraft}
+              setFooterState={setFooterState}
             />
+          </div>
+        </div>
+
+        {/* Sticky Footer Navigation */}
+        <div className={`flex-shrink-0 p-4 border-t rounded-b-xl ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+          <div className="flex items-center justify-between">
+            <button
+              onClick={handlePrevious}
+              disabled={currentStep === 0 || loading}
+              className={`px-6 py-2 rounded-lg transition-colors duration-200 ${currentStep === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
+            >
+              Back
+            </button>
+            <div className="flex items-center gap-3">
+              {footerState.showSkip && (
+                <button
+                  onClick={handleSkip}
+                  disabled={loading}
+                  className={`px-6 py-2 rounded-lg transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
+                >
+                  Skip
+                </button>
+              )}
+              {footerState.showContinue !== false && (
+                <button
+                  onClick={currentStep === setupSteps.length - 1 ? handleComplete : handleNext}
+                  disabled={!footerState.canContinue || loading}
+                  className={`px-6 py-2 ${(!footerState.canContinue || loading) ? 'opacity-50 cursor-not-allowed' : ''} bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200`}
+                >
+                  {currentStep === setupSteps.length - 1 ? 'Get Started' : footerState.continueLabel || 'Continue'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -487,14 +429,15 @@ const ProfileStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selected
 
   return (
     <div className="p-8">
-      <div className="text-center lg:mb-8 mb-2">
-        <div className="mb-4">{step.icon}</div>
-        <h2 className="text-2xl font-bold mb-2">{step.title}</h2>
-        <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
+      <div className="flex flex-col lg:mb-8 mb-2">
+        <div className="flex items-center gap-4 mb-2">
+          {step.icon}
+          <h2 className="text-2xl font-bold">{step.title}</h2>
+        </div>
+        <p className={`ml-10 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
       </div>
       <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold">Profile Information</h3>
+        <div className="flex items-center justify-between">
           {profileCompleted && (
             <span className="text-green-500 flex items-center gap-1">
               <FaCheck size={12} />
@@ -503,46 +446,35 @@ const ProfileStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selected
           )}
         </div>
         <CompleteProfileForm onComplete={handleProfileComplete} onCancel={() => { }} />
-                {profileCompleted && (
-          <div className="mt-6 flex gap-3">
-            <button
-              onClick={onNext}
-              className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200"
-            >
-              Continue
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
 };
 
 // Organization Step Component
-const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrganization, setSelectedOrganization }) => {
+const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrganization, setSelectedOrganization, setFooterState }) => {
   const { theme } = useTheme();
-  const { setUserDetails } = useGlobal();
-  const [orgOptions, setOrgOptions] = useState([]);
+  const { setUserDetails, userDetails, organization } = useGlobal();
   const [showOrgModal, setShowOrgModal] = useState(false);
   const [newOrgName, setNewOrgName] = useState('');
   const [creatingOrg, setCreatingOrg] = useState(false);
   const [orgError, setOrgError] = useState('');
-  const [selectedOrgId, setSelectedOrgId] = useState(selectedOrganization?.id || '');
   const [savingOrg, setSavingOrg] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Fetch organizations
+  // Initialize selected organization from existing user org if present
   useEffect(() => {
-    const fetchOrganizations = async () => {
-      try {
-        const { organizations } = await commonTypeService.getDropdownData();
-        setOrgOptions(organizations);
-      } catch (err) {
-        setOrgOptions([]);
-      }
-    };
-    fetchOrganizations();
-  }, []);
+    const orgId = userDetails?.organizationID || organization?.OrganizationID;
+    const orgName = organization?.Name;
+    if (orgId && (!selectedOrganization || selectedOrganization.id !== orgId.toString())) {
+      setSelectedOrganization({ id: orgId.toString(), name: orgName || 'Your Organization' });
+    }
+  }, [userDetails, organization, setSelectedOrganization]);
+
+  // Control sticky footer: hide Continue until org selected; no Skip on this step
+  useEffect(() => {
+    const hasOrg = Boolean(selectedOrganization && selectedOrganization.id);
+    setFooterState && setFooterState({ showSkip: false, showContinue: hasOrg, canContinue: hasOrg, continueLabel: 'Continue' });
+  }, [setFooterState, selectedOrganization]);
 
   const handleCreateOrg = async () => {
     if (!newOrgName.trim()) {
@@ -560,8 +492,6 @@ const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, sel
         role: updatedUser.role,
         organizationID: org.OrganizationID
       }));
-      setOrgOptions(prev => [...prev, org].sort((a, b) => a.Name.localeCompare(b.Name)));
-      setSelectedOrgId(org.OrganizationID?.toString());
       setSelectedOrganization({
         id: org.OrganizationID?.toString(),
         name: org.Name
@@ -572,17 +502,6 @@ const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, sel
       setOrgError(err.message || 'Failed to create organization');
     } finally {
       setCreatingOrg(false);
-    }
-  };
-
-  const handleOrgSelect = (orgId) => {
-    setSelectedOrgId(orgId);
-    const selectedOrg = orgOptions.find(org => org.OrganizationID?.toString() === orgId?.toString());
-    if (selectedOrg) {
-      setSelectedOrganization({
-        id: orgId,
-        name: selectedOrg.Name
-      });
     }
   };
 
@@ -619,18 +538,18 @@ const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, sel
 
   return (
     <div className="p-8">
-      <div className="text-center mb-2">
-        <div className="mb-4">{step.icon}</div>
-        <h2 className="text-2xl font-bold mb-2">{step.title}</h2>
-        <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-          {step.description}
-        </p>
+      <div className="flex flex-col lg:mb-8 mb-2">
+        <div className="flex items-center gap-4 mb-2">
+          {step.icon}
+          <h2 className="text-2xl font-bold">{step.title}</h2>
+        </div>
+        <p className={`ml-10 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
       </div>
 
       <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Organization Details</h3>
-          {setupProgress.organizationComplete && (
+          {setupProgress.organizationComplete && selectedOrganization && (
             <span className="text-green-500 flex items-center gap-1">
               <FaCheck size={12} />
               Complete
@@ -638,86 +557,68 @@ const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, sel
           )}
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Select Organization
-            </label>
-            <OrganizationDropdown
-              value={selectedOrgId}
-              onChange={handleOrgSelect}
-              options={orgOptions}
-              placeholder="Select Organization"
-              required
-              disabled={creatingOrg || savingOrg}
-              onCreateOrg={() => setShowOrgModal(true)}
-              setDropdownOpen={setDropdownOpen}
-            />
-          </div>
-          {selectedOrganization && (
+        {/* If user has an organization, show its details; else show Create Organization card */}
+        {selectedOrganization ? (
+          <div className="space-y-4">
             <div className="flex items-center gap-3">
               <FaBuilding className="text-purple-500" size={16} />
-              <span>Organization Name</span>
-              <span className={`ml-2 px-3 py-1 rounded-lg text-sm font-medium ${theme === 'dark'
-                  ? 'bg-purple-900 text-purple-200'
-                  : 'bg-purple-100 text-purple-700'
-                }`}>
-                {selectedOrganization.name}
+              <span>Organization</span>
+              <span className={`ml-2 px-3 py-1 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-700'}`}>
+                {selectedOrganization.name || 'Your Organization'}
               </span>
             </div>
-          )}
-        </div>
-
-        <div className="flex gap-3" style={{ marginTop: '250px' }}>
-          <button
-            onClick={onPrevious}
-            className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
-              theme === 'dark' 
-                ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' 
-                : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-            }`}
-          >
-            Back
-          </button>
-          <button
-            onClick={handleContinue}
-            disabled={!selectedOrganization || savingOrg}
-            className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {savingOrg ? 'Saving...' : 'Continue'}
-          </button>
-        </div>
+          </div>
+        ) : (
+          <div className={`text-center p-8 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-gray-600 bg-gray-800' : 'border-gray-300 bg-white'}`}>
+            <FaBuilding className={`mx-auto mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={48} />
+            <h4 className="font-semibold mb-2">Create Your Organization</h4>
+            <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+              Set up your workspace by creating an organization
+            </p>
+            <button
+              onClick={() => setShowOrgModal(true)}
+              disabled={creatingOrg}
+              className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors duration-200 flex items-center gap-2 mx-auto disabled:opacity-50"
+            >
+              {creatingOrg ? 'Creating...' : (<><FaBuilding size={16} /> Create Organization</>)}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Organization Creation Modal */}
-      <CustomModal isOpen={showOrgModal} onClose={() => setShowOrgModal(false)}>
+      <CustomModal isOpen={showOrgModal} title={"Create New Organization"} onClose={() => !creatingOrg && setShowOrgModal(false)}>
         <div className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Create New Organization</h2>
-          <input
-            type="text"
-            className={`w-full px-4 py-2 rounded-lg border border-gray-300 mb-4 ${theme === 'dark' ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-900'}`}
-            placeholder="Organization Name"
-            value={newOrgName}
-            onChange={e => setNewOrgName(e.target.value)}
-            disabled={creatingOrg}
-          />
-          {orgError && <div className="text-red-500 mb-2">{orgError}</div>}
-          <div className="flex justify-end gap-2">
-            <button
-              className={`px-4 py-2 rounded-lg ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-200 hover:bg-gray-300'}`}
-              onClick={() => setShowOrgModal(false)}
+          <form onSubmit={(e) => { e.preventDefault(); handleCreateOrg(); }}>
+            <input
+              type="text"
+              className={`w-full px-4 py-2.5 rounded-lg border mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}`}
+              placeholder="Organization Name"
+              value={newOrgName}
+              onChange={e => { setOrgError(''); setNewOrgName(e.target.value); }}
               disabled={creatingOrg}
-            >
-              Cancel
-            </button>
-            <button
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-              onClick={handleCreateOrg}
-              disabled={creatingOrg}
-            >
-              {creatingOrg ? 'Creating...' : 'Create'}
-            </button>
-          </div>
+              autoFocus
+              maxLength={80}
+            />
+            {orgError && <div className="text-red-500 text-sm mb-3">{orgError}</div>}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-lg ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-200 hover:bg-gray-300'}`}
+                onClick={() => setShowOrgModal(false)}
+                disabled={creatingOrg}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className={`px-4 py-2 rounded-lg text-white ${creatingOrg ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+                disabled={creatingOrg}
+              >
+                {creatingOrg ? 'Creating...' : 'Create'}
+              </button>
+            </div>
+          </form>
         </div>
       </CustomModal>
     </div>
@@ -731,7 +632,7 @@ const TeamDropdown = ({ value, onChange, options, placeholder = 'Select Team', r
   const [search, setSearch] = useState('');
   const dropdownRef = React.useRef(null);
   const { user } = useAuth();
-  const { showToast } = useToast ? useToast() : { showToast: () => {} };
+  const { showToast } = useToast ? useToast() : { showToast: () => { } };
   // const [requestedTeams, setRequestedTeams] = useState([]); // <-- moved up
 
   useEffect(() => {
@@ -848,7 +749,7 @@ const TeamDropdown = ({ value, onChange, options, placeholder = 'Select Team', r
 };
 
 // Team Step Component
-const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrganization }) => {
+const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrganization, setFooterState }) => {
   const { theme } = useTheme();
   const { teams, userDetails, setTeams } = useGlobal();
   const [showTeamModal, setShowTeamModal] = useState(false);
@@ -864,7 +765,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
   // Fetch user's pending join requests
   const fetchUserPendingRequests = async () => {
     if (!userDetails?._id) return;
-    
+
     try {
       const response = await teamService.getUserPendingRequests(userDetails._id);
       const teamIds = response.teamIds || [];
@@ -890,11 +791,11 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
     setLoadingTeams(true);
     try {
       const teams = await teamService.getTeamsByOrganization(organizationId);
-      
+
       // Filter out teams where user is already a member
       const availableTeams = teams.filter(team => {
         if (!team) return false;
-        
+
         // Check if user is a member of this team
         if (team.members && Array.isArray(team.members)) {
           return !team.members.some(m => m.MemberID === userDetails?._id);
@@ -902,17 +803,17 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
         // Fallback: check if user is the owner
         return team.OwnerID !== userDetails?._id;
       });
-      
+
       // Get teams where user is a member
       const userTeams = teams.filter(team => {
         if (!team) return false;
-        
+
         if (team.members && Array.isArray(team.members)) {
           return team.members.some(m => m.MemberID === userDetails?._id);
         }
         return team.OwnerID === userDetails?._id;
       });
-      
+
       setTeamOptions(availableTeams);
       setUserTeamMemberships(userTeams);
     } catch (error) {
@@ -923,7 +824,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
       setLoadingTeams(false);
     }
   };
-  
+
   useEffect(() => {
     fetchTeamsByOrganization(selectedOrganization);
   }, [selectedOrganization]);
@@ -931,6 +832,8 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
   useEffect(() => {
     fetchUserPendingRequests();
   }, [userDetails]);
+
+  // Footer state will be configured after membership vars are defined below
 
   const handleCreateTeam = () => {
     setShowTeamModal(true);
@@ -971,14 +874,22 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
   // New: check if user has requested to join any team
   const hasRequestedToJoinAnyTeam = requestedTeams.length > 0;
 
+  // Configure sticky footer for Team step: show Skip and enable Continue when possible
+  useEffect(() => {
+    const canContinue = isMemberOfAnyTeam || selectedTeamId || hasRequestedToJoinAnyTeam;
+    setFooterState && setFooterState({ showSkip: true, canContinue, continueLabel: 'Continue' });
+  }, [setFooterState, isMemberOfAnyTeam, selectedTeamId, hasRequestedToJoinAnyTeam]);
+
   return (
     <div className="p-8">
-      <div className="text-center lg:mb-8 mb-2">
-        <div className="mb-4">{step.icon}</div>
-        <h2 className="text-2xl font-bold mb-2">Join an Existing Team or Create Your Own</h2>
-        <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
+      <div className="flex flex-col lg:mb-8 mb-2">
+        <div className="flex items-center gap-4 mb-2">
+          {step.icon}
+          <h2 className="text-2xl font-bold">Join an Existing Team or Create Your Own</h2>
+        </div>
+        <p className={`ml-10 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
       </div>
-      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}> 
+      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Team Selection</h3>
           {setupProgress.teamCreated && (
@@ -1002,37 +913,6 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                     </li>
                   ))}
                 </ul>
-              </div>
-              <div className="flex gap-3 justify-between" style={{ marginTop: '250px' }}>
-                <button
-                  onClick={onPrevious}
-                  className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
-                    theme === 'dark' 
-                      ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' 
-                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                  }`}
-                >
-                  Back
-                </button>
-                
-                <div className="flex gap-3">
-                  <button
-                    onClick={onSkip}
-                    className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
-                      theme === 'dark' 
-                        ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' 
-                        : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                    }`}
-                  >
-                    Skip
-                  </button>
-                  <button
-                    onClick={onNext}
-                    className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200"
-                  >
-                    Continue
-                  </button>
-                </div>
               </div>
             </>
           ) : (
@@ -1108,7 +988,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                               {renderStatusBadge(request.status, theme)}
                             </div>
                           </div>
-                          
+
                           {/* Mobile Layout */}
                           <div className="md:hidden space-y-2">
                             <div className="flex justify-between items-start">
@@ -1135,39 +1015,6 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                   </div>
                 </div>
               )}
-
-              <div className="mt-6 flex gap-3 justify-between" style={{ marginTop: pendingRequests.length > 0 ? '24px' : '230px' }}>
-                <button
-                  onClick={onPrevious}
-                  className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
-                    theme === 'dark' 
-                      ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' 
-                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                  }`}
-                >
-                  Back
-                </button>
-                
-                <div className="flex gap-3">
-                  <button
-                    onClick={onSkip}
-                    className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
-                      theme === 'dark' 
-                        ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' 
-                        : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                    }`}
-                  >
-                    Skip
-                  </button>
-                  <button
-                    onClick={onNext}
-                    disabled={!(selectedTeamId || hasRequestedToJoinAnyTeam)}
-                    className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Continue
-                  </button>
-                </div>
-              </div>
             </>
           )}
         </div>
@@ -1181,106 +1028,8 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
   );
 };
 
-// ProjectDropdown: Custom dropdown for projects
-const ProjectDropdown = ({ value, onChange, options, placeholder = 'Select Project', required = false, disabled = false, className = '', onCreateProject, setDropdownOpen, userRole }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { theme } = useTheme();
-  const [search, setSearch] = useState('');
-  const dropdownRef = React.useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    if (setDropdownOpen) setDropdownOpen(isOpen);
-  }, [isOpen, setDropdownOpen]);
-
-  const getThemeClasses = (light, dark) => theme === 'dark' ? `${light} ${dark}` : light;
-  const selectedOption = options.find(project => project.ProjectID?.toString() === value?.toString());
-  const filteredOptions = options.filter(project => project.Name.toLowerCase().includes(search.toLowerCase()));
-
-  return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
-      <button
-        type="button"
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        disabled={disabled}
-        className={getThemeClasses(
-          'w-full px-4 py-2.5 rounded-xl bg-white text-left flex items-center justify-between border border-gray-200',
-          'dark:bg-[#232323] dark:text-gray-100 dark:border-gray-600'
-        )}
-      >
-        <div className="flex items-center gap-2">
-          {selectedOption ? (
-            <span>{selectedOption.Name}</span>
-          ) : (
-            <span className={getThemeClasses('text-gray-500', 'dark:text-gray-400')}>{placeholder}</span>
-          )}
-        </div>
-        <svg className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      {isOpen && (
-        <div className={getThemeClasses(
-          'absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-auto',
-          'dark:bg-[#232323] dark:border-gray-600'
-        )}>
-          <div className="p-2">
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search projects..."
-              className={getThemeClasses(
-                'w-full px-3 py-2 mb-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                'dark:bg-[#232323] dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
-              )}
-            />
-          </div>
-          {userRole === 'Admin' && (
-            <button
-              type="button"
-              onClick={() => { setIsOpen(false); setSearch(''); onCreateProject && onCreateProject(); }}
-              className={getThemeClasses(
-                'w-full px-4 py-2 text-left text-blue-600 hover:bg-blue-50 rounded-t-xl font-medium',
-                'dark:text-blue-300 dark:hover:bg-[#232345]'
-              )}
-            >
-              + Create New Project
-            </button>
-          )}
-          {filteredOptions.length === 0 && (
-            <div className={getThemeClasses('px-4 py-2 text-gray-500', 'dark:text-gray-400')}>No projects found</div>
-          )}
-          {filteredOptions.map((project, idx) => (
-            <button
-              key={project._id}
-              type="button"
-              onClick={() => { onChange(project.ProjectID?.toString()); setIsOpen(false); setSearch(''); }}
-              className={getThemeClasses(
-                `w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors ${idx === filteredOptions.length - 1 ? 'last:rounded-b-xl' : ''} ${value?.toString() === project.ProjectID?.toString() ? 'bg-blue-50 text-blue-700 font-semibold' : ''}`,
-                'dark:hover:bg-gray-700 dark:text-gray-100 dark:bg-transparent dark:font-normal'
-              )}
-            >
-              {project.Name}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
 // Project Step Component
-const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip }) => {
+const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip, setFooterState }) => {
   const { theme } = useTheme();
   const { projects, userDetails, setProjects } = useGlobal();
   const [showProjectModal, setShowProjectModal] = useState(false);
@@ -1313,15 +1062,23 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip }) => {
     }
   };
 
+  // Configure sticky footer for Project step: show Skip always. Allow Continue if a project exists or was created
+  useEffect(() => {
+    const canContinue = Boolean(projects?.length) || projectCreated;
+    setFooterState && setFooterState({ showSkip: true, canContinue, continueLabel: 'Continue' });
+  }, [setFooterState, projects, projectCreated]);
+
   return (
     <div className="p-8">
-      <div className="text-center lg:mb-8 mb-2">
-        <div className="mb-4">{step.icon}</div>
-        <h2 className="text-2xl font-bold mb-2">{step.title}</h2>
-        <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
+      <div className="flex flex-col lg:mb-8 mb-2">
+        <div className="flex items-center gap-4 mb-2">
+          {step.icon}
+          <h2 className="text-2xl font-bold">{step.title}</h2>
+        </div>
+        <p className={`ml-10 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
       </div>
-      
-      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}> 
+
+      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-semibold">Create Your First Project</h3>
           {(setupProgress.projectCreated || projectCreated) && (
@@ -1331,7 +1088,7 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip }) => {
             </span>
           )}
         </div>
-        
+
         <div className="space-y-6">
           {projectCreated && createdProject ? (
             // Show created project
@@ -1375,41 +1132,8 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip }) => {
             </div>
           )}
         </div>
-
-        {/* Navigation buttons */}
-        <div className="mt-20 flex gap-3 justify-between">
-          <button
-            onClick={onPrevious}
-            className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
-              theme === 'dark' 
-                ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' 
-                : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-            }`}
-          >
-            Back
-          </button>
-          
-          <div className="flex gap-3">
-            <button
-              onClick={onSkip}
-              className={`px-6 py-2 rounded-lg transition-colors duration-200 ${
-                theme === 'dark' 
-                  ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' 
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-              }`}
-            >
-              Skip
-            </button>
-            <button
-              onClick={onNext}
-              className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200"
-            >
-              Continue
-            </button>
-          </div>
-        </div>
       </div>
-      
+
       <AddProjectModal
         isOpen={showProjectModal}
         onClose={() => setShowProjectModal(false)}
@@ -1422,55 +1146,38 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip }) => {
 };
 
 // Complete Step Component
-const CompleteStep = ({ step, onComplete, onPrevious, loading }) => {
+const CompleteStep = ({ step, onComplete, onPrevious, loading, setFooterState }) => {
   const { theme } = useTheme();
 
-  return (
-    <div className="p-8 text-center">
-      <div className="mb-6">
-        {step.icon}
-      </div>
-      <h2 className="text-3xl font-bold mb-4">{step.title}</h2>
-      <p className={`text-lg mb-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-        {step.description}
-      </p>
+  useEffect(() => {
+    setFooterState && setFooterState({ showSkip: false, showContinue: true, canContinue: !loading, continueLabel: 'Get Started' });
+  }, [setFooterState, loading]);
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+  return (
+    <div className="p-8">
+      <div className="flex flex-col items-center lg:mb-8 mb-2">
+        <div className="flex items-center gap-4">
+          <div className="mb-4">{step.icon}</div>
+          <h2 className="text-3xl font-bold mb-2">{step.title}</h2>
+        </div>
+        <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
+      </div>
+
+      <div className="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
-          <FaHome className="text-blue-500 mx-auto mb-2" size={24} />
+          <FaHome className="text-blue-500 mb-2" size={24} />
           <h3 className="font-semibold mb-2">Dashboard</h3>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
             View your workspace overview
           </p>
         </div>
         <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
-          <FaLightbulb className="text-yellow-500 mx-auto mb-2" size={24} />
+          <FaLightbulb className="text-yellow-500 mb-2" size={24} />
           <h3 className="font-semibold mb-2">Tips & Tricks</h3>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
             Learn how to use TeamLabs effectively
           </p>
         </div>
-      </div>
-
-      <div className="flex gap-3 justify-center">
-        <button
-          onClick={onPrevious}
-          className={`px-6 py-3 rounded-lg transition-colors duration-200 ${
-            theme === 'dark' 
-              ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' 
-              : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-          }`}
-        >
-          Back
-        </button>
-        <button
-          onClick={onComplete}
-          disabled={loading}
-          className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200 flex items-center gap-2 disabled:opacity-50"
-        >
-          {loading ? 'Completing...' : 'Get Started with TeamLabs'}
-          <FaRocket size={16} />
-        </button>
       </div>
     </div>
   );

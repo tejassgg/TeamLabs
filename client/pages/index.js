@@ -329,7 +329,7 @@ function Home() {
 
               <p className={`reveal reveal-fade-up reveal-delay-150 text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 Transform your team's productivity with intelligent task management, real-time collaboration,
-                and AI-powered insights that drive results.
+                and AI-powered insights that drive results. Delivered as a cloud‑hosted SaaS — no installs, automatic updates.
               </p>
 
               <div className="reveal reveal-fade-up reveal-delay-200 flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
@@ -347,7 +347,7 @@ function Home() {
                   </div>
                 ) : (
                   <>
-                    <button onClick={openRegister} className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg shadow-lg">
+                    <button onClick={() => window.location.href = '#pricing'} className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg shadow-lg">
                       Start Free Trial
                     </button>
                     <button onClick={openLogin} className={`px-8 py-4 border-2 rounded-xl font-semibold text-lg flex items-center ${theme === 'dark' ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-700'}`}>
@@ -420,7 +420,7 @@ function Home() {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="reveal reveal-fade-right">
                 <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Smart Analytics Dashboard
+                  Smart Analytics <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Dashboard</span>
                 </h2>
                 <p className={`text-xl mb-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                   Get real-time insights into your team's performance with AI-powered analytics and beautiful visualizations
@@ -479,7 +479,7 @@ function Home() {
 
               <div className="order-1 lg:order-2 reveal reveal-fade-left">
                 <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Kanban Board & Task Management
+                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Kanban Board & Task</span> Management
                 </h2>
                 <p className={`text-xl mb-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                   Intuitive drag-and-drop interface with AI-powered task classification and smart automation
@@ -514,7 +514,7 @@ function Home() {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="reveal reveal-fade-right reveal-delay-100 ">
                 <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Real-Time Messaging & Collaboration
+                  Real-Time <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Messaging & Collaboration</span>
                 </h2>
                 <p className={`text-xl mb-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                   Seamless team communication with group chats, direct messages, and file sharing capabilities
@@ -571,7 +571,7 @@ function Home() {
 
               <div className="order-1 lg:order-2 reveal reveal-fade-left reveal-delay-200  ">
                 <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Advanced Task Query & Management
+                  Advanced <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Task Query</span> & Management
                 </h2>
                 <p className={`text-xl mb-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                   Powerful search, filtering, and bulk operations for efficient task management and team coordination
@@ -606,7 +606,7 @@ function Home() {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="reveal reveal-fade-right reveal-delay-100 ">
                 <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Comprehensive Task Management
+                  Comprehensive <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Task Management</span>
                 </h2>
                 <p className={`text-xl mb-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                   Detailed task views with attachments, comments, subtasks, and real-time collaboration features
@@ -663,7 +663,7 @@ function Home() {
 
               <div className="order-1 lg:order-2 reveal reveal-fade-left reveal-delay-200  ">
                 <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Team Management & Collaboration
+                  Team Management &<span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent"> Collaboration</span>
                 </h2>
                 <p className={`text-xl mb-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                   Comprehensive team management with member roles, permissions, and project assignments
@@ -698,7 +698,8 @@ function Home() {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="reveal reveal-fade-right reveal-delay-100 ">
                 <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Project Overview & Management
+                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Project Overview </span>
+                  & Management
                 </h2>
                 <p className={`text-xl mb-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                   Complete project lifecycle management with teams, user stories, tasks, and progress tracking
@@ -918,7 +919,7 @@ function Home() {
                   </div>
                 ) : (
                   <>
-                    <button onClick={openRegister} className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 ">
+                    <button onClick={() => window.location.href = '#pricing'} className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 ">
                       Start Free Trial
                     </button>
                     <button onClick={openLogin} className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold text-lg hover:bg-white hover:text-blue-600 ">

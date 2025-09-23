@@ -31,30 +31,39 @@ const registerUser = async (req, res) => {
   try {
     const {
       username,
-      firstName,
-      lastName,
-      middleName,
-      phone,
-      phoneExtension,
       email,
       password,
-      address,
-      aptNumber,
-      zipCode,
-      city,
-      state,
-      country,
-      profileImage,
+      role,
       inviteToken
     } = req.body;
 
     console.log(req.body);
 
-    // Check if user already exists
-    const userExists = await User.findOne({ $or: [{ email }, { username }, { phone }] });
+    // Basic required field validation
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // If username missing, generate one from email
+    let finalUsername = username;
+    if (!finalUsername) {
+      const base = email.split('@')[0];
+      // Ensure uniqueness by appending a random suffix if needed
+      let candidate = base;
+      let exists = await User.findOne({ username: candidate });
+      while (exists) {
+        const suffix = Math.floor(Math.random() * 10000);
+        candidate = `${base}${suffix}`;
+        exists = await User.findOne({ username: candidate });
+      }
+      finalUsername = candidate;
+    }
+
+    // Check if user already exists (email or username)
+    const userExists = await User.findOne({ $or: [{ email }, { username: finalUsername }] });
 
     if (userExists) {
-      return res.status(400).json({ message: 'Email or Username or phone number already exists' });
+      return res.status(400).json({ message: 'Email Already Exists' });
     }
 
     let organizationID = null;
@@ -81,24 +90,31 @@ const registerUser = async (req, res) => {
       await invite.save();
     }
 
-    // Create user
+    // Validate and set role
+    let safeRole = 'User';
+    if (role) {
+      try {
+        const CommonType = require('../models/CommonType');
+        const roleExists = await CommonType.findOne({ MasterType: 'UserRole', Value: role });
+        if (!roleExists) {
+          return res.status(400).json({ message: 'Invalid role' });
+        }
+        if (role === 'Admin') {
+          return res.status(403).json({ message: 'Not allowed to register with Admin role' });
+        }
+        safeRole = role;
+      } catch (e) {
+        // If roles table lookup fails, default to 'User'
+        safeRole = 'User';
+      }
+    }
+
+    // Create user (only selected fields)
     const user = await User.create({
-      username,
-      firstName,
-      lastName,
-      middleName,
-      phone,
-      phoneExtension: phoneExtension || '+1', // Use provided extension or default
+      username: finalUsername,
       email,
       password,
-      address,
-      aptNumber,
-      zipCode,
-      city,
-      state,
-      country,
-      profileImage: profileImage || '', // Add profile image URL
-      role: 'User',
+      role: safeRole,
       organizationID: organizationID,
       lastLogin: new Date(),
     });
@@ -391,7 +407,8 @@ const completeUserProfile = async (req, res) => {
     const {
       phone,
       phoneExtension,
-      middleName,
+      firstName,
+      lastName,
       address,
       aptNumber,
       zipCode,
@@ -415,7 +432,8 @@ const completeUserProfile = async (req, res) => {
       // Update user profile with additional details
       user.phone = phone;
       user.phoneExtension = phoneExtension || user.phoneExtension; // Keep existing if not provided
-      user.middleName = middleName;
+      user.firstName = firstName;
+      user.lastName = lastName;
       user.address = address;
       user.aptNumber = aptNumber;
       user.zipCode = zipCode;

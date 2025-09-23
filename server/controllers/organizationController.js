@@ -29,7 +29,10 @@ exports.createOrganization = async (req, res) => {
     });
     await org.save();
     // Set the user's role to Admin
-    await User.findByIdAndUpdate(OwnerID, { role: 'Admin' });
+    const user = await User.findById(OwnerID);
+    user.organizationID = org.OrganizationID;
+    user.role = 'Admin';
+    await user.save();
     // Fetch the updated user
     const updatedUser = await User.findById(OwnerID);
     res.status(201).json({ org, updatedUser });

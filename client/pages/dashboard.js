@@ -296,30 +296,6 @@ const Dashboard = () => {
     return 'Less than 1h';
   };
 
-  const handleCompleteOnboarding = async () => {
-    try {
-      // Update onboarding status to complete
-      await authService.updateOnboardingStatus(true, 'complete', {
-        profileComplete: true,
-        organizationComplete: true,
-        teamCreated: true,
-        projectCreated: true,
-        onboardingComplete: true
-      });
-      // // Refresh the global context to update onboarding data
-      // const overview = await authService.getUserOverview();
-      // if (overview) {
-      //   // Update the global context with fresh data
-      //   // This will trigger a re-render with updated onboarding status
-      //   // Instead of reloading, we'll let the context update naturally
-      //   showToast('Onboarding completed successfully!', 'success');
-      // }
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
-      showToast('Failed to complete onboarding', 'error');
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -340,9 +316,6 @@ const Dashboard = () => {
         <title>Dashboard | TeamLabs</title>
       </Head>
       <div className="mx-auto">
-        {/* Onboarding Progress */}
-        <OnboardingProgress onComplete={() => handleCompleteOnboarding()} />
-
         {/* Onboarding Guide Modal */}
         <OnboardingGuide
           isOpen={showOnboardingGuide}

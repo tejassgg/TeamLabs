@@ -139,7 +139,7 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
       {/* Header Section */}
       <div className="mb-6 w-full">
         <div className="text-left">
-          <h1 className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4 w-full ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
             Welcome <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Back</span>
           </h1>
           <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -222,34 +222,36 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
             Forgot password?
           </Link>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
-          <button
-            type="submit"
-            className={`w-full sm:w-1/2 py-3 px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base sm:text-lg ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 text-white hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'}`}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Logging in...' : 'Login'}
-          </button>
-
-          {/* Google Login button with overlayed real GoogleLogin */}
-          <div className="relative w-full sm:w-1/2">
-            <button
-              type="button"
-              className={`w-full py-3 px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base sm:text-lg flex items-center justify-center gap-2 sm:gap-3 ${theme === 'dark' 
-                ? 'bg-white hover:bg-gray-100 focus:ring-gray-500 border border-gray-300' 
-                : 'bg-white hover:bg-gray-50 focus:ring-gray-500 border border-gray-300'
-              }`}
-            >
-              <FcGoogle className="text-base sm:text-lg" />
-              <span>Sign in with Google</span>
-            </button>
-            <div className="absolute inset-0 z-10 opacity-0">
-              <GoogleLogin
-                onSuccess={handleGoogleLoginSuccess}
-                onError={handleGoogleLoginError}
-                theme={theme === 'dark' ? 'filled_black' : 'outline'}
-              />
+        {/* Button layout aligned with RegisterForm */}
+        <div className="mt-2 flex flex-col items-center gap-4">
+          <div className="w-full flex flex-col-reverse sm:flex-row items-center justify-center gap-3">
+            <div className="relative w-full sm:w-auto">
+              <button
+                type="button"
+                className={`w-full py-3 sm:py-3.5 px-4 sm:px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base flex items-center justify-center gap-2 ${theme === 'dark'
+                  ? 'bg-white hover:bg-gray-100 focus:ring-gray-500 border border-gray-300 text-gray-900'
+                  : 'bg-white hover:bg-gray-50 focus:ring-gray-500 border border-gray-300 text-gray-900'
+                  }`}
+              >
+                <FcGoogle className="text-lg" />
+                <span>Sign in</span>
+              </button>
+              <div className="absolute inset-0 z-10 opacity-0">
+                <GoogleLogin
+                  onSuccess={handleGoogleLoginSuccess}
+                  onError={handleGoogleLoginError}
+                  theme={theme === 'dark' ? 'filled_black' : 'outline'}
+                />
+              </div>
             </div>
+            <span className={`text-sm sm:mx-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>or</span>
+            <button
+              type="submit"
+              className={`w-full sm:w-auto py-3 sm:py-3.5 px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 text-white hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'}`}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Logging in...' : 'Login'}
+            </button>
           </div>
         </div>
       </form>

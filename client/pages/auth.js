@@ -29,9 +29,11 @@ const Auth = () => {
 
   const openLogin = () => {
     setShowLogin(true);
+    router.push('/auth?type=login');
   };
 
   const openRegister = () => {
+    router.push('/auth');
     setShowLogin(false);
   };
 
@@ -43,7 +45,7 @@ const Auth = () => {
       <Head>
         <title>Auth | TeamLabs</title>
       </Head>
-      <AuthNavbar openLogin={openLogin} />
+      <AuthNavbar openLogin={openLogin} showLogin={showLogin} />
       <div className={`min-h-screen w-full flex flex-col justify-center items-center pt-16 transition-colors duration-300 ${
         theme === 'dark' ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gray-100'
       }`}>
@@ -53,7 +55,7 @@ const Auth = () => {
           <div className={`absolute top-40 left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000 ${theme === 'dark' ? 'bg-pink-600' : 'bg-pink-400'}`}></div>
         </div>
 
-        <div className={`relative w-full ${showLogin ? 'max-w-2xl' : 'max-w-5xl'} px-4 sm:px-6 lg:px-8 z-10`}>
+        <div className={`relative w-full max-w-2xl px-4 sm:px-6 lg:px-8 z-10`}>
           <div className={`rounded-xl overflow-hidden shadow-lg p-4 sm:p-6 lg:p-8 transition-all duration-700 ease-in-out transform ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
             <div className="relative overflow-hidden">
               <div className={`transition-all duration-500 ease-in-out transform ${
