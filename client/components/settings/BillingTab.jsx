@@ -284,7 +284,7 @@ const BillingTab = ({
     {
       id: 'annual',
       name: 'Premium Annual',
-      description: 'Save 40% with annual billing',
+      description: 'Save 29% with annual billing',
       icon: FaStar,
       price: `$${subscriptionPrices.premiumAnnualYearly}`,
       priceValue: subscriptionPrices.premiumAnnualYearly,
@@ -415,7 +415,7 @@ const BillingTab = ({
                             </div>
                             <div className="absolute -top-12 -right-1 transform translate-x-1/4">
                               <div className={`px-4 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg`}>
-                                Save 40%
+                                Save 29%
                               </div>
                             </div>
                           </div>

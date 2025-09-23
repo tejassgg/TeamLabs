@@ -34,15 +34,15 @@ const AuthNavbar = ({ openLogin }) => {
           <div className="flex items-center gap-2 sm:gap-3">
 
             {/* Theme toggle and Auth buttons */}
-            <button
+            {/* <button
               onClick={toggleTheme}
               className={`p-1.5 sm:p-2 rounded-lg transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-yellow-300 bg-gray-800 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 bg-gray-100/10 hover:bg-gray-200'}`}
               title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {theme === 'dark' ? <FaSun className="text-sm sm:text-base" /> : <FaMoon className="text-sm sm:text-base" />}
-            </button>
+            </button> */}
 
-            {/* <button
+            <button
               className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] justify-start`}
               onClick={toggleTheme}
               aria-label="Toggle dark/light mode"
@@ -61,7 +61,7 @@ const AuthNavbar = ({ openLogin }) => {
                   </span>
                 </span>
               </span>
-            </button> */}
+            </button>
 
             {/* Auth button */}
             {isAuthenticated ? (
@@ -70,7 +70,7 @@ const AuthNavbar = ({ openLogin }) => {
                 className={`inline-flex items-center px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 border-2 rounded-lg font-semibold text-xs sm:text-sm transition-all transform hover:scale-105 ${theme === 'dark' ? 'border-gray-600 text-gray-300 hover:bg-gray-800 hover:border-gray-500' : 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'}`}
               >
                 <FaSignOutAlt className="mr-1 sm:mr-2 text-xs sm:text-sm" />
-                <span className="hidden xs:inline">Logout</span>
+                <span className="hidden lg:inline">Logout</span>
               </button>
             ) : (
               <button
@@ -78,7 +78,7 @@ const AuthNavbar = ({ openLogin }) => {
                 className={`inline-flex items-center px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 border-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${theme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`}
               >
                 <FaSignInAlt className="mr-1 sm:mr-2 text-xs sm:text-sm" />
-                <span className="hidden xs:inline">Login</span>
+                <span className="hidden lg:inline">Login</span>
               </button>
             )}
           </div>
