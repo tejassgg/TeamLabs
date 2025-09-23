@@ -12,11 +12,10 @@ const TaskDetailsHistorySchema = new mongoose.Schema({
   },
   Name: {
     type: String,
-    maxlength: 50
+    maxlength: 150
   },
   Description: {
-    type: String,
-    maxlength: 100
+    type: String
   },
   OldStatus: {
     type: Number

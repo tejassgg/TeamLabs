@@ -8,6 +8,7 @@ import { landingService } from '../services/api';
 import AuthNavbar from '../components/auth/AuthNavbar';
 import { FaRocket, FaChartLine, FaUsers, FaShieldAlt, FaRobot, FaCheckCircle, FaSignInAlt, FaStar, FaGithub, FaSignOutAlt, FaCrown, FaInfinity, FaCheck } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
+import { getAllPolicyStatus } from '../utils/policyAcceptance';
 import PrivacyPolicyModal from '../components/shared/PrivacyPolicyModal';
 import TermsOfServiceModal from '../components/shared/TermsOfServiceModal';
 import CookiePolicyModal from '../components/shared/CookiePolicyModal';
@@ -173,9 +174,21 @@ function Home() {
   const [showTermsOfService, setShowTermsOfService] = useState(false);
   const [showCookiePolicy, setShowCookiePolicy] = useState(false);
   const [showContactSupport, setShowContactSupport] = useState(false);
+  const [policyStatus, setPolicyStatus] = useState({
+    privacyPolicy: false,
+    termsOfService: false,
+    cookiePolicy: false,
+    allAccepted: false
+  });
 
   useEffect(() => {
     setIsVisible(true);
+  }, []);
+
+  // Check policy acceptance status on mount
+  useEffect(() => {
+    const status = getAllPolicyStatus();
+    setPolicyStatus(status);
   }, []);
 
   // Subtle reveal animations on scroll - resilient across theme toggles
@@ -1062,21 +1075,24 @@ function Home() {
               <div className="flex items-center space-x-6 mt-4 lg:mt-0">
                 <button
                   onClick={() => setShowPrivacyPolicy(true)}
-                  className={`text-sm  ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+                  className={`text-sm flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
                 >
                   Privacy Policy
+                  {policyStatus.privacyPolicy && <FaCheck className="text-green-500" size={12} />}
                 </button>
                 <button
                   onClick={() => setShowTermsOfService(true)}
-                  className={`text-sm  ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+                  className={`text-sm flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
                 >
                   Terms of Service
+                  {policyStatus.termsOfService && <FaCheck className="text-green-500" size={12} />}
                 </button>
                 <button
                   onClick={() => setShowCookiePolicy(true)}
-                  className={`text-sm  ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+                  className={`text-sm flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
                 >
                   Cookie Policy
+                  {policyStatus.cookiePolicy && <FaCheck className="text-green-500" size={12} />}
                 </button>
               </div>
             </div>
@@ -1086,19 +1102,34 @@ function Home() {
         {/* Privacy Policy Modal */}
         <PrivacyPolicyModal
           isOpen={showPrivacyPolicy}
-          onClose={() => setShowPrivacyPolicy(false)}
+          onClose={() => {
+            setShowPrivacyPolicy(false);
+            // Refresh policy status after modal closes
+            const status = getAllPolicyStatus();
+            setPolicyStatus(status);
+          }}
         />
 
         {/* Terms of Service Modal */}
         <TermsOfServiceModal
           isOpen={showTermsOfService}
-          onClose={() => setShowTermsOfService(false)}
+          onClose={() => {
+            setShowTermsOfService(false);
+            // Refresh policy status after modal closes
+            const status = getAllPolicyStatus();
+            setPolicyStatus(status);
+          }}
         />
 
         {/* Cookie Policy Modal */}
         <CookiePolicyModal
           isOpen={showCookiePolicy}
-          onClose={() => setShowCookiePolicy(false)}
+          onClose={() => {
+            setShowCookiePolicy(false);
+            // Refresh policy status after modal closes
+            const status = getAllPolicyStatus();
+            setPolicyStatus(status);
+          }}
         />
 
         {/* Contact Support Modal */}

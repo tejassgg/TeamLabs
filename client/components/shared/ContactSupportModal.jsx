@@ -13,6 +13,7 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [ticketNumber, setTicketNumber] = useState('');
+  const [taskId, setTaskId] = useState('');
   const [error, setError] = useState('');
 
   const handleInputChange = (e) => {
@@ -151,6 +152,7 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
       if (response.data.success) {
         setSuccess(true);
         setTicketNumber(response.data.ticketNumber);
+        setTaskId(response.data.taskId || '');
         // Reset form
         setFormData({
           title: '',
@@ -159,12 +161,6 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
           email: '',
           attachments: []
         });
-        // Close modal after 3 seconds
-        // setTimeout(() => {
-        //   setSuccess(false);
-        //   setTicketNumber('');
-        //   onClose();
-        // }, 3000);
       }
     } catch (err) {
       console.log(err);
@@ -186,6 +182,7 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
       setError('');
       setSuccess(false);
       setTicketNumber('');
+      setTaskId('');
       onClose();
     }
   };
@@ -218,7 +215,7 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
               <p className="text-green-700 mb-2">
                 We've received your support request and will get back to you within 24 hours.
               </p>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
                 <p className="text-sm font-medium text-green-800 mb-1">Your Ticket Number:</p>
                 <p className="text-lg font-bold text-green-900 font-mono">#{ticketNumber}</p>
               </div>
@@ -229,6 +226,40 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/*Name & Email */}
+            <div className='flex flex-col sm:flex-row gap-4 items-center justify-between w-full'>
+              <div className='w-full sm:w-1/2'>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Enter your full name"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  disabled={loading}
+                  required
+                />
+              </div>
+              <div className='w-full sm:w-1/2'>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="your.email@example.com"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  disabled={loading}
+                  required
+                />
+              </div>
+            </div>
+
             {/* Problem Title */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -263,40 +294,10 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
               />
             </div>
 
-            {/*Name & Email */}
-            <div className='flex gap-4'>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Enter your full name"
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                disabled={loading}
-                required
-              />
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="your.email@example.com"
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                disabled={loading}
-                required
-              />
-            </div>
-
             {/* Attachments */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Attachments (Optional)
+                Attachments
               </label>
               <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-blue-400 transition-colors duration-200">
                 <input

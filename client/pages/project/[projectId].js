@@ -4,7 +4,8 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import StatusPill from '../../components/shared/StatusPill';
 import api, { authService, taskService, githubService } from '../../services/api';
-import { FaEdit, FaTrash, FaCog, FaTimes, FaClock, FaSpinner, FaCode, FaShieldAlt, FaRocket, FaCheckCircle, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot } from 'react-icons/fa';
+import { FaEdit, FaCog, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot } from 'react-icons/fa';
+import { MdDelete } from 'react-icons/md';
 import { FaTimeline } from "react-icons/fa6";
 import AddTaskModal from '../../components/shared/AddTaskModal';
 import CustomModal from '../../components/shared/CustomModal';
@@ -14,6 +15,7 @@ import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import KanbanBoard from '../kanban';
 import { getProjectStatusBadge } from '../../components/project/ProjectStatusBadge';
+import { getPriorityBadge, getTaskStatusBadge } from '../../components/task/TaskTypeBadge';
 import ProjectDetailsSkeleton from '../../components/skeletons/ProjectDetailsSkeleton';
 import ProjectFilesTab from '../../components/project/ProjectFilesTab';
 import ProjectActivity from '../../components/project/ProjectActivity';
@@ -41,7 +43,6 @@ const ProjectDetailsPage = () => {
     getTableSecondaryTextClasses,
     isMe,
     formatDateUTC,
-    getPriorityStyle,
     getUserInitials,
     formatTimeAgo
   } = useGlobal();
@@ -814,56 +815,6 @@ const ProjectDetailsPage = () => {
     }
   };
 
-  // Update the getTaskStatusStyle function to use theme
-  const getTaskStatusStyle = (statusCode) => {
-    const isDark = theme === 'dark';
-    const styles = {
-      1: { // Not Assigned
-        bgColor: isDark ? 'from-gray-800/50 to-gray-700/50' : 'from-gray-50 to-gray-100',
-        textColor: isDark ? 'text-gray-300' : 'text-gray-700',
-        borderColor: isDark ? 'border-gray-700' : 'border-gray-200',
-        icon: FaTimes,
-        iconColor: isDark ? 'text-gray-400' : 'text-gray-500'
-      },
-      2: { // Assigned
-        bgColor: isDark ? 'from-blue-900/50 to-blue-800/50' : 'from-blue-50 to-blue-100',
-        textColor: isDark ? 'text-blue-300' : 'text-blue-700',
-        borderColor: isDark ? 'border-blue-700' : 'border-blue-200',
-        icon: FaCheckCircle,
-        iconColor: isDark ? 'text-blue-400' : 'text-blue-500'
-      },
-      3: { // In Progress
-        bgColor: isDark ? 'from-yellow-900/50 to-yellow-800/50' : 'from-yellow-50 to-yellow-100',
-        textColor: isDark ? 'text-yellow-300' : 'text-yellow-700',
-        borderColor: isDark ? 'border-yellow-700' : 'border-yellow-200',
-        icon: FaClock,
-        iconColor: isDark ? 'text-yellow-400' : 'text-yellow-500'
-      },
-      4: { // QA
-        bgColor: isDark ? 'from-indigo-900/50 to-indigo-800/50' : 'from-indigo-50 to-indigo-100',
-        textColor: isDark ? 'text-indigo-300' : 'text-indigo-700',
-        borderColor: isDark ? 'border-indigo-700' : 'border-indigo-200',
-        icon: FaShieldAlt,
-        iconColor: isDark ? 'text-indigo-400' : 'text-indigo-500'
-      },
-      5: { // Deployment
-        bgColor: isDark ? 'from-pink-900/50 to-pink-800/50' : 'from-pink-50 to-pink-100',
-        textColor: isDark ? 'text-pink-300' : 'text-pink-700',
-        borderColor: isDark ? 'border-pink-700' : 'border-pink-200',
-        icon: FaRocket,
-        iconColor: isDark ? 'text-pink-400' : 'text-pink-500'
-      },
-      6: { // Completed
-        bgColor: isDark ? 'from-green-900/50 to-green-800/50' : 'from-green-50 to-green-100',
-        textColor: isDark ? 'text-green-300' : 'text-green-700',
-        borderColor: isDark ? 'border-green-700' : 'border-green-200',
-        icon: FaCheckCircle,
-        iconColor: isDark ? 'text-green-400' : 'text-green-500'
-      }
-    };
-
-    return styles[statusCode] || styles[1];
-  };
 
 
 
@@ -1699,16 +1650,7 @@ const ProjectDetailsPage = () => {
                               <span>{formatDateUTC(story.DueDate)}</span>
                             </td>
                             <td className="py-3 px-4 text-center">
-                              {(() => {
-                                const status = getTaskStatusStyle(story.Status);
-                                const StatusIcon = status.icon;
-                                return (
-                                  <span className={`whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
-                                    <StatusIcon className={status.iconColor} size={14} />
-                                    {getTaskStatusText(story.Status)}
-                                  </span>
-                                );
-                              })()}
+                              {getTaskStatusBadge(story.Status, theme === 'dark', getTaskStatusText(story.Status))}
                             </td>
                             <td className="py-3 px-4 text-center">
                               <div className="flex items-center justify-center gap-2">
@@ -1730,7 +1672,7 @@ const ProjectDetailsPage = () => {
                                   )}
                                   title="Delete User Story"
                                 >
-                                  <FaTrash size={14} />
+                                  <MdDelete size={18} />
                                 </button>
                               </div>
                             </td>
@@ -1774,7 +1716,7 @@ const ProjectDetailsPage = () => {
                               'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
                             )}
                           >
-                            <FaTrash size={14} />
+                            <MdDelete size={18} />
                             Delete Selected
                           </button>
                         </>
@@ -1826,8 +1768,23 @@ const ProjectDetailsPage = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {taskList.map(task => (
-                          <tr key={task._id} className={tableRowClasses}>
+                        {taskList.map(task => {
+                          // Get priority style for background color if task has TicketNumber
+                          const getPriorityBackgroundColor = (priority) => {
+                            const styles = {
+                              'High': 'bg-red-50 dark:bg-red-900/10',
+                              'Medium': 'bg-yellow-50 dark:bg-yellow-900/10', 
+                              'Low': 'bg-green-50 dark:bg-green-900/10'
+                            };
+                            return styles[priority] || '';
+                          };
+
+                          const ticketRowClasses = task.TicketNumber 
+                            ? `${tableRowClasses} ${getPriorityBackgroundColor(task.Priority)}`
+                            : tableRowClasses;
+
+                          return (
+                            <tr key={task._id} className={ticketRowClasses}>
                             <td className="py-3 px-4 text-center">
                               <input
                                 type="checkbox"
@@ -1934,34 +1891,11 @@ const ProjectDetailsPage = () => {
                             </td>
                             <td className="hidden md:table-cell py-3 px-4">
                               <div className="flex items-center gap-1.5">
-                                {task.Type !== 'User Story' && task.Priority && (
-                                  (() => {
-                                    const priorityDetails = getPriorityStyle(task.Priority);
-                                    return (
-                                      <span className={getThemeClasses(
-                                        `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium ${priorityDetails.bgColor} ${priorityDetails.textColor} border ${priorityDetails.borderColor} shadow-sm`,
-                                        `dark:${priorityDetails.bgColor.replace('bg-', 'bg-')}/30 dark:${priorityDetails.textColor.replace('text-', 'text-')}/90 dark:${priorityDetails.borderColor.replace('border-', 'border-')}/50`
-                                      )}>
-                                        {priorityDetails.icon}
-                                        {task.Priority}
-                                      </span>
-                                    );
-                                  })()
-                                )}
+                                {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
                               </div>
                             </td>
                             <td className="py-3 px-4 text-left">
-                              {(() => {
-                                const status = getTaskStatusStyle(task.Status);
-                                const StatusIcon = status.icon;
-                                return (
-                                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
-                                    <StatusIcon className={status.iconColor} size={14} />
-                                    <span className="hidden md:inline">{getTaskStatusText(task.Status)}</span>
-                                    <span className="md:hidden">{getTaskStatusText(task.Status).substring(0, 3)}</span>
-                                  </span>
-                                );
-                              })()}
+                              {getTaskStatusBadge(task.Status, theme === 'dark', getTaskStatusText(task.Status))}
                             </td>
                             <td className="py-3 px-4 text-left">
                               <div className="flex items-center justify-center gap-2">
@@ -1984,12 +1918,13 @@ const ProjectDetailsPage = () => {
                                   title="Delete Task"
                                   disabled={removing}
                                 >
-                                  <FaTrash size={14} />
+                                  <MdDelete size={18} />
                                 </button>
                               </div>
                             </td>
-                          </tr>
-                        ))}
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   )}
@@ -2780,7 +2715,7 @@ const ProjectDetailsPage = () => {
                     </>
                   ) : (
                     <>
-                      <FaTrash size={14} />
+                      <MdDelete size={18} />
                       <span>Delete Task</span>
                     </>
                   )}
@@ -2850,7 +2785,7 @@ const ProjectDetailsPage = () => {
                     </>
                   ) : (
                     <>
-                      <FaTrash size={14} />
+                      <MdDelete size={18} />
                       <span>Delete Tasks</span>
                     </>
                   )}
@@ -2894,7 +2829,7 @@ const ProjectDetailsPage = () => {
                   </>
                 ) : (
                   <>
-                    <FaTrash size={14} />
+                    <MdDelete size={18} />
                     <span>Delete User Story</span>
                   </>
                 )}

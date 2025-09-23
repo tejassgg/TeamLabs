@@ -587,7 +587,7 @@ async function sendContactConfirmation({ to, name, ticketNumber, title, descript
                   
                   <!-- Footer -->
                   <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-                    <p style="color: #9ca3af; font-size: 11px; margin: 0;">If you have any urgent issues, please call our support line at +1 (555) 388-6490</p>
+                    <p style="color: #9ca3af; font-size: 11px; margin: 0;">If you have any urgent issues, please call our support line at +1 (559) 388-6490</p>
                     <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
                   </div>
                 </td>
@@ -615,7 +615,7 @@ async function sendContactConfirmation({ to, name, ticketNumber, title, descript
 }
 
 // Send contact support notification email to support team
-async function sendContactNotification({ ticketNumber, title, description, name, email, attachments }) {
+async function sendContactNotification({ ticketNumber, title, description, name, email, attachments, taskId }) {
   const attachmentsList = attachments && attachments.length > 0 ? 
     attachments.map(att => `<li style="margin-bottom: 4px;">📎 ${att.originalName} (${(att.size / 1024 / 1024).toFixed(2)} MB)</li>`).join('') : 
     '<li style="color: #9ca3af;">No attachments</li>';
@@ -689,6 +689,17 @@ async function sendContactNotification({ ticketNumber, title, description, name,
                     <div style="font-size: 14px; font-weight: 600; color: #d97706; margin-bottom: 8px;">Action Required</div>
                     <p style="color: #92400e; font-size: 13px; line-height: 1.6; margin: 0;">Please respond to this support request within 24 hours. You can access the full request details in the admin dashboard.</p>
                   </div>
+                  
+                  ${taskId ? `
+                  <!-- Task Details Button -->
+                  <div style="text-align: center; margin-bottom: 24px;">
+                    <a href="${process.env.FRONTEND_URL}/task/${taskId}" 
+                       style="display: inline-block; background: linear-gradient(135deg, #6B39E7 0%, #8B5CF6 100%); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 2px 4px rgba(107, 57, 231, 0.3); transition: all 0.2s ease;">
+                      📋 View Task Details
+                    </a>
+                    <p style="color: #6b7280; font-size: 12px; margin: 8px 0 0 0;">Click to view the automatically created bug task for this support request</p>
+                  </div>
+                  ` : ''}
                   
                   <!-- Footer -->
                   <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">

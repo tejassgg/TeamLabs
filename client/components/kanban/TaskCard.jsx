@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { useRouter } from 'next/router';
-import { getTaskTypeDetails, getPriorityStyle, useThemeClasses } from './kanbanUtils';
+import { useThemeClasses } from './kanbanUtils';
+import { getPriorityBadge, getTaskTypeBadge } from '../task/TaskTypeBadge';
 import { FaRegComment  } from 'react-icons/fa';
 import { TiAttachment } from "react-icons/ti";
 
@@ -10,8 +11,6 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
   const cardRef = useRef(null);
   const canMove = isTaskAssignedToUser(task) || task.Status === 1;
 
-  const typeDetails = getTaskTypeDetails(task.Type);
-  const priorityDetails = task.Type !== 'User Story' ? getPriorityStyle(task.Priority) : null;
 
   // Get column color for checkmarks
   const getColumnColor = () => {
@@ -120,22 +119,10 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
       <div className="flex items-center justify-between mb-2 -mt-0.5 -mx-0.5">
 
         {/* Task Type Badge */}
-        <span className={getThemeClasses(
-          `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium ${typeDetails.bgColor} ${typeDetails.textColor} border ${typeDetails.borderColor} shadow-sm flex-shrink-0`,
-          `dark:${typeDetails.bgColor.replace('bg-', 'bg-')}/30 dark:${typeDetails.textColor.replace('text-', 'text-')}/90 dark:${typeDetails.borderColor.replace('border-', 'border-')}/50`
-        )}>
-          {typeDetails.icon}
-          {task.Type}
-        </span>
+        {getTaskTypeBadge(task.Type)}
 
         {/* Task Priority Badge */}
-        <span className={getThemeClasses(
-          `inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${priorityDetails.bgColor} ${priorityDetails.textColor} border ${priorityDetails.borderColor}`,
-          `dark:${priorityDetails.bgColor.replace('bg-', 'bg-')}/30 dark:${priorityDetails.textColor.replace('text-', 'text-')}/90 dark:${priorityDetails.borderColor.replace('border-', 'border-')}/50`
-        )}>
-          {priorityDetails.icon}
-          {task.Priority}
-        </span>
+        {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
 
       </div>
 

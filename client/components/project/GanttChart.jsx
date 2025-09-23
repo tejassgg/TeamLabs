@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { FaCalendarAlt, FaTimes, FaComment, FaPaperclip, FaChevronLeft, FaChevronRight, FaRegComment } from 'react-icons/fa';
-import { getTaskTypeStyle } from '../task/TaskTypeBadge';
 import { TiAttachment } from "react-icons/ti";
 import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';

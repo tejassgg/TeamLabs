@@ -80,6 +80,10 @@ const TaskDetailsSchema = new mongoose.Schema({
   CreatedBy: {
     type: String,
     required: true
+  },
+  TicketNumber: {
+    type: String,
+    default: null
   }
 });
 

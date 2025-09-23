@@ -228,8 +228,8 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
       <div className="space-y-1">
         {subtasks.length === 0 ? (
           <div className={getThemeClasses(
-            'text-center py-4 text-gray-500',
-            'text-center py-4 text-gray-400'
+            'text-center text-gray-500',
+            'text-center text-gray-400'
           )}>
             <p>No subtasks yet.</p>
           </div>

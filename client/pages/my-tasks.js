@@ -7,7 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
 import { useToast } from '../context/ToastContext';
 import { authService } from '../services/api';
-import { getPriorityStyle } from '../components/kanban/kanbanUtils';
+import { getPriorityBadge } from '../components/task/TaskTypeBadge';
 import CustomDropdown from '../components/shared/CustomDropdown';
 import MyTasksSkeleton from '../components/skeletons/MyTasksSkeleton';
 
@@ -643,20 +643,7 @@ const MyTasksPage = () => {
                       </td>
                       <td className="hidden md:table-cell py-3 px-4">
                         <div className="flex items-center gap-1.5">
-                          {task.Type !== 'User Story' && task.Priority && (
-                            (() => {
-                              const priorityDetails = getPriorityStyle(task.Priority);
-                              return (
-                                <span className={getThemeClasses(
-                                  `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium ${priorityDetails.bgColor} ${priorityDetails.textColor} border ${priorityDetails.borderColor} shadow-sm`,
-                                  `dark:${priorityDetails.bgColor.replace('bg-', 'bg-')}/30 dark:${priorityDetails.textColor.replace('text-', 'text-')}/90 dark:${priorityDetails.borderColor.replace('border-', 'border-')}/50`
-                                )}>
-                                  {priorityDetails.icon}
-                                  {task.Priority}
-                                </span>
-                              );
-                            })()
-                          )}
+                          {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
                         </div>
                       </td>
                       <td className="py-3 px-4 text-left">

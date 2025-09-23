@@ -32,7 +32,7 @@ router.get('/:projectId', async (req, res) => {
     }));
 
     const userStories = await TaskDetails.find({ ProjectID_FK: projectId, Type: "User Story" });
-    const taskListss = await TaskDetails.find({ ProjectID_FK: projectId, Type: { $ne: "User Story" } });
+    const taskListss = await TaskDetails.find({ ProjectID_FK: projectId, Type: { $ne: "User Story" } }).sort({ AssignedDate: -1 });
 
     // Process user stories with comment and attachment counts
     const processedUserStories = await Promise.all(userStories.map(async (userStory) => {

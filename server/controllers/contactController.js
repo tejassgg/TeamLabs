@@ -1,4 +1,5 @@
 const ContactSupport = require('../models/ContactSupport');
+const TaskDetails = require('../models/TaskDetails');
 const { emailService } = require('../services/emailService');
 
 // Submit contact support request
@@ -60,6 +61,36 @@ const submitContactRequest = async (req, res) => {
 
     await contactRequest.save();
 
+    // Create a task for the support request
+    let createdTask = null;
+    try {
+      const taskData = {
+        Name: `Support Request: ${title}`,
+        Description: `Support request from ${name} (${email})\n\nDescription: ${description}`,
+        Type: 'Bug',
+        Priority: 'High',
+        ProjectID_FK: '1718b30e-236e-490c-bb3a-8a75bfdb37df',
+        ParentID: '978ccbd0-9051-40c9-abdc-0d7af4136503', // UserStory ID for customer support
+        Status: 2, // Assigned
+        AssignedDate: new Date(),
+        CreatedBy: '68d3130111a3cf84135b14e4', // System user for support requests
+        IsActive: true,
+        CreatedDate: new Date(),
+        TicketNumber: contactRequest.ticketNumber,
+        Assignee: '68d3130111a3cf84135b14e4',
+        AssignedTo: '681d488bb30030619cf0053d',
+        DueDate: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000)
+      };
+
+      const newTask = new TaskDetails(taskData);
+      createdTask = await newTask.save();
+      
+      console.log(`Created support task: ${createdTask.TaskID} for contact request: ${contactRequest.ticketNumber}`);
+    } catch (taskError) {
+      console.error('Failed to create support task:', taskError);
+      // Don't fail the contact request if task creation fails
+    }
+
     // Send confirmation email to user
     try {
       await emailService.sendContactConfirmation({
@@ -82,7 +113,8 @@ const submitContactRequest = async (req, res) => {
         description: description,
         name: name,
         email: email,
-        attachments: processedAttachments
+        attachments: processedAttachments,
+        taskId: createdTask ? createdTask.TaskID : null
       });
     } catch (emailError) {
       console.error('Failed to send notification email:', emailError);
@@ -93,11 +125,14 @@ const submitContactRequest = async (req, res) => {
       success: true,
       message: `Contact request submitted successfully. Your ticket number is: ${contactRequest.ticketNumber}`,
       ticketNumber: contactRequest.ticketNumber,
+      taskId: createdTask ? createdTask.TaskID : null,
       data: {
         id: contactRequest._id,
         ticketNumber: contactRequest.ticketNumber,
         status: contactRequest.status,
-        createdAt: contactRequest.createdAt
+        createdAt: contactRequest.createdAt,
+        taskCreated: !!createdTask,
+        taskId: createdTask ? createdTask.TaskID : null
       }
     });
 

@@ -1,4 +1,4 @@
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaCheckCircle, FaClock, FaShieldAlt, FaRocket } from 'react-icons/fa';
 
 // Task type styles and utilities
 export const getTaskTypeStyle = (type) => {
@@ -121,4 +121,81 @@ export const getPriorityBadge = (priority) => {
       {priority}
     </span>
   );
+};
+
+// Task status styles and utilities
+export const getTaskStatusStyle = (statusCode, isDark = false) => {
+  const styles = {
+    1: { // Not Assigned
+      bgColor: isDark ? 'from-gray-800/50 to-gray-700/50' : 'from-gray-50 to-gray-100',
+      textColor: isDark ? 'text-gray-300' : 'text-gray-700',
+      borderColor: isDark ? 'border-gray-700' : 'border-gray-200',
+      icon: FaTimes,
+      iconColor: isDark ? 'text-gray-400' : 'text-gray-500'
+    },
+    2: { // Assigned
+      bgColor: isDark ? 'from-blue-900/50 to-blue-800/50' : 'from-blue-50 to-blue-100',
+      textColor: isDark ? 'text-blue-300' : 'text-blue-700',
+      borderColor: isDark ? 'border-blue-700' : 'border-blue-200',
+      icon: FaCheckCircle,
+      iconColor: isDark ? 'text-blue-400' : 'text-blue-500'
+    },
+    3: { // In Progress
+      bgColor: isDark ? 'from-yellow-900/50 to-yellow-800/50' : 'from-yellow-50 to-yellow-100',
+      textColor: isDark ? 'text-yellow-300' : 'text-yellow-700',
+      borderColor: isDark ? 'border-yellow-700' : 'border-yellow-200',
+      icon: FaClock,
+      iconColor: isDark ? 'text-yellow-400' : 'text-yellow-500'
+    },
+    4: { // QA
+      bgColor: isDark ? 'from-indigo-900/50 to-indigo-800/50' : 'from-indigo-50 to-indigo-100',
+      textColor: isDark ? 'text-indigo-300' : 'text-indigo-700',
+      borderColor: isDark ? 'border-indigo-700' : 'border-indigo-200',
+      icon: FaShieldAlt,
+      iconColor: isDark ? 'text-indigo-400' : 'text-indigo-500'
+    },
+    5: { // Deployment
+      bgColor: isDark ? 'from-pink-900/50 to-pink-800/50' : 'from-pink-50 to-pink-100',
+      textColor: isDark ? 'text-pink-300' : 'text-pink-700',
+      borderColor: isDark ? 'border-pink-700' : 'border-pink-200',
+      icon: FaRocket,
+      iconColor: isDark ? 'text-pink-400' : 'text-pink-500'
+    },
+    6: { // Completed
+      bgColor: isDark ? 'from-green-900/50 to-green-800/50' : 'from-green-50 to-green-100',
+      textColor: isDark ? 'text-green-300' : 'text-green-700',
+      borderColor: isDark ? 'border-green-700' : 'border-green-200',
+      icon: FaCheckCircle,
+      iconColor: isDark ? 'text-green-400' : 'text-green-500'
+    }
+  };
+
+  return styles[statusCode] || styles[1]; // Default to Not Assigned if status not found
+};
+
+export const getTaskStatusBadge = (statusCode, isDark = false, statusText = null) => {
+  if (!statusCode) return null;
+  
+  const style = getTaskStatusStyle(statusCode, isDark);
+  const StatusIcon = style.icon;
+  
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${style.bgColor} ${style.textColor} border ${style.borderColor}`}>
+      <StatusIcon className={style.iconColor} size={12} />
+      <span>{statusText || getTaskStatusText(statusCode)}</span>
+    </span>
+  );
+};
+
+// Helper function to get task status text
+const getTaskStatusText = (statusCode) => {
+  const statusMap = {
+    1: 'Not Assigned',
+    2: 'Assigned', 
+    3: 'In Progress',
+    4: 'QA',
+    5: 'Deployment',
+    6: 'Completed'
+  };
+  return statusMap[statusCode] || 'Unknown';
 }; 
