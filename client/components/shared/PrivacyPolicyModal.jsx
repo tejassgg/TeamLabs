@@ -25,9 +25,9 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-3">
-      <div className={`relative w-full sm:max-w-5xl max-h-[95vh] overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl border ${getThemeClasses('bg-white border-gray-200', 'bg-gray-900 border-gray-700')}`}>
+      <div className={`relative w-full sm:max-w-5xl max-h-[95vh] overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl border ${getThemeClasses('bg-white border-gray-200', 'bg-gray-950 border-gray-800')}`}>
         {/* Header */}
-        <div className={`sticky top-0 z-10 bg-gradient-to-r ${getThemeClasses('from-blue-50 to-indigo-50 border-b border-gray-200', 'from-gray-800 to-gray-900 border-b border-gray-700')}`}>
+        <div className={`sticky top-0 z-10 bg-gradient-to-r ${getThemeClasses('from-blue-50 to-indigo-50 border-b border-gray-200', 'from-gray-900 to-gray-950 border-b border-gray-800')}`}>
           <div className="flex items-start sm:items-center justify-between p-4 sm:p-6 gap-3">
             <div className="flex items-start sm:items-center">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-3 sm:mr-4 ${getThemeClasses('bg-gradient-to-r from-blue-600 to-indigo-600', 'bg-gradient-to-r from-blue-500 to-indigo-500')}`}>
@@ -38,13 +38,13 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
                   Privacy Policy
                 </h1>
                 <div className='flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4'>
-                  <p className={`text-xs sm:text-sm mt-1 ${getThemeClasses('text-gray-600', 'text-gray-400')}`}>
+                  <p className={`text-xs sm:text-sm mt-1 ${getThemeClasses('text-gray-600', 'text-white')}`}>
                     Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
                   {isAccepted && acceptanceData && (
                     <div className="flex items-center gap-1">
                       <FaCheckCircle className={`w-4 h-4 ${getThemeClasses('text-green-600', 'text-green-400')}`} />
-                      <span className={`text-xs sm:text-sm ${getThemeClasses('text-green-700', 'text-green-300')}`}>
+                      <span className={`text-xs sm:text-sm ${getThemeClasses('text-green-700', 'text-green-400')}`}>
                         Accepted on {new Date(acceptanceData.acceptedAt).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -58,7 +58,7 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
             </div>
             <button
               onClick={onClose}
-              className={`p-3 rounded-xl transition-all duration-200 ${getThemeClasses('hover:bg-white hover:shadow-md text-gray-500 hover:text-gray-700', 'hover:bg-gray-700 text-gray-400 hover:text-white')}`}
+              className={`p-3 rounded-xl transition-all duration-200 ${theme === 'dark' ? 'hover:bg-gray-800 text-gray-400 hover:text-white' : 'hover:bg-white hover:shadow-md text-gray-500 hover:text-gray-700'}`}
             >
               <FaTimes className="w-5 h-5" />
             </button>
@@ -69,14 +69,14 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
         <div className="overflow-y-auto max-h-[calc(95vh-180px)]">
           <div className="p-4 sm:p-8 space-y-8 sm:space-y-10">
             {/* Introduction */}
-            <div className={`p-6 rounded-2xl ${getThemeClasses('bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100', 'bg-gradient-to-r from-blue-900/20 to-indigo-900/20 border border-blue-800/30')}`}>
+            <div className={`p-6 rounded-2xl ${theme === 'dark' ? 'bg-gray-900/60 border border-gray-800 ' : 'bg-gray-200/60 border border-blue-100'}`}>
               <div className="flex items-start">
                 <FaInfoCircle className={`w-6 h-6 mr-4 mt-1 ${getThemeClasses('text-blue-600', 'text-blue-400')}`} />
                 <div>
                   <h3 className={`text-xl sm:text-2xl font-bold mb-3 sm:mb-4 ${getThemeClasses('text-gray-900', 'text-white')}`}>
                     Introduction
                   </h3>
-                  <p className={`text-base sm:text-lg leading-relaxed ${getThemeClasses('text-gray-700', 'text-gray-300')}`}>
+                  <p className={`text-base sm:text-lg leading-relaxed ${getThemeClasses('text-gray-700', 'text-white')}`}>
                     At TeamLabs, we are committed to protecting your privacy and ensuring the security of your personal information.
                     This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our
                     AI-powered project management platform.
@@ -97,14 +97,14 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
               </div>
 
               <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
-                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-white border-gray-200 shadow-sm', 'bg-gray-800 border-gray-700')}`}>
+                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-white border-gray-200 shadow-sm', 'bg-gray-900/60 border-gray-800')}`}>
                   <div className="flex items-center mb-4">
                     <FaUser className={`w-5 h-5 mr-3 ${getThemeClasses('text-blue-600', 'text-blue-400')}`} />
                     <h4 className={`text-lg font-semibold ${getThemeClasses('text-gray-900', 'text-white')}`}>
                       Personal Information
                     </h4>
                   </div>
-                  <ul className={`space-y-2 ${getThemeClasses('text-gray-600', 'text-gray-300')}`}>
+                  <ul className={`space-y-2 ${getThemeClasses('text-gray-600', 'text-white')}`}>
                     <li className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-3"></div>
                       Name (first, last, and middle name)
@@ -132,14 +132,14 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
                   </ul>
                 </div>
 
-                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-white border-gray-200 shadow-sm', 'bg-gray-800 border-gray-700')}`}>
+                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-white border-gray-200 shadow-sm', 'bg-gray-900/60 border-gray-800')}`}>
                   <div className="flex items-center mb-4">
                     <FaDatabase className={`w-5 h-5 mr-3 ${getThemeClasses('text-green-600', 'text-green-400')}`} />
                     <h4 className={`text-lg font-semibold ${getThemeClasses('text-gray-900', 'text-white')}`}>
                       Account & Usage Data
                     </h4>
                   </div>
-                  <ul className={`space-y-2 ${getThemeClasses('text-gray-600', 'text-gray-300')}`}>
+                  <ul className={`space-y-2 ${getThemeClasses('text-gray-600', 'text-white')}`}>
                     <li className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-3"></div>
                       Organization membership and role
@@ -167,14 +167,14 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
                   </ul>
                 </div>
 
-                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-white border-gray-200 shadow-sm', 'bg-gray-800 border-gray-700')}`}>
+                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-white border-gray-200 shadow-sm', 'bg-gray-900/60 border-gray-800')}`}>
                   <div className="flex items-center mb-4">
                     <FaLock className={`w-5 h-5 mr-3 ${getThemeClasses('text-purple-600', 'text-purple-400')}`} />
                     <h4 className={`text-lg font-semibold ${getThemeClasses('text-gray-900', 'text-white')}`}>
                       Payment Information
                     </h4>
                   </div>
-                  <ul className={`space-y-2 ${getThemeClasses('text-gray-600', 'text-gray-300')}`}>
+                  <ul className={`space-y-2 ${getThemeClasses('text-gray-600', 'text-white')}`}>
                     <li className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mr-3"></div>
                       Subscription plan details
@@ -194,14 +194,14 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
                   </ul>
                 </div>
 
-                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-white border-gray-200 shadow-sm', 'bg-gray-800 border-gray-700')}`}>
+                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-white border-gray-200 shadow-sm', 'bg-gray-900/60 border-gray-800')}`}>
                   <div className="flex items-center mb-4">
                     <FaGlobe className={`w-5 h-5 mr-3 ${getThemeClasses('text-orange-600', 'text-orange-400')}`} />
                     <h4 className={`text-lg font-semibold ${getThemeClasses('text-gray-900', 'text-white')}`}>
                       Technical & Integration Data
                     </h4>
                   </div>
-                  <ul className={`space-y-2 ${getThemeClasses('text-gray-600', 'text-gray-300')}`}>
+                  <ul className={`space-y-2 ${getThemeClasses('text-gray-600', 'text-white')}`}>
                     <li className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-orange-500 rounded-full mr-3"></div>
                       IP address and device info
@@ -243,16 +243,16 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
               </div>
 
               <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
-                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200', 'bg-gradient-to-br from-blue-900/20 to-indigo-900/20 border-blue-700/30')}`}>
+                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-white border-gray-200 shadow-sm', 'bg-gray-900/60 border-gray-800')}`}>
                   <div className="flex items-center mb-4">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${getThemeClasses('bg-blue-600', 'bg-blue-500')}`}>
                       <FaCheckCircle className="w-4 h-4 text-white" />
                     </div>
-                    <h4 className={`text-lg font-semibold ${getThemeClasses('text-blue-900', 'text-blue-100')}`}>
+                    <h4 className={`text-lg font-semibold ${getThemeClasses('text-blue-900', 'text-gray-100')}`}>
                       Service Provision
                     </h4>
                   </div>
-                  <ul className={`space-y-2 ${getThemeClasses('text-blue-800', 'text-blue-200')}`}>
+                  <ul className={`space-y-2 ${getThemeClasses('text-blue-800', 'text-white')}`}>
                     <li className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mr-3"></div>
                       Account creation and management
@@ -276,16 +276,16 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
                   </ul>
                 </div>
 
-                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-gradient-to-br from-green-50 to-emerald-50 border-green-200', 'bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-700/30')}`}>
+                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-white border-gray-200 shadow-sm', 'bg-gray-900/60 border-gray-800')}`}>
                   <div className="flex items-center mb-4">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${getThemeClasses('bg-green-600', 'bg-green-500')}`}>
                       <FaEnvelope className="w-4 h-4 text-white" />
                     </div>
-                    <h4 className={`text-lg font-semibold ${getThemeClasses('text-green-900', 'text-green-100')}`}>
+                    <h4 className={`text-lg font-semibold ${getThemeClasses('text-green-900', 'text-gray-100')}`}>
                       Communication
                     </h4>
                   </div>
-                  <ul className={`space-y-2 ${getThemeClasses('text-green-800', 'text-green-200')}`}>
+                  <ul className={`space-y-2 ${getThemeClasses('text-green-800', 'text-white')}`}>
                     <li className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-3"></div>
                       Account notifications
@@ -309,16 +309,16 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
                   </ul>
                 </div>
 
-                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200', 'bg-gradient-to-br from-purple-900/20 to-violet-900/20 border-purple-700/30')}`}>
+                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-white border-gray-200 shadow-sm', 'bg-gray-900/60 border-gray-800')}`}>
                   <div className="flex items-center mb-4">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${getThemeClasses('bg-purple-600', 'bg-purple-500')}`}>
                       <FaLock className="w-4 h-4 text-white" />
                     </div>
-                    <h4 className={`text-lg font-semibold ${getThemeClasses('text-purple-900', 'text-purple-100')}`}>
+                    <h4 className={`text-lg font-semibold ${getThemeClasses('text-purple-900', 'text-gray-100')}`}>
                       Security & Compliance
                     </h4>
                   </div>
-                  <ul className={`space-y-2 ${getThemeClasses('text-purple-800', 'text-purple-200')}`}>
+                  <ul className={`space-y-2 ${getThemeClasses('text-purple-800', 'text-white')}`}>
                     <li className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mr-3"></div>
                       Authentication and authorization
@@ -342,16 +342,16 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
                   </ul>
                 </div>
 
-                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200', 'bg-gradient-to-br from-orange-900/20 to-amber-900/20 border-orange-700/30')}`}>
+                <div className={`p-5 sm:p-6 rounded-2xl border ${getThemeClasses('bg-white border-gray-200 shadow-sm', 'bg-gray-900/60 border-gray-800')}`}>
                   <div className="flex items-center mb-4">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${getThemeClasses('bg-orange-600', 'bg-orange-500')}`}>
                       <FaExclamationTriangle className="w-4 h-4 text-white" />
                     </div>
-                    <h4 className={`text-lg font-semibold ${getThemeClasses('text-orange-900', 'text-orange-100')}`}>
+                    <h4 className={`text-lg font-semibold ${getThemeClasses('text-orange-900', 'text-gray-100')}`}>
                       Service Improvement
                     </h4>
                   </div>
-                  <ul className={`space-y-2 ${getThemeClasses('text-orange-800', 'text-orange-200')}`}>
+                  <ul className={`space-y-2 ${getThemeClasses('text-orange-800', 'text-white')}`}>
                     <li className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mr-3"></div>
                       Service optimization
@@ -384,17 +384,17 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
                 Data Security
               </h3>
 
-              <div className={`p-5 sm:p-6 rounded-lg ${getThemeClasses('bg-gray-50', 'bg-gray-800')}`}>
-                <p className={`mb-4 ${getThemeClasses('text-gray-700', 'text-gray-300')}`}>
+              <div className={`p-5 sm:p-6 rounded-lg ${getThemeClasses('bg-gray-50', 'bg-transparent')}`}>
+                <p className={`mb-4 ${getThemeClasses('text-gray-700', 'text-white')}`}>
                   We implement industry-standard security measures to protect your data:
                 </p>
 
                 <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
-                    <h4 className={`font-semibold mb-3 ${getThemeClasses('text-gray-800', 'text-gray-200')}`}>
+                    <h4 className={`font-semibold mb-3 ${getThemeClasses('text-gray-800', 'text-white')}`}>
                       Technical Safeguards
                     </h4>
-                    <ul className={`space-y-2 ${getThemeClasses('text-gray-600', 'text-gray-300')}`}>
+                    <ul className={`space-y-2 ${getThemeClasses('text-gray-600', 'text-white')}`}>
                       <li className="flex items-center">
                         <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                         SSL/TLS encryption for data transmission
@@ -415,10 +415,10 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
                   </div>
 
                   <div>
-                    <h4 className={`font-semibold mb-3 ${getThemeClasses('text-gray-800', 'text-gray-200')}`}>
+                    <h4 className={`font-semibold mb-3 ${getThemeClasses('text-gray-800', 'text-white')}`}>
                       Administrative Safeguards
                     </h4>
-                    <ul className={`space-y-2 ${getThemeClasses('text-gray-600', 'text-gray-300')}`}>
+                    <ul className={`space-y-2 ${getThemeClasses('text-gray-600', 'text-white')}`}>
                       <li className="flex items-center">
                         <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                         Role-based access control
@@ -449,29 +449,29 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
               </h3>
 
               <div className="space-y-4">
-                <div className={`p-4 rounded-lg border ${getThemeClasses('border-gray-200 bg-white', 'border-gray-700 bg-gray-800')}`}>
-                  <h4 className={`font-semibold mb-2 ${getThemeClasses('text-gray-800', 'text-gray-200')}`}>
+                <div className={`p-4 rounded-lg border ${getThemeClasses('border-gray-200 bg-white', 'border-gray-800 bg-gray-900/60')}`}> 
+                  <h4 className={`font-semibold mb-2 ${getThemeClasses('text-gray-800', 'text-white')}`}>
                     Google OAuth
                   </h4>
-                  <p className={`text-sm ${getThemeClasses('text-gray-600', 'text-gray-300')}`}>
+                  <p className={`text-sm ${getThemeClasses('text-gray-600', 'text-white')}`}>
                     We use Google OAuth for secure authentication. Google may collect and process your data according to their privacy policy.
                   </p>
                 </div>
 
-                <div className={`p-4 rounded-lg border ${getThemeClasses('border-gray-200 bg-white', 'border-gray-700 bg-gray-800')}`}>
-                  <h4 className={`font-semibold mb-2 ${getThemeClasses('text-gray-800', 'text-gray-200')}`}>
+                <div className={`p-4 rounded-lg border ${getThemeClasses('border-gray-200 bg-white', 'border-gray-800 bg-gray-900/60')}`}>
+                  <h4 className={`font-semibold mb-2 ${getThemeClasses('text-gray-800', 'text-white')}`}>
                     Stripe Payment Processing
                   </h4>
-                  <p className={`text-sm ${getThemeClasses('text-gray-600', 'text-gray-300')}`}>
+                  <p className={`text-sm ${getThemeClasses('text-gray-600', 'text-white')}`}>
                     Payment information is processed securely through Stripe. We do not store credit card details on our servers.
                   </p>
                 </div>
 
-                <div className={`p-4 rounded-lg border ${getThemeClasses('border-gray-200 bg-white', 'border-gray-700 bg-gray-800')}`}>
-                  <h4 className={`font-semibold mb-2 ${getThemeClasses('text-gray-800', 'text-gray-200')}`}>
+                <div className={`p-4 rounded-lg border ${getThemeClasses('border-gray-200 bg-white', 'border-gray-800 bg-gray-900/60')}`}>
+                  <h4 className={`font-semibold mb-2 ${getThemeClasses('text-gray-800', 'text-white')}`}>
                     GitHub Integration
                   </h4>
-                  <p className={`text-sm ${getThemeClasses('text-gray-600', 'text-gray-300')}`}>
+                  <p className={`text-sm ${getThemeClasses('text-gray-600', 'text-white')}`}>
                     Optional GitHub integration allows repository management. GitHub data is processed according to their terms of service.
                   </p>
                 </div>
@@ -485,7 +485,7 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
               </h3>
 
               <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
-                <div className={`p-4 rounded-lg ${getThemeClasses('bg-green-50', 'bg-green-900/20')}`}>
+                <div className={`p-4 rounded-lg ${getThemeClasses('bg-green-50', 'bg-green-900/60')}`}>
                   <h4 className={`font-semibold mb-2 ${getThemeClasses('text-green-800', 'text-green-200')}`}>
                     Access and Control
                   </h4>
@@ -559,15 +559,15 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className={`sticky bottom-0 bg-gradient-to-r ${getThemeClasses('from-gray-50 to-gray-100 border-t border-gray-200', 'from-gray-800 to-gray-900 border-t border-gray-700')}`}>
+        <div className={`sticky bottom-0 bg-gradient-to-r ${getThemeClasses('from-gray-50 to-gray-100 border-t border-gray-200', 'from-gray-900 to-gray-950 border-t border-gray-800')}`}>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-4">
-            <div className={`text-xs sm:text-sm ${getThemeClasses('text-gray-500', 'text-gray-400')}`}>
+            <div className={`text-xs sm:text-sm ${getThemeClasses('text-gray-500', 'text-white')}`}>
               TeamLabs Privacy Policy • Version 1.0
             </div>
             <div className="flex gap-3 w-full sm:w-auto">
               <button
                 onClick={onClose}
-                className={`w-full sm:w-auto px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${getThemeClasses('bg-gray-200 text-gray-700 hover:bg-gray-300', 'bg-gray-700 text-gray-300 hover:bg-gray-600')}`}
+                className={`px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 border ${getThemeClasses('bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-200', 'bg-gray-800 text-white hover:bg-gray-700 border-gray-800')}`}
               >
                 Close
               </button>
