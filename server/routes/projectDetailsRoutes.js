@@ -31,9 +31,10 @@ router.get('/:projectId', async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName
       }));
-      const teamDetails = await Team.findOne({ TeamID: detail.TeamID }).select('TeamName TeamColor');
+      const teamDetails = await Team.findOne({ TeamID: detail.TeamID }).select('TeamName TeamColor TeamDescription');
       newDetail.TeamName = teamDetails.TeamName;
       newDetail.TeamColor = teamDetails.TeamColor;
+      newDetail.TeamDescription = teamDetails.TeamDescription;
       return newDetail;
     }));
 
@@ -231,10 +232,10 @@ router.post('/:projectId/team/:teamId', protect, async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName
       }));
-      const teamDetails = await Team.findOne({ TeamID: newDetail.TeamID }).select('TeamName TeamColor');
+      const teamDetails = await Team.findOne({ TeamID: newDetail.TeamID }).select('TeamName TeamColor TeamDescription');
       newDetail.TeamName = teamDetails.TeamName;
       newDetail.TeamColor = teamDetails.TeamColor;
-
+      newDetail.TeamDescription = teamDetails.TeamDescription;
       // Get all unique project members after adding the new team
       const allAssignedTeamIds = await ProjectDetails.find({ ProjectID: projectId }).select('TeamID');
       const allTeamDetails = await TeamDetails.find({ TeamID_FK: { $in: allAssignedTeamIds.map(t => t.TeamID) }, IsMemberActive: true });

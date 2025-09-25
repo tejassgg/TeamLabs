@@ -196,10 +196,10 @@ exports.getInvites = async (req, res) => {
       return invite;
     });
 
-    res.json(updatedInvites);
+    res.json({ success: true, invites: updatedInvites });
   } catch (err) {
     console.error('Get invites error:', err);
-    res.status(500).json({ message: 'Failed to fetch invites' });
+    res.status(500).json({ success: false, message: 'Failed to fetch invites' });
   }
 };
 
@@ -231,10 +231,10 @@ exports.resendInvite = async (req, res) => {
     const inviteLink = `${process.env.FRONTEND_URL}/auth?invite=${invite.token}`;
     await emailService.sendInviteEmail(invite.email, inviteLink, req.user.firstName || 'A TeamLabs Admin');
 
-    res.json({ message: 'Invite resent successfully', invite });
+    res.json({ success: true, message: 'Invite resent successfully', invite });
   } catch (err) {
     console.error('Resend invite error:', err);
-    res.status(500).json({ message: 'Failed to resend invite' });
+    res.status(500).json({ success: false, message: 'Failed to resend invite' });
   }
 };
 
@@ -253,10 +253,10 @@ exports.deleteInvite = async (req, res) => {
     }
 
     await Invite.findByIdAndDelete(inviteId);
-    res.json({ message: 'Invite deleted successfully' });
+    res.json({ success: true, message: 'Invite deleted successfully' });
   } catch (err) {
     console.error('Delete invite error:', err);
-    res.status(500).json({ message: 'Failed to delete invite' });
+    res.status(500).json({ success: false, message: 'Failed to delete invite' });
   }
 };
 
@@ -268,26 +268,58 @@ exports.inviteUser = async (req, res) => {
     const organizationID = req.user.organizationID;
     if (!email) return res.status(400).json({ message: 'Email is required' });
 
+    // Check if user already exists in the system
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      // Check if user is already in the same organization
+      if (existingUser.organizationID === organizationID) {
+        return res.status(409).json({ 
+          message: 'User already exists in this organization',
+          user: {
+            _id: existingUser._id,
+            email: existingUser.email,
+            firstName: existingUser.firstName,
+            lastName: existingUser.lastName
+          }
+        });
+      } else {
+        return res.status(409).json({ 
+          message: 'User already exists in another organization',
+          user: {
+            _id: existingUser._id,
+            email: existingUser.email,
+            firstName: existingUser.firstName,
+            lastName: existingUser.lastName
+          }
+        });
+      }
+    }
+
     // Check if already invited (pending or not expired)
-    const existing = await Invite.findOne({
-      email,
+    const existingInvite = await Invite.findOne({
+      email: email.toLowerCase(),
       organizationID,
       status: 'Pending',
       expiredAt: { $gt: new Date() }
     });
-    if (existing) return res.status(409).json({ message: 'User already invited', invite: existing });
+    if (existingInvite) return res.status(409).json({ message: 'User already invited', invite: existingInvite });
 
     // Generate token
     const token = crypto.randomBytes(32).toString('hex');
-    const invite = await Invite.create({ email, organizationID, inviter, token });
+    const invite = await Invite.create({ 
+      email: email.toLowerCase(), 
+      organizationID, 
+      inviter, 
+      token 
+    });
 
     // Send invite email
     const inviteLink = `${process.env.FRONTEND_URL}/auth?invite=${token}`;
     await emailService.sendInviteEmail(email, inviteLink, req.user.firstName || 'A TeamLabs Admin');
 
-    res.status(201).json({ message: 'Invite sent', invite });
+    res.status(201).json({ success: true, message: 'Invite sent', invite });
   } catch (err) {
     console.error('Invite error:', err);
-    res.status(500).json({ message: 'Failed to send invite' });
+    res.status(500).json({ success: false, message: 'Failed to send invite' });
   }
 }; 

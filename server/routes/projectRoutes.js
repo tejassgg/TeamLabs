@@ -16,18 +16,30 @@ const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
 router.get('/overview', protect, async (req, res) => {
   try {
     const userId = req.user._id;
+    const userRole = req.user.role;
+    const organizationID = req.user.organizationID;
 
     let projects = [];
-    // 1. Find all TeamIDs where user is a member
-    const teamDetails = await TeamDetails.find({ MemberID: userId, IsMemberActive: true });
-    let teamIds = teamDetails.map(td => td.TeamID_FK);
-    const teamsForOrg = await Team.find({ TeamID: { $in: teamIds }, organizationID: req.user.organizationID });
-    teamIds = teamsForOrg.map(td => td.TeamID);
-    // 2. Find all ProjectIDs from ProjectDetails where TeamID is in that list
-    const projectDetails = await ProjectDetails.find({ TeamID: { $in: teamIds }, IsActive: true });
-    const projectIds = projectDetails.map(pd => pd.ProjectID);
-    // 3. Return only those projects
-    projects = await Project.find({ ProjectID: { $in: projectIds } });
+    
+    // If user is Admin, show all projects in the organization
+    if (userRole === 'Admin') {
+      projects = await Project.find({ 
+        OrganizationID: organizationID,
+        IsActive: true 
+      });
+    } else {
+      // For non-admin users, show only projects they're assigned to
+      // 1. Find all TeamIDs where user is a member
+      const teamDetails = await TeamDetails.find({ MemberID: userId, IsMemberActive: true });
+      let teamIds = teamDetails.map(td => td.TeamID_FK);
+      const teamsForOrg = await Team.find({ TeamID: { $in: teamIds }, organizationID: organizationID });
+      teamIds = teamsForOrg.map(td => td.TeamID);
+      // 2. Find all ProjectIDs from ProjectDetails where TeamID is in that list
+      const projectDetails = await ProjectDetails.find({ TeamID: { $in: teamIds }, IsActive: true });
+      const projectIds = projectDetails.map(pd => pd.ProjectID);
+      // 3. Return only those projects
+      projects = await Project.find({ ProjectID: { $in: projectIds } });
+    }
 
     // Enhance each project with statistics
     const projectsWithStats = await Promise.all(

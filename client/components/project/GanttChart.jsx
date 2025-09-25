@@ -313,9 +313,9 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
                 ) : (
                     <div className="min-w-max">
                         {timelineData.items.map((item, index) => (
-                            <div key={item.TaskID || item._id} className={`flex border-b last:border-b-0 relative ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-800' : 'bg-white border-gray-200 hover:bg-gray-100'}`} >
+                            <div key={item.TaskID || item._id} className={`flex border-b last:border-b-0 relative ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-100'}`} >
                                 {/* Task Info Column */}
-                                <div className={`w-80 p-3 border-r ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} flex-shrink-0 relative z-10 bg-inherit`}>
+                                <div className={`w-80 p-3 border-r ${theme === 'dark' ? 'bg-[#181818] border-gray-700' : 'bg-white border-gray-200'} flex-shrink-0 relative z-10 bg-inherit`}>
                                     <div className="flex items-center gap-2">
                                         <div className={`w-3 h-3 rounded-full ${getStatusColor(item.Status, item.Type)}`}></div>
                                         <div className="flex-1 min-w-0">
@@ -435,7 +435,7 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
             {/* Task Detail Modal */}
             {selectedTask && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className={`w-96 p-6 rounded-xl shadow-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                    <div className={`max-w-lg w-full p-6 rounded-xl shadow-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'
                         }`}>
                         <div className="flex items-center justify-between mb-4">
                             <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>

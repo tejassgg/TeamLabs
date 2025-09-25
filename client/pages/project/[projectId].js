@@ -1225,7 +1225,7 @@ const ProjectDetailsPage = () => {
                             <div
                               key={member._id}
                               className={getThemeClasses(
-                                "w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden bg-purple-500",
+                                "w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden bg-gradient-to-r from-purple-500 to-purple-700",
                                 "dark:border-gray-700"
                               )}
                               style={{ marginLeft: idx === 0 ? '0' : '-10px' }}
@@ -1595,7 +1595,7 @@ const ProjectDetailsPage = () => {
                                     <div className={`${tableSecondaryTextClasses} truncate`}>{team.TeamDescription}</div>
                                   )}
                                   <div className={`${tableSecondaryTextClasses} mt-1`}>
-                                    <span className='text-black'>Created: </span> {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
+                                    <span className={getThemeClasses('text-black', 'text-white')}>Created: </span> {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
                                   </div>
                                 </div>
                               </div>
@@ -1612,7 +1612,7 @@ const ProjectDetailsPage = () => {
                                       <div
                                         key={member._id || idx}
                                         className={getThemeClasses(
-                                          'w-7 h-7 rounded-full border-2 border-white overflow-hidden bg-purple-500 flex items-center justify-center text-white text-xs font-medium',
+                                          'w-7 h-7 rounded-full border-2 border-white overflow-hidden bg-gradient-to-r from-purple-500 to-purple-700 flex items-center justify-center text-white text-xs font-medium shadow-sm',
                                           'dark:border-gray-700'
                                         )}
                                         title={`${member.firstName || ''} ${member.lastName || ''}`.trim()}
