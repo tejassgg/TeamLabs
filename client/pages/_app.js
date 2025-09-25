@@ -17,11 +17,9 @@ function AppContainer({ Component, pageProps }) {
     connectSocket();
   }, []);
   const { theme } = useTheme();
-  
   // Check if current page is auth-related or landing page
   const isAuthPage = Component.displayName === 'Login' || Component.displayName === 'Register' || Component.displayName === 'Auth' || Component.displayName === 'Home' || 
-                    pageProps?.isAuthPage || 
-                    (typeof window !== 'undefined' && ['/auth', '/'].includes(window.location.pathname));
+                    pageProps?.isAuthPage;
   
   return (
     <>

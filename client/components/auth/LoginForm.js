@@ -8,13 +8,15 @@ import Link from 'next/link';
 import { GoogleLogin } from '@react-oauth/google';
 import { useToast } from '../../context/ToastContext';
 import { useTheme } from '../../context/ThemeContext';
+import ForgotPasswordModal from './ForgotPasswordModal';
 
-const LoginForm = ({ onSuccess, onOpenRegister }) => {
+const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [show2FA, setShow2FA] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const { login, verifyLogin2FA, googleLogin } = useAuth();
   const router = useRouter();
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -218,9 +220,13 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
               Remember me
             </label>
           </div>
-          <Link href="/forgot-password" className={`text-sm transition-colors duration-200 ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-600'}`}>
+          <button
+            type="button"
+            onClick={() => onOpenForgotPassword ? onOpenForgotPassword() : setShowForgotPasswordModal(true)}
+            className={`text-sm transition-colors duration-200 ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-600'}`}
+          >
             Forgot password?
-          </Link>
+          </button>
         </div>
         {/* Button layout aligned with RegisterForm */}
         <div className="mt-2 flex flex-col items-center gap-4">
@@ -270,6 +276,12 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
           <Link href="/auth" className={`font-bold hover:underline text-sm sm:text-base ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}>Sign Up</Link>
         )}
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal 
+        isOpen={showForgotPasswordModal}
+        onClose={() => setShowForgotPasswordModal(false)}
+      />
     </div>
   );
 };

@@ -263,17 +263,17 @@ export const authService = {
       throw error.response?.data || { message: 'Failed to send reset link' };
     }
   },
-  resetPassword: async (key, newPassword) => {
+  resetPassword: async (token, newPassword) => {
     try {
-      const response = await api.post('/auth/reset-password', { key, newPassword });
+      const response = await api.post('/auth/reset-password', { token, newPassword });
       return response;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to reset password' };
     }
   },
-  verifyResetPassword: async (key) => {
+  verifyResetPassword: async (token) => {
     try {
-      const response = await api.post('/auth/verify-reset-password', { key });
+      const response = await api.post('/auth/verify-reset-password', { token });
       return response;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to verify reset password' };

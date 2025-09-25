@@ -15,6 +15,7 @@ const Invite = require('../models/Invite');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 const { emitToOrg } = require('../socket');
+const ForgotPasswordHistory = require('../models/ForgotPasswordHistory');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // Generate JWT
@@ -885,16 +886,20 @@ const forgotPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    if (user.password == null) {
+      return res.status(400).json({ message: 'User does not have a password' });
+    }
     // Generate unique key and expiry
-    const key = uuidv4();
+    const token = uuidv4();
     const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    const link = `${process.env.FRONTEND_URL}/reset-password?key=${key}`;
+    const link = `${process.env.FRONTEND_URL}/auth?type=reset&token=${token}`;
     // Create ForgotPasswordHistory record
     await ForgotPasswordHistory.create({
+      UserId: user._id,
       Username: user.username,
-      AttemptNo: 1,
+      AttemptNo: 0,
       MaxNoOfAttempts: 3,
-      Key: key,
+      Token: token,
       ExpiryTime: expiry,
       Link: link,
       IsValid: true
@@ -913,8 +918,8 @@ const forgotPassword = async (req, res) => {
 // @access  Public
 const verifyResetPassword = async (req, res) => {
   try {
-    const { key } = req.body;
-    const record = await ForgotPasswordHistory.findOne({ Key: key });
+    const { token } = req.body;
+    const record = await ForgotPasswordHistory.findOne({ Token: token });
     if (!record) {
       return res.status(201).json({ message: 'Invalid or expired reset link' });
     }
@@ -936,11 +941,11 @@ const verifyResetPassword = async (req, res) => {
 // @access  Public
 const resetPassword = async (req, res) => {
   try {
-    const { key, newPassword } = req.body;
-    if (!key || !newPassword) {
-      return res.status(400).json({ message: 'Key and new password are required' });
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: 'Token and new password are required' });
     }
-    const record = await ForgotPasswordHistory.findOne({ Key: key, IsValid: true });
+    const record = await ForgotPasswordHistory.findOne({ Token: token, IsValid: true });
     if (!record) {
       return res.status(400).json({ message: 'Invalid or expired reset link' });
     }
@@ -951,23 +956,32 @@ const resetPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    record.AttemptNo++;
+    if (record.AttemptNo >= record.MaxNoOfAttempts) {
+      await record.save();
+      return res.status(400).json({ message: 'Reset link has been used too many times' });
+    }
     // Check if new password is same as old password
     const isSame = await bcrypt.compare(newPassword, user.password);
     if (isSame) {
+      await record.save();
       return res.status(400).json({ message: 'New password cannot be the same as the old password' });
     }
     // Enforce strong password requirements
     const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
     if (!strongPasswordRegex.test(newPassword)) {
+      await record.save();
       return res.status(400).json({ message: 'Password must be at least 8 characters, include uppercase, lowercase, number, and special character.' });
     }
     // Update password
     user.password = newPassword;
     await user.save();
+
     // Mark record as used
     record.IsValid = false;
     record.PasswordChangedDate = new Date();
     await record.save();
+
     res.status(200).json({ message: 'Password has been reset successfully' });
   } catch (error) {
     console.error(error);
@@ -1059,11 +1073,11 @@ const handleGitHubCallback = async (req, res) => {
     // Update user with GitHub information
     const Integration = require('../models/Integration');
     const user = await User.findById(userId).select('organizationID');
-    
+
     if (!user) {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
-    
+
     await Integration.findOneAndUpdate(
       { userId, integrationType: 'github' },
       {
@@ -1119,7 +1133,7 @@ const disconnectGitHub = async (req, res) => {
 
     const Integration = require('../models/Integration');
     const integration = await Integration.findOne({ userId, integrationType: 'github' });
-    
+
     if (!integration || !integration.isConnected) {
       return res.status(400).json({ success: false, error: 'GitHub account is not connected' });
     }
@@ -1256,7 +1270,7 @@ const getIntegrationsStatus = async (req, res) => {
     const allIntegrations = availableIntegrations.map(integration => {
       const integrationType = integration.Description;
       const userIntegration = userIntegrationsMap[integrationType];
-      
+
       return {
         id: integration.Code,
         name: integration.Value,
@@ -1310,7 +1324,7 @@ const getUserRepositories = async (req, res) => {
 
     const Integration = require('../models/Integration');
     const integration = await Integration.findOne({ userId, integrationType: 'github' });
-    
+
     if (!integration || !integration.isConnected) {
       return res.status(400).json({ success: false, error: 'GitHub account not connected' });
     }
@@ -1365,7 +1379,7 @@ const linkRepositoryToProject = async (req, res) => {
     // Check if user has GitHub connected
     const Integration = require('../models/Integration');
     const integration = await Integration.findOne({ userId, integrationType: 'github' });
-    
+
     if (!integration || !integration.isConnected) {
       return res.status(400).json({ success: false, error: 'GitHub account not connected' });
     }
@@ -1585,11 +1599,11 @@ const getProjectCommits = async (req, res) => {
 
     // Get the user who linked the repository
     const Integration = require('../models/Integration');
-    const linkingIntegration = await Integration.findOne({ 
-      userId: project.githubRepository.connectedBy, 
-      integrationType: 'github' 
+    const linkingIntegration = await Integration.findOne({
+      userId: project.githubRepository.connectedBy,
+      integrationType: 'github'
     });
-    
+
     if (!linkingIntegration || !linkingIntegration.isConnected) {
       return res.status(400).json({ success: false, error: 'Repository owner not connected to GitHub' });
     }
@@ -1673,11 +1687,11 @@ const getProjectIssues = async (req, res) => {
 
     // Get the user who linked the repository
     const Integration = require('../models/Integration');
-    const linkingIntegration = await Integration.findOne({ 
-      userId: project.githubRepository.connectedBy, 
-      integrationType: 'github' 
+    const linkingIntegration = await Integration.findOne({
+      userId: project.githubRepository.connectedBy,
+      integrationType: 'github'
     });
-    
+
     if (!linkingIntegration || !linkingIntegration.isConnected) {
       return res.status(400).json({ success: false, error: 'Repository owner not connected to GitHub' });
     }

@@ -2,6 +2,8 @@ import { useTheme } from '../context/ThemeContext';
 import Head from 'next/head';
 import RegisterForm from '../components/auth/RegisterForm';
 import LoginForm from '../components/auth/LoginForm';
+import ResetPasswordForm from '../components/auth/ResetPasswordModal';
+import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -18,6 +20,15 @@ const Auth = () => {
     }
     return router?.query?.type === 'login';
   });
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [resetKey, setResetKey] = useState(null);
+  const [showResetPassword, setShowResetPassword] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('type') === 'reset' && params.get('token');
+    }
+    return router?.query?.type === 'reset' && router?.query?.token;
+  });
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -25,10 +36,27 @@ const Auth = () => {
     }
   }, [isAuthenticated, loading, router]);
 
+  // Check for reset or invite key in URL
+  useEffect(() => {
+    if (router.isReady) {
+      const { invite, type, token } = router.query;
+      if (type === 'reset' && token) {
+        setResetKey(token);
+        setShowResetPassword(true);
+        setShowLogin(false);
+      } else if (invite) {
+        setResetKey(invite);
+        setShowForgotPasswordModal(true);
+        setShowLogin(true);
+      }
+    }
+  }, [router.isReady, router.query]);
+
   // Removed the post-mount toggle to avoid flicker when type=login is present
 
   const openLogin = () => {
     setShowLogin(true);
+    setShowResetPassword(false);
     router.push('/auth?type=login');
   };
 
@@ -58,24 +86,45 @@ const Auth = () => {
         <div className={`relative w-full max-w-2xl px-4 sm:px-6 lg:px-8 z-10`}>
           <div className={`rounded-xl overflow-hidden shadow-lg p-4 sm:p-6 lg:p-8 transition-all duration-700 ease-in-out transform ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
             <div className="relative overflow-hidden">
-              <div className={`transition-all duration-500 ease-in-out transform ${
-                showLogin 
-                  ? 'translate-x-0 opacity-100' 
-                  : '-translate-x-full opacity-0 absolute inset-0'
-              }`}>
-                <LoginForm onSuccess={() => router.push('/dashboard')} onOpenRegister={openRegister} />
-              </div>
-              <div className={`transition-all duration-500 ease-in-out transform ${
-                showLogin 
-                  ? 'translate-x-full opacity-0 absolute inset-0' 
-                  : 'translate-x-0 opacity-100'
-              }`}>
-                <RegisterForm onOpenLogin={openLogin} />
-              </div>
+              {showResetPassword ? (
+                <ResetPasswordForm token={resetKey} />
+              ) : (
+                <>
+                  <div className={`transition-all duration-500 ease-in-out transform ${
+                    showLogin 
+                      ? 'translate-x-0 opacity-100' 
+                      : '-translate-x-full opacity-0 absolute inset-0'
+                  }`}>
+                    <LoginForm 
+                      onSuccess={() => router.push('/dashboard')} 
+                      onOpenRegister={openRegister}
+                      onOpenForgotPassword={() => setShowForgotPasswordModal(true)}
+                    />
+                  </div>
+                  <div className={`transition-all duration-500 ease-in-out transform ${
+                    showLogin 
+                      ? 'translate-x-full opacity-0 absolute inset-0' 
+                      : 'translate-x-0 opacity-100'
+                  }`}>
+                    <RegisterForm onOpenLogin={openLogin} />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal 
+        isOpen={showForgotPasswordModal}
+        onClose={() => {
+          setShowForgotPasswordModal(false);
+          setResetKey(null);
+        }}
+        resetKey={resetKey}
+      />
 
       <style jsx global>{`
         @keyframes blob {
