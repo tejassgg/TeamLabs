@@ -18,7 +18,7 @@ async function checkOwner(req, res, next) {
   const team = await Team.findOne({ TeamID: req.params.teamId });
   if (!team) return res.status(404).json({ error: 'Team not found' });
   if (req.body.OwnerID !== team.OwnerID) return res.status(403).json({ error: 'Only the team owner can perform this action' });
-  
+
   req.team = team;
   next();
 }
@@ -57,9 +57,9 @@ router.get('/:teamId', protect, ensureTeamMember, async (req, res) => {
     const team = req.team;
 
     // Fetch team type value from CommonTypes
-    const teamType = await CommonType.findOne({ 
+    const teamType = await CommonType.findOne({
       MasterType: 'TeamType',
-      Code: team.TeamType 
+      Code: team.TeamType
     });
 
     // Fetch team members with their details
@@ -77,8 +77,8 @@ router.get('/:teamId', protect, ensureTeamMember, async (req, res) => {
     // Create a map of user's last login
     const lastLoginMap = {};
     lastLogins.forEach(login => {
-      if (!lastLoginMap[login.user.toString()] || 
-          new Date(login.timestamp) > new Date(lastLoginMap[login.user.toString()])) {
+      if (!lastLoginMap[login.user.toString()] ||
+        new Date(login.timestamp) > new Date(lastLoginMap[login.user.toString()])) {
         lastLoginMap[login.user.toString()] = login.timestamp;
       }
     });
@@ -126,7 +126,7 @@ router.get('/:teamId', protect, ensureTeamMember, async (req, res) => {
     const TaskDetails = require('../models/TaskDetails');
     const teamMemberIds = members.map(m => m.MemberID);
     const teamTasks = [];
-    
+
     if (projectIds.length > 0 && teamMemberIds.length > 0) {
       const tasks = await TaskDetails.find({
         ProjectID_FK: { $in: projectIds },
@@ -154,9 +154,9 @@ router.get('/:teamId', protect, ensureTeamMember, async (req, res) => {
     }
 
     // Fetch pending join requests for this team
-    const pendingRequests = await TeamJoinRequest.find({ 
-      teamId: teamId, 
-      status: 'pending' 
+    const pendingRequests = await TeamJoinRequest.find({
+      teamId: teamId,
+      status: 'pending'
     });
 
     // Fetch user details for all pending requests
@@ -205,7 +205,7 @@ router.get('/:teamId', protect, ensureTeamMember, async (req, res) => {
 });
 
 // POST /api/team-details/:teamId/add-member - Add member by UserID or email (owner only)
-router.post('/:teamId/add-member', checkOwner, async (req, res) => {
+router.post('/:teamId/add-member', checkOwner, protect, async (req, res) => {
   try {
     let { UserID, email } = req.body;
     if (!UserID && !email) return res.status(400).json({ error: 'UserID or email required' });
@@ -225,36 +225,40 @@ router.post('/:teamId/add-member', checkOwner, async (req, res) => {
       ModifiedBy: req.body.OwnerID
     });
     await newMember.save();
-    res.status(201).json(newMember);
+    const data = newMember.toObject();
+    data.name = req.user.firstName + ' ' + req.user.lastName;
+    data.email = req.user.email;
 
-          // Emit real-time member added event
-      try {
-        const team = await Team.findOne({ TeamID: req.params.teamId });
-        const user = await User.findById(UserID).select('-password');
-        emitToOrg(team?.organizationID, 'team.member.added', {
-          event: 'team.member.added',
-          version: 1,
-          data: { 
-            organizationId: String(team?.organizationID), 
-            teamId: req.params.teamId,
-            member: newMember,
-            user: user,
-            team: team
-          },
-          meta: { emittedAt: new Date().toISOString() }
-        });
+    res.status(201).json({ success: true, message: 'Member added successfully', member: data });
 
-        // Emit dashboard metrics update
-        const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
-        emitDashboardMetrics(team?.organizationID);
-      } catch (e) { /* ignore */ }
+    // Emit real-time member added event
+    try {
+      const team = await Team.findOne({ TeamID: req.params.teamId });
+      const user = await User.findById(UserID).select('-password');
+      emitToOrg(team?.organizationID, 'team.member.added', {
+        event: 'team.member.added',
+        version: 1,
+        data: {
+          organizationId: String(team?.organizationID),
+          teamId: req.params.teamId,
+          member: newMember,
+          user: user,
+          team: team
+        },
+        meta: { emittedAt: new Date().toISOString() }
+      });
+
+      // Emit dashboard metrics update
+      const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
+      emitDashboardMetrics(team?.organizationID);
+    } catch (e) { /* ignore */ }
   } catch (err) {
     res.status(500).json({ error: 'Failed to add member' });
   }
 });
 
 // PATCH /api/team-details/:teamId/member/:memberId/toggle - Toggle member active/inactive (owner only)
-router.patch('/:teamId/member/:memberId/toggle', checkOwner, async (req, res) => {
+router.patch('/:teamId/member/:memberId/toggle', checkOwner, protect, async (req, res) => {
   try {
     const member = await TeamDetails.findOne({ TeamID_FK: req.params.teamId, MemberID: req.params.memberId });
     if (!member) return res.status(404).json({ error: 'Member not found' });
@@ -271,8 +275,8 @@ router.patch('/:teamId/member/:memberId/toggle', checkOwner, async (req, res) =>
       emitToOrg(team?.organizationID, 'team.member.status.updated', {
         event: 'team.member.status.updated',
         version: 1,
-        data: { 
-          organizationId: String(team?.organizationID), 
+        data: {
+          organizationId: String(team?.organizationID),
           teamId: req.params.teamId,
           member: member,
           user: user,
@@ -287,7 +291,7 @@ router.patch('/:teamId/member/:memberId/toggle', checkOwner, async (req, res) =>
 });
 
 // PATCH /api/team-details/:teamId - Update team details
-router.patch('/:teamId', checkOwner, async (req, res) => {
+router.patch('/:teamId', checkOwner, protect, async (req, res) => {
   try {
     const { TeamName, TeamDescription, TeamType, OwnerID } = req.body;
     if (!TeamName) return res.status(400).json({ error: 'Team name is required' });
@@ -309,25 +313,25 @@ router.patch('/:teamId', checkOwner, async (req, res) => {
     team.ModifiedBy = OwnerID;
     await team.save();
 
-    res.json(team);
+    res.status(200).json({ success: true, message: 'Team updated successfully', team: team });
 
-          // Emit real-time team updated event
-      try {
-        emitToOrg(team.organizationID, 'team.updated', {
-          event: 'team.updated',
-          version: 1,
-          data: { 
-            organizationId: String(team.organizationID), 
-            teamId: req.params.teamId,
-            team: team
-          },
-          meta: { emittedAt: new Date().toISOString() }
-        });
+    // Emit real-time team updated event
+    try {
+      emitToOrg(team.organizationID, 'team.updated', {
+        event: 'team.updated',
+        version: 1,
+        data: {
+          organizationId: String(team.organizationID),
+          teamId: req.params.teamId,
+          team: team
+        },
+        meta: { emittedAt: new Date().toISOString() }
+      });
 
-        // Emit dashboard metrics update
-        const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
-        emitDashboardMetrics(team.organizationID);
-      } catch (e) { /* ignore */ }
+      // Emit dashboard metrics update
+      const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
+      emitDashboardMetrics(team.organizationID);
+    } catch (e) { /* ignore */ }
   } catch (err) {
     console.error('Error updating team details:', err);
     res.status(500).json({ error: 'Failed to update team details' });
@@ -335,7 +339,7 @@ router.patch('/:teamId', checkOwner, async (req, res) => {
 });
 
 // PATCH /api/team-details/:teamId/toggle-status - Toggle team active/inactive (owner only)
-router.patch('/:teamId/toggle-status', checkOwner, async (req, res) => {
+router.patch('/:teamId/toggle-status', checkOwner, protect, async (req, res) => {
   try {
     const team = await Team.findOne({ TeamID: req.params.teamId });
     if (!team) return res.status(404).json({ error: 'Team not found' });
@@ -346,25 +350,25 @@ router.patch('/:teamId/toggle-status', checkOwner, async (req, res) => {
     team.ModifiedBy = req.body.OwnerID;
     await team.save();
 
-          // Emit real-time team status updated event
-      try {
-        emitToOrg(team.organizationID, 'team.status.updated', {
-          event: 'team.status.updated',
-          version: 1,
-          data: { 
-            organizationId: String(team.organizationID), 
-            teamId: req.params.teamId,
-            team: team,
-            oldStatus: oldStatus,
-            newStatus: team.IsActive
-          },
-          meta: { emittedAt: new Date().toISOString() }
-        });
+    // Emit real-time team status updated event
+    try {
+      emitToOrg(team.organizationID, 'team.status.updated', {
+        event: 'team.status.updated',
+        version: 1,
+        data: {
+          organizationId: String(team.organizationID),
+          teamId: req.params.teamId,
+          team: team,
+          oldStatus: oldStatus,
+          newStatus: team.IsActive
+        },
+        meta: { emittedAt: new Date().toISOString() }
+      });
 
-        // Emit dashboard metrics update
-        const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
-        emitDashboardMetrics(team.organizationID);
-      } catch (e) { /* ignore */ }
+      // Emit dashboard metrics update
+      const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
+      emitDashboardMetrics(team.organizationID);
+    } catch (e) { /* ignore */ }
 
     // Log the activity
     await logActivity(
@@ -381,7 +385,7 @@ router.patch('/:teamId/toggle-status', checkOwner, async (req, res) => {
       }
     );
 
-    res.json(team);
+    res.status(200).json({ success: true, message: 'Team status updated successfully', team: team });
   } catch (err) {
     console.error('Error toggling team status:', err);
     // Log the error activity
@@ -405,13 +409,13 @@ router.patch('/:teamId/toggle-status', checkOwner, async (req, res) => {
 });
 
 // DELETE /api/team-details/:teamId/member/:memberId - Remove member from team (owner only)
-router.delete('/:teamId/member/:memberId', checkOwner, async (req, res) => {
+router.delete('/:teamId/member/:memberId', checkOwner, protect, async (req, res) => {
   try {
-    const member = await TeamDetails.findOne({ 
-      TeamID_FK: req.params.teamId, 
-      MemberID: req.params.memberId 
+    const member = await TeamDetails.findOne({
+      TeamID_FK: req.params.teamId,
+      MemberID: req.params.memberId
     });
-    
+
     if (!member) {
       return res.status(404).json({ error: 'Member not found in team' });
     }
@@ -423,29 +427,29 @@ router.delete('/:teamId/member/:memberId', checkOwner, async (req, res) => {
     }
 
     await member.deleteOne();
-    res.json({ message: 'Member removed successfully' });
+    res.status(200).json({ success: true, message: 'Member removed successfully', member: member });
 
-          // Emit real-time member removed event
-      try {
-        const team = await Team.findOne({ TeamID: req.params.teamId });
-        const user = await User.findById(req.params.memberId).select('-password');
-        emitToOrg(team?.organizationID, 'team.member.removed', {
-          event: 'team.member.removed',
-          version: 1,
-          data: { 
-            organizationId: String(team?.organizationID), 
-            teamId: req.params.teamId,
-            memberId: req.params.memberId,
-            user: user,
-            team: team
-          },
-          meta: { emittedAt: new Date().toISOString() }
-        });
+    // Emit real-time member removed event
+    try {
+      const team = await Team.findOne({ TeamID: req.params.teamId });
+      const user = await User.findById(req.params.memberId).select('-password');
+      emitToOrg(team?.organizationID, 'team.member.removed', {
+        event: 'team.member.removed',
+        version: 1,
+        data: {
+          organizationId: String(team?.organizationID),
+          teamId: req.params.teamId,
+          memberId: req.params.memberId,
+          user: user,
+          team: team
+        },
+        meta: { emittedAt: new Date().toISOString() }
+      });
 
-        // Emit dashboard metrics update
-        const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
-        emitDashboardMetrics(team?.organizationID);
-      } catch (e) { /* ignore */ }
+      // Emit dashboard metrics update
+      const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
+      emitDashboardMetrics(team?.organizationID);
+    } catch (e) { /* ignore */ }
   } catch (err) {
     console.error('Error removing member:', err);
     res.status(500).json({ error: 'Failed to remove member' });
@@ -481,7 +485,7 @@ router.get('/:teamId/active-projects', protect, ensureTeamMember, async (req, re
 });
 
 // DELETE /api/team-details/:teamId - delete a team
-router.delete('/:teamId', checkOwner, async (req, res) => {
+router.delete('/:teamId', checkOwner, protect, async (req, res) => {
   try {
     const { teamId } = req.params;
     const { userId } = req.body;
@@ -499,7 +503,7 @@ router.delete('/:teamId', checkOwner, async (req, res) => {
     try {
       // Delete team details (members)
       await TeamDetails.deleteMany({ TeamID_FK: teamId }, { session });
-      
+
       // Delete the team
       await Team.deleteOne({ TeamID: teamId }, { session });
 
@@ -521,15 +525,15 @@ router.delete('/:teamId', checkOwner, async (req, res) => {
       await session.commitTransaction();
       session.endSession();
 
-      res.json({ message: 'Team deleted successfully' });
+      res.status(200).json({ success: true, message: 'Team deleted successfully', team: team });
 
       // Emit real-time team deleted event
       try {
         emitToOrg(team.organizationID, 'team.deleted', {
           event: 'team.deleted',
           version: 1,
-          data: { 
-            organizationId: String(user.organizationID), 
+          data: {
+            organizationId: String(user.organizationID),
             teamId: req.params.teamId,
             team: team
           },
@@ -569,7 +573,7 @@ router.delete('/:teamId', checkOwner, async (req, res) => {
 });
 
 // DELETE /api/team-details/:teamId/members/remove-members - Remove multiple members from team (owner only)
-router.delete('/:teamId/members/remove-members', checkOwner, async (req, res) => {
+router.delete('/:teamId/members/remove-members', checkOwner, protect, async (req, res) => {
   try {
     const { memberIds } = req.body;
     if (!Array.isArray(memberIds) || memberIds.length === 0) {
@@ -606,30 +610,27 @@ router.delete('/:teamId/members/remove-members', checkOwner, async (req, res) =>
       }
     );
 
-    res.json({ 
-      message: `Successfully removed ${result.deletedCount} members`,
-      removedCount: result.deletedCount
-    });
+    res.status(200).json({ success: true, message: `Successfully removed ${result.deletedCount} members`, removedCount: result.deletedCount, removedMemberIds: memberIds });
 
-          // Emit real-time bulk members removed event
-      try {
-        emitToOrg(team.organizationID, 'team.members.bulk_removed', {
-          event: 'team.members.bulk_removed',
-          version: 1,
-          data: { 
-            organizationId: String(team.organizationID), 
-            teamId: req.params.teamId,
-            team: team,
-            removedCount: result.deletedCount,
-            removedMemberIds: memberIds
-          },
-          meta: { emittedAt: new Date().toISOString() }
-        });
+    // Emit real-time bulk members removed event
+    try {
+      emitToOrg(team.organizationID, 'team.members.bulk_removed', {
+        event: 'team.members.bulk_removed',
+        version: 1,
+        data: {
+          organizationId: String(team.organizationID),
+          teamId: req.params.teamId,
+          team: team,
+          removedCount: result.deletedCount,
+          removedMemberIds: memberIds
+        },
+        meta: { emittedAt: new Date().toISOString() }
+      });
 
-        // Emit dashboard metrics update
-        const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
-        emitDashboardMetrics(team.organizationID);
-      } catch (e) { /* ignore */ }
+      // Emit dashboard metrics update
+      const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
+      emitDashboardMetrics(team.organizationID);
+    } catch (e) { /* ignore */ }
   } catch (err) {
     console.error('Error removing members:', err);
     // Log the error activity
@@ -653,7 +654,7 @@ router.delete('/:teamId/members/remove-members', checkOwner, async (req, res) =>
 });
 
 // DELETE /api/team-details/:teamId/projects/remove-projects - Remove multiple projects from team (owner only)
-router.delete('/:teamId/projects/remove-projects', checkOwner, async (req, res) => {
+router.delete('/:teamId/projects/remove-projects', checkOwner, protect, async (req, res) => {
   try {
     const { projectIds } = req.body;
     if (!Array.isArray(projectIds) || projectIds.length === 0) {
@@ -694,8 +695,8 @@ router.delete('/:teamId/projects/remove-projects', checkOwner, async (req, res) 
       if (projectsToUpdate.length > 0) {
         await Project.updateMany(
           { ProjectID: { $in: projectsToUpdate } },
-          { 
-            $set: { 
+          {
+            $set: {
               ProjectStatusID: 1, // Set to Unassigned status
               ModifiedDate: new Date(),
               ModifiedBy: req.body.OwnerID
@@ -724,19 +725,15 @@ router.delete('/:teamId/projects/remove-projects', checkOwner, async (req, res) 
       await session.commitTransaction();
       session.endSession();
 
-      res.json({ 
-        message: `Successfully removed ${result.deletedCount} projects${projectsToUpdate.length > 0 ? ` and updated ${projectsToUpdate.length} project(s) to unassigned status` : ''}`,
-        removedCount: result.deletedCount,
-        updatedToUnassigned: projectsToUpdate.length
-      });
+      res.status(200).json({ success: true, message: `Successfully removed ${result.deletedCount} projects${projectsToUpdate.length > 0 ? ` and updated ${projectsToUpdate.length} project(s) to unassigned status` : ''}`, removedCount: result.deletedCount, updatedToUnassigned: projectsToUpdate.length });
 
       // Emit real-time bulk projects removed event
       try {
         emitToOrg(team.organizationID, 'team.projects.bulk_removed', {
           event: 'team.projects.bulk_removed',
           version: 1,
-          data: { 
-            organizationId: String(team.organizationID), 
+          data: {
+            organizationId: String(team.organizationID),
             teamId: req.params.teamId,
             team: team,
             removedCount: result.deletedCount,

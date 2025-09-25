@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import StatusPill from '../../components/shared/StatusPill';
 import api, { authService, taskService, githubService } from '../../services/api';
-import { FaEdit, FaCog, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot } from 'react-icons/fa';
+import { FaEdit, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import { MdDelete } from 'react-icons/md';
 import { FaTimeline } from "react-icons/fa6";
 import AddTaskModal from '../../components/shared/AddTaskModal';
@@ -102,7 +102,6 @@ const ProjectDetailsPage = () => {
   const [isTeamInputFocused, setIsTeamInputFocused] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   // Team members state
-  const [teamMembers, setTeamMembers] = useState({});
   const [loadingTeamMembers, setLoadingTeamMembers] = useState(false);
   // Project members state
   const [projectMembers, setProjectMembers] = useState([]);
@@ -128,7 +127,30 @@ const ProjectDetailsPage = () => {
   const [hasMoreIssues, setHasMoreIssues] = useState(true);
   const [projectActivity, setProjectActivity] = useState([]);
 
+  // Sorting state for Tasks table
+  const [tasksSortKey, setTasksSortKey] = useState('name'); // name | assignedTo | assignee | assignedDate | priority | status
+  const [tasksSortDir, setTasksSortDir] = useState('asc'); // asc | desc
+
   const getThemeClasses = useThemeClasses();
+
+  // Helper to convert hex color to rgba with alpha for subtle backgrounds
+  const hexToRgba = (hex, alpha = 0.08) => {
+    try {
+      if (!hex) return undefined;
+      let c = hex.trim();
+      if (c.startsWith('#')) c = c.slice(1);
+      if (c.length === 3) {
+        c = c.split('').map(ch => ch + ch).join('');
+      }
+      const num = parseInt(c, 16);
+      const r = (num >> 16) & 255;
+      const g = (num >> 8) & 255;
+      const b = num & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    } catch (_) {
+      return undefined;
+    }
+  };
 
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
@@ -624,32 +646,19 @@ const ProjectDetailsPage = () => {
     setAdding(true);
     setError('');
     try {
-      const res = await api.post(`/project-details/${projectId}/add-team`, {
-        TeamID: teamId,
-        ModifiedBy: currentUser._id
-      });
+      const res = await api.post(`/project-details/${projectId}/team/${teamId}`);
 
-      showToast('Team added successfully!', 'success');
-
-      // Find the team data from orgTeams and add to teams state internally
-      const teamToAdd = orgTeams.find(team => team.TeamID === teamId);
-      if (teamToAdd) {
-        setTeams(prev => [...prev, {
-          ...teamToAdd,
-          IsActive: true,
-          CreatedDate: new Date().toISOString(),
-          ModifiedDate: new Date().toISOString(),
-          ModifiedBy: currentUser._id
-        }]);
+      if (res.data.success) {
+        showToast(res.data.message, 'success');
+        setTeams(prev => [...prev, { ...res.data }]);
+        setProjectMembers(res.data.projectMembers);
+        // Update project state if status was changed
+        if (res.data.statusUpdated) {
+          setProject(prev => ({ ...prev, ProjectStatusID: 2 })); // Update to Assigned status
+        }
       }
-
-
-      // Update project state if status was changed
-      if (res.data.statusUpdated) {
-        setProject(prev => ({
-          ...prev,
-          ProjectStatusID: 2 // Update to Assigned status
-        }));
+      else {
+        setError(res.data.error);
       }
 
       setShowAddTeamDialog(false);
@@ -670,12 +679,15 @@ const ProjectDetailsPage = () => {
     setToggling(teamId);
     setError('');
     try {
-      await api.patch(`/project-details/${projectId}/team/${teamId}/toggle`, {
-        ModifiedBy: currentUser._id
-      });
-      // Refresh teams
-      const res = await api.get(`/project-details/${projectId}`);
-      setTeams(res.data.teams);
+      await api.patch(`/project-details/${projectId}/team/${teamId}/toggle`);
+      if (res.data.success) {
+        setTeams(prev => prev.filter(team => team.TeamID !== teamId));
+        setProjectMembers(res.data.projectMembers);
+        showToast('Team access updated successfully', 'success');
+      }
+      else {
+        setError(res.data.error);
+      }
       setShowRevokeDialog(false);
       setRevokingTeam(null);
       showToast('Team access updated successfully', 'success');
@@ -742,14 +754,21 @@ const ProjectDetailsPage = () => {
     setRemoving(true);
     setError('');
     try {
-      await api.delete(`/project-details/${projectId}/team/${teamId}`, {
-        data: { ModifiedBy: currentUser._id }
-      });
-      // Refresh teams
-      const res = await api.get(`/project-details/${projectId}`);
-      setTeams(res.data.teams);
+      const res = await api.delete(`/project-details/${projectId}/team/${teamId}`);
+      console.log(res.data);
+
+      if (res.data.success) {
+        setTeams(prev => prev.filter(team => team.TeamID !== teamId));
+        setProjectMembers(res.data.projectMembers);
+        showToast(res.data.message, 'success');
+      }
+      else {
+        setError(res.data.error);
+      }
+
       setShowRemoveDialog(false);
       setRemovingTeam(null);
+
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to remove team');
     } finally {
@@ -814,9 +833,6 @@ const ProjectDetailsPage = () => {
       showToast('Failed to update task', 'error');
     }
   };
-
-
-
 
   // Update the table container classes - transparent background with borders to blend with page
   const tableContainerClasses = getThemeClasses(
@@ -898,6 +914,58 @@ const ProjectDetailsPage = () => {
       setBulkDeleting(false);
     }
   };
+
+  // Tasks sorting helpers
+  const handleTasksSort = (key) => {
+    if (tasksSortKey === key) {
+      setTasksSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setTasksSortKey(key);
+      setTasksSortDir('asc');
+    }
+  };
+
+  const getTasksSortIcon = (key) => {
+    if (tasksSortKey !== key) return <FaSort className={getThemeClasses('text-gray-400', 'text-gray-500')} size={12} />;
+    return tasksSortDir === 'asc'
+      ? <FaSortUp className={getThemeClasses('text-blue-600', 'text-blue-400')} size={12} />
+      : <FaSortDown className={getThemeClasses('text-blue-600', 'text-blue-400')} size={12} />;
+  };
+
+  const priorityRank = (p) => {
+    const map = { 'High': 3, 'Medium': 2, 'Low': 1 };
+    return map[p] || 0;
+  };
+
+  const tasksSorted = useMemo(() => {
+    const copy = [...taskList];
+    const dir = tasksSortDir === 'asc' ? 1 : -1;
+    copy.sort((a, b) => {
+      const getAssignedTo = (t) => t.AssignedToDetails?.fullName || '';
+      const getAssignee = (t) => t.AssigneeDetails?.fullName || '';
+      const getStatus = (t) => (t.Status || '').toString();
+      switch (tasksSortKey) {
+        case 'name':
+          return (a.Name || '').localeCompare(b.Name || '') * dir;
+        case 'assignedTo':
+          return getAssignedTo(a).localeCompare(getAssignedTo(b)) * dir;
+        case 'assignee':
+          return getAssignee(a).localeCompare(getAssignee(b)) * dir;
+        case 'assignedDate': {
+          const av = a.AssignedDate ? new Date(a.AssignedDate).getTime() : 0;
+          const bv = b.AssignedDate ? new Date(b.AssignedDate).getTime() : 0;
+          return (av - bv) * dir;
+        }
+        case 'priority':
+          return (priorityRank(a.Priority) - priorityRank(b.Priority)) * dir;
+        case 'status':
+          return getStatus(a).localeCompare(getStatus(b)) * dir;
+        default:
+          return 0;
+      }
+    });
+    return copy;
+  }, [taskList, tasksSortKey, tasksSortDir]);
 
   // Function to handle user story deletion
   const handleDeleteUserStory = async (userStoryId) => {
@@ -1048,33 +1116,36 @@ const ProjectDetailsPage = () => {
                   </div>
                 )}
                 {isOwner && (
-                  <div className="py-2">
-                    <button
-                      className={getThemeClasses(
-                        "flex items-center gap-2 p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors",
-                        "dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-800"
-                      )}
-                      title="Project Settings"
-                      onClick={handleOpenModal}
-                    >
-                      <FaCog size={18} />
-                      {/* Settings */}
-                    </button>
-                  </div>
+                  <>
+                    <div className="py-2 flex gap-2">
+                      <button
+                        className={getThemeClasses(
+                          "flex items-center gap-2 p-2 text-gray-500 hover:text-green-600 rounded-lg hover:bg-green-50 transition-colors",
+                          "dark:text-gray-400 dark:hover:text-green-400 dark:hover:bg-gray-800"
+                        )}
+                        title="Generate AI Report"
+                        onClick={() => setShowReportGenerator(true)}
+                      >
+                        <FaFileAlt size={18} />
+                        {/* Generate Report */}
+                      </button>
+                    </div>
+                    <div className="py-2">
+                      <button
+                        className={getThemeClasses(
+                          "flex items-center gap-2 p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors",
+                          "dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-800"
+                        )}
+                        title="Project Settings"
+                        onClick={handleOpenModal}
+                      >
+                        <FaEdit size={18} />
+                        {/* Settings */}
+                      </button>
+                    </div>
+                  </>
+
                 )}
-                <div className="py-2 flex gap-2">
-                  <button
-                    className={getThemeClasses(
-                      "flex items-center gap-2 p-2 text-gray-500 hover:text-green-600 rounded-lg hover:bg-green-50 transition-colors",
-                      "dark:text-gray-400 dark:hover:text-green-400 dark:hover:bg-gray-800"
-                    )}
-                    title="Generate AI Report"
-                    onClick={() => setShowReportGenerator(true)}
-                  >
-                    <FaFileAlt size={18} />
-                    {/* Generate Report */}
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -1367,52 +1438,62 @@ const ProjectDetailsPage = () => {
             </div>
             <div className='w-full flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mt-6'>
               {/* Add Team Dropdown */}
-              {isOwner && (
-                <div className="w-full lg:w-[40%] mb-6">
-                  <form onSubmit={(e) => { e.preventDefault(); if (selectedTeam) handleAddTeam(selectedTeam.TeamID); }} className="flex flex-col gap-2">
-                    <label className={getThemeClasses(
-                      'block text-gray-700 font-semibold mb-1',
-                      'dark:text-gray-300'
-                    )}>Search for a Team (search by Name or Description)</label>
-                    <input
-                      type="text"
-                      className={getThemeClasses(
-                        'border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200',
-                        'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
-                      )}
-                      value={teamSearch}
-                      onChange={e => {
-                        setTeamSearch(e.target.value);
-                        setSelectedTeam(null);
-                        setShowAllTeams(false);
-                      }}
-                      onFocus={() => {
-                        setIsTeamInputFocused(true);
-                        if (!teamSearch) {
-                          const assignedIds = new Set(teams.map(t => t.TeamID));
-                          const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
-                          setFilteredAvailableTeams(availableTeams.slice(0, 10));
-                        }
-                      }}
-                      onBlur={() => {
-                        setTimeout(() => {
-                          setIsTeamInputFocused(false);
-                        }, 200);
-                      }}
-                      placeholder="Type to search..."
-                      autoComplete="off"
-                    />
-                    {isTeamInputFocused && filteredAvailableTeams.length > 0 && (
-                      <div className="relative w-full md:w-96">
-                        {/* Overlay backdrop */}
-                        <div
-                          className="fixed inset-0 z-40"
-                          onClick={() => setIsTeamInputFocused(false)}
+              {/* moved search to header */}
+            </div>
+            {/* Teams Assigned - Cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+              <div className='lg:col-span-3'>
+                <div className="mb-4 flex items-center justify-between gap-4">
+                  <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Teams Assigned</h2>
+                  {isOwner && (
+                    <form onSubmit={(e) => { e.preventDefault(); if (selectedTeam) handleAddTeam(selectedTeam.TeamID); }} className="relative">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          className={getThemeClasses(
+                            'border rounded-xl px-4 py-2 w-64 text-sm font-medium shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200',
+                            'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
+                          )}
+                          value={teamSearch}
+                          onChange={e => {
+                            setTeamSearch(e.target.value);
+                            setSelectedTeam(null);
+                            setShowAllTeams(false);
+                          }}
+                          onFocus={() => {
+                            setIsTeamInputFocused(true);
+                            if (!teamSearch) {
+                              const assignedIds = new Set(teams.map(t => t.TeamID));
+                              const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
+                              setFilteredAvailableTeams(availableTeams.slice(0, 10));
+                            }
+                          }}
+                          onBlur={() => {
+                            setTimeout(() => {
+                              setIsTeamInputFocused(false);
+                            }, 200);
+                          }}
+                          placeholder="Search team to add..."
+                          autoComplete="off"
                         />
-                        {/* Dropdown overlay */}
-                        <div className="absolute top-full left-0 right-0 z-50 mt-1">
+                        {selectedTeam && (
+                          <button
+                            type="submit"
+                            disabled={!selectedTeam}
+                            className={getThemeClasses(
+                              'px-3 py-2 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 disabled:opacity-50',
+                              'dark:from-blue-600 dark:to-blue-700'
+                            )}
+                            title={selectedTeam ? 'Add selected team to project' : 'Select a team from dropdown'}
+                          >
+                            Add
+                          </button>
+                        )}
+                      </div>
+                      {isTeamInputFocused && filteredAvailableTeams.length > 0 && (
+                        <div className="absolute top-full right-0 z-50 mt-1 w-[22rem]">
                           <ul className={getThemeClasses(
-                            'border rounded-xl bg-white max-h-48 overflow-y-auto shadow-lg border-gray-200',
+                            'border rounded-xl bg-white max-h-60 overflow-y-auto shadow-lg border-gray-200',
                             'dark:bg-gray-800 dark:border-gray-700'
                           )}>
                             {filteredAvailableTeams.map((team, index) => (
@@ -1423,14 +1504,14 @@ const ProjectDetailsPage = () => {
                                   'dark:border-gray-700'
                                 )}
                               >
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between gap-2">
                                   <div className={getThemeClasses(
                                     'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2',
                                     'dark:hover:bg-blue-900/30'
                                   )}
                                     onClick={() => {
                                       setSelectedTeam(team);
-                                      setTeamSearch(team.TeamName + ' (' + team.TeamDescription + ')');
+                                      setTeamSearch(team.TeamName + (team.TeamDescription ? ' (' + team.TeamDescription + ')' : ''));
                                       setIsTeamInputFocused(false);
                                     }}
                                   >
@@ -1441,12 +1522,14 @@ const ProjectDetailsPage = () => {
                                       )}>
                                         {team.TeamName}
                                       </div>
-                                      <div className={getThemeClasses(
-                                        'text-sm text-gray-600',
-                                        'dark:text-gray-400'
-                                      )}>
-                                        {team.TeamDescription}
-                                      </div>
+                                      {team.TeamDescription && (
+                                        <div className={getThemeClasses(
+                                          'text-sm text-gray-600',
+                                          'dark:text-gray-400'
+                                        )}>
+                                          {team.TeamDescription}
+                                        </div>
+                                      )}
                                       <div className={getThemeClasses(
                                         'text-xs text-gray-400 mt-0.5',
                                         'dark:text-gray-500'
@@ -1455,18 +1538,9 @@ const ProjectDetailsPage = () => {
                                       </div>
                                     </div>
                                   </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedTeam(team);
-                                      handleAddTeam(team.TeamID);
-                                    }}
-                                    className={getThemeClasses(
-                                      'ml-2 px-3 py-1.5 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm',
-                                      'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-                                    )}
-                                  >
-                                    Add
+                                  <button type="button" onClick={() => { setSelectedTeam(team); handleAddTeam(team.TeamID); }}
+                                    className={getThemeClasses('ml-2 p-2 text-sm text-blue-700 font-medium rounded-full transition-all duration-200 bg-blue-100 hover:bg-blue-600 hover:text-white shadow-sm', 'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800')} >
+                                    <FaPlus size={14} />
                                   </button>
                                 </div>
                               </li>
@@ -1485,81 +1559,97 @@ const ProjectDetailsPage = () => {
                             </button>
                           )}
                         </div>
-                      </div>
-                    )}
-                  </form>
+                      )}
+                    </form>
+                  )}
                 </div>
-              )}
-            </div>
-            {/* Teams Assigned Table */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <div className={tableContainerClasses}>
-                <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
-                  <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Teams Assigned</h2>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className={tableHeaderClasses}>
-                        <th className={`py-3 px-4 text-left w-[300px] ${tableHeaderTextClasses}`}>Team Name</th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Date Added</th>
-                        <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Status</th>
-                        {isOwner && <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Actions</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {teams.map(team => {
-                        const teamDetails = orgTeams.find(t => t.TeamID === team.TeamID);
+                <div>
+                  {teams.length === 0 ? (
+                    <div className={getThemeClasses('text-center py-8 text-gray-400', 'dark:text-gray-500')}>
+                      No teams assigned to this project.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {teams.map((team) => {
+                        const initials = team.TeamName.length > 0 ? team.TeamName.split(' ').map(n => n[0]).join('') : '';
                         return (
-                          <tr key={team.TeamID} className={tableRowClasses}>
-                            <td className="py-3 px-4">
-                              <div className="flex items-center gap-3">
-                                <div className={getThemeClasses(
-                                  'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium',
-                                  'dark:bg-blue-900/50 dark:text-blue-300'
-                                )}>
-                                  {teamDetails?.TeamName.split(' ').map(n => n[0]).join('')}
+                          <div key={team.TeamID}
+                            className={getThemeClasses('relative rounded-xl border border-gray-200 p-4 hover:shadow-sm transition', 'dark:border-gray-700')}>
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-start gap-3 min-w-0">
+                                <div
+                                  className={getThemeClasses(
+                                    'w-10 h-10 rounded-full flex items-center justify-center font-semibold flex-shrink-0',
+                                    'dark:bg-blue-900/50'
+                                  )}
+                                  style={{ backgroundColor: hexToRgba(team.TeamColor, theme === 'dark' ? 0.12 : 0.3) }}>
+                                  {initials}
                                 </div>
-                                <div className="flex flex-col">
+                                <div className="min-w-0">
                                   <Link href={`/team/${team.TeamID}`} legacyBehavior>
-                                    <a className={`${tableTextClasses} hover:text-blue-600 hover:underline transition-colors cursor-pointer`} title="View Team Details">
-                                      {teamDetails?.TeamName || team.TeamID}
+                                    <a className={`${tableTextClasses} hover:text-blue-600 hover:underline transition-colors cursor-pointer block truncate`} title="View Team Details">
+                                      {team?.TeamName || team.TeamID}
                                     </a>
                                   </Link>
-                                  {teamDetails?.TeamDescription && (
-                                    <span className={tableSecondaryTextClasses}>{teamDetails.TeamDescription}</span>
+                                  {team?.TeamDescription && (
+                                    <div className={`${tableSecondaryTextClasses} truncate`}>{team.TeamDescription}</div>
                                   )}
+                                  <div className={`${tableSecondaryTextClasses} mt-1`}>
+                                    <span className='text-black'>Created: </span> {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
+                                  </div>
                                 </div>
                               </div>
-                            </td>
-                            <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
-                              {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
-                            </td>
-                            <td className="py-3 px-4 text-center">
-                              <StatusPill status={team.IsActive ? 'Active' : 'Offline'} theme={theme} showPulseOnActive />
-                            </td>
-                            {isOwner && (
-                              <td className="py-3 px-4 text-center">
-                                <div className="flex items-center justify-center gap-2">
+                              <div className="flex items-center gap-2">
+                                <StatusPill status={team.IsActive ? 'Active' : 'Offline'} theme={theme} showPulseOnActive />
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between mt-6">
+                              {/* Members overlay */}
+                              {team.teamMembers.length > 0 && (
+                                <div className='flex items-center'>
+                                  <div className="flex -space-x-2">
+                                    {team.teamMembers.slice(0, 3).map((member, idx) => (
+                                      <div
+                                        key={member._id || idx}
+                                        className={getThemeClasses(
+                                          'w-7 h-7 rounded-full border-2 border-white overflow-hidden bg-purple-500 flex items-center justify-center text-white text-xs font-medium',
+                                          'dark:border-gray-700'
+                                        )}
+                                        title={`${member.firstName || ''} ${member.lastName || ''}`.trim()}
+                                      >
+                                        {member.profileImage ? (
+                                          <img src={member.profileImage} alt={(member.firstName || member.lastName || 'Member')} className="w-full h-full object-cover" />
+                                        ) : (
+                                          <span>{getUserInitials(member)}</span>
+                                        )}
+                                      </div>
+                                    ))}
+                                    {team.teamMembers.length > 3 && (
+                                      <div className={getThemeClasses(
+                                        'w-7 h-7 rounded-full border-2 border-white bg-gray-100 text-gray-600 text-[10px] font-semibold flex items-center justify-center',
+                                        'dark:bg-gray-700 dark:border-gray-700 dark:text-gray-300'
+                                      )}
+                                      >
+                                        +{team.teamMembers.length - 3}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              {isOwner && (
+                                <div className="flex items-center justify-end gap-2">
                                   <button
                                     onClick={() => {
                                       setRevokingTeam(team);
                                       setShowRevokeDialog(true);
                                     }}
                                     className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
-                                      ? getThemeClasses(
-                                        'bg-blue-100 text-blue-700 hover:bg-blue-200',
-                                        'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
-                                      )
-                                      : getThemeClasses(
-                                        'bg-green-100 text-green-700 hover:bg-green-200',
-                                        'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-800/50'
-                                      )
-                                      }`}
+                                      ? getThemeClasses('bg-blue-100 text-blue-700 hover:bg-blue-200', 'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50')
+                                      : getThemeClasses('bg-green-100 text-green-700 hover:bg-green-200', 'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-800/50')}`}
                                     title={team.IsActive ? 'Revoke Access' : 'Grant Access'}
                                     disabled={toggling === team.TeamID}
                                   >
-                                    <FaToggleOn size={14} />
+                                    <FaToggleOn size={16} />
                                   </button>
                                   <button
                                     onClick={() => {
@@ -1573,47 +1663,35 @@ const ProjectDetailsPage = () => {
                                     title="Remove Team"
                                     disabled={removing}
                                   >
-                                    <FaTimes size={14} />
+                                    <FaTimes size={16} />
                                   </button>
                                 </div>
-                              </td>
-                            )}
-                          </tr>
+                              )}
+                            </div>
+                          </div>
                         );
                       })}
-                      {teams.length === 0 && (
-                        <tr>
-                          <td colSpan={isOwner ? 4 : 3} className={getThemeClasses(
-                            'text-center py-8 text-gray-400',
-                            'dark:text-gray-500'
-                          )}>
-                            No teams assigned to this project.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* User Stories Table */}
-              <div className={tableContainerClasses}>
-                <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
-                  <div className="flex items-center justify-between">
-                    <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>User Stories</h2>
-                    <button
-                      onClick={() => { setAddTaskTypeMode('userStory'); setIsAddTaskOpen(true); }}
-                      className={getThemeClasses(
-                        'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                        'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
-                      )}
-                    >
-                      <FaPlus size={14} />
-                      Create
-                    </button>
-                  </div>
+              <div className={`lg:col-span-2`}>
+                <div className="flex justify-between mb-4">
+                  <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>User Stories</h2>
+                  <button
+                    onClick={() => { setAddTaskTypeMode('userStory'); setIsAddTaskOpen(true); }}
+                    className={getThemeClasses(
+                      'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
+                      'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
+                    )}
+                  >
+                    <FaPlus size={14} />
+                    Create
+                  </button>
                 </div>
-                <div className="overflow-x-auto">
+                <div className={`overflow-x-auto ${tableContainerClasses}`}>
                   {userStories.length === 0 ? (
                     <div className={getThemeClasses(
                       'text-center py-8 text-gray-400',
@@ -1687,9 +1765,9 @@ const ProjectDetailsPage = () => {
 
             {/* Tasks Table - Keep it full width below */}
             <div className="mb-8">
-              <div className={tableContainerClasses}>
-                <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
-                  <div className="flex items-center justify-between">
+              <div>
+                <div>
+                  <div className="flex items-center justify-between mb-4">
                     <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Tasks</h2>
                     <div className="flex items-center gap-3">
                       {selectedTasks.length > 0 ? (
@@ -1735,7 +1813,7 @@ const ProjectDetailsPage = () => {
                     </div>
                   </div>
                 </div>
-                <div className="overflow-x-auto">
+                <div className={`overflow-x-auto mb-2 rounded-xl border ${getThemeClasses('border-gray-200', 'dark:border-gray-700')}`}>
                   {taskList.length === 0 ? (
                     <div className={getThemeClasses(
                       'text-center py-8 text-gray-400',
@@ -1758,170 +1836,200 @@ const ProjectDetailsPage = () => {
                               )}
                             />
                           </th>
-                          <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Name</th>
-                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Assigned To</th>
-                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Assignee</th>
-                          <th className={`hidden md:table-cell py-3 px-4 text-center ${tableHeaderTextClasses}`}>Date Assigned</th>
-                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>Priority</th>
-                          <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Status</th>
+                          <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                            <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1">
+                              <span>Name</span>
+                              {getTasksSortIcon('name')}
+                            </button>
+                          </th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                            <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center gap-1">
+                              <span>Assigned To</span>
+                              {getTasksSortIcon('assignedTo')}
+                            </button>
+                          </th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                            <button type="button" onClick={() => handleTasksSort('assignee')} className="inline-flex items-center gap-1">
+                              <span>Assignee</span>
+                              {getTasksSortIcon('assignee')}
+                            </button>
+                          </th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-center ${tableHeaderTextClasses}`}>
+                            <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center gap-1">
+                              <span>Date Assigned</span>
+                              {getTasksSortIcon('assignedDate')}
+                            </button>
+                          </th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                            <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center gap-1">
+                              <span>Priority</span>
+                              {getTasksSortIcon('priority')}
+                            </button>
+                          </th>
+                          <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                            <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center gap-1">
+                              <span>Status</span>
+                              {getTasksSortIcon('status')}
+                            </button>
+                          </th>
                           <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {taskList.map(task => {
+                        {tasksSorted.map(task => {
                           // Get priority style for background color if task has TicketNumber
                           const getPriorityBackgroundColor = (priority) => {
                             const styles = {
                               'High': 'bg-red-50 dark:bg-red-900/10',
-                              'Medium': 'bg-yellow-50 dark:bg-yellow-900/10', 
+                              'Medium': 'bg-yellow-50 dark:bg-yellow-900/10',
                               'Low': 'bg-green-50 dark:bg-green-900/10'
                             };
                             return styles[priority] || '';
                           };
 
-                          const ticketRowClasses = task.TicketNumber 
+                          const ticketRowClasses = task.TicketNumber
                             ? `${tableRowClasses} ${getPriorityBackgroundColor(task.Priority)}`
                             : tableRowClasses;
 
                           return (
                             <tr key={task._id} className={ticketRowClasses}>
-                            <td className="py-3 px-4 text-center">
-                              <input
-                                type="checkbox"
-                                checked={selectedTasks.includes(task.TaskID)}
-                                onChange={() => handleSelectTask(task.TaskID)}
-                                className={getThemeClasses(
-                                  'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                                  'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                              <td className="py-3 px-4 text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedTasks.includes(task.TaskID)}
+                                  onChange={() => handleSelectTask(task.TaskID)}
+                                  className={getThemeClasses(
+                                    'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                                    'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                                  )}
+                                />
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="flex flex-col">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <button
+                                      onClick={() => router.push(`/task/${task.TaskID}`)}
+                                      className={getThemeClasses(
+                                        'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium',
+                                        'dark:hover:text-blue-400'
+                                      )}
+                                      title="Click to view task details"
+                                    >
+                                      {task.Name}
+                                    </button>
+                                    {getTaskTypeBadgeComponent(task.Type)}
+                                  </div>
+                                  <span className={getThemeClasses(
+                                    'text-xs text-gray-500',
+                                    'dark:text-gray-400'
+                                  )}>{task.Description}</span>
+                                  {/* Show assigned to on mobile if available */}
+                                  {task.AssignedTo && task.AssignedToDetails && (
+                                    <div className={getThemeClasses(
+                                      'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600',
+                                      'dark:text-gray-300'
+                                    )}>
+                                      <span className="font-medium">Assigned to:</span>
+                                      <span>{task.AssignedToDetails.fullName}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="hidden md:table-cell py-3 px-4">
+                                {task.AssignedTo && task.AssignedToDetails ? (
+                                  <div className="flex items-center gap-3">
+                                    <div className={getThemeClasses(
+                                      'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
+                                      'dark:from-blue-600 dark:to-blue-700'
+                                    )}>
+                                      {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className={tableTextClasses}>{task.AssignedToDetails.fullName} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
+                                      {task.AssignedToDetails.teamName && (
+                                        <span className={tableSecondaryTextClasses}>{task.AssignedToDetails.teamName}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center">
+                                    <span className={tableSecondaryTextClasses}>Not Assigned</span>
+                                  </div>
                                 )}
-                              />
-                            </td>
-                            <td className="py-3 px-4">
-                              <div className="flex flex-col">
-                                <div className="flex items-center gap-2 mb-1">
+                              </td>
+                              <td className="hidden md:table-cell py-3 px-4">
+                                {task.Assignee && task.AssigneeDetails ? (
+                                  <div className="flex items-center gap-3">
+                                    <div className={getThemeClasses(
+                                      'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm',
+                                      'dark:from-green-600 dark:to-green-700'
+                                    )}>
+                                      {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className={tableTextClasses}>{task.AssigneeDetails.fullName} <span className={'text-xs'}>{isMe(task.Assignee) ? ' (You)' : ''}</span></span>
+                                      {task.AssigneeDetails.teamName && (
+                                        <span className={tableSecondaryTextClasses}>{task.AssigneeDetails.teamName}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2">
+                                    <div className={getThemeClasses(
+                                      'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm',
+                                      'dark:bg-gray-700 dark:text-gray-400'
+                                    )}>
+                                      <span>NA</span>
+                                    </div>
+                                    <span className={tableSecondaryTextClasses}>Not Assigned</span>
+                                  </div>
+                                )}
+                              </td>
+                              <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
+                                {task.AssignedDate ? (
+                                  <div className="flex flex-col leading-tight">
+                                    <span>{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                                    <span className={getThemeClasses('text-xs text-gray-500', 'text-xs text-gray-400')}>
+                                      {new Date(task.AssignedDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  '-'
+                                )}
+                              </td>
+                              <td className="hidden md:table-cell py-3 px-4">
+                                <div className="flex items-center gap-1.5">
+                                  {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 text-left">
+                                {getTaskStatusBadge(task.Status, theme === 'dark', getTaskStatusText(task.Status))}
+                              </td>
+                              <td className="py-3 px-4 text-left">
+                                <div className="flex items-center justify-center gap-2">
                                   <button
-                                    onClick={() => router.push(`/task/${task.TaskID}`)}
+                                    onClick={() => handleEditTask(task)}
                                     className={getThemeClasses(
-                                      'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium',
-                                      'dark:hover:text-blue-400'
+                                      'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                      'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
                                     )}
-                                    title="Click to view task details"
+                                    title="Edit Task"
                                   >
-                                    {task.Name}
+                                    <FaEdit size={14} />
                                   </button>
-                                  {getTaskTypeBadgeComponent(task.Type)}
-                                </div>
-                                <span className={getThemeClasses(
-                                  'text-xs text-gray-500',
-                                  'dark:text-gray-400'
-                                )}>{task.Description}</span>
-                                {/* Show assigned to on mobile if available */}
-                                {task.AssignedTo && task.AssignedToDetails && (
-                                  <div className={getThemeClasses(
-                                    'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600',
-                                    'dark:text-gray-300'
-                                  )}>
-                                    <span className="font-medium">Assigned to:</span>
-                                    <span>{task.AssignedToDetails.fullName}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="hidden md:table-cell py-3 px-4">
-                              {task.AssignedTo && task.AssignedToDetails ? (
-                                <div className="flex items-center gap-3">
-                                  <div className={getThemeClasses(
-                                    'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
-                                    'dark:from-blue-600 dark:to-blue-700'
-                                  )}>
-                                    {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
-                                  </div>
-                                  <div className="flex flex-col">
-                                    <span className={tableTextClasses}>{task.AssignedToDetails.fullName} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
-                                    {task.AssignedToDetails.teamName && (
-                                      <span className={tableSecondaryTextClasses}>{task.AssignedToDetails.teamName}</span>
+                                  <button
+                                    onClick={() => confirmDeleteTask(task)}
+                                    className={getThemeClasses(
+                                      'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                      'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
                                     )}
-                                  </div>
+                                    title="Delete Task"
+                                    disabled={removing}
+                                  >
+                                    <MdDelete size={18} />
+                                  </button>
                                 </div>
-                              ) : (
-                                <div className="flex items-center">
-                                  <span className={tableSecondaryTextClasses}>Not Assigned</span>
-                                </div>
-                              )}
-                            </td>
-                            <td className="hidden md:table-cell py-3 px-4">
-                              {task.Assignee && task.AssigneeDetails ? (
-                                <div className="flex items-center gap-3">
-                                  <div className={getThemeClasses(
-                                    'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm',
-                                    'dark:from-green-600 dark:to-green-700'
-                                  )}>
-                                    {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
-                                  </div>
-                                  <div className="flex flex-col">
-                                    <span className={tableTextClasses}>{task.AssigneeDetails.fullName} <span className={'text-xs'}>{isMe(task.Assignee) ? ' (You)' : ''}</span></span>
-                                    {task.AssigneeDetails.teamName && (
-                                      <span className={tableSecondaryTextClasses}>{task.AssigneeDetails.teamName}</span>
-                                    )}
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-2">
-                                  <div className={getThemeClasses(
-                                    'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm',
-                                    'dark:bg-gray-700 dark:text-gray-400'
-                                  )}>
-                                    <span>NA</span>
-                                  </div>
-                                  <span className={tableSecondaryTextClasses}>Not Assigned</span>
-                                </div>
-                              )}
-                            </td>
-                            <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
-                              {task.AssignedDate ? (
-                                <div className="flex flex-col leading-tight">
-                                  <span>{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                                  <span className={getThemeClasses('text-xs text-gray-500', 'text-xs text-gray-400')}>
-                                    {new Date(task.AssignedDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                                  </span>
-                                </div>
-                              ) : (
-                                '-'
-                              )}
-                            </td>
-                            <td className="hidden md:table-cell py-3 px-4">
-                              <div className="flex items-center gap-1.5">
-                                {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
-                              </div>
-                            </td>
-                            <td className="py-3 px-4 text-left">
-                              {getTaskStatusBadge(task.Status, theme === 'dark', getTaskStatusText(task.Status))}
-                            </td>
-                            <td className="py-3 px-4 text-left">
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  onClick={() => handleEditTask(task)}
-                                  className={getThemeClasses(
-                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
-                                    'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
-                                  )}
-                                  title="Edit Task"
-                                >
-                                  <FaEdit size={14} />
-                                </button>
-                                <button
-                                  onClick={() => confirmDeleteTask(task)}
-                                  className={getThemeClasses(
-                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
-                                    'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
-                                  )}
-                                  title="Delete Task"
-                                  disabled={removing}
-                                >
-                                  <MdDelete size={18} />
-                                </button>
-                              </div>
-                            </td>
+                              </td>
                             </tr>
                           );
                         })}

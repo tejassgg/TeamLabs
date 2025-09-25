@@ -578,11 +578,7 @@ router.post('/:teamId/leave', async (req, res) => {
           emitDashboardMetrics(team.organizationID);
         } catch (e) { /* ignore */ }
 
-        res.json({ 
-          message: 'Successfully transferred admin rights and left the team',
-          action: 'admin_transferred_and_left',
-          newAdminId 
-        });
+        res.status(200).json({ success: true, message: 'Successfully transferred admin rights and left the team', action: 'admin_transferred_and_left', newAdminId: newAdminId });
       } catch (error) {
         // If an error occurs, abort the transaction
         await session.abortTransaction();

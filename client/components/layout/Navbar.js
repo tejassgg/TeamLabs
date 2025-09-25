@@ -94,8 +94,8 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
 
   const handleLogout = async () => {
     try {
-      await authService.logout();
       if (onLogout) onLogout();
+      showToast('Logged Out Successfully', 'success');
       router.push('/');
     } catch (error) {
       console.error('Error logging out:', error);
@@ -212,7 +212,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
     );
   }
   return (
-    <nav className={`${theme === 'dark' ? 'bg-[#18181b] text-white border-[#232323]' : 'bg-white text-gray-900 border-gray-200'} shadow-sm border-b`}>
+    <nav className={`${theme === 'dark' ? 'bg-[#18181b] text-white border-gray-700' : 'bg-white text-gray-900 border-gray-200'} border-b`}>
       <div className="mx-auto">
         <div className="flex justify-between items-center h-16 ml-2">
           {/* Left side - Logo */}

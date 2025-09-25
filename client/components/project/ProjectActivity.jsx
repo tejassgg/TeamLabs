@@ -59,7 +59,7 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate }) => {
   const days = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
 
   return (
-    <div className={getThemeClasses("relative px-2 py-6", "relative px-2 py-6")}>
+    <div className={getThemeClasses("relative px-2 py-6", "relative px-2 py-6")}> 
       <h2 className={getThemeClasses("text-2xl font-bold mb-8 text-gray-900", "dark:text-gray-100")}>Latest Activity</h2>
       {loading ? (
         <div className="flex justify-center items-center py-12">
@@ -73,60 +73,84 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate }) => {
           No activity yet for this project.
         </div>
       ) : (
-        <div className="relative mx-auto max-w-5xl">
-          <div className="relative">
-            {/* Vertical timeline line */}
-            <div className={getThemeClasses("absolute left-1/2 top-0 w-1 h-full bg-gradient-to-b from-gray-200 via-blue-200 to-gray-200 rounded-full -translate-x-1/2 z-0", "absolute left-1/2 top-0 w-1 h-full bg-gradient-to-b from-gray-800 via-blue-900 to-gray-800 rounded-full -translate-x-1/2 z-0")} />
-            {days.map((date, i) => (
-              <div key={date} className="mb-16 flex w-full min-h-[120px] relative items-center">
-                {/* Centered day/date label */}
-                <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center w-48">
-                  <span className={getThemeClasses("bg-white px-4 py-1 rounded-full shadow text-gray-700 font-semibold text-base border border-gray-200", "dark:bg-[#23272F] dark:text-gray-100 dark:border-gray-700 dark:shadow-lg")}>{formatDay(date)}</span>
+        <>
+          {/* Mobile list view */}
+          <div className="md:hidden">
+            <div className="space-y-6">
+              {days.map((date) => (
+                <div key={date}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={getThemeClasses("text-sm font-semibold text-gray-700", "text-sm font-semibold text-gray-200")}>{formatDay(date)}</span>
+                    <div className={getThemeClasses("h-px flex-1 ml-3 bg-gray-200", "h-px flex-1 ml-3 bg-gray-700")} />
+                  </div>
+                  <div className="space-y-3">
+                    {grouped[date].map((act, j) => (
+                      <MobileActivityRow key={j} act={act} />
+                    ))}
+                  </div>
                 </div>
-                {/* Timeline sides */}
-                {i % 2 === 0 ? (
-                  <>
-                    {/* Left side */}
-                    <div className="w-1/2 pr-8 flex flex-col items-end">
-                      <div className="min-w-[600px] max-w-5xl border-t">
-                        {/* Big card for the day */}
-                        <div className={getThemeClasses("px-6 py-4", "") + " space-y-6"}>
-                          {grouped[date].map((act, j) => (
-                            <ActivityRow key={j} act={act} theme={theme} align="right" />
-                          ))}
-                        </div>
-                      </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop timeline view */}
+          <div className="hidden md:block">
+            <div className="relative mx-auto max-w-5xl">
+              <div className="relative">
+                {/* Vertical timeline line */}
+                <div className={getThemeClasses("absolute left-1/2 top-0 w-1 h-full bg-gradient-to-b from-gray-200 via-blue-200 to-gray-200 rounded-full -translate-x-1/2 z-0", "absolute left-1/2 top-0 w-1 h-full bg-gradient-to-b from-gray-800 via-blue-900 to-gray-800 rounded-full -translate-x-1/2 z-0")} />
+                {days.map((date, i) => (
+                  <div key={date} className="mb-16 flex w-full min-h-[120px] relative items-center">
+                    {/* Centered day/date label */}
+                    <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center w-48">
+                      <span className={getThemeClasses("bg-white px-4 py-1 rounded-full shadow text-gray-700 font-semibold text-base border border-gray-200", "dark:bg-[#23272F] dark:text-gray-100 dark:border-gray-700 dark:shadow-lg")}>{formatDay(date)}</span>
                     </div>
-                    <div className="w-1/2" />
-                  </>
-                ) : (
-                  <>
-                    <div className="w-1/2" />
-                    {/* Right side */}
-                    <div className="w-1/2 pl-8 flex flex-col items-start">
-                      <div className="min-w-[600px] max-w-5xl border-t">
-                        {/* Big card for the day */}
-                        <div className={getThemeClasses("px-6 py-4", "") + " space-y-6"}>
-                          {grouped[date].map((act, j) => (
-                            <ActivityRow key={j} act={act} theme={theme} align="left" />
-                          ))}
+                    {/* Timeline sides */}
+                    {i % 2 === 0 ? (
+                      <>
+                        {/* Left side */}
+                        <div className="w-1/2 pr-8 flex flex-col items-end">
+                          <div className="min-w-[600px] max-w-5xl border-t">
+                            {/* Big card for the day */}
+                            <div className={getThemeClasses("px-6 py-4", "") + " space-y-6"}>
+                              {grouped[date].map((act, j) => (
+                                <ActivityRow key={j} act={act} theme={theme} align="right" />
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                        <div className="w-1/2" />
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-1/2" />
+                        {/* Right side */}
+                        <div className="w-1/2 pl-8 flex flex-col items-start">
+                          <div className="min-w-[600px] max-w-5xl border-t">
+                            {/* Big card for the day */}
+                            <div className={getThemeClasses("px-6 py-4", "") + " space-y-6"}>
+                              {grouped[date].map((act, j) => (
+                                <ActivityRow key={j} act={act} theme={theme} align="left" />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+                {/* Project Created Date at the end of the timeline */}
+                {projectCreatedDate && (
+                  <div className="flex w-full justify-center items-center mt-8">
+                    <div className="absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-64">
+                      <span className={getThemeClasses("bg-white px-4 py-1 rounded-full shadow text-gray-500 font-semibold text-base border border-gray-200", "dark:bg-[#23272F] dark:text-gray-400 dark:border-gray-700 dark:shadow-lg")}>Project Created: {new Date(projectCreatedDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
-            ))}
-            {/* Project Created Date at the end of the timeline */}
-            {projectCreatedDate && (
-              <div className="flex w-full justify-center items-center mt-8">
-                <div className="absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-64">
-                  <span className={getThemeClasses("bg-white px-4 py-1 rounded-full shadow text-gray-500 font-semibold text-base border border-gray-200", "dark:bg-[#23272F] dark:text-gray-400 dark:border-gray-700 dark:shadow-lg")}>Project Created: {new Date(projectCreatedDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
@@ -160,6 +184,51 @@ function ActivityRow({ act, theme, align }) {
         </>;
       }
     }
+    return act.details;
+  };
+
+  // Helper to render details with project name as link if present
+  const renderDetailsWithProjectLink = () => {
+    if (act.metadata && act.metadata.projectId && act.details) {
+      // Look for quoted project name in details
+      const match = act.details.match(/"([^"]+)"/);
+      if (match) {
+        const before = act.details.slice(0, match.index);
+        const projectName = match[1];
+        const after = act.details.slice(match.index + match[0].length);
+        return <>
+          {before}
+          <a
+            href={`/project/${act.metadata.projectId}`}
+            className={getThemeClasses(
+              "text-purple-600 hover:underline font-semibold",
+              "dark:text-purple-400 hover:underline font-semibold"
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {projectName}
+          </a>
+          {after}
+        </>;
+      }
+    }
+    return act.details;
+  };
+
+  // Helper to render details with appropriate link based on activity type
+  const renderDetailsWithLink = () => {
+    // Check if it's a project-related activity
+    const projectRelatedTypes = ['project_create', 'project_update', 'project_delete', 'project_settings_update', 'project_team_add'];
+    if (projectRelatedTypes.includes(act.type) && act.metadata?.projectId) {
+      return renderDetailsWithProjectLink();
+    }
+    // Check if it's a task-related activity
+    const taskRelatedTypes = ['task_create', 'task_update', 'task_delete', 'task_complete', 'task_assign', 'user_story_create', 'user_story_update', 'user_story_delete'];
+    if (taskRelatedTypes.includes(act.type) && act.metadata?.taskId) {
+      return renderDetailsWithTaskLink();
+    }
+    // Default to regular details
     return act.details;
   };
   // Second row content
@@ -208,7 +277,7 @@ function ActivityRow({ act, theme, align }) {
               )}
             </div>
             <div className="flex flex-col">
-              <div className={getThemeClasses("text-gray-900 font-medium text-base w-[90%]", "dark:text-gray-100 font-medium text-base w-[90%]")}>{renderDetailsWithTaskLink()}</div>
+              <div className={getThemeClasses("text-gray-900 font-medium text-base w-[90%]", "dark:text-gray-100 font-medium text-base w-[90%]")}>{renderDetailsWithLink()}</div>
               {secondRow}
             </div>
           </div>
@@ -233,7 +302,7 @@ function ActivityRow({ act, theme, align }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-start">
             <div className="flex flex-col">
-              <div className={getThemeClasses("text-gray-900 font-medium text-base w-[90%]", "dark:text-gray-100 font-medium text-base w-[90%]")}>{renderDetailsWithTaskLink()}</div>
+              <div className={getThemeClasses("text-gray-900 font-medium text-base w-[90%]", "dark:text-gray-100 font-medium text-base w-[90%]")}>{renderDetailsWithLink()}</div>
               {secondRow}
             </div>
             <span className={getThemeClasses("text-xs text-gray-400 text-right whitespace-nowrap", "text-xs text-gray-500 text-right whitespace-nowrap ")}>{new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -245,3 +314,130 @@ function ActivityRow({ act, theme, align }) {
 }
 
 export default ProjectActivity; 
+
+// Mobile-friendly compact activity row
+function MobileActivityRow({ act }) {
+  const { formatFileSize, getThemeClasses } = useGlobal();
+  const timeText = new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const renderDetailsWithTaskLink = () => {
+    if (act.metadata && act.metadata.taskId && act.details) {
+      const match = act.details.match(/"([^"]+)"/);
+      if (match) {
+        const before = act.details.slice(0, match.index);
+        const taskName = match[1];
+        const after = act.details.slice(match.index + match[0].length);
+        return (
+          <>
+            {before}
+            <a
+              href={`/task/${act.metadata.taskId}`}
+              className={getThemeClasses(
+                "text-blue-600 hover:underline font-semibold",
+                "dark:text-blue-400 hover:underline font-semibold"
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {taskName}
+            </a>
+            {after}
+          </>
+        );
+      }
+    }
+    return act.details;
+  };
+
+  const renderDetailsWithProjectLink = () => {
+    if (act.metadata && act.metadata.projectId && act.details) {
+      const match = act.details.match(/"([^"]+)"/);
+      if (match) {
+        const before = act.details.slice(0, match.index);
+        const projectName = match[1];
+        const after = act.details.slice(match.index + match[0].length);
+        return (
+          <>
+            {before}
+            <a
+              href={`/project/${act.metadata.projectId}`}
+              className={getThemeClasses(
+                "text-purple-600 hover:underline font-semibold",
+                "dark:text-purple-400 hover:underline font-semibold"
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {projectName}
+            </a>
+            {after}
+          </>
+        );
+      }
+    }
+    return act.details;
+  };
+
+  const renderDetailsWithLink = () => {
+    // Check if it's a project-related activity
+    const projectRelatedTypes = ['project_create', 'project_update', 'project_delete', 'project_settings_update', 'project_team_add'];
+    if (projectRelatedTypes.includes(act.type) && act.metadata?.projectId) {
+      return renderDetailsWithProjectLink();
+    }
+    // Check if it's a task-related activity
+    const taskRelatedTypes = ['task_create', 'task_update', 'task_delete', 'task_complete', 'task_assign', 'user_story_create', 'user_story_update', 'user_story_delete'];
+    if (taskRelatedTypes.includes(act.type) && act.metadata?.taskId) {
+      return renderDetailsWithTaskLink();
+    }
+    // Default to regular details
+    return act.details;
+  };
+
+  let secondRow = null;
+  if (act.type === 'comment_added' && act.metadata && act.metadata.comment) {
+    secondRow = (
+      <div className={getThemeClasses("text-gray-700 text-xs mt-1", "dark:text-gray-200 text-xs mt-1")}> 
+        {act.metadata.comment}
+      </div>
+    );
+  } else if (act.type === 'attachment_added' && act.metadata && act.metadata.fileName) {
+    secondRow = (
+      <div className="flex items-center gap-2 mt-1">
+        {getFileIcon(act.metadata.fileName)}
+        <a
+          href={act.metadata.fileUrl}
+          className={getThemeClasses(
+            "text-blue-600 hover:underline font-medium text-xs",
+            "dark:text-blue-400 hover:underline font-medium text-xs"
+          )}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {act.metadata.fileName}
+        </a>
+        {typeof act.metadata.fileSize === 'number' && (
+          <span className={getThemeClasses("text-[11px] text-gray-400", "text-[11px] text-gray-500")}>{formatFileSize(act.metadata.fileSize)}</span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className={getThemeClasses("p-3 rounded-xl border bg-white", "p-3 rounded-xl border bg-[#23272F]") + " flex items-start gap-3 " + getThemeClasses("border-gray-200", "border-gray-700")}>
+      <div className="flex-shrink-0">
+        {act.user?.profileImage ? (
+          <img src={act.user.profileImage} alt="avatar" className={getThemeClasses("w-10 h-10 rounded-full object-cover border border-gray-200", "w-10 h-10 rounded-full object-cover border border-gray-700")} />
+        ) : (
+          <div className={getThemeClasses("w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold", "w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center text-blue-300 font-bold")}>
+            {(act.user?.firstName && act.user?.lastName) ? act.user.firstName[0] + act.user.lastName[0] : 'UN'}
+          </div>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className={getThemeClasses("text-gray-900 text-sm", "text-gray-100 text-sm")}>{renderDetailsWithLink()}</div>
+        {secondRow}
+        <div className={getThemeClasses("text-xs text-gray-500 mt-1", "text-xs text-gray-400 mt-1")}>{timeText}</div>
+      </div>
+    </div>
+  );
+}

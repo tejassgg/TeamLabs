@@ -7,14 +7,12 @@ import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
 import { useToast } from '../context/ToastContext';
 import ProjectStatusDropdown from '../components/dashboard/ProjectStatusDropdown';
-import { FaTrash, FaRocket, FaProjectDiagram, FaChartBar, FaEnvelope, FaRedo, FaPlus } from 'react-icons/fa';
+import { FaTrash, FaProjectDiagram, FaChartBar, FaRedo, FaPlus } from 'react-icons/fa';
 import { getStatusConfig } from '../components/dashboard/StatusConfig';
 import api from '../services/api';
 import { projectService } from '../services/api';
 import { userService } from '../services/api';
-import { authService } from '../services/api';
 import { connectSocket, subscribe } from '../services/socket';
-import OnboardingProgress from '../components/dashboard/OnboardingProgress';
 import OnboardingGuide from '../components/dashboard/OnboardingGuide';
 import AdminWelcomeMessage from '../components/dashboard/AdminWelcomeMessage';
 
@@ -31,7 +29,6 @@ try {
 }
 
 const Dashboard = () => {
-  const { user } = useAuth();
   const { theme } = useTheme();
   const { projectStatuses, getProjectStatus, teams, projects, userDetails, formatDateWithTime } = useGlobal();
   const { showToast } = useToast();
@@ -56,7 +53,7 @@ const Dashboard = () => {
     // Phase 1: connect socket and subscribe to org member presence/updates
     const fetchDashboardStats = async () => {
       try {
-        const response = await api.get(`/dashboard/${user.organizationID}`);
+        const response = await api.get(`/dashboard/${userDetails.organizationID}`);
         setStats(response.data);
       } catch (err) {
         setError('Failed to fetch dashboard statistics');
@@ -65,12 +62,13 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
-
-    if (user?.organizationID) {
-      if (user?.role === 'Admin') {
+ 
+    if (userDetails?.organizationID) {
+      if (userDetails?.role === 'Admin') {
         setIsAdmin(true);
       }
       fetchDashboardStats();
+      
       // Phase 1: connect socket and subscribe to org member presence/updates
       connectSocket();
       const unsubPresence = subscribe('org.member.presence', (payload) => {
@@ -182,15 +180,18 @@ const Dashboard = () => {
         unsubTeamStatusUpdated && unsubTeamStatusUpdated();
       };
     }
-  }, [user]);
+    else{
+      setLoading(false);
+    }
+  }, [userDetails]);
 
   const handleRemoveUser = async (userId) => {
     setRemovingUser(userId);
     try {
       await api.patch(`/users/${userId}/remove-from-org`, {
-        ModifiedBy: user._id
+        ModifiedBy: userDetails._id
       });
-      const response = await api.get(`/dashboard/${user.organizationID}`);
+      const response = await api.get(`/dashboard/${userDetails.organizationID}`);
       setStats(response.data);
     } catch (err) {
       setError('Failed to remove member from organization');
@@ -235,7 +236,7 @@ const Dashboard = () => {
       setInviteStatus('Invite sent!');
       setInviteEmail('');
       // Refresh dashboard data to get the new invite
-      const response = await api.get(`/dashboard/${user.organizationID}`);
+      const response = await api.get(`/dashboard/${userDetails.organizationID}`);
       setStats(response.data);
     } catch (err) {
       setInviteStatus(err.message || 'Failed to send invite');
@@ -247,7 +248,7 @@ const Dashboard = () => {
       await userService.resendInvite(inviteId);
       showToast('Invite resent successfully!', 'success');
       // Refresh dashboard data to get updated invites
-      const response = await api.get(`/dashboard/${user.organizationID}`);
+      const response = await api.get(`/dashboard/${userDetails.organizationID}`);
       setStats(response.data);
     } catch (err) {
       showToast(err.message || 'Failed to resend invite', 'error');
@@ -259,7 +260,7 @@ const Dashboard = () => {
       await userService.deleteInvite(inviteId);
       showToast('Invite deleted successfully!', 'success');
       // Refresh dashboard data to get updated invites
-      const response = await api.get(`/dashboard/${user.organizationID}`);
+      const response = await api.get(`/dashboard/${userDetails.organizationID}`);
       setStats(response.data);
     } catch (err) {
       showToast(err.message || 'Failed to delete invite', 'error');
@@ -513,7 +514,7 @@ const Dashboard = () => {
                             <td className="py-3 px-4">
                               <span className={`text-sm ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}> {member.role} </span>
                             </td>
-                            {isAdmin && user.organizationID && (
+                            {isAdmin && userDetails.organizationID && (
                               <td className="py-3 px-4 text-center">
                                 <div className="flex items-center justify-center gap-2">
                                   <button
@@ -534,7 +535,7 @@ const Dashboard = () => {
                       })}
                       {(!stats?.members || stats.members.length === 0) && (
                         <tr>
-                          <td colSpan={isAdmin && user.organizationID ? 4 : 3} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}> No members found </td>
+                          <td colSpan={isAdmin && userDetails.organizationID ? 4 : 3} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}> No members found </td>
                         </tr>
                       )}
                     </tbody>
@@ -544,7 +545,7 @@ const Dashboard = () => {
             </div>
 
             {/* Invites Section - Only for Admins */}
-            {isAdmin && user.organizationID && (
+            {isAdmin && userDetails.organizationID && (
               <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
                 <div className={`p-4 border-b flex items-center justify-between ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                   <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'} flex items-center gap-2`}>

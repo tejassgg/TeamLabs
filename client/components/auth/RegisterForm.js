@@ -26,10 +26,6 @@ const RegisterForm = ({ onOpenLogin }) => {
   const [phoneExtensions, setPhoneExtensions] = useState([]);
   const fileInputRef = useRef();
 
-  const handleSignInClick = () => {
-    onOpenLogin();
-  };
-
   // Fetch user roles and phone extensions when component mounts
   useEffect(() => {
     const fetchData = async () => {
@@ -52,7 +48,7 @@ const RegisterForm = ({ onOpenLogin }) => {
   }, []);
 
   // Use a single form with real-time validation
-  const { register, handleSubmit, watch, trigger, formState: { errors }, getValues, setValue } = useForm({ mode: 'onChange' });
+  const { register, handleSubmit, watch, trigger, formState: { errors }} = useForm({ mode: 'onChange' });
   const password = watch('password');
   const confirmPassword = watch('confirmPassword');
 
@@ -158,7 +154,7 @@ const RegisterForm = ({ onOpenLogin }) => {
 
       const result = await registerUser({ ...data, profileImage: imageUrl, inviteToken });
       if (result.success) {
-        router.push('/dashboard');
+        showToast('Registration Successful!', 'success');
       } else {
         setError(result.message);
       }

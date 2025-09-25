@@ -8,7 +8,8 @@ const TaskDetails = require('../models/TaskDetails');
 const User = require('../models/User');
 const Comment = require('../models/Comment');
 const Attachment = require('../models/Attachment');
-const {logActivity, getProjectActivities} = require('../services/activityService');
+const { logActivity, getProjectActivities } = require('../services/activityService');
+const { protect } = require('../middleware/auth');
 
 // GET /api/project-details/:projectId - Get all teams for a project
 router.get('/:projectId', async (req, res) => {
@@ -18,7 +19,24 @@ router.get('/:projectId', async (req, res) => {
     const project = await Project.findOne({ ProjectID: projectId });
     if (!project) return res.status(404).json({ error: 'Project not found' });
     // Fetch teams assigned to project
-    const projectDetails = await ProjectDetails.find({ ProjectID: projectId });
+    const projectDetails = await ProjectDetails.find({ ProjectID: projectId, IsActive: true });
+
+    const projectDetailsWithMembers = await Promise.all(projectDetails.map(async detail => {
+      const newDetail = detail.toObject();
+      const members = await TeamDetails.find({ TeamID_FK: detail.TeamID }).select('MemberID');
+      const users = await User.find({ _id: { $in: members.map(member => member.MemberID) } }).select('username firstName lastName email profileImage');
+      newDetail.teamMembers = users.map(user => ({
+        _id: user._id,
+        profileImage: user.profileImage,
+        firstName: user.firstName,
+        lastName: user.lastName
+      }));
+      const teamDetails = await Team.findOne({ TeamID: detail.TeamID }).select('TeamName TeamColor');
+      newDetail.TeamName = teamDetails.TeamName;
+      newDetail.TeamColor = teamDetails.TeamColor;
+      return newDetail;
+    }));
+
     // Fetch all teams in the same organization
     const orgTeams = await Team.find({ organizationID: project.OrganizationID });
 
@@ -116,7 +134,7 @@ router.get('/:projectId', async (req, res) => {
 
     res.json({
       project,
-      teams: projectDetails,
+      teams: projectDetailsWithMembers,
       orgTeams: teamMemberCounts,
       userStories: processedUserStories,
       taskList: newTaskList,
@@ -124,15 +142,15 @@ router.get('/:projectId', async (req, res) => {
       activity
     });
   } catch (err) {
+    console.error('Error fetching project details:', err);
     res.status(500).json({ error: 'Failed to fetch project details' });
   }
 });
 
-// POST /api/project-details/:projectId/add-team - Add a team to a project
-router.post('/:projectId/add-team', async (req, res) => {
+// POST /api/project-details/:projectId/team/:teamId - Add a team to a project
+router.post('/:projectId/team/:teamId', protect, async (req, res) => {
   try {
-    const { TeamID, ModifiedBy } = req.body;
-    if (!TeamID) return res.status(400).json({ error: 'TeamID is required' });
+    if (!req.params.teamId) return res.status(400).json({ error: 'TeamID is required' });
     const projectId = req.params.projectId;
 
     // Start a session for transaction
@@ -141,7 +159,7 @@ router.post('/:projectId/add-team', async (req, res) => {
 
     try {
       // Check if team is already added
-      const exists = await ProjectDetails.findOne({ ProjectID: projectId, TeamID });
+      const exists = await ProjectDetails.findOne({ ProjectID: projectId, TeamID: req.params.teamId });
       if (exists) {
         await session.abortTransaction();
         session.endSession();
@@ -151,7 +169,7 @@ router.post('/:projectId/add-team', async (req, res) => {
       // Check if this is the first team being added
       const existingTeams = await ProjectDetails.countDocuments({ ProjectID: projectId }, { session });
       const project = await Project.findOne({ ProjectID: projectId });
-      
+
       if (!project) {
         await session.abortTransaction();
         session.endSession();
@@ -161,10 +179,10 @@ router.post('/:projectId/add-team', async (req, res) => {
       // Create new project detail
       const newProjectDetail = new ProjectDetails({
         ProjectID: projectId,
-        TeamID,
+        TeamID: req.params.teamId,
         IsActive: true,
         CreatedDate: new Date(),
-        ModifiedBy
+        ModifiedBy: req.user._id
       });
       await newProjectDetail.save({ session });
 
@@ -172,11 +190,11 @@ router.post('/:projectId/add-team', async (req, res) => {
       if (existingTeams === 0 && project.ProjectStatusID === 1) {
         await Project.updateOne(
           { ProjectID: projectId },
-          { 
-            $set: { 
+          {
+            $set: {
               ProjectStatusID: 2, // Set to Assigned status
               ModifiedDate: new Date(),
-              ModifiedBy
+              ModifiedBy: req.user._id
             }
           },
           { session }
@@ -185,7 +203,7 @@ router.post('/:projectId/add-team', async (req, res) => {
 
       // Log the activity
       await logActivity(
-        ModifiedBy,
+        req.user._id,
         'project_team_add',
         'success',
         `Added team to project "${project.Name}"${existingTeams === 0 ? ' and updated project status to Assigned' : ''}`,
@@ -193,7 +211,7 @@ router.post('/:projectId/add-team', async (req, res) => {
         {
           projectId: project.ProjectID,
           projectName: project.Name,
-          teamId: TeamID,
+          teamId: req.params.teamId,
           isFirstTeam: existingTeams === 0,
           oldStatus: project.ProjectStatusID,
           newStatus: existingTeams === 0 ? 2 : project.ProjectStatusID
@@ -204,8 +222,30 @@ router.post('/:projectId/add-team', async (req, res) => {
       await session.commitTransaction();
       session.endSession();
 
+      const newDetail = newProjectDetail.toObject();
+      const members = await TeamDetails.find({ TeamID_FK: newDetail.TeamID, IsMemberActive: true }).select('MemberID');
+      const users = await User.find({ _id: { $in: members.map(member => member.MemberID) } }).select('username firstName lastName email profileImage');
+      newDetail.teamMembers = users.map(user => ({
+        _id: user._id,
+        profileImage: user.profileImage,
+        firstName: user.firstName,
+        lastName: user.lastName
+      }));
+      const teamDetails = await Team.findOne({ TeamID: newDetail.TeamID }).select('TeamName TeamColor');
+      newDetail.TeamName = teamDetails.TeamName;
+      newDetail.TeamColor = teamDetails.TeamColor;
+
+      // Get all unique project members after adding the new team
+      const allAssignedTeamIds = await ProjectDetails.find({ ProjectID: projectId }).select('TeamID');
+      const allTeamDetails = await TeamDetails.find({ TeamID_FK: { $in: allAssignedTeamIds.map(t => t.TeamID) }, IsMemberActive: true });
+      const allMemberIds = [...new Set(allTeamDetails.map(td => td.MemberID))];
+      const allProjectMembers = await User.find({ _id: { $in: allMemberIds } }).select('_id firstName lastName email profileImage');
+
       res.status(201).json({
-        ...newProjectDetail.toObject(),
+        success: true,
+        message: `${teamDetails.TeamName} added to the project successfully`,
+        ...newDetail,
+        projectMembers: allProjectMembers,
         statusUpdated: existingTeams === 0 && project.ProjectStatusID === 1
       });
     } catch (error) {
@@ -219,14 +259,14 @@ router.post('/:projectId/add-team', async (req, res) => {
     // Log the error activity
     try {
       await logActivity(
-        req.body.ModifiedBy,
+        req.user._id,
         'project_team_add',
         'error',
         `Failed to add team to project: ${err.message}`,
         req,
         {
           projectId: req.params.projectId,
-          teamId: req.body.TeamID,
+          teamId: req.params.teamId,
           error: err.message
         }
       );
@@ -238,38 +278,95 @@ router.post('/:projectId/add-team', async (req, res) => {
 });
 
 // PATCH /api/project-details/:projectId/team/:teamId/toggle - Toggle team active/inactive in project
-router.patch('/:projectId/team/:teamId/toggle', async (req, res) => {
+router.patch('/:projectId/team/:teamId/toggle', protect, async (req, res) => {
+  let projectDetailz = null;
   try {
-    const { ModifiedBy } = req.body;
-    const projectDetail = await ProjectDetails.findOne({ ProjectID: req.params.projectId, TeamID: req.params.teamId });
+    const projectDetail = await ProjectDetails.findOne({ ProjectID: req.params.projectId, TeamID: teamId });
     if (!projectDetail) return res.status(404).json({ error: 'Team not found in project' });
+    projectDetailz = projectDetail.toObject();
     projectDetail.IsActive = !projectDetail.IsActive;
     projectDetail.ModifiedDate = new Date();
-    projectDetail.ModifiedBy = ModifiedBy;
+    projectDetail.ModifiedBy = req.user._id;
     await projectDetail.save();
-    res.json(projectDetail);
+
+    // Get all unique project members after adding the new team
+    const allAssignedTeamIds = await ProjectDetails.find({ ProjectID: req.params.projectId }).select('TeamID');
+    const allTeamDetails = await TeamDetails.find({ TeamID_FK: { $in: allAssignedTeamIds.map(t => t.TeamID) }, IsMemberActive: true });
+    const allMemberIds = [...new Set(allTeamDetails.map(td => td.MemberID))];
+    const allProjectMembers = await User.find({ _id: { $in: allMemberIds } }).select('_id firstName lastName email profileImage');
+
+    res.status(200).json({ success: true, message: `${projectDetail.TeamName} access updated successfully`, projectMembers: allProjectMembers });
   } catch (err) {
+    await logActivity(
+      ModifiedBy,
+      'project_team_toggle',
+      'error',
+      `Failed to remove team from project: ${err.message}`,
+      req,
+      {
+        projectId: req.params.projectId,
+        teamId: req.params.teamId,
+        teamName: projectDetailz.TeamName,
+        projectId: req.params.projectId,
+        error: err.message
+      }
+    );
     res.status(500).json({ error: 'Failed to update team status in project' });
   }
 });
 
 // DELETE /api/project-details/:projectId/team/:teamId - Remove team from project
-router.delete('/:projectId/team/:teamId', async (req, res) => {
+router.delete('/:projectId/team/:teamId', protect, async (req, res) => {
+  const teamDetails = await Team.findOne({ TeamID: req.params.teamId }).select('TeamName');
   try {
-    const { ModifiedBy } = req.body;
+
     const projectDetail = await ProjectDetails.findOne({
       ProjectID: req.params.projectId,
       TeamID: req.params.teamId
     });
+
+    // Get all unique project members after adding the new team
+    const allAssignedTeamIds = await ProjectDetails.find({ ProjectID: req.params.projectId }).select('TeamID');
+    const allTeamDetails = await TeamDetails.find({ TeamID_FK: { $in: allAssignedTeamIds.map(t => t.TeamID) }, IsMemberActive: true });
+    const allMemberIds = [...new Set(allTeamDetails.map(td => td.MemberID))];
+    const allProjectMembers = await User.find({ _id: { $in: allMemberIds } }).select('_id firstName lastName email profileImage');
 
     if (!projectDetail) {
       return res.status(404).json({ error: 'Team not found in project' });
     }
 
     await projectDetail.deleteOne();
-    res.json({ message: 'Team removed from project successfully' });
+
+    await logActivity(
+      req.user._id,
+      'project_team_remove',
+      'success',
+      `Removed team from project "${teamDetails.TeamName}"`,
+      req,
+      {
+        projectId: req.params.projectId,
+        teamId: req.params.teamId,
+        teamName: teamDetails.TeamName,
+        projectId: req.params.projectId
+      }
+    );
+    res.status(200).json({ success: true, message: `${teamDetails.TeamName} removed from the project successfully`, projectMembers: allProjectMembers });
   } catch (err) {
     console.error('Error removing team from project:', err);
+    await logActivity(
+      req.user._id,
+      'project_team_remove',
+      'error',
+      `Failed to remove team from project: ${err.message}`,
+      req,
+      {
+        projectId: req.params.projectId,
+        teamId: req.params.teamId,
+        teamName: teamDetails.TeamName,
+        projectId: req.params.projectId,
+        error: err.message
+      }
+    );
     res.status(500).json({ error: 'Failed to remove team from project' });
   }
 });

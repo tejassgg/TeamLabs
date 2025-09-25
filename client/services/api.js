@@ -115,10 +115,6 @@ export const authService = {
     } finally {
       Cookies.remove('token');
       localStorage.removeItem('user');
-      // Optionally redirect to login page
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
     }
   },
 

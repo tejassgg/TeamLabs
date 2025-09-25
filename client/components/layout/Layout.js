@@ -738,12 +738,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
     if (typeof window === 'undefined') return;
     // Never redirect away from /profile or /welcome for profile completion
 
-    if (
-      !isProfileComplete(userDetails) &&
-      !['/profile', '/logout'].includes(router.pathname) &&
-      userDetails?.onboardingCompleted &&
-      router.pathname !== '/profile'
-    ) {
+    if ( !isProfileComplete(userDetails) && !['/profile', '/logout'].includes(router.pathname) && userDetails?.onboardingCompleted && router.pathname !== '/profile' ) {
       // console.log('Redirecting to profile due to incomplete profile:', {
       //   isProfileComplete: isProfileComplete(userDetails),
       //   currentPath: router.pathname,

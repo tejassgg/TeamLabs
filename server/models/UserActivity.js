@@ -14,7 +14,7 @@ const userActivitySchema = new mongoose.Schema({
       // Team activities
       'team_create', 'team_update', 'team_delete', 'team_join', 'team_leave', 'team_status_toggle','team_status_update',
       // Project activities
-      'project_create', 'project_update', 'project_delete', 'project_settings_update',
+      'project_create', 'project_update', 'project_delete', 'project_settings_update', 'project_team_add', 'project_team_remove', 'project_team_toggle',
       // Task activities
       'task_create', 'task_update', 'task_delete', 'task_complete', 'task_assign',
       // User Story activities
@@ -26,7 +26,7 @@ const userActivitySchema = new mongoose.Schema({
       // Chatbot activities
       'chatbot_interaction',
       // Team Member activities
-      'team_members_remove','team_projects_remove', 'project_team_add',
+      'team_members_remove','team_projects_remove',
       // Repository activities
       'repository_linked', 'repository_unlinked',
       // Team Join Request activities

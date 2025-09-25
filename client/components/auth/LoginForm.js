@@ -30,8 +30,8 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
         if (result.twoFactorEnabled) {
           setShow2FA(true);
         } else {
+          showToast('Login Successful!', 'success');
           if (onSuccess) onSuccess();
-          router.push('/dashboard');
         }
       } else {
         setError(result.message);
@@ -56,7 +56,7 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
       const result = await verifyLogin2FA(verificationCode);
       if (result.success) {
         if (onSuccess) onSuccess();
-        router.push('/dashboard');
+        showToast('Login Successful!', 'success');
       } else {
         setError(result.message);
       }

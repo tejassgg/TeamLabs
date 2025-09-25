@@ -168,8 +168,8 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
     };
 
     const renderTaskTypeIcon = (type) => {
-        const style = getTaskTypeStyle(type);
-        return <span className="mr-1.5 opacity-90 inline-flex items-center">{style.icon}</span>;
+        // Use the existing getTaskTypeBadge function instead of undefined getTaskTypeStyle
+        return <span className="mr-1.5 opacity-90 inline-flex items-center">{getTaskTypeBadge(type)}</span>;
     };
 
 
@@ -313,15 +313,9 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
                 ) : (
                     <div className="min-w-max">
                         {timelineData.items.map((item, index) => (
-                            <div
-                                key={item.TaskID || item._id}
-                                className={`flex border-b last:border-b-0 hover:bg-opacity-50 ${theme === 'dark'
-                                    ? 'border-gray-700 hover:bg-gray-800'
-                                    : 'border-gray-200 hover:bg-gray-50'
-                                    }`}
-                            >
+                            <div key={item.TaskID || item._id} className={`flex border-b last:border-b-0 relative ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-800' : 'bg-white border-gray-200 hover:bg-gray-100'}`} >
                                 {/* Task Info Column */}
-                                <div className={`w-80 p-3 border-r ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} flex-shrink-0`}>
+                                <div className={`w-80 p-3 border-r ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} flex-shrink-0 relative z-10 bg-inherit`}>
                                     <div className="flex items-center gap-2">
                                         <div className={`w-3 h-3 rounded-full ${getStatusColor(item.Status, item.Type)}`}></div>
                                         <div className="flex-1 min-w-0">
@@ -360,10 +354,11 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
                                     </div>
                                 </div>
 
-                                {/* Timeline Bar */}
-                                <div className="flex-1 relative p-3">
-                                    <div className="relative h-8">
-                                        <div className="absolute inset-0 flex">
+                                {/* Timeline Bar - Positioned absolutely to flow behind left column */}
+                                <div className="absolute inset-0 pointer-events-none">
+                                    <div className="relative h-full">
+                                        {/* Grid Lines - Behind everything */}
+                                        <div className="absolute inset-0 flex ml-80">
                                             {timelineHeaders.map((_, headerIndex) => (
                                                 <div
                                                     key={headerIndex}
@@ -373,11 +368,16 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
                                             ))}
                                         </div>
 
-                                        {/* Task Bar */}
-                                        <div className={`absolute top-1 px-1 py-2 rounded-lg cursor-pointer transition-all hover:opacity-80 ${getStatusColor(item.Status, item.Type)} border-2`}
-                                            style={{ left: `${item.startPercentage}%`, width: `${Math.max(item.durationPercentage, 2)}%`, minWidth: '20px' }}
+                                        {/* Task Bar - Semi-transparent and flows behind left column */}
+                                        <div className={`absolute top-3 px-1 py-2 rounded-lg cursor-pointer transition-all hover:opacity-90 opacity-75 ${getStatusColor(item.Status, item.Type)} border-2 pointer-events-auto`}
+                                            style={{
+                                                left: `calc(320px + ${item.startPercentage}%)`,
+                                                width: `${Math.max(item.durationPercentage, 2)}%`,
+                                                minWidth: '20px',
+                                                zIndex: 1
+                                            }}
                                             onClick={() => setSelectedTask(item)}
-                                            title={`$ {item.Name} - ${formatDateUTC(item.startDate)} to ${formatDateUTC(item.endDate)}`} >
+                                            title={`${item.Name} - ${formatDateUTC(item.startDate)} to ${formatDateUTC(item.endDate)}`} >
                                             <div className={`h-full flex items-center px-2 ${theme === 'dark' ? 'text-white' : 'text-white'}`}>
                                                 {renderTaskTypeIcon(item.Type)}
                                                 <span className="flex items-center text-sm font-medium truncate">

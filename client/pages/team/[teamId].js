@@ -14,14 +14,13 @@ import { subscribe } from '../../services/socket';
 import Link from 'next/link';
 import { useToast } from '../../context/ToastContext';
 import { useThemeClasses } from '../../components/shared/hooks/useThemeClasses';
-import { GoogleLogin } from '@react-oauth/google';
 import StatusPill from '../../components/shared/StatusPill';
 
 const TeamDetailsPage = () => {
   const router = useRouter();
   const { user } = useAuth();
   const { teamId } = router.query;
-  const { teams, setTeams, getProjectStatusBadgeComponent, getProjectStatusStyle, getProjectStatus, getDaysBadgeColor } = useGlobal();
+  const { teams, setTeams, getProjectStatusBadgeComponent, getProjectStatusStyle, getProjectStatus, getDaysBadgeColor, getUserInitials, getDeadlineStatusComponent } = useGlobal();
   const { theme } = useTheme();
   const getThemeClasses = useThemeClasses();
   const { showToast } = useToast();
@@ -364,18 +363,24 @@ const TeamDetailsPage = () => {
     setAdding(true);
     setError('');
     try {
-      await api.post(`/team-details/${teamId}/add-member`, {
+      const res = await api.post(`/team-details/${teamId}/add-member`, {
         UserID: userToAdd._id,
         OwnerID: team.OwnerID
       });
+
+      if (res.data.success) {
+        setMembers(prev => [...prev, res.data.member]);
+        showToast(res.data.message, 'success');
+      }
+      else {
+        setError(res.data.error);
+      }
+
       setSearch('');
       setSelectedUser(null);
       setFilteredUsers([]);
       setShowAddMemberDialog(false);
       setUserToAdd(null);
-      // Refresh members
-      const res = await api.get(`/team-details/${teamId}`);
-      setMembers(res.data.members);
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to add member');
     } finally {
@@ -420,12 +425,18 @@ const TeamDetailsPage = () => {
     setRemoving(memberId);
     setError('');
     try {
-      await api.delete(`/team-details/${teamId}/member/${memberId}`, {
+      const res = await api.delete(`/team-details/${teamId}/member/${memberId}`, {
         data: { OwnerID: team.OwnerID }
       });
-      // Refresh members
-      const res = await api.get(`/team-details/${teamId}`);
-      setMembers(res.data.members);
+
+      if (res.data.success) {
+        setMembers(prev => prev.filter(m => m.MemberID !== memberId));
+        showToast(res.data.message, 'success');
+      }
+      else {
+        setError(res.data.error);
+      }
+
       setShowRemoveDialog(false);
       setSelectedMember(null);
     } catch (err) {
@@ -469,7 +480,7 @@ const TeamDetailsPage = () => {
 
   const handleLeaveTeam = async () => {
     if (!currentUser || !team) return;
-    
+
     setLeavingTeam(true);
     try {
       if (isOwner) {
@@ -478,30 +489,45 @@ const TeamDetailsPage = () => {
         setShowTransferAdminDialog(true);
         return;
       }
-      
+
       // For regular members, leave the team
-      await teamService.leaveTeam(team.TeamID, currentUser._id);
-      showToast('You have left the team successfully', 'success');
+      const res = await teamService.leaveTeam(team.TeamID, currentUser._id);
+      if (res.data.success) {
+        showToast(res.data.message, 'success');
+      }
+      else {
+        setError(res.data.error);
+      }
       router.push('/teams');
     } catch (error) {
       console.error('Error leaving team:', error);
-      showToast(error.message || 'Failed to leave team', 'error');
+      showToast(err?.response?.data?.error || 'Failed to leave team', 'error');
     } finally {
       setLeavingTeam(false);
+      setShowLeaveTeamDialog(false);
+      setShowTransferAdminDialog(false);
+      setSelectedNewAdmin(null);
     }
   };
 
   const handleTransferAdminAndLeave = async () => {
     if (!currentUser || !team || !selectedNewAdmin) return;
-    
+
     setLeavingTeam(true);
     try {
-      await teamService.leaveTeam(team.TeamID, currentUser._id, selectedNewAdmin);
-      showToast('Admin transferred and you have left the team successfully', 'success');
+      const res = await teamService.leaveTeam(team.TeamID, currentUser._id, selectedNewAdmin);
+      if (res.data.success) {
+        showToast(res.data.message, 'success');
+      }
+      else {
+        setError(res.data.error);
+      }
       router.push('/teams');
     } catch (error) {
       console.error('Error transferring admin and leaving:', error);
-      showToast(error.message || 'Failed to transfer admin and leave team', 'error');
+      showToast(err?.response?.data?.error || 'Failed to transfer admin and leave team', 'error');
+      setShowTransferAdminDialog(false);
+      setSelectedNewAdmin(null);
     } finally {
       setLeavingTeam(false);
       setShowTransferAdminDialog(false);
@@ -539,11 +565,18 @@ const TeamDetailsPage = () => {
         OwnerID: user?._id
       });
 
-      // Refresh team data
-      setTeam(res.data.team);
+      if (res.data.success) {
+        setTeam(res.data.team);
+        showToast(res.data.message, 'success');
+      }
+      else {
+        setError(res.data.error);
+      }
+
       handleCloseSettingsModal();
     } catch (err) {
       console.error('Error updating team:', err);
+      showToast(err?.response?.data?.error || 'Failed to update team', 'error');
     } finally {
       setSavingSettings(false);
     }
@@ -552,15 +585,23 @@ const TeamDetailsPage = () => {
   const handleDeleteTeam = async () => {
     setDeletingTeam(true);
     setError('');
-    console.table(teams);
     try {
       const res = await api.delete(`/team-details/${teamId}`, {
         data: { OwnerID: user?._id }
       });
-      setTeams(teams.filter(t => t.TeamID !== teamId));
+
+      if (res.data.success) {
+        setTeams(teams.filter(t => t.TeamID !== teamId));
+        showToast(res.data.message, 'success');
+      }
+      else {
+        setError(res.data.error);
+      }
+
       router.push('/dashboard');
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to delete team');
+      showToast(err?.response?.data?.error || 'Failed to delete team', 'error');
       setShowDeleteDialog(false);
     } finally {
       setDeletingTeam(false);
@@ -572,15 +613,20 @@ const TeamDetailsPage = () => {
     setBulkRemoving(true);
     setError('');
     try {
-      await api.delete(`/team-details/${teamId}/members/remove-members`, {
+      const res = await api.delete(`/team-details/${teamId}/members/remove-members`, {
         data: {
           memberIds: selectedMembers,
           OwnerID: user?._id
         }
       });
-      // Refresh members
-      const res = await api.get(`/team-details/${teamId}`);
-      setMembers(res.data.members);
+
+      if (res.data.success) {
+        setMembers(prev => prev.filter(m => !selectedMembers.includes(m.MemberID)));
+        showToast(res.data.message, 'success');
+      }
+      else {
+        setError(res.data.error);
+      }
       setSelectedMembers([]);
       setShowBulkRemoveDialog(false);
     } catch (err) {
@@ -646,13 +692,6 @@ const TeamDetailsPage = () => {
     setEditingMeetingId(null);
     setCreateMeetingForm({ title: '', description: '', attendeeIds: [], taskIds: [], startTime: '', endTime: '' });
     handleOpenMeetingModal();
-  };
-
-  const toggleAttendee = (userId) => {
-    setCreateMeetingForm(prev => {
-      const exists = prev.attendeeIds.includes(userId);
-      return { ...prev, attendeeIds: exists ? prev.attendeeIds.filter(id => id !== userId) : [...prev.attendeeIds, userId] };
-    });
   };
 
   const toggleTask = (taskId) => {
@@ -811,41 +850,6 @@ const TeamDetailsPage = () => {
     checkGoogleStatus();
   }, [user?._id]);
 
-  const handleGoogleOAuthSuccess = async (credentialResponse) => {
-    try {
-      // Extract access token from credential response
-      const accessToken = credentialResponse.credential;
-
-      setGoogleAccessToken(accessToken);
-      setIsGoogleCalendarConnected(true);
-      setShowGoogleCalendarPrompt(false);
-      // Persist connection on server for future use
-      try {
-        await meetingService.attachGoogleCalendarToken({ accessToken });
-        // Update local storage user snapshot
-        const userDataRaw = localStorage.getItem('user');
-        if (userDataRaw) {
-          const userData = JSON.parse(userDataRaw);
-          userData.googleCalendarConnected = true;
-          localStorage.setItem('user', JSON.stringify(userData));
-        }
-      } catch (error) {
-        console.error('Error attaching Google Calendar token:', error);
-      }
-
-      // Now open the meeting creation modal
-      handleOpenMeetingModal();
-    } catch (error) {
-      console.error('Error handling Google OAuth success:', error);
-      alert('Failed to connect Google Calendar. Please try again.');
-    }
-  };
-
-  const handleGoogleOAuthError = () => {
-    console.error('Google OAuth failed');
-    alert('Failed to connect Google Calendar. Please try again.');
-  };
-
   const handleSelectProject = (projectId) => {
     setSelectedProjects(prev => {
       if (prev.includes(projectId)) {
@@ -863,8 +867,6 @@ const TeamDetailsPage = () => {
     }
   };
 
-
-
   const handleAcceptRequest = async (requestId, userId) => {
     setProcessingRequest(requestId + '-accept');
     try {
@@ -880,6 +882,7 @@ const TeamDetailsPage = () => {
       setProcessingRequest('');
     }
   };
+
   const handleRejectRequest = async (requestId) => {
     setProcessingRequest(requestId + '-reject');
     try {
@@ -917,7 +920,7 @@ const TeamDetailsPage = () => {
               )}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/10 text-red-600 dark:text-red-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.721-1.36 3.486 0l6.518 11.59c.75 1.335-.213 3.01-1.743 3.01H3.482c-1.53 0-2.493-1.675-1.743-3.01L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a1 1 0 01-1-1V8a1 1 0 112 0v3a1 1 0 01-1 1z" clipRule="evenodd"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.721-1.36 3.486 0l6.518 11.59c.75 1.335-.213 3.01-1.743 3.01H3.482c-1.53 0-2.493-1.675-1.743-3.01L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a1 1 0 01-1-1V8a1 1 0 112 0v3a1 1 0 01-1 1z" clipRule="evenodd" /></svg>
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold">Cannot view this team</h2>
@@ -940,13 +943,13 @@ const TeamDetailsPage = () => {
           </div>
         ) : (
           <>
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+            <div className="flex flex-col lg:flex-row lg:justify-between gap-4 mb-4">
               {/* Team Description - Desktop View */}
               <div className={getThemeClasses(
-                'hidden md:flex w-full items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm',
+                'hidden md:flex w-1/3 md:items-start justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm h-fit',
                 'dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none'
               )}>
-                <div className="flex items-center gap-3">
+                <div className="flex gap-3 flex-1 min-w-0">
                   <div className={getThemeClasses(
                     'flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center',
                     'dark:bg-blue-900/50'
@@ -955,7 +958,7 @@ const TeamDetailsPage = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <h3 className={getThemeClasses(
                       'text-sm font-semibold text-blue-800 mb-1',
                       'dark:text-blue-300'
@@ -964,7 +967,7 @@ const TeamDetailsPage = () => {
                     </h3>
                     {team.TeamDescription ? (
                       <p className={getThemeClasses(
-                        'text-sm text-blue-700 leading-relaxed',
+                        'text-sm text-blue-700 leading-relaxed break-words',
                         'dark:text-blue-200'
                       )}>
                         {team.TeamDescription}
@@ -980,7 +983,7 @@ const TeamDetailsPage = () => {
                   </div>
                 </div>
                 {/* Right side controls */}
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2 flex-shrink-0 ml-4">
                   <StatusPill status={team.IsActive ? 'Active' : 'Offline'} theme={theme} showPulseOnActive />
                   {team.teamTypeValue && (
                     <div className={getThemeClasses(
@@ -1005,7 +1008,7 @@ const TeamDetailsPage = () => {
                       <button
                         onClick={() => setShowLeaveTeamDialog(true)}
                         className={getThemeClasses(
-                          'p-1.5 text-gray-500 text-red-500 rounded-full hover:text-red-600 transition-colors',
+                          'p-1.5 text-gray-500 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors',
                           'dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-gray-700'
                         )}
                         title={isOwner ? 'Transfer Admin & Leave' : 'Leave Team'}
@@ -1019,11 +1022,11 @@ const TeamDetailsPage = () => {
 
               {/* Team Description - Mobile View */}
               <div className={getThemeClasses(
-                'md:hidden bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm space-y-4',
+                'md:hidden bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm h-fit',
                 'dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none'
               )}>
                 {/* Description Section */}
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 mb-4">
                   <div className={getThemeClasses(
                     'flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center',
                     'dark:bg-blue-900/50'
@@ -1058,8 +1061,8 @@ const TeamDetailsPage = () => {
                 </div>
 
                 {/* Status and Controls Section */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
                     <StatusPill status={team.IsActive ? 'Active' : 'Offline'} theme={theme} showPulseOnActive />
                     {team.teamTypeValue && (
                       <div className={getThemeClasses(
@@ -1071,292 +1074,156 @@ const TeamDetailsPage = () => {
                     )}
                   </div>
                   {isTeamMember && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <button
                         onClick={handleOpenSettingsModal}
                         className={getThemeClasses(
-                          'p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors',
+                          'p-2 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors',
                           'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700'
                         )}
                         title="Team Settings"
                       >
-                        <FaCog size={20} />
+                        <FaCog size={18} />
                       </button>
                       <button
                         onClick={() => setShowLeaveTeamDialog(true)}
                         className={getThemeClasses(
-                          'p-1.5 text-gray-500 hover:text-orange-500 rounded-full hover:bg-gray-100 transition-colors',
+                          'p-2 text-gray-500 hover:text-orange-500 rounded-full hover:bg-gray-100 transition-colors',
                           'dark:text-gray-400 dark:hover:text-orange-400 dark:hover:bg-gray-700'
                         )}
                         title={isOwner ? 'Transfer Admin & Leave' : 'Leave Team'}
                       >
-                        <FaSignOutAlt size={20} />
+                        <FaSignOutAlt size={18} />
                       </button>
                     </div>
                   )}
                 </div>
               </div>
-            </div>
-
-            {isOwner && (
-              <form onSubmit={handleAddMember} className="mb-4 flex flex-col gap-2">
-                <label className={getThemeClasses(
-                  'block text-gray-700 font-semibold mb-1',
-                  'dark:text-gray-300'
-                )}>Search for a Member (search by name, email, or UserID)</label>
-                <input
-                  type="text"
-                  className={getThemeClasses(
-                    'border rounded-xl px-4 py-2.5 w-full md:w-96 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200',
-                    'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
-                  )}
-                  value={search}
-                  onChange={e => {
-                    setSearch(e.target.value);
-                    setSelectedUser(null);
-                    setShowAllUsers(false);
-                  }}
-                  onFocus={() => {
-                    setIsInputFocused(true);
-                    if (!search) {
-                      const memberIds = new Set(members.map(m => m.MemberID));
-                      const availableUsers = orgUsers.filter(u => !memberIds.has(u._id));
-                      setFilteredUsers(availableUsers.slice(0, 10));
-                    }
-                  }}
-                  onBlur={() => {
-                    setTimeout(() => {
-                      setIsInputFocused(false);
-                    }, 200);
-                  }}
-                  placeholder="Type to search..."
-                  autoComplete="off"
-                />
-                {isInputFocused && filteredUsers.length > 0 && (
-                  <div className="relative w-full md:w-96">
-                    {/* Overlay backdrop */}
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setIsInputFocused(false)}
-                    />
-                    {/* Dropdown overlay */}
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1">
-                      <ul className={getThemeClasses(
-                        'border rounded-xl bg-white max-h-48 overflow-y-auto shadow-lg border-gray-200',
-                        'dark:bg-gray-800 dark:border-gray-700'
-                      )}>
-                        {filteredUsers.map((user, index) => (
-                          <li
-                            key={`${user._id}-${index}`}
-                            className={getThemeClasses(
-                              'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150',
-                              'dark:border-gray-700'
-                            )}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1 p-2"
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setSearch(user.firstName + ' ' + user.lastName + ' (' + user.email + ')');
-                                  setIsInputFocused(false);
-                                }}
-                              >
+              {/* Join Requests Table (Owner/Admin only) */}
+              {isOwner && (
+                <div className='rounded-xl sm:w-2/3 w-full'>
+                  <h2 className={getThemeClasses('text-xl mb-2 font-semibold text-gray-900', 'dark:text-gray-100')}>Join Requests</h2>
+                  <div className={`overflow-x-auto ${getThemeClasses('rounded-xl border border-gray-200', 'dark:border-gray-700')}`}>
+                    {loading ? (
+                      <div className="p-4">Loading requests...</div>
+                    ) : joinRequests.length === 0 ? (
+                      <div className="p-4 text-gray-500">No pending join requests.</div>
+                    ) : (
+                      <table className="w-full">
+                        <thead>
+                          <tr className={getThemeClasses('border-b border-gray-200', 'dark:border-gray-700')}>
+                            <th className="py-3 px-4 text-left">User Details</th>
+                            <th className="py-3 px-4 text-left hidden sm:table-cell">Status</th>
+                            <th className="py-3 px-4 text-left hidden sm:table-cell">Requested At</th>
+                            <th className="py-3 px-4 text-left">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {joinRequests.map(req => (
+                            <tr key={req._id} className={getThemeClasses('border-b border-gray-100', 'dark:border-gray-800')}>
+                              <td className="py-2 px-4">
                                 <div className="flex items-center gap-3">
-                                  {/* Member Initials Avatar */}
                                   <div className={getThemeClasses(
-                                    'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0',
-                                    'dark:from-blue-600 dark:to-blue-700'
+                                    'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium',
+                                    'dark:bg-blue-900/50 dark:text-blue-300'
                                   )}>
-                                    {user.firstName?.charAt(0)?.toUpperCase()}{user.lastName?.charAt(0)?.toUpperCase()}
+                                    {getUserInitials(req.userId?.fullName)}
                                   </div>
                                   <div className="flex flex-col">
-                                    <div className={getThemeClasses(
+                                    <span className={getThemeClasses(
                                       'font-medium text-gray-900',
                                       'dark:text-gray-100'
                                     )}>
-                                      {user.firstName} {user.lastName}
-                                    </div>
-                                    <div className={getThemeClasses(
-                                      'text-sm text-gray-600',
+                                      {req.userId?.fullName
+                                      }
+                                    </span>
+                                    <span className={getThemeClasses(
+                                      'text-sm text-gray-500',
                                       'dark:text-gray-400'
                                     )}>
-                                      {user.email}
+                                      {req.userId?.email}
+                                    </span>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      {req.userId?.role && (
+                                        <span className={getThemeClasses(
+                                          'text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700',
+                                          'dark:bg-blue-900/30 dark:text-blue-300'
+                                        )}>
+                                          {req.userId?.role}
+                                        </span>
+                                      )}
+
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setUserToAdd(user);
-                                  setShowAddMemberDialog(true);
-                                }}
-                                className={getThemeClasses(
-                                  'ml-2 px-3 py-1.5 text-sm text-blue-500 font-medium rounded-lg transition-all duration-200 hover:shadow-sm hover:bg-blue-100',
-                                  'dark:text-white dark:hover:shadow-sm dark:hover:bg-blue-900/30'
-                                )}
-                              >
-                                <FaPlus size={14} />
-                              </button>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                      {!showAllUsers && orgUsers.length > 10 && (
-                        <button
-                          type="button"
-                          onClick={() => setShowAllUsers(true)}
-                          className={getThemeClasses(
-                            'w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200',
-                            'dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30'
-                          )}
-                        >
-                          Show All Users ({orgUsers.length})
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </form>
-            )}
-
-            {/* Join Requests Table (Owner/Admin only) */}
-            {isOwner && (
-              <div className={getThemeClasses('rounded-xl border border-gray-200', 'dark:border-gray-700')}>
-                <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
-                  <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Join Requests</h2>
-                </div>
-                <div className="overflow-x-auto">
-                  {loading ? (
-                    <div className="p-4">Loading requests...</div>
-                  ) : joinRequests.length === 0 ? (
-                    <div className="p-4 text-gray-500">No pending join requests.</div>
-                  ) : (
-                    <table className="w-full">
-                      <thead>
-                        <tr className={getThemeClasses('border-b border-gray-200', 'dark:border-gray-700')}>
-                          <th className="py-3 px-4 text-left">User Details</th>
-                          <th className="py-3 px-4 text-left">Status</th>
-                          <th className="py-3 px-4 text-left">Requested At</th>
-                          <th className="py-3 px-4 text-left">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {joinRequests.map(req => (
-                          <tr key={req._id} className={getThemeClasses('border-b border-gray-100', 'dark:border-gray-800')}>
-                            <td className="py-2 px-4">
-                              <div className="flex items-center gap-3">
-                                <div className={getThemeClasses(
-                                  'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium',
-                                  'dark:bg-blue-900/50 dark:text-blue-300'
-                                )}>
-                                  {req.userId?.fullName
-                                    ? req.userId.fullName.split(' ').map(n => n[0]).join('').toUpperCase()
-                                    : req.userId?.firstName && req.userId?.lastName
-                                      ? `${req.userId.firstName[0]}${req.userId.lastName[0]}`
-                                      : req.userId?.firstName
-                                        ? req.userId.firstName[0]
-                                        : req.userId?.username
-                                          ? req.userId.username[0].toUpperCase()
-                                          : 'U'
-                                  }
-                                </div>
-                                <div className="flex flex-col">
-                                  <span className={getThemeClasses(
-                                    'font-medium text-gray-900',
-                                    'dark:text-gray-100'
-                                  )}>
-                                    {req.userId?.fullName || req.userId?.firstName && req.userId?.lastName
-                                      ? `${req.userId.firstName} ${req.userId.lastName}`
-                                      : req.userId?.firstName
-                                        ? req.userId.firstName
-                                        : req.userId?.username
-                                          ? req.userId.username
-                                          : 'Unknown User'
-                                    }
-                                  </span>
-                                  <span className={getThemeClasses(
-                                    'text-sm text-gray-500',
-                                    'dark:text-gray-400'
-                                  )}>
-                                    {req.userId?.email || 'No email'}
-                                  </span>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    {req.userId?.role && (
-                                      <span className={getThemeClasses(
-                                        'text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700',
-                                        'dark:bg-blue-900/30 dark:text-blue-300'
-                                      )}>
-                                        {req.userId.role}
-                                      </span>
+                              </td>
+                              <td className="py-2 px-4 hidden sm:table-cell">
+                                <StatusDropdown
+                                  currentStatus={req.userId?.status || 'Offline'}
+                                  onStatusChange={() => { }} // Read-only in this context
+                                  theme={theme}
+                                  isReadOnly={true}
+                                />
+                              </td>
+                              <td className="py-2 px-4 hidden sm:table-cell">{new Date(req.requestedAt).toLocaleString()}</td>
+                              <td className="py-2 px-4">
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    className={getThemeClasses(
+                                      'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed',
+                                      'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70'
                                     )}
-
-                                  </div>
+                                    onClick={() => handleAcceptRequest(req._id, req.userId?._id)}
+                                    disabled={processingRequest === req._id + '-accept'}
+                                    title="Accept Request"
+                                  >
+                                    <FaCheck size={14} />
+                                  </button>
+                                  <button
+                                    className={getThemeClasses(
+                                      'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed',
+                                      'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
+                                    )}
+                                    onClick={() => handleRejectRequest(req._id)}
+                                    disabled={processingRequest === req._id + '-reject'}
+                                    title="Reject Request"
+                                  >
+                                    <FaTimes size={14} />
+                                  </button>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="py-2 px-4">
-                              <StatusDropdown
-                                currentStatus={req.userId?.status || 'Offline'}
-                                onStatusChange={() => { }} // Read-only in this context
-                                theme={theme}
-                                isReadOnly={true}
-                              />
-                            </td>
-                            <td className="py-2 px-4">{new Date(req.requestedAt).toLocaleString()}</td>
-                            <td className="py-2 px-4">
-                              <div className="flex items-center gap-2">
-                                <button
-                                  className={getThemeClasses(
-                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed',
-                                    'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70'
-                                  )}
-                                  onClick={() => handleAcceptRequest(req._id, req.userId?._id)}
-                                  disabled={processingRequest === req._id + '-accept'}
-                                  title="Accept Request"
-                                >
-                                  <FaCheck size={14} />
-                                </button>
-                                <button
-                                  className={getThemeClasses(
-                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed',
-                                    'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
-                                  )}
-                                  onClick={() => handleRejectRequest(req._id)}
-                                  disabled={processingRequest === req._id + '-reject'}
-                                  title="Reject Request"
-                                >
-                                  <FaTimes size={14} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+            </div>
 
             {/* Meetings Section */}
             <div className={getThemeClasses('rounded-xl mb-4', 'dark:border-gray-700')}>
-              <div className={getThemeClasses('px-4 pt-4 flex items-center justify-between', 'dark:border-gray-700')}>
+              <div className={getThemeClasses('flex mb-2 items-center justify-between', 'dark:border-gray-700')}>
                 <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Team Meetings</h2>
                 <button
                   onClick={openCreateMeeting}
-                  className={getThemeClasses('flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200', 'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800')}
+                  className={getThemeClasses(
+                    'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
+                    'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
+                  )}
                 >
                   <FaPlus size={14} /> Meeting
                 </button>
               </div>
-              <div className="p-4">
+              <div>
                 {loadingMeetings ? (
                   <div className={getThemeClasses('text-gray-500', 'dark:text-gray-400')}>Loading meetings...</div>
                 ) : meetings.length === 0 ? (
                   <div className={getThemeClasses('text-gray-500', 'dark:text-gray-400')}>No meetings yet.</div>
                 ) : (
-                  <div className="flex items-center justify-unset gap-4">
+                  <div className="flex flex-col sm:flex-row items-center justify-unset gap-4">
                     {meetings.map(m => {
                       const meetingDays = calculateMeetingDays(m.StartTime || m.startTime);
 
@@ -1404,8 +1271,16 @@ const TeamDetailsPage = () => {
                                 {meetingDays.status === 'past' || meetingDays.status === 'yesterday' ? 'Expired' : 'Join Meeting'}
                               </a>
                             )}
-                            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm border ${getDaysBadgeColor(meetingDays.status)}`}>
-                              {meetingDays.text}
+                            <div className="flex items-center gap-2">
+                              {(() => {
+                                const status = getDeadlineStatusComponent(meetingDays.text);
+                                return (
+                                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
+                                    <span className={`w-2 h-2 rounded-full ${status.dotColor} ${meetingDays.status !== 'past' && meetingDays.status !== 'yesterday' ? 'animate-pulse' : ''}`}></span>
+                                    {status.text}
+                                  </span>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>
@@ -1419,51 +1294,156 @@ const TeamDetailsPage = () => {
             {/* Team Members and Projects Tables Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Team Members Table */}
-              <div className={getThemeClasses(
-                'rounded-xl border border-gray-200',
-                'dark:border-gray-700'
-              )}>
-                <div className={getThemeClasses(
-                  'p-4 border-b border-gray-200',
-                  'dark:border-gray-700'
-                )}>
-                  <div className="flex items-center justify-between">
-                    <h2 className={getThemeClasses(
-                      'text-xl font-semibold text-gray-900',
-                      'dark:text-gray-100'
-                    )}>Team Members</h2>
-                    {selectedMembers.length > 0 && (
-                      <div className="flex items-center gap-3">
-                        <div className={getThemeClasses(
-                          'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
-                          'dark:bg-blue-900/30 dark:text-blue-300'
-                        )}>
-                          <span className="text-sm font-medium">{selectedMembers.length} selected</span>
-                          <button
-                            onClick={() => setSelectedMembers([])}
-                            className={getThemeClasses(
-                              'p-1 hover:bg-blue-100 rounded-full transition-colors',
-                              'dark:hover:bg-blue-900/50'
-                            )}
-                          >
-                            <FaTimes size={14} />
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => setShowBulkRemoveDialog(true)}
+              <div>
+                <div className="flex items-center justify-between gap-4 mb-2">
+                  <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Team Members</h2>
+                  {isOwner && (
+                    <form onSubmit={(e) => { e.preventDefault(); if (selectedUser) { setUserToAdd(selectedUser); setShowAddMemberDialog(true); } }} className="relative">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
                           className={getThemeClasses(
-                            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors',
-                            'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
+                            'border rounded-xl px-4 py-2 w-64 text-sm font-medium shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200',
+                            'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
+                          )}
+                          value={search}
+                          onChange={e => {
+                            setSearch(e.target.value);
+                            setSelectedUser(null);
+                            setShowAllUsers(false);
+                          }}
+                          onFocus={() => {
+                            setIsInputFocused(true);
+                            if (!search) {
+                              const memberIds = new Set(members.map(m => m.MemberID));
+                              const availableUsers = orgUsers.filter(u => !memberIds.has(u._id));
+                              setFilteredUsers(availableUsers.slice(0, 10));
+                            }
+                          }}
+                          onBlur={() => {
+                            setTimeout(() => {
+                              setIsInputFocused(false);
+                            }, 200);
+                          }}
+                          placeholder="Search member to add..."
+                          autoComplete="off"
+                        />
+                        {selectedUser && (
+                          <button
+                            type="submit"
+                            className={getThemeClasses(
+                              'px-3 py-2 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
+                              'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
+                            )}
+                            title="Add selected member to team"
+                          >
+                            Add
+                          </button>
+                        )}
+                      </div>
+                      {isInputFocused && filteredUsers.length > 0 && (
+                        <div className="absolute top-full right-0 z-50 mt-1 w-[22rem]">
+                          <ul className={getThemeClasses(
+                            'border rounded-xl bg-white max-h-60 overflow-y-auto shadow-lg border-gray-200',
+                            'dark:bg-gray-800 dark:border-gray-700'
+                          )}>
+                            {filteredUsers.map((user, index) => (
+                              <li
+                                key={`${user._id}-${index}`}
+                                className={getThemeClasses(
+                                  'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150',
+                                  'dark:border-gray-700'
+                                )}
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className={getThemeClasses(
+                                    'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2',
+                                    'dark:hover:bg-blue-900/30'
+                                  )}
+                                    onClick={() => {
+                                      setSelectedUser(user);
+                                      setSearch(user.firstName + ' ' + user.lastName + ' (' + user.email + ')');
+                                      setIsInputFocused(false);
+                                    }}
+                                  >
+                                    <div className="flex flex-col">
+                                      <div className={getThemeClasses(
+                                        'font-medium text-gray-900',
+                                        'dark:text-gray-100'
+                                      )}>
+                                        {user.firstName} {user.lastName}
+                                      </div>
+                                      <div className={getThemeClasses(
+                                        'text-sm text-gray-600',
+                                        'dark:text-gray-400'
+                                      )}>
+                                        {user.email}
+                                      </div>
+                                      <div className={getThemeClasses(
+                                        'text-xs text-gray-400 mt-0.5',
+                                        'dark:text-gray-500'
+                                      )}>
+                                        ID: {user._id}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => { setUserToAdd(user); setShowAddMemberDialog(true); }}
+                                    className={getThemeClasses('ml-2 p-2 text-sm text-blue-700 font-medium rounded-full transition-all duration-200 bg-blue-100 hover:bg-blue-600 hover:text-white shadow-sm', 'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800')} >
+                                    <FaPlus size={14} />
+                                  </button>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                          {!showAllUsers && orgUsers.length > 10 && (
+                            <button
+                              type="button"
+                              onClick={() => setShowAllUsers(true)}
+                              className={getThemeClasses(
+                                'w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200',
+                                'dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30'
+                              )}
+                            >
+                              Show All Users ({orgUsers.length})
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </form>
+                  )}
+                  {selectedMembers.length > 0 && (
+                    <div className="flex items-center gap-3">
+                      <div className={getThemeClasses(
+                        'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
+                        'dark:bg-blue-900/30 dark:text-blue-300'
+                      )}>
+                        <span className="text-sm font-medium">{selectedMembers.length} selected</span>
+                        <button
+                          onClick={() => setSelectedMembers([])}
+                          className={getThemeClasses(
+                            'p-1 hover:bg-blue-100 rounded-full transition-colors',
+                            'dark:hover:bg-blue-900/50'
                           )}
                         >
-                          <FaTrash size={14} />
-                          Remove Selected
+                          <FaTimes size={14} />
                         </button>
                       </div>
-                    )}
-                  </div>
+                      <button
+                        onClick={() => setShowBulkRemoveDialog(true)}
+                        className={getThemeClasses(
+                          'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors',
+                          'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
+                        )}
+                      >
+                        <FaTrash size={14} />
+                        Remove Selected
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <div className="overflow-x-auto">
+                <div className={`overflow-x-auto ${getThemeClasses('rounded-xl border border-gray-200', 'dark:border-gray-700')}`}>
                   <table className="w-full">
                     <thead>
                       <tr className={getThemeClasses(
@@ -1471,7 +1451,7 @@ const TeamDetailsPage = () => {
                         'dark:border-gray-700'
                       )}>
                         {isOwner && (
-                          <th className="py-3 px-4 text-center w-[50px]">
+                          <th className="py-3 px-4 hidden sm:table-cell text-center w-[50px]">
                             <input
                               type="checkbox"
                               checked={selectedMembers.length === members.filter(m => m.MemberID !== team.OwnerID).length}
@@ -1508,7 +1488,7 @@ const TeamDetailsPage = () => {
                           'dark:border-gray-700 dark:hover:bg-gray-700/30'
                         )}>
                           {isOwner && (
-                            <td className="py-3 px-4 text-center">
+                            <td className="py-3 px-4 text-center hidden sm:table-cell">
                               {member.MemberID !== team.OwnerID && (
                                 <input
                                   type="checkbox"
@@ -1635,51 +1615,40 @@ const TeamDetailsPage = () => {
               </div>
 
               {/* Projects Table */}
-              <div className={getThemeClasses(
-                'rounded-xl border border-gray-200',
-                'dark:border-gray-700'
-              )}>
-                <div className={getThemeClasses(
-                  'p-4 border-b border-gray-200',
-                  'dark:border-gray-700'
-                )}>
-                  <div className="flex items-center justify-between">
-                    <h2 className={getThemeClasses(
-                      'text-xl font-semibold text-gray-900',
-                      'dark:text-gray-100'
-                    )}>Projects Assigned</h2>
-                    {selectedProjects.length > 0 && (
-                      <div className="flex items-center gap-3">
-                        <div className={getThemeClasses(
-                          'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
-                          'dark:bg-blue-900/30 dark:text-blue-300'
-                        )}>
-                          <span className="text-sm font-medium">{selectedProjects.length} selected</span>
-                          <button
-                            onClick={() => setSelectedProjects([])}
-                            className={getThemeClasses(
-                              'p-1 hover:bg-blue-100 rounded-full transition-colors',
-                              'dark:hover:bg-blue-900/50'
-                            )}
-                          >
-                            <FaTimes size={14} />
-                          </button>
-                        </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className={getThemeClasses('text-xl mb-2 font-semibold text-gray-900', 'dark:text-gray-100')}>Projects Assigned</h2>
+                  {selectedProjects.length > 0 && (
+                    <div className="flex items-center gap-3">
+                      <div className={getThemeClasses(
+                        'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
+                        'dark:bg-blue-900/30 dark:text-blue-300'
+                      )}>
+                        <span className="text-sm font-medium">{selectedProjects.length} selected</span>
                         <button
-                          onClick={() => setShowBulkRemoveProjectsDialog(true)}
+                          onClick={() => setSelectedProjects([])}
                           className={getThemeClasses(
-                            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors',
-                            'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
+                            'p-1 hover:bg-blue-100 rounded-full transition-colors',
+                            'dark:hover:bg-blue-900/50'
                           )}
                         >
-                          <FaTrash size={14} />
-                          Remove Selected
+                          <FaTimes size={14} />
                         </button>
                       </div>
-                    )}
-                  </div>
+                      <button
+                        onClick={() => setShowBulkRemoveProjectsDialog(true)}
+                        className={getThemeClasses(
+                          'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors',
+                          'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
+                        )}
+                      >
+                        <FaTrash size={14} />
+                        Remove Selected
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <div className="overflow-x-auto">
+                <div className={`overflow-x-auto mb-2 rounded-xl border ${getThemeClasses('border-gray-200', 'dark:border-gray-700')}`}>
                   {activeProjects.length > 0 ? (
                     <table className="w-full">
                       <thead>
@@ -1688,7 +1657,7 @@ const TeamDetailsPage = () => {
                           'dark:border-gray-700'
                         )}>
                           {isOwner && (
-                            <th className="py-3 px-4 text-center w-[50px]">
+                            <th className="py-3 px-4 text-center w-[50px] hidden sm:table-cell">
                               <input
                                 type="checkbox"
                                 checked={selectedProjects.length === activeProjects.length}
@@ -1705,7 +1674,7 @@ const TeamDetailsPage = () => {
                             'dark:text-gray-300'
                           )}>Project Name</th>
                           <th className={getThemeClasses(
-                            'py-3 px-4 text-left text-gray-700',
+                            'py-3 px-4 text-left hidden sm:table-cell text-gray-700',
                             'dark:text-gray-300'
                           )}>Date Assigned</th>
                           <th className={getThemeClasses(
@@ -1729,7 +1698,7 @@ const TeamDetailsPage = () => {
                               'dark:border-gray-700 dark:hover:bg-gray-700/30'
                             )}>
                               {isOwner && (
-                                <td className="py-3 px-4 text-center">
+                                <td className="py-3 px-4 text-center hidden sm:table-cell">
                                   <input
                                     type="checkbox"
                                     checked={selectedProjects.includes(proj.ProjectID)}
@@ -1752,7 +1721,7 @@ const TeamDetailsPage = () => {
                                 </Link>
                               </td>
                               <td className={getThemeClasses(
-                                'py-3 px-4 text-gray-600',
+                                'py-3 px-4 text-gray-600 hidden sm:table-cell',
                                 'dark:text-gray-400'
                               )}>
                                 {proj.AssignedDate ? new Date(proj.AssignedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
@@ -2010,8 +1979,8 @@ const TeamDetailsPage = () => {
                           </button>
                         )}
                       </div>
-                      
-                      
+
+
                       {/* Action buttons - only show Save/Cancel for owners */}
                       {isOwner && (
                         <div className="flex flex-row justify-end gap-3">
@@ -2037,7 +2006,7 @@ const TeamDetailsPage = () => {
                           </button>
                         </div>
                       )}
-                      
+
                       {/* Close button for non-owners */}
                       {!isOwner && (
                         <div className="flex flex-row justify-end gap-3">
@@ -2452,8 +2421,8 @@ const TeamDetailsPage = () => {
                                   )}
                                 >
                                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${createMeetingForm.attendeeIds.includes(member.MemberID)
-                                      ? 'bg-blue-500 text-white'
-                                      : getThemeClasses('bg-gray-100 text-gray-700', 'bg-gray-700 text-gray-300')
+                                    ? 'bg-blue-500 text-white'
+                                    : getThemeClasses('bg-gray-100 text-gray-700', 'bg-gray-700 text-gray-300')
                                     }`}>
                                     {member.name.split(' ').map(n => n[0]).join('')}
                                   </div>
@@ -2872,7 +2841,7 @@ const TeamDetailsPage = () => {
                   'text-gray-600',
                   'dark:text-gray-400'
                 )}>
-                  {isOwner 
+                  {isOwner
                     ? 'As the team owner, you must transfer admin rights to another member before leaving. You will be redirected to select a new admin.'
                     : 'Are you sure you want to leave this team? You will lose access to all team resources and projects.'
                   }
