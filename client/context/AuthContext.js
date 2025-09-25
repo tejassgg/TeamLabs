@@ -128,7 +128,7 @@ export const AuthProvider = ({ children }) => {
   const forgotPassword = async (usernameOrEmail) => {
     try {
       const data = await authService.forgotPassword(usernameOrEmail);
-      return { success: true };
+      return { success: true, data: data };
     } catch (error) {
       return {
         success: false,
@@ -141,7 +141,7 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (key, newPassword) => {
     try {
       const res = await authService.resetPassword(key, newPassword);
-      return res;
+      return { success: true, data: res };
     } catch (error) {
       return {
         success: false,
@@ -154,10 +154,10 @@ export const AuthProvider = ({ children }) => {
   const verifyResetPassword = async (key) => {
     try {
       const res = await authService.verifyResetPassword(key);
-      return res;
+      return { success: true, data: res };
     } catch (error) {
       console.error(error);
-      return { success: false, message: 'Server error' };
+      return { success: false, message: error.message || 'Server error' };
     }
   };
 

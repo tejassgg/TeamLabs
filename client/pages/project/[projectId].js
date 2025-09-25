@@ -1497,13 +1497,7 @@ const ProjectDetailsPage = () => {
                             'dark:bg-gray-800 dark:border-gray-700'
                           )}>
                             {filteredAvailableTeams.map((team, index) => (
-                              <li
-                                key={`${team.TeamID}-${index}`}
-                                className={getThemeClasses(
-                                  'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150',
-                                  'dark:border-gray-700'
-                                )}
-                              >
+                              <li key={`${team.TeamID}-${index}`} className={getThemeClasses( 'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150', 'dark:border-gray-700' )} >
                                 <div className="flex items-center justify-between gap-2">
                                   <div className={getThemeClasses(
                                     'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2',
@@ -1594,8 +1588,8 @@ const ProjectDetailsPage = () => {
                                   {team?.TeamDescription && (
                                     <div className={`${tableSecondaryTextClasses} truncate`}>{team.TeamDescription}</div>
                                   )}
-                                  <div className={`${tableSecondaryTextClasses} mt-1`}>
-                                    <span className={getThemeClasses('text-black', 'text-white')}>Created: </span> {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
+                                  <div className={`${tableSecondaryTextClasses} mt-1 text-sm`}>
+                                    <span className={getThemeClasses('text-black text-md', 'text-white')}>Created: </span> {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
                                   </div>
                                 </div>
                               </div>

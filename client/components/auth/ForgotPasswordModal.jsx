@@ -31,7 +31,7 @@ const ForgotPasswordModal = ({ isOpen, onClose, resetKey = null }) => {
     setMessage('');
     try {
       const result = await forgotPassword(usernameOrEmail);
-      if (result.status === 200) {
+      if (result.success) {
         setMessage('If the user exists, a password reset link has been sent to the registered email.');
         setStep('done');
         showToast('Password reset link sent!', 'success');
@@ -40,8 +40,8 @@ const ForgotPasswordModal = ({ isOpen, onClose, resetKey = null }) => {
         showToast(result.data.message || 'Failed to send reset link', 'error');
       }
     } catch (err) {
-      setError('Server error');
-      showToast('Server error', 'error');
+      setError(err.data.message || 'Server error');
+      showToast(err.data.message || 'Server error', 'error');
     } finally {
       setLoading(false);
     }
@@ -63,17 +63,17 @@ const ForgotPasswordModal = ({ isOpen, onClose, resetKey = null }) => {
     }
     try {
       const res = await resetPassword(resetKey, newPassword);
-      if (res.ok) {
+      if (res.success) {
         setMessage('Your password has been reset successfully. You can now log in.');
         setStep('reset-done');
         showToast('Password reset successfully!', 'success');
       } else {
-        setError(res.data.message || 'Failed to reset password');
-        showToast(res.data.message || 'Failed to reset password', 'error');
+        setError(res.message || 'Failed to reset password');
+        showToast(res.message || 'Failed to reset password', 'error');
       }
     } catch (err) {
-      setError('Server error');
-      showToast('Server error', 'error');
+      setError(err.message || 'Server error');
+      showToast(err.message || 'Server error', 'error');
     } finally {
       setLoading(false);
     }
