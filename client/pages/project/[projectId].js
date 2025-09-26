@@ -596,10 +596,11 @@ const ProjectDetailsPage = () => {
     }
 
     if (!teamSearch) {
+      console.log('showAllTeams', orgTeams);
       // When search is empty, show first 10 teams by default
       const assignedIds = new Set(teams.map(t => t.TeamID));
       const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
-      setFilteredAvailableTeams(showAllTeams ? availableTeams : availableTeams.slice(0, 10));
+      setFilteredAvailableTeams(showAllTeams ? availableTeams : availableTeams.slice(0, 5));
       return;
     }
 
@@ -760,6 +761,13 @@ const ProjectDetailsPage = () => {
       if (res.data.success) {
         setTeams(prev => prev.filter(team => team.TeamID !== teamId));
         setProjectMembers(res.data.projectMembers);
+        if (Array.isArray(res.data.updatedTasks) && res.data.updatedTasks.length > 0) {
+          // Update taskList with unassigned tasks coming from server
+          setTaskList(prev => prev.map(t => {
+            const u = res.data.updatedTasks.find(x => x.TaskID === t.TaskID);
+            return u ? { ...t, AssignedTo: null, AssignedToDetails: null, AssignedDate: null, Status: 1 } : t;
+          }));
+        }
         showToast(res.data.message, 'success');
       }
       else {
@@ -940,7 +948,11 @@ const ProjectDetailsPage = () => {
   const tasksSorted = useMemo(() => {
     const copy = [...taskList];
     const dir = tasksSortDir === 'asc' ? 1 : -1;
+    // Always show Not Assigned (Status === 1) first
     copy.sort((a, b) => {
+      const aUnassigned = a.Status === 1 ? 0 : 1;
+      const bUnassigned = b.Status === 1 ? 0 : 1;
+      if (aUnassigned !== bUnassigned) return aUnassigned - bUnassigned;
       const getAssignedTo = (t) => t.AssignedToDetails?.fullName || '';
       const getAssignee = (t) => t.AssigneeDetails?.fullName || '';
       const getStatus = (t) => (t.Status || '').toString();
@@ -1497,43 +1509,51 @@ const ProjectDetailsPage = () => {
                             'dark:bg-gray-800 dark:border-gray-700'
                           )}>
                             {filteredAvailableTeams.map((team, index) => (
-                              <li key={`${team.TeamID}-${index}`} className={getThemeClasses( 'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150', 'dark:border-gray-700' )} >
+                              <li key={`${team.TeamID}-${index}`} className={getThemeClasses('px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150', 'dark:border-gray-700')}>
                                 <div className="flex items-center justify-between gap-2">
-                                  <div className={getThemeClasses(
-                                    'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2',
-                                    'dark:hover:bg-blue-900/30'
-                                  )}
+                                  <div
+                                    className={getThemeClasses('flex-1 cursor-pointer rounded-lg p-2 hover:bg-blue-50', 'dark:hover:bg-blue-900/30')}
+                                    onMouseEnter={(e) => {
+                                      const el = e.currentTarget;
+                                      el.style.backgroundColor = hexToRgba(team.TeamColor, theme === 'dark' ? 0.15 : 0.12) || '';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      const el = e.currentTarget;
+                                      el.style.backgroundColor = '';
+                                    }}
                                     onClick={() => {
                                       setSelectedTeam(team);
                                       setTeamSearch(team.TeamName + (team.TeamDescription ? ' (' + team.TeamDescription + ')' : ''));
                                       setIsTeamInputFocused(false);
                                     }}
                                   >
-                                    <div className="flex flex-col">
-                                      <div className={getThemeClasses(
-                                        'font-medium text-gray-900',
-                                        'dark:text-gray-100'
-                                      )}>
-                                        {team.TeamName}
+                                    <div className="flex items-start gap-3">
+                                      <div
+                                        className={getThemeClasses('w-8 h-8 rounded-full flex items-center justify-center font-semibold flex-shrink-0', 'dark:bg-blue-900/50')}
+                                        style={{ backgroundColor: hexToRgba(team.TeamColor, theme === 'dark' ? 0.12 : 0.2) }}
+                                      >
+                                        {(team.TeamName || '').split(' ').map(n => n[0]).join('')}
                                       </div>
-                                      {team.TeamDescription && (
-                                        <div className={getThemeClasses(
-                                          'text-sm text-gray-600',
-                                          'dark:text-gray-400'
-                                        )}>
-                                          {team.TeamDescription}
+                                      <div className="flex-1 min-w-0">
+                                        <div className={getThemeClasses('font-medium text-gray-900 truncate', 'dark:text-gray-100')}>
+                                          {team.TeamName}
                                         </div>
-                                      )}
-                                      <div className={getThemeClasses(
-                                        'text-xs text-gray-400 mt-0.5',
-                                        'dark:text-gray-500'
-                                      )}>
-                                        ID: {team.TeamID}
+                                        {team.TeamDescription && (
+                                          <div className={getThemeClasses('text-sm text-gray-600 truncate', 'dark:text-gray-400')}>
+                                            {team.TeamDescription}
+                                          </div>
+                                        )}
+                                        <div className={getThemeClasses('text-xs text-gray-400 mt-1', 'dark:text-gray-500')}>
+                                          Members: {Array.isArray(team.teamMembers) ? team.teamMembers.length : (team.memberCount ?? 0)}
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                  <button type="button" onClick={() => { setSelectedTeam(team); handleAddTeam(team.TeamID); }}
-                                    className={getThemeClasses('ml-2 p-2 text-sm text-blue-700 font-medium rounded-full transition-all duration-200 bg-blue-100 hover:bg-blue-600 hover:text-white shadow-sm', 'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800')} >
+                                  <button
+                                    type="button"
+                                    onClick={() => { setSelectedTeam(team); handleAddTeam(team.TeamID); }}
+                                    className={getThemeClasses('ml-2 p-2 text-sm text-blue-700 font-medium rounded-full transition-all duration-200 bg-blue-100 hover:bg-blue-600 hover:text-white shadow-sm', 'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800')}
+                                  >
                                     <FaPlus size={14} />
                                   </button>
                                 </div>
@@ -1807,7 +1827,7 @@ const ProjectDetailsPage = () => {
                     </div>
                   </div>
                 </div>
-                <div className={`overflow-x-auto mb-2 rounded-xl border ${getThemeClasses('border-gray-200', 'dark:border-gray-700')}`}>
+                <div className={`overflow-x-auto overflow-y-auto max-h-[80vh] custom-scrollbar mb-2 rounded-xl border ${getThemeClasses('border-gray-200', 'dark:border-gray-700')}`}>
                   {taskList.length === 0 ? (
                     <div className={getThemeClasses(
                       'text-center py-8 text-gray-400',
@@ -1817,7 +1837,7 @@ const ProjectDetailsPage = () => {
                     </div>
                   ) : (
                     <table className="w-full">
-                      <thead>
+                      <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#18181b] border-gray-500' : 'bg-gray-50 border-gray-200'}`}>
                         <tr className={tableHeaderClasses}>
                           <th className="py-3 px-4 text-center w-[50px]">
                             <input
@@ -1848,8 +1868,8 @@ const ProjectDetailsPage = () => {
                               {getTasksSortIcon('assignee')}
                             </button>
                           </th>
-                          <th className={`hidden md:table-cell py-3 px-4 text-center ${tableHeaderTextClasses}`}>
-                            <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center gap-1">
+                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                            <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center">
                               <span>Date Assigned</span>
                               {getTasksSortIcon('assignedDate')}
                             </button>
@@ -1996,10 +2016,10 @@ const ProjectDetailsPage = () => {
                                   {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
                                 </div>
                               </td>
-                              <td className="py-3 px-4 text-left">
+                              <td className="py-3 px-4 text-center">
                                 {getTaskStatusBadge(task.Status, theme === 'dark', getTaskStatusText(task.Status))}
                               </td>
-                              <td className="py-3 px-4 text-left">
+                              <td className="py-3 px-4 text-center">
                                 <div className="flex items-center justify-center gap-2">
                                   <button
                                     onClick={() => handleEditTask(task)}

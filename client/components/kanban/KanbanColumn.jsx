@@ -13,7 +13,7 @@ const KanbanColumn = React.memo(({ statusCode, statusName, icon, bgColor, tasks,
   return (
     <div
       className={getThemeClasses(
-        `flex flex-col h-[750px] ${!isLast ? 'border-r border-gray-200' : ''} bg-transparent`,
+        `flex flex-col h-[900px] ${!isLast ? 'border-r border-gray-200' : ''} bg-transparent`,
         `dark:${!isLast ? 'border-r border-gray-700' : ''} dark:bg-[#18191A]`
       )}
       onDragOver={(e) => e.preventDefault()}

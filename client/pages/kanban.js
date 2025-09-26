@@ -103,7 +103,7 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
 
   // Function to check if a task is assigned to the current user
   const isTaskAssignedToUser = (task) => {
-    return task.Assignee === userDetails?._id;
+    return task.Assignee === userDetails?._id || task.AssignedTo === userDetails?._id;
   };
 
   // Function to handle starting dragging a task

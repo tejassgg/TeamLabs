@@ -15,6 +15,7 @@ import {
 } from 'chart.js';
 import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
 import { FaProjectDiagram, FaUsers, FaClock, FaUserFriends } from 'react-icons/fa';
+import DashboardSkeleton from '../skeletons/DashboardSkeleton';
 
 ChartJS.register(
   CategoryScale,
@@ -212,20 +213,9 @@ const DashboardCharts = ({ stats, theme }) => {
 
   if (loading || !stats?.charts) {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className={`${theme === 'dark' ? 'bg-[#1F1F1F]' : 'bg-white'} rounded-xl shadow-sm border ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'} p-6`}>
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-300 rounded w-1/3 mb-4"></div>
-            <div className="h-64 bg-gray-300 rounded"></div>
-          </div>
-        </div>
-        <div className={`${theme === 'dark' ? 'bg-[#1F1F1F]' : 'bg-white'} rounded-xl shadow-sm border ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'} p-6`}>
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-300 rounded w-1/3 mb-4"></div>
-            <div className="h-64 bg-gray-300 rounded"></div>
-          </div>
-        </div>
-      </div>
+      <>
+        <DashboardSkeleton />
+      </>
     );
   }
 

@@ -507,7 +507,6 @@ const Layout = ({ children, pageProject, pageTitle }) => {
 
     // Dynamic routes
     if (path === '/task/[taskId]') {
-      console.log(tasksDetails)
       const taskId = query.taskId;
       const task = tasksDetails.find(t => t.TaskID === taskId || t._id === taskId);
       return task?.Name || 'Task Details';

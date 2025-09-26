@@ -4,7 +4,7 @@ import { useTheme } from '../../context/ThemeContext';
 const ProjectDetailsSkeleton = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  
+
   const skeletonClass = isDark ? 'animate-pulse bg-gray-700 rounded' : 'animate-pulse bg-gray-200 rounded';
   const cardClass = isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200';
   const textClass = isDark ? 'text-gray-300' : 'text-gray-900';
@@ -49,7 +49,7 @@ const ProjectDetailsSkeleton = () => {
             <div className={`h-4 w-96 bg-blue-700 ${skeletonClass}`}></div>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3 flex-shrink-0">
           {/* "27 Days Left" Status Pill */}
           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 border border-green-200 ${isDark ? 'dark:bg-green-900/30 dark:border-green-700' : ''}`}>
@@ -77,71 +77,47 @@ const ProjectDetailsSkeleton = () => {
         </div>
       </div>
 
-      {/* Search for a Team Skeleton */}
-      <div className="mb-6">
-        <div className={`h-5 w-80 mb-2 ${skeletonClass}`}></div>
-        <div className={`h-10 w-96 ${skeletonClass}`}></div>
-      </div>
-
-      {/* Teams Assigned Table Skeleton */}
-      <div className={`rounded-xl border ${cardClass} overflow-hidden mb-6`}>
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <div className={`h-6 w-32 ${skeletonClass}`}></div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className={`border-b border-gray-200 ${isDark ? 'border-gray-700' : ''}`}>
-                <th className="py-3 px-4 text-left">
-                  <div className={`h-4 w-20 ${skeletonClass}`}></div>
-                </th>
-                <th className="py-3 px-4 text-left">
-                  <div className={`h-4 w-24 ${skeletonClass}`}></div>
-                </th>
-                <th className="py-3 px-4 text-center">
-                  <div className={`h-4 w-16 ${skeletonClass}`}></div>
-                </th>
-                <th className="py-3 px-4 text-center">
-                  <div className={`h-4 w-20 ${skeletonClass}`}></div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {[1, 2, 3].map((i) => (
-                <tr key={i} className={`border-b border-gray-100 last:border-b-0 ${isDark ? 'border-gray-700' : ''}`}>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full bg-blue-100 ${skeletonClass}`}></div>
-                      <div className="flex flex-col">
-                        <div className={`h-4 w-24 ${skeletonClass}`}></div>
-                        <div className={`h-3 w-20 ${skeletonClass}`}></div>
-                      </div>
+      {/* Teams Assigned + User Stories side-by-side (2:1) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Left: Teams Assigned cards (span 2) */}
+        <div className="lg:col-span-2">
+          <div className={`h-6 w-36 mb-3 ${skeletonClass}`}></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className={`rounded-xl border ${cardClass} p-4`}>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl ${skeletonClass}`}></div>
+                    <div className="flex flex-col">
+                      <div className={`h-4 w-28 ${skeletonClass}`}></div>
+                      <div className={`h-3 w-32 mt-1 ${skeletonClass}`}></div>
                     </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className={`h-4 w-20 ${skeletonClass}`}></div>
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <div className={`h-6 w-16 rounded-full ${skeletonClass}`}></div>
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
-                      <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                  <div className={`h-6 w-16 rounded-full ${skeletonClass}`}></div>
+                </div>
+                <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center gap-2">
+                    <div className={`h-3 w-14 ${skeletonClass}`}></div>
+                    <div className={`h-3 w-24 ${skeletonClass}`}></div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-full ${skeletonClass}`}></div>
+                    <div className={`w-6 h-6 rounded-full ${skeletonClass}`}></div>
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center gap-2">
+                  <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
+                  <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
+                  <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
+                  <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${skeletonClass}`}></div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* User Stories and Tasks Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* User Stories Table Skeleton */}
-
-        {/* User Stories Table Skeleton */}
+        {/* Right: User Stories panel */}
         <div className={`rounded-xl border ${cardClass} overflow-hidden`}>
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
@@ -153,18 +129,10 @@ const ProjectDetailsSkeleton = () => {
             <table className="w-full">
               <thead>
                 <tr className={`border-b border-gray-200 ${isDark ? 'border-gray-700' : ''}`}>
-                  <th className="py-3 px-4 text-left">
-                    <div className={`h-4 w-16 ${skeletonClass}`}></div>
-                  </th>
-                  <th className="py-3 px-4 text-left">
-                    <div className={`h-4 w-24 ${skeletonClass}`}></div>
-                  </th>
-                  <th className="py-3 px-4 text-center">
-                    <div className={`h-4 w-16 ${skeletonClass}`}></div>
-                  </th>
-                  <th className="py-3 px-4 text-center">
-                    <div className={`h-4 w-20 ${skeletonClass}`}></div>
-                  </th>
+                  <th className="py-3 px-4 text-left"><div className={`h-4 w-24 ${skeletonClass}`}></div></th>
+                  <th className="py-3 px-4 text-left"><div className={`h-4 w-24 ${skeletonClass}`}></div></th>
+                  <th className="py-3 px-4 text-left"><div className={`h-4 w-20 ${skeletonClass}`}></div></th>
+                  <th className="py-3 px-4 text-center"><div className={`h-4 w-20 ${skeletonClass}`}></div></th>
                 </tr>
               </thead>
               <tbody>
@@ -176,18 +144,9 @@ const ProjectDetailsSkeleton = () => {
                         <div className={`h-3 w-24 ${skeletonClass}`}></div>
                       </div>
                     </td>
-                    <td className="py-3 px-4">
-                      <div className={`h-4 w-8 ${skeletonClass}`}></div>
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <div className={`h-6 w-20 rounded-full ${skeletonClass}`}></div>
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
-                        <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
-                      </div>
-                    </td>
+                    <td className="py-3 px-4"><div className={`h-4 w-24 ${skeletonClass}`}></div></td>
+                    <td className="py-3 px-4"><div className={`h-6 w-20 rounded-full ${skeletonClass}`}></div></td>
+                    <td className="py-3 px-4 text-center"><div className={`h-6 w-16 rounded-full ${skeletonClass}`}></div></td>
                   </tr>
                 ))}
               </tbody>
@@ -236,7 +195,7 @@ const ProjectDetailsSkeleton = () => {
                 </tr>
               </thead>
               <tbody>
-                {[1, 2].map((i) => (
+                {[1,2,3,4,5,6,7,8].map((i) => (
                   <tr key={i} className={`border-b border-gray-100 last:border-b-0 ${isDark ? 'border-gray-700' : ''}`}>
                     <td className="py-3 px-4 text-center">
                       <div className={`h-4 w-4 ${skeletonClass}`}></div>

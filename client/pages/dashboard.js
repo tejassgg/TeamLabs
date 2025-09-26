@@ -293,11 +293,11 @@ const Dashboard = () => {
     const isExpired = invite.expiredAt && new Date(invite.expiredAt) < now;
 
     if (invite.status === 'Accepted') {
-      return { textColor: 'text-green-700', bgColor: 'from-green-50 to-green-100' , text: 'Accepted', borderColor: 'border-green-200', icon: FcAcceptDatabase };
+      return { textColor: 'text-green-700', bgColor: 'from-green-50 to-green-100', text: 'Accepted', borderColor: 'border-green-200', icon: FcAcceptDatabase, iconColor: 'text-green-500' };
     } else if (invite.status === 'Expired' || isExpired) {
-      return { textColor: 'text-red-700', bgColor: 'from-red-50 to-red-100', text: 'Expired', borderColor: 'border-red-200', icon: FcExpired };
+      return { textColor: 'text-red-700', bgColor: 'from-red-50 to-red-100', text: 'Expired', borderColor: 'border-red-200', icon: FcExpired, iconColor: 'text-red-500' };
     } else {
-      return { textColor: 'text-yellow-700', bgColor: 'from-yellow-50 to-yellow-100', text: 'Pending', borderColor: 'border-yellow-200', icon: FaClock };
+      return { textColor: 'text-yellow-700', bgColor: 'from-yellow-50 to-yellow-100', text: 'Pending', borderColor: 'border-yellow-200', icon: FaClock, iconColor: 'text-yellow-500' };
     }
   };
 
@@ -317,14 +317,6 @@ const Dashboard = () => {
     if (hours > 0) return `${hours}h`;
     return 'Less than 1h';
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -430,7 +422,7 @@ const Dashboard = () => {
               <div className={`${theme === 'dark' ? 'text-[#F3F6FA]' : 'bg-white text-gray-900'} overflow-visible`}>
                 <h2 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Recent Projects</h2>
                 <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <div className="overflow-x-hidden overflow-y-visible">
+                  <div className="max-h-80 overflow-y-auto overflow-x-visible rounded-xl">
                     <table className="w-full">
                       <thead className="sticky top-0 z-10">
                         <tr className={`${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'bg-gray-50 border-gray-200'} border-b`}>
@@ -439,51 +431,44 @@ const Dashboard = () => {
                           <th className="py-3 px-4 text-left ">Status</th>
                         </tr>
                       </thead>
-                    </table>
-                    <div className="max-h-80 overflow-y-auto overflow-x-visible">
-                      <table className="w-full">
-                        <tbody>
-                          {stats?.recentProjects?.map(project => {
-                            const currentStatus = getProjectStatus(project.projectStatusId || 1);
-                            return (
-                              <tr
-                                key={project.id}
-                                className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b cursor-pointer`}
-                              >
-                                <td className="py-2 px-4">
-                                  <div className="flex flex-col">
-                                    <span className={`font-medium cursor-pointer hover:text-blue-500 transition-all duration-200 hover:underline ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`} onClick={() => router.push(`/project/${project.id}`)}> {project.name} </span>
-                                    {project.description && (
-                                      <span className={`text-xs mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>{project.description}</span>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="py-2 px-4">
-                                  <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}> {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'} </span>
-                                </td>
-                                <td className="py-2 px-4">
-                                  <div onClick={(e) => e.stopPropagation()}>
-                                    <ProjectStatusDropdown
-                                      currentStatus={currentStatus}
-                                      availableStatuses={projectStatuses}
-                                      onStatusChange={handleProjectStatusUpdate}
-                                      projectId={project.id}
-                                      theme={theme}
-                                      disabled={!isAdmin}
-                                    />
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                          {(!stats?.recentProjects || stats.recentProjects.length === 0) && (
-                            <tr>
-                              <td colSpan={3} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}> No Recent Projects </td>
+                      <tbody>
+                        {stats?.recentProjects?.map(project => {
+                          const currentStatus = getProjectStatus(project.projectStatusId || 1);
+                          return (
+                            <tr key={project.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b cursor-pointer`} >
+                              <td className="py-2 px-4">
+                                <div className="flex flex-col">
+                                  <span className={`font-medium cursor-pointer hover:text-blue-500 transition-all duration-200 hover:underline ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`} onClick={() => router.push(`/project/${project.id}`)}> {project.name} </span>
+                                  {project.description && (
+                                    <span className={`text-xs mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>{project.description}</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-2 px-4">
+                                <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}> {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'} </span>
+                              </td>
+                              <td className="py-2 px-4">
+                                <div onClick={(e) => e.stopPropagation()}>
+                                  <ProjectStatusDropdown
+                                    currentStatus={currentStatus}
+                                    availableStatuses={projectStatuses}
+                                    onStatusChange={handleProjectStatusUpdate}
+                                    projectId={project.id}
+                                    theme={theme}
+                                    disabled={!isAdmin}
+                                  />
+                                </div>
+                              </td>
                             </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
+                          );
+                        })}
+                        {(!stats?.recentProjects || stats.recentProjects.length === 0) && (
+                          <tr>
+                            <td colSpan={3} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}> No Recent Projects </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
@@ -492,7 +477,7 @@ const Dashboard = () => {
               <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA]' : 'bg-white text-gray-900'}`}>
                 <h2 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Organization Members</h2>
                 <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <div className="overflow-hidden">
+                  <div className="max-h-80 overflow-y-auto rounded-xl">
                     <table className="w-full">
                       <thead className="sticky top-0 z-10">
                         <tr className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'} border-b`}>
@@ -502,70 +487,66 @@ const Dashboard = () => {
                           {isAdmin && <th className="py-3 px-4 text-center">Actions</th>}
                         </tr>
                       </thead>
-                    </table>
-                    <div className="max-h-80 overflow-y-auto">
-                      <table className="w-full">
-                        <tbody>
-                          {stats?.members?.map(member => {
-                            const statusConfig = getStatusConfig(member.status);
-                            const StatusIcon = statusConfig.icon;
+                      <tbody>
+                        {stats?.members?.map(member => {
+                          const statusConfig = getStatusConfig(member.status);
+                          const StatusIcon = statusConfig.icon;
 
-                            return (
-                              <tr key={member.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
-                                <td className="py-3 px-4">
-                                  <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-600'}`}> {member.name.split(' ').map(n => n[0]).join('')} </div>
-                                    <div className="flex flex-col">
-                                      <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}> {member.name} </span>
-                                      <div className="flex flex-col gap-0.5">
-                                        <span className={`text-xs ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}> <strong>{member.username}</strong> | {member.email} </span>
-                                      </div>
+                          return (
+                            <tr key={member.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-600'}`}> {member.name.split(' ').map(n => n[0]).join('')} </div>
+                                  <div className="flex flex-col">
+                                    <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}> {member.name} </span>
+                                    <div className="flex flex-col gap-0.5">
+                                      <span className={`text-xs ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}> <strong>{member.username}</strong> | {member.email} </span>
                                     </div>
                                   </div>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium
+                                </div>
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium
                               ${theme === 'dark'
-                                      ? 'bg-transparent border border-gray-700'
-                                      : 'bg-white border border-gray-200'}`}
-                                  >
-                                    <StatusIcon className={`${statusConfig.color} text-sm`} />
-                                    <span className={theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-700'}> {statusConfig.label} </span>
-                                    {member.status === 'Active' && (
-                                      <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.color.replace('text', 'bg')} animate-pulse`}></span>
-                                    )}
+                                    ? 'bg-transparent border border-gray-700'
+                                    : 'bg-white border border-gray-200'}`}
+                                >
+                                  <StatusIcon className={`${statusConfig.color} text-sm`} />
+                                  <span className={theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-700'}> {statusConfig.label} </span>
+                                  {member.status === 'Active' && (
+                                    <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.color.replace('text', 'bg')} animate-pulse`}></span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className={`text-sm ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}> {member.role} </span>
+                              </td>
+                              {isAdmin && userDetails.organizationID && (
+                                <td className="py-3 px-4 text-center">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <button
+                                      onClick={() => {
+                                        setRemovingUser(member);
+                                        setShowRemoveDialog(true);
+                                      }}
+                                      className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-red-300 bg-[#232323] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
+                                      title="Remove Member"
+                                    >
+                                      <FaTrash size={14} />
+                                    </button>
                                   </div>
                                 </td>
-                                <td className="py-3 px-4">
-                                  <span className={`text-sm ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}> {member.role} </span>
-                                </td>
-                                {isAdmin && userDetails.organizationID && (
-                                  <td className="py-3 px-4 text-center">
-                                    <div className="flex items-center justify-center gap-2">
-                                      <button
-                                        onClick={() => {
-                                          setRemovingUser(member);
-                                          setShowRemoveDialog(true);
-                                        }}
-                                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-red-300 bg-[#232323] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
-                                        title="Remove Member"
-                                      >
-                                        <FaTrash size={14} />
-                                      </button>
-                                    </div>
-                                  </td>
-                                )}
-                              </tr>
-                            );
-                          })}
-                          {(!stats?.members || stats.members.length === 0) && (
-                            <tr>
-                              <td colSpan={isAdmin && userDetails.organizationID ? 4 : 3} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}> No members found </td>
+                              )}
                             </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
+                          );
+                        })}
+                        {(!stats?.members || stats.members.length === 0) && (
+                          <tr>
+                            <td colSpan={isAdmin && userDetails.organizationID ? 4 : 3} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}> No members found </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
@@ -576,15 +557,11 @@ const Dashboard = () => {
               <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA]' : 'bg-white text-gray-900'}`}>
                 <div className={`flex items-center justify-between mb-2`}>
                   <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'} flex items-center gap-2`}>
-                    <FcInvite  className="text-blue-500" />
                     Pending Invites
                   </h2>
                   <button
-                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium duration-300 rounded-lg transition-colors shadow-sm ${
-                      theme === 'dark' 
-                        ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                        : 'text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white'
-                    }`}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium duration-300 rounded-lg transition-colors shadow-sm ${theme === 'dark'
+                      ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white' }`}
                     onClick={() => setShowInviteModal(true)}>
                     <FaPlus /> Invite
                   </button>
@@ -596,81 +573,83 @@ const Dashboard = () => {
                       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
                     </div>
                   ) : (
-                    <div className={`overflow-x-auto rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                      <table className="w-full">
-                        <thead>
-                          <tr className={`${theme === 'dark' ? 'bg-transparent border-gray-700' : 'border-gray-200'} border-b`}>
-                            <th className="py-3 px-4 text-left">Email</th>
-                            <th className="py-3 px-4 text-left">Status</th>
-                            <th className="py-3 px-4 text-left">Invited By</th>
-                            <th className="py-3 px-4 text-left">Invited On</th>
-                            <th className="py-3 px-4 text-left">Expires</th>
-                            <th className="py-3 px-4 text-center">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {stats?.invites?.map(invite => {
-                            const statusBadge = getInviteStatusBadge(invite);
-                            return (
-                              <tr key={invite._id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
-                                <td className="py-3 px-4">
-                                  <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{invite.email}</span>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${statusBadge.bgColor} ${statusBadge.textColor} border ${statusBadge.borderColor}`}>
-                                    {statusBadge.icon && <statusBadge.icon size={14} />}
-                                    {statusBadge.text}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
-                                    {invite.inviter ? `${invite.inviter.firstName} ${invite.inviter.lastName}` : 'Unknown'}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
-                                    {formatDateWithTime(invite.invitedAt)}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
-                                    {getTimeUntilExpiry(invite.expiredAt)}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4 text-center">
-                                  <div className="flex items-center justify-center gap-2">
-                                    {invite.status === 'Pending' && (
-                                      <button
-                                        onClick={() => handleResendInvite(invite._id)}
-                                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-blue-300 bg-[#232323] hover:bg-blue-900' : 'text-blue-700 bg-blue-100 hover:bg-blue-200'}`}
-                                        title="Resend Invite"
-                                      >
-                                        <FaRedo size={14} />
-                                      </button>
-                                    )}
-                                    {invite.status !== 'Accepted' && (
-                                      <button
-                                        onClick={() => handleDeleteInvite(invite._id)}
-                                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-red-300 bg-[#232323] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
-                                        title="Delete Invite"
-                                      >
-                                        <FaTrash size={14} />
-                                      </button>
-                                    )}
-                                  </div>
+                    <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <div className="overflow-x-auto overflow-y-auto max-h-[400px] rounded-xl">
+                        <table className="w-full ">
+                          <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-[#18181b]' : 'bg-gray-50'}`}>
+                            <tr className={`${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} border-b`}>
+                              <th className="py-3 px-4 text-left">Email</th>
+                              <th className="py-3 px-4 text-left">Status</th>
+                              <th className="py-3 px-4 text-left">Invited By</th>
+                              <th className="py-3 px-4 text-left">Invited On</th>
+                              <th className="py-3 px-4 text-left">Expires</th>
+                              <th className="py-3 px-4 text-center">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {stats?.invites?.map(invite => {
+                              const statusBadge = getInviteStatusBadge(invite);
+                              return (
+                                <tr key={invite._id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
+                                  <td className="py-3 px-4">
+                                    <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{invite.email}</span>
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${statusBadge.bgColor} ${statusBadge.textColor} border ${statusBadge.borderColor}`}>
+                                      {statusBadge.icon && <statusBadge.icon className={statusBadge.iconColor} size={14} />}
+                                      {statusBadge.text}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
+                                      {invite.inviter ? `${invite.inviter.firstName} ${invite.inviter.lastName}` : 'Unknown'}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
+                                      {formatDateWithTime(invite.invitedAt)}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
+                                      {getTimeUntilExpiry(invite.expiredAt)}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 px-4 text-center">
+                                    <div className="flex items-center justify-center gap-2">
+                                      {invite.status === 'Pending' && (
+                                        <button
+                                          onClick={() => handleResendInvite(invite._id)}
+                                          className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-blue-300 bg-[#232323] hover:bg-blue-900' : 'text-blue-700 bg-blue-100 hover:bg-blue-200'}`}
+                                          title="Resend Invite"
+                                        >
+                                          <FaRedo size={14} />
+                                        </button>
+                                      )}
+                                      {invite.status !== 'Accepted' && (
+                                        <button
+                                          onClick={() => handleDeleteInvite(invite._id)}
+                                          className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-red-300 bg-[#232323] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
+                                          title="Delete Invite"
+                                        >
+                                          <FaTrash size={14} />
+                                        </button>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                            {stats?.invites?.length === 0 && (
+                              <tr>
+                                <td colSpan={6} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}>
+                                  No invites found
                                 </td>
                               </tr>
-                            );
-                          })}
-                          {stats?.invites?.length === 0 && (
-                            <tr>
-                              <td colSpan={6} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}>
-                                No invites found
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   )}
                 </div>

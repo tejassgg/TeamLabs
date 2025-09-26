@@ -2,51 +2,16 @@ import React, { useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useThemeClasses } from './kanbanUtils';
 import { getPriorityBadge, getTaskTypeBadge } from '../task/TaskTypeBadge';
-import { FaRegComment  } from 'react-icons/fa';
+import { FaRegComment } from 'react-icons/fa';
 import { TiAttachment } from "react-icons/ti";
 
 const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssignedToUser, bgColor }) => {
   const router = useRouter();
   const getThemeClasses = useThemeClasses();
   const cardRef = useRef(null);
-  const canMove = isTaskAssignedToUser(task) || task.Status === 1;
+  const isSupport = task.Name?.startsWith('Support Request:');
+  const canMove = isSupport || isTaskAssignedToUser(task) || task.Status === 1;
 
-
-  // Get column color for checkmarks
-  const getColumnColor = () => {
-    const colorMap = {
-      'bg-red-500': 'text-red-500',
-      'bg-yellow-500': 'text-yellow-500',
-      'bg-blue-500': 'text-blue-500',
-      'bg-green-500': 'text-green-500',
-      'bg-purple-500': 'text-purple-500',
-      'bg-pink-500': 'text-pink-500',
-      'bg-indigo-500': 'text-indigo-500',
-      'bg-gray-500': 'text-gray-500'
-    };
-    return colorMap[bgColor] || 'text-blue-500';
-  };
-  const accentMap = {
-    'bg-red-500': 'accent-red-500',
-    'bg-yellow-500': 'accent-yellow-500',
-    'bg-blue-500': 'accent-blue-500',
-    'bg-green-500': 'accent-green-500',
-    'bg-purple-500': 'accent-purple-500',
-    'bg-pink-500': 'accent-pink-500',
-    'bg-indigo-500': 'accent-indigo-500',
-    'bg-gray-500': 'accent-gray-500'
-  };
-
-  const map = {
-    'bg-red-500': 'bg-red-500',
-    'bg-yellow-500': 'bg-yellow-500',
-    'bg-blue-500': 'bg-blue-500',
-    'bg-green-500': 'bg-green-500',
-    'bg-purple-500': 'bg-purple-500',
-    'bg-pink-500': 'bg-pink-500',
-    'bg-indigo-500': 'bg-indigo-500',
-    'bg-gray-500': 'bg-gray-500'
-  };
   const getColumnBg = () => {
     // Normalize any bg-<hue>-<shade> to bg-<hue>-500 to keep a vivid tone
     if (typeof bgColor === 'string') {
@@ -102,11 +67,12 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
     router.push(`/task/${task.TaskID}`);
   };
 
+  // isSupport already computed above to control draggable permission
   return (
     <div ref={cardRef} key={task.TaskID}
       className={getThemeClasses(
-        `p-3 rounded-xl mb-2 border ${canMove ? `border-${bgColor.replace('bg-', '')}-200 cursor-grab` : 'border-gray-200 cursor-not-allowed opacity-80'}`,
-        `dark:border-gray-700 ${canMove ? 'dark:hover:bg-gray-700/30' : ''}`
+        `${isSupport ? 'p-3 rounded-xl mb-2 border border-amber-300 bg-amber-50' : 'p-3 rounded-xl mb-2 border'} ${canMove ? (isSupport ? 'cursor-grab' : `border-${bgColor.replace('bg-', '')}-200 cursor-grab`) : 'border-gray-200 cursor-not-allowed opacity-80'}`,
+        `${isSupport ? 'dark:border-amber-600 dark:bg-amber-900/20' : 'dark:border-gray-700'} ${canMove && !isSupport ? 'dark:hover:bg-gray-700/30' : ''}`
       )}
       draggable={canMove}
       onDragStart={onDragStart}
@@ -127,19 +93,33 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
       </div>
 
       <div className={getThemeClasses(
-        'text-gray-900',
+        'mb-1 text-gray-900',
         'dark:text-gray-100'
       )}>
-        <h4 className="font-medium mb-1">{task.Name}</h4>
+        <span className={getThemeClasses('text-sm font-medium text-gray-900', 'dark:text-gray-100')}>
+          {task.Name}
+        </span>
         {task.Description && (
-          <p className={getThemeClasses(
-            'text-sm text-gray-600',
-            'dark:text-gray-400'
-          )}>
+          <p className={getThemeClasses('text-sm text-gray-600', 'dark:text-gray-400')}>
             {task.Description}
           </p>
         )}
       </div>
+
+      <h4 className="font-medium mb-1 flex items-center justify-start gap-2 mt-1">
+        {isSupport && (
+          <span className={getThemeClasses(
+            "inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-100 text-amber-700 border border-amber-200",
+            "dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700"
+          )}>Support</span>
+        )}
+        {isSupport && task.TicketNumber && (
+          <span className={getThemeClasses(
+            "ml-auto text-[10px] font-medium px-2 py-0.5 rounded bg-amber-200 text-amber-800 border border-amber-300",
+            "dark:bg-amber-800 dark:text-amber-100 dark:border-amber-700"
+          )}>#{task.TicketNumber}</span>
+        )}
+      </h4>
 
       {/* Subtasks Section */}
       {task.subtasks && task.subtasks.length > 0 && (

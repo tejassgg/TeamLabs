@@ -326,17 +326,96 @@ router.delete('/:projectId/team/:teamId', protect, async (req, res) => {
       TeamID: req.params.teamId
     });
 
-    // Get all unique project members after adding the new team
-    const allAssignedTeamIds = await ProjectDetails.find({ ProjectID: req.params.projectId }).select('TeamID');
-    const allTeamDetails = await TeamDetails.find({ TeamID_FK: { $in: allAssignedTeamIds.map(t => t.TeamID) }, IsMemberActive: true });
-    const allMemberIds = [...new Set(allTeamDetails.map(td => td.MemberID))];
-    const allProjectMembers = await User.find({ _id: { $in: allMemberIds } }).select('_id firstName lastName email profileImage');
-
     if (!projectDetail) {
       return res.status(404).json({ error: 'Team not found in project' });
     }
 
+    // Remove the team from project
     await projectDetail.deleteOne();
+
+    // Determine members of the removed team
+    const removedTeamMemberIds = await TeamDetails.find({ TeamID_FK: req.params.teamId, IsMemberActive: true }).distinct('MemberID');
+
+    // Remaining teams on this project (after removal)
+    const remainingTeamIds = await ProjectDetails.find({ ProjectID: req.params.projectId }).distinct('TeamID');
+
+    // Users from removed team who are still members of any remaining team for this project
+    const stillAssignedMemberIds = remainingTeamIds.length > 0
+      ? await TeamDetails.find({ TeamID_FK: { $in: remainingTeamIds }, IsMemberActive: true, MemberID: { $in: removedTeamMemberIds } }).distinct('MemberID')
+      : [];
+
+    // Members to unassign (part of removed team and not present in any other project team)
+    const stillAssignedSet = new Set(stillAssignedMemberIds.map(id => String(id)));
+    const toUnassignIds = removedTeamMemberIds.filter(id => !stillAssignedSet.has(String(id)));
+
+    // Unassign all non-completed tasks of those members in this project
+    let updatedTasks = [];
+    if (toUnassignIds.length > 0) {
+      // Fetch tasks we are going to modify to persist history per-task
+      const tasksToUnassign = await TaskDetails.find({
+        ProjectID_FK: req.params.projectId,
+        AssignedTo: { $in: toUnassignIds },
+        Status: { $nin: [6] }
+      });
+
+      const TaskDetailsHistory = require('../models/TaskDetailsHistory');
+
+      // Insert history records
+      if (tasksToUnassign.length > 0) {
+        const histories = tasksToUnassign.map(t => ({
+          TaskID: t.TaskID,
+          ParentID: t.ParentID,
+          Name: t.Name,
+          Description: t.Description,
+          OldStatus: t.Status,
+          Type: t.Type,
+          Priority: t.Priority,
+          Old_Assignee: t.Assignee,
+          Old_AssignedTo: t.AssignedTo,
+          ProjectID_FK: t.ProjectID_FK,
+          IsActive: t.IsActive,
+          CreatedDate: t.CreatedDate,
+          AssignedDate: t.AssignedDate,
+          CreatedBy: t.CreatedBy,
+          ModifiedDate: new Date(),
+          ModifiedBy: req.user._id
+        }));
+        await TaskDetailsHistory.insertMany(histories);
+      }
+
+      // Now unassign in bulk
+      await TaskDetails.updateMany(
+        {
+          ProjectID_FK: req.params.projectId,
+          AssignedTo: { $in: toUnassignIds },
+          Status: { $nin: [6] }
+        },
+        {
+          $set: {
+            AssignedTo: null,
+            AssignedDate: null,
+            Status: 1,
+            ModifiedDate: new Date(),
+            ModifiedBy: req.user._id
+          }
+        }
+      );
+
+      // Prepare updated task payload for UI
+      updatedTasks = tasksToUnassign.map(t => ({
+        TaskID: t.TaskID,
+        ProjectID_FK: t.ProjectID_FK,
+        Status: 1,
+        AssignedTo: null,
+        AssignedDate: null
+      }));
+    }
+
+    // Recompute current project members after removal
+    const allAssignedTeamIds = await ProjectDetails.find({ ProjectID: req.params.projectId }).select('TeamID');
+    const allTeamDetails = await TeamDetails.find({ TeamID_FK: { $in: allAssignedTeamIds.map(t => t.TeamID) }, IsMemberActive: true });
+    const allMemberIds = [...new Set(allTeamDetails.map(td => td.MemberID))];
+    const allProjectMembers = await User.find({ _id: { $in: allMemberIds } }).select('_id firstName lastName email profileImage');
 
     await logActivity(
       req.user._id,
@@ -348,10 +427,11 @@ router.delete('/:projectId/team/:teamId', protect, async (req, res) => {
         projectId: req.params.projectId,
         teamId: req.params.teamId,
         teamName: teamDetails.TeamName,
-        projectId: req.params.projectId
+        projectId: req.params.projectId,
+        unassignedTaskMembers: toUnassignIds.length
       }
     );
-    res.status(200).json({ success: true, message: `${teamDetails.TeamName} removed from the project successfully`, projectMembers: allProjectMembers });
+    res.status(200).json({ success: true, message: `${teamDetails.TeamName} removed from the project successfully`, projectMembers: allProjectMembers, updatedTasks });
   } catch (err) {
     console.error('Error removing team from project:', err);
     await logActivity(
