@@ -1780,277 +1780,275 @@ const ProjectDetailsPage = () => {
             {/* Tasks Table - Keep it full width below */}
             <div className="mb-8">
               <div>
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Tasks</h2>
-                    <div className="flex items-center gap-3">
-                      {selectedTasks.length > 0 ? (
-                        <>
-                          <div className={getThemeClasses(
-                            'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
-                            'dark:bg-blue-900/30 dark:text-blue-300'
-                          )}>
-                            <span className="text-sm font-medium">{selectedTasks.length} selected</span>
-                            <button
-                              onClick={() => setSelectedTasks([])}
-                              className={getThemeClasses(
-                                'p-1 hover:bg-blue-100 rounded-full transition-colors',
-                                'dark:hover:bg-blue-900/50'
-                              )}
-                            >
-                              <FaTimes size={14} />
-                            </button>
-                          </div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Tasks</h2>
+                  <div className="flex items-center gap-3">
+                    {selectedTasks.length > 0 ? (
+                      <>
+                        <div className={getThemeClasses(
+                          'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
+                          'dark:bg-blue-900/30 dark:text-blue-300'
+                        )}>
+                          <span className="text-sm font-medium">{selectedTasks.length} selected</span>
                           <button
-                            onClick={() => setShowBulkDeleteDialog(true)}
+                            onClick={() => setSelectedTasks([])}
                             className={getThemeClasses(
-                              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors',
-                              'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
+                              'p-1 hover:bg-blue-100 rounded-full transition-colors',
+                              'dark:hover:bg-blue-900/50'
                             )}
                           >
-                            <MdDelete size={18} />
-                            Delete Selected
+                            <FaTimes size={14} />
                           </button>
-                        </>
-                      ) : (
+                        </div>
                         <button
-                          onClick={() => { setAddTaskTypeMode('task'); setIsAddTaskOpen(true); }}
+                          onClick={() => setShowBulkDeleteDialog(true)}
                           className={getThemeClasses(
-                            'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                            'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
+                            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors',
+                            'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
                           )}
                         >
-                          <FaPlus size={14} />
-                          Create
+                          <MdDelete size={18} />
+                          Delete Selected
                         </button>
-                      )}
-                    </div>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => { setAddTaskTypeMode('task'); setIsAddTaskOpen(true); }}
+                        className={getThemeClasses(
+                          'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
+                          'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
+                        )}
+                      >
+                        <FaPlus size={14} />
+                        Create
+                      </button>
+                    )}
                   </div>
                 </div>
-                <div className={`overflow-x-auto overflow-y-auto max-h-[80vh] custom-scrollbar mb-2 rounded-xl border ${getThemeClasses('border-gray-200', 'dark:border-gray-700')}`}>
-                  {taskList.length === 0 ? (
-                    <div className={getThemeClasses(
-                      'text-center py-8 text-gray-400',
-                      'dark:text-gray-500'
-                    )}>
-                      No tasks for this project.
-                    </div>
-                  ) : (
-                    <table className="w-full">
-                      <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#18181b] border-gray-500' : 'bg-gray-50 border-gray-200'}`}>
-                        <tr className={tableHeaderClasses}>
-                          <th className="py-3 px-4 text-center w-[50px]">
-                            <input
-                              type="checkbox"
-                              checked={selectedTasks.length === taskList.length && taskList.length > 0}
-                              onChange={handleSelectAllTasks}
-                              className={getThemeClasses(
-                                'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                                'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
-                              )}
-                            />
-                          </th>
-                          <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
-                            <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1">
-                              <span>Name</span>
-                              {getTasksSortIcon('name')}
-                            </button>
-                          </th>
-                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
-                            <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center gap-1">
-                              <span>Assigned To</span>
-                              {getTasksSortIcon('assignedTo')}
-                            </button>
-                          </th>
-                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
-                            <button type="button" onClick={() => handleTasksSort('assignee')} className="inline-flex items-center gap-1">
-                              <span>Assignee</span>
-                              {getTasksSortIcon('assignee')}
-                            </button>
-                          </th>
-                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
-                            <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center">
-                              <span>Date Assigned</span>
-                              {getTasksSortIcon('assignedDate')}
-                            </button>
-                          </th>
-                          <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
-                            <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center gap-1">
-                              <span>Priority</span>
-                              {getTasksSortIcon('priority')}
-                            </button>
-                          </th>
-                          <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
-                            <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center gap-1">
-                              <span>Status</span>
-                              {getTasksSortIcon('status')}
-                            </button>
-                          </th>
-                          <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {tasksSorted.map(task => {
-                          // Get priority style for background color if task has TicketNumber
-                          const getPriorityBackgroundColor = (priority) => {
-                            const styles = {
-                              'High': 'bg-red-50 dark:bg-red-900/10',
-                              'Medium': 'bg-yellow-50 dark:bg-yellow-900/10',
-                              'Low': 'bg-green-50 dark:bg-green-900/10'
-                            };
-                            return styles[priority] || '';
+              </div>
+              <div className={`overflow-x-auto overflow-y-auto max-h-[80vh] custom-scrollbar mb-2 rounded-xl border ${getThemeClasses('border-gray-200', 'dark:border-gray-700')}`}>
+                {taskList.length === 0 ? (
+                  <div className={getThemeClasses(
+                    'text-center py-8 text-gray-400',
+                    'dark:text-gray-500'
+                  )}>
+                    No tasks for this project.
+                  </div>
+                ) : (
+                  <table className="w-full">
+                    <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#18181b] border-gray-500' : 'bg-gray-50 border-gray-200'}`}>
+                      <tr className={tableHeaderClasses}>
+                        <th className="py-3 px-4 text-center w-[50px]">
+                          <input
+                            type="checkbox"
+                            checked={selectedTasks.length === taskList.length && taskList.length > 0}
+                            onChange={handleSelectAllTasks}
+                            className={getThemeClasses(
+                              'hidden sm:table-cell w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                              'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                            )}
+                          />
+                        </th>
+                        <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1">
+                            <span>Name</span>
+                            {getTasksSortIcon('name')}
+                          </button>
+                        </th>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center gap-1">
+                            <span>Assigned To</span>
+                            {getTasksSortIcon('assignedTo')}
+                          </button>
+                        </th>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('assignee')} className="inline-flex items-center gap-1">
+                            <span>Assignee</span>
+                            {getTasksSortIcon('assignee')}
+                          </button>
+                        </th>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center">
+                            <span>Date Assigned</span>
+                            {getTasksSortIcon('assignedDate')}
+                          </button>
+                        </th>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center gap-1">
+                            <span>Priority</span>
+                            {getTasksSortIcon('priority')}
+                          </button>
+                        </th>
+                        <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center gap-1">
+                            <span>Status</span>
+                            {getTasksSortIcon('status')}
+                          </button>
+                        </th>
+                        <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tasksSorted.map(task => {
+                        // Get priority style for background color if task has TicketNumber
+                        const getPriorityBackgroundColor = (priority) => {
+                          const styles = {
+                            'High': 'bg-red-50 dark:bg-red-900/10',
+                            'Medium': 'bg-yellow-50 dark:bg-yellow-900/10',
+                            'Low': 'bg-green-50 dark:bg-green-900/10'
                           };
+                          return styles[priority] || '';
+                        };
 
-                          const ticketRowClasses = task.TicketNumber
-                            ? `${tableRowClasses} ${getPriorityBackgroundColor(task.Priority)}`
-                            : tableRowClasses;
+                        const ticketRowClasses = task.TicketNumber
+                          ? `${tableRowClasses} ${getPriorityBackgroundColor(task.Priority)}`
+                          : tableRowClasses;
 
-                          return (
-                            <tr key={task._id} className={ticketRowClasses}>
-                              <td className="py-3 px-4 text-center">
-                                <input
-                                  type="checkbox"
-                                  checked={selectedTasks.includes(task.TaskID)}
-                                  onChange={() => handleSelectTask(task.TaskID)}
+                        return (
+                          <tr key={task._id} className={ticketRowClasses}>
+                            <td className="py-3 px-4 text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedTasks.includes(task.TaskID)}
+                                onChange={() => handleSelectTask(task.TaskID)}
+                                className={getThemeClasses(
+                                  'hidden sm:table-cell w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                                  'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                                )}
+                              />
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex flex-col">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <button
+                                    onClick={() => router.push(`/task/${task.TaskID}`)}
+                                    className={getThemeClasses(
+                                      'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium',
+                                      'dark:hover:text-blue-400'
+                                    )}
+                                    title="Click to view task details"
+                                  >
+                                    {task.Name}
+                                  </button>
+                                  {getTaskTypeBadgeComponent(task.Type)}
+                                </div>
+                                <span className={getThemeClasses(
+                                  'text-xs text-gray-500',
+                                  'dark:text-gray-400'
+                                )}>{task.Description}</span>
+                                {/* Show assigned to on mobile if available */}
+                                {task.AssignedTo && task.AssignedToDetails && (
+                                  <div className={getThemeClasses(
+                                    'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600',
+                                    'dark:text-gray-300'
+                                  )}>
+                                    <span className="font-medium">Assigned to:</span>
+                                    <span>{task.AssignedToDetails.fullName}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="hidden md:table-cell py-3 px-4">
+                              {task.AssignedTo && task.AssignedToDetails ? (
+                                <div className="flex items-center gap-3">
+                                  <div className={getThemeClasses(
+                                    'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
+                                    'dark:from-blue-600 dark:to-blue-700'
+                                  )}>
+                                    {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className={tableTextClasses}>{task.AssignedToDetails.fullName} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
+                                    {task.AssignedToDetails.teamName && (
+                                      <span className={tableSecondaryTextClasses}>{task.AssignedToDetails.teamName}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center">
+                                  <span className={tableSecondaryTextClasses}>Not Assigned</span>
+                                </div>
+                              )}
+                            </td>
+                            <td className="hidden md:table-cell py-3 px-4">
+                              {task.Assignee && task.AssigneeDetails ? (
+                                <div className="flex items-center gap-3">
+                                  <div className={getThemeClasses(
+                                    'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm',
+                                    'dark:from-green-600 dark:to-green-700'
+                                  )}>
+                                    {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className={tableTextClasses}>{task.AssigneeDetails.fullName} <span className={'text-xs'}>{isMe(task.Assignee) ? ' (You)' : ''}</span></span>
+                                    {task.AssigneeDetails.teamName && (
+                                      <span className={tableSecondaryTextClasses}>{task.AssigneeDetails.teamName}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <div className={getThemeClasses(
+                                    'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm',
+                                    'dark:bg-gray-700 dark:text-gray-400'
+                                  )}>
+                                    <span>NA</span>
+                                  </div>
+                                  <span className={tableSecondaryTextClasses}>Not Assigned</span>
+                                </div>
+                              )}
+                            </td>
+                            <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
+                              {task.AssignedDate ? (
+                                <div className="flex flex-col leading-tight">
+                                  <span>{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                                  <span className={getThemeClasses('text-xs text-gray-500', 'text-xs text-gray-400')}>
+                                    {new Date(task.AssignedDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                  </span>
+                                </div>
+                              ) : (
+                                '-'
+                              )}
+                            </td>
+                            <td className="hidden md:table-cell py-3 px-4">
+                              <div className="flex items-center gap-1.5">
+                                {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              {getTaskStatusBadge(task.Status, theme === 'dark', getTaskStatusText(task.Status))}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => handleEditTask(task)}
                                   className={getThemeClasses(
-                                    'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                                    'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                    'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
                                   )}
-                                />
-                              </td>
-                              <td className="py-3 px-4">
-                                <div className="flex flex-col">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <button
-                                      onClick={() => router.push(`/task/${task.TaskID}`)}
-                                      className={getThemeClasses(
-                                        'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium',
-                                        'dark:hover:text-blue-400'
-                                      )}
-                                      title="Click to view task details"
-                                    >
-                                      {task.Name}
-                                    </button>
-                                    {getTaskTypeBadgeComponent(task.Type)}
-                                  </div>
-                                  <span className={getThemeClasses(
-                                    'text-xs text-gray-500',
-                                    'dark:text-gray-400'
-                                  )}>{task.Description}</span>
-                                  {/* Show assigned to on mobile if available */}
-                                  {task.AssignedTo && task.AssignedToDetails && (
-                                    <div className={getThemeClasses(
-                                      'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600',
-                                      'dark:text-gray-300'
-                                    )}>
-                                      <span className="font-medium">Assigned to:</span>
-                                      <span>{task.AssignedToDetails.fullName}</span>
-                                    </div>
+                                  title="Edit Task"
+                                >
+                                  <FaEdit size={14} />
+                                </button>
+                                <button
+                                  onClick={() => confirmDeleteTask(task)}
+                                  className={getThemeClasses(
+                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                    'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
                                   )}
-                                </div>
-                              </td>
-                              <td className="hidden md:table-cell py-3 px-4">
-                                {task.AssignedTo && task.AssignedToDetails ? (
-                                  <div className="flex items-center gap-3">
-                                    <div className={getThemeClasses(
-                                      'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
-                                      'dark:from-blue-600 dark:to-blue-700'
-                                    )}>
-                                      {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
-                                    </div>
-                                    <div className="flex flex-col">
-                                      <span className={tableTextClasses}>{task.AssignedToDetails.fullName} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
-                                      {task.AssignedToDetails.teamName && (
-                                        <span className={tableSecondaryTextClasses}>{task.AssignedToDetails.teamName}</span>
-                                      )}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center">
-                                    <span className={tableSecondaryTextClasses}>Not Assigned</span>
-                                  </div>
-                                )}
-                              </td>
-                              <td className="hidden md:table-cell py-3 px-4">
-                                {task.Assignee && task.AssigneeDetails ? (
-                                  <div className="flex items-center gap-3">
-                                    <div className={getThemeClasses(
-                                      'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm',
-                                      'dark:from-green-600 dark:to-green-700'
-                                    )}>
-                                      {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
-                                    </div>
-                                    <div className="flex flex-col">
-                                      <span className={tableTextClasses}>{task.AssigneeDetails.fullName} <span className={'text-xs'}>{isMe(task.Assignee) ? ' (You)' : ''}</span></span>
-                                      {task.AssigneeDetails.teamName && (
-                                        <span className={tableSecondaryTextClasses}>{task.AssigneeDetails.teamName}</span>
-                                      )}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center gap-2">
-                                    <div className={getThemeClasses(
-                                      'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm',
-                                      'dark:bg-gray-700 dark:text-gray-400'
-                                    )}>
-                                      <span>NA</span>
-                                    </div>
-                                    <span className={tableSecondaryTextClasses}>Not Assigned</span>
-                                  </div>
-                                )}
-                              </td>
-                              <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
-                                {task.AssignedDate ? (
-                                  <div className="flex flex-col leading-tight">
-                                    <span>{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                                    <span className={getThemeClasses('text-xs text-gray-500', 'text-xs text-gray-400')}>
-                                      {new Date(task.AssignedDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                                    </span>
-                                  </div>
-                                ) : (
-                                  '-'
-                                )}
-                              </td>
-                              <td className="hidden md:table-cell py-3 px-4">
-                                <div className="flex items-center gap-1.5">
-                                  {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
-                                </div>
-                              </td>
-                              <td className="py-3 px-4 text-center">
-                                {getTaskStatusBadge(task.Status, theme === 'dark', getTaskStatusText(task.Status))}
-                              </td>
-                              <td className="py-3 px-4 text-center">
-                                <div className="flex items-center justify-center gap-2">
-                                  <button
-                                    onClick={() => handleEditTask(task)}
-                                    className={getThemeClasses(
-                                      'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
-                                      'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
-                                    )}
-                                    title="Edit Task"
-                                  >
-                                    <FaEdit size={14} />
-                                  </button>
-                                  <button
-                                    onClick={() => confirmDeleteTask(task)}
-                                    className={getThemeClasses(
-                                      'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
-                                      'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
-                                    )}
-                                    title="Delete Task"
-                                    disabled={removing}
-                                  >
-                                    <MdDelete size={18} />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
+                                  title="Delete Task"
+                                  disabled={removing}
+                                >
+                                  <MdDelete size={18} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
             {/* Project Activity Timeline - moved below Tasks Table */}
