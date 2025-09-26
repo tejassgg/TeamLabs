@@ -1,10 +1,10 @@
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import StatusPill from '../../components/shared/StatusPill';
 import api, { authService, taskService, githubService } from '../../services/api';
-import { FaEdit, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
+import { FaEye, FaEdit, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList } from 'react-icons/fa';
 import { MdDelete } from 'react-icons/md';
 import { FaTimeline } from "react-icons/fa6";
 import AddTaskModal from '../../components/shared/AddTaskModal';
@@ -15,7 +15,7 @@ import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import KanbanBoard from '../kanban';
 import { getProjectStatusBadge } from '../../components/project/ProjectStatusBadge';
-import { getPriorityBadge, getTaskStatusBadge } from '../../components/task/TaskTypeBadge';
+import { getPriorityBadge, getTaskStatusBadge, getTaskStatusStyle } from '../../components/task/TaskTypeBadge';
 import ProjectDetailsSkeleton from '../../components/skeletons/ProjectDetailsSkeleton';
 import ProjectFilesTab from '../../components/project/ProjectFilesTab';
 import ProjectActivity from '../../components/project/ProjectActivity';
@@ -43,6 +43,7 @@ const ProjectDetailsPage = () => {
     getTableSecondaryTextClasses,
     isMe,
     formatDateUTC,
+    formatDate,
     getUserInitials,
     formatTimeAgo
   } = useGlobal();
@@ -101,6 +102,23 @@ const ProjectDetailsPage = () => {
   const [filteredAvailableTeams, setFilteredAvailableTeams] = useState([]);
   const [isTeamInputFocused, setIsTeamInputFocused] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  // Accordion state for List view
+  const [openAccordions, setOpenAccordions] = useState({
+    1: true, // Not Assigned - open by default
+    2: true, // Assigned
+    3: true, // In Progress
+    4: true, // QA
+    5: true, // Deployment
+    6: true  // Completed
+  });
+
+  // Toggle accordion state
+  const toggleAccordion = (statusCode) => {
+    setOpenAccordions(prev => ({
+      ...prev,
+      [statusCode]: !prev[statusCode]
+    }));
+  };
   // Team members state
   const [loadingTeamMembers, setLoadingTeamMembers] = useState(false);
   // Project members state
@@ -1065,6 +1083,20 @@ const ProjectDetailsPage = () => {
                     <span>Timeline</span>
                   </button>
                   <button
+                    onClick={() => setActiveTab('list')}
+                    className={`${activeTab === 'list'
+                      ? theme === 'dark'
+                        ? 'border-blue-400 text-blue-400'
+                        : 'border-blue-600 text-blue-600'
+                      : theme === 'dark'
+                        ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                  >
+                    <FaList size={16} />
+                    <span>List</span>
+                  </button>
+                  <button
                     onClick={() => setActiveTab('files')}
                     className={`${activeTab === 'files'
                       ? theme === 'dark'
@@ -1078,6 +1110,7 @@ const ProjectDetailsPage = () => {
                     <FaFile size={16} />
                     <span>Files</span>
                   </button>
+
                   {projectRepository?.connected && (
                     <button
                       onClick={() => setActiveTab('repo')}
@@ -2067,6 +2100,193 @@ const ProjectDetailsPage = () => {
           <GanttChart tasks={taskList} userStories={userStories} project={project} />
         ) : activeTab === 'files' ? (
           <ProjectFilesTab projectId={projectId} />
+        ) : activeTab === 'list' ? (
+          <div className="overflow-x-auto">
+            <table className="w-full cursor-pointer">
+              <tbody className={getThemeClasses('', 'bg-[#18181b]')}>
+                {[
+                  { code: 1, label: 'Not Assigned' },
+                  { code: 2, label: 'Assigned' },
+                  { code: 3, label: 'In Progress' },
+                  { code: 4, label: 'QA' },
+                  { code: 5, label: 'Deployment' },
+                  { code: 6, label: 'Completed' }
+                ].map(({ code, label }) => {
+                  const tasksByStatus = (taskList || []).filter(t => t.Status === code);
+                  const statusStyle = getTaskStatusStyle(code, theme === 'dark');
+                  const StatusIcon = statusStyle.icon;
+
+                  return (
+                    <React.Fragment key={code}>
+                      {/* Status Header Row */}
+                      <tr>
+                        <td colSpan="8" className="p-0">
+                          <div className="flex items-center w-full mt-4">
+                            <div className="flex items-center justify-center w-8 h-12" onClick={(e) => { e.preventDefault(); toggleAccordion(code); }}>
+                              {openAccordions[code] ? (
+                                <FaSortUp className={`${statusStyle.iconColor} transition-transform duration-300 cursor-pointer`} size={14} />
+                              ) : (
+                                <FaSortDown className={`${statusStyle.iconColor} transition-transform duration-300 cursor-pointer`} size={14} />
+                              )}
+                            </div>
+                            <div className={`flex-1 cursor-pointer select-none px-4 py-3 font-semibold rounded-lg ${statusStyle.textColor} bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.borderColor} flex items-center justify-start gap-3`}
+                              onClick={(e) => { e.preventDefault(); toggleAccordion(code); }} >
+                              <div className="flex items-center gap-3">
+                                <StatusIcon className={statusStyle.iconColor} size={16} />
+                                <span>{label}</span>
+                              </div>
+                              <span className={`text-sm ${statusStyle.textColor} opacity-70`}>{tasksByStatus.length}</span>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Task Rows */}
+                      <tr>
+                        <td colSpan="8" className="p-0">
+                          <div className={`accordion-content ${openAccordions[code] ? 'open' : 'closed'}`}>
+                            {tasksByStatus.length > 0 && (
+                              <table className="w-full">
+                                <thead>
+                                  <tr className={getThemeClasses('text-left text-xs font-medium text-gray-400 uppercase', 'bg-[#18181b]')}>
+                                    <th className="py-3 px-4 tracking-wider w-8"></th>
+                                    <th className={`py-3 px-4 tracking-wider ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Name</th>
+                                    <th className={`py-3 px-4 tracking-wider ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assigned To</th>
+                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assignee</th>
+                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Date Assigned</th>
+                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Priority</th>
+                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Task Type</th>
+                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {tasksByStatus.map((task, index) => {
+                                    return (
+                                      <tr key={task.TaskID}>
+                                        <td className="py-3 px-4 w-8"></td>
+                                        <td className="py-3 px-4 ">
+                                          <div className="flex flex-col">
+                                            <div className="flex items-center gap-2 mb-1">
+                                              <button
+                                                onClick={() => router.push(`/task/${task.TaskID}`)}
+                                                className={getThemeClasses(
+                                                  'text-left text-gray-900 hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium text-sm',
+                                                  'text-white hover:text-blue-400'
+                                                )}
+                                                title="Click to view task details"
+                                              >
+                                                {task.Name}
+                                              </button>
+                                            </div>
+                                            <span className={getThemeClasses(
+                                              'text-xs text-gray-500',
+                                              'dark:text-gray-400'
+                                            )}>{task.Description}</span>
+                                          </div>
+                                        </td>
+                                        <td className="py-3 px-4">
+                                          {task.AssignedTo && task.AssignedToDetails ? (
+                                            <div className="flex items-center gap-3">
+                                              <div className={getThemeClasses(
+                                                'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
+                                                'dark:from-blue-600 dark:to-blue-700'
+                                              )}>
+                                                {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                              </div>
+                                              <div className="flex flex-col">
+                                                <span className={getThemeClasses('text-sm font-medium text-gray-900', 'dark:text-gray-100')}>
+                                                  {task.AssignedToDetails.fullName} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span>
+                                                </span>
+                                                {task.AssignedToDetails.teamName && (
+                                                  <span className={getThemeClasses('text-xs text-gray-500', 'dark:text-gray-400')}>{task.AssignedToDetails.teamName}</span>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <div className="flex items-center">
+                                              <span className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>Not Assigned</span>
+                                            </div>
+                                          )}
+                                        </td>
+                                        <td className="py-3 px-4 hidden sm:table-cell">
+                                          {task.Assignee && task.AssigneeDetails ? (
+                                            <div className="flex items-center gap-3">
+                                              <div className={getThemeClasses(
+                                                'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm',
+                                                'dark:from-green-600 dark:to-green-700'
+                                              )}>
+                                                {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                              </div>
+                                              <div className="flex flex-col">
+                                                <span className={getThemeClasses('text-sm font-medium text-gray-900', 'dark:text-gray-100')}>
+                                                  {task.AssigneeDetails.fullName} <span className={'text-xs'}>{isMe(task.Assignee) ? ' (You)' : ''}</span>
+                                                </span>
+                                                {task.AssigneeDetails.teamName && (
+                                                  <span className={getThemeClasses('text-xs text-gray-500', 'dark:text-gray-400')}>{task.AssigneeDetails.teamName}</span>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <div className="flex items-center">
+                                              <span className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>Not Assigned</span>
+                                            </div>
+                                          )}
+                                        </td>
+                                        <td className="py-3 px-4 hidden sm:table-cell">
+                                          <span className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
+                                            {task.AssignedDate ? formatDate(task.AssignedDate) : '-'}
+                                          </span>
+                                        </td>
+                                        <td className="py-3 px-4 hidden sm:table-cell">
+                                          {task.Priority ? getPriorityBadge(task.Priority) : (
+                                            <span className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>-</span>
+                                          )}
+                                        </td>
+                                        <td className="py-3 px-4 hidden sm:table-cell">
+                                          {getTaskTypeBadgeComponent(task.Type)}
+                                        </td>
+                                        <td className="py-3 px-4 hidden sm:table-cell">
+                                          <div className="flex items-center gap-2">
+                                            <button
+                                              onClick={() => router.push(`/task/${task.TaskID}`)}
+                                              className={getThemeClasses(
+                                                'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors',
+                                                'dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50'
+                                              )}
+                                            >
+                                              <FaEye size={12} />
+                                              View
+                                            </button>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Empty State Row */}
+                      <tr>
+                        <td colSpan="8" className="p-0">
+                          <div className={`accordion-content ${openAccordions[code] ? 'open' : 'closed'}`}>
+                            {tasksByStatus.length === 0 && (
+                              <div className={getThemeClasses('px-4 py-6 text-gray-500 text-center', 'px-4 py-6 text-gray-400 text-center')}>
+                                No tasks
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         ) : activeTab === 'repo' && projectRepository?.connected ? (
           <div className={getThemeClasses("bg-white rounded-xl shadow p-6", "dark:bg-transparent")}>
             <div className="flex items-center gap-2 mb-6">

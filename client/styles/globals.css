@@ -81,3 +81,22 @@ body {
 .input-field {
   @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
 }
+
+/* Accordion animations */
+.accordion-content {
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out, opacity 0.25s ease-in-out, transform 0.2s ease-in-out;
+  transform-origin: top;
+}
+
+.accordion-content.closed {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-8px) scaleY(0.95);
+}
+
+.accordion-content.open {
+  max-height: 1000px; /* Adjust based on your content needs */
+  opacity: 1;
+  transform: translateY(0) scaleY(1);
+}
