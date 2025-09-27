@@ -114,6 +114,7 @@ export const authService = {
       console.error('Error logging logout activity:', error);
     } finally {
       Cookies.remove('token');
+      localStorage.clear();
       localStorage.removeItem('user');
     }
   },
@@ -1357,6 +1358,96 @@ export const reportService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to delete report' };
+    }
+  }
+};
+
+// Release Notification services
+export const releaseNotificationService = {
+  // Create a new release notification (Admin only)
+  createReleaseNotification: async (releaseData) => {
+    try {
+      const response = await api.post('/release-notifications', releaseData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to create release notification' };
+    }
+  },
+
+  // Get all release notifications for organization
+  getReleaseNotifications: async (filters = {}) => {
+    try {
+      const params = new URLSearchParams();
+      Object.keys(filters).forEach(key => {
+        if (filters[key]) {
+          params.append(key, filters[key]);
+        }
+      });
+      
+      const response = await api.get(`/release-notifications?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch release notifications' };
+    }
+  },
+
+  // Get latest release notification
+  getLatestReleaseNotification: async (targetAudience = 'all') => {
+    try {
+      const response = await api.get(`/release-notifications/latest?targetAudience=${targetAudience}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch latest release notification' };
+    }
+  },
+
+  // Get release notification by ID
+  getReleaseNotificationById: async (releaseId) => {
+    try {
+      const response = await api.get(`/release-notifications/${releaseId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch release notification' };
+    }
+  },
+
+  // Update release notification (Admin only)
+  updateReleaseNotification: async (releaseId, updateData) => {
+    try {
+      const response = await api.put(`/release-notifications/${releaseId}`, updateData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to update release notification' };
+    }
+  },
+
+  // Publish/unpublish release notification (Admin only)
+  togglePublishStatus: async (releaseId, isPublished) => {
+    try {
+      const response = await api.patch(`/release-notifications/${releaseId}/publish`, { isPublished });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to update publish status' };
+    }
+  },
+
+  // Delete release notification (Admin only)
+  deleteReleaseNotification: async (releaseId) => {
+    try {
+      const response = await api.delete(`/release-notifications/${releaseId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to delete release notification' };
+    }
+  },
+
+  // Get release statistics (Admin only)
+  getReleaseStats: async () => {
+    try {
+      const response = await api.get('/release-notifications/stats');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch release statistics' };
     }
   }
 };

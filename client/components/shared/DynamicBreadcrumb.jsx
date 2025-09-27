@@ -83,7 +83,6 @@ const DynamicBreadcrumb = ({
     if (path === '/task/[taskId]') {
       const taskId = query.taskId;
       const task = tasksDetails?.find(t => t.TaskID === taskId || t._id === taskId);
-      console.log(task)
 
       // Use currentPageProject if available, otherwise fall back to global context
       let project = currentPageProject;

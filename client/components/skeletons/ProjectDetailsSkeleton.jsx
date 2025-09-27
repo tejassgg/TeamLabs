@@ -23,10 +23,10 @@ const ProjectDetailsSkeleton = () => {
                 <div className={`h-4 w-28 bg-blue-600 ${skeletonClass}`}></div>
               </div>
               {/* Inactive tabs */}
-              {['Board', 'Timeline', 'Files', 'Repo'].map((tab, index) => (
+              {['Board', 'Timeline', 'List', 'Files', 'Repo', 'Knowledge Base'].map((tab, index) => (
                 <div key={index} className="flex items-center gap-2 py-4 px-1">
                   <div className={`w-4 h-4 bg-gray-400 rounded ${skeletonClass}`}></div>
-                  <div className={`h-4 w-20 bg-gray-400 ${skeletonClass}`}></div>
+                  <div className={`h-4 w-14 bg-gray-400 ${skeletonClass}`}></div>
                 </div>
               ))}
             </nav>

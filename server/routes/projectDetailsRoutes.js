@@ -63,8 +63,43 @@ router.get('/:projectId', async (req, res) => {
         Attachment.countDocuments({ TaskID: userStory.TaskID })
       ]);
 
-      newUserStory.commentCount = commentsCount;
-      newUserStory.attachmentCount = attachmentsCount;
+      newUserStory.commentsCount = commentsCount;
+      newUserStory.attachmentsCount = attachmentsCount;
+
+      // Fetch active subtasks for this user story
+      try {
+        const Subtask = require('../models/Subtask');
+        const rawSubtasks = await Subtask.find({ TaskID_FK: userStory.TaskID, IsActive: true })
+          .sort({ IsCompleted: -1, CreatedDate: 1 })
+          .lean();
+
+        // Optionally enrich with minimal creator/completer display data
+        const populatedSubtasks = await Promise.all(rawSubtasks.map(async (s) => {
+          const subtask = { ...s };
+          if (s.CreatedBy) {
+            const u = await User.findById(s.CreatedBy).select('firstName lastName');
+            if (u) {
+              subtask.CreatedByDetails = {
+                _id: u._id,
+                fullName: `${u.firstName} ${u.lastName}`,
+              };
+            }
+          }
+          if (s.CompletedBy) {
+            const u2 = await User.findById(s.CompletedBy).select('firstName lastName');
+            if (u2) {
+              subtask.CompletedByDetails = {
+                _id: u2._id,
+                fullName: `${u2.firstName} ${u2.lastName}`,
+              };
+            }
+          }
+          return subtask;
+        }));
+        newUserStory.subtasks = populatedSubtasks;
+      } catch (e) {
+        newUserStory.subtasks = [];
+      }
 
       return newUserStory;
     }));
@@ -118,8 +153,43 @@ router.get('/:projectId', async (req, res) => {
         Attachment.countDocuments({ TaskID: task.TaskID })
       ]);
 
-      newTask.commentCount = commentsCount;
-      newTask.attachmentCount = attachmentsCount;
+      newTask.commentsCount = commentsCount;
+      newTask.attachmentsCount = attachmentsCount;
+
+      // Fetch active subtasks for this task (sorted by CreatedDate)
+      try {
+        const Subtask = require('../models/Subtask');
+        const rawSubtasks = await Subtask.find({ TaskID_FK: task.TaskID, IsActive: true })
+          .sort({ IsCompleted: -1, CreatedDate: 1 })
+          .lean();
+
+        // Optionally enrich with minimal creator/completer display data
+        const populatedSubtasks = await Promise.all(rawSubtasks.map(async (s) => {
+          const subtask = { ...s };
+          if (s.CreatedBy) {
+            const u = await User.findById(s.CreatedBy).select('firstName lastName');
+            if (u) {
+              subtask.CreatedByDetails = {
+                _id: u._id,
+                fullName: `${u.firstName} ${u.lastName}`,
+              };
+            }
+          }
+          if (s.CompletedBy) {
+            const u2 = await User.findById(s.CompletedBy).select('firstName lastName');
+            if (u2) {
+              subtask.CompletedByDetails = {
+                _id: u2._id,
+                fullName: `${u2.firstName} ${u2.lastName}`,
+              };
+            }
+          }
+          return subtask;
+        }));
+        newTask.subtasks = populatedSubtasks;
+      } catch (e) {
+        newTask.subtasks = [];
+      }
 
       return newTask;
     }));

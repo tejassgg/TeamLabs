@@ -28,6 +28,7 @@ const meetingRoutes = require('./routes/meetingRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const ragRoutes = require('./routes/ragRoutes');
+const releaseNotificationRoutes = require('./routes/releaseNotificationRoutes');
 const reportSchedulingService = require('./services/reportSchedulingService');
 
 // Load environment variables
@@ -90,6 +91,7 @@ app.use('/api', meetingRoutes);
 app.use('/api/contact-support', contactRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/rag', ragRoutes);
+app.use('/api/release-notifications', releaseNotificationRoutes);
 
 // Test route
 app.get('/', (req, res) => {

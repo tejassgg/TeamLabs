@@ -13,6 +13,8 @@ import FirstTimeSetup from '../shared/FirstTimeSetup';
 import ChatBot from '../shared/ChatBot';
 import DynamicBreadcrumb from '../shared/DynamicBreadcrumb';
 import { useThemeClasses } from '../shared/hooks/useThemeClasses';
+import ReleaseNotificationBanner from '../shared/ReleaseNotificationBanner';
+import useReleaseNotifications from '../../hooks/useReleaseNotifications';
 
 const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const { theme, toggleTheme } = useTheme();
@@ -457,6 +459,9 @@ const Layout = ({ children, pageProject, pageTitle }) => {
   const { teams, projects, tasksDetails, userDetails, loading: globalLoading, setProjects, setTasksDetails } = useGlobal();
   const [showFirstTimeSetup, setShowFirstTimeSetup] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  
+  // Release notifications hook
+  const { latestRelease, hasNewRelease, versionUpdateAvailable, dismissRelease, markAsSeen } = useReleaseNotifications();
 
   // Apply user's font preference on mount
   useEffect(() => {
@@ -776,7 +781,22 @@ const Layout = ({ children, pageProject, pageTitle }) => {
             )}
           </div>
           <div>
-            <Navbar isMobile={true} theme={theme} toggleTheme={toggleTheme} onLogout={logout} pageTitle={currentPageTitle} />
+            <Navbar 
+              isMobile={true} 
+              theme={theme} 
+              toggleTheme={toggleTheme} 
+              onLogout={logout} 
+              pageTitle={currentPageTitle}
+              versionUpdateAvailable={versionUpdateAvailable}
+              latestVersion={latestRelease?.version}
+              onVersionUpdateClick={() => {
+                // Scroll to release notification banner
+                const banner = document.querySelector('[data-release-banner]');
+                if (banner) {
+                  banner.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            />
           </div>
         </div>
       </div>
@@ -788,11 +808,37 @@ const Layout = ({ children, pageProject, pageTitle }) => {
         {!isMobile && (
           <div className="flex justify-center">
             <div style={{ width: '100%' }}>
-              <Navbar theme={theme} toggleTheme={toggleTheme} onLogout={logout} pageTitle={currentPageTitle} />
+              <Navbar 
+                theme={theme} 
+                toggleTheme={toggleTheme} 
+                onLogout={logout} 
+                pageTitle={currentPageTitle}
+                versionUpdateAvailable={versionUpdateAvailable}
+                latestVersion={latestRelease?.version}
+                onVersionUpdateClick={() => {
+                  // Scroll to release notification banner
+                  const banner = document.querySelector('[data-release-banner]');
+                  if (banner) {
+                    banner.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              />
             </div>
           </div>
         )}
         <main className={`overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#18181b] text-white' : ''}`}>
+          {/* Release Notification Banner */}
+          {latestRelease && (
+            <div className="p-2" data-release-banner>
+              <ReleaseNotificationBanner 
+                onClose={() => {
+                  dismissRelease(latestRelease._id);
+                  markAsSeen(latestRelease._id);
+                }}
+              />
+            </div>
+          )}
+          
           <div className="p-2">
             <DynamicBreadcrumb
               teams={teams}

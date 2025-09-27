@@ -1,0 +1,87 @@
+{
+  "version": "1.0.1",
+  "title": "Release v1.0.1: Enhanced Task Management with Subtasks and Improved UI",
+  "description": "This release introduces comprehensive subtask functionality, improved task list views with accordion animations, and enhanced user interface consistency across the project management system. Users can now manage subtasks directly within the task list, enjoy smoother animations, and experience better visual organization.",
+  "features": [
+    {
+      "title": "Subtask Display in Task List",
+      "description": "Subtasks now appear as individual rows beneath their parent tasks in the list view, featuring circular checkboxes, completion status indicators, and proper visual hierarchy with indentation and corner arrows."
+    },
+    {
+      "title": "Interactive Subtask Management",
+      "description": "Users can click on subtask checkboxes to mark them as complete or incomplete, with real-time updates, loading states, and immediate UI feedback. Completed subtasks show strikethrough text and green checkmarks."
+    },
+    {
+      "title": "Enhanced Accordion Animations",
+      "description": "Smooth accordion opening and closing animations with height transitions, opacity effects, and subtle transform animations (scale and translate) for a polished user experience."
+    },
+    {
+      "title": "Smart Accordion State Management",
+      "description": "Accordion sections automatically close when they contain no tasks, reducing visual clutter and providing a cleaner interface. Users can still manually toggle sections open/closed."
+    },
+    {
+      "title": "Enhanced API Integration",
+      "description": "Project-details API now includes subtasks data with consistent field naming (attachmentsCount, commentsCount, subtasks) matching the kanban API structure for unified data handling."
+    },
+    {
+      "title": "Action Buttons in Task List",
+      "description": "Added View and Delete action buttons to the task list Actions column with circular button styling, proper icons (FaExternalLinkAlt for View, MdDelete for Delete), and consistent UI patterns matching existing components."
+    },
+    {
+      "title": "Fixed Column Alignment",
+      "description": "Implemented table-fixed layout with consistent column widths across all status sections, ensuring perfect alignment of Task, Assigned To, Assignee, Date Assigned, Priority, Task Type, and Actions columns."
+    }
+  ],
+  "improvements_bug_fixes": [
+    {
+      "title": "Fixed Column Misalignment Across Status Sections",
+      "description": "Resolved column positioning issues by implementing table-fixed layout with specific width classes (w-1/3, w-1/6, w-24, w-20) ensuring consistent alignment across all status sections regardless of content length."
+    },
+    {
+      "title": "Improved Subtask Visual Separation",
+      "description": "Enhanced visual distinction between subtask rows with reduced padding (py-2 vs py-3), subtle background colors matching parent task status, and proper spacing for better readability."
+    },
+    {
+      "title": "Enhanced User Experience During Subtask Operations",
+      "description": "Implemented immediate UI updates during subtask toggle operations while API calls process in background, preventing multiple clicks with loading states, and providing clear visual feedback."
+    },
+    {
+      "title": "Standardized API Field Naming",
+      "description": "Fixed field naming inconsistencies between project-details and kanban APIs by updating attachmentCount to attachmentsCount and commentCount to commentsCount for unified data structure."
+    },
+    {
+      "title": "Improved Error Handling and Notifications",
+      "description": "Added comprehensive error handling for subtask operations with appropriate toast notifications for success/error states and graceful fallback behavior when operations fail."
+    },
+    {
+      "title": "Enhanced Responsive Design",
+      "description": "Improved mobile and desktop compatibility with consistent column behavior, proper responsive classes (hidden sm:table-cell), and optimized layout for different screen sizes."
+    },
+    {
+      "title": "Better Accessibility and User Feedback",
+      "description": "Added proper tooltips, visual hover effects, loading spinners, and clear visual indicators for interactive elements, improving overall accessibility and user experience."
+    }
+  ],
+  "release_notes": [
+    {
+      "title": "Backend API Updates",
+      "description": "The project-details API has been updated to include subtasks data similar to the kanban API. This includes fetching active subtasks with creator/completer details and consistent field naming."
+    },
+    {
+      "title": "Frontend Component Updates",
+      "description": "Frontend components have been updated to handle the new subtask data structure. The SubtaskDisplay component has been replaced with inline subtask rows for better integration with the task list."
+    },
+    {
+      "title": "CSS Animation Requirements",
+      "description": "The accordion animation system uses CSS transitions for transform, opacity, and max-height properties. Ensure browser support for these CSS features for optimal animation performance."
+    },
+    {
+      "title": "Database Compatibility",
+      "description": "No database migrations are required as the subtask functionality was already implemented in the backend. The changes are primarily frontend UI/UX improvements and API data structure enhancements."
+    },
+    {
+      "title": "Performance Considerations",
+      "description": "The table-fixed layout may impact performance on very large datasets. Consider implementing virtualization for projects with hundreds of tasks if performance issues arise."
+    }
+  ]
+}

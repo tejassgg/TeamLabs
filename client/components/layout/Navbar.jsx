@@ -13,8 +13,9 @@ import {
   FaHistory,
   FaChevronDown
 } from 'react-icons/fa';
+import VersionIndicator, { CurrentVersionInfo } from '../shared/VersionIndicator';
 
-const Navbar = ({ showWelcomeMessage = false }) => {
+const Navbar = ({ showWelcomeMessage = false, versionUpdateAvailable = false, latestVersion = null, onVersionUpdateClick }) => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
@@ -54,6 +55,18 @@ const Navbar = ({ showWelcomeMessage = false }) => {
               <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 Welcome, {user.firstName || user.username}!
               </span>
+            )}
+            
+            {/* Version Indicator */}
+            <VersionIndicator 
+              versionUpdateAvailable={versionUpdateAvailable}
+              latestVersion={latestVersion}
+              onClick={onVersionUpdateClick}
+            />
+            
+            {/* Current Version Info (for debugging/admin) */}
+            {user?.role === 'Admin' && user?.organizationID === '1' && (
+              <CurrentVersionInfo />
             )}
             
             {/* Theme Toggle Button */}

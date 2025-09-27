@@ -4,7 +4,8 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import StatusPill from '../../components/shared/StatusPill';
 import api, { authService, taskService, githubService } from '../../services/api';
-import { FaEye, FaEdit, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList } from 'react-icons/fa';
+import { FaCheck, FaExternalLinkAlt , FaEdit, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList } from 'react-icons/fa';
+import { FiCornerDownRight } from "react-icons/fi";
 import { MdDelete } from 'react-icons/md';
 import { FaTimeline } from "react-icons/fa6";
 import AddTaskModal from '../../components/shared/AddTaskModal';
@@ -24,6 +25,7 @@ import ReportGenerator from '../../components/reports/ReportGenerator';
 import RAGManagement from '../../components/rag/RAGManagement';
 import { connectSocket, subscribe, getSocket } from '../../services/socket';
 import { useThemeClasses } from '../../components/shared/hooks/useThemeClasses';
+import { subtaskService } from '../../services/api';
 
 const ProjectDetailsPage = () => {
   const router = useRouter();
@@ -102,15 +104,24 @@ const ProjectDetailsPage = () => {
   const [filteredAvailableTeams, setFilteredAvailableTeams] = useState([]);
   const [isTeamInputFocused, setIsTeamInputFocused] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  // Accordion state for List view
-  const [openAccordions, setOpenAccordions] = useState({
-    1: true, // Not Assigned - open by default
-    2: true, // Assigned
-    3: true, // In Progress
-    4: true, // QA
-    5: true, // Deployment
-    6: true  // Completed
-  });
+  // Accordion state for List view - dynamically set based on task availability
+  const [openAccordions, setOpenAccordions] = useState({});
+
+  // Initialize accordion state based on task availability
+  useEffect(() => {
+    if (taskList) {
+      const statusCodes = [1, 2, 3, 4, 5, 6];
+      const newAccordionState = {};
+      
+      statusCodes.forEach(code => {
+        const tasksByStatus = taskList.filter(t => t.Status === code);
+        // Only open accordions that have tasks
+        newAccordionState[code] = tasksByStatus.length > 0;
+      });
+      
+      setOpenAccordions(newAccordionState);
+    }
+  }, [taskList]);
 
   // Toggle accordion state
   const toggleAccordion = (statusCode) => {
@@ -118,6 +129,59 @@ const ProjectDetailsPage = () => {
       ...prev,
       [statusCode]: !prev[statusCode]
     }));
+  };
+
+  // Subtask toggle state
+  const [togglingSubtasks, setTogglingSubtasks] = useState(new Set());
+
+  // Toggle subtask completion status
+  const handleSubtaskToggle = async (subtaskId, parentTaskId) => {
+    if (togglingSubtasks.has(subtaskId)) return; // Prevent multiple clicks
+
+    setTogglingSubtasks(prev => new Set(prev).add(subtaskId));
+
+    try {
+      await subtaskService.toggleSubtask(subtaskId);
+      
+      // Update local state immediately for better UX
+      setTaskList(prevTasks => 
+        prevTasks.map(task => {
+          if (task.TaskID === parentTaskId) {
+            return {
+              ...task,
+              subtasks: task.subtasks.map(subtask => 
+                subtask.SubtaskID === subtaskId 
+                  ? { 
+                      ...subtask, 
+                      IsCompleted: !subtask.IsCompleted,
+                      CompletedBy: !subtask.IsCompleted ? userDetails._id : null,
+                      CompletedByDetails: !subtask.IsCompleted ? {
+                        _id: userDetails._id,
+                        fullName: `${userDetails.firstName} ${userDetails.lastName}`
+                      } : null
+                    }
+                  : subtask
+              )
+            };
+          }
+          return task;
+        })
+      );
+
+      showToast(
+        `Subtask ${togglingSubtasks.has(subtaskId) ? 'completed' : 'uncompleted'} successfully`,
+        'success'
+      );
+    } catch (error) {
+      console.error('Error toggling subtask:', error);
+      showToast('Failed to update subtask status', 'error');
+    } finally {
+      setTogglingSubtasks(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(subtaskId);
+        return newSet;
+      });
+    }
   };
   // Team members state
   const [loadingTeamMembers, setLoadingTeamMembers] = useState(false);
@@ -802,21 +866,21 @@ const ProjectDetailsPage = () => {
     }
   };
 
-  const fetchProjectTasks = async (projectId) => {
-    try {
-      const { tasks: kanbanTasks, userStories: kanbanUserStories } = await taskService.getKanbanData(projectId);
-      setUserStories(kanbanUserStories || []);
-      setTaskList(kanbanTasks || []);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  // const fetchProjectTasks = async (projectId) => {
+  //   try {
+  //     const { tasks: kanbanTasks, userStories: kanbanUserStories } = await taskService.getKanbanData(projectId);
+  //     setUserStories(kanbanUserStories || []);
+  //     setTaskList(kanbanTasks || []);
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // };
 
-  useEffect(() => {
-    if (projectId) {
-      fetchProjectTasks(projectId);
-    }
-  }, [projectId]);
+  // useEffect(() => {
+  //   if (projectId) {
+  //     fetchProjectTasks(projectId);
+  //   }
+  // }, [projectId]);
 
   const handleAddTask = async (taskData) => {
     try {
@@ -2094,7 +2158,7 @@ const ProjectDetailsPage = () => {
         ) : activeTab === 'board' ? (
           <div>
             {/* Board Tab: Re-using global Kanban board */}
-            <KanbanBoard projectId={projectId} selectedUserStoryProp={selectedUserStory} projectMembersProp={projectMembers} />
+            <KanbanBoard projectId={projectId} selectedUserStoryProp={selectedUserStory} projectMembersProp={projectMembers} taskListProp={taskList} />
           </div>
         ) : activeTab === 'timeline' ? (
           <GanttChart tasks={taskList} userStories={userStories} project={project} />
@@ -2111,8 +2175,37 @@ const ProjectDetailsPage = () => {
                   { code: 4, label: 'QA' },
                   { code: 5, label: 'Deployment' },
                   { code: 6, label: 'Completed' }
-                ].map(({ code, label }) => {
+                ].map(({ code, label }, indexx) => {
                   const tasksByStatus = (taskList || []).filter(t => t.Status === code);
+
+                  // Flatten tasks and subtasks into a single array
+                  const flattenedItems = [];
+                  tasksByStatus.forEach(task => {
+                    // Add the main task
+                    flattenedItems.push({ ...task, isSubtask: false });
+
+                    // Add subtasks if they exist
+                    if (task.subtasks && task.subtasks.length > 0) {
+                      task.subtasks.forEach(subtask => {
+                        flattenedItems.push({
+                          ...subtask,
+                          isSubtask: true,
+                          parentTask: task,
+                          // Map subtask fields to task-like structure
+                          Name: subtask.Name,
+                          Description: '', // Subtasks typically don't have descriptions
+                          Status: task.Status, // Use parent task status for background color
+                          AssignedTo: subtask.CompletedBy, // Map CompletedBy to AssignedTo
+                          AssignedToDetails: subtask.CompletedByDetails,
+                          Assignee: subtask.CreatedBy, // Map CreatedBy to Assignee
+                          AssigneeDetails: subtask.CreatedByDetails,
+                          IsCompleted: subtask.IsCompleted,
+                          AssignedDate: subtask.CompletedDate,
+                          DueDate: task.DueDate
+                        });
+                      });
+                    }
+                  });
                   const statusStyle = getTaskStatusStyle(code, theme === 'dark');
                   const StatusIcon = statusStyle.icon;
 
@@ -2121,7 +2214,7 @@ const ProjectDetailsPage = () => {
                       {/* Status Header Row */}
                       <tr>
                         <td colSpan="8" className="p-0">
-                          <div className="flex items-center w-full mt-4">
+                          <div className={`flex items-center ${indexx === 0 ? '' : 'mt-4'}`}>
                             <div className="flex items-center justify-center w-8 h-12" onClick={(e) => { e.preventDefault(); toggleAccordion(code); }}>
                               {openAccordions[code] ? (
                                 <FaSortUp className={`${statusStyle.iconColor} transition-transform duration-300 cursor-pointer`} size={14} />
@@ -2145,119 +2238,169 @@ const ProjectDetailsPage = () => {
                       <tr>
                         <td colSpan="8" className="p-0">
                           <div className={`accordion-content ${openAccordions[code] ? 'open' : 'closed'}`}>
-                            {tasksByStatus.length > 0 && (
-                              <table className="w-full">
+                            {flattenedItems.length > 0 && (
+                              <table className="w-full table-fixed">
                                 <thead>
                                   <tr className={getThemeClasses('text-left text-xs font-medium text-gray-400 uppercase', 'bg-[#18181b]')}>
                                     <th className="py-3 px-4 tracking-wider w-8"></th>
-                                    <th className={`py-3 px-4 tracking-wider ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Name</th>
-                                    <th className={`py-3 px-4 tracking-wider ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assigned To</th>
-                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assignee</th>
-                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Date Assigned</th>
-                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Priority</th>
-                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Task Type</th>
-                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Actions</th>
+                                    <th className={`py-3 px-4 tracking-wider w-1/3 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Task</th>
+                                    <th className={`py-3 px-4 tracking-wider w-1/6 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assigned To</th>
+                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell w-1/6 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assignee</th>
+                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell w-24 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Date Assigned</th>
+                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell w-20 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Priority</th>
+                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell w-20 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Task Type</th>
+                                    <th className={`py-3 px-4 tracking-wider text-center hidden sm:table-cell w-24 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Actions</th>
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {tasksByStatus.map((task, index) => {
+                                  {flattenedItems.map((item, index) => {
                                     return (
-                                      <tr key={task.TaskID}>
-                                        <td className="py-3 px-4 w-8"></td>
-                                        <td className="py-3 px-4 ">
-                                          <div className="flex flex-col">
+                                      <tr key={item.isSubtask ? `subtask-${item.SubtaskID}` : `task-${item.TaskID}`}
+                                        className={item.isSubtask ? `bg-opacity-10 ${statusStyle.bgColor.replace('bg-gradient-to-r', '').trim()}` : ''} >
+                                        <td className={`w-8 ${item.isSubtask ? 'py-2' : 'py-3'} px-4`}></td>
+                                        <td className={`px-4 ${item.isSubtask ? 'py-2' : 'py-1'} w-1/3`}>
+                                          <div className={`flex flex-col ${item.isSubtask ? 'ml-4' : ''}`}>
                                             <div className="flex items-center gap-2 mb-1">
-                                              <button
-                                                onClick={() => router.push(`/task/${task.TaskID}`)}
-                                                className={getThemeClasses(
-                                                  'text-left text-gray-900 hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium text-sm',
-                                                  'text-white hover:text-blue-400'
+                                              {item.isSubtask ? (
+                                                 <div className="flex items-center gap-1">
+                                                   <FiCornerDownRight className='text-gray-400' />
+                                                   <div 
+                                                     className={`w-4 h-4 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${
+                                                       item.IsCompleted 
+                                                         ? 'bg-green-500 border-green-500' 
+                                                         : getThemeClasses('border-gray-300 hover:border-gray-400', 'border-gray-600 hover:border-gray-500')
+                                                     } ${togglingSubtasks.has(item.SubtaskID) ? 'opacity-50' : ''}`}
+                                                     onClick={() => handleSubtaskToggle(item.SubtaskID, item.parentTask.TaskID)}
+                                                     title={item.IsCompleted ? 'Mark as incomplete' : 'Mark as complete'}
+                                                   >
+                                                     {item.IsCompleted && (
+                                                       <FaCheck size={8} className="text-white" />
+                                                     )}
+                                                     {togglingSubtasks.has(item.SubtaskID) && (
+                                                       <FaSpinner size={8} className="text-white animate-spin" />
+                                                     )}
+                                                   </div>
+                                                  <span className={getThemeClasses(
+                                                    `text-sm font-medium ${item.IsCompleted ? 'line-through text-gray-500' : 'text-gray-700'}`,
+                                                    `text-sm font-medium ${item.IsCompleted ? 'line-through text-gray-500' : 'text-gray-300'}`
+                                                  )}>
+                                                    {item.Name}
+                                                  </span>
+                                                </div>
+                                              ) : (
+                                                <div className="flex flex-col items-start gap-1">
+                                                  <button
+                                                    onClick={() => router.push(`/task/${item.TaskID}`)}
+                                                    className={getThemeClasses(
+                                                      'text-left text-gray-900 hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium text-md',
+                                                      'text-white hover:text-blue-400'
+                                                    )}
+                                                    title="Click to view task details"
+                                                  >
+                                                    {item.Name}
+                                                  </button>
+                                                  <span className={getThemeClasses(
+                                                    'text-xs text-gray-500',
+                                                    'dark:text-gray-400'
+                                                  )}>{item.Description}</span>
+                                                </div>
+                                              )}
+                                            </div>
+
+                                          </div>
+                                        </td>
+                                        <td className={`px-4 ${item.isSubtask ? 'py-2' : 'py-3'} w-1/6`}>
+                                          {item.AssignedTo && item.AssignedToDetails ? (
+                                            <div className={`flex items-center ${item.isSubtask ? '' : 'gap-3'}`}>
+                                              {!item.isSubtask && (
+                                                <div className={getThemeClasses(
+                                                  'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
+                                                  'dark:from-blue-600 dark:to-blue-700'
+                                                )}>
+                                                  {item.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                                </div>
+                                              )}
+                                              <div className="flex flex-col">
+                                                <span className={getThemeClasses('text-sm font-medium text-gray-900', 'dark:text-gray-100')}>
+                                                  {item.AssignedToDetails.fullName} <span className={'text-xs'}>{isMe(item.AssignedTo) ? ' (You)' : ''}</span>
+                                                </span>
+                                                {item.AssignedToDetails.teamName && (
+                                                  <span className={getThemeClasses('text-xs text-gray-500', 'dark:text-gray-400')}>{item.AssignedToDetails.teamName}</span>
                                                 )}
-                                                title="Click to view task details"
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <div className="flex items-center">
+                                              <span className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>Not Assigned</span>
+                                            </div>
+                                          )}
+                                        </td>
+                                        <td className={`px-4 hidden sm:table-cell ${item.isSubtask ? 'py-2' : 'py-3'} w-1/6`}>
+                                          {item.Assignee && item.AssigneeDetails ? (
+                                            <div className="flex items-center gap-3">
+                                              {!item.isSubtask && (
+                                                <div className={getThemeClasses(
+                                                  'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm',
+                                                  'dark:from-green-600 dark:to-green-700'
+                                                )}>
+                                                  {item.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                                </div>
+                                              )}
+                                              <div className="flex flex-col">
+                                                <span className={getThemeClasses('text-sm font-medium text-gray-900', 'dark:text-gray-100')}>
+                                                  {item.AssigneeDetails.fullName} <span className={'text-xs'}>{isMe(item.Assignee) ? ' (You)' : ''}</span>
+                                                </span>
+                                                {item.AssigneeDetails.teamName && (
+                                                  <span className={getThemeClasses('text-xs text-gray-500', 'dark:text-gray-400')}>{item.AssigneeDetails.teamName}</span>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <div className="flex items-center">
+                                              <span className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>Not Assigned</span>
+                                            </div>
+                                          )}
+                                        </td>
+                                        <td className={`px-4 hidden sm:table-cell ${item.isSubtask ? 'py-2' : 'py-3'} w-24`}>
+                                          {!item.isSubtask ? (
+                                            <span className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
+                                              {item.AssignedDate ? formatDate(item.AssignedDate) : '-'}
+                                            </span>
+                                          ) : (
+                                            <span className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>{item.CreatedDate ? formatDate(item.CreatedDate) : '-'}</span>
+                                          )}
+                                        </td>
+                                        <td className={`px-4 hidden sm:table-cell ${item.isSubtask ? 'py-2' : 'py-3'} w-20`}>
+                                          {!item.isSubtask && item.Priority && getPriorityBadge(item.Priority)}
+                                        </td>
+                                        <td className={`px-4 hidden sm:table-cell ${item.isSubtask ? 'py-2' : 'py-3'} w-20`}> 
+                                          {!item.isSubtask && getTaskTypeBadgeComponent(item.Type)}
+                                        </td>
+                                        <td className={`px-4 hidden sm:table-cell ${item.isSubtask ? 'py-2' : 'py-3'} w-24`}>
+                                          {!item.isSubtask && (
+                                            <div className="flex items-center justify-center gap-2">
+                                              <button
+                                                onClick={() => router.push(`/task/${item.TaskID}`)}
+                                                className={getThemeClasses(
+                                                  'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                                  'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
+                                                )}
+                                                title="Open Task"
                                               >
-                                                {task.Name}
+                                                <FaExternalLinkAlt size={14} />
+                                              </button>
+                                              <button
+                                                onClick={() => confirmDeleteTask(item)}
+                                                className={getThemeClasses(
+                                                  'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                                  'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
+                                                )}
+                                                title="Delete Task"
+                                              >
+                                                <MdDelete size={18} />
                                               </button>
                                             </div>
-                                            <span className={getThemeClasses(
-                                              'text-xs text-gray-500',
-                                              'dark:text-gray-400'
-                                            )}>{task.Description}</span>
-                                          </div>
-                                        </td>
-                                        <td className="py-3 px-4">
-                                          {task.AssignedTo && task.AssignedToDetails ? (
-                                            <div className="flex items-center gap-3">
-                                              <div className={getThemeClasses(
-                                                'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
-                                                'dark:from-blue-600 dark:to-blue-700'
-                                              )}>
-                                                {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
-                                              </div>
-                                              <div className="flex flex-col">
-                                                <span className={getThemeClasses('text-sm font-medium text-gray-900', 'dark:text-gray-100')}>
-                                                  {task.AssignedToDetails.fullName} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span>
-                                                </span>
-                                                {task.AssignedToDetails.teamName && (
-                                                  <span className={getThemeClasses('text-xs text-gray-500', 'dark:text-gray-400')}>{task.AssignedToDetails.teamName}</span>
-                                                )}
-                                              </div>
-                                            </div>
-                                          ) : (
-                                            <div className="flex items-center">
-                                              <span className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>Not Assigned</span>
-                                            </div>
                                           )}
-                                        </td>
-                                        <td className="py-3 px-4 hidden sm:table-cell">
-                                          {task.Assignee && task.AssigneeDetails ? (
-                                            <div className="flex items-center gap-3">
-                                              <div className={getThemeClasses(
-                                                'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm',
-                                                'dark:from-green-600 dark:to-green-700'
-                                              )}>
-                                                {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
-                                              </div>
-                                              <div className="flex flex-col">
-                                                <span className={getThemeClasses('text-sm font-medium text-gray-900', 'dark:text-gray-100')}>
-                                                  {task.AssigneeDetails.fullName} <span className={'text-xs'}>{isMe(task.Assignee) ? ' (You)' : ''}</span>
-                                                </span>
-                                                {task.AssigneeDetails.teamName && (
-                                                  <span className={getThemeClasses('text-xs text-gray-500', 'dark:text-gray-400')}>{task.AssigneeDetails.teamName}</span>
-                                                )}
-                                              </div>
-                                            </div>
-                                          ) : (
-                                            <div className="flex items-center">
-                                              <span className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>Not Assigned</span>
-                                            </div>
-                                          )}
-                                        </td>
-                                        <td className="py-3 px-4 hidden sm:table-cell">
-                                          <span className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
-                                            {task.AssignedDate ? formatDate(task.AssignedDate) : '-'}
-                                          </span>
-                                        </td>
-                                        <td className="py-3 px-4 hidden sm:table-cell">
-                                          {task.Priority ? getPriorityBadge(task.Priority) : (
-                                            <span className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>-</span>
-                                          )}
-                                        </td>
-                                        <td className="py-3 px-4 hidden sm:table-cell">
-                                          {getTaskTypeBadgeComponent(task.Type)}
-                                        </td>
-                                        <td className="py-3 px-4 hidden sm:table-cell">
-                                          <div className="flex items-center gap-2">
-                                            <button
-                                              onClick={() => router.push(`/task/${task.TaskID}`)}
-                                              className={getThemeClasses(
-                                                'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors',
-                                                'dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50'
-                                              )}
-                                            >
-                                              <FaEye size={12} />
-                                              View
-                                            </button>
-                                          </div>
                                         </td>
                                       </tr>
                                     );
@@ -2273,7 +2416,7 @@ const ProjectDetailsPage = () => {
                       <tr>
                         <td colSpan="8" className="p-0">
                           <div className={`accordion-content ${openAccordions[code] ? 'open' : 'closed'}`}>
-                            {tasksByStatus.length === 0 && (
+                            {flattenedItems.length === 0 && (
                               <div className={getThemeClasses('px-4 py-6 text-gray-500 text-center', 'px-4 py-6 text-gray-400 text-center')}>
                                 No tasks
                               </div>

@@ -17,7 +17,7 @@ import {
 } from '../components/kanban/kanbanUtils';
 
 
-const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp = undefined, projectMembersProp = undefined }) => {
+const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp = undefined, projectMembersProp = undefined, taskListProp = undefined }) => {
   const { projects, userDetails } = useGlobal();
   const { showToast } = useToast();
   const [selectedProject, setSelectedProject] = useState(forcedProjectId || null);
@@ -69,7 +69,13 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
         setLoading(false);
       }
     };
-    fetchTasksAndUserStories();
+    if (taskListProp) {
+      setAllTasks(taskListProp);
+      setTasks(applyUserStoryFilter(taskListProp || [], selectedUserStory));
+      setLoading(false);
+    } else {
+      fetchTasksAndUserStories();
+    }
     // Join project room for live updates
     if (selectedProject) {
       connectSocket();

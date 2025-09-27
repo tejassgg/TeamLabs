@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { FaMoon, FaSun, FaDesktop, FaCheck, FaTimes, FaGithub } from 'react-icons/fa';
+import { FaMoon, FaSun, FaDesktop, FaCheck, FaTimes, FaGithub, FaRocket } from 'react-icons/fa';
 import { MdOutlinePayments } from "react-icons/md";
 import { useToast } from '../context/ToastContext';
 import TwoFactorAuth from '../components/auth/TwoFactorAuth';
@@ -13,6 +13,7 @@ import dynamic from 'next/dynamic';
 
 const BillingTab = dynamic(() => import('../components/settings/BillingTab'), { ssr: false });
 const IntegrationsTab = dynamic(() => import('../components/settings/IntegrationsTab'), { ssr: false });
+const ReleaseNotificationsTab = dynamic(() => import('../components/settings/ReleaseNotificationsTab'), { ssr: false });
 
 const Settings = () => {
   const { theme, setTheme } = useTheme();
@@ -25,14 +26,20 @@ const Settings = () => {
 
   // Check if user has Admin role
   const isAdmin = user?.role === 'Admin' || user?.role === 1;
+  
+  // Check if user is admin of OrganizationID='1' (system admin)
+  const isSystemAdmin = isAdmin && user?.organizationID === '1';
   const [activeTab, setActiveTab] = useState('general');
 
-  // Redirect non-admin users away from billing tab
+  // Redirect non-admin users away from admin-only tabs
   useEffect(() => {
     if (!isAdmin && activeTab === 'billing') {
       setActiveTab('general');
     }
-  }, [isAdmin, activeTab]);
+    if (!isSystemAdmin && activeTab === 'releases') {
+      setActiveTab('general');
+    }
+  }, [isAdmin, isSystemAdmin, activeTab]);
   const [loading, setLoading] = useState(false);
   const [show2FASetup, setShow2FASetup] = useState(false);
   const [show2FADisable, setShow2FADisable] = useState(false);
@@ -167,6 +174,10 @@ const Settings = () => {
       if (isAdmin) {
         validTabs.push('billing');
       }
+      // Only add releases tab for system admin users (OrganizationID='1')
+      if (isSystemAdmin) {
+        validTabs.push('releases');
+      }
 
       if (validTabs.includes(router.query.tab)) {
         setActiveTab(router.query.tab);
@@ -177,12 +188,19 @@ const Settings = () => {
           pathname: router.pathname,
           query: { ...router.query, tab: 'general' }
         }, undefined, { shallow: true });
+      } else if (router.query.tab === 'releases' && !isSystemAdmin) {
+        // Redirect non-system-admin users trying to access releases tab
+        setActiveTab('general');
+        router.push({
+          pathname: router.pathname,
+          query: { ...router.query, tab: 'general' }
+        }, undefined, { shallow: true });
       }
     } else if (router.isReady) {
       // Default to general tab if no tab parameter is provided
       setActiveTab('general');
     }
-  }, [router.query.tab, router.isReady, isAdmin]);
+  }, [router.query.tab, router.isReady, isAdmin, isSystemAdmin]);
 
   // Save theme to localStorage whenever it changes
   useEffect(() => {
@@ -198,6 +216,12 @@ const Settings = () => {
     // Prevent non-admin users from accessing subscription tab
     if (tabId === 'billing' && !isAdmin) {
       showToast('Access denied. Admin role required.', 'error');
+      return;
+    }
+
+    // Prevent non-system-admin users from accessing releases tab
+    if (tabId === 'releases' && !isSystemAdmin) {
+      showToast('Access denied. System admin role required.', 'error');
       return;
     }
 
@@ -273,7 +297,8 @@ const Settings = () => {
   const tabs = [
     { id: 'general', label: 'General', icon: FaSun },
     ...(isAdmin ? [{ id: 'billing', label: 'Billings', icon: MdOutlinePayments }] : []),
-    { id: 'integrations', label: 'Integrations', icon: FaGithub }, // New Integrations tab
+    { id: 'integrations', label: 'Integrations', icon: FaGithub },
+    ...(isSystemAdmin ? [{ id: 'releases', label: 'Release Notifications', icon: FaRocket }] : []),
   ];
 
   return (
@@ -616,6 +641,13 @@ const Settings = () => {
               integrations={integrations}
               loadingIntegrations={loadingIntegrations}
               onRefreshIntegrations={fetchIntegrationsData}
+            />
+          )}
+
+          {/* Release Notifications Tab */}
+          {activeTab === 'releases' && (
+            <ReleaseNotificationsTab 
+              getThemeClasses={getThemeClasses}
             />
           )}
         </div>
