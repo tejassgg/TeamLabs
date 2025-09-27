@@ -47,7 +47,8 @@ const ProjectDetailsPage = () => {
     formatDateUTC,
     formatDate,
     getUserInitials,
-    formatTimeAgo
+    formatTimeAgo,
+    userDetails
   } = useGlobal();
   const { showToast } = useToast();
   const [project, setProject] = useState(null);
