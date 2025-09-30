@@ -169,7 +169,7 @@ export default function MessagesPage() {
       } else {
         // For direct messages, search in participant names
         const participantNames = conversation.participants
-          ?.filter(p => p._id !== user?._id)
+          ?.filter(p => p._id !== userDetails?._id)
           ?.map(p => `${p.firstName || ''} ${p.lastName || ''}`.trim())
           ?.join(' ') || '';
 
@@ -181,7 +181,7 @@ export default function MessagesPage() {
 
       return false;
     });
-  }, [conversations, searchQuery, user?._id]);
+  }, [conversations, searchQuery, userDetails?._id]);
 
   // URL query parameter handling functions
   const updateURLWithConversation = (conversationId) => {
@@ -289,7 +289,7 @@ export default function MessagesPage() {
       const convo = data?.conversation;
       if (!convo) return;
       // Only add if current user is a participant
-      const isParticipant = (convo.participants || []).some(p => String(p._id || p) === String(user?._id));
+      const isParticipant = (convo.participants || []).some(p => String(p._id || p) === String(userDetails?._id));
       if (!isParticipant) return;
       setConversations(prev => {
         if (prev.some(c => c._id === convo._id)) return prev;
@@ -373,7 +373,7 @@ export default function MessagesPage() {
               setSelectedConversation(prev => prev ? { ...prev, ...updatedDetails } : prev);
               
               // Check if current user is still a participant
-              const isStillParticipant = (updatedDetails.participants || []).some(p => String(p._id || p) === String(user?._id));
+              const isStillParticipant = (updatedDetails.participants || []).some(p => String(p._id || p) === String(userDetails?._id));
               if (!isStillParticipant) {
                 // User is no longer a participant, redirect to conversation list
                 setSelectedConversation(null);
@@ -410,7 +410,7 @@ export default function MessagesPage() {
       const { conversationId, lastMessage, updatedAt, unreadCount } = data || {};
       if (!conversationId) return;
       // Ignore counting unread for messages sent by the current user
-      if (lastMessage && (String(lastMessage.sender?._id || lastMessage.sender) === String(user?._id))) {
+      if (lastMessage && (String(lastMessage.sender?._id || lastMessage.sender) === String(userDetails?._id))) {
         setUnreadCounts((prev) => ({ ...prev, [conversationId]: 0 }));
         return;
       }
@@ -693,7 +693,7 @@ export default function MessagesPage() {
       const { data } = payload || {};
       if (!data || data.conversationId !== selectedConversation._id) return;
       const { userId, isTyping } = data;
-      if (!userId || userId === user?._id) return;
+      if (!userId || userId === userDetails?._id) return;
       setTypingUsers(prev => {
         const next = { ...prev };
         if (isTyping) {
@@ -871,7 +871,7 @@ export default function MessagesPage() {
     setIsSending(true);
     try {
       // If the user is no longer a participant, block locally with a toast
-      const isMember = (selectedConversation.participants || []).some(p => String(p._id || p) === String(user?._id));
+      const isMember = (selectedConversation.participants || []).some(p => String(p._id || p) === String(userDetails?._id));
       if (!isMember) {
         showToast('You are no longer a participant in this conversation', 'error');
         setIsSending(false);
@@ -928,7 +928,7 @@ export default function MessagesPage() {
       if (participantsSrc && Array.isArray(participantsSrc)) {
         const filtered = participantsSrc.filter(member => {
           const memberName = `${member.firstName || ''} ${member.lastName || ''}`.trim().toLowerCase();
-          return (!query || memberName.includes(query.toLowerCase())) && String(member._id) !== String(user?._id);
+          return (!query || memberName.includes(query.toLowerCase())) && String(member._id) !== String(userDetails?._id);
         });
         setFilteredMembers(filtered);
         setShowMentions(!stop && filtered.length > 0);
@@ -1307,7 +1307,7 @@ export default function MessagesPage() {
       await messagingService.leaveConversation(selectedConversation._id);
 
       // Send system message to DB about leaving
-      const userName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
+      const userName = `${userDetails?.firstName || ''} ${userDetails?.lastName || ''}`.trim();
       await sendSystemMessage(selectedConversation._id, `${userName} left the group`);
       // Clear URL since user is no longer in this conversation
       updateURLWithConversation(null);
@@ -1339,7 +1339,7 @@ export default function MessagesPage() {
       await sendSystemMessage(selectedConversation._id, `${memberName} has been removed from the group`);
 
       // Check if current user was removed
-      if (String(memberId) === String(user?._id)) {
+      if (String(memberId) === String(userDetails?._id)) {
         setSelectedConversation(null);
         setMessages([]);
         updateURLWithConversation(null);
@@ -1522,8 +1522,8 @@ export default function MessagesPage() {
                       </h3>
                       <div className="space-y-2 transition-all duration-300 ease-in-out">
                         {filteredConversations.filter(c => !c.isGroup).map((c) => {
-                          const displayName = c.participants?.filter(p => p._id !== user?._id).map(p => `${p.firstName} ${p.lastName}`).join(', ') || 'Direct';
-                          const other = c.participants?.find(p => p._id !== user?._id);
+                          const displayName = c.participants?.filter(p => p._id !== userDetails?._id).map(p => `${p.firstName} ${p.lastName}`).join(', ') || 'Direct';
+                          const other = c.participants?.find(p => p._id !== userDetails?._id);
                           const parts = `${other?.firstName || ''} ${other?.lastName || ''}`.trim().split(' ').filter(Boolean);
                           const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'U';
                           const isRecentlyUpdated = recentlyUpdatedConversation === c._id;
@@ -1597,7 +1597,7 @@ export default function MessagesPage() {
                               {(() => {
                                 const isGroup = selectedConversation.isGroup;
                                 if (!isGroup) {
-                                  const other = selectedConversation.participants?.find(p => p._id !== user?._id);
+                                  const other = selectedConversation.participants?.find(p => p._id !== userDetails?._id);
                                   const parts = `${other?.firstName || ''} ${other?.lastName || ''}`.trim().split(' ').filter(Boolean);
                                   return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'U';
                                 }
@@ -1609,7 +1609,7 @@ export default function MessagesPage() {
 
                           <div className="flex items-center gap-3">
                             <span className="font-semibold text-base lg:text-lg hover:underline transition-all duration-200 truncate block">
-                              {selectedConversation.isGroup ? (selectedConversation.name || 'Group') : (selectedConversation.participants?.filter(p => p._id !== user?._id).map(p => `${p.firstName} ${p.lastName}`).join(', ') || 'Direct')}
+                              {selectedConversation.isGroup ? (selectedConversation.name || 'Group') : (selectedConversation.participants?.filter(p => p._id !== userDetails?._id).map(p => `${p.firstName} ${p.lastName}`).join(', ') || 'Direct')}
                             </span>
                             {/* Group members initials display */}
                             {selectedConversation.isGroup && selectedConversation.participants && (
@@ -1653,7 +1653,7 @@ export default function MessagesPage() {
                       {!selectedConversation.isGroup && (
                         <button
                           onClick={() => {
-                            const other = selectedConversation.participants?.find(p => p._id !== user?._id);
+                            const other = selectedConversation.participants?.find(p => p._id !== userDetails?._id);
                             if (other) {
                               handleInitiateCall(
                                 selectedConversation._id,
@@ -1721,7 +1721,7 @@ export default function MessagesPage() {
                                 <span>{isLeaving ? 'Leaving...' : 'Leave'}</span>
                               </button>
                             )}
-                            {selectedConversation.isGroup && (selectedConversation?.createdBy === user?._id || selectedConversation?.admins?.includes(user?._id)) && (
+                            {selectedConversation.isGroup && (selectedConversation?.createdBy === userDetails?._id || selectedConversation?.admins?.includes(userDetails?._id)) && (
                               <button
                                 onClick={() => {
                                   setShowKebabMenu(false);
@@ -1772,7 +1772,7 @@ export default function MessagesPage() {
                     )}
 
                     {messages.map((m, index) => {
-                      const mine = String(m.sender?._id || m.sender) === String(user?._id);
+                      const mine = String(m.sender?._id || m.sender) === String(userDetails?._id);
                       const messageDate = new Date(m.createdAt || m.timestamp);
                       const prevMessage = index > 0 ? messages[index - 1] : null;
                       const prevMessageDate = prevMessage ? new Date(prevMessage.createdAt || prevMessage.timestamp) : null;
@@ -1851,7 +1851,7 @@ export default function MessagesPage() {
                                 </div>
 
                                 {/* Read receipts (basic): show "Read" for messages you sent that have been read by others */}
-                                {mine && Array.isArray(m.readBy) && m.readBy.some((uid) => String(uid) !== String(user?._id)) && (
+                                {mine && Array.isArray(m.readBy) && m.readBy.some((uid) => String(uid) !== String(userDetails?._id)) && (
                                   <div className={`mt-1 text-[10px] opacity-60 ${mine ? 'text-right' : ''}`}>
                                     Read
                                   </div>
@@ -1873,7 +1873,7 @@ export default function MessagesPage() {
                     })}
 
                     {/* System message for users who are no longer members */}
-                    {selectedConversation && !(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id)) && (
+                    {selectedConversation && !(selectedConversation?.participants || []).some(p => String(p._id || p) === String(userDetails?._id)) && (
                       <div className="flex justify-center mb-4">
                         <div className={`px-4 py-3 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-orange-900/20 border border-orange-500/30 text-orange-300' : 'bg-orange-50 border border-orange-200 text-orange-700'}`}>
                           ⚠️ You are no longer a member of this conversation. You can view the conversation history but cannot send new messages.
@@ -1902,7 +1902,7 @@ export default function MessagesPage() {
                 {isLoadingMessages ? (
                   <ChatFooterSkeleton theme={theme} />
                 ) : (
-                  <footer className={`relative p-2 lg:p-3 mx-2 lg:mx-3 mb-2 lg:mb-3 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900'} flex-shrink-0 ${!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id)) ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <footer className={`relative p-2 lg:p-3 mx-2 lg:mx-3 mb-2 lg:mb-3 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900'} flex-shrink-0 ${!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(userDetails?._id)) ? 'opacity-50 pointer-events-none' : ''}`}>
                     {/* Mention Dropdown */}
                     {showMentions && selectedConversation?.isGroup && (
                       <div ref={mentionDropdownRef} className={`absolute bottom-full left-0 right-0 mb-2 z-50 rounded-lg border shadow-lg ${theme === 'dark' ? 'bg-[#232323] border-[#424242]' : 'bg-white border-gray-200'}`}>
@@ -1940,17 +1940,17 @@ export default function MessagesPage() {
                     <div className="flex items-center gap-1 lg:gap-2">
                       <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`}>
                         <FaImage />
-                        <input type="file" accept="image/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} />
+                        <input type="file" accept="image/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(userDetails?._id))} />
                       </label>
                       <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`}>
                         <FaVideo />
-                        <input type="file" accept="video/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} />
+                        <input type="file" accept="video/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(userDetails?._id))} />
                       </label>
                       
                       {/* Voice Message Recorder removed */}
                       <input
                         className={`flex-1 px-2 lg:px-3 py-2 rounded-lg border ${panel} text-sm lg:text-base`}
-                        placeholder={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))
+                        placeholder={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(userDetails?._id))
                           ? "You are no longer a participant in this conversation"
                           : selectedConversation?.isGroup
                             ? "Type a message or @ to mention someone"
@@ -1977,15 +1977,15 @@ export default function MessagesPage() {
                             }
                           }
                         }}
-                        disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))}
+                        disabled={!(selectedConversation?.participants || []).some(p => String(p._id || p) === String(userDetails?._id))}
                       />
-                      <button disabled={isSending || !(selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id))} className={`px-2 lg:px-4 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-blue-50 text-blue-600'} flex items-center gap-1 lg:gap-2 touch-manipulation`} onClick={handleSend}>
+                      <button disabled={isSending || !(selectedConversation?.participants || []).some(p => String(p._id || p) === String(userDetails?._id))} className={`px-2 lg:px-4 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-blue-50 text-blue-600'} flex items-center gap-1 lg:gap-2 touch-manipulation`} onClick={handleSend}>
                         <FaPaperPlane className="text-sm" />
                         <span className="hidden lg:inline">Send</span>
                       </button>
                     </div>
                     {/* Help text for mentions */}
-                    {selectedConversation?.isGroup && (selectedConversation?.participants || []).some(p => String(p._id || p) === String(user?._id)) && (
+                    {selectedConversation?.isGroup && (selectedConversation?.participants || []).some(p => String(p._id || p) === String(userDetails?._id)) && (
                       <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
                         💡 Type @ to mention a group member
                       </div>
@@ -2013,7 +2013,7 @@ export default function MessagesPage() {
                     <SingleUserDropdown
                       theme={theme}
                       panel={panel}
-                      users={orgUsers.filter(u => String(u._id) !== String(user?._id))}
+                      users={orgUsers.filter(u => String(u._id) !== String(userDetails?._id))}
                       selected={selectedDmUser}
                       onChange={setSelectedDmUser}
                     />
@@ -2064,7 +2064,7 @@ export default function MessagesPage() {
                               <span key={u._id} className={`px-2 py-1 rounded-full text-sm border ${panel} flex items-center gap-2`}>
                                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{u.initials}</span>
                                 {u.name}
-                                {String(u._id) !== String(user?._id) && (
+                                {String(u._id) !== String(userDetails?._id) && (
                                   <button
                                     type="button"
                                     className={`${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'} rounded-full px-1`}
@@ -2096,7 +2096,7 @@ export default function MessagesPage() {
                                 })
                                 .map((u) => {
                                   const selected = groupMembers.some((m) => m._id === u._id);
-                                  const isCurrentUser = String(u._id) === String(user?._id);
+                                  const isCurrentUser = String(u._id) === String(userDetails?._id);
                                   return (
                                     <button
                                       type="button"
@@ -2280,8 +2280,8 @@ export default function MessagesPage() {
                         <div className="flex flex-wrap gap-2">
                           {convDetails.participants?.map(p => {
                             const initials = `${(p.firstName || '')[0] || ''}${(p.lastName || '')[0] || ''}`.toUpperCase() || 'U';
-                            const isGroupAdmin = convDetails?.createdBy === user?._id || convDetails?.admins?.includes(user?._id);
-                            const isCurrentUser = String(p._id) === String(user?._id);
+                            const isGroupAdmin = convDetails?.createdBy === userDetails?._id || convDetails?.admins?.includes(userDetails?._id);
+                            const isCurrentUser = String(p._id) === String(userDetails?._id);
                             const fullName = `${p.firstName || ''} ${p.lastName || ''}`.trim();
 
                             return (
@@ -2450,7 +2450,7 @@ export default function MessagesPage() {
         onAnswer={handleCallAnswer}
         onDecline={handleCallDecline}
         onEnd={handleCallEnd}
-        currentUser={user}
+        currentUser={userDetails}
         answerData={answerData}
         onOutgoingCallAnswered={handleOutgoingCallAnswered}
         initialAction={modalInitialAction}

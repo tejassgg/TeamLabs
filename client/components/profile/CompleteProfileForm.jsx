@@ -71,7 +71,6 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding', profil
       try {
         const { userRoles, phoneExtensions } = await commonTypeService.getDropdownData();
         // Filter out Admin role if user is not an admin
-        console.log('user?.role', userDetails?.role)
         const filteredRoles = userRoles.filter(role => {
           if (userDetails?.role !== 'Admin' && role.Value === 'Admin') {
             return false;

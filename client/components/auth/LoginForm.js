@@ -145,7 +145,7 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
             Welcome <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Back</span>
           </h1>
           <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-            Sign in to your account to continue your journey
+            Sign in to your account to continue
           </p>
           <div className="mt-3 sm:mt-4 flex flex-wrap gap-2 sm:gap-4 justify-start">
             <div className={`flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg ${theme === 'dark'
@@ -231,25 +231,11 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
         {/* Button layout aligned with RegisterForm */}
         <div className="mt-2 flex flex-col items-center gap-4">
           <div className="w-full flex flex-col-reverse sm:flex-row items-center justify-center gap-3">
-            <div className="relative w-full sm:w-auto">
-              <button
-                type="button"
-                className={`w-full py-3 sm:py-3.5 px-4 sm:px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base flex items-center justify-center gap-2 ${theme === 'dark'
-                  ? 'bg-white hover:bg-gray-100 focus:ring-gray-500 border border-gray-300 text-gray-900'
-                  : 'bg-white hover:bg-gray-50 focus:ring-gray-500 border border-gray-300 text-gray-900'
-                  }`}
-              >
-                <FcGoogle className="text-lg" />
-                <span>Sign in</span>
-              </button>
-              <div className="absolute inset-0 z-10 opacity-0">
-                <GoogleLogin
-                  onSuccess={handleGoogleLoginSuccess}
-                  onError={handleGoogleLoginError}
-                  theme={theme === 'dark' ? 'filled_black' : 'outline'}
-                />
-              </div>
-            </div>
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onError={handleGoogleLoginError}
+              theme={theme === 'dark' ? 'filled_black' : 'outline'}
+            />
             <span className={`text-sm sm:mx-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>or</span>
             <button
               type="submit"
@@ -278,7 +264,7 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
       </div>
 
       {/* Forgot Password Modal */}
-      <ForgotPasswordModal 
+      <ForgotPasswordModal
         isOpen={showForgotPasswordModal}
         onClose={() => setShowForgotPasswordModal(false)}
       />

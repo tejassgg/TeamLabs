@@ -48,7 +48,7 @@ const RegisterForm = ({ onOpenLogin }) => {
   }, []);
 
   // Use a single form with real-time validation
-  const { register, handleSubmit, watch, trigger, formState: { errors }} = useForm({ mode: 'onChange' });
+  const { register, handleSubmit, watch, trigger, formState: { errors } } = useForm({ mode: 'onChange' });
   const password = watch('password');
   const confirmPassword = watch('confirmPassword');
 
@@ -58,73 +58,6 @@ const RegisterForm = ({ onOpenLogin }) => {
       trigger('confirmPassword');
     }
   }, [password, confirmPassword, trigger]);
-
-  // Removed role registration (role dropdown removed)
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        setError('Please select a valid image file (JPEG, PNG, GIF, or WebP)');
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      if (file.size > maxSize) {
-        setError('Image size must be less than 5MB');
-        return;
-      }
-
-      setProfileImage(file);
-      setProfileImagePreview(URL.createObjectURL(file));
-      setError(''); // Clear any previous errors
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setProfileImage(null);
-    setProfileImagePreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  // Step 1 validation (reduced fields)
-  const validateStep1 = async () => {
-    const valid = await trigger([
-      'firstName',
-      'lastName',
-      'username',
-      'email',
-      'role',
-    ]);
-    return valid;
-  };
-
-  // Step 2 validation (passwords only)
-  const validateStep2 = async () => {
-    const valid = await trigger([
-      'password',
-      'confirmPassword',
-    ]);
-    return valid;
-  };
-
-  const handleNext = async (e) => {
-    e.preventDefault();
-    setError('');
-    const valid = await validateStep1();
-    if (valid) setStep(2);
-  };
-
-  const handleBack = (e) => {
-    e.preventDefault();
-    setError('');
-    setStep(1);
-  };
 
   const onSubmit = async (data) => {
     setIsLoading(true);
@@ -185,17 +118,6 @@ const RegisterForm = ({ onOpenLogin }) => {
     setError('Google login failed');
   };
 
-  const handleCustomGoogleSignUp = () => {
-    // Trigger the Google OAuth flow using the existing GoogleLogin component's functionality
-    // We'll use a hidden GoogleLogin component to trigger the OAuth flow
-    const googleButton = document.querySelector('[data-google-signup]');
-    if (googleButton) {
-      googleButton.click();
-    } else {
-      setError('Google sign up not available');
-    }
-  };
-
   return (
     <div className="space-y-4 sm:space-y-6">
       {error && (
@@ -217,7 +139,7 @@ const RegisterForm = ({ onOpenLogin }) => {
                 </h1>
                 <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                   }`}>
-                  Join thousands of teams already using TeamLabs to boost their productivity
+                  Join TeamLabs to boost your productivity
                 </p>
                 <div className="mt-3 sm:mt-4 flex flex-row gap-2 sm:gap-4 justify-start">
                   <div className={`flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg ${theme === 'dark'
@@ -337,28 +259,14 @@ const RegisterForm = ({ onOpenLogin }) => {
             {/* Address fields removed as per request */}
             <div className="mt-6 flex flex-col items-center gap-4">
               <div className="w-full flex flex-col-reverse sm:flex-row items-center justify-center gap-3">
-                <div className="relative w-full sm:w-auto">
-                  <button
-                    type="button"
-                    className={`w-full py-3 sm:py-3.5 px-4 sm:px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base flex items-center justify-center gap-2 ${theme === 'dark'
-                      ? 'bg-white hover:bg-gray-100 focus:ring-gray-500 border border-gray-300 text-gray-900'
-                      : 'bg-white hover:bg-gray-50 focus:ring-gray-500 border border-gray-300 text-gray-900'
-                      }`}
-                  >
-                    <FcGoogle className="text-lg" />
-                    <span>Sign up</span>
-                  </button>
-                  <div className="absolute inset-0 z-10 opacity-0">
-                    <GoogleLogin
-                      onSuccess={handleGoogleLoginSuccess}
-                      onError={handleGoogleLoginError}
-                      width="100%"
-                      theme="outline"
-                      text="signup_with"
-                      shape="rectangular"
-                    />
-                  </div>
-                </div>
+                <GoogleLogin
+                  onSuccess={handleGoogleLoginSuccess}
+                  onError={handleGoogleLoginError}
+                  width="100%"
+                  theme="outline"
+                  text="signup_with"
+                  shape="rectangular"
+                />
                 <span className={`text-sm sm:mx-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>or</span>
                 <button
                   type="submit"

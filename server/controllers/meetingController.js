@@ -209,7 +209,6 @@ exports.createMeeting = async (req, res) => {
         res.status(400).json({ success: false, message: 'Google Calendar not connected. Provide googleAccessToken or connect account.' });
       }
     } catch (googleErr) {
-      console.log('googleErr', googleErr);
       console.error('Google Calendar create event failed:', googleErr?.response?.data || googleErr.message);
       res.status(502).json({ success: false, message: 'Google Calendar create event failed' });
     }

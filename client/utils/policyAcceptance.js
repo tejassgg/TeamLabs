@@ -51,7 +51,6 @@ export const acceptPolicy = (policyType) => {
   
   try {
     const key = POLICY_KEYS[policyType];
-    console.log('key', key);
     if (!key) return false;
     
     const currentVersion = POLICY_VERSIONS[policyType];

@@ -26,7 +26,7 @@ const TaskCollaborationIndicator = ({ taskId, projectId }) => {
         if (!data || data.taskId !== taskId) return;
         const safeUsers = Array.isArray(data.users) ? data.users : [];
         // Exclude current user from collaborators array; we add current user separately in memo
-        setCollaborators(safeUsers.filter(u => u.userId !== user?._id));
+        setCollaborators(safeUsers.filter(u => u.userId !== userDetails?._id));
       });
 
       // Emit user's current action (viewing by default)
@@ -107,9 +107,9 @@ const TaskCollaborationIndicator = ({ taskId, projectId }) => {
     }
     return collaborators.map(c => ({
       ...c,
-      isCurrentUser: c.userId === user?._id
+      isCurrentUser: c.userId === userDetails?._id
     }));
-  }, [collaborators, user]);
+  }, [collaborators, userDetails]);
 
   // Helper function to get initials from name - following existing system pattern
   const getInitials = (name) => {
