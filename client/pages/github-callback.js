@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '../context/AuthContext';
+
+import { useGlobal } from '../context/GlobalContext';
 import { useToast } from '../context/ToastContext';
 import { authService } from '../services/api';
 import Head from 'next/head';
 
 const GitHubCallback = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { showToast } = useToast();
   const [processing, setProcessing] = useState(true);
 

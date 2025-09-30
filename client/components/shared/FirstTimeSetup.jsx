@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '../../context/AuthContext';
+
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
@@ -79,7 +79,6 @@ const renderStatusBadge = (status, theme) => {
 const FirstTimeSetup = ({ isOpen, onComplete }) => {
   const router = useRouter();
   const { theme } = useTheme();
-  const { user } = useAuth();
   const { userDetails, organization, teams, projects, setUserDetails, setTeams, setProjects, setOrganization } = useGlobal();
   const { showToast } = useToast();
 
@@ -631,7 +630,7 @@ const TeamDropdown = ({ value, onChange, options, placeholder = 'Select Team', r
   const { theme } = useTheme();
   const [search, setSearch] = useState('');
   const dropdownRef = React.useRef(null);
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { showToast } = useToast ? useToast() : { showToast: () => { } };
   // const [requestedTeams, setRequestedTeams] = useState([]); // <-- moved up
 
@@ -655,7 +654,7 @@ const TeamDropdown = ({ value, onChange, options, placeholder = 'Select Team', r
 
   const handleRequestToJoin = async (team) => {
     try {
-      await teamService.requestToJoinTeam(team.TeamID, user._id);
+      await teamService.requestToJoinTeam(team.TeamID, userDetails._id);
       setRequestedTeams(prev => [...prev, team.TeamID]);
       showToast && showToast('Request sent!', 'success');
       // Refresh the pending requests table

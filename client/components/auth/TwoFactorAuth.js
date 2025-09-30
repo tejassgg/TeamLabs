@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import QRCode from 'react-qr-code';
 import { FaTimes, FaCheck, FaExclamationTriangle } from 'react-icons/fa';
-import { useAuth } from '../../context/AuthContext';
+import { useGlobal } from '../../context/GlobalContext';
 import axios from 'axios';
 import { authService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
@@ -13,7 +13,7 @@ export default function TwoFactorAuth({
   userId,
   email
 }) {
-  const { user } = useAuth();
+  const { userDetails, setUserDetails } = useGlobal();
   const [step, setStep] = useState('initial');
   const [secret, setSecret] = useState('');
   const [qrCode, setQrCode] = useState('');
@@ -27,11 +27,11 @@ export default function TwoFactorAuth({
       setLoading(true);
       setError('');
 
-      if (!user) {
+      if (!userDetails) {
         throw new Error('No active session found');
       }
 
-      const data = await authService.generate2FA(user._id);
+      const data = await authService.generate2FA(userDetails._id);
       setSecret(data.secret);
       setQrCode(data.qrCode);
       setStep('qr');
@@ -61,7 +61,7 @@ export default function TwoFactorAuth({
 
       if (data.success) {
         // Update user data in localStorage
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const userData = userDetails;
         
         if (mode === 'setup') {
           // For setup mode, enable 2FA
@@ -71,7 +71,7 @@ export default function TwoFactorAuth({
           userData.twoFactorEnabled = false;
         }
         
-        localStorage.setItem('user', JSON.stringify(userData));
+        setUserDetails(userData);
 
         // Call onComplete callback
         if (typeof onComplete === 'function') {
@@ -108,9 +108,9 @@ export default function TwoFactorAuth({
 
       if (data.success) {
         // Update user data in localStorage
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const userData = userDetails;
         userData.twoFactorEnabled = false;
-        localStorage.setItem('user', JSON.stringify(userData));
+        setUserDetails(userData);
 
         // Call onComplete callback
         if (typeof onComplete === 'function') {

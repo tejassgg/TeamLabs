@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
-import { useAuth } from '../../context/AuthContext';
+import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 
@@ -19,7 +19,7 @@ const ForgotPasswordModal = ({ isOpen, onClose, resetKey = null }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const { forgotPassword, resetPassword } = useAuth();
+  const { forgotPassword, resetPassword } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
 

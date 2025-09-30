@@ -15,7 +15,7 @@ import { connectSocket, subscribe, getSocket } from '../../services/socket';
 import TaskAttachments from '../../components/task/TaskAttachments';
 import TaskComments from '../../components/task/TaskComments';
 import SubtaskList from '../../components/task/SubtaskList';
-import { useAuth } from '../../context/AuthContext';
+
 import CustomModal from '../../components/shared/CustomModal';
 import { getPriorityBadge, getTaskTypeBadge } from '../../components/task/TaskTypeBadge';
 import AddTaskModal from '../../components/shared/AddTaskModal';
@@ -27,7 +27,6 @@ const TaskDetailsPage = () => {
     const { userDetails, formatTimeAgo } = useGlobal();
     const { showToast } = useToast();
     const getThemeClasses = useThemeClasses();
-    const { user } = useAuth();
 
     const [task, setTask] = useState(null);
     const [project, setProject] = useState(null);
@@ -96,7 +95,7 @@ const TaskDetailsPage = () => {
                 try { getSocket().emit('task.leave', { taskId }); } catch (_) { }
             }
         };
-    }, [taskId, router, user]);
+    }, [taskId, router, userDetails]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -250,7 +249,7 @@ const TaskDetailsPage = () => {
         setUpdatingStatus(true);
         try {
             const oldStatus = task.Status;
-            await taskService.updateTaskStatus(taskId, newStatus, user?._id);
+            await taskService.updateTaskStatus(taskId, newStatus, userDetails?._id);
             setTask(prev => ({ ...prev, Status: newStatus }));
             setStatusDropdownOpen(false);
             showToast('Task status updated successfully', 'success');
@@ -266,7 +265,7 @@ const TaskDetailsPage = () => {
                     metadata: {
                         oldStatus: oldStatusName,
                         newStatus: newStatusName,
-                        user: user?._id,
+                        user: userDetails?._id,
                         taskId: taskId
                     },
                     timestamp: new Date().toISOString()
@@ -286,7 +285,7 @@ const TaskDetailsPage = () => {
             // If memberId is null, unassign the task
             // If memberId is 'self', use current user's ID
             // Otherwise use the provided memberId
-            const assigneeId = memberId === 'self' ? user?._id : memberId;
+            const assigneeId = memberId === 'self' ? userDetails?._id : memberId;
 
             const response = await taskService.assignTask(taskId, assigneeId);
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
+
+import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import { authService, meetingService } from '../../services/api';
@@ -14,12 +15,11 @@ import {
 import { SiGooglemeet } from "react-icons/si";
 
 const IntegrationsTab = ({ 
-  getThemeClasses, 
   integrations: prefetchedIntegrations,
   loadingIntegrations: prefetchedLoadingIntegrations,
   onRefreshIntegrations
 }) => {
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
 
@@ -29,9 +29,9 @@ const IntegrationsTab = ({
   const [selectedIntegration, setSelectedIntegration] = useState(null);
 
   useEffect(() => {
-    if (!user?._id) return;
+    if (!userDetails?._id) return;
     handleIntegrationCallbacks();
-  }, [user?._id]);
+  }, [userDetails?._id]);
 
   // Sync with prefetched data when props change
   useEffect(() => {
@@ -55,7 +55,7 @@ const IntegrationsTab = ({
     // Handle GitHub callback
     if (githubCode || (code && state && localStorage.getItem('github_state') === state)) {
       const githubUserId = localStorage.getItem('github_userId');
-      if (githubUserId === user._id) {
+      if (githubUserId === userDetails._id) {
         authService.handleGitHubCallback(githubCode || code, state)
           .then(() => {
             showToast('GitHub account connected successfully!', 'success');
@@ -139,7 +139,7 @@ const IntegrationsTab = ({
       if (integration.connected) {
         // Disconnect integration
         if (integration.type === 'github') {
-          await authService.disconnectGitHub(user._id);
+          await authService.disconnectGitHub(userDetails._id);
           showToast('GitHub account disconnected successfully', 'success');
         } else if (integration.type === 'google_calendar') {
           await meetingService.disconnectGoogleCalendar();
@@ -154,10 +154,10 @@ const IntegrationsTab = ({
       } else {
         // Connect integration
         if (integration.type === 'github') {
-          const response = await authService.initiateGitHubAuth(user._id);
+          const response = await authService.initiateGitHubAuth(userDetails._id);
           if (response.success) {
             localStorage.setItem('github_state', response.state);
-            localStorage.setItem('github_userId', user._id);
+            localStorage.setItem('github_userId', userDetails._id);
             window.location.href = response.authUrl;
           } else {
             showToast(response.error || 'Failed to initiate GitHub authentication', 'error');

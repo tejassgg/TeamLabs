@@ -22,7 +22,7 @@ const publicApi = axios.create({
 // Add request interceptor to add auth token only for authenticated requests
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('token');
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -49,8 +49,7 @@ export const authService = {
       }
       // If no 2FA required, proceed with normal login
       if (response.data.token) {
-        Cookies.set('token', response.data.token, { expires: 30 });
-        localStorage.setItem('user', JSON.stringify(response.data));
+        localStorage.setItem('token', response.data.token);
       }
       return response.data;
     } catch (error) {
@@ -65,8 +64,7 @@ export const authService = {
 
       if (response.status === 200) {
         if (response.data.token) {
-          Cookies.set('token', response.data.token, { expires: 30 });
-          localStorage.setItem('user', JSON.stringify(response.data));
+          localStorage.setItem('token', response.data.token);
         }
       }
       return response.data;
@@ -81,8 +79,7 @@ export const authService = {
     try {
       const response = await api.post('/auth/register', userData);
       if (response.data.token) {
-        Cookies.set('token', response.data.token, { expires: 30 });
-        localStorage.setItem('user', JSON.stringify(response.data));
+        localStorage.setItem('token', response.data.token);
       }
       return response.data;
     } catch (error) {
@@ -95,9 +92,7 @@ export const authService = {
     try {
       const response = await api.post('/auth/google', { credential, inviteToken });
       if (response.data.token) {
-        Cookies.set('token', response.data.token, { expires: 30 });
-        // Store user data including security settings from login response
-        localStorage.setItem('user', JSON.stringify(response.data));
+        localStorage.setItem('token', response.data.token);
       }
       return response.data;
     } catch (error) {
@@ -113,16 +108,24 @@ export const authService = {
     } catch (error) {
       console.error('Error logging logout activity:', error);
     } finally {
-      Cookies.remove('token');
+      localStorage.removeItem('token');
       localStorage.clear();
-      localStorage.removeItem('user');
     }
   },
 
   // Get current user
   getCurrentUser: () => {
     if (typeof window !== 'undefined') {
-      return JSON.parse(localStorage.getItem('user'));
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          return payload;
+        } catch (error) {
+          console.error('Error parsing token:', error);
+          return null;
+        }
+      }
     }
     return null;
   },
@@ -139,7 +142,7 @@ export const authService = {
 
   // Check if user is authenticated
   isAuthenticated: () => {
-    const token = Cookies.get('token');
+    const token = localStorage.getItem('token');
     return !!token;
   },
 
@@ -156,16 +159,6 @@ export const authService = {
           onboardingComplete: false
         };
         await api.put('/auth/onboarding', { completed: false, step: nextStep || 'organization', progress });
-      }
-      // Update localStorage with the new user data
-      const currentUser = JSON.parse(localStorage.getItem('user'));
-      if (currentUser) {
-        const updatedUser = {
-          ...currentUser,
-          ...response.data,
-          token: currentUser.token // Preserve the token
-        };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
       }
       return response.data;
     } catch (error) {
@@ -463,17 +456,17 @@ export const teamService = {
       throw error.response?.data;
     }
   },
-  deleteTeam: async (teamId, userId) => {
+  deleteTeam: async (teamId) => {
     try {
-      const response = await api.delete(`/teams/${teamId}`, { data: { userId } });
+      const response = await api.delete(`/teams/${teamId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to delete team' };
     }
   },
-  requestToJoinTeam: async (teamId, userId) => {
+  requestToJoinTeam: async (teamId) => {
     try {
-      const response = await api.post(`/teams/${teamId}/join-request`, { userId });
+      const response = await api.post(`/teams/${teamId}/join-request`);
       console.log(response.data);
       return response.data;
     } catch (error) {
@@ -488,17 +481,17 @@ export const teamService = {
       throw error.response?.data || { message: 'Failed to fetch join requests' };
     }
   },
-  acceptTeamJoinRequest: async (teamId, requestId, adminId) => {
+  acceptTeamJoinRequest: async (teamId, requestId) => {
     try {
-      const response = await api.post(`/teams/${teamId}/join-requests/${requestId}/accept`, { adminId });
+      const response = await api.post(`/teams/${teamId}/join-requests/${requestId}/accept`);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to accept join request' };
     }
   },
-  rejectTeamJoinRequest: async (teamId, requestId, adminId) => {
+  rejectTeamJoinRequest: async (teamId, requestId) => {
     try {
-      const response = await api.post(`/teams/${teamId}/join-requests/${requestId}/reject`, { adminId });
+      const response = await api.post(`/teams/${teamId}/join-requests/${requestId}/reject`);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to reject join request' };
@@ -512,10 +505,9 @@ export const teamService = {
       throw error.response?.data || { message: 'Failed to fetch pending requests' };
     }
   },
-  leaveTeam: async (teamId, userId, newAdminId = null) => {
+  leaveTeam: async (teamId, newAdminId = null) => {
     try {
       const response = await api.post(`/teams/${teamId}/leave`, { 
-        userId, 
         ...(newAdminId && { newAdminId })
       });
       return response.data;
@@ -1154,8 +1146,8 @@ export const meetingService = {
     const res = await api.post(`/google/initiate`, { service, returnUrl });
     return res.data;
   },
-  getGoogleCalendarStatus: async (userId) => {
-    const res = await api.get(`/google-calendar/status/${userId}`);
+  getGoogleCalendarStatus: async () => {
+    const res = await api.get(`/google-calendar/status`);
     return res.data;
   },
   attachGoogleCalendarToken: async ({ accessToken, refreshToken, tokenExpiry }) => {
@@ -1170,8 +1162,8 @@ export const meetingService = {
     const res = await api.post(`/google-calendar/disconnect`, {});
     return res.data;
   },
-  getGoogleDriveStatus: async (userId) => {
-    const res = await api.get(`/google-drive/status/${userId}`);
+  getGoogleDriveStatus: async () => {
+    const res = await api.get(`/google-drive/status`);
     return res.data;
   },
   disconnectGoogleDrive: async () => {

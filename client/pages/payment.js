@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useAuth } from '../context/AuthContext';
+
+import { useGlobal } from '../context/GlobalContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import { FaCreditCard, FaUniversity, FaLock, FaCheck, FaTimes, FaEye, FaEyeSlash, FaSave, FaArrowLeft, FaChevronDown, FaInfinity, FaRocket, FaStar, FaUsers, FaCheckCircle } from 'react-icons/fa';
@@ -138,7 +139,7 @@ const US_BANKS = [
 ];
 
 const Payment = () => {
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
   const router = useRouter();
@@ -294,8 +295,8 @@ const Payment = () => {
         plan: plan,
         amount: planDetails.price,
         paymentMethod: paymentMethod,
-        organizationID: user.organizationID,
-        userId: user._id,
+        organizationID: userDetails.organizationID,
+        userId: userDetails._id,
         saveCard: saveCard,
         ...(paymentMethod === 'card' ? cardForm : bankForm)
       };

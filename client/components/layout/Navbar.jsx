@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useAuth } from '../../context/AuthContext';
+import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { authService } from '../../services/api';
 import { 
@@ -16,7 +16,7 @@ import {
 import VersionIndicator, { CurrentVersionInfo } from '../shared/VersionIndicator';
 
 const Navbar = ({ showWelcomeMessage = false, versionUpdateAvailable = false, latestVersion = null, onVersionUpdateClick }) => {
-  const { user, logout } = useAuth();
+  const { logout, userDetails } = useGlobal();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -51,9 +51,9 @@ const Navbar = ({ showWelcomeMessage = false, versionUpdateAvailable = false, la
           {/* Right side - User menu and Theme toggle */}
           <div className="flex items-center space-x-4">
             {/* Welcome Message for Welcome Page */}
-            {showWelcomeMessage && user && (
+            {showWelcomeMessage && userDetails && (
               <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                Welcome, {user.firstName || user.username}!
+                Welcome, {userDetails.firstName || userDetails.username}!
               </span>
             )}
             
@@ -93,9 +93,9 @@ const Navbar = ({ showWelcomeMessage = false, versionUpdateAvailable = false, la
                   } transition-colors duration-200`}
                 >
                   <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
-                    {user.profileImage ? (
+                    {userDetails.profileImage ? (
                       <img
-                        src={user.profileImage}
+                        src={userDetails.profileImage}
                         alt="Profile"
                         className="w-full h-full object-cover"
                       />
@@ -105,7 +105,7 @@ const Navbar = ({ showWelcomeMessage = false, versionUpdateAvailable = false, la
                       </div>
                     )}
                   </div>
-                  <span className="hidden md:block">{user.firstName}</span>
+                  <span className="hidden md:block">{userDetails.firstName}</span>
                   <FaChevronDown size={12} className={`transform transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 

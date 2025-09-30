@@ -193,22 +193,11 @@ const loginUser = async (req, res) => {
           userId: user._id
         });
       }
+      const userData = user.toObject();
+      delete userData.password;
+      userData.token = generateToken(user._id);
 
-      return res.status(200).json({
-        _id: user._id,
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        organizationID: user.organizationID,
-        token: generateToken(user._id),
-        // Include security settings in login response
-        twoFactorEnabled: user.twoFactorEnabled || false,
-        sessionTimeout: user.sessionTimeout || 30,
-        loginNotifications: user.loginNotifications !== false, // default to true if not set
-        status: user.status,
-      });
+      return res.status(200).json(userData);
     } else {
       // Log failed login attempt
       if (user) {
@@ -278,25 +267,13 @@ const googleLogin = async (req, res) => {
 
       // Log successful Google login
       await logActivity(user._id, 'login', 'success', 'User logged in via Google', req, { provider: 'google' });
-
+      const userData = user.toObject();
+      delete userData.password;
+      userData.token = generateToken(user._id);
+      userData.profileImage = picture;
+      userData.needsAdditionalDetails = false;
       // Return user data with token and Google profile image
-      return res.json({
-        _id: user._id,
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        organizationID: user.organizationID,
-        profileImage: picture,
-        token: generateToken(user._id),
-        role: user.role,
-        needsAdditionalDetails: false,
-        // Include security settings in login response
-        twoFactorEnabled: user.twoFactorEnabled || false,
-        sessionTimeout: user.sessionTimeout || 30,
-        loginNotifications: user.loginNotifications !== false, // default to true if not set
-        status: user.status,
-      });
+      return res.json(userData);
     } else {
       // If user doesn't exist, create new user with partial profile
       // Generate username from email
@@ -374,23 +351,18 @@ const googleLogin = async (req, res) => {
       // Log successful Google login for new user
       await logActivity(user._id, 'login', 'success', 'New user registered and logged in via Google', req, { provider: 'google' });
 
-      res.status(201).json({
-        _id: user._id,
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        profileImage: picture,
-        token: generateToken(user._id),
-        needsAdditionalDetails: !organizationID, // Only need additional details if not invited
-        role: user.role,
-        message: organizationID ? 'Welcome to the organization!' : 'Please complete your profile with additional details',
-        // Include security settings in login response
-        twoFactorEnabled: false,
-        sessionTimeout: 30,
-        loginNotifications: true,
-        status: 'Offline',
-      });
+      const userData = user.toObject();
+      delete userData.password;
+      userData.token = generateToken(user._id);
+      userData.profileImage = picture;
+      userData.needsAdditionalDetails = !organizationID;
+      userData.message = organizationID ? 'Welcome to the organization!' : 'Please complete your profile with additional details';
+      // Include security settings in login response
+      userData.twoFactorEnabled = false;
+      userData.sessionTimeout = 30;
+      userData.loginNotifications = true;
+      userData.status = 'Offline';
+      res.status(201).json(userData);
     }
   } catch (error) {
     console.error(error);
@@ -992,7 +964,7 @@ const resetPassword = async (req, res) => {
 // GitHub OAuth Integration
 const initiateGitHubAuth = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user._id;
 
     if (!userId) {
       return res.status(400).json({ success: false, error: 'User ID is required' });
@@ -1125,7 +1097,7 @@ const handleGitHubCallback = async (req, res) => {
 
 const disconnectGitHub = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user._id;
 
     if (!userId) {
       return res.status(400).json({ success: false, error: 'User ID is required' });
@@ -1193,7 +1165,7 @@ const disconnectGitHub = async (req, res) => {
 
 const getGitHubStatus = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user._id;
 
     if (!userId) {
       return res.status(400).json({ success: false, error: 'User ID is required' });
@@ -1233,7 +1205,7 @@ const getGitHubStatus = async (req, res) => {
 
 const getIntegrationsStatus = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user._id;
 
     if (!userId) {
       return res.status(400).json({ success: false, error: 'User ID is required' });
@@ -1316,7 +1288,7 @@ const getIntegrationDescription = (integrationType) => {
 // GitHub Repository methods
 const getUserRepositories = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user._id;
 
     if (!userId) {
       return res.status(400).json({ success: false, error: 'User ID is required' });

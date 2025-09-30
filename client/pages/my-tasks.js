@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { FaTasks, FaCalendarAlt, FaClock, FaCheckCircle, FaExclamationTriangle, FaSearch, FaSpinner, FaFlag, FaEdit, FaTrash, FaTimes, FaShieldAlt, FaRocket, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
-import { useAuth } from '../context/AuthContext';
+
 import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
 import { useToast } from '../context/ToastContext';
@@ -13,11 +13,10 @@ import MyTasksSkeleton from '../components/skeletons/MyTasksSkeleton';
 
 const MyTasksPage = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { theme } = useTheme();
   const {
     getTaskTypeBadgeComponent,
-    userDetails,
     getProjectStatusBadgeComponent,
     projectStatuses,
     getTableHeaderClasses,
@@ -63,10 +62,10 @@ const MyTasksPage = () => {
   });
 
   useEffect(() => {
-    if (user) {
+    if (userDetails) {
       fetchUserData();
     }
-  }, [user]);
+  }, [userDetails]);
 
   useEffect(() => {
     applyFilters();

@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useAuth } from '../context/AuthContext';
+import { useGlobal } from '../context/GlobalContext';
 import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { landingService } from '../services/api';
@@ -163,7 +163,7 @@ const pricing = [
 ];
 
 function Home() {
-  const { isAuthenticated, logout } = useAuth();
+  const { logout, isAuthenticated } = useGlobal();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const [isVisible, setIsVisible] = useState(false);
@@ -253,7 +253,7 @@ function Home() {
 
   const handleLogout = () => {
     logout();
-    window.location.reload();
+    // window.location.reload();
   };
 
   const openLogin = () => {

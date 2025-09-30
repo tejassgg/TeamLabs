@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
-import { useAuth } from '../../context/AuthContext';
+import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { GoogleLogin } from '@react-oauth/google';
 import { commonTypeService } from '../../services/api';
@@ -13,7 +13,7 @@ import { commonTypeService } from '../../services/api';
 const RegisterForm = ({ onOpenLogin }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { register: registerUser, googleLogin } = useAuth();
+  const { register: registerUser, googleLogin } = useGlobal();
   const { theme } = useTheme();
   const router = useRouter();
   const inviteToken = (router?.query?.inviteToken || router?.query?.invite || null);

@@ -3,14 +3,15 @@ import Head from 'next/head';
 import CustomDropdown from '../components/shared/CustomDropdown';
 import { FaSearch, FaDownload, FaSort, FaSortUp, FaSortDown, FaExternalLinkAlt, FaTrash, FaFilter } from 'react-icons/fa';
 import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
+
+import { useGlobal } from '../context/GlobalContext';
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
 import CustomModal from '../components/shared/CustomModal';
 import { getPriorityBadge, getTaskTypeBadge } from '../components/task/TaskTypeBadge';
 
 const QueryBoard = () => {
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { showToast } = useToast();
   const { theme } = useTheme();
 
@@ -73,12 +74,12 @@ const QueryBoard = () => {
     try {
       setLoading(true);
 
-      if (!user || !user.organizationID) {
+      if (!userDetails || !userDetails.organizationID) {
         showToast('User organization not found', 'error');
         return;
       }
 
-      const response = await api.get(`/task-details/all?organizationId=${user.organizationID}`);
+      const response = await api.get(`/task-details/all?organizationId=${userDetails.organizationID}`);
       setTasks(response.data.tasks || []);
       setFilteredTasks(response.data.tasks || []);
       setCommonTypes(response.data.commonTypes || {
@@ -97,10 +98,10 @@ const QueryBoard = () => {
 
   // Load tasks when user is available
   useEffect(() => {
-    if (user && user.organizationID) {
+    if (userDetails && userDetails.organizationID) {
       fetchAllTasks();
     }
-  }, [user]);
+  }, [userDetails]);
 
   // Apply filters and search
   useEffect(() => {

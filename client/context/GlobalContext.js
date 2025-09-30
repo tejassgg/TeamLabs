@@ -1,5 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from './AuthContext';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useTheme } from './ThemeContext';
 import { teamService, projectService, authService, taskService, commonTypeService } from '../services/api';
 import { getProjectStatusStyle, getProjectStatusBadge } from '../components/project/ProjectStatusBadge';
@@ -19,7 +18,6 @@ export const useGlobal = () => {
 };
 
 export const GlobalProvider = ({ children }) => {
-  const { user } = useAuth();
   const { theme } = useTheme();
   const router = useRouter();
   const [userDetails, setUserDetails] = useState(null);
@@ -29,6 +27,8 @@ export const GlobalProvider = ({ children }) => {
   const [organization, setOrganization] = useState(null);
   const [projectStatuses, setProjectStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [tempAuthData, setTempAuthData] = useState(null);
+  const dataFetchedRef = useRef(false);
   const [error, setError] = useState(null);
   const [onboardingData, setOnboardingData] = useState({
     onboardingCompleted: false,
@@ -99,48 +99,205 @@ export const GlobalProvider = ({ children }) => {
     return calculateDeadlineText(dueDate);
   };
 
-  // Initial data fetch
+  // Login with email and password
+  const login = async (email, password) => {
+    try {
+      const data = await authService.login(email, password);
+      if (data.twoFactorEnabled) {
+        // Store temporary auth data for 2FA verification
+        setTempAuthData({
+          userId: data.userId
+        });
+        
+        return { 
+          success: true, 
+          twoFactorEnabled: true 
+        };
+      }
+      setUserDetails(data);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to login',
+      };
+    }
+  };
+
+  // Verify 2FA during login
+  const verifyLogin2FA = async (code) => {
+    try {
+      if (!tempAuthData) {
+        throw new Error('No pending 2FA verification');
+      }
+      const data = await authService.verifyLogin2FA(code, tempAuthData.userId);
+      setUserDetails(data);
+      setTempAuthData(null);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to verify 2FA code',
+      };
+    }
+  };
+
+  // Register new user
+  const register = async (userData) => {
+    try {
+      const data = await authService.register(userData);
+      setUserDetails(data);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to register',
+      };
+    }
+  };
+
+  // Google login
+  const googleLogin = async (credential, inviteToken = null) => {
+    try {
+      const data = await authService.googleLogin(credential, inviteToken);
+      setUserDetails(data);
+      return { 
+        success: true,
+        needsAdditionalDetails: data.needsAdditionalDetails || false
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to login with Google',
+      };
+    }
+  };
+
+  // Complete user profile
+  const completeProfile = async (profileData) => {
+    try {
+      const data = await authService.completeProfile(profileData);
+      setUserDetails(data);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to complete profile',
+      };
+    }
+  };
+
+  // Logout
+  const logout = () => {
+    authService.logout();
+    setUserDetails(null);
+  };
+
+  // Update user data
+  const updateUser = (updatedUserData) => {
+    setUserDetails(updatedUserData);
+  };
+
+  // Forgot password
+  const forgotPassword = async (usernameOrEmail) => {
+    try {
+      const data = await authService.forgotPassword(usernameOrEmail);
+      return { success: true, data: data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to send reset link',
+      };
+    }
+  };
+
+  // Reset password
+  const resetPassword = async (key, newPassword) => {
+    try {
+      const res = await authService.resetPassword(key, newPassword);
+      return { success: true, data: res };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to reset password',
+      };
+    }
+  };
+
+  // Verify reset password
+  const verifyResetPassword = async (key) => {
+    try {
+      const res = await authService.verifyResetPassword(key);
+      return { success: true, data: res };
+    } catch (error) {
+      console.error(error);
+      return { success: false, message: error.message || 'Server error' };
+    }
+  };
+
+  // Initial authentication check
   useEffect(() => {
-    const initializeData = async () => {
+    const initAuth = async () => {
       setLoading(true);
       try {
-        const overview = await authService.getUserOverview();
-        if (overview) {          
-          setUserDetails(overview.user);
-          setTeams(overview.teams);
-          setProjects(overview.projects);
-          setOrganization(overview.organization);
-          setTasksDetails(overview.tasks);
-          setProjectStatuses(overview.projectStatuses);
-          setOnboardingData({
-            onboardingCompleted: overview.onboardingCompleted || false,
-            onboardingStep: overview.onboardingStep || 'welcome',
-            onboardingProgress: overview.onboardingProgress || {
-              profileComplete: false,
-              organizationComplete: false,
-              teamCreated: false,
-              projectCreated: false,
-              onboardingComplete: false
-            }
-          });
+        const currentUser = authService.getCurrentUser();
+        if (currentUser) {
+          setUserDetails(currentUser);
         }
-      } catch (err) {
-        setError('Failed to fetch user overview');
-        console.error('Error initializing data:', err);
+      } catch (error) {
+        console.error('Authentication error:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    // Only fetch if not on landing page
-    if (user && router.pathname !== '/') {
-      initializeData();
-    }
-  }, [user, router.pathname]);
+    initAuth();
+  }, []);
+
+  // Initial data fetch
+  useEffect(() => {
+    const initializeData = async () => {
+      if (!userDetails || router.pathname === '/' || dataFetchedRef.current) {
+        return;
+      }
+      dataFetchedRef.current = true;
+      setLoading(true);
+        try {
+          const overview = await authService.getUserOverview();
+          if (overview) {          
+            setUserDetails(overview.user);
+            setTeams(overview.teams);
+            setProjects(overview.projects);
+            setOrganization(overview.organization);
+            setTasksDetails(overview.tasks);
+            setProjectStatuses(overview.projectStatuses);
+            setOnboardingData({
+              onboardingCompleted: overview.onboardingCompleted || false,
+              onboardingStep: overview.onboardingStep || 'welcome',
+              onboardingProgress: overview.onboardingProgress || {
+                profileComplete: false,
+                organizationComplete: false,
+                teamCreated: false,
+                projectCreated: false,
+                onboardingComplete: false
+              }
+            });
+          }
+      } catch (err) {
+        setError('Failed to fetch user overview');
+        console.error('Error initializing data:', err);
+        dataFetchedRef.current = false; // Reset on error to allow retry
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeData();
+  }, [userDetails, router.pathname]);
 
   // Subscribe to real-time team events
   useEffect(() => {
-    if (!user) return;
+    if (!userDetails) return;
 
     const unsubscribeTeamCreated = subscribe('team.created', (payload) => {
       const { data } = payload || {};
@@ -176,7 +333,7 @@ export const GlobalProvider = ({ children }) => {
       unsubscribeTeamDeleted();
       unsubscribeTeamStatusUpdated();
     };
-  }, [user]);
+  }, [userDetails]);
 
   const refreshOrganizations = async () => {
     return await fetchOrganizations();
@@ -542,6 +699,19 @@ export const GlobalProvider = ({ children }) => {
     setProjects,
     setTeams,
     setTasksDetails,
+    isAuthenticated: !!userDetails,
+    loading,
+    login,
+    verifyLogin2FA,
+    register,
+    googleLogin,
+    completeProfile,
+    logout,
+    updateUser,
+    forgotPassword,
+    resetPassword,
+    verifyResetPassword,
+    tempAuthData,
     setOrganization,
     getProjectStatus,
     getProjectStatusStyle,

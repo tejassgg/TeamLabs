@@ -48,7 +48,8 @@ const ProjectDetailsPage = () => {
     formatDate,
     getUserInitials,
     formatTimeAgo,
-    userDetails
+    userDetails,
+    setProjects
   } = useGlobal();
   const { showToast } = useToast();
   const [project, setProject] = useState(null);
@@ -56,7 +57,6 @@ const ProjectDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [orgTeams, setOrgTeams] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
   const [showAddTeamDialog, setShowAddTeamDialog] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [adding, setAdding] = useState(false);
@@ -235,10 +235,6 @@ const ProjectDetailsPage = () => {
     }
   };
 
-  useEffect(() => {
-    setCurrentUser(authService.getCurrentUser());
-  }, []);
-
   // Join project room and subscribe to project-level task updates to keep counts and lists fresh
   useEffect(() => {
     if (!projectId) return;
@@ -292,6 +288,7 @@ const ProjectDetailsPage = () => {
           setUserStories(res.data.userStories);
           setProjectMembers(res.data.projectMembers || []);
           setProjectActivity(res.data.activity || []);
+          setActiveTab('manage');
         })
         .catch(err => {
           setError('Failed to fetch project');
@@ -304,10 +301,10 @@ const ProjectDetailsPage = () => {
 
   // Fetch project repository information
   useEffect(() => {
-    if (projectId && currentUser) {
+    if (projectId && userDetails) {
       fetchProjectRepository();
     }
-  }, [projectId, currentUser]);
+  }, [projectId, userDetails]);
 
   // Fetch commits when repository tab is active and repository is connected
   useEffect(() => {
@@ -356,7 +353,7 @@ const ProjectDetailsPage = () => {
   const fetchUserRepositories = async () => {
     try {
       setRepositoryLoading(true);
-      const response = await authService.getUserRepositories(currentUser._id);
+      const response = await authService.getUserRepositories(userDetails._id);
       if (response.success) {
         setUserRepositories(response.repositories);
         setShowRepositoryList(true);
@@ -374,7 +371,7 @@ const ProjectDetailsPage = () => {
   const handleLinkRepository = async (repository) => {
     try {
       setLinkingRepository(true);
-      const response = await authService.linkRepositoryToProject(projectId, repository, currentUser._id);
+      const response = await authService.linkRepositoryToProject(projectId, repository, userDetails._id);
       if (response.success) {
         setProjectRepository(response.project.githubRepository);
         setShowRepositoryModal(false);
@@ -679,7 +676,6 @@ const ProjectDetailsPage = () => {
     }
 
     if (!teamSearch) {
-      console.log('showAllTeams', orgTeams);
       // When search is empty, show first 10 teams by default
       const assignedIds = new Set(teams.map(t => t.TeamID));
       const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
@@ -723,7 +719,7 @@ const ProjectDetailsPage = () => {
     }
   }, [project]);
 
-  const isOwner = currentUser && project && currentUser._id === project.ProjectOwner;
+  const isOwner = userDetails && project && userDetails._id === project.ProjectOwner;
 
   const handleAddTeam = async (teamId) => {
     if (!teamId) return;
@@ -808,9 +804,10 @@ const ProjectDetailsPage = () => {
         Description: settingsForm.Description,
         DueDate: settingsForm.DueDate,
         ProjectStatusID: settingsForm.ProjectStatusID,
-        ModifiedBy: currentUser._id,
+        ModifiedBy: userDetails._id,
         ModifiedDate: new Date()
       });
+      setProjects(prev => prev.map(p => p.ProjectID === project.ProjectID ? res.data : p));
       setProject(res.data);
       handleCloseModal();
       showToast('Project details updated successfully!', 'success');
@@ -825,6 +822,7 @@ const ProjectDetailsPage = () => {
     setTogglingStatus(true);
     try {
       const res = await api.patch(`/projects/${project.ProjectID}/toggle-status`);
+      setProjects(prev => prev.map(p => p.ProjectID === project.ProjectID ? res.data : p));
       setProject(res.data);
       handleCloseModal();
     } catch (err) {
@@ -1192,7 +1190,7 @@ const ProjectDetailsPage = () => {
                       <span>Repo</span>
                     </button>
                   )}
-                  {currentUser?.role === 'Admin' && (
+                  {userDetails?.role === 'Admin' && (
                     <button
                       onClick={() => setActiveTab('knowledge')}
                       className={`${activeTab === 'knowledge'
@@ -2608,7 +2606,7 @@ const ProjectDetailsPage = () => {
               </div>
             </div>
           </div>
-        ) : activeTab === 'knowledge' && currentUser?.role === 'Admin' ? (
+        ) : activeTab === 'knowledge' && userDetails?.role === 'Admin' ? (
           <RAGManagement organizationId={project?.OrganizationID} />
         ) : null}
 

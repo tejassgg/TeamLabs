@@ -1,7 +1,6 @@
 import Navbar from './Navbar';
 import { useTheme } from '../../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import { FaCog, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaRegClipboard, FaProjectDiagram } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { projectService, taskService, authService } from '../../services/api';
@@ -24,7 +23,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
   const { teams, projects, organization, userDetails } = useGlobal();
-  const { user } = useAuth();
   const [subscriptionData, setSubscriptionData] = useState(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
@@ -45,10 +43,10 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
 
   // Fetch subscription data for admin users
   const fetchSubscriptionData = async () => {
-    if (user?.role === 'Admin' || user?.role === 1) {
+    if (userDetails?.role === 'Admin' || userDetails?.role === 1) {
       setLoadingSubscription(true);
       try {
-        const response = await authService.getSubscriptionData(user.organizationID);
+        const response = await authService.getSubscriptionData(userDetails.organizationID);
         const newSubscriptionData = response.data.subscription;
         setSubscriptionData(newSubscriptionData);
       } catch (error) {
@@ -62,7 +60,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   // Refresh subscription data when component becomes visible (user returns from payment)
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (!document.hidden && user?.organizationID) {
+      if (!document.hidden && userDetails?.organizationID) {
         fetchSubscriptionData();
       }
     };
@@ -71,7 +69,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [user?.organizationID, user?.role]);
+  }, [userDetails?.organizationID, userDetails?.role]);
 
   const handleNavigation = (path) => {
     router.push(path);
@@ -336,7 +334,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
         {/* Bottom: Logout & Theme Switch */}
         <div className={`flex flex-col gap-2 p-4 border-t ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
           {/* Upgrade to Premium Button - Only show for admin users without premium */}
-          {user?.role === 'Admin' && !userDetails?.isPremiumMember && (!isMobile && !collapsed) && (
+          {userDetails?.role === 'Admin' && !userDetails?.isPremiumMember && (!isMobile && !collapsed) && (
             <button onClick={() => handleNavigation('/settings?tab=billing')}
               className={`w-full flex items-center ${(!isMobile && collapsed) ? 'justify-center gap-2' : 'justify-between gap-3'} px-3 py-2 rounded-xl font-medium transition-all duration-200 border ${theme === 'dark' ? 'bg-[#232323] border-[#424242] text-[#F3F6FA] hover:bg-[#2a2a2a]' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
                 }`} >
@@ -450,13 +448,13 @@ const isProfileComplete = (userDetails) => {
 
 const Layout = ({ children, pageProject, pageTitle }) => {
   const { theme, toggleTheme } = useTheme();
-  const { logout, user } = useAuth();
+  const { logout } = useGlobal();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { showToast } = useToast();
   const router = useRouter();
-  const { teams, projects, tasksDetails, userDetails, loading: globalLoading, setProjects, setTasksDetails } = useGlobal();
+  const { teams, projects, tasksDetails, userDetails, loading, setProjects, setTasksDetails } = useGlobal();
   const [showFirstTimeSetup, setShowFirstTimeSetup] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   
@@ -465,7 +463,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
 
   // Apply user's font preference on mount
   useEffect(() => {
-    if (user?.fontFamily) {
+    if (userDetails?.fontFamily) {
       const fontOptions = [
         { value: 'Inter', fontFamily: 'Inter, sans-serif' },
         { value: 'Roboto', fontFamily: 'Roboto, sans-serif' },
@@ -477,12 +475,12 @@ const Layout = ({ children, pageProject, pageTitle }) => {
         { value: 'Nunito', fontFamily: 'Nunito, sans-serif' },
         { value: 'JetBrains Mono', fontFamily: 'JetBrains Mono, monospace' }
       ];
-      const selectedFont = fontOptions.find(f => f.value === user.fontFamily);
+      const selectedFont = fontOptions.find(f => f.value === userDetails.fontFamily);
       if (selectedFont) {
         document.documentElement.style.setProperty('--font-family', selectedFont.fontFamily);
       }
     }
-  }, [user?.fontFamily]);
+  }, [userDetails?.fontFamily]);
 
   // Inline editing states
   const [editingProjectId, setEditingProjectId] = useState(null);
@@ -737,7 +735,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
   }, [isMobile, isMobileSidebarOpen]);
 
   useEffect(() => {
-    if (globalLoading || isRedirecting) return; // Prevent redirect loops
+    if (loading || isRedirecting) return; // Prevent redirect loops
     // Only run on client
     if (typeof window === 'undefined') return;
     // Never redirect away from /profile or /welcome for profile completion
@@ -752,7 +750,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
       setIsRedirecting(true);
       router.replace('/profile');
     }
-  }, [userDetails, globalLoading, router.pathname, isRedirecting]);
+  }, [userDetails, loading, router.pathname, isRedirecting]);
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'}`}>

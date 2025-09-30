@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
-import { useAuth } from '../../context/AuthContext';
+import { useGlobal } from '../../context/GlobalContext';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GoogleLogin } from '@react-oauth/google';
@@ -17,7 +17,7 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
   const [show2FA, setShow2FA] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
-  const { login, verifyLogin2FA, googleLogin } = useAuth();
+  const { login, verifyLogin2FA, googleLogin } = useGlobal();
   const router = useRouter();
   const { register, handleSubmit, formState: { errors } } = useForm();
   const { showToast } = useToast();
@@ -73,8 +73,8 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
     try {
       const response = await googleLogin(credentialResponse.credential);
       if (response.success) {
+        showToast('Login Successful!', 'success');
         if (onSuccess) onSuccess();
-        router.push('/dashboard');
       }
     } catch (error) {
       setError('Failed to login with Google');

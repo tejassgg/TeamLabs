@@ -27,8 +27,8 @@ router.delete('/meetings/:meetingId', protect, deleteMeeting);
 
 // Google OAuth (unified for Calendar and Drive)
 router.post('/google/initiate', protect, initiateGoogleAuth);
-router.get('/google-calendar/status/:userId', protect, getGoogleCalendarStatus);
-router.get('/google-drive/status/:userId', protect, getGoogleDriveStatus);
+router.get('/google-calendar/status', protect, getGoogleCalendarStatus);
+router.get('/google-drive/status', protect, getGoogleDriveStatus);
 router.get('/google/callback', handleGoogleCallback);
 router.post('/google-calendar/attach-token', protect, attachGoogleCalendarToken);
 router.post('/google-calendar/disconnect', protect, disconnectGoogleCalendar);

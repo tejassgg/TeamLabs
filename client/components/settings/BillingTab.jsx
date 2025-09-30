@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useAuth } from '../../context/AuthContext';
+
+import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import { authService } from '../../services/api';
@@ -14,7 +15,7 @@ const BillingTab = ({
   loadingSubscription: prefetchedLoadingSubscription,
   onRefreshSubscription
 }) => {
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
 
@@ -44,9 +45,9 @@ const BillingTab = ({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
-    if (!user?.organizationID) return;
+    if (!userDetails?.organizationID) return;
     fetchStripeInvoices();
-  }, []);
+  }, [userDetails?.organizationID]);
 
   // Sync with prefetched data when props change
   useEffect(() => {
@@ -67,7 +68,7 @@ const BillingTab = ({
   const fetchStripeInvoices = async () => {
     try {
       setLoadingStripeInvoices(true);
-      const res = await paymentService.getStripeTransactions(user.organizationID);
+      const res = await paymentService.getStripeTransactions(userDetails.organizationID);
       if (res?.success) {
         setStripeInvoices(res.data || []);
       }
@@ -133,8 +134,8 @@ const BillingTab = ({
         return;
       }
       const { success, url } = await paymentService.createCheckoutSession({
-        organizationID: user.organizationID,
-        userId: user._id,
+        organizationID: userDetails.organizationID,
+        userId: userDetails._id,
         plan: selectedPlan,
         priceId,
       });
@@ -150,7 +151,7 @@ const BillingTab = ({
 
   const handleUpgradeToAnnual = async () => {
     try {
-      const cancelRes = await authService.cancelSubscription(user.organizationID, user._id);
+      const cancelRes = await authService.cancelSubscription(userDetails.organizationID, userDetails._id);
       if (!cancelRes?.success) {
         showToast(cancelRes?.message || 'Failed to cancel current subscription', 'error');
         return;
@@ -165,7 +166,7 @@ const BillingTab = ({
 
   const handleDowngradeToFree = async () => {
     try {
-      const response = await authService.downgradeSubscription(user.organizationID, 'free', user._id);
+      const response = await authService.downgradeSubscription(userDetails.organizationID, 'free', userDetails._id);
       if (response.success) {
         showToast('Successfully downgraded to free plan', 'success');
         onRefreshSubscription();
@@ -181,7 +182,7 @@ const BillingTab = ({
 
   const handleDowngradeToMonthly = async () => {
     try {
-      const response = await authService.post(`/payment/downgrade/${user.organizationID}`, { newPlan: 'monthly', userId: user._id });
+        const response = await authService.post(`/payment/downgrade/${userDetails.organizationID}`, { newPlan: 'monthly', userId: userDetails._id });
       if (response.data.success) {
         const originalPlan = response.data.data.originalPlan;
         showToast(`Successfully downgraded from ${originalPlan} to monthly plan. Refund amount: $${response.data.data.refundAmount}`, 'success');
@@ -200,7 +201,7 @@ const BillingTab = ({
     const currentPlan = getCurrentPlan();
     if (toPlan === 'free' && currentPlan !== 'free') {
       try {
-        const response = await authService.calculateRefund(user.organizationID, toPlan);
+        const response = await authService.calculateRefund(userDetails.organizationID, toPlan);
         if (response.success) {
           setDowngradeInfo({
             fromPlan: currentPlan,
@@ -218,7 +219,7 @@ const BillingTab = ({
       }
     } else if (currentPlan === 'annual' && toPlan === 'monthly') {
       try {
-        const response = await authService.calculateRefund(user.organizationID, toPlan);
+        const response = await authService.calculateRefund(userDetails.organizationID, toPlan);
         if (response.success) {
           setDowngradeInfo({
             fromPlan: currentPlan,
@@ -834,7 +835,7 @@ const BillingTab = ({
               </p>
             </div>
             <div className="p-6 space-y-3">
-              <button onClick={async () => { try { const res = await authService.cancelSubscription(user.organizationID, user._id); if (res?.success) { setShowCancelModal(false); showToast('Subscription cancelled successfully', 'success'); onRefreshSubscription(); } else { showToast(res?.message || 'Failed to cancel subscription', 'error'); } } catch (e) { showToast(e?.message || 'Failed to cancel subscription', 'error'); } }} className={`w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-200 shadow ${'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'}`}>
+              <button onClick={async () => { try { const res = await authService.cancelSubscription(userDetails.organizationID, userDetails._id); if (res?.success) { setShowCancelModal(false); showToast('Subscription cancelled successfully', 'success'); onRefreshSubscription(); } else { showToast(res?.message || 'Failed to cancel subscription', 'error'); } } catch (e) { showToast(e?.message || 'Failed to cancel subscription', 'error'); } }} className={`w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-200 shadow ${'bg-gradient-to-r from-blue-600 to-purple-700'}`}>
                 Confirm Cancellation
               </button>
               <button onClick={() => setShowCancelModal(false)} className={`w-full py-3 px-4 rounded-xl font-semibold transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 hover:bg-gray-700' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}>

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../context/AuthContext';
+
+import { useGlobal } from '../../context/GlobalContext';
 import { useToast } from '../../context/ToastContext';
 import { FaPlus, FaEdit, FaTrash, FaCheck, FaTimes, FaTasks } from 'react-icons/fa';
 import { connectSocket, subscribe, getSocket } from '../../services/socket';
@@ -8,7 +9,7 @@ import { subtaskService } from '../../services/api';
 
 const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) => {
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { showToast } = useToast();
 
   const [subtasks, setSubtasks] = useState(initialSubtasks || []);
@@ -183,11 +184,11 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
   };
 
   const canEditSubtask = (subtask) => {
-    return user && user._id === subtask.CreatedBy;
+    return userDetails && userDetails._id === subtask.CreatedBy;
   };
 
   const canDeleteSubtask = (subtask) => {
-    return user && user._id === subtask.CreatedBy;
+    return userDetails && userDetails._id === subtask.CreatedBy;
   };
 
   const getThemeClasses = (lightClasses, darkClasses) => {

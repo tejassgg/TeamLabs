@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useAuth } from '../context/AuthContext';
+
+import { useGlobal } from '../context/GlobalContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
-import { useGlobal } from '../context/GlobalContext';
 import api, { messagingService } from '../services/api';
 import { connectSocket, getSocket, subscribe } from '../services/socket';
 import { FaPaperPlane, FaPlus, FaSmile, FaImage, FaVideo, FaChevronDown, FaCheck, FaTimes, FaSearch, FaEllipsisV, FaCog, FaTrash, FaSignOutAlt, FaEdit, FaSave, FaPhone, FaMicrophone } from 'react-icons/fa';
@@ -22,7 +22,7 @@ import {
 
 export default function MessagesPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
   const { formatTimeAgo } = useGlobal();
@@ -146,19 +146,19 @@ export default function MessagesPage() {
 
   // Add current user to group members by default when group type is selected
   useEffect(() => {
-    if (conversationType === 'group' && user && orgUsers.length > 0) {
+    if (conversationType === 'group' && userDetails && orgUsers.length > 0) {
       // Find current user in orgUsers
-      const currentUser = orgUsers.find(u => String(u._id) === String(user._id));
+      const currentUser = orgUsers.find(u => String(u._id) === String(userDetails._id));
       if (currentUser && !groupMembers.some(m => String(m._id) === String(currentUser._id))) {
         setGroupMembers(prev => [...prev, currentUser]);
       }
     }
-  }, [conversationType, user, orgUsers, groupMembers]);
+  }, [conversationType, userDetails, orgUsers, groupMembers]);
 
   // Filter conversations based on search query
   const filteredConversations = useMemo(() => {
     if (!searchQuery.trim()) return conversations;
-    if (!user) return conversations;
+    if (!userDetails) return conversations;
 
     const query = searchQuery.toLowerCase().trim();
     return conversations.filter(conversation => {
@@ -264,7 +264,7 @@ export default function MessagesPage() {
       .finally(() => setIsLoadingConversations(false));
 
     // load org users for multi-select
-    api.get(`/dashboard/${user.organizationID}`).then(res => {
+    api.get(`/dashboard/${userDetails.organizationID}`).then(res => {
       const users = res.data?.members?.map(m => {
         const name = m.name || '';
         const parts = name.split(' ').filter(Boolean);
@@ -447,10 +447,10 @@ export default function MessagesPage() {
     // Subscribe to organization member updates to refresh orgUsers list
     const offOrgMemberUpdated = subscribe('org.member.updated', (payload) => {
       const { data } = payload || {};
-      if (!data || !data.organizationId || data.organizationId !== user.organizationID) return;
+      if (!data || !data.organizationId || data.organizationId !== userDetails.organizationID) return;
 
       // Refresh organization users list when members are updated
-      api.get(`/dashboard/${user.organizationID}`).then(res => {
+      api.get(`/dashboard/${userDetails.organizationID}`).then(res => {
         const users = res.data?.members?.map(m => {
           const name = m.name || '';
           const parts = name.split(' ').filter(Boolean);
@@ -1096,9 +1096,9 @@ export default function MessagesPage() {
     
     setCallData({
       conversationId,
-      callerId: user._id,
+      callerId: userDetails._id,
       recipientId: recipientId,
-      callerName: `${user.firstName} ${user.lastName}`.trim(),
+      callerName: `${userDetails.firstName} ${userDetails.lastName}`.trim(),
       recipientName: recipientName || '',
       type: 'video'
     });
@@ -2177,8 +2177,8 @@ export default function MessagesPage() {
                         try {
                           let ids = groupMembers.map(u => u._id);
                           // Ensure current user is always included
-                          if (user && !ids.includes(user._id)) {
-                            ids.push(user._id);
+                          if (userDetails && !ids.includes(userDetails._id)) {
+                            ids.push(userDetails._id);
                           }
                           const conv = await messagingService.createGroup(groupName, ids, groupAvatar);
                           selectConversationWithCleanup(conv);

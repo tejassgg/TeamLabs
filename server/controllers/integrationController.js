@@ -38,7 +38,7 @@ const getIntegrationDescription = (integrationType) => {
 
 exports.getIntegrationsStatus = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user._id;
     if (!userId) {
       return res.status(400).json({ success: false, error: 'User ID is required' });
     }
@@ -92,7 +92,7 @@ exports.getIntegrationsStatus = async (req, res) => {
 // ---------- GitHub ----------
 exports.initiateGitHubAuth = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user._id;
     if (!userId) {
       return res.status(400).json({ success: false, error: 'User ID is required' });
     }
@@ -167,7 +167,7 @@ exports.handleGitHubCallback = async (req, res) => {
 
 exports.disconnectGitHub = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user._id;
     if (!userId) {
       return res.status(400).json({ success: false, error: 'User ID is required' });
     }
@@ -199,7 +199,7 @@ exports.disconnectGitHub = async (req, res) => {
 
 exports.getGitHubStatus = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user._id;
     if (!userId) {
       return res.status(400).json({ success: false, error: 'User ID is required' });
     }
@@ -216,7 +216,7 @@ exports.getGitHubStatus = async (req, res) => {
 
 exports.getUserRepositories = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.user?._id;
     if (!userId) {
       return res.status(400).json({ success: false, error: 'User ID is required' });
     }
@@ -236,7 +236,7 @@ exports.getUserRepositories = async (req, res) => {
 // ---------- Google (OAuth unified) ----------
 exports.getGoogleCalendarStatus = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user._id;
     const user = await User.findById(userId).select('email profileImage');
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
@@ -255,7 +255,7 @@ exports.getGoogleCalendarStatus = async (req, res) => {
 exports.initiateGoogleAuth = async (req, res) => {
   try {
     assertGoogleOAuthEnvOrThrow();
-    const userId = req.user?._id || req.body.userId;
+    const userId = req.user._id;
     if (!userId) return res.status(400).json({ success: false, message: 'userId required' });
     const { service } = req.body;
     if (!service || !['google_calendar', 'google_drive'].includes(service)) {
@@ -348,7 +348,7 @@ exports.handleGoogleCallback = async (req, res) => {
 
 exports.attachGoogleCalendarToken = async (req, res) => {
   try {
-    const userId = req.user?._id || req.body.userId;
+    const userId = req.user._id;
     if (!userId) return res.status(400).json({ success: false, message: 'Missing userId' });
     const { accessToken, refreshToken = null, tokenExpiry = null } = req.body;
     if (!accessToken) return res.status(400).json({ success: false, message: 'Missing accessToken' });
@@ -368,7 +368,7 @@ exports.attachGoogleCalendarToken = async (req, res) => {
 
 exports.disconnectGoogleCalendar = async (req, res) => {
   try {
-    const userId = req.user?._id || req.body.userId;
+    const userId = req.user._id;
     if (!userId) return res.status(400).json({ success: false, message: 'Missing userId' });
     await Integration.findOneAndUpdate(
       { userId, integrationType: 'google_calendar' },
@@ -384,7 +384,7 @@ exports.disconnectGoogleCalendar = async (req, res) => {
 
 exports.getGoogleDriveStatus = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user._id;
     if (!userId) return res.status(400).json({ success: false, message: 'Missing userId' });
     const integration = await Integration.findOne({ userId, integrationType: 'google_drive' });
     if (!integration || !integration.isConnected) {
@@ -399,7 +399,7 @@ exports.getGoogleDriveStatus = async (req, res) => {
 
 exports.disconnectGoogleDrive = async (req, res) => {
   try {
-    const userId = req.user?._id || req.body.userId;
+    const userId = req.user._id;
     if (!userId) return res.status(400).json({ success: false, message: 'Missing userId' });
     await Integration.findOneAndUpdate(
       { userId, integrationType: 'google_drive' },

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { commonTypeService } from '../../services/api';
-import { authService } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import { FaCircle, FaUsers, FaAlignLeft, FaTag, FaPalette } from 'react-icons/fa';
 import CustomDropdown from '../shared/CustomDropdown';
+import { useGlobal } from '../../context/GlobalContext';
 
 const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
   const { theme } = useTheme();
@@ -14,6 +14,7 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
   const [teamTypeOptions, setTeamTypeOptions] = useState([]);
   const [error, setError] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
+  const { userDetails } = useGlobal();
 
   // Predefined colors from Team model
   const teamColors = [
@@ -25,8 +26,6 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
     { value: '#EC4899', name: 'Pink' },
     { value: '#6B7280', name: 'Gray' },
   ];
-
-  const currentUser = authService.getCurrentUser();
 
   const getThemeClasses = (lightClass, darkClass) => {
     return theme === 'dark' ? darkClass : lightClass;
@@ -74,7 +73,7 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
       TeamDescription: teamDescription.trim(),
       TeamType: teamType,
       TeamColor: teamColor,
-      OwnerID: currentUser?._id
+      OwnerID: userDetails?._id
     });
     setTeamName('');
     setTeamDescription('');

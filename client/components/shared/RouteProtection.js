@@ -1,10 +1,11 @@
-import { useAuth } from '../../context/AuthContext';
+
+import { useGlobal } from '../../context/GlobalContext';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import LoadingScreen from './LoadingScreen';
 
 const RouteProtection = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { loading, isAuthenticated } = useGlobal();
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
 

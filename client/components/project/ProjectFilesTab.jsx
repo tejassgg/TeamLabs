@@ -3,7 +3,7 @@ import { FaFile, FaSearch, FaFilter, FaTh, FaTable, FaDownload, FaTrash, FaFileP
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../context/AuthContext';
+
 import { useGlobal } from '../../context/GlobalContext';
 import CustomModal from '../shared/CustomModal';
 import { subscribe } from '../../services/socket';
@@ -12,7 +12,7 @@ import { attachmentService } from '../../services/api';
 const ProjectFilesTab = ({ projectId }) => {
   const { theme } = useTheme();
   const { showToast } = useToast();
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { getUserInitials, formatFileSize } = useGlobal();
 
   // Add CSS animations
@@ -198,7 +198,7 @@ const ProjectFilesTab = ({ projectId }) => {
           const formData = new FormData();
           formData.append('file', file);
           formData.append('projectId', projectId);
-          formData.append('userId', user._id);
+          formData.append('userId', userDetails._id);
           formData.append('filename', file.name);
 
           const uploadRes = await attachmentService.uploadAttachment(formData);

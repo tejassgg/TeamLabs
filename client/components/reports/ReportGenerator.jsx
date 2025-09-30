@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaFileAlt, FaCog, FaDownload, FaShare, FaClock, FaCheckCircle, FaExclamationTriangle, FaSpinner, FaTimes, FaCalendarAlt, FaArrowRight, FaTasks, FaChartBar, FaRocket, FaTrash, FaInfoCircle } from 'react-icons/fa';
-import { useAuth } from '../../context/AuthContext';
+
+import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { reportService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
@@ -30,7 +31,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
   const [activeTab, setActiveTab] = useState('generate'); // 'generate' or 'view'
   const [deletingReportId, setDeletingReportId] = useState(null);
 
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
 

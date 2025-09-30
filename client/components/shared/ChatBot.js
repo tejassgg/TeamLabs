@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaRobot, FaTimes, FaPaperPlane, FaHistory } from 'react-icons/fa';
-import { useAuth } from '../../context/AuthContext';
+
+import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { chatbotService } from '../../services/api';
 import Link from 'next/link';
@@ -15,7 +16,7 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const messagesEndRef = useRef(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useGlobal();
   const { theme } = useTheme();
 
   // Use external state if provided, otherwise use internal state

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaFileAlt, FaCog, FaDownload, FaEye, FaTrash, FaPlus, FaFilter, FaSearch, FaCalendarAlt, FaChartLine } from 'react-icons/fa';
-import { useAuth } from '../../context/AuthContext';
+
+import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { reportService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
@@ -22,7 +23,7 @@ const ReportsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('reports'); // 'reports' or 'configs'
 
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
 

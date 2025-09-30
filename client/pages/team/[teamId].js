@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useAuth } from '../../context/AuthContext';
+
 import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
 import api, { authService, teamService, meetingService } from '../../services/api';
@@ -18,7 +18,7 @@ import StatusPill from '../../components/shared/StatusPill';
 
 const TeamDetailsPage = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { teamId } = router.query;
   const { teams, setTeams, getProjectStatusBadgeComponent, getProjectStatusStyle, getProjectStatus, getDaysBadgeColor, getUserInitials, getDeadlineStatusComponent } = useGlobal();
   const { theme } = useTheme();
@@ -50,7 +50,6 @@ const TeamDetailsPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [adding, setAdding] = useState(false);
   const [toggling, setToggling] = useState('');
-  const [currentUser, setCurrentUser] = useState(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isSettingsModalClosing, setIsSettingsModalClosing] = useState(false);
   const [isSettingsModalOpening, setIsSettingsModalOpening] = useState(false);
@@ -113,21 +112,6 @@ const TeamDetailsPage = () => {
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [isGoogleCalendarConnected, setIsGoogleCalendarConnected] = useState(false);
   const [showGoogleCalendarPrompt, setShowGoogleCalendarPrompt] = useState(false);
-  const [googleAccessToken, setGoogleAccessToken] = useState(null);
-
-  const teamColors = [
-    { value: '#3B82F6', name: 'Blue' },
-    { value: '#10B981', name: 'Green' },
-    { value: '#F59E0B', name: 'Amber' },
-    { value: '#EF4444', name: 'Red' },
-    { value: '#8B5CF6', name: 'Purple' },
-    { value: '#EC4899', name: 'Pink' },
-    { value: '#6B7280', name: 'Gray' },
-  ];
-
-  useEffect(() => {
-    setCurrentUser(authService.getCurrentUser());
-  }, []);
 
   useEffect(() => {
     if (teamId) {
@@ -169,7 +153,6 @@ const TeamDetailsPage = () => {
           } catch (_) { /* ignore toast errors */ }
         })
         .finally(() => setLoading(false));
-      setGoogleAccessToken(user?.googleCalendarAccessToken);
     }
   }, [teamId, router]);
 
@@ -320,8 +303,8 @@ const TeamDetailsPage = () => {
       });
   }, []);
 
-  const isOwner = currentUser && team && currentUser._id === team.OwnerID;
-  const isMember = currentUser && members && members.some(member => member.MemberID === currentUser._id);
+  const isOwner = userDetails && team && userDetails._id === team.OwnerID;
+  const isMember = userDetails && members && members.some(member => member.MemberID === userDetails._id);
   const isTeamMember = isOwner || isMember;
 
   // Filter users as search changes
@@ -410,9 +393,7 @@ const TeamDetailsPage = () => {
     setError('');
     try {
       await api.patch(`/team-details/${teamId}/toggle-status`, { OwnerID: team.OwnerID });
-      // Refresh team data
-      const res = await api.get(`/team-details/${teamId}`);
-      setTeam(res.data.team);
+      setTeam(prev => ({ ...prev, IsActive: !prev.IsActive }));
       setShowConfirmDialog(false);
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to update team status');
@@ -479,7 +460,7 @@ const TeamDetailsPage = () => {
   };
 
   const handleLeaveTeam = async () => {
-    if (!currentUser || !team) return;
+    if (!userDetails || !team) return;
 
     setLeavingTeam(true);
     try {
@@ -487,11 +468,12 @@ const TeamDetailsPage = () => {
         // If owner is leaving, show transfer admin dialog
         setShowLeaveTeamDialog(false);
         setShowTransferAdminDialog(true);
+        setLeavingTeam(false); // Reset loading state since we're not actually leaving yet
         return;
       }
 
       // For regular members, leave the team
-      const res = await teamService.leaveTeam(team.TeamID, currentUser._id);
+      const res = await teamService.leaveTeam(team.TeamID);
       if (res.data.success) {
         showToast(res.data.message, 'success');
       }
@@ -503,29 +485,32 @@ const TeamDetailsPage = () => {
       console.error('Error leaving team:', error);
       showToast(err?.response?.data?.error || 'Failed to leave team', 'error');
     } finally {
-      setLeavingTeam(false);
-      setShowLeaveTeamDialog(false);
-      setShowTransferAdminDialog(false);
-      setSelectedNewAdmin(null);
+      // Only reset states if we're not showing the transfer admin dialog
+      if (!isOwner) {
+        setLeavingTeam(false);
+        setShowLeaveTeamDialog(false);
+        setShowTransferAdminDialog(false);
+        setSelectedNewAdmin(null);
+      }
     }
   };
 
   const handleTransferAdminAndLeave = async () => {
-    if (!currentUser || !team || !selectedNewAdmin) return;
+    if (!userDetails || !team || !selectedNewAdmin) return;
 
     setLeavingTeam(true);
     try {
-      const res = await teamService.leaveTeam(team.TeamID, currentUser._id, selectedNewAdmin);
-      if (res.data.success) {
-        showToast(res.data.message, 'success');
+      const res = await teamService.leaveTeam(team.TeamID, selectedNewAdmin);
+      if (res.success) {
+        showToast(res.message, 'success');
       }
       else {
-        setError(res.data.error);
+        setError(res.error);
       }
       router.push('/teams');
     } catch (error) {
       console.error('Error transferring admin and leaving:', error);
-      showToast(err?.response?.data?.error || 'Failed to transfer admin and leave team', 'error');
+      showToast(error?.message || 'Failed to transfer admin and leave team', 'error');
       setShowTransferAdminDialog(false);
       setSelectedNewAdmin(null);
     } finally {
@@ -562,7 +547,7 @@ const TeamDetailsPage = () => {
         TeamDescription: settingsForm.TeamDescription,
         TeamType: settingsForm.TeamType,
         TeamColor: settingsForm.TeamColor,
-        OwnerID: user?._id
+        OwnerID: userDetails?._id
       });
 
       if (res.data.success) {
@@ -587,7 +572,7 @@ const TeamDetailsPage = () => {
     setError('');
     try {
       const res = await api.delete(`/team-details/${teamId}`, {
-        data: { OwnerID: user?._id }
+        data: { OwnerID: userDetails?._id }
       });
 
       if (res.data.success) {
@@ -616,7 +601,7 @@ const TeamDetailsPage = () => {
       const res = await api.delete(`/team-details/${teamId}/members/remove-members`, {
         data: {
           memberIds: selectedMembers,
-          OwnerID: user?._id
+          OwnerID: userDetails?._id
         }
       });
 
@@ -665,7 +650,7 @@ const TeamDetailsPage = () => {
       await api.delete(`/team-details/${teamId}/projects/remove-projects`, {
         data: {
           projectIds: selectedProjects,
-          OwnerID: user?._id
+          OwnerID: userDetails?._id
         }
 
       });
@@ -839,8 +824,8 @@ const TeamDetailsPage = () => {
   useEffect(() => {
     const checkGoogleStatus = async () => {
       try {
-        if (!user?._id) return;
-        const res = await meetingService.getGoogleCalendarStatus(user._id);
+        if (!userDetails?._id) return;
+        const res = await meetingService.getGoogleCalendarStatus(userDetails._id);
         if (res?.success) {
           setIsGoogleCalendarConnected(Boolean(res.connected));
           if (res.connected) setShowGoogleCalendarPrompt(false);
@@ -848,7 +833,7 @@ const TeamDetailsPage = () => {
       } catch (e) { /* ignore */ }
     };
     checkGoogleStatus();
-  }, [user?._id]);
+  }, [userDetails?._id]);
 
   const handleSelectProject = (projectId) => {
     setSelectedProjects(prev => {
@@ -870,7 +855,7 @@ const TeamDetailsPage = () => {
   const handleAcceptRequest = async (requestId, userId) => {
     setProcessingRequest(requestId + '-accept');
     try {
-      await teamService.acceptTeamJoinRequest(teamId, requestId, user._id);
+      await teamService.acceptTeamJoinRequest(teamId, requestId, userDetails._id);
       // Refresh team data to get updated members and pending requests
       const res = await api.get(`/team-details/${teamId}`);
       setMembers(res.data.members);
@@ -886,7 +871,7 @@ const TeamDetailsPage = () => {
   const handleRejectRequest = async (requestId) => {
     setProcessingRequest(requestId + '-reject');
     try {
-      await teamService.rejectTeamJoinRequest(teamId, requestId, user._id);
+      await teamService.rejectTeamJoinRequest(teamId, requestId, userDetails._id);
       // Refresh team data to get updated pending requests
       const res = await api.get(`/team-details/${teamId}`);
       setJoinRequests(res.data.pendingRequests || []);
@@ -984,7 +969,7 @@ const TeamDetailsPage = () => {
                 </div>
                 {/* Right side controls */}
                 <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-                  <StatusPill status={team.IsActive ? 'Active' : 'Offline'} theme={theme} showPulseOnActive />
+                  <StatusPill status={team.IsActive ? 'Active' : 'InActive'} theme={theme} showPulseOnActive />
                   {team.teamTypeValue && (
                     <div className={getThemeClasses(
                       'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200',
@@ -1063,7 +1048,7 @@ const TeamDetailsPage = () => {
                 {/* Status and Controls Section */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
-                    <StatusPill status={team.IsActive ? 'Active' : 'Offline'} theme={theme} showPulseOnActive />
+                    <StatusPill status={team.IsActive ? 'Active' : 'InActive'} theme={theme} showPulseOnActive />
                     {team.teamTypeValue && (
                       <div className={getThemeClasses(
                         'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200',
@@ -1235,7 +1220,7 @@ const TeamDetailsPage = () => {
                               <div className={getThemeClasses('text-sm text-gray-600 line-clamp-2', 'dark:text-gray-400')}>{m.Description || 'No description'}</div>
                             </div>
                             {/* Actions section similar to Team Members */}
-                            {m.OrganizerID === user?._id && (
+                            {m.OrganizerID === userDetails?._id && (
                               <div className="flex items-center justify-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
                                 <button
                                   onClick={(e) => handleDeleteMeeting(m.MeetingID, e)}
@@ -2604,7 +2589,7 @@ const TeamDetailsPage = () => {
                   getThemeClasses={getThemeClasses}
                   actions={
                     <>
-                      {meetingDetails.meeting?.OrganizerID === user?._id && (
+                      {meetingDetails.meeting?.OrganizerID === userDetails?._id && (
                         <button
                           onClick={() => {
                             // Prefill createMeetingForm with details
@@ -2894,7 +2879,7 @@ const TeamDetailsPage = () => {
                     Select a team member to transfer admin rights to:
                   </p>
                   <div className="space-y-2">
-                    {members.filter(member => member.MemberID !== currentUser._id).map((member) => (
+                    {members.filter(member => member.MemberID !== userDetails?._id).map((member) => (
                       <label key={member.MemberID} className="flex items-center space-x-3 cursor-pointer">
                         <input
                           type="radio"
@@ -2908,12 +2893,12 @@ const TeamDetailsPage = () => {
                           'text-gray-900',
                           'dark:text-gray-100'
                         )}>
-                          {member.name}
+                          {member.name} ({member.email})
                         </span>
                       </label>
                     ))}
                   </div>
-                  {members.filter(member => member.MemberID !== currentUser._id).length === 0 && (
+                  {members.filter(member => member.MemberID !== userDetails?._id).length === 0 && (
                     <p className={getThemeClasses(
                       'text-gray-500 text-sm',
                       'dark:text-gray-400'

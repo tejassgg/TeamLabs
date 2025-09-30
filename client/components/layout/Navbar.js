@@ -15,7 +15,6 @@ import {
 } from 'react-icons/fa';
 import ActivityNotifications from '../shared/ActivityNotifications';
 import { useToast } from '../../context/ToastContext';
-import { useAuth } from '../../context/AuthContext';
 import StatusDropdown from '../shared/StatusDropdown';
 
 
@@ -29,7 +28,6 @@ const isProfileComplete = (userDetails) => {
 };
 
 const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
-  const { user } = useAuth();
   const { userDetails } = useGlobal();
   const router = useRouter();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);

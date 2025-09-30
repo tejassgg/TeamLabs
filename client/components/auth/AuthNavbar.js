@@ -1,12 +1,12 @@
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../context/AuthContext';
+import { useGlobal } from '../../context/GlobalContext';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FaRegSun, FaRegMoon, FaSignInAlt, FaSignOutAlt, FaMoon, FaSun } from 'react-icons/fa';
 
 const AuthNavbar = ({ openLogin, showLogin }) => {
   const { toggleTheme, theme } = useTheme();
-  const { isAuthenticated, logout } = useAuth();
+  const { logout, isAuthenticated } = useGlobal();
   const router = useRouter();
 
   const handleLogin = () => {

@@ -1,21 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useGlobal } from '../context/GlobalContext';
 import { releaseNotificationService } from '../services/api';
 import { checkVersionUpdate, addVersionToHistory, isNewerVersion, CLIENT_VERSION } from '../config/version';
 
 const useReleaseNotifications = () => {
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const [latestRelease, setLatestRelease] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasNewRelease, setHasNewRelease] = useState(false);
   const [versionUpdateAvailable, setVersionUpdateAvailable] = useState(false);
 
-  useEffect(() => {
-    if (user?.organizationID) {
-      fetchLatestRelease();
-    }
-  }, [user?.organizationID]);
+  // useEffect(() => {
+  //   if (userDetails?.organizationID) {
+  //     fetchLatestRelease();
+  //   }
+  // }, [userDetails?.organizationID]);
 
   const fetchLatestRelease = async () => {
     try {

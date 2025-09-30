@@ -30,11 +30,11 @@ try {
 
 const Dashboard = () => {
   const { theme } = useTheme();
-  const { projectStatuses, getProjectStatus, teams, projects, userDetails, formatDateWithTime } = useGlobal();
+  const { projectStatuses, getProjectStatus, teams, projects, userDetails, formatDateWithTime, loading } = useGlobal();
   const { showToast } = useToast();
   const router = useRouter();
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(false);
   const [error, setError] = useState('');
   const [removingUser, setRemovingUser] = useState(null);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
@@ -59,7 +59,7 @@ const Dashboard = () => {
         setError('Failed to fetch dashboard statistics');
         console.error(err);
       } finally {
-        setLoading(false);
+        setStatsLoading(false);
       }
     };
 
@@ -67,6 +67,7 @@ const Dashboard = () => {
       if (userDetails?.role === 'Admin') {
         setIsAdmin(true);
       }
+      setStatsLoading(true);
       fetchDashboardStats();
 
       // Phase 1: connect socket and subscribe to org member presence/updates
@@ -179,9 +180,6 @@ const Dashboard = () => {
         unsubTeamDeleted && unsubTeamDeleted();
         unsubTeamStatusUpdated && unsubTeamStatusUpdated();
       };
-    }
-    else {
-      setLoading(false);
     }
   }, [userDetails]);
 
@@ -568,7 +566,7 @@ const Dashboard = () => {
                 </div>
 
                 <div>
-                  {loading ? (
+                  {(loading || statsLoading) ? (
                     <div className="flex items-center justify-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
                     </div>

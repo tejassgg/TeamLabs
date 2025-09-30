@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { useAuth } from '../context/AuthContext';
+
+import { useGlobal } from '../context/GlobalContext';
 import { useTheme } from '../context/ThemeContext';
 import Link from 'next/link';
 import { authService, commonTypeService } from '../services/api';
@@ -13,7 +14,7 @@ import {
 } from 'react-icons/fa';
 
 const Profile = () => {
-  const { user, updateUser } = useAuth();
+  const { updateUser, userDetails } = useGlobal();
   const { theme } = useTheme();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -87,7 +88,7 @@ const Profile = () => {
       setProfile(updatedProfile);
       // Update the user's organization ID in the auth context
       if (updatedProfile.organizationID) {
-        updateUser({ ...user, organizationID: updatedProfile.organizationID });
+        updateUser({ ...userDetails, organizationID: updatedProfile.organizationID });
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -454,7 +455,7 @@ const Profile = () => {
                   <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
                     <div className="h-24 w-24 rounded-full border-4 border-white overflow-hidden bg-white shadow-lg">
                       <img
-                        src={user?.profileImage || profile?.profileImage || '/static/default-avatar.png'}
+                        src={userDetails?.profileImage || profile?.profileImage || '/static/default-avatar.png'}
                         alt="Profile"
                         className="h-full w-full object-cover"
                         onError={(e) => {

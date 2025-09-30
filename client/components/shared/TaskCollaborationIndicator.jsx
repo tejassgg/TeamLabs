@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { FaUsers, FaEye, FaEdit, FaChevronDown, FaCircle } from 'react-icons/fa';
-import { useAuth } from '../../context/AuthContext';
+
+import { useGlobal } from '../../context/GlobalContext';
 import { connectSocket, subscribe, getSocket } from '../../services/socket';
 import { useTheme } from '../../context/ThemeContext';
 
 const TaskCollaborationIndicator = ({ taskId, projectId }) => {
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { theme } = useTheme();
   const [collaborators, setCollaborators] = useState([]);
   const [isExpanded, setIsExpanded] = useState(null); // Start expanded by default to show all collaborators
@@ -94,11 +95,11 @@ const TaskCollaborationIndicator = ({ taskId, projectId }) => {
 
   // Add current user to collaborators list if not already present
   const allActiveUsers = React.useMemo(() => {
-    const currentUserInList = collaborators.find(c => c.userId === user?._id);
-    if (!currentUserInList && user) {
+    const currentUserInList = collaborators.find(c => c.userId === userDetails?._id);
+    if (!currentUserInList && userDetails) {
       return [{
-        userId: user._id,
-        name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'You',
+        userId: userDetails._id,
+        name: userDetails.name || `${userDetails.firstName || ''} ${userDetails.lastName || ''}`.trim() || 'You',
         action: 'viewing',
         joinedAt: new Date(),
         isCurrentUser: true

@@ -129,12 +129,12 @@ const TeamsPage = () => {
             <button
               onClick={() => setIsAddTeamOpen(true)}
               className={getThemeClasses(
-                'flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors',
-                'flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
+                'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
+                'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
               )}
             >
               <FaPlus size={16} />
-               New
+              New
             </button>
           )}
         </div>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+
+import { useGlobal } from '../../context/GlobalContext';
 import api from '../../services/api';
 import { useThemeClasses } from '../shared/hooks/useThemeClasses';
 const RAGManagement = ({ organizationId }) => {
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const [loading, setLoading] = useState(false);
   const [syncStatus, setSyncStatus] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -466,7 +467,7 @@ const RAGManagement = ({ organizationId }) => {
                   >
                     {loading ? 'Syncing...' : 'Sync Now'}
                   </button>
-                  {user?.isAdmin && (
+                  {userDetails?.isAdmin && (
                     <button
                       onClick={regenerateEmbeddings}
                       disabled={loading}

@@ -4,31 +4,19 @@ import RegisterForm from '../components/auth/RegisterForm';
 import LoginForm from '../components/auth/LoginForm';
 import ResetPasswordForm from '../components/auth/ResetPasswordModal';
 import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
-import { useAuth } from '../context/AuthContext';
+import { useGlobal } from '../context/GlobalContext';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import AuthNavbar from '../components/auth/AuthNavbar';
 
 const Auth = () => {
   const { theme } = useTheme();
-  const { isAuthenticated, loading } = useAuth();
+  const { loading, isAuthenticated } = useGlobal();
   const router = useRouter();
-  const [showLogin, setShowLogin] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('type') === 'login';
-    }
-    return router?.query?.type === 'login';
-  });
+  const [showLogin, setShowLogin] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [resetKey, setResetKey] = useState(null);
-  const [showResetPassword, setShowResetPassword] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('type') === 'reset' && params.get('token');
-    }
-    return router?.query?.type === 'reset' && router?.query?.token;
-  });
+  const [showResetPassword, setShowResetPassword] = useState(false);
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -48,11 +36,11 @@ const Auth = () => {
         setResetKey(invite);
         setShowForgotPasswordModal(true);
         setShowLogin(true);
+      } else if (type === 'login') {
+        setShowLogin(true);
       }
     }
   }, [router.isReady, router.query]);
-
-  // Removed the post-mount toggle to avoid flicker when type=login is present
 
   const openLogin = () => {
     setShowLogin(true);

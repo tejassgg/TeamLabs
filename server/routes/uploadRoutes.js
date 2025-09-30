@@ -115,7 +115,8 @@ router.post('/attachments/upload', attachmentUpload.single('file'), async (req, 
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const { taskId, projectId, userId, filename } = req.body;
+    const { taskId, projectId, filename } = req.body;
+    const userId = req.user._id;
     
     if (!userId) {
       return res.status(400).json({ message: 'User ID is required' });

@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useAuth } from '../../context/AuthContext';
+
+import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import { paymentService } from '../../services/api';
 
 const PaymentSuccess = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
   const [session, setSession] = useState(null);
@@ -89,7 +90,7 @@ const PaymentSuccess = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Email</span>
-                  <span className={`font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>{session?.customer_details?.email || user?.email}</span>
+                  <span className={`font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>{session?.customer_details?.email || userDetails?.email}</span>
                 </div>
                 <span className={`text-sm hidden ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{session?.id}</span>
               </div>

@@ -10,9 +10,10 @@ const TaskDetails = require('../models/TaskDetails');
 const { logActivity } = require('../services/activityService');
 const { checkTeamLimit } = require('../middleware/premiumLimits');
 const { emitToOrg } = require('../socket');
+const { protect } = require('../middleware/auth');
 
 // GET /api/teams/overview/:userId - fetch teams with statistics for teams page
-router.get('/overview/:userId', async (req, res) => {
+router.get('/overview/:userId', protect, async (req, res) => {
   try {
     const { userId } = req.params;
     const user = await User.findById(userId);
@@ -134,7 +135,7 @@ router.get('/overview/:userId', async (req, res) => {
 });
 
 // GET /api/teams/organization/:organizationId - fetch teams by organization
-router.get('/organization/:organizationId', async (req, res) => {
+router.get('/organization/:organizationId', protect, async (req, res) => {
   try {
     const { organizationId } = req.params;
     const teams = await Team.find({organizationID: organizationId}).sort({ CreatedDate: -1 });
@@ -147,7 +148,7 @@ router.get('/organization/:organizationId', async (req, res) => {
 });
 
 // GET /api/teams - fetch all teams
-router.get('/:role/:userId', async (req, res) => {
+router.get('/:role/:userId', protect, async (req, res) => {
   try {
     const role = req.params.role;
     const userId = req.params.userId;
@@ -173,7 +174,7 @@ router.get('/:role/:userId', async (req, res) => {
 });
 
 // POST /api/teams - add a new team
-router.post('/', checkTeamLimit, async (req, res) => {
+router.post('/', checkTeamLimit, protect, async (req, res) => {
   try {
     const { TeamName, TeamDescription, TeamType, OwnerID } = req.body;
     if (!TeamName) return res.status(400).json({ error: 'Team Name is required' });
@@ -279,10 +280,10 @@ router.post('/', checkTeamLimit, async (req, res) => {
 });
 
 // POST /api/teams/:teamId/join-request - create a join request
-router.post('/:teamId/join-request', async (req, res) => {
+router.post('/:teamId/join-request', protect, async (req, res) => {
   try {
     const { teamId } = req.params;
-    const { userId } = req.body;
+    const userId = req.user._id;
 
     if (!userId) return res.status(400).json({ error: 'userId is required' });
     
@@ -333,7 +334,7 @@ router.post('/:teamId/join-request', async (req, res) => {
 });
 
 // GET /api/teams/:teamId/join-requests - get all join requests for a team
-router.get('/:teamId/join-requests', async (req, res) => {
+router.get('/:teamId/join-requests', protect, async (req, res) => {
   try {
     const teamId = req.params.teamId;
     const requests = await TeamJoinRequest.find({ teamId, status: 'pending' }).populate('userId', 'name email');
@@ -344,10 +345,10 @@ router.get('/:teamId/join-requests', async (req, res) => {
 });
 
 // POST /api/teams/:teamId/join-requests/:requestId/accept - accept a join request
-router.post('/:teamId/join-requests/:requestId/accept', async (req, res) => {
+router.post('/:teamId/join-requests/:requestId/accept', protect, async (req, res) => {
   try {
     const { teamId, requestId } = req.params;
-    const { adminId } = req.body;
+    const adminId = req.user._id;
     const request = await TeamJoinRequest.findById(requestId);
     if (!request || request.teamId.toString() !== teamId) return res.status(404).json({ message: 'Request not found' });
     request.status = 'accepted';
@@ -393,10 +394,10 @@ router.post('/:teamId/join-requests/:requestId/accept', async (req, res) => {
 });
 
 // POST /api/teams/:teamId/join-requests/:requestId/reject - reject a join request
-router.post('/:teamId/join-requests/:requestId/reject', async (req, res) => {
+router.post('/:teamId/join-requests/:requestId/reject', protect, async (req, res) => {
   try {
     const { teamId, requestId } = req.params;
-    const { adminId } = req.body;
+    const adminId = req.user._id;
     const request = await TeamJoinRequest.findById(requestId);
     if (!request || request.teamId.toString() !== teamId) return res.status(404).json({ message: 'Request not found' });
     request.status = 'rejected';
@@ -426,7 +427,7 @@ router.post('/:teamId/join-requests/:requestId/reject', async (req, res) => {
 });
 
 // GET /api/teams/user/:userId/pending-requests - get user's pending join requests
-router.get('/user/:userId/pending-requests', async (req, res) => {
+router.get('/user/:userId/pending-requests', protect, async (req, res) => {
   try {
     const { userId } = req.params;
     const pendingRequests = await TeamJoinRequest.find({ userId, status: 'pending' });
@@ -462,10 +463,11 @@ router.get('/user/:userId/pending-requests', async (req, res) => {
 });
 
 // POST /api/teams/:teamId/leave - leave team (handles both member and admin leaving)
-router.post('/:teamId/leave', async (req, res) => {
+router.post('/:teamId/leave', protect, async (req, res) => {
   try {
     const { teamId } = req.params;
-    const { userId, newAdminId } = req.body;
+    const userId = req.user._id;
+    const newAdminId = req.body.newAdminId;
 
     if (!userId) return res.status(400).json({ error: 'userId is required' });
     
@@ -521,11 +523,8 @@ router.post('/:teamId/leave', async (req, res) => {
         );
 
         // Remove old owner from team
-        await TeamDetails.findOneAndUpdate(
-          { TeamID_FK: teamId, MemberID: userId },
-          { IsMemberActive: false, ModifiedDate: new Date() },
-          { session }
-        );
+        await TeamJoinRequest.deleteMany({ TeamID_FK:teamId, MemberID:userId }, { session });
+
 
         // Log activities
         await logActivity(
@@ -587,10 +586,7 @@ router.post('/:teamId/leave', async (req, res) => {
       }
     } else {
       // Regular member is leaving
-      await TeamDetails.findOneAndUpdate(
-        { TeamID_FK: teamId, MemberID: userId },
-        { IsMemberActive: false, ModifiedDate: new Date() }
-      );
+      await TeamJoinRequest.deleteMany({ TeamID_FK:teamId, MemberID:userId }, { session });
       
       // Log the activity
       await logActivity(

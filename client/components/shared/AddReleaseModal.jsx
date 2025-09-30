@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+
+import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import { releaseNotificationService } from '../../services/api';
@@ -55,7 +56,7 @@ const fetchLatestVersionData = async () => {
 };
 
 const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editingRelease = null }) => {
-  const { user } = useAuth();
+  const { userDetails } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
 

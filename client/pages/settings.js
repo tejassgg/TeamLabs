@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { useAuth } from '../context/AuthContext';
+
+import { useGlobal } from '../context/GlobalContext';
 import { useTheme } from '../context/ThemeContext';
 import { FaMoon, FaSun, FaDesktop, FaCheck, FaTimes, FaGithub, FaRocket } from 'react-icons/fa';
 import { MdOutlinePayments } from "react-icons/md";
@@ -17,7 +18,7 @@ const ReleaseNotificationsTab = dynamic(() => import('../components/settings/Rel
 
 const Settings = () => {
   const { theme, setTheme } = useTheme();
-  const { logout, user } = useAuth();
+  const { userDetails, setUserDetails } = useGlobal();
 
   // Helper function to get theme-aware classes
   const getThemeClasses = (baseClasses, darkClasses) => {
@@ -25,10 +26,10 @@ const Settings = () => {
   };
 
   // Check if user has Admin role
-  const isAdmin = user?.role === 'Admin' || user?.role === 1;
-  
+  const isAdmin = userDetails?.role === 'Admin';
+
   // Check if user is admin of OrganizationID='1' (system admin)
-  const isSystemAdmin = isAdmin && user?.organizationID === '1';
+  const isSystemAdmin = isAdmin && userDetails?.organizationID === '1';
   const [activeTab, setActiveTab] = useState('general');
 
   // Redirect non-admin users away from admin-only tabs
@@ -44,16 +45,16 @@ const Settings = () => {
   const [show2FASetup, setShow2FASetup] = useState(false);
   const [show2FADisable, setShow2FADisable] = useState(false);
   const [securitySettings, setSecuritySettings] = useState({
-    twoFactorEnabled: user?.twoFactorEnabled || false,
-    sessionTimeout: user?.sessionTimeout || 30,
-    loginNotifications: user?.loginNotifications !== false
+    twoFactorEnabled: userDetails?.twoFactorEnabled || false,
+    sessionTimeout: userDetails?.sessionTimeout || 30,
+    loginNotifications: userDetails?.loginNotifications !== false
   });
   const { showToast } = useToast();
   const router = useRouter();
   const [showSessionTimeoutDropdown, setShowSessionTimeoutDropdown] = useState(false);
   const [showFontDropdown, setShowFontDropdown] = useState(false);
   const [userSettings, setUserSettings] = useState({
-    fontFamily: user?.fontFamily || 'Inter'
+    fontFamily: userDetails?.fontFamily || 'Inter'
   });
   const [subscriptionData, setSubscriptionData] = useState(null);
   const [subscriptionFeatures, setSubscriptionFeatures] = useState({
@@ -91,17 +92,17 @@ const Settings = () => {
 
   // Update security settings when user data changes
   useEffect(() => {
-    if (user) {
+    if (userDetails) {
       setSecuritySettings({
-        twoFactorEnabled: user.twoFactorEnabled || false,
-        sessionTimeout: user.sessionTimeout || 30,
-        loginNotifications: user.loginNotifications !== false
+        twoFactorEnabled: userDetails.twoFactorEnabled || false,
+        sessionTimeout: userDetails.sessionTimeout || 30,
+        loginNotifications: userDetails.loginNotifications !== false
       });
       setUserSettings({
-        fontFamily: user.fontFamily || 'Inter'
+        fontFamily: userDetails.fontFamily || 'Inter'
       });
     }
-  }, [user]);
+  }, [userDetails]);
 
   // Apply font on component mount and when font changes
   useEffect(() => {
@@ -115,18 +116,18 @@ const Settings = () => {
 
   // Fetch subscription data on component mount for admin users
   const fetchSubscriptionData = async () => {
-    if (!user?.organizationID || !isAdmin) return;
-    
+    if (!userDetails?.organizationID || !isAdmin) return;
+
     setLoadingSubscription(true);
     try {
-      const response = await authService.getSubscriptionData(user.organizationID);
+      const response = await authService.getSubscriptionData(userDetails.organizationID);
       setSubscriptionData(response.data.subscription);
       setSubscriptionFeatures(response.data.subscriptionFeatures || { free: [], monthly: [], annual: [] });
-      setSubscriptionPrices(response.data.subscriptionPrices || { 
-        freeMonthly: '0', 
-        premiumMonthly: '49', 
-        premiumAnnualMonthlyEq: '34.92', 
-        premiumAnnualYearly: '419' 
+      setSubscriptionPrices(response.data.subscriptionPrices || {
+        freeMonthly: '0',
+        premiumMonthly: '49',
+        premiumAnnualMonthlyEq: '34.92',
+        premiumAnnualYearly: '419'
       });
     } catch (error) {
       console.error('Error fetching subscription data:', error);
@@ -137,15 +138,15 @@ const Settings = () => {
 
   useEffect(() => {
     fetchSubscriptionData();
-  }, [user?.organizationID, isAdmin]);
+  }, [userDetails?.organizationID, isAdmin]);
 
   // Fetch integrations data on component mount
   const fetchIntegrationsData = async () => {
-    if (!user?._id) return;
-    
+    if (!userDetails?._id) return;
+
     setLoadingIntegrations(true);
     try {
-      const response = await authService.getIntegrationsStatus(user._id);
+      const response = await authService.getIntegrationsStatus(userDetails._id);
       if (response.success) {
         setIntegrations(response.integrations);
       }
@@ -158,7 +159,7 @@ const Settings = () => {
 
   useEffect(() => {
     fetchIntegrationsData();
-  }, [user?._id]);
+  }, [userDetails?._id]);
 
   // Set active tab based on URL query parameter
   // This allows direct navigation to specific tabs via URL (e.g., /settings?tab=billing)
@@ -236,15 +237,15 @@ const Settings = () => {
   const handleSecuritySave = async () => {
     setLoading(true);
     try {
-      securitySettings.userId = user._id;
+      securitySettings.userId = userDetails._id;
       const response = await authService.updateSecuritySettings(securitySettings);
 
       if (response.success) {
         // Update user data in localStorage
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const userData = userDetails;
         userData.sessionTimeout = securitySettings.sessionTimeout;
         userData.loginNotifications = securitySettings.loginNotifications;
-        localStorage.setItem('user', JSON.stringify(userData));
+        setUserDetails(userData);
 
         showToast('Security settings updated successfully', 'success');
       }
@@ -260,17 +261,15 @@ const Settings = () => {
     setLoading(true);
     try {
       const response = await authService.updateUserSettings({
-        userId: user._id,
+        userId: userDetails._id,
         fontFamily: userSettings.fontFamily
       });
 
-      console.log(response);
-
       if (response.success) {
         // Update user data in localStorage
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const userData = userDetails;
         userData.fontFamily = userSettings.fontFamily;
-        localStorage.setItem('user', JSON.stringify(userData));
+        setUserDetails(userData);
 
         // Apply font to document using CSS custom property
         const selectedFont = fontOptions.find(f => f.value === userSettings.fontFamily)?.fontFamily || 'Inter, sans-serif';
@@ -467,8 +466,8 @@ const Settings = () => {
                                   setShowFontDropdown(false);
                                 }}
                                 className={`w-full text-left px-4 py-2 text-sm transition-colors ${font.value === userSettings.fontFamily
-                                    ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700')
-                                    : (theme === 'dark' ? 'hover:bg-[#232323] text-gray-200' : 'hover:bg-gray-50 text-gray-700')
+                                  ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700')
+                                  : (theme === 'dark' ? 'hover:bg-[#232323] text-gray-200' : 'hover:bg-gray-50 text-gray-700')
                                   }`}
                                 style={{ fontFamily: font.fontFamily }}
                               >
@@ -573,8 +572,8 @@ const Settings = () => {
                                     setShowSessionTimeoutDropdown(false);
                                   }}
                                   className={`w-full text-left px-4 py-2 text-sm transition-colors ${opt.value === securitySettings.sessionTimeout
-                                      ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700')
-                                      : (theme === 'dark' ? 'hover:bg-[#232323] text-gray-200' : 'hover:bg-gray-50 text-gray-700')
+                                    ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700')
+                                    : (theme === 'dark' ? 'hover:bg-[#232323] text-gray-200' : 'hover:bg-gray-50 text-gray-700')
                                     }`}
                                 >
                                   {opt.label}
@@ -624,8 +623,8 @@ const Settings = () => {
 
           {/* Billing Settings */}
           {activeTab === 'billing' && (
-            <BillingTab 
-              getThemeClasses={getThemeClasses} 
+            <BillingTab
+              getThemeClasses={getThemeClasses}
               subscriptionData={subscriptionData}
               subscriptionFeatures={subscriptionFeatures}
               subscriptionPrices={subscriptionPrices}
@@ -636,8 +635,8 @@ const Settings = () => {
 
           {/* Integrations Tab */}
           {activeTab === 'integrations' && (
-            <IntegrationsTab 
-              getThemeClasses={getThemeClasses} 
+            <IntegrationsTab
+              getThemeClasses={getThemeClasses}
               integrations={integrations}
               loadingIntegrations={loadingIntegrations}
               onRefreshIntegrations={fetchIntegrationsData}
@@ -646,7 +645,7 @@ const Settings = () => {
 
           {/* Release Notifications Tab */}
           {activeTab === 'releases' && (
-            <ReleaseNotificationsTab 
+            <ReleaseNotificationsTab
               getThemeClasses={getThemeClasses}
             />
           )}
@@ -676,16 +675,16 @@ const Settings = () => {
                 onComplete={() => {
                   setShow2FASetup(false);
                   // Update user data in localStorage
-                  const userData = JSON.parse(localStorage.getItem('user') || '{}');
+                  const userData = userDetails;
                   userData.twoFactorEnabled = true;
-                  localStorage.setItem('user', JSON.stringify(userData));
+                  setUserDetails(userData);
                   // Update local state
                   setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: true }));
                   showToast('Two-factor authentication enabled successfully', 'success');
                 }}
                 onCancel={() => setShow2FASetup(false)}
-                userId={user?._id}
-                email={user?.email}
+                userId={userDetails?._id}
+                email={userDetails?.email}
               />
             </div>
           </div>
@@ -715,16 +714,16 @@ const Settings = () => {
                 onComplete={() => {
                   setShow2FADisable(false);
                   // Update user data in localStorage
-                  const userData = JSON.parse(localStorage.getItem('user') || '{}');
+                  const userData = userDetails;
                   userData.twoFactorEnabled = false;
-                  localStorage.setItem('user', JSON.stringify(userData));
+                  setUserDetails(userData);
                   // Update local state
                   setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: false }));
                   showToast('Two-factor authentication disabled successfully', 'success');
                 }}
                 onCancel={() => setShow2FADisable(false)}
-                userId={user?._id}
-                email={user?.email}
+                userId={userDetails?._id}
+                email={userDetails?.email}
               />
             </div>
           </div>

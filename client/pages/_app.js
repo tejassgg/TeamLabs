@@ -2,7 +2,6 @@ import '../styles/globals.css';
 import { useEffect } from 'react';
 import Head from 'next/head';
 import { connectSocket } from '../services/socket';
-import { AuthProvider } from '../context/AuthContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { VideoCallProvider } from '../context/VideoCallContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -18,9 +17,9 @@ function AppContainer({ Component, pageProps }) {
   }, []);
   const { theme } = useTheme();
   // Check if current page is auth-related or landing page
-  const isAuthPage = Component.displayName === 'Login' || Component.displayName === 'Register' || Component.displayName === 'Auth' || Component.displayName === 'Home' || 
-                    pageProps?.isAuthPage;
-  
+  const isAuthPage = Component.displayName === 'Login' || Component.displayName === 'Register' || Component.displayName === 'Auth' || Component.displayName === 'Home' ||
+    pageProps?.isAuthPage;
+
   return (
     <>
       <Head>
@@ -49,15 +48,13 @@ function MyApp({ Component, pageProps }) {
     // </SessionProvider>
     <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
       <ThemeProvider>
-        <AuthProvider>
-          <GlobalProvider>
-            <ToastProvider>
-              <VideoCallProvider>
-                <AppContainer Component={Component} pageProps={pageProps} />
-              </VideoCallProvider>
-            </ToastProvider>
-          </GlobalProvider>
-        </AuthProvider>
+        <GlobalProvider>
+          <ToastProvider>
+            <VideoCallProvider>
+              <AppContainer Component={Component} pageProps={pageProps} />
+            </VideoCallProvider>
+          </ToastProvider>
+        </GlobalProvider>
       </ThemeProvider>
     </GoogleOAuthProvider>
   );
