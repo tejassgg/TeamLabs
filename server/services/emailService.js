@@ -245,6 +245,63 @@ async function sendResetEmail(to, username, link) {
   }
 }
 
+// Helper to send email verification email
+async function sendEmailVerification(to, username, link) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Verify Your Email - TeamLabs</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 480px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+              <tr>
+                <td style="padding: 40px 32px;">
+                  <div style="text-align: center; margin-bottom: 32px;">
+                    <div style="font-size: 24px; font-weight: 700; color: #6B39E7; letter-spacing: -0.5px; margin-bottom: 8px;">TeamLabs</div>
+                    <div style="width: 40px; height: 2px; background: #6B39E7; margin: 0 auto;"></div>
+                  </div>
+                  <h1 style="color: #1F1F1F; font-size: 20px; font-weight: 600; margin: 0 0 16px 0; text-align: center;">Verify Your Email</h1>
+                  <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">Hello <strong style="color: #1F1F1F;">${username}</strong>,</p>
+                  <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 32px 0; text-align: center;">Thanks for signing up! Please confirm your email address to activate your account.</p>
+                  <div style="text-align: center; margin-bottom: 32px;">
+                    <a href="${link}" style="display: inline-block; background: #6B39E7; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 15px; font-weight: 600;">Verify Email</a>
+                  </div>
+                  <div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 32px;">
+                    <p style="color: #6b7280; font-size: 12px; line-height: 1.5; margin: 0; text-align: center;">If you didn’t create this account, you can safely ignore this email. This link expires in 24 hours.</p>
+                  </div>
+                  <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                    <p style="color: #9ca3af; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to,
+      subject: 'Verify your TeamLabs email',
+      html
+    });
+    return true;
+  } catch (error) {
+    console.error('Error sending email verification:', error);
+    return false;
+  }
+}
+
 // Helper to send task assignment email
 async function sendTaskAssignmentEmail(to, taskName, taskDetails, assignedBy, priority, status, taskType, taskId, project, historyItems, attachments, comments) {
   const taskUrl = `${process.env.FRONTEND_URL}/task/${taskId}`;
@@ -732,6 +789,7 @@ async function sendContactNotification({ ticketNumber, title, description, name,
 
 module.exports = {
   sendResetEmail,
+  sendEmailVerification,
   sendTaskAssignmentEmail,
   sendCommentMentionEmail,
   sendInviteEmail,

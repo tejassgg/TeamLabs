@@ -87,6 +87,26 @@ export const authService = {
     }
   },
 
+  // Resend email verification
+  resendVerification: async (usernameOrEmail) => {
+    try {
+      const response = await api.post('/auth/resend-verification', { usernameOrEmail });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to resend verification email' };
+    }
+  },
+  // Verify email
+  verifyEmail: async (token) => {
+    try {
+      const response = await api.get(`/auth/verify-email?token=${token}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error verifying email:', error);
+      throw error.response?.data || { message: 'Failed to verify email' };
+    }
+  },
+
   // Google login
   googleLogin: async (credential, inviteToken = null) => {
     try {
@@ -257,6 +277,7 @@ export const authService = {
       throw error.response?.data || { message: 'Failed to send reset link' };
     }
   },
+
   resetPassword: async (token, newPassword) => {
     try {
       const response = await api.post('/auth/reset-password', { token, newPassword });
@@ -265,6 +286,7 @@ export const authService = {
       throw error.response?.data || { message: 'Failed to reset password' };
     }
   },
+
   verifyResetPassword: async (token) => {
     try {
       const response = await api.post('/auth/verify-reset-password', { token });
@@ -698,11 +720,9 @@ export const taskService = {
   },
   assignTask: async (taskId, userId) => {
     try {
-      const currentUser = authService.getCurrentUser();
       const response = await api.patch(`/task-details/${taskId}/assign`, { 
         AssignedTo: userId,
-        AssignedDate: userId ? new Date() : null,
-        assignedBy: currentUser?._id,
+        AssignedDate: userId ? new Date() : null
       });
       return response.data;
     } catch (error) {

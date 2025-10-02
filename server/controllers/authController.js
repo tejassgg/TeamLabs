@@ -8,7 +8,6 @@ const Organization = require('../models/Organization');
 const axios = require('axios');
 const qrcode = require('qrcode');
 const speakeasy = require('speakeasy');
-const nodemailer = require('nodemailer');
 const { logActivity } = require('../services/activityService');
 const { sendResetEmail } = require('../services/emailService');
 const Invite = require('../models/Invite');
@@ -16,6 +15,8 @@ const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 const { emitToOrg } = require('../socket');
 const ForgotPasswordHistory = require('../models/ForgotPasswordHistory');
+const EmailVerificationToken = require('../models/EmailVerificationToken');
+const { sendEmailVerification } = require('../services/emailService');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // Generate JWT
@@ -110,14 +111,15 @@ const registerUser = async (req, res) => {
       }
     }
 
-    // Create user (only selected fields)
+    // Create user (only selected fields); do not verify email yet
     const user = await User.create({
       username: finalUsername,
       email,
       password,
       role: safeRole,
       organizationID: organizationID,
-      lastLogin: new Date(),
+      lastLogin: null,
+      emailVerified: false
     });
 
     if (user) {
@@ -136,20 +138,18 @@ const registerUser = async (req, res) => {
         // Non-fatal: log and continue response
         console.error('Auto-activate premium for invited user failed:', e?.message || e);
       }
-      // Log the user creation and last login
+      // Generate verification token
+      const token = uuidv4();
+      const expiresAt = new Date(Date.now() + 24 * 7  * 60 * 60 * 1000);
+      await EmailVerificationToken.deleteMany({ userId: user._id, used: false });
+      await EmailVerificationToken.create({ userId: user._id, token, expiresAt });
+
+      const verifyLink = `${process.env.FRONTEND_URL}/auth?type=verify&token=${token}`;
+      await sendEmailVerification(user.email, user.username || user.email.split('@')[0], verifyLink);
+
+      // Respond without logging in
       res.status(201).json({
-        _id: user._id,
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        phone: user.phone,
-        phoneExtension: user.phoneExtension,
-        organizationID: user.organizationID,
-        profileImage: user.profileImage,
-        role: user.role,
-        token: generateToken(user._id),
-        needsAdditionalDetails: !organizationID // Only need additional details if not invited
+        message: 'Registration successful. Please verify your email to activate your account.'
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -177,6 +177,9 @@ const loginUser = async (req, res) => {
 
     // Check if user exists and password is correct
     if (user && (await user.comparePassword(password))) {
+      if (!user.emailVerified) {
+        return res.status(403).json({ message: 'Please verify your email before logging in.' });
+      }
       // Update last login and set status to Active
       user.lastLogin = new Date();
       user.status = 'Active';
@@ -211,6 +214,57 @@ const loginUser = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Verify email via token and redirect to login
+// @route   GET /api/auth/verify-email?token=...
+// @access  Public
+const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ message: 'Verification token is required' });
+
+    const record = await EmailVerificationToken.findOne({ token, used: false });
+    if (!record) return res.status(400).json({ message: 'Invalid or expired verification link' });
+    if (record.expiresAt < new Date()) return res.status(400).json({ message: 'Verification link has expired' });
+
+    await User.findByIdAndUpdate(record.userId, { emailVerified: true });
+    record.used = true;
+    await record.save();
+
+    return res.status(200).json({ success: true });
+    
+  } catch (error) {
+    console.error('Email verification error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Resend email verification link
+// @route   POST /api/auth/resend-verification
+// @access  Public
+const resendVerification = async (req, res) => {
+  try {
+    const { usernameOrEmail } = req.body || {};
+    if (!usernameOrEmail) return res.status(400).json({ message: 'Username or email is required' });
+
+    const user = await User.findOne({ $or: [{ email: usernameOrEmail.toLowerCase() }, { username: usernameOrEmail }] });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.emailVerified) return res.status(200).json({ message: 'Email already verified' });
+
+    await EmailVerificationToken.deleteMany({ userId: user._id, used: false });
+    const token = uuidv4();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await EmailVerificationToken.create({ userId: user._id, token, expiresAt });
+
+    const verifyLink = `${process.env.FRONTEND_URL}/auth?type=verify&token=${token}`;
+    await sendEmailVerification(user.email, user.username || user.email.split('@')[0], verifyLink);
+
+    return res.status(200).json({ message: 'Verification email sent' });
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -272,6 +326,7 @@ const googleLogin = async (req, res) => {
       userData.token = generateToken(user._id);
       userData.profileImage = picture;
       userData.needsAdditionalDetails = false;
+      userData.emailVerified = true;
       // Return user data with token and Google profile image
       return res.json(userData);
     } else {
@@ -314,6 +369,7 @@ const googleLogin = async (req, res) => {
         password,
         googleId: sub,
         lastLogin: new Date(),
+        emailVerified: true,
         // Set these fields as null to indicate they need to be filled
         phone: null,
         middleName: null,
@@ -1729,6 +1785,8 @@ module.exports = {
   registerUser,
   loginUser,
   googleLogin,
+  verifyEmail,
+  resendVerification,
   getUserProfile,
   completeUserProfile,
   getUserActivities,

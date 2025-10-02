@@ -17,6 +17,7 @@ const UserActivity = require('../models/UserActivity');
 const { checkUserStoryLimit, checkTaskLimit, incrementUsage } = require('../middleware/premiumLimits');
 const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
 const Subtask = require('../models/Subtask');
+const { protect } = require('../middleware/auth');
 
 // Middleware to check limits based on task type
 const checkTaskTypeLimit = async (req, res, next) => {
@@ -696,11 +697,12 @@ router.patch('/:taskId/status', async (req, res) => {
 });
 
 // PATCH /api/task-details/:taskId/assign - Assign a task to a user
-router.patch('/:taskId/assign', async (req, res) => {
+router.patch('/:taskId/assign', protect, async (req, res) => {
     try {
         const taskId = req.params.taskId;
-        const { AssignedTo, AssignedDate, assignedBy } = req.body;
-
+        const { AssignedTo, AssignedDate  } = req.body;
+        const assignedBy = req.user._id;
+        
         const task = await TaskDetails.findOne({ TaskID: taskId });
         if (!task) return res.status(404).json({ error: 'Task not found' });
         const oldStatus = task.Status;

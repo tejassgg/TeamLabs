@@ -8,6 +8,8 @@ import { useGlobal } from '../context/GlobalContext';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import AuthNavbar from '../components/auth/AuthNavbar';
+import { useToast } from '../context/ToastContext';
+import { authService } from '../services/api';
 
 const Auth = () => {
   const { theme } = useTheme();
@@ -17,6 +19,10 @@ const Auth = () => {
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [resetKey, setResetKey] = useState(null);
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [verifyToken, setVerifyToken] = useState(null);
+  const [showVerify, setShowVerify] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -24,7 +30,7 @@ const Auth = () => {
     }
   }, [isAuthenticated, loading, router]);
 
-  // Check for reset or invite key in URL
+  // Check for reset, verify, or invite key in URL
   useEffect(() => {
     if (router.isReady) {
       const { invite, type, token } = router.query;
@@ -32,12 +38,24 @@ const Auth = () => {
         setResetKey(token);
         setShowResetPassword(true);
         setShowLogin(false);
+        setShowVerify(false);
+        setVerifyToken(null);
+      } else if (type === 'verify' && token) {
+        setVerifyToken(token);
+        setShowVerify(true);
+        setShowResetPassword(false);
+        setShowLogin(false);
+        setVerifyError('');
       } else if (invite) {
         setResetKey(invite);
         setShowForgotPasswordModal(true);
         setShowLogin(true);
+        setShowVerify(false);
+        setVerifyToken(null);
       } else if (type === 'login') {
         setShowLogin(true);
+        setShowVerify(false);
+        setVerifyToken(null);
       }
     }
   }, [router.isReady, router.query]);
@@ -76,6 +94,71 @@ const Auth = () => {
             <div className="relative overflow-hidden">
               {showResetPassword ? (
                 <ResetPasswordForm token={resetKey} />
+              ) : showVerify ? (
+                <div className="space-y-6">
+                  {/* Header Section */}
+                  <div className="text-left mb-6 w-full">
+                    <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4 w-full ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      Verify Your <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Email</span>
+                    </h1>
+                    <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                      Please confirm your email address to activate your account
+                    </p>
+                  </div>
+
+                  {verifyError && (
+                    <div className={`border px-4 py-3 rounded-xl text-sm ${theme === 'dark' ? 'bg-red-900/20 border-red-700 text-red-300' : 'bg-red-50 border-red-200 text-red-600'}`}>
+                      {verifyError}
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <div className={`border px-4 py-3 rounded-xl text-sm ${theme === 'dark' ? 'bg-blue-900/20 border-blue-700 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-600'}`}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">📧</span>
+                        <span>Click the button below to verify your email address and activate your account.</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 w-full items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            setVerifyError('');
+                            const res = await authService.verifyEmail(verifyToken);
+                            if (res.success) {
+                              showToast('Email verified! You can now log in.', 'success');
+                              router.replace('/auth?type=login');
+                            } else {
+                              const data = res.data;
+                              // setVerifyError(data?.message || 'Verification failed');
+                              showToast(data?.message || 'Verification failed', 'error');
+                            }
+                          } catch (e) {
+                            // setVerifyError(e?.message || 'Verification failed');
+                            showToast(e?.message || 'Verification failed', 'error');
+                          }
+                        }}
+                        className={`w-full sm:w-auto px-6 py-3 text-white font-medium rounded-xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${theme === 'dark' ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'}`}
+                      >
+                        Confirm Email
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowVerify(false);
+                          setVerifyToken(null);
+                          setVerifyError('');
+                          setShowLogin(true);
+                        }}
+                        className={`w-full sm:w-auto px-6 py-3 rounded-xl font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-gray-100 focus:ring-gray-500' : 'bg-gray-100 hover:bg-gray-200 text-gray-800 focus:ring-gray-500'}`}
+                      >
+                        Back
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <>
                   <div className={`transition-all duration-500 ease-in-out transform ${

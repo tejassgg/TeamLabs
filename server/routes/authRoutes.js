@@ -3,7 +3,8 @@ const router = express.Router();
 const {
   registerUser, loginUser, googleLogin, getUserProfile, completeUserProfile, getUserActivities, logoutUser,
   getUserOrganizations, generate2FA, verify2FA, disable2FA, verifyLogin2FA, getSecuritySettings, updateOnboardingStatus,
-  updateSecuritySettings, updateUserSettings, updateUserStatus, forgotPassword, resetPassword, verifyResetPassword
+  updateSecuritySettings, updateUserSettings, updateUserStatus, forgotPassword, resetPassword, verifyResetPassword,
+  verifyEmail, resendVerification
 } = require('../controllers/authController');
 const { initiateGitHubAuth, handleGitHubCallback, disconnectGitHub, getGitHubStatus, getIntegrationsStatus, getUserRepositories} = require('../controllers/integrationController');
 const { protect } = require('../middleware/auth');
@@ -110,6 +111,10 @@ router.post('/login', loginUser);
  *         description: Email not verified by Google
  */
 router.post('/google', googleLogin);
+
+// Email verification
+router.get('/verify-email', verifyEmail);
+router.post('/resend-verification', resendVerification);
 
 /**
  * @swagger

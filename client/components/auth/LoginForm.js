@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { FcGoogle } from 'react-icons/fc';
+import { FaEye, FaEyeSlash, FaUndo } from 'react-icons/fa';
 import { useGlobal } from '../../context/GlobalContext';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -17,7 +16,7 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
   const [show2FA, setShow2FA] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
-  const { login, verifyLogin2FA, googleLogin } = useGlobal();
+  const { login, verifyLogin2FA, googleLogin, resendVerification } = useGlobal();
   const router = useRouter();
   const { register, handleSubmit, formState: { errors } } = useForm();
   const { showToast } = useToast();
@@ -36,8 +35,10 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
           if (onSuccess) onSuccess();
         }
       } else {
+        showToast(result.message, 'error');
         setError(result.message);
       }
+
     } catch (err) {
       setError('An error occurred during login');
     } finally {
@@ -133,8 +134,25 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
   return (
     <div className="space-y-6">
       {error && (
-        <div className={`border px-4 py-3 rounded-xl text-sm ${theme === 'dark' ? 'bg-red-900/20 border-red-700 text-red-300' : 'bg-red-50 border-red-200 text-red-600'}`}>
-          {error}
+        <div className={`flex items-center justify-between border px-4 py-3 rounded-xl text-sm ${theme === 'dark' ? 'bg-red-900/20 border-red-700 text-red-300' : 'bg-red-50 border-red-200 text-red-600'}`}>
+          <div>{error}</div>
+          {error?.toLowerCase?.().includes('verify your email') && (
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const identifier = document.querySelector('input[name="usernameOrEmail"]').value;
+                  const res = await resendVerification(identifier);
+                  showToast(res?.message || 'Verification email sent', 'success');
+                } catch (e) {
+                  showToast(e?.message || 'Failed to resend email', 'error');
+                }
+              }}
+              className={`flex items-center text-sm font-medium ${theme === 'dark' ? 'text-blue-100 hover:text-blue-700' : 'text-blue-500 hover:text-blue-800'}`}
+            >
+              Resend <FaUndo className="text-xs ml-1 rotate-45" />
+            </button>
+          )}
         </div>
       )}
 

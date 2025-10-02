@@ -156,6 +156,16 @@ export const GlobalProvider = ({ children }) => {
     }
   };
 
+  // Resend email verification
+  const resendVerification = async (usernameOrEmail) => {
+    try {
+      const data = await authService.resendVerification(usernameOrEmail);
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, message: error.message || 'Failed to resend verification email' };
+    }
+  };
+
   // Google login
   const googleLogin = async (credential, inviteToken = null) => {
     try {
@@ -711,6 +721,7 @@ export const GlobalProvider = ({ children }) => {
     forgotPassword,
     resetPassword,
     verifyResetPassword,
+    resendVerification,
     tempAuthData,
     setOrganization,
     getProjectStatus,
