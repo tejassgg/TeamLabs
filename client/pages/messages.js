@@ -247,7 +247,7 @@ export default function MessagesPage() {
   };
 
   useEffect(() => {
-    if (!user) return;
+    if (!userDetails) return;
     connectSocket();
     setIsLoadingConversations(true);
     messagingService.getConversations()
@@ -483,7 +483,7 @@ export default function MessagesPage() {
         typingStopTimerRef.current = null;
       }
     };
-  }, [user]);
+  }, [userDetails]);
 
   // Handle URL query parameter changes and auto-select conversations
   useEffect(() => {

@@ -315,8 +315,8 @@ const MyTasksPage = () => {
                     'text-2xl font-bold text-white'
                   )}>{stats.totalTasks}</p>
                 </div>
-                <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/20">
-                  <FaTasks className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <div className="p-2 rounded-xl bg-blue-100 bg-blue-900/20">
+                  <FaTasks className="w-4 h-4 text-blue-600 text-blue-400" />
                 </div>
               </div>
             </div>
@@ -336,8 +336,8 @@ const MyTasksPage = () => {
                     'text-2xl font-bold text-green-400'
                   )}>{stats.completedTasks}</p>
                 </div>
-                <div className="p-2 rounded-xl bg-green-100 dark:bg-green-900/20">
-                  <FaCheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                <div className="p-2 rounded-xl bg-green-100 bg-green-900/20">
+                  <FaCheckCircle className="w-4 h-4 text-green-600 text-green-400" />
                 </div>
               </div>
             </div>
@@ -357,8 +357,8 @@ const MyTasksPage = () => {
                     'text-2xl font-bold text-red-400'
                   )}>{stats.overdueTasks}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-red-100 dark:bg-red-900/20">
-                  <FaExclamationTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                <div className="p-2 rounded-xl bg-red-100 bg-red-900/20">
+                  <FaExclamationTriangle className="w-4 h-4 text-red-600 text-red-400" />
                 </div>
               </div>
             </div>
@@ -378,8 +378,8 @@ const MyTasksPage = () => {
                     'text-2xl font-bold text-yellow-400'
                   )}>{stats.dueTodayTasks}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-yellow-100 dark:bg-yellow-900/20">
-                  <FaCalendarAlt className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                <div className="p-2 rounded-xl bg-yellow-100 bg-yellow-900/20">
+                  <FaCalendarAlt className="w-4 h-4 text-yellow-600 text-yellow-400" />
                 </div>
               </div>
             </div>
@@ -399,8 +399,8 @@ const MyTasksPage = () => {
                     'text-2xl font-bold text-red-400'
                   )}>{stats.highPriorityTasks}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-red-100 dark:bg-red-900/20">
-                  <FaFlag className="w-4 h-4 text-red-600 dark:text-red-400" />
+                <div className="p-2 rounded-xl bg-red-100 bg-red-900/20">
+                  <FaFlag className="w-4 h-4 text-red-600 text-red-400" />
                 </div>
               </div>
             </div>
@@ -408,44 +408,42 @@ const MyTasksPage = () => {
         </div>
 
         {/* Tasks List */}
-        <div className={getThemeClasses('bg-white border border-gray-200 rounded-xl flex-1', 'bg-transparent border border-gray-700 rounded-xl flex-1')}>
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className={getThemeClasses(
-                'text-xl font-bold text-gray-900',
-                'text-xl font-bold text-white'
-              )}>
-                Your Tasks ({filteredTasks.length})
-              </h2>
-              <div className="flex items-center gap-3">
-                {selectedTasks.length > 0 ? (
-                  <>
-                    <div className={getThemeClasses(
-                      'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
-                      'dark:bg-blue-900/30 dark:text-blue-300'
-                    )}>
-                      <span className="text-sm font-medium">{selectedTasks.length} selected</span>
-                      <button
-                        onClick={() => setSelectedTasks([])}
-                        className={getThemeClasses(
-                          'p-1 hover:bg-blue-100 rounded-full transition-colors',
-                          'dark:hover:bg-blue-900/50'
-                        )}
-                      >
-                        <FaTimes size={14} />
-                      </button>
-                    </div>
-                  </>
-                ) : null}
-              </div>
+        <div className={getThemeClasses('bg-white flex-1', 'bg-transparent flex-1')}>
+          <div className=" py-4 flex items-center justify-between">
+            <h2 className={getThemeClasses(
+              'text-xl font-bold text-gray-900',
+              'text-xl font-bold text-white'
+            )}>
+              Your Tasks ({filteredTasks.length})
+            </h2>
+            <div className="flex items-center gap-3">
+              {selectedTasks.length > 0 ? (
+                <>
+                  <div className={getThemeClasses(
+                    'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
+                    'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-900/30 text-blue-300'
+                  )}>
+                    <span className="text-sm font-medium">{selectedTasks.length} selected</span>
+                    <button
+                      onClick={() => setSelectedTasks([])}
+                      className={getThemeClasses(
+                        'p-1 hover:bg-blue-100 rounded-full transition-colors',
+                        'p-1 hover:bg-blue-900/50 rounded-full transition-colors'
+                      )}
+                    >
+                      <FaTimes size={14} />
+                    </button>
+                  </div>
+                </>
+              ) : null}
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto border border-gray-300 rounded-xl">
             {filteredTasks.length === 0 ? (
               <div className={getThemeClasses(
                 'text-center py-8 text-gray-400',
-                'dark:text-gray-500'
+                'text-center py-8  text-gray-500'
               )}>
                 <FaTasks className="w-16 h-16 mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">
@@ -472,14 +470,14 @@ const MyTasksPage = () => {
                         onChange={handleSelectAllTasks}
                         className={getThemeClasses(
                           'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                          'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                          'w-4 h-4 rounded border-gray-600 bg-gray-700 checked:bg-blue-600'
                         )}
                       />
                     </th>
                     <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('name')}
-                        className={`flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
+                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
                       >
                         Name
                         {getSortIcon('name')}
@@ -488,7 +486,7 @@ const MyTasksPage = () => {
                     <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('assignedTo')}
-                        className={`flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
+                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
                       >
                         Assigned To
                         {getSortIcon('assignedTo')}
@@ -497,7 +495,7 @@ const MyTasksPage = () => {
                     <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('assignee')}
-                        className={`flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
+                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
                       >
                         Assignee
                         {getSortIcon('assignee')}
@@ -506,7 +504,7 @@ const MyTasksPage = () => {
                     <th className={`hidden md:table-cell py-3 px-4 text-center ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('deadline')}
-                        className={`flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mx-auto ${tableHeaderTextClasses}`}
+                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors mx-auto ${tableHeaderTextClasses}`}
                       >
                         Date Assigned
                         {getSortIcon('deadline')}
@@ -515,7 +513,7 @@ const MyTasksPage = () => {
                     <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('priority')}
-                        className={`flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
+                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
                       >
                         Priority
                         {getSortIcon('priority')}
@@ -524,7 +522,7 @@ const MyTasksPage = () => {
                     <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('status')}
-                        className={`flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
+                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
                       >
                         Status
                         {getSortIcon('status')}
@@ -543,7 +541,7 @@ const MyTasksPage = () => {
                           onChange={() => handleSelectTask(task.TaskID || task._id)}
                           className={getThemeClasses(
                             'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                            'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                            'w-4 h-4 rounded border-gray-600 bg-gray-700 checked:bg-blue-600'
                           )}
                         />
                       </td>
@@ -554,7 +552,7 @@ const MyTasksPage = () => {
                               onClick={() => handleTaskClick(task.TaskID || task._id, task.ProjectID)}
                               className={getThemeClasses(
                                 'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium',
-                                'dark:hover:text-blue-400'
+                                'text-left hover:text-blue-400 hover:underline transition-colors cursor-pointer font-medium'
                               )}
                               title="Click to view task details"
                             >
@@ -564,13 +562,13 @@ const MyTasksPage = () => {
                           </div>
                           <span className={getThemeClasses(
                             'text-xs text-gray-500',
-                            'dark:text-gray-400'
+                            'text-xs text-gray-400'
                           )}>{task.Description}</span>
                           {/* Show assigned to on mobile if available */}
                           {task.AssignedTo && task.AssignedToDetails && (
                             <div className={getThemeClasses(
                               'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600',
-                              'dark:text-gray-300'
+                              'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-300'
                             )}>
                               <span className="font-medium">Assigned to:</span>
                               <span>{task.AssignedToDetails.fullName}</span>
@@ -583,7 +581,7 @@ const MyTasksPage = () => {
                           <div className="flex items-center gap-3">
                             <div className={getThemeClasses(
                               'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
-                              'dark:from-blue-600 dark:to-blue-700'
+                              'w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center text-black font-medium text-sm'
                             )}>
                               {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
                             </div>
@@ -605,7 +603,7 @@ const MyTasksPage = () => {
                           <div className="flex items-center gap-3">
                             <div className={getThemeClasses(
                               'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm',
-                              'dark:from-green-600 dark:to-green-700'
+                              'w-8 h-8 rounded-full bg-gradient-to-r from-green-600 to-green-700 flex items-center justify-center text-black font-medium text-sm'
                             )}>
                               {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
                             </div>
@@ -620,7 +618,7 @@ const MyTasksPage = () => {
                           <div className="flex items-center gap-2">
                             <div className={getThemeClasses(
                               'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm',
-                              'dark:bg-gray-700 dark:text-gray-400'
+                              'bg-gray-700 text-gray-400'
                             )}>
                               <span>NA</span>
                             </div>
@@ -654,7 +652,7 @@ const MyTasksPage = () => {
                             onClick={() => handleTaskClick(task.TaskID || task._id, task.ProjectID)}
                             className={getThemeClasses(
                               'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
-                              'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
+                              'bg-blue-900/50 text-blue-300 hover:bg-blue-800/50'
                             )}
                             title="Edit Task"
                           >
@@ -664,7 +662,7 @@ const MyTasksPage = () => {
                             onClick={() => handleTaskClick(task.TaskID || task._id, task.ProjectID)}
                             className={getThemeClasses(
                               'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
-                              'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
+                              'text-red-400 bg-red-900/50 hover:bg-red-800/50'
                             )}
                             title="Delete Task"
                           >

@@ -18,15 +18,8 @@ import { FaClock } from "react-icons/fa";
 
 // Dynamic import for charts
 let DashboardCharts = null;
-let SimpleCharts = null;
 
-// Try to load Chart.js components, fallback to simple charts
-try {
-  DashboardCharts = require('../components/dashboard/DashboardCharts').default;
-} catch (error) {
-  // If Chart.js is not available, use simple charts
-  SimpleCharts = require('../components/dashboard/SimpleCharts').default;
-}
+DashboardCharts = require('../components/dashboard/DashboardCharts').default
 
 const Dashboard = () => {
   const { theme } = useTheme();
@@ -337,6 +330,63 @@ const Dashboard = () => {
         {/* Tab Navigation */}
         {!shouldShowWelcomeMessage && (
           <div className="mb-6">
+            <div className="flex items-center justify-between">
+              {(() => {
+                // Get current date and time
+                const now = new Date();
+                // Get day of week
+                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const dayName = days[now.getDay()];
+                // Format date as Month Day, Year
+                const months = [
+                  'January', 'February', 'March', 'April', 'May', 'June',
+                  'July', 'August', 'September', 'October', 'November', 'December'
+                ];
+                function getOrdinalSuffix(day) {
+                  if (day > 3 && day < 21) { // Handles 11th, 12th, 13th, etc.
+                    return "th";
+                  }
+                  switch (day % 10) {
+                    case 1:
+                      return "st";
+                    case 2:
+                      return "nd";
+                    case 3:
+                      return "rd";
+                    default:
+                      return "th";
+                  }
+                }
+                const monthName = months[now.getMonth()];
+                const dateString = `${monthName} ${now.getDate() + getOrdinalSuffix(now.getDate())}`;
+
+
+                // Greeting logic
+                const hour = now.getHours();
+                let greeting = 'Hello';
+                if (hour < 12) {
+                  greeting = 'Good Morning';
+                } else if (hour < 18) {
+                  greeting = 'Good Afternoon';
+                } else {
+                  greeting = 'Good Evening';
+                }
+
+                // Get user's first name
+                const firstName = userDetails?.firstName || '';
+
+                return (
+                  <div className="flex flex-col mt-2 ">
+                    <div className={`text-md ${theme === 'dark' ? 'text-gray-100' : 'text-gray-500'}`}>
+                      {dayName}, {dateString}
+                    </div>
+                    <div className={`text-4xl font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>
+                      {greeting}! {firstName},
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
             <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
               <nav className="-mb-px flex items-center justify-between">
                 <div className="flex space-x-8">
@@ -400,8 +450,6 @@ const Dashboard = () => {
             {/* Dashboard Charts */}
             {DashboardCharts ? (
               <DashboardCharts stats={stats} theme={theme} />
-            ) : SimpleCharts ? (
-              <SimpleCharts stats={stats} theme={theme} />
             ) : (
               <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-6 mb-8' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border p-6 mb-8'}`}>
                 <h3 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Dashboard Analytics</h3>
@@ -559,7 +607,7 @@ const Dashboard = () => {
                   </h2>
                   <button
                     className={`flex items-center gap-2 px-4 py-2 text-sm font-medium duration-300 rounded-lg transition-colors shadow-sm ${theme === 'dark'
-                      ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white' }`}
+                      ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white'}`}
                     onClick={() => setShowInviteModal(true)}>
                     <FaPlus /> Invite
                   </button>
