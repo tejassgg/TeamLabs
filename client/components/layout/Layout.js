@@ -205,6 +205,13 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             onClick={() => handleNavigation('/my-tasks')}
             theme={theme}
           />
+          <SidebarButton
+            icon={<FaTasks className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+            label="TimeSheet"
+            active={router.pathname === '/timesheet'}
+            onClick={() => handleNavigation('/timesheet')}
+            theme={theme}
+          />
           {/* Messages Section */}
           <div className={`border-b ${getThemeClasses('border-gray-200', 'border-gray-700')} pb-2`}>
             <SidebarButton
@@ -457,7 +464,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
   const { teams, projects, tasksDetails, userDetails, loading, setProjects, setTasksDetails } = useGlobal();
   const [showFirstTimeSetup, setShowFirstTimeSetup] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  
+
   // Release notifications hook
   const { latestRelease, hasNewRelease, versionUpdateAvailable, dismissRelease, markAsSeen } = useReleaseNotifications();
 
@@ -500,6 +507,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
     if (path === '/kanban') return 'Kanban Board';
     if (path === '/projects') return 'Projects';
     if (path === '/my-tasks') return 'My Tasks';
+    if (path === '/timesheet') return 'Timesheet';
     if (path === '/profile') return 'Profile';
     if (path === '/settings') return 'Settings';
     if (path === '/messages') return 'Messages';
@@ -740,7 +748,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
     if (typeof window === 'undefined') return;
     // Never redirect away from /profile or /welcome for profile completion
 
-    if ( !isProfileComplete(userDetails) && !['/profile', '/logout'].includes(router.pathname) && userDetails?.onboardingCompleted && router.pathname !== '/profile' ) {
+    if (!isProfileComplete(userDetails) && !['/profile', '/logout'].includes(router.pathname) && userDetails?.onboardingCompleted && router.pathname !== '/profile') {
       // console.log('Redirecting to profile due to incomplete profile:', {
       //   isProfileComplete: isProfileComplete(userDetails),
       //   currentPath: router.pathname,
@@ -779,11 +787,11 @@ const Layout = ({ children, pageProject, pageTitle }) => {
             )}
           </div>
           <div>
-            <Navbar 
-              isMobile={true} 
-              theme={theme} 
-              toggleTheme={toggleTheme} 
-              onLogout={logout} 
+            <Navbar
+              isMobile={true}
+              theme={theme}
+              toggleTheme={toggleTheme}
+              onLogout={logout}
               pageTitle={currentPageTitle}
               versionUpdateAvailable={versionUpdateAvailable}
               latestVersion={latestRelease?.version}
@@ -806,10 +814,10 @@ const Layout = ({ children, pageProject, pageTitle }) => {
         {!isMobile && (
           <div className="flex justify-center">
             <div style={{ width: '100%' }}>
-              <Navbar 
-                theme={theme} 
-                toggleTheme={toggleTheme} 
-                onLogout={logout} 
+              <Navbar
+                theme={theme}
+                toggleTheme={toggleTheme}
+                onLogout={logout}
                 pageTitle={currentPageTitle}
                 versionUpdateAvailable={versionUpdateAvailable}
                 latestVersion={latestRelease?.version}
@@ -828,7 +836,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
           {/* Release Notification Banner */}
           {latestRelease && (
             <div className="p-2" data-release-banner>
-              <ReleaseNotificationBanner 
+              <ReleaseNotificationBanner
                 onClose={() => {
                   dismissRelease(latestRelease._id);
                   markAsSeen(latestRelease._id);
@@ -836,7 +844,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
               />
             </div>
           )}
-          
+
           <div className="p-2">
             <DynamicBreadcrumb
               teams={teams}

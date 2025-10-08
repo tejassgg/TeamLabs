@@ -30,6 +30,7 @@ const reportRoutes = require('./routes/reportRoutes');
 const ragRoutes = require('./routes/ragRoutes');
 const releaseNotificationRoutes = require('./routes/releaseNotificationRoutes');
 const reportSchedulingService = require('./services/reportSchedulingService');
+const timesheetRoutes = require('./routes/timesheetRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -92,6 +93,7 @@ app.use('/api/contact-support', contactRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/rag', ragRoutes);
 app.use('/api/release-notifications', releaseNotificationRoutes);
+app.use('/api/timesheet', timesheetRoutes);
 
 // Test route
 app.get('/', (req, res) => {
@@ -114,10 +116,10 @@ server.listen(PORT, () => {
   } catch (e) {
     console.error('Failed to initialize Socket.IO', e);
   }
-  
+
   // Initialize report scheduling service
   reportSchedulingService.initialize();
-  
+
   console.log(`Server running on port ${PORT}`);
   console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
 });

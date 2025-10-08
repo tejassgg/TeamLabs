@@ -259,16 +259,16 @@ export const authService = {
       throw error.response?.data || { message: 'Failed to update user settings' };
     }
   },
-  
+
   updateUserStatus: async (status, userId) => {
     try {
-      const response = await api.put('/auth/status', { status, userId});
+      const response = await api.put('/auth/status', { status, userId });
       return response;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to update user status' };
     }
   },
-  
+
   forgotPassword: async (usernameOrEmail) => {
     try {
       const response = await api.post('/auth/forgot-password', { usernameOrEmail });
@@ -529,7 +529,7 @@ export const teamService = {
   },
   leaveTeam: async (teamId, newAdminId = null) => {
     try {
-      const response = await api.post(`/teams/${teamId}/leave`, { 
+      const response = await api.post(`/teams/${teamId}/leave`, {
         ...(newAdminId && { newAdminId })
       });
       return response.data;
@@ -720,7 +720,7 @@ export const taskService = {
   },
   assignTask: async (taskId, userId) => {
     try {
-      const response = await api.patch(`/task-details/${taskId}/assign`, { 
+      const response = await api.patch(`/task-details/${taskId}/assign`, {
         AssignedTo: userId,
         AssignedDate: userId ? new Date() : null
       });
@@ -852,9 +852,9 @@ export const attachmentService = {
   },
   addAttachment: async (taskId, filename, fileUrl, uploadedBy, fileSize) => {
     try {
-      const res = await api.post(`/attachments/tasks/${taskId}/attachments`, { 
-        Filename: filename, 
-        FileURL: fileUrl, 
+      const res = await api.post(`/attachments/tasks/${taskId}/attachments`, {
+        Filename: filename,
+        FileURL: fileUrl,
         UploadedBy: uploadedBy,
         FileSize: fileSize
       });
@@ -865,9 +865,9 @@ export const attachmentService = {
   },
   addProjectAttachment: async (projectId, filename, fileUrl, uploadedBy, fileSize) => {
     try {
-      const res = await api.post(`/attachments/project/${projectId}/attachments`, { 
-        Filename: filename, 
-        FileURL: fileUrl, 
+      const res = await api.post(`/attachments/project/${projectId}/attachments`, {
+        Filename: filename,
+        FileURL: fileUrl,
         UploadedBy: uploadedBy,
         FileSize: fileSize
       });
@@ -1126,7 +1126,7 @@ export const githubService = {
       throw error.response?.data || { message: 'Failed to fetch commits' };
     }
   },
-  
+
   // Get project issues
   getProjectIssues: async (projectId, page = 1, perPage = 20) => {
     try {
@@ -1275,7 +1275,7 @@ export const reportService = {
           params.append(key, filters[key]);
         }
       });
-      
+
       const response = await api.get(`/reports?${params.toString()}`);
       return response.data;
     } catch (error) {
@@ -1312,7 +1312,7 @@ export const reportService = {
           params.append(key, filters[key]);
         }
       });
-      
+
       const response = await api.get(`/reports/configs?${params.toString()}`);
       return response.data;
     } catch (error) {
@@ -1395,7 +1395,7 @@ export const releaseNotificationService = {
           params.append(key, filters[key]);
         }
       });
-      
+
       const response = await api.get(`/release-notifications?${params.toString()}`);
       return response.data;
     } catch (error) {
@@ -1463,5 +1463,46 @@ export const releaseNotificationService = {
     }
   }
 };
+
+export const timesheetService = {
+  getTimeSheetHistory: async (date) => {
+    try {
+      const response = await api.get(`/timesheet/history/${date}`);
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      throw error.response?.data || { message: 'Failed to fetch timesheet' };
+    }
+  },
+  punchIn: async () => {
+    try {
+      const response = await api.get('/timesheet/punchIn');
+      return response.data;
+    }
+    catch (error) {
+      console.log(error);
+      throw error.response?.data || { message: 'Failed to punchIn' };
+    }
+  },
+  punchOut: async (punchID) => {
+    try {
+      const response = await api.post(`/timesheet/punchOut/${punchID}`);
+      return response.data;
+    }
+    catch (error) {
+      throw error.response?.data || { message: 'Failed to punchIn' };
+    }
+  },
+  postTimeSheet: async (punchID, data) => {
+    try {
+      const response = await api.post(`/timesheet/${punchID}`, data);
+      return response.data;
+    }
+    catch (error) {
+      console.log(error);
+      throw error.response?.data || { message: 'Failed to Post TimeSheet' };
+    }
+  }
+}
 
 export default api; 
