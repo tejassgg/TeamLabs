@@ -31,7 +31,7 @@ class ReportSchedulingService {
       }
 
       this.isInitialized = true;
-      console.log(`Report scheduling service initialized with ${activeConfigs.length} active configurations`);
+      // console.log(`Report scheduling service initialized with ${activeConfigs.length} active configurations`);
     } catch (error) {
       console.error('Error initializing report scheduling service:', error);
     }

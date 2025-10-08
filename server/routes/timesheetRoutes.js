@@ -11,9 +11,12 @@ const getTimeSheetHistory = async (req, res) => {
         const punchData = await PunchDetails.findOne({ UserId: req.user._id, PunchDate: new Date(date) });
         if (punchData) {
             const timeSheet = await TimeSheet.find({ PunchID: punchData._id, UserId: req.user._id })
-            return res.status(200).json({ punchData: punchData, timeSheet: timeSheet })
+            if (timeSheet.length != 0) {
+                return res.status(200).json({ punchData: punchData, timeSheet: timeSheet })
+            }
+            return res.status(200).json({punchData: punchData, timeSheet: timeSheet, message: 'No time recorded for today' })
         }
-        return res.status(400).json({ message: 'No time recorded for today' })
+        return res.status(400).json({ message: 'Punch In Requried!' })
     }
     catch (error) {
         console.log(error);
@@ -22,13 +25,12 @@ const getTimeSheetHistory = async (req, res) => {
 
 const postTimeSheet = async (req, res) => {
     try {
-        const { Description, StartTime, EndTime, PunchDate } = req.body;
-        const {punchID} = req.params;
-        const PunchData = await PunchDetails.findById(punchID);
-        if (PunchData?.UserId == req.user._id) {
+        const { Description, StartTime, EndTime, PunchDate, PunchID } = req.body;
+        const PunchData = await PunchDetails.findOne({ _id: PunchID, UserId: req.user._id });
+        if (PunchData) {
             const newTime = await TimeSheet.create({
                 UserId: req.user._id,
-                PunchID: punchID,
+                PunchID: PunchID,
                 Description: Description,
                 StartTime: StartTime,
                 EndTime: EndTime,
@@ -42,7 +44,7 @@ const postTimeSheet = async (req, res) => {
                 { newTime }
             );
 
-            return res.status(200).json({ data: newTime });
+            return res.status(201).json(newTime);
         }
         return res.status(400).json({ message: 'Punch In First to Log TimeSheet.' });
     }
@@ -105,9 +107,25 @@ const handlePunchOut = async (req, res) => {
     }
 }
 
+const delTimeSheet = async (req, res) => {
+    try {
+        const { timeId, punchID } = req.body;
+        const delData = await TimeSheet.findOne({ _id: timeId, PunchID: punchID, UserId: req.user._id });
+        if (delData) {
+            await delData.deleteOne();
+            return res.status(200).json({ message: "TimeSheet Deleted Successfully!" });
+        }
+        return res.status(204).send();
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(400).json({ message: error.message });
+    }
+}
 
 // Routes
-router.post('/:punchID', protect, postTimeSheet);
+router.post('/', protect, postTimeSheet);
+router.delete('/', protect, delTimeSheet);
 
 router.get('/punchIn', protect, handlePunchIn);
 router.post('/punchOut/:punchID', protect, handlePunchOut);

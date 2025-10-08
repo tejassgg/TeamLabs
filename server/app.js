@@ -112,7 +112,7 @@ server.listen(PORT, () => {
   // Initialize WebSocket server after HTTP server starts
   try {
     initSocket(server);
-    console.log('Socket.IO initialized');
+    // console.log('Socket.IO initialized');
   } catch (e) {
     console.error('Failed to initialize Socket.IO', e);
   }

@@ -1493,14 +1493,24 @@ export const timesheetService = {
       throw error.response?.data || { message: 'Failed to punchIn' };
     }
   },
-  postTimeSheet: async (punchID, data) => {
+  postTimeSheet: async (data) => {
     try {
-      const response = await api.post(`/timesheet/${punchID}`, data);
-      return response.data;
+      const response = await api.post(`/timesheet`, data);
+      return response;
     }
     catch (error) {
       console.log(error);
       throw error.response?.data || { message: 'Failed to Post TimeSheet' };
+    }
+  },
+  delTimeSheet: async (timeId, punchID) => {
+    try {
+      const response = await api.delete(`/timesheet/`, {data: {timeId, punchID}});
+      return response;
+    }
+    catch (error) {
+      console.log(error);
+      throw error.response?.data || { message: 'Failed to Delete TimeSheet' };
     }
   }
 }
