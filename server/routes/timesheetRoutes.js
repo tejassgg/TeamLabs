@@ -13,7 +13,7 @@ const getTimeSheetHistory = async (req, res) => {
             const timeSheet = await TimeSheet.find({ PunchID: punchData._id, UserId: req.user._id })
             return res.status(200).json({ punchData: punchData, timeSheet: timeSheet })
         }
-        return res.status(200).json({ message: 'No time recorded for today' })
+        return res.status(400).json({ message: 'No time recorded for today' })
     }
     catch (error) {
         console.log(error);
