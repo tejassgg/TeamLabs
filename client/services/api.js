@@ -2,6 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const env = process.env.ENVIRONMENT;
 
 // Create axios instance for authenticated requests
 const api = axios.create({
@@ -53,6 +54,7 @@ export const authService = {
       }
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'An error occurred during login' };
     }
   },
@@ -70,6 +72,7 @@ export const authService = {
       return response.data;
 
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to verify 2FA code' };
     }
   },
@@ -83,6 +86,7 @@ export const authService = {
       }
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'An error occurred during registration' };
     }
   },
@@ -93,6 +97,7 @@ export const authService = {
       const response = await api.post('/auth/resend-verification', { usernameOrEmail });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to resend verification email' };
     }
   },
@@ -102,6 +107,7 @@ export const authService = {
       const response = await api.get(`/auth/verify-email?token=${token}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       console.error('Error verifying email:', error);
       throw error.response?.data || { message: 'Failed to verify email' };
     }
@@ -116,6 +122,7 @@ export const authService = {
       }
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'An error occurred during Google login' };
     }
   },
@@ -126,6 +133,7 @@ export const authService = {
       // Log the logout activity before clearing the session
       await api.post('/auth/logout');
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       console.error('Error logging logout activity:', error);
     } finally {
       localStorage.removeItem('token');
@@ -142,6 +150,7 @@ export const authService = {
           const payload = JSON.parse(atob(token.split('.')[1]));
           return payload;
         } catch (error) {
+          if (env == 'DEV') console.log(error);
           console.error('Error parsing token:', error);
           return null;
         }
@@ -156,6 +165,7 @@ export const authService = {
       const response = await api.get('/auth/profile');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to get user profile' };
     }
   },
@@ -182,6 +192,7 @@ export const authService = {
       }
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to complete profile' };
     }
   },
@@ -191,6 +202,7 @@ export const authService = {
       const response = await api.get(`/auth/activities?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       console.error('Error fetching user activities:', error);
       throw error;
     }
@@ -201,6 +213,7 @@ export const authService = {
       const response = await api.get('/auth/my-tasks-data');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       console.error('Error fetching my tasks data:', error);
       throw error.response?.data || { message: 'Failed to fetch user tasks data' };
     }
@@ -211,6 +224,7 @@ export const authService = {
       const response = await api.get('/auth/organizations');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch user organizations' };
     }
   },
@@ -220,6 +234,7 @@ export const authService = {
       const response = await api.post('/auth/2fa/generate', { userId: userId });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to generate 2FA' };
     }
   },
@@ -229,6 +244,7 @@ export const authService = {
       const response = await api.post('/auth/2fa/verify', { token });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to verify 2FA' };
     }
   },
@@ -238,6 +254,7 @@ export const authService = {
       const response = await api.post('/auth/2fa/disable');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to disable 2FA' };
     }
   },
@@ -247,6 +264,7 @@ export const authService = {
       const response = await api.put('/auth/security-settings', securitySettings);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to update security settings' };
     }
   },
@@ -256,6 +274,7 @@ export const authService = {
       const response = await api.put('/auth/user-settings', userSettings);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to update user settings' };
     }
   },
@@ -265,6 +284,7 @@ export const authService = {
       const response = await api.put('/auth/status', { status, userId });
       return response;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to update user status' };
     }
   },
@@ -274,6 +294,7 @@ export const authService = {
       const response = await api.post('/auth/forgot-password', { usernameOrEmail });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to send reset link' };
     }
   },
@@ -283,6 +304,7 @@ export const authService = {
       const response = await api.post('/auth/reset-password', { token, newPassword });
       return response;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to reset password' };
     }
   },
@@ -292,6 +314,7 @@ export const authService = {
       const response = await api.post('/auth/verify-reset-password', { token });
       return response;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to verify reset password' };
     }
   },
@@ -300,6 +323,7 @@ export const authService = {
       const response = await api.get('/users/overview');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to get user overview' };
     }
   },
@@ -310,6 +334,7 @@ export const authService = {
       const response = await api.put('/auth/onboarding', { completed, step, progress });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to update onboarding status' };
     }
   },
@@ -320,6 +345,7 @@ export const authService = {
       const response = await api.post('/auth/github/initiate', { userId });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to initiate GitHub authentication' };
     }
   },
@@ -331,6 +357,7 @@ export const authService = {
       });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to complete GitHub authentication' };
     }
   },
@@ -340,6 +367,7 @@ export const authService = {
       const response = await api.post('/auth/github/disconnect', { userId });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to disconnect GitHub account' };
     }
   },
@@ -349,6 +377,7 @@ export const authService = {
       const response = await api.get(`/auth/github/status/${userId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to get GitHub status' };
     }
   },
@@ -358,6 +387,7 @@ export const authService = {
       const response = await api.get(`/auth/integrations/${userId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to get integrations status' };
     }
   },
@@ -367,6 +397,7 @@ export const authService = {
       const response = await api.get(`/payment/organization/${organizationID}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch subscription data' };
     }
   },
@@ -377,6 +408,7 @@ export const authService = {
       const response = await api.get(`/payment/calculate-refund/${organizationID}?newPlan=${encodeURIComponent(newPlan)}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to calculate refund' };
     }
   },
@@ -386,6 +418,7 @@ export const authService = {
       const response = await api.post(`/payment/downgrade/${organizationID}`, { newPlan, userId });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to downgrade subscription' };
     }
   },
@@ -395,6 +428,7 @@ export const authService = {
       const response = await api.post(`/payment/upgrade/${organizationID}`, { newPlan: 'annual', userId });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to upgrade subscription' };
     }
   },
@@ -403,6 +437,7 @@ export const authService = {
       const response = await api.post(`/payment/cancel/${organizationID}`, { userId });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to cancel subscription' };
     }
   },
@@ -413,6 +448,7 @@ export const authService = {
       const response = await api.get(`/auth/github/repositories/${userId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch user repositories' };
     }
   },
@@ -422,6 +458,7 @@ export const authService = {
       const response = await api.post(`/projects/${projectId}/github/link`, { repositoryData });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to link repository to project' };
     }
   },
@@ -431,6 +468,7 @@ export const authService = {
       const response = await api.post(`/projects/${projectId}/github/unlink`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to unlink repository from project' };
     }
   },
@@ -440,6 +478,7 @@ export const authService = {
       const response = await api.get(`/projects/${projectId}/github/repository`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to get project repository' };
     }
   },
@@ -451,6 +490,7 @@ export const teamService = {
       const response = await api.get(`/teams/${role}/${userId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch teams' };
     }
   },
@@ -459,6 +499,7 @@ export const teamService = {
       const response = await api.get(`/teams/overview/${userId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch teams overview' };
     }
   },
@@ -467,6 +508,7 @@ export const teamService = {
       const response = await api.get(`/teams/organization/${organizationId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch teams by organization' };
     }
   },
@@ -475,6 +517,7 @@ export const teamService = {
       const response = await api.post('/teams', teamData);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data;
     }
   },
@@ -483,6 +526,7 @@ export const teamService = {
       const response = await api.delete(`/teams/${teamId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to delete team' };
     }
   },
@@ -492,6 +536,7 @@ export const teamService = {
       console.log(response.data);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to request to join team' };
     }
   },
@@ -500,6 +545,7 @@ export const teamService = {
       const response = await api.get(`/teams/${teamId}/join-requests`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch join requests' };
     }
   },
@@ -508,6 +554,7 @@ export const teamService = {
       const response = await api.post(`/teams/${teamId}/join-requests/${requestId}/accept`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to accept join request' };
     }
   },
@@ -516,6 +563,7 @@ export const teamService = {
       const response = await api.post(`/teams/${teamId}/join-requests/${requestId}/reject`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to reject join request' };
     }
   },
@@ -524,6 +572,7 @@ export const teamService = {
       const response = await api.get(`/teams/user/${userId}/pending-requests`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch pending requests' };
     }
   },
@@ -534,6 +583,7 @@ export const teamService = {
       });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to leave team' };
     }
   },
@@ -545,6 +595,7 @@ export const commonTypeService = {
       const response = await api.get('/common-types/team-types');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch team types' };
     }
   },
@@ -553,6 +604,7 @@ export const commonTypeService = {
       const response = await api.get('/common-types/organizations');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch organizations' };
     }
   },
@@ -561,6 +613,7 @@ export const commonTypeService = {
       const response = await api.get('/common-types/user-roles');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch user roles' };
     }
   },
@@ -569,6 +622,7 @@ export const commonTypeService = {
       const response = await api.get('/common-types/phone-extensions');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch phone extensions' };
     }
   },
@@ -577,6 +631,7 @@ export const commonTypeService = {
       const response = await api.get('/common-types/task-types');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch task types' };
     }
   },
@@ -585,6 +640,7 @@ export const commonTypeService = {
       const response = await api.get('/common-types/project-statuses');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch project statuses' };
     }
   },
@@ -593,6 +649,7 @@ export const commonTypeService = {
       const response = await api.get('/common-types/dropdown-data');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch dropdown data' };
     }
   },
@@ -602,6 +659,7 @@ export const commonTypeService = {
       const response = await api.get('/common-types/subscription-catalog');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch subscription catalog' };
     }
   }
@@ -613,6 +671,7 @@ export const organizationService = {
       const response = await api.post('/organizations', orgData);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to create organization' };
     }
   }
@@ -624,6 +683,7 @@ export const projectService = {
       const response = await api.get(`/projects/${userId}/${type}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch projects' };
     }
   },
@@ -632,6 +692,7 @@ export const projectService = {
       const response = await api.get(`/projects/overview`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch projects overview' };
     }
   },
@@ -640,6 +701,7 @@ export const projectService = {
       const response = await api.post('/projects', projectData);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data;
     }
   },
@@ -648,6 +710,7 @@ export const projectService = {
       const response = await api.patch(`/projects/${projectId}`, updateData);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to update project' };
     }
   },
@@ -656,6 +719,7 @@ export const projectService = {
       const response = await api.get(`/project-details/${projectId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch project details' };
     }
   }
@@ -667,6 +731,7 @@ export const taskService = {
       const response = await api.post('/task-details', { taskDetail: taskData, mode: mode });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data;
     }
   },
@@ -675,6 +740,7 @@ export const taskService = {
       const response = await api.get('/task-details');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch tasks' };
     }
   },
@@ -683,6 +749,7 @@ export const taskService = {
       const response = await api.get(`/task-details/project/${projectId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch project tasks' };
     }
   },
@@ -691,6 +758,7 @@ export const taskService = {
       const response = await api.get(`/task-details/project/${projectId}/kanban`);
       return response.data; // { tasks, userStories }
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch kanban data' };
     }
   },
@@ -699,6 +767,7 @@ export const taskService = {
       const response = await api.get(`/task-details/${taskId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch task details' };
     }
   },
@@ -707,6 +776,7 @@ export const taskService = {
       const response = await api.patch(`/task-details/${taskId}/status`, { Status: newStatus, modifiedBy: modifiedBy });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to update task status' };
     }
   },
@@ -715,6 +785,7 @@ export const taskService = {
       const response = await api.get(`/task-details/project/${projectId}/team-members`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch team members' };
     }
   },
@@ -726,6 +797,7 @@ export const taskService = {
       });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to assign task' };
     }
   },
@@ -734,6 +806,7 @@ export const taskService = {
       const response = await api.delete(`/task-details/${taskId}/delete`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to remove task' };
     }
   },
@@ -742,6 +815,7 @@ export const taskService = {
       const response = await api.patch(`/task-details/${taskId}`, taskData);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to update task' };
     }
   },
@@ -750,6 +824,7 @@ export const taskService = {
       const response = await api.delete('/task-details/bulk-delete', { data: { taskIds } });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to delete tasks' };
     }
   },
@@ -758,6 +833,7 @@ export const taskService = {
       const response = await api.get(`/task-details/${taskId}/activity?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch task activity' };
     }
   }
@@ -771,6 +847,7 @@ export const chatbotService = {
       const response = await api.post(endpoint, { message });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to send message to chatbot' };
     }
   },
@@ -783,6 +860,7 @@ export const chatbotService = {
       });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch conversation history' };
     }
   }
@@ -826,6 +904,7 @@ export const attachmentService = {
       const res = await api.get(`/attachments/tasks/${taskId}/attachments`);
       return res.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch attachments' };
     }
   },
@@ -834,6 +913,7 @@ export const attachmentService = {
       const res = await api.get(`/attachments/${attachmentId}`);
       return res.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch attachment' };
     }
   },
@@ -846,6 +926,7 @@ export const attachmentService = {
       });
       return res.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       console.log('File Upload API Call Error', error);
       throw error.response?.data || { message: 'Failed to upload attachment' };
     }
@@ -860,6 +941,7 @@ export const attachmentService = {
       });
       return res.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to add attachment' };
     }
   },
@@ -873,6 +955,7 @@ export const attachmentService = {
       });
       return res.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to add project attachment' };
     }
   },
@@ -881,6 +964,7 @@ export const attachmentService = {
       const res = await api.patch(`/attachments/${attachmentId}`, updateData);
       return res.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to update attachment' };
     }
   },
@@ -889,6 +973,7 @@ export const attachmentService = {
       const res = await api.delete(`/attachments/${attachmentId}`);
       return res.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to delete attachment' };
     }
   },
@@ -897,6 +982,7 @@ export const attachmentService = {
       const res = await api.delete('/attachments/bulk-delete', { data: { attachmentIds } });
       return res.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to delete attachments' };
     }
   }
@@ -935,6 +1021,7 @@ export const landingService = {
       const response = await publicApi.get('/landing/stats');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch landing statistics' };
     }
   },
@@ -945,6 +1032,7 @@ export const landingService = {
       const response = await publicApi.get(`/landing/active-teams?limit=${limit}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch active teams' };
     }
   },
@@ -955,6 +1043,7 @@ export const landingService = {
       const response = await publicApi.get(`/landing/completed-projects?limit=${limit}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch completed projects' };
     }
   },
@@ -965,6 +1054,7 @@ export const landingService = {
       const response = await publicApi.get('/landing/overview');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch landing overview' };
     }
   }
@@ -977,6 +1067,7 @@ export const userService = {
       const response = await api.get(`/users/${userId}/usage-limits`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch user usage limits' };
     }
   },
@@ -985,6 +1076,7 @@ export const userService = {
       const response = await api.post('/users/invite', { email });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to send invite' };
     }
   },
@@ -993,6 +1085,7 @@ export const userService = {
       const response = await api.get('/users/invites');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch invites' };
     }
   },
@@ -1001,6 +1094,7 @@ export const userService = {
       const response = await api.post(`/users/invites/${inviteId}/resend`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to resend invite' };
     }
   },
@@ -1009,6 +1103,7 @@ export const userService = {
       const response = await api.delete(`/users/invites/${inviteId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to delete invite' };
     }
   }
@@ -1123,6 +1218,7 @@ export const githubService = {
       });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch commits' };
     }
   },
@@ -1135,6 +1231,7 @@ export const githubService = {
       });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch issues' };
     }
   }
@@ -1213,6 +1310,7 @@ export const paymentService = {
       });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       console.error('Error creating checkout session:', error);
       throw error.response?.data || { message: 'Failed to create checkout session' };
     }
@@ -1222,6 +1320,7 @@ export const paymentService = {
       const response = await api.post('/payment/create-billing-portal', { organizationID });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to create billing portal session' };
     }
   },
@@ -1230,6 +1329,7 @@ export const paymentService = {
       const response = await api.get(`/payment/checkout-sessions/${sessionId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch checkout session' };
     }
   },
@@ -1238,6 +1338,7 @@ export const paymentService = {
       const response = await api.post('/payment/checkout-sessions/confirm', { sessionId });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to confirm checkout session' };
     }
   },
@@ -1246,6 +1347,7 @@ export const paymentService = {
       const response = await api.get(`/payment/organization/${organizationID}/invoices`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch transactions' };
     }
   }
@@ -1262,6 +1364,7 @@ export const reportService = {
       });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to generate report' };
     }
   },
@@ -1279,6 +1382,7 @@ export const reportService = {
       const response = await api.get(`/reports?${params.toString()}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch reports' };
     }
   },
@@ -1289,6 +1393,7 @@ export const reportService = {
       const response = await api.get(`/reports/${reportId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch report' };
     }
   },
@@ -1299,6 +1404,7 @@ export const reportService = {
       const response = await api.post('/reports/config', configData);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to create report configuration' };
     }
   },
@@ -1316,6 +1422,7 @@ export const reportService = {
       const response = await api.get(`/reports/configs?${params.toString()}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch configurations' };
     }
   },
@@ -1326,6 +1433,7 @@ export const reportService = {
       const response = await api.get(`/reports/config/${configId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch configuration' };
     }
   },
@@ -1336,6 +1444,7 @@ export const reportService = {
       const response = await api.put(`/reports/config/${configId}`, updates);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to update configuration' };
     }
   },
@@ -1346,6 +1455,7 @@ export const reportService = {
       const response = await api.delete(`/reports/config/${configId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to delete configuration' };
     }
   },
@@ -1359,6 +1469,7 @@ export const reportService = {
       });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to submit feedback' };
     }
   },
@@ -1369,6 +1480,7 @@ export const reportService = {
       const response = await api.delete(`/reports/${reportId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to delete report' };
     }
   }
@@ -1382,6 +1494,7 @@ export const releaseNotificationService = {
       const response = await api.post('/release-notifications', releaseData);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to create release notification' };
     }
   },
@@ -1399,6 +1512,7 @@ export const releaseNotificationService = {
       const response = await api.get(`/release-notifications?${params.toString()}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch release notifications' };
     }
   },
@@ -1409,6 +1523,7 @@ export const releaseNotificationService = {
       const response = await api.get(`/release-notifications/latest?targetAudience=${targetAudience}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch latest release notification' };
     }
   },
@@ -1419,6 +1534,7 @@ export const releaseNotificationService = {
       const response = await api.get(`/release-notifications/${releaseId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch release notification' };
     }
   },
@@ -1429,6 +1545,7 @@ export const releaseNotificationService = {
       const response = await api.put(`/release-notifications/${releaseId}`, updateData);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to update release notification' };
     }
   },
@@ -1439,6 +1556,7 @@ export const releaseNotificationService = {
       const response = await api.patch(`/release-notifications/${releaseId}/publish`, { isPublished });
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to update publish status' };
     }
   },
@@ -1449,6 +1567,7 @@ export const releaseNotificationService = {
       const response = await api.delete(`/release-notifications/${releaseId}`);
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to delete release notification' };
     }
   },
@@ -1459,6 +1578,7 @@ export const releaseNotificationService = {
       const response = await api.get('/release-notifications/stats');
       return response.data;
     } catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch release statistics' };
     }
   }
@@ -1470,7 +1590,7 @@ export const timesheetService = {
       const response = await api.get(`/timesheet/history/${date}`);
       return response.data;
     } catch (error) {
-      console.log(error);
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch timesheet' };
     }
   },
@@ -1480,7 +1600,7 @@ export const timesheetService = {
       return response.data;
     }
     catch (error) {
-      console.log(error);
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to punchIn' };
     }
   },
@@ -1490,6 +1610,7 @@ export const timesheetService = {
       return response.data;
     }
     catch (error) {
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to punchIn' };
     }
   },
@@ -1499,17 +1620,17 @@ export const timesheetService = {
       return response;
     }
     catch (error) {
-      console.log(error);
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to Post TimeSheet' };
     }
   },
   delTimeSheet: async (timeId, punchID) => {
     try {
-      const response = await api.delete(`/timesheet/`, {data: {timeId, punchID}});
+      const response = await api.delete(`/timesheet/`, { data: { timeId, punchID } });
       return response;
     }
     catch (error) {
-      console.log(error);
+      if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to Delete TimeSheet' };
     }
   }

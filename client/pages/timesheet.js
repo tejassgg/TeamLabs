@@ -6,11 +6,11 @@ import { FaMinus, FaPlus, FaAlignLeft, FaCalendarAlt, FaEdit } from 'react-icons
 import { MdDelete } from 'react-icons/md';
 import { useToast } from '../context/ToastContext';
 import { useThemeClasses } from '../components/shared/hooks/useThemeClasses';
+import CustomModal from '../components/shared/CustomModal'; // Assuming CustomModal is in this path
 
 const TimeSheet = () => {
-    const { setTeams, userDetails, getTableHeaderClasses, getTableHeaderTextClasses, getTableRowClasses, getTableTextClasses, getTableSecondaryTextClasses, formatDateUTC } = useGlobal();
+    const { userDetails, getTableHeaderClasses, getTableHeaderTextClasses, getTableRowClasses, getTableTextClasses, getTableSecondaryTextClasses } = useGlobal();
     const getThemeClasses = useThemeClasses();
-    const { theme } = useTheme();
     const { showToast } = useToast();
     const [userTimeSheet, setUserTimeSheet] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -21,6 +21,11 @@ const TimeSheet = () => {
     const [description, setDescription] = useState('');
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
+    const [totalTime, setTotalTime] = useState({ hours: 0, minutes: 0 });
+    const [elapsedTime, setElapsedTime] = useState({ hours: 0, minutes: 0, seconds: 0 });
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [timeToDelete, setTimeToDelete] = useState(null);
+
 
     // Update the table container classes - transparent background with borders to blend with page
     const tableContainerClasses = getThemeClasses(
@@ -32,7 +37,6 @@ const TimeSheet = () => {
     const tableHeaderClasses = getTableHeaderClasses();
     const tableHeaderTextClasses = getTableHeaderTextClasses();
     const tableRowClasses = getTableRowClasses();
-    const tableTextClasses = getTableTextClasses();
     const tableSecondaryTextClasses = getTableSecondaryTextClasses();
 
     // Fetch teams with statistics using the new API
@@ -46,20 +50,29 @@ const TimeSheet = () => {
             setLoading(true);
 
             const data = await timesheetService.getTimeSheetHistory(new Date(currentDate).toJSON());
-            if (data) {
+            if (data && data.punchData) {
                 setPunchID(data.punchData._id);
                 setPunchedInTime(data.punchData.InTime);
                 setPunchedOutTime(data.punchData.OutTime);
-                setUserTimeSheet(data.timeSheet);
+                setUserTimeSheet(data.timeSheet || []);
                 if (data.message) {
                     showToast(data.message, 'warning')
                 }
+            } else {
+                setPunchID(null);
+                setPunchedInTime(null);
+                setPunchedOutTime(null);
+                setUserTimeSheet([]);
+                setTotalTime({ hours: 0, minutes: 0 });
             }
 
         } catch (error) {
             console.error('Error fetching TimeSheet:', error);
             showToast(error.message || 'Failed to load timesheet', 'error');
             setUserTimeSheet([]);
+            setPunchID(null);
+            setPunchedInTime(null);
+            setPunchedOutTime(null);
         } finally {
             setLoading(false);
         }
@@ -79,8 +92,8 @@ const TimeSheet = () => {
         try {
             const formData = {
                 Description: description,
-                StartTime: createDateFromTimeString(startTime, currentDate),
-                EndTime: createDateFromTimeString(endTime, currentDate),
+                StartTime: createDateFromTimeString(startTime, new Date(currentDate)),
+                EndTime: createDateFromTimeString(endTime, new Date(currentDate)),
                 PunchDate: new Date(currentDate).toJSON(),
                 PunchID: punchID
             }
@@ -98,44 +111,36 @@ const TimeSheet = () => {
         }
     };
 
-    const handleEditTime = async (timeId) => {
-        try {
-            const formData = {
-                Description: description,
-                StartTime: createDateFromTimeString(startTime, currentDate),
-                EndTime: createDateFromTimeString(endTime, currentDate),
-                PunchDate: new Date(currentDate).toJSON(),
-                TimeId: timeId,
-                PunchID: punchID
-            }
-            const newTime = await timesheetService.postTimeSheet(punchID, formData);
-            setUserTimeSheet(prev => [...prev, newTime]);
-            showToast('TimeSheet Updated Successfully!', 'success');
-        } catch (err) {
-            console.log(err);
-            showToast('Failed to Add TimeSheet', 'error');
-        }
+    const openDeleteConfirmation = (timeId, punchID) => {
+        setTimeToDelete({ timeId, punchID });
+        setIsDeleteModalOpen(true);
     };
 
-    const handleDelTime = async (timeId, punchID) => {
+    const handleConfirmDelete = async () => {
+        if (!timeToDelete) return;
+
         try {
-            const res = await timesheetService.delTimeSheet(timeId, punchID);
-            if (res.status == 200) {
+            const res = await timesheetService.delTimeSheet(timeToDelete.timeId, timeToDelete.punchID);
+            if (res.status === 200) {
                 showToast(res.data.message, 'success');
-                setUserTimeSheet(prev => prev.filter(t => t._id !== timeId));
-                return;
+                setUserTimeSheet(prev => prev.filter(t => t._id !== timeToDelete.timeId));
+            } else {
+                showToast('Unable to Delete TimeSheet', 'warning');
             }
-            showToast('Unable to Delete TimeSheet', 'warning');
         } catch (err) {
             console.log(err);
             showToast('Failed to Delete TimeSheet', 'error');
+        } finally {
+            setIsDeleteModalOpen(false);
+            setTimeToDelete(null);
         }
     };
+
 
     const handlePunchIn = async () => {
         try {
             const data = await timesheetService.punchIn();
-            setPunchedInTime(new Date(data.punchIn.InTime).toLocaleString())
+            setPunchedInTime(data.punchIn.InTime)
             setPunchID(data.punchIn._id)
             showToast(data.message);
         }
@@ -146,16 +151,60 @@ const TimeSheet = () => {
 
     const handlePunchOut = async () => {
         const data = await timesheetService.punchOut(punchID);
-        setPunchedOutTime(new Date(data.punchOut.OutTime).toLocaleString())
+        setPunchedOutTime(data.punchOut.OutTime)
         showToast(data.message);
     };
 
     useEffect(() => {
         fetchUserTimeSheet();
-    }, [userDetails?._id]);
+    }, [userDetails?._id, currentDate]);
+
+    useEffect(() => {
+        const calculateTotalTime = () => {
+            if (userTimeSheet && userTimeSheet.length > 0) {
+                const totalMilliseconds = userTimeSheet.reduce((acc, time) => {
+                    const startTime = new Date(time.StartTime);
+                    const endTime = new Date(time.EndTime);
+                    return acc + (endTime - startTime);
+                }, 0);
+
+                const hours = Math.floor(totalMilliseconds / (1000 * 60 * 60));
+                const minutes = Math.floor((totalMilliseconds % (1000 * 60 * 60)) / (1000 * 60));
+
+                setTotalTime({ hours, minutes });
+            } else {
+                setTotalTime({ hours: 0, minutes: 0 });
+            }
+        };
+        calculateTotalTime();
+    }, [userTimeSheet]);
+
+
+    useEffect(() => {
+        let timerInterval;
+
+        if (punchedInTime && !punchedOutTime) {
+            timerInterval = setInterval(() => {
+                const now = new Date();
+                const punchedInDate = new Date(punchedInTime);
+                const diff = now - punchedInDate;
+
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                setElapsedTime({ hours, minutes, seconds });
+            }, 1000);
+        }
+
+        return () => {
+            clearInterval(timerInterval);
+        };
+    }, [punchedInTime, punchedOutTime]);
+
 
     // if (loading) {
-    //     return <TeamsSkeleton />;
+    //     return <TeamsSkeleton />;
     // }
 
     return (
@@ -163,46 +212,92 @@ const TimeSheet = () => {
             'mx-auto text-gray-900',
             'bg-[#18181b] text-white'
         )}>
-            {/* Punch In & Out Buttons */}
-            <div className='flex items-center justify-between gap-4 mb-4 max-w-2xl'>
-                <div className='flex flex-col items-start justify-center gap-2'>
-                    {punchedInTime ?
-                        <span className={getThemeClasses('text-black text-sm', 'text-white')}>Punched In at: {punchedInTime}</span>
-                        :
-
-                        <button
-                            onClick={handlePunchIn}
-                            className={getThemeClasses(
-                                'flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                                'dark:bg-green-500 dark:hover:bg-green-600 dark:text-white'
-                            )}
-                        >
-                            <FaPlus size={14} />
-                            Punch In
-                        </button>
-                    }
-                </div>
-                <div className='flex flex-col items-start justify-center gap-2'>
-                    {punchedOutTime ?
-                        <span className={getThemeClasses('text-black text-sm', 'text-white')}>Punched Out at: {punchedOutTime}</span>
-                        :
-                        <button
-                            onClick={handlePunchOut}
-                            className={getThemeClasses(
-                                'flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                                'dark:bg-red-500 dark:hover:bg-red-600 dark:text-white'
-                            )}
-                        >
-                            <FaMinus size={14} />
-                            Punch Out
-                        </button>
-                    }
+            {/* Punch Clock UI */}
+            <div className={getThemeClasses(
+                'max-w-2xl p-4 mb-6 rounded-lg shadow-md border',
+                'bg-gray-50 border-gray-200',
+                'dark:bg-gray-800 dark:border-gray-700'
+            )}>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="font-bold text-lg">Time Clock</h3>
+                        {punchedInTime && !punchedOutTime ? (
+                            <>
+                                <p className={tableSecondaryTextClasses}>
+                                    Punched In at: {new Date(punchedInTime).toLocaleTimeString()}
+                                </p>
+                                <p className="text-green-500 font-semibold text-lg mt-1">
+                                    {String(elapsedTime.hours).padStart(2, '0')}:
+                                    {String(elapsedTime.minutes).padStart(2, '0')}:
+                                    {String(elapsedTime.seconds).padStart(2, '0')}
+                                </p>
+                            </>
+                        ) : punchedInTime && punchedOutTime ? (
+                            <>
+                                <p className={tableSecondaryTextClasses}>
+                                    Punched In at: {new Date(punchedInTime).toLocaleTimeString()}
+                                </p>
+                                <p className={tableSecondaryTextClasses}>
+                                    Punched Out at: {new Date(punchedOutTime).toLocaleTimeString()}
+                                </p>
+                            </>
+                        ) : (
+                            <p className={tableSecondaryTextClasses}>
+                                You are not punched in.
+                            </p>
+                        )}
+                        {/* Total Logged Time */}
+                        <div className='flex items-center justify-start gap-4 mt-4 max-w-2xl border-t pt-2'>
+                            <span className={getThemeClasses('text-black text-sm font-semibold', 'text-white')}>
+                                Total Logged Time: {totalTime.hours} hrs {totalTime.minutes} mins
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        {!punchedInTime ? (
+                            <button
+                                onClick={handlePunchIn}
+                                className='flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors shadow-sm'
+                            >
+                                <FaPlus size={14} />
+                                Punch In
+                            </button>
+                        ) : !punchedOutTime ? (
+                            <button
+                                onClick={handlePunchOut}
+                                className='flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm'
+                            >
+                                <FaMinus size={14} />
+                                Punch Out
+                            </button>
+                        ) : (
+                            <div className="px-4 py-2 text-sm font-medium text-gray-500 bg-gray-200 dark:bg-gray-700 dark:text-gray-400 rounded-lg">
+                                Completed
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
+
             {/* TimeSheet Table */}
             <div className={`lg:col-span-2`}>
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Time Sheet: <span>{currentDate}</span></h2>
+                    <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>
+                        Time Sheet:
+                    </h2>
+                    <input
+                        type="date"
+                        value={new Date(currentDate).toISOString().split('T')[0]}
+                        onChange={(e) => {
+                            const selectedDate = new Date(e.target.value);
+                            const adjustedDate = new Date(selectedDate.getTime() + selectedDate.getTimezoneOffset() * 60000);
+                            setCurrentDate(adjustedDate.toLocaleDateString());
+                        }}
+                        className={getThemeClasses(
+                            'px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
+                            'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500'
+                        )}
+                    />
                 </div>
                 <div className={`overflow-x-auto ${tableContainerClasses}`}>
                     <table className="w-full">
@@ -215,59 +310,61 @@ const TimeSheet = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td className='p-2'>
-                                    <input
-                                        type="text"
-                                        value={description}
-                                        onChange={e => setDescription(e.target.value)}
-                                        className={getThemeClasses(
-                                            'w-[95%] flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                                            'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                                        )}
-                                        maxLength={100}
-                                        required
-                                        placeholder="Enter work description"
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="time"
-                                        value={startTime}
-                                        onChange={e => setStartTime(e.target.value)}
-                                        className={getThemeClasses(
-                                            'flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                                            'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                                        )}
-                                        required
-                                        placeholder="Enter team name"
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="time"
-                                        value={endTime}
-                                        onChange={e => setEndTime(e.target.value)}
-                                        className={getThemeClasses(
-                                            'flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                                            'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                                        )}
-                                        required
-                                        placeholder="Enter team name"
-                                    />
-                                </td>
-                                <td>
-                                    <div className='flex items-center justify-center'>
-                                        <button
-                                            onClick={handleAddTime}
+                            {!punchedOutTime && (
+                                <tr>
+                                    <td className='p-2'>
+                                        <input
+                                            type="text"
+                                            value={description}
+                                            onChange={e => setDescription(e.target.value)}
                                             className={getThemeClasses(
-                                                'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                                                'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
+                                                'w-[95%] flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
+                                                'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
                                             )}
-                                        >Submit</button>
-                                    </div>
-                                </td>
-                            </tr>
+                                            maxLength={100}
+                                            required
+                                            placeholder="Enter work description"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="time"
+                                            value={startTime}
+                                            onChange={e => setStartTime(e.target.value)}
+                                            className={getThemeClasses(
+                                                'flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
+                                                'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
+                                            )}
+                                            required
+                                            placeholder="Enter team name"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="time"
+                                            value={endTime}
+                                            onChange={e => setEndTime(e.target.value)}
+                                            className={getThemeClasses(
+                                                'flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
+                                                'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
+                                            )}
+                                            required
+                                            placeholder="Enter team name"
+                                        />
+                                    </td>
+                                    <td>
+                                        <div className='flex items-center justify-center'>
+                                            <button
+                                                onClick={handleAddTime}
+                                                className={getThemeClasses(
+                                                    'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
+                                                    'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
+                                                )}
+                                            >Submit</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
                             {userTimeSheet.map(time => (
                                 <tr key={time._id} className={tableRowClasses}>
                                     <td className="py-3 px-4">
@@ -276,34 +373,21 @@ const TimeSheet = () => {
                                         )}
                                     </td>
                                     <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
-                                        {/* <span>{new Date(time.StartTime).toDateString() + ' ' + new Date(time.StartTime).toLocaleTimeString()}</span>                                        </td> */}
-                                        <span>{new Date(time.StartTime).toLocaleTimeString()}</span>                                        </td>
+                                        <span>{new Date(time.StartTime).toLocaleTimeString()}</span>                                     </td>
                                     <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
                                         <span>{new Date(time.EndTime).toLocaleTimeString()}</span>
                                     </td>
                                     <td className="py-3 px-4 text-center">
                                         <div className="flex items-center justify-center gap-2">
-                                            {/* <button
-                                                onClick={() => {
-                                                    handleEditTime(time._id)
-                                                }}
-                                                className={getThemeClasses(
-                                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
-                                                    'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
-                                                )}
-                                                title="Edit TimeSheet"
-                                            >
-                                                <FaEdit size={14} />
-                                            </button> */}
                                             <button
                                                 onClick={() => {
-                                                    handleDelTime(time._id, time.PunchID)
+                                                    openDeleteConfirmation(time._id, time.PunchID)
                                                 }}
                                                 className={getThemeClasses(
                                                     'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
                                                     'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
                                                 )}
-                                                title="Delete TimeSheer"
+                                                title="Delete TimeSheet"
                                             >
                                                 <MdDelete size={18} />
                                             </button>
@@ -315,6 +399,43 @@ const TimeSheet = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            <CustomModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                title="Confirm Deletion"
+                getThemeClasses={getThemeClasses}
+                actions={
+                    <>
+                        <button
+                            onClick={() => setIsDeleteModalOpen(false)}
+                            className={getThemeClasses(
+                                'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
+                                'dark:text-gray-400 dark:hover:bg-gray-700'
+                            )}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleConfirmDelete}
+                            className={getThemeClasses(
+                                'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
+                                'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
+                            )}
+                        >
+                            Delete
+                        </button>
+                    </>
+                }
+            >
+                <p className={getThemeClasses(
+                    'text-gray-600',
+                    'dark:text-gray-400'
+                )}>
+                    Are you sure you want to delete this time entry? This action cannot be undone.
+                </p>
+            </CustomModal>
         </div>
     );
 };
