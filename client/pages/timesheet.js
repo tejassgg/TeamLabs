@@ -25,6 +25,7 @@ const TimeSheet = () => {
     const [elapsedTime, setElapsedTime] = useState({ hours: 0, minutes: 0, seconds: 0 });
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [timeToDelete, setTimeToDelete] = useState(null);
+    const [isToday, setIsToday] = useState(true);
 
 
     // Update the table container classes - transparent background with borders to blend with page
@@ -67,7 +68,7 @@ const TimeSheet = () => {
             }
 
         } catch (error) {
-            console.error('Error fetching TimeSheet:', error);
+            // console.error('Error fetching TimeSheet:', error);
             showToast(error.message || 'Failed to load timesheet', 'error');
             setUserTimeSheet([]);
             setPunchID(null);
@@ -140,6 +141,7 @@ const TimeSheet = () => {
     const handlePunchIn = async () => {
         try {
             const data = await timesheetService.punchIn();
+            console.log('PunchIn Data: ', data);
             setPunchedInTime(data.punchIn.InTime)
             setPunchID(data.punchIn._id)
             showToast(data.message);
@@ -157,7 +159,7 @@ const TimeSheet = () => {
 
     useEffect(() => {
         fetchUserTimeSheet();
-    }, [userDetails?._id, currentDate]);
+    }, [currentDate]);
 
     useEffect(() => {
         const calculateTotalTime = () => {
@@ -202,9 +204,20 @@ const TimeSheet = () => {
         };
     }, [punchedInTime, punchedOutTime]);
 
+    useEffect(() => {
+        const today = new Date();
+        const selectedDate = new Date(currentDate);
+
+        // Set time to 0 to compare dates only, ignoring time
+        today.setHours(0, 0, 0, 0);
+        selectedDate.setHours(0, 0, 0, 0);
+
+        setIsToday(today.getTime() === selectedDate.getTime());
+    }, [currentDate]);
+
 
     // if (loading) {
-    //     return <TeamsSkeleton />;
+    // 	return <TeamsSkeleton />;
     // }
 
     return (
@@ -257,7 +270,10 @@ const TimeSheet = () => {
                         {!punchedInTime ? (
                             <button
                                 onClick={handlePunchIn}
-                                className='flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors shadow-sm'
+                                disabled={!isToday} // Disable if not today
+                                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg transition-colors shadow-sm ${
+                                    !isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'
+                                }`}
                             >
                                 <FaPlus size={14} />
                                 Punch In
@@ -265,7 +281,10 @@ const TimeSheet = () => {
                         ) : !punchedOutTime ? (
                             <button
                                 onClick={handlePunchOut}
-                                className='flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm'
+                                disabled={!isToday} // Disable if not today
+                                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg transition-colors shadow-sm ${
+                                    !isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'
+                                }`}
                             >
                                 <FaMinus size={14} />
                                 Punch Out
@@ -310,7 +329,7 @@ const TimeSheet = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {!punchedOutTime && (
+                            {punchedInTime && !punchedOutTime && (
                                 <tr>
                                     <td className='p-2'>
                                         <input

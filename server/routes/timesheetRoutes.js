@@ -124,10 +124,16 @@ const delTimeSheet = async (req, res) => {
 }
 
 // Routes
+// POST /api/timehseet - Add Time
 router.post('/', protect, postTimeSheet);
+
+// DELETE /api/timehseet - Delete Time
 router.delete('/', protect, delTimeSheet);
 
+// GET /api/timehseet/punchIn - PunchIn for Today
 router.get('/punchIn', protect, handlePunchIn);
+
+// POST /api/timehseet/punchOut/:punchID - PunchOut for Today
 router.post('/punchOut/:punchID', protect, handlePunchOut);
 
 // GET /api/timesheet/history - Get timesheetDetails
