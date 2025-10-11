@@ -16,7 +16,7 @@ const getTimeSheetHistory = async (req, res) => {
             }
             return res.status(200).json({punchData: punchData, timeSheet: timeSheet, message: 'No time recorded for today' })
         }
-        return res.status(204).json({ message: 'Punch In Requried!' })
+        return res.status(204).json({ message: 'Clock In Requried!' })
     }
     catch (error) {
         console.log(error);
@@ -72,7 +72,7 @@ const handlePunchIn = async (req, res) => {
             { punchIn }
         );
 
-        return res.status(200).json({ punchIn, message: `Punched In at: ${punchIn.InTime} ` });
+        return res.status(200).json({ punchIn, message: `Clocked In at: ${punchIn.InTime} ` });
     }
     catch (error) {
         console.log('Error occured in the handlePunchIn: ', error);
@@ -89,7 +89,7 @@ const handlePunchOut = async (req, res) => {
             await punchOut.save();
         }
         else {
-            return res.status(404).json({ message: 'You Cannot PunchOut Before You PunchIn.' });
+            return res.status(404).json({ message: 'You Cannot ClockIn Before You Clockout.' });
         }
 
         await logActivity(
@@ -101,7 +101,7 @@ const handlePunchOut = async (req, res) => {
             { punchOut }
         );
 
-        return res.status(200).json({ punchOut, message: `Punched Out at: ${punchOut.OutTime} ` });
+        return res.status(200).json({ punchOut, message: `Clocked Out at: ${punchOut.OutTime} ` });
     }
     catch (error) {
         console.log('Error occured in the handlePunchOut: ', error);

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useGlobal } from '../context/GlobalContext';
 import { useTheme } from '../context/ThemeContext';
 import { timesheetService } from '../services/api';
-import { FaMinus, FaPlus, FaAlignLeft, FaCalendarAlt, FaEdit } from 'react-icons/fa';
+// Added new icons to match the UI
+import { FaMinus, FaPlus, FaAlignLeft, FaCalendarAlt, FaEdit, FaCheckCircle, FaUtensils, FaArrowRight, FaCoffee } from 'react-icons/fa';
 import { MdDelete } from 'react-icons/md';
 import { useToast } from '../context/ToastContext';
 import { useThemeClasses } from '../components/shared/hooks/useThemeClasses';
@@ -233,253 +234,267 @@ const TimeSheet = () => {
         }
     }, [punchedInTime, punchedOutTime]);
 
-    // if (loading) {
-    // 	return <TeamsSkeleton />;
-    // }
-
     return (
-        <div className={getThemeClasses(
-            'mx-auto text-gray-900',
-            'bg-[#18181b] text-white'
-        )}>
-            {/* Punch Clock UI */}
+        <div>
+            <h2 className={getThemeClasses('text-xl font-semibold text-gray-900 mb-4', 'dark:text-gray-100')}>
+                Time Sheet:
+            </h2>
             <div className={getThemeClasses(
-                'max-w-2xl p-4 mb-6 rounded-lg shadow-md border',
-                'bg-gray-50 border-gray-200',
-                'dark:bg-gray-800 dark:border-gray-700'
+                'w-full text-gray-900 grid grid-cols-5 gap-4',
+                'bg-[#18181b] text-white'
             )}>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h3 className="font-bold text-lg">Time Clock</h3>
-                        {punchedInTime && !punchedOutTime ? (
-                            <>
-                                <p className={tableSecondaryTextClasses}>
-                                    Punched In at: {new Date(punchedInTime).toLocaleTimeString()}
-                                </p>
-                                <p className="text-green-500 font-semibold text-lg mt-1">
-                                    {String(elapsedTime.hours).padStart(2, '0')}:
-                                    {String(elapsedTime.minutes).padStart(2, '0')}:
-                                    {String(elapsedTime.seconds).padStart(2, '0')}
-                                </p>
-                            </>
-                        ) : punchedInTime && punchedOutTime ? (
-                            <>
-                                <p className={tableSecondaryTextClasses}>
-                                    Punched In at: {new Date(punchedInTime).toLocaleTimeString()}
-                                </p>
-                                <p className={tableSecondaryTextClasses}>
-                                    Punched Out at: {new Date(punchedOutTime).toLocaleTimeString()}
-                                </p>
-                            </>
-                        ) : (
-                            <p className={tableSecondaryTextClasses}>
-                                You are not punched in.
+                {/* Punch Clock UI */}
+                <div className={`max-w-md p-2 ${tableContainerClasses} col-span-1`}>
+                    <h2 className={getThemeClasses("text-xl font-bold mb-4 text-black", "text-white")}>Clock In / Out</h2>
+
+                    {/* Date Display */}
+                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6">
+                        <FaCheckCircle className="mr-2 text-green-500" />
+                        <span>
+                            {new Date(currentDate).toLocaleDateString('en-US', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                            })}
+                        </span>
+                    </div>
+
+                    {/* Clock In / Clock Out Boxes */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className={getThemeClasses("bg-gray-100 p-4 rounded-lg", "dark:bg-zinc-800")}>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Clock In</p>
+                            <p className="text-lg font-semibold">
+                                {punchedInTime ? new Date(punchedInTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}
                             </p>
-                        )}
-                        <div className='flex items-center justify-start gap-4 mt-4 max-w-2xl border-t pt-2'>
-                            {/* Shows total duration from punch-in to punch-out */}
-                            {punchedOutTime && (
-                                <div className='flex items-center justify-start gap-4 max-w-2xl'>
-                                    <span className={getThemeClasses('text-black text-sm font-semibold', 'text-white')}>
-                                        Duration: {punchDuration.hours} hrs {punchDuration.minutes} mins
-                                    </span>
-                                </div>
-                            )}
-                            {/* Total Logged Time */}
-                            <div className='flex items-center justify-start gap-4 max-w-2xl'>
-                                <span className={getThemeClasses('text-black text-sm font-semibold', 'text-white')}>
-                                    Logged Time: {totalTime.hours} hrs {totalTime.minutes} mins
-                                </span>
-                            </div>
+                        </div>
+                        <div className={getThemeClasses("bg-gray-100 p-4 rounded-lg", "dark:bg-zinc-800")}>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Clock Out</p>
+                            <p className="text-lg font-semibold">
+                                {punchedOutTime ? new Date(punchedOutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}
+                            </p>
                         </div>
                     </div>
-                    <div>
+
+                    {/* Timers */}
+                    <div className="grid grid-cols-2 gap-4 text-center mb-6">
+                        <div>
+                            <p className="text-3xl font-bold">
+                                {punchedInTime && !punchedOutTime ? (
+                                    <span className='text-green-500'>
+                                        {String(elapsedTime.hours).padStart(2, '0')}:
+                                        {String(elapsedTime.minutes).padStart(2, '0')}:
+                                        {String(elapsedTime.seconds).padStart(2, '0')}
+                                    </span>
+                                ) : punchedInTime && punchedOutTime ? (
+                                    <>
+                                        {String(punchDuration.hours).padStart(2, '0')}:
+                                        {String(punchDuration.minutes).padStart(2, '0')}<span className='text-sm'>hrs</span>
+                                    </>
+                                ) : (
+                                    '00:00:00'
+                                )}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Clocked Time</p>
+                        </div>
+                        <div>
+                            <p className="text-3xl font-bold">
+                                {totalTime ? (
+                                    <>
+                                        {String(totalTime.hours).padStart(2, '0')}:
+                                        {String(totalTime.minutes).padStart(2, '0')}<span className='text-sm'> hrs</span>
+                                    </>
+                                ) : (
+                                    '00:00:00'
+                                )}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Logged Time</p>
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-2 gap-4">
                         {!punchedInTime ? (
                             <button
                                 onClick={handlePunchIn}
-                                disabled={!isToday} // Disable if not today
-                                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg transition-colors shadow-sm ${!isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'
-                                    }`}
+                                disabled={!isToday}
+                                className={`col-span-2 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-green-600 rounded-lg transition-colors shadow-sm ${!isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
                             >
                                 <FaPlus size={14} />
-                                Punch In
+                                Clock In
                             </button>
                         ) : !punchedOutTime ? (
                             <button
                                 onClick={handlePunchOut}
-                                disabled={!isToday} // Disable if not today
-                                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg transition-colors shadow-sm ${!isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'
-                                    }`}
+                                disabled={!isToday}
+                                className={`col-span-2 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-gray-800 rounded-lg transition-colors shadow-sm ${!isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700 dark:hover:bg-zinc-800'}`}
                             >
-                                <FaMinus size={14} />
-                                Punch Out
+                                Clock Out
+                                <FaArrowRight size={14} />
                             </button>
                         ) : (
-                            <div className="px-4 py-2 text-sm font-medium text-gray-500 bg-gray-200 dark:bg-gray-700 dark:text-gray-400 rounded-lg">
-                                Completed
+                            <div className="col-span-2 text-center px-4 py-3 text-sm font-medium bg-zinc-800 text-gray-400 rounded-lg">
+                                Shift Completed
                             </div>
                         )}
                     </div>
                 </div>
-            </div>
 
-            {/* TimeSheet Table */}
-            <div className={`lg:col-span-2`}>
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>
-                        Time Sheet:
-                    </h2>
-                    <input
-                        type="date"
-                        value={new Date(currentDate).toISOString().split('T')[0]}
-                        onChange={(e) => {
-                            const selectedDate = new Date(e.target.value);
-                            const adjustedDate = new Date(selectedDate.getTime() + selectedDate.getTimezoneOffset() * 60000);
-                            setCurrentDate(adjustedDate.toLocaleDateString());
-                        }}
-                        className={getThemeClasses(
-                            'px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
-                            'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500'
-                        )}
-                    />
-                </div>
-                <div className={`overflow-x-auto ${tableContainerClasses}`}>
-                    <table className="w-full">
-                        <thead>
-                            <tr className={tableHeaderClasses}>
-                                <th className={`py-3 px-4 text-left w-[300px] ${tableHeaderTextClasses}`}>Description</th>
-                                <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Start Time</th>
-                                <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>End Time</th>
-                                <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {punchedInTime && isToday && (
-                                <tr>
-                                    <td className='p-2'>
-                                        <input
-                                            type="text"
-                                            value={description}
-                                            onChange={e => setDescription(e.target.value)}
-                                            className={getThemeClasses(
-                                                'w-[95%] flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                                                'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                                            )}
-                                            maxLength={100}
-                                            required
-                                            placeholder="Enter work description"
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="time"
-                                            value={startTime}
-                                            onChange={e => setStartTime(e.target.value)}
-                                            className={getThemeClasses(
-                                                'flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                                                'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                                            )}
-                                            required
-                                            placeholder="Enter team name"
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="time"
-                                            value={endTime}
-                                            onChange={e => setEndTime(e.target.value)}
-                                            className={getThemeClasses(
-                                                'flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                                                'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                                            )}
-                                            required
-                                            placeholder="Enter team name"
-                                        />
-                                    </td>
-                                    <td>
-                                        <div className='flex items-center justify-center'>
-                                            <button
-                                                onClick={handleAddTime}
-                                                className={getThemeClasses(
-                                                    'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                                                    'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
-                                                )}
-                                            >Submit</button>
-                                        </div>
-                                    </td>
-                                </tr>
+                {/* TimeSheet Table */}
+                <div className={`col-span-4`}>
+                    <div className="flex items-center justify-end mb-4">
+                        <input
+                            type="date"
+                            value={new Date(currentDate).toISOString().split('T')[0]}
+                            onChange={(e) => {
+                                const selectedDate = new Date(e.target.value);
+                                const adjustedDate = new Date(selectedDate.getTime() + selectedDate.getTimezoneOffset() * 60000);
+                                setCurrentDate(adjustedDate.toLocaleDateString());
+                            }}
+                            className={getThemeClasses(
+                                'px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
+                                'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500'
                             )}
-                            {userTimeSheet.map(time => (
-                                <tr key={time._id} className={tableRowClasses}>
-                                    <td className="py-3 px-4">
-                                        {time.Description && (
-                                            <span className={tableSecondaryTextClasses}>{time.Description}</span>
-                                        )}
-                                    </td>
-                                    <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
-                                        <span>{new Date(time.StartTime).toLocaleTimeString()}</span>                                     </td>
-                                    <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
-                                        <span>{new Date(time.EndTime).toLocaleTimeString()}</span>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    openDeleteConfirmation(time._id, time.PunchID)
-                                                }}
-                                                className={getThemeClasses(
-                                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
-                                                    'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
-                                                )}
-                                                title="Delete TimeSheet"
-                                            >
-                                                <MdDelete size={18} />
-                                            </button>
-                                        </div>
-                                    </td>
+                        />
+                    </div>
+                    <div className={`overflow-x-auto ${tableContainerClasses}`}>
+                        <table className="w-full">
+                            <thead>
+                                <tr className={tableHeaderClasses}>
+                                    <th className={`py-3 px-4 text-left w-[60%] ${tableHeaderTextClasses}`}>Description</th>
+                                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>Start Time</th>
+                                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>End Time</th>
+                                    <th className={`py-3 px-4 text-center w-[10%] ${tableHeaderTextClasses}`}>Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {punchedInTime && (
+                                    <tr>
+                                        <td className='p-2'>
+                                            <input
+                                                type="text"
+                                                value={description}
+                                                onChange={e => setDescription(e.target.value)}
+                                                className={getThemeClasses(
+                                                    'w-[95%] flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
+                                                    'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
+                                                )}
+                                                maxLength={100}
+                                                required
+                                                placeholder="Enter work description"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="time"
+                                                value={startTime}
+                                                onChange={e => setStartTime(e.target.value)}
+                                                className={getThemeClasses(
+                                                    'flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
+                                                    'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
+                                                )}
+                                                required
+                                                placeholder="Enter team name"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="time"
+                                                value={endTime}
+                                                onChange={e => setEndTime(e.target.value)}
+                                                className={getThemeClasses(
+                                                    'flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
+                                                    'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
+                                                )}
+                                                required
+                                                placeholder="Enter team name"
+                                            />
+                                        </td>
+                                        <td>
+                                            <div className='flex items-center justify-center'>
+                                                <button
+                                                    onClick={handleAddTime}
+                                                    className={getThemeClasses(
+                                                        'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
+                                                        'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
+                                                    )}
+                                                >Submit</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                                {userTimeSheet.map(time => (
+                                    <tr key={time._id} className={tableRowClasses}>
+                                        <td className="py-3 px-4">
+                                            {time.Description && (
+                                                <span className={tableSecondaryTextClasses}>{time.Description}</span>
+                                            )}
+                                        </td>
+                                        <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
+                                            <span>{new Date(time.StartTime).toLocaleTimeString()}</span>                                   </td>
+                                        <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
+                                            <span>{new Date(time.EndTime).toLocaleTimeString()}</span>
+                                        </td>
+                                        <td className="py-3 px-4 text-center">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        openDeleteConfirmation(time._id, time.PunchID)
+                                                    }}
+                                                    className={getThemeClasses(
+                                                        'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                                        'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
+                                                    )}
+                                                    title="Delete TimeSheet"
+                                                >
+                                                    <MdDelete size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
 
-            {/* Delete Confirmation Modal */}
-            <CustomModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                title="Confirm Deletion"
-                getThemeClasses={getThemeClasses}
-                actions={
-                    <>
-                        <button
-                            onClick={() => setIsDeleteModalOpen(false)}
-                            className={getThemeClasses(
-                                'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                                'dark:text-gray-400 dark:hover:bg-gray-700'
-                            )}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleConfirmDelete}
-                            className={getThemeClasses(
-                                'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
-                                'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
-                            )}
-                        >
-                            Delete
-                        </button>
-                    </>
-                }
-            >
-                <p className={getThemeClasses(
-                    'text-gray-600',
-                    'dark:text-gray-400'
-                )}>
-                    Are you sure you want to delete this time entry? This action cannot be undone.
-                </p>
-            </CustomModal>
+                {/* Delete Confirmation Modal */}
+                <CustomModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={() => setIsDeleteModalOpen(false)}
+                    title="Confirm Deletion"
+                    getThemeClasses={getThemeClasses}
+                    actions={
+                        <>
+                            <button
+                                onClick={() => setIsDeleteModalOpen(false)}
+                                className={getThemeClasses(
+                                    'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
+                                    'dark:text-gray-400 dark:hover:bg-gray-700'
+                                )}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmDelete}
+                                className={getThemeClasses(
+                                    'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
+                                    'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
+                                )}
+                            >
+                                Delete
+                            </button>
+                        </>
+                    }
+                >
+                    <p className={getThemeClasses(
+                        'text-gray-600',
+                        'dark:text-gray-400'
+                    )}>
+                        Are you sure you want to delete this time entry? This action cannot be undone.
+                    </p>
+                </CustomModal>
+            </div>
         </div>
     );
 };
