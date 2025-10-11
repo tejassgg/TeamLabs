@@ -22,6 +22,7 @@ const TimeSheet = () => {
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
     const [totalTime, setTotalTime] = useState({ hours: 0, minutes: 0 });
+    const [punchDuration, setPunchDuration] = useState({ hours: 0, minutes: 0 });
     const [elapsedTime, setElapsedTime] = useState({ hours: 0, minutes: 0, seconds: 0 });
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [timeToDelete, setTimeToDelete] = useState(null);
@@ -50,14 +51,16 @@ const TimeSheet = () => {
         try {
             setLoading(true);
 
-            const data = await timesheetService.getTimeSheetHistory(new Date(currentDate).toJSON());
-            if (data && data.punchData) {
-                setPunchID(data.punchData._id);
-                setPunchedInTime(data.punchData.InTime);
-                setPunchedOutTime(data.punchData.OutTime);
-                setUserTimeSheet(data.timeSheet || []);
+            const data = await timesheetService.getTimeSheetHistory(new Date(currentDate).toLocaleDateString().replaceAll('/', '-'));
+            if (data) {
                 if (data.message) {
                     showToast(data.message, 'warning')
+                }
+                if (data.punchData) {
+                    setPunchID(data.punchData._id);
+                    setPunchedInTime(data.punchData.InTime);
+                    setPunchedOutTime(data.punchData.OutTime);
+                    setUserTimeSheet(data.timeSheet || []);
                 }
             } else {
                 setPunchID(null);
@@ -137,7 +140,6 @@ const TimeSheet = () => {
         }
     };
 
-
     const handlePunchIn = async () => {
         try {
             const data = await timesheetService.punchIn();
@@ -215,6 +217,21 @@ const TimeSheet = () => {
         setIsToday(today.getTime() === selectedDate.getTime());
     }, [currentDate]);
 
+    useEffect(() => {
+        if (punchedInTime && punchedOutTime) {
+            const start = new Date(punchedInTime);
+            const end = new Date(punchedOutTime);
+            const diff = end - start; // Difference in milliseconds
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+            setPunchDuration({ hours, minutes });
+        } else {
+            // Reset if not punched out
+            setPunchDuration({ hours: 0, minutes: 0 });
+        }
+    }, [punchedInTime, punchedOutTime]);
 
     // if (loading) {
     // 	return <TeamsSkeleton />;
@@ -259,11 +276,21 @@ const TimeSheet = () => {
                                 You are not punched in.
                             </p>
                         )}
-                        {/* Total Logged Time */}
                         <div className='flex items-center justify-start gap-4 mt-4 max-w-2xl border-t pt-2'>
-                            <span className={getThemeClasses('text-black text-sm font-semibold', 'text-white')}>
-                                Total Logged Time: {totalTime.hours} hrs {totalTime.minutes} mins
-                            </span>
+                            {/* Shows total duration from punch-in to punch-out */}
+                            {punchedOutTime && (
+                                <div className='flex items-center justify-start gap-4 max-w-2xl'>
+                                    <span className={getThemeClasses('text-black text-sm font-semibold', 'text-white')}>
+                                        Duration: {punchDuration.hours} hrs {punchDuration.minutes} mins
+                                    </span>
+                                </div>
+                            )}
+                            {/* Total Logged Time */}
+                            <div className='flex items-center justify-start gap-4 max-w-2xl'>
+                                <span className={getThemeClasses('text-black text-sm font-semibold', 'text-white')}>
+                                    Logged Time: {totalTime.hours} hrs {totalTime.minutes} mins
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <div>
@@ -271,9 +298,8 @@ const TimeSheet = () => {
                             <button
                                 onClick={handlePunchIn}
                                 disabled={!isToday} // Disable if not today
-                                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg transition-colors shadow-sm ${
-                                    !isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'
-                                }`}
+                                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg transition-colors shadow-sm ${!isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'
+                                    }`}
                             >
                                 <FaPlus size={14} />
                                 Punch In
@@ -282,9 +308,8 @@ const TimeSheet = () => {
                             <button
                                 onClick={handlePunchOut}
                                 disabled={!isToday} // Disable if not today
-                                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg transition-colors shadow-sm ${
-                                    !isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'
-                                }`}
+                                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg transition-colors shadow-sm ${!isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'
+                                    }`}
                             >
                                 <FaMinus size={14} />
                                 Punch Out
@@ -329,7 +354,7 @@ const TimeSheet = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {punchedInTime && !punchedOutTime && (
+                            {punchedInTime && isToday && (
                                 <tr>
                                     <td className='p-2'>
                                         <input

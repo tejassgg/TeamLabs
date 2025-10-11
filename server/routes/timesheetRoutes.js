@@ -8,7 +8,7 @@ const TimeSheet = require('../models/TimeSheet');
 const getTimeSheetHistory = async (req, res) => {
     try {
         const { date } = req.params;
-        const punchData = await PunchDetails.findOne({ UserId: req.user._id, PunchDate: new Date(date) });
+        const punchData = await PunchDetails.findOne({ UserId: req.user._id, PunchDate: new Date(date) });        
         if (punchData) {
             const timeSheet = await TimeSheet.find({ PunchID: punchData._id, UserId: req.user._id })
             if (timeSheet.length != 0) {
@@ -16,7 +16,7 @@ const getTimeSheetHistory = async (req, res) => {
             }
             return res.status(200).json({punchData: punchData, timeSheet: timeSheet, message: 'No time recorded for today' })
         }
-        return res.status(400).json({ message: 'Punch In Requried!' })
+        return res.status(204).json({ message: 'Punch In Requried!' })
     }
     catch (error) {
         console.log(error);
@@ -57,6 +57,7 @@ const postTimeSheet = async (req, res) => {
 const handlePunchIn = async (req, res) => {
     try {
         const date = new Date().toLocaleDateString()
+
         const punchIn = await PunchDetails.create({
             UserId: req.user._id,
             PunchDate: new Date(date).toISOString()
