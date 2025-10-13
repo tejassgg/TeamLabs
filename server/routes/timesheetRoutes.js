@@ -8,7 +8,8 @@ const TimeSheet = require('../models/TimeSheet');
 const getTimeSheetHistory = async (req, res) => {
     try {
         const { date } = req.params;
-        const punchData = await PunchDetails.findOne({ UserId: req.user._id, PunchDate: new Date(date) });        
+        const newDate = date.toString().replaceAll('-', '/');
+        const punchData = await PunchDetails.findOne({ UserId: req.user._id, PunchDate: newDate });
         if (punchData) {
             const timeSheet = await TimeSheet.find({ PunchID: punchData._id, UserId: req.user._id })
             if (timeSheet.length != 0) {
@@ -56,11 +57,9 @@ const postTimeSheet = async (req, res) => {
 
 const handlePunchIn = async (req, res) => {
     try {
-        const date = new Date().toLocaleDateString()
-
         const punchIn = await PunchDetails.create({
             UserId: req.user._id,
-            PunchDate: new Date(date).toISOString()
+            PunchDate: new Date().toLocaleDateString()
         })
 
         await logActivity(

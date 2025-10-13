@@ -3,9 +3,8 @@ const mongoose = require('mongoose');
 const PunchDetailsSchema = new mongoose.Schema({
     UserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     PunchDate:{
-        type:Date,
-        require: true,
-        default: Date.now
+        type:String,
+        require: true
     },
     InTime: {
         type: Date,

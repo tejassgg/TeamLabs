@@ -243,103 +243,6 @@ const TimeSheet = () => {
                 'w-full text-gray-900 grid grid-cols-5 gap-4',
                 'bg-[#18181b] text-white'
             )}>
-                {/* Punch Clock UI */}
-                <div className={`max-w-md p-2 ${tableContainerClasses} col-span-1`}>
-                    <h2 className={getThemeClasses("text-xl font-bold mb-4 text-black", "text-white")}>Clock In / Out</h2>
-
-                    {/* Date Display */}
-                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6">
-                        <FaCheckCircle className="mr-2 text-green-500" />
-                        <span>
-                            {new Date(currentDate).toLocaleDateString('en-US', {
-                                weekday: 'long',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                            })}
-                        </span>
-                    </div>
-
-                    {/* Clock In / Clock Out Boxes */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className={getThemeClasses("bg-gray-100 p-4 rounded-lg", "dark:bg-zinc-800")}>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Clock In</p>
-                            <p className="text-lg font-semibold">
-                                {punchedInTime ? new Date(punchedInTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}
-                            </p>
-                        </div>
-                        <div className={getThemeClasses("bg-gray-100 p-4 rounded-lg", "dark:bg-zinc-800")}>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Clock Out</p>
-                            <p className="text-lg font-semibold">
-                                {punchedOutTime ? new Date(punchedOutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Timers */}
-                    <div className="grid grid-cols-2 gap-4 text-center mb-6">
-                        <div>
-                            <p className="text-3xl font-bold">
-                                {punchedInTime && !punchedOutTime ? (
-                                    <span className='text-green-500'>
-                                        {String(elapsedTime.hours).padStart(2, '0')}:
-                                        {String(elapsedTime.minutes).padStart(2, '0')}:
-                                        {String(elapsedTime.seconds).padStart(2, '0')}
-                                    </span>
-                                ) : punchedInTime && punchedOutTime ? (
-                                    <>
-                                        {String(punchDuration.hours).padStart(2, '0')}:
-                                        {String(punchDuration.minutes).padStart(2, '0')}<span className='text-sm'>hrs</span>
-                                    </>
-                                ) : (
-                                    '00:00:00'
-                                )}
-                            </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Clocked Time</p>
-                        </div>
-                        <div>
-                            <p className="text-3xl font-bold">
-                                {totalTime ? (
-                                    <>
-                                        {String(totalTime.hours).padStart(2, '0')}:
-                                        {String(totalTime.minutes).padStart(2, '0')}<span className='text-sm'> hrs</span>
-                                    </>
-                                ) : (
-                                    '00:00:00'
-                                )}
-                            </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Logged Time</p>
-                        </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="grid grid-cols-2 gap-4">
-                        {!punchedInTime ? (
-                            <button
-                                onClick={handlePunchIn}
-                                disabled={!isToday}
-                                className={`col-span-2 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-green-600 rounded-lg transition-colors shadow-sm ${!isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
-                            >
-                                <FaPlus size={14} />
-                                Clock In
-                            </button>
-                        ) : !punchedOutTime ? (
-                            <button
-                                onClick={handlePunchOut}
-                                disabled={!isToday}
-                                className={`col-span-2 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-gray-800 rounded-lg transition-colors shadow-sm ${!isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700 dark:hover:bg-zinc-800'}`}
-                            >
-                                Clock Out
-                                <FaArrowRight size={14} />
-                            </button>
-                        ) : (
-                            <div className="col-span-2 text-center px-4 py-3 text-sm font-medium bg-zinc-800 text-gray-400 rounded-lg">
-                                Shift Completed
-                            </div>
-                        )}
-                    </div>
-                </div>
-
                 {/* TimeSheet Table */}
                 <div className={`col-span-4`}>
                     <div className="flex items-center justify-end mb-4">
@@ -455,6 +358,102 @@ const TimeSheet = () => {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+                {/* Punch Clock UI */}
+                <div className={`max-w-md p-2 ${tableContainerClasses} col-span-1`}>
+                    <h2 className={getThemeClasses("text-xl font-bold mb-4 text-black", "text-white")}>Clock In / Out</h2>
+
+                    {/* Date Display */}
+                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6">
+                        <FaCheckCircle className="mr-2 text-green-500" />
+                        <span>
+                            {new Date(currentDate).toLocaleDateString('en-US', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                            })}
+                        </span>
+                    </div>
+
+                    {/* Clock In / Clock Out Boxes */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className={getThemeClasses("bg-gray-100 p-4 rounded-lg", "dark:bg-zinc-800")}>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Clock In</p>
+                            <p className="text-lg font-semibold">
+                                {punchedInTime ? new Date(punchedInTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}
+                            </p>
+                        </div>
+                        <div className={getThemeClasses("bg-gray-100 p-4 rounded-lg", "dark:bg-zinc-800")}>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Clock Out</p>
+                            <p className="text-lg font-semibold">
+                                {punchedOutTime ? new Date(punchedOutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Timers */}
+                    <div className="grid grid-cols-2 gap-4 text-center mb-6">
+                        <div>
+                            <p className="text-3xl font-bold">
+                                {punchedInTime && !punchedOutTime ? (
+                                    <span className='text-green-500'>
+                                        {String(elapsedTime.hours).padStart(2, '0')}:
+                                        {String(elapsedTime.minutes).padStart(2, '0')}:
+                                        {String(elapsedTime.seconds).padStart(2, '0')}
+                                    </span>
+                                ) : punchedInTime && punchedOutTime ? (
+                                    <>
+                                        {String(punchDuration.hours).padStart(2, '0')}:
+                                        {String(punchDuration.minutes).padStart(2, '0')}<span className='text-sm'>hrs</span>
+                                    </>
+                                ) : (
+                                    '00:00:00'
+                                )}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Clocked Time</p>
+                        </div>
+                        <div>
+                            <p className="text-3xl font-bold">
+                                {totalTime ? (
+                                    <>
+                                        {String(totalTime.hours).padStart(2, '0')}:
+                                        {String(totalTime.minutes).padStart(2, '0')}<span className='text-sm'> hrs</span>
+                                    </>
+                                ) : (
+                                    '00:00:00'
+                                )}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Logged Time</p>
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-2 gap-4">
+                        {!punchedInTime ? (
+                            <button
+                                onClick={handlePunchIn}
+                                disabled={!isToday}
+                                className={`col-span-2 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-green-600 rounded-lg transition-colors shadow-sm ${!isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
+                            >
+                                <FaPlus size={14} />
+                                Clock In
+                            </button>
+                        ) : !punchedOutTime ? (
+                            <button
+                                onClick={handlePunchOut}
+                                disabled={!isToday}
+                                className={`col-span-2 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-gray-800 rounded-lg transition-colors shadow-sm ${!isToday ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700 dark:hover:bg-zinc-800'}`}
+                            >
+                                Clock Out
+                                <FaArrowRight size={14} />
+                            </button>
+                        ) : (
+                            <div className="col-span-2 text-center px-4 py-3 text-sm font-medium bg-zinc-800 text-gray-400 rounded-lg">
+                                Shift Completed
+                            </div>
+                        )}
                     </div>
                 </div>
 
