@@ -808,7 +808,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
       </div>
       {/* Main Content */}
       <div
-        className={`transition-all duration-500 ease-in-out ${sidebarCollapsed ? 'ml-16' : !isMobile ? 'ml-64' : ''} ${isMobile ? 'ml-0 pt-14' : ''}`}
+        className={`transition-all duration-500 ease-in-out ${isMobile ? 'ml-0 pt-14' : (sidebarCollapsed ? 'ml-16' : 'ml-64')}`}
         style={{ transition: 'margin-left 500ms cubic-bezier(0.4, 0, 0.2, 1)' }}
       >
         {!isMobile && (

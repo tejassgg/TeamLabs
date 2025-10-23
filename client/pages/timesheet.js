@@ -3,7 +3,7 @@ import { useGlobal } from '../context/GlobalContext';
 import { useTheme } from '../context/ThemeContext';
 import { timesheetService } from '../services/api';
 // Added new icons to match the UI
-import { FaMinus, FaPlus, FaAlignLeft, FaCalendarAlt, FaEdit, FaCheckCircle, FaUtensils, FaArrowRight, FaCoffee } from 'react-icons/fa';
+import { FaPlus, FaCheckCircle, FaArrowRight, FaPaperPlane } from 'react-icons/fa';
 import { MdDelete } from 'react-icons/md';
 import { useToast } from '../context/ToastContext';
 import { useThemeClasses } from '../components/shared/hooks/useThemeClasses';
@@ -262,8 +262,8 @@ const TimeSheet = () => {
                             <thead>
                                 <tr className={tableHeaderClasses}>
                                     <th className={`py-3 px-4 text-left w-[60%] ${tableHeaderTextClasses}`}>Description</th>
-                                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>Start Time</th>
-                                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>End Time</th>
+                                    <th className={`py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>Start</th>
+                                    <th className={`py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>End</th>
                                     <th className={`py-3 px-4 text-center w-[10%] ${tableHeaderTextClasses}`}>Actions</th>
                                 </tr>
                             </thead>
@@ -294,10 +294,9 @@ const TimeSheet = () => {
                                                     'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
                                                 )}
                                                 required
-                                                placeholder="Enter team name"
                                             />
                                         </td>
-                                        <td>
+                                        <td >
                                             <input
                                                 type="time"
                                                 value={endTime}
@@ -307,7 +306,6 @@ const TimeSheet = () => {
                                                     'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
                                                 )}
                                                 required
-                                                placeholder="Enter team name"
                                             />
                                         </td>
                                         <td>
@@ -315,10 +313,12 @@ const TimeSheet = () => {
                                                 <button
                                                     onClick={handleAddTime}
                                                     className={getThemeClasses(
-                                                        'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                                                        'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
+                                                        'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed',
+                                                        'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70'
                                                     )}
-                                                >Submit</button>
+                                                >
+                                                    <FaPaperPlane size={12} />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -330,9 +330,9 @@ const TimeSheet = () => {
                                                 <span className={tableSecondaryTextClasses}>{time.Description}</span>
                                             )}
                                         </td>
-                                        <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
+                                        <td className={`py-3 px-4 ${tableSecondaryTextClasses}`}>
                                             <span>{new Date(time.StartTime).toLocaleTimeString()}</span>                                   </td>
-                                        <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
+                                        <td className={`py-3 px-4 ${tableSecondaryTextClasses}`}>
                                             <span>{new Date(time.EndTime).toLocaleTimeString()}</span>
                                         </td>
                                         <td className="py-3 px-4 text-center">
