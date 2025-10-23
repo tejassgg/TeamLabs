@@ -237,7 +237,7 @@ const TimeSheet = () => {
     return (
         <div>
             <div className={getThemeClasses(
-                'w-full text-gray-900 lg:grid lg:grid-cols-5 lg:gap-4 flex flex-col-reverse',
+                'w-full text-gray-900 lg:grid lg:grid-cols-5 lg:gap-4 flex flex-col-reverse mt-4',
                 'bg-[#18181b] text-white'
             )}>
                 {/* TimeSheet Table */}
@@ -357,6 +357,7 @@ const TimeSheet = () => {
                         </table>
                     </div>
                 </div>
+
                 {/* Punch Clock UI */}
                 <div className={`max-w-md p-2 ${tableContainerClasses} col-span-1 mb-4`}>
                     <h2 className={getThemeClasses("text-xl font-bold mb-4 text-black", "text-white")}>Clock In / Out</h2>
