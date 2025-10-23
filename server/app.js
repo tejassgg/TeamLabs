@@ -3,6 +3,7 @@ const http = require('http');
 const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
+
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
