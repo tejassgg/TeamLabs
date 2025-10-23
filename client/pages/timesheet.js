@@ -236,9 +236,6 @@ const TimeSheet = () => {
 
     return (
         <div>
-            <h2 className={getThemeClasses('text-xl font-semibold text-gray-900 mb-4', 'dark:text-gray-100')}>
-                Time Sheet:
-            </h2>
             <div className={getThemeClasses(
                 'w-full text-gray-900 lg:grid lg:grid-cols-5 lg:gap-4 flex flex-col-reverse',
                 'bg-[#18181b] text-white'
