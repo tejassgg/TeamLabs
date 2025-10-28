@@ -123,6 +123,41 @@ const delTimeSheet = async (req, res) => {
     }
 }
 
+// --- NEW FUNCTION TO GET REPORT DATA ---
+const getTimesheetReport = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        const { _id: UserId } = req.user;
+
+        if (!startDate || !endDate) {
+            return res.status(400).json({ message: 'Start date and end date are required.' });
+        }
+
+        // Set time to start of day for startDate and end of day for endDate
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+
+        const timeSheets = await TimeSheet.find({
+            UserId: UserId,
+            // Find all timesheet entries that START within the given range
+            StartTime: { $gte: start, $lte: end }
+        }).sort({ StartTime: 'asc' });
+
+        if (timeSheets.length === 0) {
+            return res.status(200).json({ timeSheets: [], message: 'No timesheet entries found for the selected range.' });
+        }
+
+        return res.status(200).json({ timeSheets });
+
+    } catch (error) {
+        console.error('Error fetching timesheet report:', error);
+        return res.status(500).json({ message: 'Server error while fetching report data.' });
+    }
+}
+
 // Routes
 // POST /api/timehseet - Add Time
 router.post('/', protect, postTimeSheet);
@@ -135,6 +170,10 @@ router.get('/punchIn', protect, handlePunchIn);
 
 // POST /api/timehseet/punchOut/:punchID - PunchOut for Today
 router.post('/punchOut/:punchID', protect, handlePunchOut);
+
+// --- NEW ROUTE FOR REPORT ---
+// GET /api/timesheet/report - Get timesheet data for a date range
+router.get('/report', protect, getTimesheetReport);
 
 // GET /api/timesheet/history - Get timesheetDetails
 router.get('/history/:date', protect, getTimeSheetHistory);

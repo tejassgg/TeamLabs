@@ -1633,6 +1633,17 @@ export const timesheetService = {
       if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to Delete TimeSheet' };
     }
+  },
+  getTimesheetReport: async (startDate, endDate) => {
+    try {
+      const response = await api.get(`/timesheet/report`, {
+        params: { startDate, endDate }
+      });
+      return response.data;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to fetch timesheet report' };
+    }
   }
 }
 
