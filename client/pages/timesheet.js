@@ -4,7 +4,7 @@ import { saveAs } from 'file-saver'; // <-- Import file-saver
 import { useGlobal } from '../context/GlobalContext';
 import { useTheme } from '../context/ThemeContext';
 import { timesheetService } from '../services/api';
-import { FaPlus, FaCheckCircle, FaArrowRight, FaPaperPlane, FaDownload } from 'react-icons/fa';
+import { FaPlus, FaCheckCircle, FaArrowRight, FaPaperPlane, FaDownload, FaArrowLeft } from 'react-icons/fa'; // <-- Import FaArrowLeft
 import { MdDelete } from 'react-icons/md';
 import { useToast } from '../context/ToastContext';
 import { useThemeClasses } from '../components/shared/hooks/useThemeClasses';
@@ -358,6 +358,22 @@ const TimeSheet = () => {
             setReportLoading(false);
         }
     };
+    
+    // --- START NEW DATE CHANGE HANDLER ---
+    /**
+     * Handles changing the current date by one day, forward or backward
+     */
+    const handleDateChange = (direction) => {
+        const currentDateObj = new Date(currentDate);
+        if (direction === 'prev') {
+            currentDateObj.setDate(currentDateObj.getDate() - 1);
+        } else if (direction === 'next') {
+            currentDateObj.setDate(currentDateObj.getDate() + 1);
+        }
+        setCurrentDate(currentDateObj.toLocaleDateString());
+    };
+    // --- END NEW DATE CHANGE HANDLER ---
+
 
     // --- END NEW HELPER FUNCTIONS ---
 
@@ -458,6 +474,7 @@ const TimeSheet = () => {
             )}>
                 {/* TimeSheet Table */}
                 <div className={`col-span-4`}>
+                    {/* --- MODIFIED SECTION --- */}
                     <div className="flex items-center justify-end mb-4 gap-4">
                         <div className="flex-col text-right">
                            <button
@@ -471,22 +488,51 @@ const TimeSheet = () => {
                                 Download Report
                            </button>
                         </div>
+                        
+                        {/* --- Date Navigation --- */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => handleDateChange('prev')}
+                                className={getThemeClasses(
+                                    'p-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50',
+                                    'dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700'
+                                )}
+                                title="Previous day"
+                            >
+                                <FaArrowLeft size={14} />
+                            </button>
+                            
+                            <input
+                                type="date"
+                                value={new Date(currentDate).toISOString().split('T')[0]}
+                                onChange={(e) => {
+                                    const selectedDate = new Date(e.target.value);
+                                    // Adjust date based on timezone offset to keep the selected date correct
+                                    const adjustedDate = new Date(selectedDate.getTime() + selectedDate.getTimezoneOffset() * 60000);
+                                    setCurrentDate(adjustedDate.toLocaleDateString()); // Use local date string
+                                }}
+                                className={getThemeClasses(
+                                    'px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
+                                    'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500'
+                                )}
+                            />
 
-                        <input
-                            type="date"
-                            value={new Date(currentDate).toISOString().split('T')[0]}
-                            onChange={(e) => {
-                                const selectedDate = new Date(e.target.value);
-                                // Adjust date based on timezone offset to keep the selected date correct
-                                const adjustedDate = new Date(selectedDate.getTime() + selectedDate.getTimezoneOffset() * 60000);
-                                setCurrentDate(adjustedDate.toLocaleDateString()); // Use local date string
-                            }}
-                            className={getThemeClasses(
-                                'px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
-                                'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500'
-                            )}
-                        />
+                            <button
+                                onClick={() => handleDateChange('next')}
+                                className={getThemeClasses(
+                                    'p-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50',
+                                    'dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700'
+                                )}
+                                title="Next day"
+                            >
+                                <FaArrowRight size={14} />
+                            </button>
+                        </div>
+                        {/* --- End Date Navigation --- */}
+
                     </div>
+                    {/* --- END MODIFIED SECTION --- */}
+
                      <div className={`overflow-x-auto ${tableContainerClasses}`}>
                         <table className="w-full">
                             <thead>
