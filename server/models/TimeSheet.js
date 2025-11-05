@@ -22,7 +22,7 @@ const TimeSheetSchema = new mongoose.Schema({
     },
     IsActive: {
         type: Boolean,
-        default: false
+        default: true
     }
 });
 
