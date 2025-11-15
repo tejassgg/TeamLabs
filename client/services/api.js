@@ -10,6 +10,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true
 });
 
 // Create axios instance for public endpoints (like 2FA verification)
@@ -19,20 +20,6 @@ const publicApi = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-// Add request interceptor to add auth token only for authenticated requests
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 // Authentication services
 export const authService = {
@@ -48,10 +35,7 @@ export const authService = {
           userId: response.data.userId
         };
       }
-      // If no 2FA required, proceed with normal login
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-      }
+
       return response.data;
     } catch (error) {
       if (env == 'DEV') console.log(error);
@@ -63,12 +47,6 @@ export const authService = {
   verifyLogin2FA: async (code, userId) => {
     try {
       const response = await api.post('/auth/2fa/verify-login', { code, userId });
-
-      if (response.status === 200) {
-        if (response.data.token) {
-          localStorage.setItem('token', response.data.token);
-        }
-      }
       return response.data;
 
     } catch (error) {
@@ -81,9 +59,6 @@ export const authService = {
   register: async (userData) => {
     try {
       const response = await api.post('/auth/register', userData);
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-      }
       return response.data;
     } catch (error) {
       if (env == 'DEV') console.log(error);
@@ -117,9 +92,6 @@ export const authService = {
   googleLogin: async (credential, inviteToken = null) => {
     try {
       const response = await api.post('/auth/google', { credential, inviteToken });
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-      }
       return response.data;
     } catch (error) {
       if (env == 'DEV') console.log(error);
@@ -136,27 +108,8 @@ export const authService = {
       if (env == 'DEV') console.log(error);
       console.error('Error logging logout activity:', error);
     } finally {
-      localStorage.removeItem('token');
-      localStorage.clear();
+      Cookies.remove('token');
     }
-  },
-
-  // Get current user
-  getCurrentUser: () => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          return payload;
-        } catch (error) {
-          if (env == 'DEV') console.log(error);
-          console.error('Error parsing token:', error);
-          return null;
-        }
-      }
-    }
-    return null;
   },
 
   // Get user profile
@@ -168,12 +121,6 @@ export const authService = {
       if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to get user profile' };
     }
-  },
-
-  // Check if user is authenticated
-  isAuthenticated: () => {
-    const token = localStorage.getItem('token');
-    return !!token;
   },
 
   completeProfile: async (profileData, onboarding = false, nextStep = null) => {

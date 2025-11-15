@@ -250,10 +250,8 @@ export const GlobalProvider = ({ children }) => {
     const initAuth = async () => {
       setLoading(true);
       try {
-        const currentUser = authService.getCurrentUser();
-        if (currentUser) {
-          setUserDetails(currentUser);
-        }
+        const currentUser = await authService.getUserProfile();
+        setUserDetails(currentUser);
       } catch (error) {
         console.error('Authentication error:', error);
       } finally {

@@ -26,6 +26,23 @@ const generateToken = (id) => {
   });
 };
 
+
+const setTokenCookie = (res, token) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  const options = {
+    httpOnly: true,
+    secure: isProduction, // In dev, this will be 'false' (allowing http)
+    // Use 'lax' for development to allow cross-origin localhost
+    // Use 'strict' for production for best security
+    sameSite: isProduction ? 'strict' : 'lax',
+
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+  };
+
+  res.cookie('token', token, options);
+};
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
@@ -140,7 +157,7 @@ const registerUser = async (req, res) => {
       }
       // Generate verification token
       const token = uuidv4();
-      const expiresAt = new Date(Date.now() + 24 * 7  * 60 * 60 * 1000);
+      const expiresAt = new Date(Date.now() + 24 * 7 * 60 * 60 * 1000);
       await EmailVerificationToken.deleteMany({ userId: user._id, used: false });
       await EmailVerificationToken.create({ userId: user._id, token, expiresAt });
 
@@ -198,7 +215,8 @@ const loginUser = async (req, res) => {
       }
       const userData = user.toObject();
       delete userData.password;
-      userData.token = generateToken(user._id);
+      const token = generateToken(user._id);
+      setTokenCookie(res, token);
 
       return res.status(200).json(userData);
     } else {
@@ -234,7 +252,7 @@ const verifyEmail = async (req, res) => {
     await record.save();
 
     return res.status(200).json({ success: true });
-    
+
   } catch (error) {
     console.error('Email verification error:', error);
     return res.status(500).json({ message: 'Server error' });
@@ -278,7 +296,11 @@ const logoutUser = async (req, res) => {
 
     // Update user status to Offline
     await User.findByIdAndUpdate(req.user._id, { status: 'Offline' });
-
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
     res.json({ message: 'Logged out successfully' });
   } catch (error) {
     console.error('Logout error:', error);
@@ -323,11 +345,13 @@ const googleLogin = async (req, res) => {
       await logActivity(user._id, 'login', 'success', 'User logged in via Google', req, { provider: 'google' });
       const userData = user.toObject();
       delete userData.password;
-      userData.token = generateToken(user._id);
+
       userData.profileImage = picture;
       userData.needsAdditionalDetails = false;
       userData.emailVerified = true;
       // Return user data with token and Google profile image
+      const token = generateToken(user._id);
+      setTokenCookie(res, token);
       return res.json(userData);
     } else {
       // If user doesn't exist, create new user with partial profile
@@ -409,7 +433,6 @@ const googleLogin = async (req, res) => {
 
       const userData = user.toObject();
       delete userData.password;
-      userData.token = generateToken(user._id);
       userData.profileImage = picture;
       userData.needsAdditionalDetails = !organizationID;
       userData.message = organizationID ? 'Welcome to the organization!' : 'Please complete your profile with additional details';
@@ -418,6 +441,8 @@ const googleLogin = async (req, res) => {
       userData.sessionTimeout = 30;
       userData.loginNotifications = true;
       userData.status = 'Offline';
+      const token = generateToken(user._id);
+      setTokenCookie(res, token);
       res.status(201).json(userData);
     }
   } catch (error) {
@@ -765,21 +790,9 @@ const verifyLogin2FA = async (req, res) => {
     if (!verified) {
       return res.status(400).json({ error: 'Invalid verification code' });
     }
-    return res.status(200).json({
-      _id: user._id,
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
-      organizationID: user.organizationID,
-      token: generateToken(user._id),
-      // Include security settings in login response
-      twoFactorEnabled: user.twoFactorEnabled || false,
-      sessionTimeout: user.sessionTimeout || 30,
-      loginNotifications: user.loginNotifications !== false, // default to true if not set
-      status: user.status
-    });
+    const token = generateToken(user._id);
+    setTokenCookie(res, token);
+    return res.status(200).json(user.toObject());
   } catch (error) {
     console.error('2FA Login Verification Error:', error);
     return res.status(500).json({ error: 'Internal server error', details: error.message });
