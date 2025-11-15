@@ -32,13 +32,17 @@ const setTokenCookie = (res, token) => {
 
   const options = {
     httpOnly: true,
-    secure: isProduction, // In dev, this will be 'false' (allowing http)
-    // Use 'lax' for development to allow cross-origin localhost
-    // Use 'strict' for production for best security
-    sameSite: isProduction ? 'strict' : 'lax',
-
-    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   };
+
+  if (isProduction) {
+    options.sameSite = 'none';
+    options.secure = true; // 'SameSite=None' MUST be paired with 'Secure=true'
+  } else {
+    // Development settings
+    options.secure = false;
+    options.sameSite = 'lax';
+  }
 
   res.cookie('token', token, options);
 };
