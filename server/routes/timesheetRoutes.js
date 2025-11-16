@@ -24,7 +24,7 @@ const getTimeSheetHistory = async (req, res) => {
     }
 }
 
-const postTimeSheet = async (req, res) => {
+const addTimeSheet = async (req, res) => {
     try {
         const { Description, StartTime, EndTime, PunchDate, PunchID } = req.body;
         const PunchData = await PunchDetails.findOne({ _id: PunchID, UserId: req.user._id });
@@ -160,7 +160,7 @@ const getTimesheetReport = async (req, res) => {
 
 // Routes
 // POST /api/timehseet - Add Time
-router.post('/', protect, postTimeSheet);
+router.post('/', protect, addTimeSheet);
 
 // DELETE /api/timehseet - Delete Time
 router.delete('/', protect, delTimeSheet);

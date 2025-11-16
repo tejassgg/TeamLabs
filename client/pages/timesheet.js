@@ -544,7 +544,7 @@ const TimeSheet = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {punchedInTime && !punchedOutTime && isToday && ( // Only show input row if punched in, not out, and it's today
+                                {punchedInTime && ( // Only show input row if punched in, not out
                                     <tr>
                                         <td className='p-2'>
                                             <input
