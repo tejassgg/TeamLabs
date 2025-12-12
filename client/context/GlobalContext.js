@@ -199,8 +199,22 @@ export const GlobalProvider = ({ children }) => {
 
   // Logout
   const logout = () => {
+    // Perform server-side logout
     authService.logout();
+
+    // Reset all context state to defaults / nulls
     setUserDetails(null);
+    setTeams([]);
+    setProjects([]);
+    setTasksDetails([]);
+    setOrganization(null);
+    setProjectStatuses([]);
+    setTempAuthData(null);
+    setError(null);
+
+    // Reset any fetch guard refs
+    if (dataFetchedRef && typeof dataFetchedRef === 'object') dataFetchedRef.current = false;
+    router.push('/');
   };
 
   // Update user data

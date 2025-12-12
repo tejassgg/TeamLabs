@@ -1,7 +1,8 @@
 import Navbar from './Navbar';
 import { useTheme } from '../../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
-import { FaCog, FaChevronLeft, FaFolder, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaRegClipboard, FaProjectDiagram } from 'react-icons/fa';
+import { FaCog, FaChevronLeft, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaRegClipboard, FaProjectDiagram, FaCalendarAlt } from 'react-icons/fa';
+import { FaRegMessage } from "react-icons/fa6";
 import { useRouter } from 'next/router';
 import { projectService, taskService, authService } from '../../services/api';
 import { useGlobal } from '../../context/GlobalContext';
@@ -206,7 +207,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             theme={theme}
           />
           <SidebarButton
-            icon={<FaTasks className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+            icon={<FaCalendarAlt className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
             label="TimeSheet"
             active={router.pathname === '/timesheet'}
             onClick={() => handleNavigation('/timesheet')}
@@ -215,7 +216,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           {/* Messages Section */}
           <div className={`border-b ${getThemeClasses('border-gray-200', 'border-gray-700')} pb-2`}>
             <SidebarButton
-              icon={<FaBookOpen className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+              icon={<FaRegMessage className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
               label="Messages"
               active={router.pathname === '/messages'}
               onClick={() => handleNavigation('/messages')}

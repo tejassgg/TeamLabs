@@ -23,9 +23,7 @@ const Navbar = ({ showWelcomeMessage = false, versionUpdateAvailable = false, la
 
   const handleLogout = async () => {
     try {
-      await authService.logout();
-      logout();
-      router.push('/');
+      await logout();
     } catch (error) {
       console.error('Error logging out:', error);
     }
