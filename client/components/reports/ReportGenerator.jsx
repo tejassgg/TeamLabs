@@ -6,7 +6,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { reportService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 
-const ReportGenerator = ({ projectId, projectName, onClose }) => {
+const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [reportType, setReportType] = useState('executive');
   const [startDate, setStartDate] = useState('');
@@ -280,15 +280,15 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
   ];
 
   return (
-    <div className={`fixed inset-0 ${theme === 'dark' ? 'bg-black/70 backdrop-blur-sm' : 'bg-gray-900/50 backdrop-blur-sm'} flex items-center justify-center z-50 transition-all duration-300`}>
+    <div className={inline ? 'w-full h-full' : `fixed inset-0 ${theme === 'dark' ? 'bg-black/70 backdrop-blur-sm' : 'bg-gray-900/50 backdrop-blur-sm'} flex items-center justify-center z-50 transition-all duration-300`}>
       <div className={`${theme === 'dark'
-        ? 'bg-gray-900 border border-gray-700 shadow-2xl'
-        : 'bg-white border border-gray-200 shadow-2xl'
-        } rounded-2xl max-w-7xl w-full mx-4 h-[90vh] overflow-hidden transition-all duration-300`}>
+        ? (inline ? 'bg-transparent' : 'bg-[#18181b] border border-gray-600 shadow-2xl rounded-2xl')
+        : (inline ? 'bg-transparent' : 'bg-white border border-gray-200 shadow-2xl rounded-2xl')
+        } max-w-7xl w-full ${inline ? '' : 'mx-4 h-[90vh] overflow-hidden'} transition-all duration-300 flex flex-col`}>
         {/* Header */}
         <div className={`p-6 ${theme === 'dark'
-          ? 'bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700'
-          : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200'
+          ? (inline ? 'bg-transparent border-b border-gray-700' : 'bg-[#232323] border-b border-gray-600')
+          : (inline ? 'bg-transparent border-b border-gray-200' : 'bg-white border-b border-gray-200')
           } transition-all duration-300`}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-start space-x-4">
@@ -319,31 +319,33 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                 </div>
               </div>
             </div>
-            <div className="flex items-start -mt-14">
-              <button onClick={onClose}
-                className={`p-2 rounded-lg transition-all duration-200 ${theme === 'dark'
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-700'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
-              >
-                <FaTimes className="text-xl" />
-              </button>
-            </div>
+            {!inline && (
+              <div className="flex items-start -mt-14">
+                <button onClick={onClose}
+                  className={`p-2 rounded-lg transition-all duration-200 ${theme === 'dark'
+                    ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                    }`}
+                >
+                  <FaTimes className="text-xl" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Tabs */}
           <div className={`flex space-x-2 ${theme === 'dark'
-            ? 'bg-gray-800 p-1'
+            ? 'bg-[#232323] p-1 border border-gray-600'
             : 'bg-gray-100 p-1'
             } rounded-xl transition-all duration-300`}>
             <button
               onClick={() => setActiveTab('generate')}
               className={`flex-1 py-3 px-6 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === 'generate'
                 ? theme === 'dark'
-                  ? 'bg-gray-700 text-white shadow-lg'
+                  ? 'bg-[#323232] text-white shadow-lg'
                   : 'bg-white text-blue-600 shadow-lg'
                 : theme === 'dark'
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  ? 'text-gray-400 hover:text-white hover:bg-[#323232]/50'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
                 }`}
             >
@@ -353,10 +355,10 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
               onClick={() => setActiveTab('view')}
               className={`flex-1 py-3 px-6 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === 'view'
                 ? theme === 'dark'
-                  ? 'bg-gray-700 text-white shadow-lg'
+                  ? 'bg-[#323232] text-white shadow-lg'
                   : 'bg-white text-blue-600 shadow-lg'
                 : theme === 'dark'
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  ? 'text-gray-400 hover:text-white hover:bg-[#323232]/50'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
                 }`}
             >
@@ -367,9 +369,9 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
 
         {/* Content */}
         <div className={`p-8 ${theme === 'dark'
-          ? 'bg-gray-900'
-          : 'bg-gray-50'
-          } transition-all duration-300 overflow-y-auto h-[calc(90vh-200px)]`}>
+          ? (inline ? 'bg-transparent' : 'bg-[#18181b]')
+          : (inline ? 'bg-transparent' : 'bg-gray-50')
+          } transition-all duration-300 overflow-y-auto flex-1`}>
           {activeTab === 'generate' ? (
             // Generate Report Tab
             !generatedReport ? (
@@ -391,7 +393,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                             ? 'bg-blue-500/20 border-2 border-blue-400 shadow-lg shadow-blue-500/20'
                             : 'bg-blue-50 border-2 border-blue-500 shadow-lg shadow-blue-500/20'
                           : theme === 'dark'
-                            ? 'bg-gray-800 border border-gray-700 hover:border-gray-600 hover:bg-gray-750'
+                            ? 'bg-[#232323] border border-gray-600 hover:border-gray-500 hover:bg-[#2a2a2a]'
                             : 'bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                           }`}
                         onClick={() => setReportType(type.value)}
@@ -438,7 +440,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                     Report Period
                   </label>
                   <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl ${theme === 'dark'
-                    ? 'bg-gray-800 border border-gray-700'
+                    ? 'bg-[#232323] border border-gray-600'
                     : 'bg-white border border-gray-200'
                     } transition-all duration-300`}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -454,7 +456,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
                           className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
-                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                            ? 'bg-[#2a2a2a] border-gray-600 text-white placeholder-gray-400'
                             : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                             }`}
                         />
@@ -471,7 +473,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
                           className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
-                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                            ? 'bg-[#2a2a2a] border-gray-600 text-white placeholder-gray-400'
                             : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                             }`}
                         />
@@ -503,7 +505,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
 
                   {showAdvanced && (
                     <div className={`mt-4 p-4 sm:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 ${theme === 'dark'
-                      ? 'bg-gray-800 border border-gray-700'
+                      ? 'bg-[#232323] border border-gray-600'
                       : 'bg-gray-100 border border-gray-200'
                       }`}>
                       {subscriptionInfo.isPremium ? (
@@ -568,7 +570,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                                         ? 'bg-blue-500 border-blue-400'
                                         : 'bg-blue-500 border-blue-500'
                                       : theme === 'dark'
-                                        ? 'border-gray-600 bg-gray-700'
+                                        ? 'border-gray-600 bg-[#2a2a2a]'
                                         : 'border-gray-300 bg-white'
                                       }`}
                                   />
@@ -613,7 +615,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                                       ? 'bg-blue-500/20 border-2 border-blue-400 text-blue-400'
                                       : 'bg-blue-50 border-2 border-blue-500 text-blue-600'
                                     : theme === 'dark'
-                                      ? 'bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600'
+                                      ? 'bg-[#2a2a2a] border border-gray-600 text-gray-300 hover:bg-[#323232]'
                                       : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
                                     }`}
                                 >
@@ -638,7 +640,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                               placeholder="Add specific instructions for the AI report generation..."
                               rows={3}
                               className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${theme === 'dark'
-                                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                ? 'bg-[#2a2a2a] border-gray-600 text-white placeholder-gray-400'
                                 : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                                 }`}
                             />
@@ -656,7 +658,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                               value={advancedOptions.language}
                               onChange={(e) => setAdvancedOptions(prev => ({ ...prev, language: e.target.value }))}
                               className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
-                                ? 'bg-gray-700 border-gray-600 text-white'
+                                ? 'bg-[#2a2a2a] border-gray-600 text-white'
                                 : 'bg-gray-50 border-gray-300 text-gray-900'
                                 }`}
                             >
@@ -787,15 +789,17 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
 
                 {/* Generate Button */}
                 <div className="flex justify-end gap-3 sm:gap-4 pb-4">
-                  <button
-                    onClick={onClose}
-                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base ${theme === 'dark'
-                      ? 'text-gray-400 hover:text-white hover:bg-gray-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                      }`}
-                  >
-                    Cancel
-                  </button>
+                  {!inline && (
+                    <button
+                      onClick={onClose}
+                      className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base ${theme === 'dark'
+                        ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                        }`}
+                    >
+                      Cancel
+                    </button>
+                  )}
                   <button
                     onClick={handleGenerateReport}
                     disabled={isGenerating || existingReports.length >= subscriptionInfo.maxReports}
@@ -904,7 +908,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                     <button
                       onClick={() => setGeneratedReport(null)}
                       className={`px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base ${theme === 'dark'
-                        ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                        ? 'bg-[#2a2a2a] hover:bg-[#323232] text-white'
                         : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                         }`}
                     >
@@ -1071,7 +1075,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                   <h4 className={`text-lg sm:text-xl font-bold mb-4 sm:mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>
                     Report Content
                   </h4>
-                  <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                  <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 ${theme === 'dark' ? 'bg-[#232323] border-gray-600' : 'bg-white border-gray-200'}`}>
                     <div className={`prose prose-sm sm:prose-lg max-w-none ${theme === 'dark' ? 'prose-invert' : 'prose-gray'}`}>
                       <div className={`text-sm sm:text-base leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} transition-colors duration-300`}>
                         {generatedReport.content.rawContent.split('\n').map((line, index) => {
@@ -1192,7 +1196,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                       ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                       : 'text-gray-500 cursor-not-allowed'
                     : theme === 'dark'
-                      ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                      ? 'bg-[#2a2a2a] hover:bg-[#323232] text-white'
                       : 'hover:bg-gray-300 text-gray-700'
                     }`}
                 >
@@ -1217,7 +1221,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                 </div>
               ) : existingReports.length === 0 ? (
                 <div className="text-center py-16">
-                  <div className={`p-8 rounded-3xl mx-auto max-w-md ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'} transition-all duration-300`}>
+                  <div className={`p-8 rounded-3xl mx-auto max-w-md ${theme === 'dark' ? 'bg-[#232323] border border-gray-600' : 'bg-white border border-gray-200'} transition-all duration-300`}>
                     <FaFileAlt className={`text-6xl mx-auto mb-6 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
                     <h4 className={`text-xl font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>
                       No Reports Found
@@ -1242,7 +1246,7 @@ const ReportGenerator = ({ projectId, projectName, onClose }) => {
                     <div
                       key={report.reportId}
                       className={`p-4 sm:p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.01] ${theme === 'dark'
-                        ? 'bg-gray-800 border-gray-700 hover:border-gray-600 hover:bg-gray-750'
+                        ? 'bg-[#232323] border-gray-600 hover:border-gray-500 hover:bg-[#2a2a2a]'
                         : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }`}
                     >

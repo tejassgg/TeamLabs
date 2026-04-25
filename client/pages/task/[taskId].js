@@ -1099,7 +1099,7 @@ const TaskDetailsPage = () => {
                                         "text-center py-8 text-gray-400",
                                         "dark:text-gray-300"
                                     )}>Loading...</div>
-                                ) : taskActivity.length > 0 ? (
+                                ) : taskActivity?.length > 0 ? (
                                     <div className="space-y-4 pb-4">
                                         {taskActivity.map((activity, index) => (
                                             <div key={activity._id || index} className="flex items-start gap-3">

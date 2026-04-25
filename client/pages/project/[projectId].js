@@ -1206,6 +1206,22 @@ const ProjectDetailsPage = () => {
                       <span>Knowledge Base</span>
                     </button>
                   )}
+                  {isOwner && (
+                    <button
+                      onClick={() => setActiveTab('reports')}
+                      className={`${activeTab === 'reports'
+                        ? theme === 'dark'
+                          ? 'border-blue-400 text-blue-400'
+                          : 'border-blue-600 text-blue-600'
+                        : theme === 'dark'
+                          ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                    >
+                      <FaFileAlt size={16} />
+                      <span>Generate Report</span>
+                    </button>
+                  )}
                 </nav>
               </div>
               <div className="flex items-center gap-4 ml-4 flex-shrink-0">
@@ -1225,19 +1241,6 @@ const ProjectDetailsPage = () => {
                 )}
                 {isOwner && (
                   <>
-                    <div className="py-2 flex gap-2">
-                      <button
-                        className={getThemeClasses(
-                          "flex items-center gap-2 p-2 text-gray-500 hover:text-green-600 rounded-lg hover:bg-green-50 transition-colors",
-                          "dark:text-gray-400 dark:hover:text-green-400 dark:hover:bg-gray-800"
-                        )}
-                        title="Generate AI Report"
-                        onClick={() => setShowReportGenerator(true)}
-                      >
-                        <FaFileAlt size={18} />
-                        {/* Generate Report */}
-                      </button>
-                    </div>
                     <div className="py-2">
                       <button
                         className={getThemeClasses(
@@ -1530,17 +1533,6 @@ const ProjectDetailsPage = () => {
                     </button>
                   )}
 
-                  {/* Generate Report Button */}
-                  <button
-                    className={getThemeClasses(
-                      "p-2 text-gray-500 hover:text-green-500 rounded-full hover:bg-gray-100 transition-colors",
-                      "dark:text-gray-400 dark:hover:text-green-400 dark:hover:bg-gray-700"
-                    )}
-                    title="Generate AI Report"
-                    onClick={() => setShowReportGenerator(true)}
-                  >
-                    <FaFileAlt size={18} />
-                  </button>
                 </div>
               </div>
             </div>
@@ -1715,7 +1707,7 @@ const ProjectDetailsPage = () => {
                             </div>
                             <div className="flex items-center justify-between mt-6">
                               {/* Members overlay */}
-                              {team.teamMembers.length > 0 && (
+                              {team.teamMembers && team.teamMembers.length > 0 && (
                                 <div className='flex items-center'>
                                   <div className="flex -space-x-2">
                                     {team.teamMembers.slice(0, 3).map((member, idx) => (
@@ -2608,6 +2600,12 @@ const ProjectDetailsPage = () => {
           </div>
         ) : activeTab === 'knowledge' && userDetails?.role === 'Admin' ? (
           <RAGManagement organizationId={project?.OrganizationID} />
+        ) : activeTab === 'reports' && isOwner ? (
+          <ReportGenerator
+            projectId={projectId}
+            projectName={project?.Name}
+            inline={true}
+          />
         ) : null}
 
         {showSettingsModal && (
@@ -3420,14 +3418,6 @@ const ProjectDetailsPage = () => {
         )}
       </div>
 
-      {/* Report Generator Modal */}
-      {showReportGenerator && (
-        <ReportGenerator
-          projectId={projectId}
-          projectName={project?.Name}
-          onClose={() => setShowReportGenerator(false)}
-        />
-      )}
     </>
   );
 }

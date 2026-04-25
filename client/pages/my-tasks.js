@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { FaTasks, FaCalendarAlt, FaClock, FaCheckCircle, FaExclamationTriangle, FaSearch, FaSpinner, FaFlag, FaEdit, FaTrash, FaTimes, FaShieldAlt, FaRocket, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
+import { FaTasks, FaCalendarAlt, FaClock, FaCheckCircle, FaExclamationTriangle, FaSearch, FaSpinner, FaFlag, FaEdit, FaTrash, FaTimes, FaShieldAlt, FaRocket, FaSort, FaSortUp, FaSortDown, FaFilter } from 'react-icons/fa';
 
 import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
@@ -46,11 +46,27 @@ const MyTasksPage = () => {
 
   // Filter and search states
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-  const [projectFilter, setProjectFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState([]);
+  const [priorityFilter, setPriorityFilter] = useState([]);
+  const [projectFilter, setProjectFilter] = useState([]);
   const [sortBy, setSortBy] = useState('deadline');
   const [sortOrder, setSortOrder] = useState('asc');
+
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+
+  const filterDropdownRef = useRef(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
+        setIsFilterModalOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Stats
   const [stats, setStats] = useState({
@@ -108,18 +124,18 @@ const MyTasksPage = () => {
     }
 
     // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(task => task.Status == statusFilter);
+    if (statusFilter.length > 0) {
+      filtered = filtered.filter(task => statusFilter.includes(task.Status));
     }
 
     // Priority filter
-    if (priorityFilter !== 'all') {
-      filtered = filtered.filter(task => task.Priority === priorityFilter);
+    if (priorityFilter.length > 0) {
+      filtered = filtered.filter(task => priorityFilter.includes(task.Priority));
     }
 
     // Project filter
-    if (projectFilter !== 'all') {
-      filtered = filtered.filter(task => task.ProjectID === projectFilter);
+    if (projectFilter.length > 0) {
+      filtered = filtered.filter(task => projectFilter.includes(task.ProjectID));
     }
 
     // Sort
@@ -241,58 +257,155 @@ const MyTasksPage = () => {
             </div>
 
             {/* Filters */}
-            <div className="flex flex-col lg:flex-row gap-4 w-full lg:w-1/2 lg:justify-end">
-              {/* Status and Priority - Side by side on mobile, inline on desktop */}
-              <div className="flex flex-row gap-4">
-                <CustomDropdown
-                  value={statusFilter}
-                  onChange={setStatusFilter}
-                  placeholder="All Status"
-                  options={[
-                    { value: 'all', label: 'All Status' },
-                    ...projectStatuses.map(status => ({
-                      value: status.Code,
-                      label: status.Value
-                    }))
-                  ]}
-                  width="w-full lg:w-48"
-                  size="md"
-                  variant="default"
-                />
+            <div className="flex flex-col lg:flex-row gap-4 w-full lg:w-1/2 lg:justify-end relative" ref={filterDropdownRef}>
+              <button
+                onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
+                className={getThemeClasses(
+                  'flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition-colors',
+                  'flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-700 hover:bg-gray-600 text-white transition-colors'
+                )}
+              >
+                <FaFilter className="w-4 h-4" />
+                <span>Filters</span>
+                {(statusFilter.length > 0 || priorityFilter.length > 0 || projectFilter.length > 0) && (
+                  <span className="bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {statusFilter.length + priorityFilter.length + projectFilter.length}
+                  </span>
+                )}
+              </button>
 
-                <CustomDropdown
-                  value={priorityFilter}
-                  onChange={setPriorityFilter}
-                  placeholder="All Priority"
-                  options={[
-                    { value: 'all', label: 'All Priority' },
-                    { value: 'High', label: 'High' },
-                    { value: 'Medium', label: 'Medium' },
-                    { value: 'Low', label: 'Low' }
-                  ]}
-                  width="w-full lg:w-auto"
-                  size="md"
-                  variant="default"
-                />
-              </div>
+              {/* Filter Dropdown */}
+              {isFilterModalOpen && (
+                <div className={getThemeClasses(
+                  'absolute right-0 top-full mt-2 z-50 w-[300px] sm:w-[500px] lg:w-[700px] bg-white border border-gray-200 rounded-xl shadow-lg flex flex-col',
+                  'absolute right-0 top-full mt-2 z-50 w-[300px] sm:w-[500px] lg:w-[700px] bg-[#232323] border border-gray-600 rounded-xl shadow-lg flex flex-col'
+                )}>
+                  <div className={getThemeClasses(
+                    'p-4 border-b border-gray-200 flex items-center justify-between',
+                    'p-4 border-b border-gray-600 flex items-center justify-between'
+                  )}>
+                    <h3 className={getThemeClasses('text-base font-bold text-gray-900', 'text-base font-bold text-white')}>
+                      Filter Tasks
+                    </h3>
+                    <button
+                      onClick={() => setIsFilterModalOpen(false)}
+                      className={getThemeClasses('text-gray-400 hover:text-gray-600', 'text-gray-500 hover:text-gray-300')}
+                    >
+                      <FaTimes size={16} />
+                    </button>
+                  </div>
 
-              {/* Projects - Full width below on mobile, inline on desktop */}
-              <CustomDropdown
-                value={projectFilter}
-                onChange={setProjectFilter}
-                placeholder="All Projects"
-                options={[
-                  { value: 'all', label: 'All Projects' },
-                  ...projects.map(project => ({
-                    value: project.ProjectID,
-                    label: project.Name
-                  }))
-                ]}
-                width="lg:w-64 sm:w-full"
-                size="md"
-                variant="default"
-              />
+                  <div className="p-4 max-h-[60vh] overflow-y-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                      {/* Status Column */}
+                      <div>
+                        <h4 className={getThemeClasses('text-sm font-semibold mb-3 text-gray-900', 'text-sm font-semibold mb-3 text-white')}>Status</h4>
+                        <div className="space-y-2">
+                          {projectStatuses.map(status => (
+                            <label key={status.Code} className="flex items-start gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={statusFilter.includes(status.Code)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setStatusFilter([...statusFilter, status.Code]);
+                                  } else {
+                                    setStatusFilter(statusFilter.filter(s => s !== status.Code));
+                                  }
+                                }}
+                                className={getThemeClasses(
+                                  'mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                                  'mt-0.5 w-4 h-4 rounded border-gray-600 bg-[#2A2A2A] checked:bg-blue-600'
+                                )}
+                              />
+                              <span className={getThemeClasses('text-sm text-gray-700', 'text-sm text-gray-300')}>{status.Value}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
 
+                      {/* Priority Column */}
+                      <div>
+                        <h4 className={getThemeClasses('text-sm font-semibold mb-3 text-gray-900', 'text-sm font-semibold mb-3 text-white')}>Priority</h4>
+                        <div className="space-y-2">
+                          {['High', 'Medium', 'Low'].map(priority => (
+                            <label key={priority} className="flex items-start gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={priorityFilter.includes(priority)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setPriorityFilter([...priorityFilter, priority]);
+                                  } else {
+                                    setPriorityFilter(priorityFilter.filter(p => p !== priority));
+                                  }
+                                }}
+                                className={getThemeClasses(
+                                  'mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                                  'mt-0.5 w-4 h-4 rounded border-gray-600 bg-[#2A2A2A] checked:bg-blue-600'
+                                )}
+                              />
+                              <span className={getThemeClasses('text-sm text-gray-700', 'text-sm text-gray-300')}>{priority}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Projects Column */}
+                      <div>
+                        <h4 className={getThemeClasses('text-sm font-semibold mb-3 text-gray-900', 'text-sm font-semibold mb-3 text-white')}>Projects</h4>
+                        <div className="space-y-2">
+                          {projects.map(project => (
+                            <label key={project.ProjectID} className="flex items-start gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={projectFilter.includes(project.ProjectID)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setProjectFilter([...projectFilter, project.ProjectID]);
+                                  } else {
+                                    setProjectFilter(projectFilter.filter(p => p !== project.ProjectID));
+                                  }
+                                }}
+                                className={getThemeClasses(
+                                  'mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                                  'mt-0.5 w-4 h-4 rounded border-gray-600 bg-[#2A2A2A] checked:bg-blue-600'
+                                )}
+                              />
+                              <span className={getThemeClasses('text-sm text-gray-700', 'text-sm text-gray-300')}>{project.Name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={getThemeClasses(
+                    'p-4 border-t border-gray-200 flex justify-between gap-3',
+                    'p-4 border-t border-gray-600 flex justify-between gap-3'
+                  )}>
+                    <button
+                      onClick={() => {
+                        setStatusFilter([]);
+                        setPriorityFilter([]);
+                        setProjectFilter([]);
+                      }}
+                      className={getThemeClasses(
+                        'px-4 py-2 text-sm rounded-lg text-gray-700 hover:text-red-600 transition-colors',
+                        'px-4 py-2 text-sm rounded-lg text-gray-300 hover:text-red-400 transition-colors'
+                      )}
+                    >
+                      Clear Filters
+                    </button>
+                    <button
+                      onClick={() => setIsFilterModalOpen(false)}
+                      className="px-4 py-2 text-sm rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -447,13 +560,13 @@ const MyTasksPage = () => {
               )}>
                 <FaTasks className="w-16 h-16 mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">
-                  {searchTerm || statusFilter !== 'all' || priorityFilter !== 'all' || projectFilter !== 'all'
+                  {searchTerm || statusFilter.length > 0 || priorityFilter.length > 0 || projectFilter.length > 0
                     ? 'No tasks match your filters'
                     : 'No tasks assigned to you'
                   }
                 </h3>
                 <p className={tableSecondaryTextClasses}>
-                  {searchTerm || statusFilter !== 'all' || priorityFilter !== 'all' || projectFilter !== 'all'
+                  {searchTerm || statusFilter.length > 0 || priorityFilter.length > 0 || projectFilter.length > 0
                     ? 'Try adjusting your search criteria'
                     : 'Check with your team lead to get assigned to tasks'
                   }

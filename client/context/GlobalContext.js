@@ -115,6 +115,7 @@ export const GlobalProvider = ({ children }) => {
         };
       }
       setUserDetails(data);
+      localStorage.setItem('isLoggedIn', 'true');
       return { success: true };
     } catch (error) {
       return {
@@ -133,6 +134,7 @@ export const GlobalProvider = ({ children }) => {
       const data = await authService.verifyLogin2FA(code, tempAuthData.userId);
       setUserDetails(data);
       setTempAuthData(null);
+      localStorage.setItem('isLoggedIn', 'true');
       return { success: true };
     } catch (error) {
       return {
@@ -171,6 +173,7 @@ export const GlobalProvider = ({ children }) => {
     try {
       const data = await authService.googleLogin(credential, inviteToken);
       setUserDetails(data);
+      localStorage.setItem('isLoggedIn', 'true');
       return { 
         success: true,
         needsAdditionalDetails: data.needsAdditionalDetails || false
@@ -214,6 +217,7 @@ export const GlobalProvider = ({ children }) => {
 
     // Reset any fetch guard refs
     if (dataFetchedRef && typeof dataFetchedRef === 'object') dataFetchedRef.current = false;
+    localStorage.removeItem('isLoggedIn');
     router.push('/');
   };
 
@@ -262,12 +266,19 @@ export const GlobalProvider = ({ children }) => {
   // Initial authentication check
   useEffect(() => {
     const initAuth = async () => {
+      const storedLoggedIn = localStorage.getItem('isLoggedIn');
+      if (!storedLoggedIn) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
         const currentUser = await authService.getUserProfile();
         setUserDetails(currentUser);
       } catch (error) {
         console.error('Authentication error:', error);
+        localStorage.removeItem('isLoggedIn');
       } finally {
         setLoading(false);
       }
