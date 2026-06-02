@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import {
   Chart as ChartJS,
@@ -44,7 +44,6 @@ const DashboardCharts = ({ stats, theme }) => {
   const prepareChartData = () => {
     const charts = stats.charts;
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const color = (lightHex, darkHex) => (theme === 'dark' ? darkHex : lightHex);
 
     // Project Status Distribution
     const projectStatusLabels = Object.keys(charts.projectStatusDistribution);
@@ -54,16 +53,16 @@ const DashboardCharts = ({ stats, theme }) => {
       datasets: [{
         data: projectStatusValues,
         backgroundColor: [
-          color('#6B7280', '#4B5563'), // Gray - Not Assigned
-          color('#3B82F6', '#2563EB'), // Blue - Assigned
-          color('#F59E0B', '#D97706'), // Yellow - In Progress
-          color('#6366F1', '#4F46E5'), // Indigo - QA
-          color('#EC4899', '#DB2777'), // Pink - Deployment
-          color('#10B981', '#059669'), // Green - Completed
-          color('#EF4444', '#DC2626'), // Red - Other
+          '#64748b', // Slate - Not Assigned
+          '#6366f1', // Indigo - Assigned
+          '#f59e0b', // Amber - In Progress
+          '#a855f7', // Purple - QA
+          '#ec4899', // Pink - Deployment
+          '#10b981', // Emerald - Completed
+          '#ef4444', // Red - Other
         ].slice(0, projectStatusLabels.length),
         borderWidth: 2,
-        borderColor: theme === 'dark' ? '#424242' : '#ffffff',
+        borderColor: theme === 'dark' ? '#0f172a' : '#ffffff',
       }]
     };
 
@@ -76,16 +75,16 @@ const DashboardCharts = ({ stats, theme }) => {
         label: 'Number of Tasks',
         data: taskTypeValues,
         backgroundColor: [
-          '#3B82F6', // User Story
-          '#10B981', // Task
-          '#EF4444', // Bug
-          '#8B5CF6', // Feature
-          '#F59E0B', // Improvement
-          '#6366F1', // Documentation
-          '#6B7280', // Maintenance
+          '#6366f1', // User Story
+          '#10b981', // Task
+          '#f43f5e', // Bug
+          '#a855f7', // Feature
+          '#f59e0b', // Improvement
+          '#06b6d4', // Documentation
+          '#64748b', // Maintenance
         ].slice(0, taskTypeLabels.length),
         borderWidth: 1,
-        borderColor: theme === 'dark' ? '#424242' : '#e5e7eb',
+        borderColor: theme === 'dark' ? 'rgba(255,255,255,0.08)' : '#e5e7eb',
       }]
     };
 
@@ -96,18 +95,24 @@ const DashboardCharts = ({ stats, theme }) => {
         {
           label: 'Projects Created',
           data: charts.monthlyActivity.projectsCreated,
-          borderColor: '#3B82F6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.04)',
           fill: true,
           tension: 0.4,
+          borderWidth: 3,
+          pointBackgroundColor: '#a855f7',
+          pointHoverRadius: 6,
         },
         {
           label: 'Tasks Completed',
           data: charts.monthlyActivity.tasksCompleted,
-          borderColor: '#10B981',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.04)',
           fill: true,
           tension: 0.4,
+          borderWidth: 3,
+          pointBackgroundColor: '#06b6d4',
+          pointHoverRadius: 6,
         }
       ]
     };
@@ -119,16 +124,18 @@ const DashboardCharts = ({ stats, theme }) => {
         {
           label: 'Team Members',
           data: charts.teamPerformance.map(team => team.memberCount),
-          backgroundColor: '#3B82F6',
-          borderColor: '#2563EB',
+          backgroundColor: '#6366f1',
+          borderColor: 'rgba(99, 102, 241, 0.2)',
           borderWidth: 1,
+          borderRadius: 6,
         },
         {
           label: 'Active Projects',
           data: charts.teamPerformance.map(team => team.activeProjects),
-          backgroundColor: '#10B981',
-          borderColor: '#059669',
+          backgroundColor: '#06b6d4',
+          borderColor: 'rgba(6, 182, 212, 0.2)',
           borderWidth: 1,
+          borderRadius: 6,
         }
       ]
     };
@@ -141,11 +148,11 @@ const DashboardCharts = ({ stats, theme }) => {
       datasets: [{
         data: activityValues,
         backgroundColor: [
-          '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-          '#6366F1', '#EC4899', '#6B7280', '#F97316', '#059669'
+          '#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#a855f7',
+          '#06b6d4', '#ec4899', '#64748b', '#f97316', '#059669'
         ].slice(0, activityLabels.length),
         borderWidth: 2,
-        borderColor: theme === 'dark' ? '#424242' : '#ffffff',
+        borderColor: theme === 'dark' ? '#0f172a' : '#ffffff',
       }]
     };
 
@@ -165,36 +172,55 @@ const DashboardCharts = ({ stats, theme }) => {
       legend: {
         position: 'bottom',
         labels: {
-          color: theme === 'dark' ? '#F3F6FA' : '#374151',
+          color: theme === 'dark' ? '#94a3b8' : '#475569',
+          font: {
+            family: 'system-ui, -apple-system, sans-serif',
+            size: 11,
+            weight: '600'
+          },
           usePointStyle: true,
-          padding: 20,
+          padding: 22,
         }
       },
       tooltip: {
-        backgroundColor: theme === 'dark' ? '#1F1F1F' : '#ffffff',
-        titleColor: theme === 'dark' ? '#F3F6FA' : '#111827',
-        bodyColor: theme === 'dark' ? '#B0B8C1' : '#6B7280',
-        borderColor: theme === 'dark' ? '#424242' : '#e5e7eb',
+        backgroundColor: theme === 'dark' ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+        titleColor: theme === 'dark' ? '#f8fafc' : '#0f172a',
+        bodyColor: theme === 'dark' ? '#cbd5e1' : '#334155',
+        borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
         borderWidth: 1,
-        cornerRadius: 8,
+        cornerRadius: 12,
+        padding: 12,
         displayColors: true,
+        backdropFilter: 'blur(8px)',
       }
     },
     scales: {
       x: {
         grid: {
-          color: theme === 'dark' ? '#424242' : '#e5e7eb',
+          color: theme === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)',
+          drawBorder: false,
+          borderDash: [5, 5]
         },
         ticks: {
-          color: theme === 'dark' ? '#B0B8C1' : '#6B7280',
+          color: '#64748b',
+          font: {
+            family: 'monospace',
+            size: 10
+          }
         }
       },
       y: {
         grid: {
-          color: theme === 'dark' ? '#424242' : '#e5e7eb',
+          color: theme === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)',
+          drawBorder: false,
+          borderDash: [5, 5]
         },
         ticks: {
-          color: theme === 'dark' ? '#B0B8C1' : '#6B7280',
+          color: '#64748b',
+          font: {
+            family: 'monospace',
+            size: 10
+          }
         }
       }
     }
@@ -212,144 +238,130 @@ const DashboardCharts = ({ stats, theme }) => {
   };
 
   if (loading || !stats?.charts) {
-    return (
-      <>
-        <DashboardSkeleton />
-      </>
-    );
+    return <DashboardSkeleton />;
   }
+
+  // Calculate project completion percent
+  const completedPercent = stats.charts.totalTasks > 0
+    ? Math.round((stats.charts.completedTasks / stats.charts.totalTasks) * 100)
+    : 0;
 
   return (
     <div className="space-y-6 mb-8">
-      {/* Statistics Cards and Task Completion Summary - Side by Side */}
+      {/* 1. Statistics Cards and Task Completion Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-8 gap-6">
-        {/* Statistics Cards - 2x2 Grid (1/4th width) */}
-        <div className="lg:col-span-2">
-          <div className="h-full grid grid-cols-2 gap-4">
+        
+        {/* Statistics Cards - 2x2 Grid (2 Cols Width) */}
+        <div className="lg:col-span-2 flex flex-col gap-4 justify-between">
+          <div className="grid grid-cols-2 gap-4 h-full">
             {/* Projects Card */}
-            <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-4' : 'bg-white text-gray-900 border-gray-100 rounded-xl shadow-sm p-4 border'} transition-all duration-200`}>
-              <div className="grid grid-cols-2 items-center h-full">
-                <div className='flex flex-col justify-between h-full'>
-                  <div className={`w-8 h-8 p-2 flex flex-col items-start rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-blue-50 to-blue-100'}`}>
-                    <FaProjectDiagram className={theme === 'dark' ? 'text-blue-400' : 'text-blue-500'} size={18} />
-                  </div>
-                  <p className={`text-md font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>Total Projects</p>
+            <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-slate-950/70 border-white/10 shadow-slate-950/60 shadow-lg hover:border-white/20' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
+              <div className="flex items-center justify-between">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-indigo-500/10' : 'bg-indigo-50'}`}>
+                  <FaProjectDiagram className={theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'} size={15} />
                 </div>
-                <div className='flex items-center justify-center'>
-                  <h1 className={`text-4xl text-center font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{stats?.totalProjects || 0}</h1>
-                </div>
+                <span className="text-2xl font-bold">{stats?.totalProjects || 0}</span>
               </div>
+              <p className={`text-xs font-semibold uppercase tracking-wider mt-3 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Projects</p>
             </div>
 
             {/* Teams Card */}
-            <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-4' : 'bg-white text-gray-900 border-gray-100 rounded-xl shadow-sm p-4 border'} transition-all duration-200`}>
-              <div className="grid grid-cols-2 items-center h-full">
-                <div className='flex flex-col justify-between h-full w-[60%]'>
-                  <div className={`w-8 h-8 p-2 flex flex-col items-start rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-green-50 to-green-100'}`}>
-                    <FaUsers className={theme === 'dark' ? 'text-green-400' : 'text-green-500'} size={18} />
-                  </div>
-                  <p className={`text-md font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>Total Teams</p>
+            <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-slate-950/70 border-white/10 shadow-slate-950/60 shadow-lg hover:border-white/20' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
+              <div className="flex items-center justify-between">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
+                  <FaUsers className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} size={15} />
                 </div>
-                <div className='flex items-center justify-center'>
-                  <h1 className={`text-4xl text-center font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{stats?.totalTeams || 0}</h1>
-                </div>
+                <span className="text-2xl font-bold">{stats?.totalTeams || 0}</span>
               </div>
+              <p className={`text-xs font-semibold uppercase tracking-wider mt-3 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Teams</p>
             </div>
 
             {/* Deadlines Card */}
-            <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-4' : 'bg-white text-gray-900 border-gray-100 rounded-xl shadow-sm p-4 border'} transition-all duration-200`}>
-              <div className="grid grid-cols-2 items-center h-full">
-                <div className='flex flex-col justify-between h-full'>
-                  <div className={`w-8 h-8 p-2 flex flex-col items-start rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-yellow-50 to-yellow-100'}`}>
-                    <FaClock className={theme === 'dark' ? 'text-yellow-300' : 'text-yellow-500'} size={18} />
-                  </div>
-                  <p className={`text-md font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>Upcoming Deadlines</p>
+            <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-slate-950/70 border-white/10 shadow-slate-950/60 shadow-lg hover:border-white/20' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
+              <div className="flex items-center justify-between">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50'}`}>
+                  <FaClock className={theme === 'dark' ? 'text-amber-400' : 'text-amber-600'} size={15} />
                 </div>
-                <div className='flex items-center justify-center'>
-                  <h1 className={`text-4xl text-center font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{stats?.upcomingDeadlines || 0}</h1>
-                </div>
+                <span className="text-2xl font-bold">{stats?.upcomingDeadlines || 0}</span>
               </div>
+              <p className={`text-xs font-semibold uppercase tracking-wider mt-3 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Deadlines</p>
             </div>
 
             {/* People Card */}
-            <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-4' : 'bg-white text-gray-900 border-gray-100 rounded-xl shadow-sm p-4 border'} transition-all duration-200`}>
-              <div className="grid grid-cols-2 items-center h-full">
-                <div className='flex flex-col justify-between h-full'>
-                  <div className={`w-8 h-8 p-2 flex flex-col items-start rounded-lg ${theme === 'dark' ? 'bg-[#232323]' : 'bg-gradient-to-r from-purple-50 to-purple-100'}`}>
-                    <FaUserFriends className={theme === 'dark' ? 'text-purple-300' : 'text-purple-500'} size={18} />
-                  </div>
-                  <p className={`text-md font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>Total People</p>
+            <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-slate-950/70 border-white/10 shadow-slate-950/60 shadow-lg hover:border-white/20' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
+              <div className="flex items-center justify-between">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-purple-500/10' : 'bg-purple-50'}`}>
+                  <FaUserFriends className={theme === 'dark' ? 'text-purple-400' : 'text-purple-600'} size={15} />
                 </div>
-                <div className='flex items-center justify-center'>
-                  <h1 className={`text-4xl text-center font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{stats?.totalUsers || 0}</h1>
-                </div>
+                <span className="text-2xl font-bold">{stats?.totalUsers || 0}</span>
               </div>
+              <p className={`text-xs font-semibold uppercase tracking-wider mt-3 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>People</p>
             </div>
           </div>
         </div>
 
-        {/* Task Completion Summary - 3/4th width */}
+        {/* Task Completion Summary Card (6 Cols Width) */}
         <div className="lg:col-span-6">
-          <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
-            <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
-              <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Task Completion Summary</h2>
-              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Overview of task progress and completion rates</p>
+          <div className={`rounded-2xl border p-6 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${theme === 'dark' ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+            <div>
+              <h2 className="text-xl font-bold tracking-tight">Task Completion Summary</h2>
+              <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Overview of active organization workflows and completion ratios</p>
             </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-transparent border border-gray-700 text-[#F3F6FA]' : 'bg-blue-50'} ${theme === 'dark' ? '' : 'border-none'} `}>
-                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>{stats.charts.totalTasks}</div>
-                  <div className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>Total Tasks</div>
-                </div>
-                <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-transparent border border-gray-700 text-[#F3F6FA]' : 'bg-green-50'} ${theme === 'dark' ? '' : 'border-none'} `}>
-                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>{stats.charts.completedTasks}</div>
-                  <div className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>Completed Tasks</div>
-                </div>
-                <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-transparent border border-gray-700 text-[#F3F6FA]' : 'bg-yellow-50'} ${theme === 'dark' ? '' : 'border-none'} `}>
-                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>{stats.charts.activeTasks}</div>
-                  <div className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>Active Tasks</div>
-                </div>
+            
+            <div className="grid grid-cols-3 gap-4 my-6">
+              <div className={`text-center p-4 rounded-xl border ${theme === 'dark' ? 'bg-slate-900/40 border-white/5' : 'bg-slate-50 border-slate-200/50'}`}>
+                <div className={`text-2xl sm:text-3xl font-extrabold ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}`}>{stats.charts.totalTasks}</div>
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-1">Total Tasks</div>
               </div>
-              <div className="mt-6">
-                <div className={`w-full bg-gray-200 rounded-full h-2 ${theme === 'dark' ? 'bg-[#424242]' : 'bg-gray-200'}`}>
-                  <div
-                    className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500"
-                    style={{
-                      width: `${stats.charts.totalTasks > 0 ? (stats.charts.completedTasks / stats.charts.totalTasks) * 100 : 0}%`
-                    }}
-                  ></div>
-                </div>
-                <div className={`text-sm mt-2 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
-                  Completed: {stats.charts.totalTasks > 0 ? Math.round((stats.charts.completedTasks / stats.charts.totalTasks) * 100) : 0}%
-                </div>
+              <div className={`text-center p-4 rounded-xl border ${theme === 'dark' ? 'bg-slate-900/40 border-white/5' : 'bg-slate-50 border-slate-200/50'}`}>
+                <div className={`text-2xl sm:text-3xl font-extrabold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{stats.charts.completedTasks}</div>
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-1">Completed</div>
+              </div>
+              <div className={`text-center p-4 rounded-xl border ${theme === 'dark' ? 'bg-slate-900/40 border-white/5' : 'bg-slate-50 border-slate-200/50'}`}>
+                <div className={`text-2xl sm:text-3xl font-extrabold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>{stats.charts.activeTasks}</div>
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-1">Active</div>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center text-xs font-bold text-slate-500 mb-2">
+                <span>PROGRESS VELOCITY</span>
+                <span className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}>{completedPercent}% COMPLETED</span>
+              </div>
+              <div className={`w-full rounded-full h-3 ${theme === 'dark' ? 'bg-slate-900' : 'bg-slate-100'} p-0.5 border ${theme === 'dark' ? 'border-white/5' : 'border-slate-200'}`}>
+                <div
+                  className="bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 h-2 rounded-full transition-all duration-500 shadow-md shadow-indigo-500/10"
+                  style={{ width: `${completedPercent}%` }}
+                ></div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Project Status and Task Type Distribution */}
+      {/* 2. Project Status and Task Type Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
         {/* Project Status Distribution */}
-        <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
-          <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
-            <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Project Status Distribution</h2>
-            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Overview of project status across the organization</p>
+        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+          <div className="pb-4 mb-4 border-b border-white/5">
+            <h2 className="text-lg font-bold tracking-tight">Project Status Distribution</h2>
+            <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Overview of project statuses across the entire organization</p>
           </div>
-          <div className="p-4">
-            <div className="h-64">
+          <div className="p-2">
+            <div className="h-64 relative flex items-center justify-center">
               <Doughnut data={chartData.projectStatus} options={pieChartOptions} />
             </div>
           </div>
         </div>
 
         {/* Task Type Distribution */}
-        <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
-          <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
-            <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Task Type Distribution</h2>
-            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Breakdown of different task types</p>
+        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+          <div className="pb-4 mb-4 border-b border-white/5">
+            <h2 className="text-lg font-bold tracking-tight">Task Type Distribution</h2>
+            <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Breakdown of different category and epic types</p>
           </div>
-          <div className="p-4">
+          <div className="p-2">
             <div className="h-64">
               <Bar data={chartData.taskType} options={chartOptions} />
             </div>
@@ -357,28 +369,29 @@ const DashboardCharts = ({ stats, theme }) => {
         </div>
       </div>
 
-      {/* Monthly Activity Timeline */}
-      <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
-        <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
-          <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Monthly Activity Overview</h2>
-          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Track project creation and task completion trends</p>
+      {/* 3. Monthly Activity Timeline */}
+      <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+        <div className="pb-4 mb-4 border-b border-white/5">
+          <h2 className="text-lg font-bold tracking-tight">Monthly Activity Timeline</h2>
+          <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Track and cross-compare project creations and task completion trends</p>
         </div>
-        <div className="p-4">
+        <div className="p-2">
           <div className="h-80">
             <Line data={chartData.monthlyActivity} options={chartOptions} />
           </div>
         </div>
       </div>
 
-      {/* Team Performance and Activity Overview */}
+      {/* 4. Team Performance and Activity Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
         {/* Team Performance */}
-        <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
-          <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
-            <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Team Performance Overview</h2>
-            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>Team member counts and active projects</p>
+        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+          <div className="pb-4 mb-4 border-b border-white/5">
+            <h2 className="text-lg font-bold tracking-tight">Team Performance Overview</h2>
+            <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Breakdown of member counts and active sprint pipelines per team</p>
           </div>
-          <div className="p-4">
+          <div className="p-2">
             <div className="h-80">
               <Bar data={chartData.teamPerformance} options={chartOptions} />
             </div>
@@ -386,13 +399,13 @@ const DashboardCharts = ({ stats, theme }) => {
         </div>
 
         {/* Activity Overview */}
-        <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border'}`}>
-          <div className={`p-4 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
-            <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Recent Activity Overview</h2>
-            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>User activity breakdown (last 30 days)</p>
+        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+          <div className="pb-4 mb-4 border-b border-white/5">
+            <h2 className="text-lg font-bold tracking-tight">Recent Activity Overview</h2>
+            <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>User activity breakdown over the last 30 operational days</p>
           </div>
-          <div className="p-4">
-            <div className="h-80">
+          <div className="p-2">
+            <div className="h-80 relative flex items-center justify-center">
               <Pie data={chartData.activityOverview} options={pieChartOptions} />
             </div>
           </div>
@@ -402,4 +415,4 @@ const DashboardCharts = ({ stats, theme }) => {
   );
 };
 
-export default DashboardCharts; 
+export default DashboardCharts;

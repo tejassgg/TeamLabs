@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { FaTasks, FaCalendarAlt, FaClock, FaCheckCircle, FaExclamationTriangle, FaSearch, FaSpinner, FaFlag, FaEdit, FaTrash, FaTimes, FaShieldAlt, FaRocket, FaSort, FaSortUp, FaSortDown, FaFilter } from 'react-icons/fa';
+import { FaTasks, FaCalendarAlt, FaClock, FaCheckCircle, FaExclamationTriangle, FaSearch, FaSpinner, FaFlag, FaEdit, FaTrash, FaTimes, FaShieldAlt, FaRocket, FaSort, FaSortUp, FaSortDown, FaFilter, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
@@ -43,6 +43,8 @@ const MyTasksPage = () => {
   const [projects, setProjects] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [selectedTasks, setSelectedTasks] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [tasksPerPage, setTasksPerPage] = useState(10);
 
   // Filter and search states
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,6 +87,7 @@ const MyTasksPage = () => {
 
   useEffect(() => {
     applyFilters();
+    setCurrentPage(1);
   }, [tasks, searchTerm, statusFilter, priorityFilter, projectFilter, sortBy, sortOrder]);
 
   const fetchUserData = async () => {
@@ -223,6 +226,11 @@ const MyTasksPage = () => {
     }
     return sortOrder === 'asc' ? <FaSortUp className="w-3 h-3" /> : <FaSortDown className="w-3 h-3" />;
   };
+
+  const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
+  const indexOfLastTask = currentPage * tasksPerPage;
+  const indexOfFirstTask = indexOfLastTask - tasksPerPage;
+  const currentTasks = filteredTasks.slice(indexOfFirstTask, indexOfLastTask);
 
   if (loading) {
     return <MyTasksSkeleton />;
@@ -522,14 +530,40 @@ const MyTasksPage = () => {
 
         {/* Tasks List */}
         <div className={getThemeClasses('bg-white flex-1', 'bg-transparent flex-1')}>
-          <div className=" py-4 flex items-center justify-between">
+          <div className=" py-1 flex items-center justify-between">
             <h2 className={getThemeClasses(
               'text-xl font-bold text-gray-900',
               'text-xl font-bold text-white'
             )}>
               Your Tasks ({filteredTasks.length})
             </h2>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
+              {/* Per page selector */}
+              {filteredTasks.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className={getThemeClasses('text-xs font-semibold text-gray-500', 'text-xs font-semibold text-gray-400')}>
+                    Per page:
+                  </span>
+                  <CustomDropdown
+                    value={tasksPerPage}
+                    onChange={(val) => {
+                      setTasksPerPage(Number(val));
+                      setCurrentPage(1);
+                    }}
+                    options={[
+                      { value: 5, label: '5' },
+                      { value: 10, label: '10' },
+                      { value: 25, label: '25' },
+                      { value: 50, label: '50' }
+                    ]}
+                    placeholder="10"
+                    variant="filled"
+                    size="sm"
+                    width="w-20"
+                  />
+                </div>
+              )}
+
               {selectedTasks.length > 0 ? (
                 <>
                   <div className={getThemeClasses(
@@ -551,6 +585,82 @@ const MyTasksPage = () => {
               ) : null}
             </div>
           </div>
+
+          {/* Pagination Controls */}
+          {filteredTasks.length > 0 && (
+            <div className={getThemeClasses(
+              'flex flex-col sm:flex-row items-center justify-between gap-4 p-1 bg-white shadow-sm',
+              'flex flex-col sm:flex-row items-center justify-between gap-4 p-1 bg-[#232323] shadow-sm'
+            )}>
+              <div className={getThemeClasses('text-sm text-gray-650 text-gray-500', 'text-sm text-gray-400')}>
+                Showing <span className="font-semibold text-blue-500">{indexOfFirstTask + 1}</span> to{' '}
+                <span className="font-semibold text-blue-500">
+                  {Math.min(indexOfLastTask, filteredTasks.length)}
+                </span>{' '}
+                of <span className="font-semibold">{filteredTasks.length}</span> tasks
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className={getThemeClasses(
+                    'px-3.5 py-1.5 rounded-lg border text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-gray-700 bg-white border-gray-300',
+                    'px-3.5 py-1.5 rounded-lg border text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-800/40 text-gray-300 bg-[#2A2A2A] border-gray-600'
+                  )}
+                >
+                  <FaChevronLeft className="w-3 h-3" />
+                </button>
+
+                <div className="flex items-center gap-1.5">
+                  {Array.from({ length: totalPages }, (_, index) => {
+                    const pageNum = index + 1;
+                    if (
+                      pageNum === 1 ||
+                      pageNum === totalPages ||
+                      Math.abs(pageNum - currentPage) <= 1
+                    ) {
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={
+                            currentPage === pageNum
+                              ? 'px-3 py-1.5 rounded-lg text-sm font-bold text-white bg-blue-600 shadow-sm shadow-blue-500/20'
+                              : getThemeClasses(
+                                  'px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm font-medium text-gray-700 bg-white',
+                                  'px-3 py-1.5 rounded-lg border border-gray-600 hover:bg-gray-800/40 text-sm font-medium text-gray-300 bg-[#2A2A2A]'
+                                )
+                          }
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    }
+                    if (pageNum === 2 || pageNum === totalPages - 1) {
+                      return (
+                        <span key={pageNum} className="text-gray-400 px-1 text-sm font-bold">
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className={getThemeClasses(
+                    'px-3.5 py-1.5 rounded-lg border text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-gray-700 bg-white border-gray-300',
+                    'px-3.5 py-1.5 rounded-lg border text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-800/40 text-gray-300 bg-[#2A2A2A] border-gray-600'
+                  )}
+                >
+                  <FaChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="overflow-x-auto border border-gray-300 rounded-xl">
             {filteredTasks.length === 0 ? (
@@ -575,7 +685,7 @@ const MyTasksPage = () => {
             ) : (
               <table className="w-full">
                 <thead>
-                  <tr className={getTableHeaderClasses()}>
+                  <tr className={getTableHeaderClasses() + " bg-gray-50"}>
                     <th className="py-3 px-4 text-center w-[50px]">
                       <input
                         type="checkbox"
@@ -645,8 +755,8 @@ const MyTasksPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTasks.map((task) => (
-                    <tr key={task.TaskID || task._id} className={tableRowClasses}>
+                  {currentTasks.map((task) => (
+                    <tr key={task.TaskID || task._id} className={`${tableRowClasses} transition-colors duration-150 ${getThemeClasses('hover:bg-gray-50/70', 'hover:bg-[#2A2A2A]/40')}`}>
                       <td className="py-3 px-4 text-center">
                         <input
                           type="checkbox"
