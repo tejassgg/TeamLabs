@@ -5,7 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
 import { useToast } from '../context/ToastContext';
 import ProjectStatusDropdown from '../components/dashboard/ProjectStatusDropdown';
-import { FaTrash, FaProjectDiagram, FaChartBar, FaRedo, FaPlus } from 'react-icons/fa';
+import { FaTrash, FaProjectDiagram, FaChartBar, FaRedo, FaPlus, FaGripHorizontal, FaExpandAlt, FaCompressAlt, FaTimes, FaCog, FaEye, FaUndo, FaWrench, FaCheck, FaEyeSlash } from 'react-icons/fa';
 import { getStatusConfig } from '../components/dashboard/StatusConfig';
 import api from '../services/api';
 import { projectService } from '../services/api';
@@ -14,7 +14,13 @@ import { connectSocket, subscribe } from '../services/socket';
 import OnboardingGuide from '../components/dashboard/OnboardingGuide';
 import AdminWelcomeMessage from '../components/dashboard/AdminWelcomeMessage';
 import { FcInvite, FcAcceptDatabase, FcExpired } from "react-icons/fc";
-import { FaClock } from "react-icons/fa";
+import { FaClock, FaUserFriends } from "react-icons/fa";
+
+// Modular Dashboard Widgets
+import RecentCommentsWidget from '../components/dashboard/RecentCommentsWidget';
+import BurndownWidget from '../components/dashboard/BurndownWidget';
+import TimeTrackerWidget from '../components/dashboard/TimeTrackerWidget';
+import GitStreamWidget from '../components/dashboard/GitStreamWidget';
 
 // Dynamic import for charts
 let DashboardCharts = null;
@@ -38,6 +44,79 @@ const Dashboard = () => {
   const [inviteStatus, setInviteStatus] = useState('');
   const [invitedEmails, setInvitedEmails] = useState([]);
   const [showOnboardingGuide, setShowOnboardingGuide] = useState(false);
+
+  // Widget customization states
+  const DEFAULT_WIDGETS = useMemo(() => [
+    { id: 'analytics', title: 'Metrics & Analytics', visible: true, colSpan: 2 },
+    { id: 'timeTracker', title: 'Personal Time Tracker', visible: true, colSpan: 1 },
+    { id: 'recentComments', title: 'Recent Comments', visible: true, colSpan: 1 },
+    { id: 'burndown', title: 'Task Burndown', visible: true, colSpan: 1 },
+    { id: 'gitStream', title: 'GitHub Commit Stream', visible: true, colSpan: 1 },
+    { id: 'recentProjects', title: 'Recent Projects', visible: true, colSpan: 1 },
+    { id: 'members', title: 'Organization Members', visible: true, colSpan: 1 },
+    { id: 'invites', title: 'Pending Invites', visible: true, colSpan: 1 },
+  ], []);
+
+  const [widgets, setWidgets] = useState([]);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [draggedIdx, setDraggedIdx] = useState(null);
+
+  // Load layout from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('dashboard_widgets_layout');
+    if (stored) {
+      try {
+        setWidgets(JSON.parse(stored));
+      } catch (e) {
+        setWidgets(DEFAULT_WIDGETS);
+      }
+    } else {
+      setWidgets(DEFAULT_WIDGETS);
+    }
+  }, [DEFAULT_WIDGETS]);
+
+  // Layout handlers
+  const toggleWidgetVisibility = (id) => {
+    const nextWidgets = widgets.map(w => w.id === id ? { ...w, visible: !w.visible } : w);
+    setWidgets(nextWidgets);
+    localStorage.setItem('dashboard_widgets_layout', JSON.stringify(nextWidgets));
+    showToast(`Widget "${nextWidgets.find(w => w.id === id).title}" ${nextWidgets.find(w => w.id === id).visible ? 'enabled' : 'disabled'}`, 'info');
+  };
+
+  const toggleWidgetColSpan = (id) => {
+    const nextWidgets = widgets.map(w => w.id === id ? { ...w, colSpan: w.colSpan === 2 ? 1 : 2 } : w);
+    setWidgets(nextWidgets);
+    localStorage.setItem('dashboard_widgets_layout', JSON.stringify(nextWidgets));
+  };
+
+  const resetLayout = () => {
+    setWidgets(DEFAULT_WIDGETS);
+    localStorage.setItem('dashboard_widgets_layout', JSON.stringify(DEFAULT_WIDGETS));
+    showToast('Dashboard layout reset to default.', 'success');
+  };
+
+  // HTML5 Drag and Drop handlers for grid widgets
+  const handleDragStart = (e, index) => {
+    setDraggedIdx(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    if (draggedIdx === null || draggedIdx === index) return;
+    
+    const nextWidgets = [...widgets];
+    const draggedItem = nextWidgets[draggedIdx];
+    nextWidgets.splice(draggedIdx, 1);
+    nextWidgets.splice(index, 0, draggedItem);
+    setDraggedIdx(index);
+    setWidgets(nextWidgets);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIdx(null);
+    localStorage.setItem('dashboard_widgets_layout', JSON.stringify(widgets));
+  };
 
   // Check if Admin has zero teams and projects
   const shouldShowWelcomeMessage = isAdmin && teams.length === 0 && projects.length === 0;
@@ -309,6 +388,261 @@ const Dashboard = () => {
     return 'Less than 1h';
   };
 
+  // Modular widgets rendering
+  const renderRecentProjectsWidget = () => (
+    <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${
+      theme === 'dark' 
+        ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl text-[#F3F6FA]' 
+        : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl text-gray-900'
+    }`}>
+      <div className="pb-4 mb-4 border-b border-slate-200/10">
+        <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
+          <FaProjectDiagram className="text-indigo-500" />
+          <span>Recent Projects</span>
+        </h2>
+      </div>
+      <div className="flex-1 overflow-x-visible">
+        <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-slate-900/30' : 'border-gray-200 bg-slate-50/20'}`}>
+          <div className="max-h-64 overflow-y-auto overflow-x-visible rounded-xl">
+            <table className="w-full text-xs">
+              <thead className="sticky top-0 z-10">
+                <tr className={`${theme === 'dark' ? 'border-gray-800 bg-slate-950' : 'bg-slate-50 border-gray-200'} border-b`}>
+                  <th className="py-2.5 px-3 text-left">Project</th>
+                  <th className="py-2.5 px-3 text-left">Deadline</th>
+                  <th className="py-2.5 px-3 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats?.recentProjects?.map(project => {
+                  const currentStatus = getProjectStatus(project.projectStatusId || 1);
+                  return (
+                    <tr key={project.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-800/50 hover:bg-gray-800/30' : 'border-gray-100 hover:bg-gray-50'} border-b cursor-pointer`} >
+                      <td className="py-2 px-3">
+                        <div className="flex flex-col">
+                          <span className={`font-semibold cursor-pointer hover:text-blue-500 transition-all duration-200 hover:underline ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`} onClick={() => router.push(`/project/${project.id}`)}> {project.name} </span>
+                          {project.description && (
+                            <span className={`text-[10px] mt-0.5 truncate max-w-[150px] ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>{project.description}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-2 px-3 whitespace-nowrap">
+                        <span className={`text-[10px] ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}> {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'} </span>
+                      </td>
+                      <td className="py-2 px-3">
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <ProjectStatusDropdown
+                            currentStatus={currentStatus}
+                            availableStatuses={projectStatuses}
+                            onStatusChange={handleProjectStatusUpdate}
+                            projectId={project.id}
+                            theme={theme}
+                            disabled={!isAdmin}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {(!stats?.recentProjects || stats.recentProjects.length === 0) && (
+                  <tr>
+                    <td colSpan={3} className={`text-center py-6 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}> No Recent Projects </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderMembersWidget = () => (
+    <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${
+      theme === 'dark' 
+        ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl text-[#F3F6FA]' 
+        : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl text-gray-900'
+    }`}>
+      <div className="pb-4 mb-4 border-b border-slate-200/10">
+        <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
+          <FaUserFriends className="text-indigo-500" />
+          <span>Organization Members</span>
+        </h2>
+      </div>
+      <div className="flex-1">
+        <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-slate-900/30' : 'border-gray-200 bg-slate-50/20'}`}>
+          <div className="max-h-64 overflow-y-auto rounded-xl">
+            <table className="w-full text-xs">
+              <thead className="sticky top-0 z-10">
+                <tr className={`${theme === 'dark' ? 'bg-slate-950 border-gray-800' : 'bg-slate-50 border-gray-200'} border-b`}>
+                  <th className="py-2.5 px-3 text-left">Member</th>
+                  <th className="py-2.5 px-3 text-left">Status</th>
+                  {isAdmin && <th className="py-2.5 px-3 text-center">Action</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {stats?.members?.map(member => {
+                  const statusConfig = getStatusConfig(member.status);
+                  const StatusIcon = statusConfig.icon;
+                  return (
+                    <tr key={member.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-800/50 hover:bg-gray-800/30' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
+                      <td className="py-2 px-3">
+                        <div className="flex items-center gap-2 max-w-[150px]">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-600'}`}> 
+                            {member.name.split(' ').map(n => n[0]).join('')} 
+                          </div>
+                          <div className="flex flex-col truncate">
+                            <span className={`font-semibold truncate ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}> {member.name} </span>
+                            <span className="text-[9px] text-slate-500 truncate">{member.email}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-2 px-3">
+                        <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium border ${
+                          theme === 'dark' ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'
+                        }`}>
+                          <StatusIcon className={`${statusConfig.color} text-[10px]`} />
+                          <span className={theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-700'}> {statusConfig.label} </span>
+                        </div>
+                      </td>
+                      {isAdmin && userDetails.organizationID && (
+                        <td className="py-2 px-3 text-center">
+                          <button
+                            onClick={() => {
+                              setRemovingUser(member);
+                              setShowRemoveDialog(true);
+                            }}
+                            className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs transition ${theme === 'dark' ? 'text-red-300 bg-[#232323] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
+                            title="Remove Member"
+                          >
+                            <FaTrash size={10} />
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderInvitesWidget = () => (
+    <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${
+      theme === 'dark' 
+        ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl text-[#F3F6FA]' 
+        : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl text-gray-900'
+    }`}>
+      <div className="pb-4 mb-4 border-b border-slate-200/10 flex items-center justify-between">
+        <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
+          <FcInvite />
+          <span>Pending Invites</span>
+        </h2>
+        {isAdmin && (
+          <button
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm transition-colors ${
+              theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white'
+            }`}
+            onClick={() => setShowInviteModal(true)}
+          >
+            <FaPlus size={10} /> Invite
+          </button>
+        )}
+      </div>
+      <div className="flex-1">
+        <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-slate-900/30' : 'border-gray-200 bg-slate-50/20'}`}>
+          <div className="max-h-64 overflow-y-auto rounded-xl">
+            <table className="w-full text-xs">
+              <thead className="sticky top-0 z-10">
+                <tr className={`${theme === 'dark' ? 'bg-slate-950 border-gray-800' : 'bg-slate-50 border-gray-200'} border-b`}>
+                  <th className="py-2.5 px-3 text-left">Email</th>
+                  <th className="py-2.5 px-3 text-left">Status</th>
+                  <th className="py-2.5 px-3 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats?.invites?.map(invite => {
+                  const statusBadge = getInviteStatusBadge(invite);
+                  return (
+                    <tr key={invite._id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-800/50 hover:bg-gray-800/30' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
+                      <td className="py-2 px-3 truncate max-w-[120px]">
+                        <span className={`font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{invite.email}</span>
+                      </td>
+                      <td className="py-2 px-3">
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-medium bg-gradient-to-r ${statusBadge.bgColor} ${statusBadge.textColor} border ${statusBadge.borderColor}`}>
+                          {statusBadge.text}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {invite.status === 'Pending' && (
+                            <button
+                              onClick={() => handleResendInvite(invite._id)}
+                              className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs transition ${theme === 'dark' ? 'text-blue-300 bg-[#232323] hover:bg-blue-900' : 'text-blue-700 bg-blue-100 hover:bg-blue-200'}`}
+                              title="Resend Invite"
+                            >
+                              <FaRedo size={10} />
+                            </button>
+                          )}
+                          {invite.status !== 'Accepted' && (
+                            <button
+                              onClick={() => handleDeleteInvite(invite._id)}
+                              className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs transition ${theme === 'dark' ? 'text-red-300 bg-[#232323] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
+                              title="Delete Invite"
+                            >
+                              <FaTrash size={10} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {stats?.invites?.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="text-center py-6 text-slate-500">No pending invites</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderWidgetContent = (id) => {
+    switch (id) {
+      case 'analytics':
+        return DashboardCharts ? (
+          <DashboardCharts stats={stats} theme={theme} />
+        ) : (
+          <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-6' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border p-6'}`}>
+            <h3 className="text-lg font-semibold mb-4">Dashboard Analytics</h3>
+            <p className="text-sm text-slate-600">Analytics charts are currently unavailable.</p>
+          </div>
+        );
+      case 'timeTracker':
+        return <TimeTrackerWidget userDetails={userDetails} theme={theme} />;
+      case 'recentComments':
+        return <RecentCommentsWidget organizationId={userDetails?.organizationID} theme={theme} />;
+      case 'burndown':
+        return <BurndownWidget organizationId={userDetails?.organizationID} theme={theme} />;
+      case 'gitStream':
+        return <GitStreamWidget organizationId={userDetails?.organizationID} theme={theme} />;
+      case 'recentProjects':
+        return renderRecentProjectsWidget();
+      case 'members':
+        return renderMembersWidget();
+      case 'invites':
+        return renderInvitesWidget();
+      default:
+        return null;
+    }
+  };
+
   if (error) {
     return (
       <div className="text-red-500 text-center p-8">{error}</div>
@@ -386,6 +720,39 @@ const Dashboard = () => {
                   </div>
                 );
               })()}
+              <div className="flex items-center gap-3 mt-4 sm:mt-0">
+                {isEditMode ? (
+                  <>
+                    <button
+                      onClick={resetLayout}
+                      className={`px-4 py-2.5 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition-all duration-200 ${
+                        theme === 'dark'
+                          ? 'border-white/10 hover:bg-slate-800 text-slate-400 bg-slate-900/30'
+                          : 'border-slate-200 hover:bg-slate-100 text-slate-600 bg-white shadow-sm'
+                      }`}
+                    >
+                      <FaUndo size={11} /> Reset Defaults
+                    </button>
+                    <button
+                      onClick={() => setIsEditMode(false)}
+                      className="px-4 py-2.5 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition-all duration-200 shadow-md shadow-emerald-600/10"
+                    >
+                      <FaCheck size={11} /> Save & Exit
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setIsEditMode(true)}
+                    className={`px-4 py-2.5 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all duration-200 border ${
+                      theme === 'dark'
+                        ? 'border-white/10 hover:bg-slate-800 hover:text-white text-slate-400 bg-slate-900/50'
+                        : 'border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-600 bg-white shadow-sm'
+                    }`}
+                  >
+                    <FaWrench size={11} /> Customize Dashboard
+                  </button>
+                )}
+              </div>
             </div>
             <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
               <nav className="-mb-px flex items-center justify-between">
@@ -447,17 +814,91 @@ const Dashboard = () => {
         {/* Tab Content */}
         {!shouldShowWelcomeMessage && activeTab === 'metrics' && (
           <div className="space-y-6">
-            {/* Dashboard Charts */}
-            {DashboardCharts ? (
-              <DashboardCharts stats={stats} theme={theme} />
-            ) : (
-              <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-6 mb-8' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border p-6 mb-8'}`}>
-                <h3 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Dashboard Analytics</h3>
-                <p className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
-                  Install chart.js and react-chartjs-2 for enhanced visualizations: npm install chart.js react-chartjs-2
+            {/* Widget Catalog Panel in Edit Mode */}
+            {isEditMode && (
+              <div className={`p-5 rounded-2xl border transition-all duration-300 backdrop-blur-md ${
+                theme === 'dark' 
+                  ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl text-[#F3F6FA]' 
+                  : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl text-gray-800'
+              }`}>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
+                  <FaCog className="animate-spin text-indigo-500 text-sm" style={{ animationDuration: '6s' }} />
+                  <span>Dashboard Widget Catalog</span>
+                </h3>
+                <p className={`text-xs mb-4 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Click on any hidden widget to add it back to your active dashboard workspace. You can drag and drop widgets to reorder them, or click the size icons to change grid spacing.
                 </p>
+                <div className="flex flex-wrap gap-2">
+                  {widgets.map(w => {
+                    if (w.visible) return null;
+                    return (
+                      <button
+                        key={w.id}
+                        onClick={() => toggleWidgetVisibility(w.id)}
+                        className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 ${
+                          theme === 'dark' 
+                            ? 'bg-slate-900 border border-white/5 hover:border-white/20 hover:bg-slate-800 text-slate-300' 
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm'
+                        }`}
+                      >
+                        <FaPlus size={8} /> Add {w.title}
+                      </button>
+                    );
+                  })}
+                  {widgets.every(w => w.visible) && (
+                    <span className="text-xs text-slate-400 italic">All widgets are active on your workspace layout.</span>
+                  )}
+                </div>
               </div>
             )}
+
+            {/* Custom Grid Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {widgets.map((widget, idx) => {
+                if (!widget.visible) return null;
+                return (
+                  <div
+                    key={widget.id}
+                    draggable={isEditMode}
+                    onDragStart={(e) => handleDragStart(e, idx)}
+                    onDragOver={(e) => handleDragOver(e, idx)}
+                    onDragEnd={handleDragEnd}
+                    className={`transition-all duration-300 ${
+                      widget.colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'
+                    } ${
+                      isEditMode 
+                        ? 'border-2 border-dashed border-indigo-500/40 rounded-3xl p-1 relative cursor-grab active:cursor-grabbing hover:border-indigo-500/70 group' 
+                        : ''
+                    }`}
+                  >
+                    {isEditMode && (
+                      <div className="absolute top-3 right-3 z-30 flex items-center gap-1 bg-slate-900/90 text-white rounded-lg p-1.5 shadow-md border border-white/10 backdrop-blur-md opacity-80 group-hover:opacity-100 transition-opacity">
+                        <div className="cursor-grab text-slate-400 p-1 hover:text-white" title="Drag to reorder">
+                          <FaGripHorizontal size={12} />
+                        </div>
+                        <button
+                          onClick={() => toggleWidgetColSpan(widget.id)}
+                          className="p-1 text-slate-400 hover:text-white"
+                          title={widget.colSpan === 2 ? "Shrink to half-width" : "Expand to full-width"}
+                        >
+                          {widget.colSpan === 2 ? <FaCompressAlt size={12} /> : <FaExpandAlt size={12} />}
+                        </button>
+                        <button
+                          onClick={() => toggleWidgetVisibility(widget.id)}
+                          className="p-1 text-red-400 hover:text-red-300"
+                          title="Hide widget"
+                        >
+                          <FaTimes size={12} />
+                        </button>
+                      </div>
+                    )}
+                    <div className={isEditMode ? 'pointer-events-none opacity-60 filter blur-[0.5px]' : ''}>
+                      {renderWidgetContent(widget.id)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

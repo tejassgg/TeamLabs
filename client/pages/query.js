@@ -421,15 +421,35 @@ const QueryBoard = () => {
                               setFilters({ ...filters, priority: Array.from(set) });
                             }
                           };
+                          const getPriorityBtnClass = (val, active) => {
+                            if (!active) {
+                              return theme === 'dark'
+                                ? 'bg-[#2A2A2A] text-gray-200 border-gray-600 hover:bg-[#333333]'
+                                : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200';
+                            }
+                            const classes = {
+                              all: theme === 'dark'
+                                ? 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600'
+                                : 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700',
+                              High: theme === 'dark'
+                                ? 'bg-red-900/40 text-red-300 border-red-800 hover:bg-red-900/50'
+                                : 'bg-red-50 text-red-700 border-red-300 hover:bg-red-100',
+                              Medium: theme === 'dark'
+                                ? 'bg-yellow-950/40 text-yellow-400 border-yellow-800/80 hover:bg-yellow-950/50'
+                                : 'bg-yellow-50 text-yellow-700 border-yellow-300 hover:bg-yellow-100',
+                              Low: theme === 'dark'
+                                ? 'bg-green-900/40 text-green-300 border-green-800 hover:bg-green-900/50'
+                                : 'bg-green-50 text-green-700 border-green-300 hover:bg-green-100'
+                            };
+                            return classes[val] || classes.all;
+                          };
+
                           return (
                             <button
                               key={p.Value}
                               type="button"
                               onClick={togglePriority}
-                              className={getThemeClasses(
-                                `px-3 py-1.5 rounded-lg text-sm border transition-colors ${isActive ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'}`,
-                                `${isActive ? 'bg-blue-500 text-white border-blue-500' : 'bg-[#2A2A2A] text-gray-200 border-gray-600 hover:bg-[#333333]'}`
-                              )}
+                              className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${getPriorityBtnClass(p.Value, isActive)}`}
                               aria-pressed={isActive}
                             >
                               {p.Label}

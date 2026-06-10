@@ -1,15 +1,14 @@
-import React, { useState, useMemo } from 'react';
-import { FaCalendarAlt, FaTimes, FaComment, FaPaperclip, FaChevronLeft, FaChevronRight, FaRegComment } from 'react-icons/fa';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { FaCalendarAlt, FaTimes, FaComment, FaPaperclip, FaChevronLeft, FaChevronRight, FaRegComment, FaLink, FaUnlink, FaExclamationTriangle } from 'react-icons/fa';
 import { TiAttachment } from "react-icons/ti";
 import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { getTaskTypeBadge, getPriorityBadge } from '../task/TaskTypeBadge';
 
-const GanttChart = ({ tasks = [], userStories = [], project }) => {
+const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => {
     const { theme } = useTheme();
-    const { formatDateUTC, getUserInitials } = useGlobal();
+    const { formatDateUTC, getUserInitials, showToast } = useGlobal();
     const [viewMode, setViewMode] = useState('week'); // 'week', 'month', 'quarter'
-    const [currentDate, setCurrentDate] = useState(new Date());
     const [currentWeekStart, setCurrentWeekStart] = useState(() => {
         const today = new Date();
         const dayOfWeek = today.getDay();
@@ -17,8 +16,16 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
         startOfWeek.setDate(today.getDate() - dayOfWeek);
         return startOfWeek;
     });
-    const [zoomLevel, setZoomLevel] = useState(1);
     const [selectedTask, setSelectedTask] = useState(null);
+    
+    // Interactive drag state
+    const [dragState, setDragState] = useState(null);
+    const [previewDates, setPreviewDates] = useState(null);
+    const timelineContainerRef = useRef(null);
+
+    // Dependency editing state
+    const [showDependencyModal, setShowDependencyModal] = useState(false);
+    const [dependencyTask, setDependencyTask] = useState(null);
 
     // Week navigation functions
     const goToPreviousWeek = () => {
@@ -41,45 +48,62 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
         setCurrentWeekStart(startOfWeek);
     };
 
-    // Calculate timeline data
-    const timelineData = useMemo(() => {
-        const allItems = [...userStories, ...tasks];
-        // Calculate project start and end dates
-        let projectStart = project?.CreatedDate ? new Date(project.CreatedDate) : new Date();
-        let projectEnd = project?.DueDate ? new Date(project.DueDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+    const allItems = useMemo(() => {
+        return [...userStories, ...tasks];
+    }, [userStories, tasks]);
 
-        // For week view, adjust the timeline to show the current week
+    // Calculate timeline start/end boundaries
+    const timelineBounds = useMemo(() => {
+        let start = project?.CreatedDate ? new Date(project.CreatedDate) : new Date();
+        let end = project?.DueDate ? new Date(project.DueDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
         if (viewMode === 'week') {
-            // Show 2 weeks centered around currentWeekStart
-            projectStart = new Date(currentWeekStart);
-            projectStart.setDate(currentWeekStart.getDate() - 7);
-            projectEnd = new Date(currentWeekStart);
-            projectEnd.setDate(currentWeekStart.getDate() + 13); // 2 weeks total
+            start = new Date(currentWeekStart);
+            start.setDate(currentWeekStart.getDate() - 7);
+            end = new Date(currentWeekStart);
+            end.setDate(currentWeekStart.getDate() + 13); // 3 weeks total range
         }
+        return { start, end, duration: end.getTime() - start.getTime() };
+    }, [project, viewMode, currentWeekStart]);
 
-        // Pre-compute end dates for user stories
-        const userStoryEndById = new Map();
-        for (const us of userStories) {
-            const usStart = us.CreatedDate ? new Date(us.CreatedDate) : projectStart;
-            const usFinish = us.DueDate ? new Date(us.DueDate) : (us.AssignedDate ? new Date(us.AssignedDate) : new Date(usStart.getTime() + 7 * 24 * 60 * 60 * 1000));
-            userStoryEndById.set(us.TaskID || us._id, usFinish);
-        }
+    // Calculate timeline data with preview overrides
+    const timelineData = useMemo(() => {
+        const { start: projectStart, end: projectEnd, duration: totalDuration } = timelineBounds;
 
-        // Calculate item positions and durations
         const itemsWithTimeline = allItems.map(item => {
-            const startDate = item.CreatedDate ? new Date(item.CreatedDate) : projectStart;
-            // For tasks, use their parent user story's DueDate; for user stories, use their own DueDate
-            let endDate;
-            if (item.Type === 'User Story') {
-                endDate = userStoryEndById.get(item.TaskID || item._id) || (item.DueDate ? new Date(item.DueDate) : (item.AssignedDate ? new Date(item.AssignedDate) : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000)));
-            } else if (item.ParentID && userStoryEndById.has(item.ParentID)) {
-                endDate = new Date(userStoryEndById.get(item.ParentID));
+            const itemId = item.TaskID || item._id;
+            
+            // Check if this item is currently being dragged
+            const isDraggingThis = previewDates && previewDates.taskId === itemId;
+            
+            let startDate;
+            if (isDraggingThis) {
+                startDate = previewDates.startDate;
             } else {
-                endDate = item.AssignedDate ? new Date(item.AssignedDate) : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+                startDate = item.StartDate ? new Date(item.StartDate) : (item.CreatedDate ? new Date(item.CreatedDate) : projectStart);
             }
 
-            // Calculate position as percentage of total timeline
-            const totalDuration = projectEnd.getTime() - projectStart.getTime();
+            let endDate;
+            if (isDraggingThis) {
+                endDate = previewDates.endDate;
+            } else {
+                if (item.DueDate) {
+                    endDate = new Date(item.DueDate);
+                } else if (item.Type === 'User Story') {
+                    endDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+                } else if (item.ParentID) {
+                    const parent = userStories.find(us => (us.TaskID || us._id) === item.ParentID);
+                    endDate = parent?.DueDate ? new Date(parent.DueDate) : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+                } else {
+                    endDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+                }
+            }
+
+            // Boundary validation
+            if (endDate < startDate) {
+                endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
+            }
+
             const itemStart = startDate.getTime() - projectStart.getTime();
             const itemDuration = endDate.getTime() - startDate.getTime();
 
@@ -97,9 +121,105 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
             projectStart,
             projectEnd,
             items: itemsWithTimeline,
-            totalDuration: projectEnd.getTime() - projectStart.getTime()
+            totalDuration
         };
-    }, [tasks, userStories, project, viewMode, currentWeekStart]);
+    }, [allItems, userStories, timelineBounds, previewDates]);
+
+    // Drag move handler
+    const handleMouseMove = (e) => {
+        if (!dragState) return;
+
+        const container = timelineContainerRef.current;
+        if (!container) return;
+
+        const rect = container.getBoundingClientRect();
+        const deltaX = e.clientX - dragState.startX;
+        const deltaMs = (deltaX / rect.width) * dragState.totalDuration;
+
+        let newStart = new Date(dragState.initialStartDate.getTime());
+        let newEnd = new Date(dragState.initialEndDate.getTime());
+
+        if (dragState.dragType === 'shift') {
+            newStart.setTime(dragState.initialStartDate.getTime() + deltaMs);
+            newEnd.setTime(dragState.initialEndDate.getTime() + deltaMs);
+        } else if (dragState.dragType === 'resize-left') {
+            newStart.setTime(dragState.initialStartDate.getTime() + deltaMs);
+            if (newStart >= newEnd) {
+                newStart.setTime(newEnd.getTime() - 24 * 60 * 60 * 1000); // 1 day min
+            }
+        } else if (dragState.dragType === 'resize-right') {
+            newEnd.setTime(dragState.initialEndDate.getTime() + deltaMs);
+            if (newEnd <= newStart) {
+                newEnd.setTime(newStart.getTime() + 24 * 60 * 60 * 1000); // 1 day min
+            }
+        }
+
+        setPreviewDates({
+            taskId: dragState.item.TaskID || dragState.item._id,
+            startDate: newStart,
+            endDate: newEnd
+        });
+    };
+
+    // Drag end handler
+    const handleMouseUp = async () => {
+        if (!dragState) return;
+
+        document.body.style.cursor = 'default';
+        const finalPreview = previewDates;
+        const targetItem = dragState.item;
+        
+        setDragState(null);
+        setPreviewDates(null);
+
+        if (finalPreview && onUpdateTask) {
+            try {
+                await onUpdateTask(finalPreview.taskId, {
+                    StartDate: finalPreview.startDate,
+                    DueDate: finalPreview.endDate
+                });
+            } catch (err) {
+                console.error('Failed to update task timeline dates:', err);
+            }
+        }
+    };
+
+    // Mouse listeners for drag/resize
+    useEffect(() => {
+        if (dragState) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+        }
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [dragState, previewDates]);
+
+    const handleMouseDown = (e, item, dragType) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const container = timelineContainerRef.current;
+        if (!container) return;
+
+        const rect = container.getBoundingClientRect();
+        
+        const initialStartDate = item.startDate;
+        const initialEndDate = item.endDate;
+
+        setDragState({
+            item,
+            dragType,
+            startX: e.clientX,
+            initialStartDate,
+            initialEndDate,
+            totalDuration: timelineBounds.duration,
+            projectStart: timelineBounds.start
+        });
+
+        document.body.style.cursor = dragType === 'shift' ? 'grabbing' : 'col-resize';
+    };
 
     // Generate timeline headers
     const generateTimelineHeaders = () => {
@@ -107,10 +227,12 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
         const today = new Date();
 
         if (viewMode === 'week') {
-            // Show 7 days starting from currentWeekStart
-            for (let i = 0; i < 7; i++) {
-                const date = new Date(currentWeekStart);
-                date.setDate(currentWeekStart.getDate() + i);
+            const startOfTimeline = new Date(currentWeekStart);
+            startOfTimeline.setDate(currentWeekStart.getDate() - 7); // Offset left
+
+            for (let i = 0; i < 21; i++) {
+                const date = new Date(startOfTimeline);
+                date.setDate(startOfTimeline.getDate() + i);
                 headers.push({
                     date: date,
                     label: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
@@ -119,7 +241,7 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
                 });
             }
         } else {
-            const { projectStart, projectEnd } = timelineData;
+            const { start: projectStart, end: projectEnd } = timelineBounds;
 
             if (viewMode === 'month') {
                 const current = new Date(projectStart.getFullYear(), projectStart.getMonth(), 1);
@@ -167,12 +289,40 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
         return statusMap[status] || (theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300');
     };
 
-    const renderTaskTypeIcon = (type) => {
-        // Use the existing getTaskTypeBadge function instead of undefined getTaskTypeStyle
-        return <span className="mr-1.5 opacity-90 inline-flex items-center">{getTaskTypeBadge(type)}</span>;
+    // Handle adding a dependency
+    const handleAddDependency = async (dependencyId) => {
+        if (!dependencyTask) return;
+        const currentDeps = dependencyTask.Dependencies || [];
+        if (currentDeps.includes(dependencyId)) return;
+
+        const updatedDeps = [...currentDeps, dependencyId];
+        try {
+            await onUpdateTask(dependencyTask.TaskID || dependencyTask._id, {
+                Dependencies: updatedDeps
+            });
+            // Update local state
+            setDependencyTask(prev => ({ ...prev, Dependencies: updatedDeps }));
+            showToast('Dependency added successfully!', 'success');
+        } catch (err) {
+            showToast('Failed to add dependency', 'error');
+        }
     };
 
-
+    // Handle removing a dependency
+    const handleRemoveDependency = async (dependencyId) => {
+        if (!dependencyTask) return;
+        const currentDeps = dependencyTask.Dependencies || [];
+        const updatedDeps = currentDeps.filter(id => id !== dependencyId);
+        try {
+            await onUpdateTask(dependencyTask.TaskID || dependencyTask._id, {
+                Dependencies: updatedDeps
+            });
+            setDependencyTask(prev => ({ ...prev, Dependencies: updatedDeps }));
+            showToast('Dependency removed successfully!', 'success');
+        } catch (err) {
+            showToast('Failed to remove dependency', 'error');
+        }
+    };
 
     return (
         <div className={`w-full ${theme === 'dark' ? 'bg-transparent' : 'bg-white'} overflow-hidden`}>
@@ -183,9 +333,10 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
                     <span className="text-sm font-medium">Timeline view is optimized for desktop. Consider using Board view on mobile.</span>
                 </div>
             </div>
+
             {/* Header Controls */}
             <div className={`mb-6 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                <div className="flex items-center justify-start">
+                <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
                             <button
@@ -193,74 +344,52 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
                                     setViewMode('week');
                                     goToCurrentWeek();
                                 }}
-                                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === 'week'
-                                    ? theme === 'dark'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-blue-500 text-white'
-                                    : theme === 'dark'
-                                        ? 'text-gray-400 hover:text-gray-300'
-                                        : 'text-gray-600 hover:text-gray-800'
-                                    }`}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'week'
+                                    ? theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+                                    : theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'
+                                }`}
                             >
                                 Week
                             </button>
                             <button
                                 onClick={() => setViewMode('month')}
-                                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === 'month'
-                                    ? theme === 'dark'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-blue-500 text-white'
-                                    : theme === 'dark'
-                                        ? 'text-gray-400 hover:text-gray-300'
-                                        : 'text-gray-600 hover:text-gray-800'
-                                    }`}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'month'
+                                    ? theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+                                    : theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'
+                                }`}
                             >
                                 Month
                             </button>
                             <button
                                 onClick={() => setViewMode('quarter')}
-                                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === 'quarter'
-                                    ? theme === 'dark'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-blue-500 text-white'
-                                    : theme === 'dark'
-                                        ? 'text-gray-400 hover:text-gray-300'
-                                        : 'text-gray-600 hover:text-gray-800'
-                                    }`}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'quarter'
+                                    ? theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+                                    : theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'
+                                }`}
                             >
                                 Quarter
                             </button>
                         </div>
 
-                        {/* Week Navigation - Only show when in week view */}
                         {viewMode === 'week' && (
                             <div className="flex items-center gap-2 ml-4">
                                 <button
                                     onClick={goToPreviousWeek}
-                                    className={`p-2 rounded-md transition-colors ${theme === 'dark'
-                                        ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700'
-                                        : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
-                                        }`}
+                                    className={`p-2 rounded-md transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'}`}
                                     title="Previous Week"
                                 >
                                     <FaChevronLeft className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={goToCurrentWeek}
-                                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark'
-                                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                        }`}
+                                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                                     title="Current Week"
                                 >
                                     Today
                                 </button>
                                 <button
                                     onClick={goToNextWeek}
-                                    className={`p-2 rounded-md transition-colors ${theme === 'dark'
-                                        ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700'
-                                        : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
-                                        }`}
+                                    className={`p-2 rounded-md transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'}`}
                                     title="Next Week"
                                 >
                                     <FaChevronRight className="w-4 h-4" />
@@ -268,257 +397,325 @@ const GanttChart = ({ tasks = [], userStories = [], project }) => {
                             </div>
                         )}
                     </div>
+                    
+                    <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} italic`}>
+                        Tip: Drag timeline bars to reschedule, or stretch ends to change duration
+                    </div>
                 </div>
             </div>
 
-            {/* Timeline Header */}
-            <div className={`border-t border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} overflow-hidden`}>
-                <div className="flex min-w-max">
-                    {/* Task Name Column */}
-                    <div className={`w-80 p-3 border-r ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'} flex-shrink-0`}>
-                        <span className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Task / User Story
-                        </span>
-                    </div>
-
-                    {/* Timeline Columns */}
-                    <div className="flex flex-1 min-w-max">
-                        {timelineHeaders.map((header, index) => (
-                            <div
-                                key={index}
-                                className={`flex-1 p-3 text-center border-r last:border-r-0 ${theme === 'dark'
-                                    ? `border-gray-700 ${header.isWeekend ? 'bg-gray-800' : 'bg-gray-750'}`
-                                    : `border-gray-200 ${header.isWeekend ? 'bg-gray-100' : 'bg-white'}`
+            {/* Timeline Wrapper */}
+            <div className={`border rounded-2xl ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} overflow-x-auto overflow-y-visible`}>
+                <div className="min-w-max flex flex-col">
+                    {/* Header Row */}
+                    <div className={`flex min-w-max border-b ${theme === 'dark' ? 'border-gray-800 bg-[#161616]' : 'border-gray-200 bg-gray-50'}`}>
+                        {/* Task List Header */}
+                        <div className="w-80 p-4 font-semibold text-sm flex-shrink-0">
+                            Task / User Story Info
+                        </div>
+                        {/* Dates Header Columns */}
+                        <div className="flex flex-1" ref={timelineContainerRef} id="gantt-timeline-container">
+                            {timelineHeaders.map((header, index) => (
+                                <div
+                                    key={index}
+                                    className={`flex-1 p-3 text-center text-xs font-semibold border-r last:border-r-0 ${
+                                        header.isToday 
+                                            ? 'text-blue-500 border-blue-500/20 bg-blue-500/5' 
+                                            : header.isWeekend
+                                                ? theme === 'dark' ? 'border-gray-800 text-gray-500 bg-gray-900/50' : 'border-gray-250 text-gray-450 bg-gray-50'
+                                                : theme === 'dark' ? 'border-gray-800 text-gray-400' : 'border-gray-200 text-gray-600'
                                     }`}
-                                style={{ minWidth: `${100 * zoomLevel}px` }}
-                            >
-                                <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                                    }`}>
-                                    {header.label}
-                                </span>
+                                    style={{ minWidth: '100px' }}
+                                >
+                                    <div>{header.label}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Timeline Body Rows */}
+                    <div className="max-h-[580px] overflow-y-auto overflow-x-hidden">
+                        {timelineData.items.length === 0 ? (
+                            <div className={`p-12 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                <FaCalendarAlt size={48} className="mx-auto mb-4 opacity-40" />
+                                <p className="text-lg font-semibold mb-1">No timeline entries yet</p>
+                                <p className="text-sm">Create user stories or sprint tasks to visualize them here.</p>
                             </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
+                        ) : (
+                            timelineData.items.map((item) => {
+                                const isBlocked = item.Dependencies && item.Dependencies.length > 0 && item.Dependencies.some(depId => {
+                                    const depTask = allItems.find(t => (t.TaskID || t._id) === depId);
+                                    return depTask && depTask.Status !== 6;
+                                });
 
-            {/* Timeline Content */}
-            <div className="h-[750px] overflow-auto">
-                {timelineData.items.length === 0 ? (
-                    <div className={`p-8 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                        <FaCalendarAlt size={48} className="mx-auto mb-4 opacity-50" />
-                        <p className="text-lg font-medium mb-2">No tasks or user stories found</p>
-                        <p className="text-sm">Create tasks and user stories to see them in the timeline view.</p>
-                    </div>
-                ) : (
-                    <div className="min-w-max">
-                        {timelineData.items.map((item, index) => (
-                            <div key={item.TaskID || item._id} className={`flex border-b last:border-b-0 relative ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-100'}`} >
-                                {/* Task Info Column */}
-                                <div className={`w-80 p-3 border-r ${theme === 'dark' ? 'bg-[#181818] border-gray-700' : 'bg-white border-gray-200'} flex-shrink-0 relative z-10 bg-inherit`}>
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-3 h-3 rounded-full ${getStatusColor(item.Status, item.Type)}`}></div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className={`font-medium truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                                                }`}>
-                                                {item.Name}
-                                            </div>
+                                return (
+                                    <div 
+                                        key={item.TaskID || item._id} 
+                                        className={`flex border-b last:border-b-0 relative group transition-colors duration-200 ${
+                                            theme === 'dark' ? 'border-gray-800 hover:bg-gray-800/40' : 'border-gray-150 hover:bg-gray-50/50'
+                                        }`}
+                                    >
+                                        {/* Task Metadata Info Column */}
+                                        <div className={`w-80 p-3.5 border-r ${
+                                            theme === 'dark' ? 'bg-[#121212] border-gray-800' : 'bg-white border-gray-200'
+                                        } flex-shrink-0 relative z-10 flex flex-col justify-center`}>
+                                            <div className="flex items-start gap-2.5">
+                                                <span className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${getStatusColor(item.Status, item.Type)}`}></span>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className={`font-semibold text-sm truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                                        {item.Name}
+                                                    </div>
+                                                    
+                                                    {/* Type / Priority Badges */}
+                                                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                                        {getTaskTypeBadge(item.Type)}
+                                                        {item.Priority && getPriorityBadge(item.Priority)}
+                                                        
+                                                        {/* Dependencies Edit Trigger */}
+                                                        <button 
+                                                            onClick={() => {
+                                                                setDependencyTask(item);
+                                                                setShowDependencyModal(true);
+                                                            }}
+                                                            className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border flex items-center gap-1 transition-all ${
+                                                                isBlocked
+                                                                    ? 'bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20'
+                                                                    : item.Dependencies?.length > 0
+                                                                        ? 'bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20'
+                                                                        : theme === 'dark'
+                                                                            ? 'bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700'
+                                                                            : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                                                            }`}
+                                                        >
+                                                            <FaLink size={8} />
+                                                            {item.Dependencies?.length > 0 ? `${item.Dependencies.length} Prerequisites` : 'Add Prerequisites'}
+                                                        </button>
+                                                    </div>
 
-                                            {item.Description && (
-                                                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} truncate`}>
-                                                    {item.Description}
-                                                </div>
-                                            )}
-
-                                            <div className="flex items-center justify-between gap-2 mt-1">
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    {getTaskTypeBadge(item.Type)}
-                                                    {item.Priority && getPriorityBadge(item.Priority)}
-                                                </div>
-                                                <div className="flex items-center justify-end gap-3 mt-1 text-xs">
-                                                    {(item.commentCount || 0) > 0 && (
-                                                        <div className={`flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                            <FaRegComment className="w-3 h-3" />
-                                                            <span>{item.commentCount || 0}</span>
-                                                        </div>
-                                                    )}
-                                                    {(item.attachmentCount || 0) > 0 && (
-                                                        <div className={`flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                            <TiAttachment size={16} />
-                                                            <span>{item.attachmentCount || 0}</span>
+                                                    {/* Blocked Alert Description */}
+                                                    {isBlocked && (
+                                                        <div className="flex items-center gap-1 mt-1 text-[10px] font-semibold text-red-400">
+                                                            <FaExclamationTriangle size={8} /> Blocked by prerequisites
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
 
-                                {/* Timeline Bar - Positioned absolutely to flow behind left column */}
-                                <div className="absolute inset-0 pointer-events-none">
-                                    <div className="relative h-full">
-                                        {/* Grid Lines - Behind everything */}
-                                        <div className="absolute inset-0 flex ml-80">
-                                            {timelineHeaders.map((_, headerIndex) => (
-                                                <div
-                                                    key={headerIndex}
-                                                    className={`flex-1 border-r last:border-r-0 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-                                                        }`}
+                                        {/* Gantt Bar Column Track */}
+                                        <div className="flex-1 min-w-max relative py-4 pointer-events-none h-16">
+                                            {/* Bar container */}
+                                            <div 
+                                                className={`absolute top-3 bottom-3 rounded-lg flex items-center transition-shadow shadow-md hover:shadow-lg select-none pointer-events-auto border-2 ${
+                                                    getStatusColor(item.Status, item.Type)
+                                                } ${
+                                                    theme === 'dark' ? 'border-gray-900/30 text-white' : 'border-white/30 text-white'
+                                                }`}
+                                                style={{
+                                                    left: `${item.startPercentage}%`,
+                                                    width: `${Math.max(item.durationPercentage, 1.5)}%`,
+                                                    minWidth: '35px',
+                                                    cursor: 'grab'
+                                                }}
+                                                onMouseDown={(e) => handleMouseDown(e, item, 'shift')}
+                                                onClick={() => setSelectedTask(item)}
+                                                title={`${item.Name} (${formatDateUTC(item.startDate)} - ${formatDateUTC(item.endDate)})`}
+                                            >
+                                                {/* Left Edge Resize Handle */}
+                                                <div 
+                                                    className="absolute left-0 top-0 bottom-0 w-2 hover:bg-white/30 cursor-col-resize rounded-l-md transition-colors"
+                                                    onMouseDown={(e) => handleMouseDown(e, item, 'resize-left')}
                                                 ></div>
-                                            ))}
-                                        </div>
 
-                                        {/* Task Bar - Semi-transparent and flows behind left column */}
-                                        <div className={`absolute top-3 px-1 py-2 rounded-lg cursor-pointer transition-all hover:opacity-90 opacity-75 ${getStatusColor(item.Status, item.Type)} border-2 pointer-events-auto`}
-                                            style={{
-                                                left: `calc(320px + ${item.startPercentage}%)`,
-                                                width: `${Math.max(item.durationPercentage, 2)}%`,
-                                                minWidth: '20px',
-                                                zIndex: 1
-                                            }}
-                                            onClick={() => setSelectedTask(item)}
-                                            title={`${item.Name} - ${formatDateUTC(item.startDate)} to ${formatDateUTC(item.endDate)}`} >
-                                            <div className={`h-full flex items-center px-2 ${theme === 'dark' ? 'text-white' : 'text-white'}`}>
-                                                {renderTaskTypeIcon(item.Type)}
-                                                <span className="flex items-center text-sm font-medium truncate">
+                                                {/* Bar Title Label */}
+                                                <div className="flex-1 px-3.5 text-xs font-semibold truncate flex items-center pointer-events-none select-none">
                                                     {item.Name}
-                                                </span>
+                                                </div>
+
+                                                {/* Right Edge Resize Handle */}
+                                                <div 
+                                                    className="absolute right-0 top-0 bottom-0 w-2 hover:bg-white/30 cursor-col-resize rounded-r-md transition-colors"
+                                                    onMouseDown={(e) => handleMouseDown(e, item, 'resize-right')}
+                                                ></div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-
-            {/* Legend */}
-            <div className={`p-4 border-t ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'}`}>
-                <div className="flex items-center gap-6 flex-wrap">
-                    <div className="flex items-center gap-2">
-                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Legend:
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
-                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Not Assigned</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${theme === 'dark' ? 'bg-indigo-600' : 'bg-indigo-400'}`}></div>
-                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Assigned</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${theme === 'dark' ? 'bg-blue-600' : 'bg-blue-400'}`}></div>
-                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>In Progress</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${theme === 'dark' ? 'bg-yellow-600' : 'bg-yellow-400'}`}></div>
-                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>QA</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${theme === 'dark' ? 'bg-orange-600' : 'bg-orange-400'}`}></div>
-                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Deployment</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${theme === 'dark' ? 'bg-green-600' : 'bg-green-400'}`}></div>
-                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Completed</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${theme === 'dark' ? 'bg-purple-600' : 'bg-purple-400'}`}></div>
-                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>User Story</span>
+                                );
+                            })
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Task Detail Modal */}
-            {selectedTask && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className={`max-w-lg w-full p-6 rounded-xl shadow-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-                        }`}>
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                Task Details
+            {/* Dependency Management Modal */}
+            {showDependencyModal && dependencyTask && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className={`w-full max-w-lg rounded-2xl shadow-2xl p-6 border ${
+                        theme === 'dark' ? 'bg-[#1c1c1e] border-gray-800 text-white' : 'bg-white border-gray-150 text-gray-900'
+                    }`}>
+                        <div className="flex items-center justify-between border-b pb-3 mb-4">
+                            <h3 className="text-lg font-bold flex items-center gap-2">
+                                <FaLink className="text-blue-500" />
+                                Manage Prerequisites: {dependencyTask.Name}
                             </h3>
                             <button
-                                onClick={() => setSelectedTask(null)}
-                                className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
+                                onClick={() => {
+                                    setShowDependencyModal(false);
+                                    setDependencyTask(null);
+                                }}
+                                className={`p-1.5 rounded-lg transition-colors ${
+                                    theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                                }`}
                             >
                                 <FaTimes size={16} />
                             </button>
                         </div>
 
-                        <div className="space-y-3">
+                        {/* List current dependencies */}
+                        <div className="mb-6">
+                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Active Prerequisites</h4>
+                            {(!dependencyTask.Dependencies || dependencyTask.Dependencies.length === 0) ? (
+                                <p className={`text-sm italic ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>No dependencies currently defined.</p>
+                            ) : (
+                                <div className="space-y-2 max-h-36 overflow-y-auto">
+                                    {dependencyTask.Dependencies.map(depId => {
+                                        const dep = allItems.find(t => (t.TaskID || t._id) === depId);
+                                        if (!dep) return null;
+                                        return (
+                                            <div 
+                                                key={depId} 
+                                                className={`flex items-center justify-between p-2.5 rounded-xl border ${
+                                                    theme === 'dark' ? 'bg-gray-900/60 border-gray-800' : 'bg-gray-50 border-gray-200'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <span className={`w-2 h-2 rounded-full ${getStatusColor(dep.Status, dep.Type)}`}></span>
+                                                    <span className="text-sm font-semibold truncate">{dep.Name}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleRemoveDependency(depId)}
+                                                    className="text-red-400 hover:text-red-500 p-1 rounded transition-colors"
+                                                    title="Remove dependency link"
+                                                >
+                                                    <FaUnlink size={12} />
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Add new dependencies */}
+                        <div>
+                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Add Prerequisite Task</h4>
+                            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                {allItems
+                                    .filter(item => 
+                                        (item.TaskID || item._id) !== (dependencyTask.TaskID || dependencyTask._id) &&
+                                        !(dependencyTask.Dependencies || []).includes(item.TaskID || item._id)
+                                    )
+                                    .map(item => (
+                                        <div 
+                                            key={item.TaskID || item._id} 
+                                            className={`flex items-center justify-between p-2 rounded-lg hover:bg-gray-500/10 cursor-pointer transition-all ${
+                                                theme === 'dark' ? 'border-gray-800' : 'border-gray-100'
+                                            }`}
+                                            onClick={() => handleAddDependency(item.TaskID || item._id)}
+                                        >
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <span className={`w-1.5 h-1.5 rounded-full ${getStatusColor(item.Status, item.Type)}`}></span>
+                                                <span className="text-xs font-medium truncate">{item.Name}</span>
+                                            </div>
+                                            <span className="text-[10px] text-blue-500 font-bold uppercase tracking-wide">Link</span>
+                                        </div>
+                                    ))
+                                }
+                                {allItems.filter(item => 
+                                    (item.TaskID || item._id) !== (dependencyTask.TaskID || dependencyTask._id) &&
+                                    !(dependencyTask.Dependencies || []).includes(item.TaskID || item._id)
+                                ).length === 0 && (
+                                    <p className={`text-xs italic ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>No other tasks available to link.</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Task Detail Modal */}
+            {selectedTask && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className={`max-w-lg w-full p-6 rounded-2xl shadow-2xl border ${
+                        theme === 'dark' ? 'bg-[#1c1c1e] border-gray-800 text-white' : 'bg-white border-gray-150 text-gray-900'
+                    }`}>
+                        <div className="flex items-center justify-between border-b pb-3 mb-4">
+                            <h3 className="text-lg font-bold">
+                                Task details
+                            </h3>
+                            <button
+                                onClick={() => setSelectedTask(null)}
+                                className={`p-1.5 rounded-lg transition-colors ${
+                                    theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                                }`}
+                            >
+                                <FaTimes size={16} />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
                             <div>
-                                <span className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                    Name:
-                                </span>
-                                <p className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                    {selectedTask.Name}
-                                </p>
+                                <span className={`text-xs font-bold text-gray-500 uppercase tracking-wider`}>Name</span>
+                                <p className="text-sm font-semibold mt-1">{selectedTask.Name}</p>
                             </div>
 
                             {selectedTask.Description && (
                                 <div>
-                                    <span className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                        Description:
-                                    </span>
-                                    <p className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'} mt-1`}>
-                                        {selectedTask.Description}
-                                    </p>
+                                    <span className={`text-xs font-bold text-gray-500 uppercase tracking-wider`}>Description</span>
+                                    <p className={`text-sm mt-1 leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{selectedTask.Description}</p>
                                 </div>
                             )}
 
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <span className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                        Type:
-                                    </span>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="flex items-center gap-2.5">
+                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Type:</span>
                                     {getTaskTypeBadge(selectedTask.Type)}
                                 </div>
 
                                 {selectedTask.Priority && (
-                                    <div className="flex items-center gap-2">
-                                        <span className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                            Priority:
-                                        </span>
+                                    <div className="flex items-center gap-2.5">
+                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Priority:</span>
                                         {getPriorityBadge(selectedTask.Priority)}
                                     </div>
                                 )}
                             </div>
 
                             <div>
-                                <span className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                    Timeline:
-                                </span>
-                                <p className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                    {formatDateUTC(selectedTask.startDate)} - {formatDateUTC(selectedTask.endDate)}
+                                <span className={`text-xs font-bold text-gray-500 uppercase tracking-wider`}>Duration</span>
+                                <p className="text-sm font-semibold mt-1">
+                                    {formatDateUTC(selectedTask.startDate)} — {formatDateUTC(selectedTask.endDate)}
                                 </p>
                             </div>
 
                             {((selectedTask.commentCount || 0) > 0 || (selectedTask.attachmentCount || 0) > 0) && (
                                 <div>
-                                    <span className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                        Activity:
-                                    </span>
-                                    <div className="flex items-center gap-4 mt-1">
+                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Activity Summary</span>
+                                    <div className="flex items-center gap-4 mt-2">
                                         {(selectedTask.commentCount || 0) > 0 && (
-                                            <div className={`flex items-center gap-1 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                <FaComment className="w-3 h-3" />
+                                            <div className={`flex items-center gap-1.5 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                <FaRegComment className="w-3.5 h-3.5" />
                                                 <span>{selectedTask.commentCount || 0} comments</span>
                                             </div>
                                         )}
                                         {(selectedTask.attachmentCount || 0) > 0 && (
-                                            <div className={`flex items-center gap-1 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                <FaPaperclip className="w-3 h-3" />
+                                            <div className={`flex items-center gap-1.5 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                <TiAttachment size={18} />
                                                 <span>{selectedTask.attachmentCount || 0} attachments</span>
                                             </div>
                                         )}
                                     </div>
                                 </div>
                             )}
-
                         </div>
                     </div>
                 </div>

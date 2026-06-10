@@ -11,6 +11,8 @@ const { checkProjectLimit, incrementUsage } = require('../middleware/premiumLimi
 const { protect } = require('../middleware/auth');
 const { linkRepositoryToProject, unlinkRepositoryFromProject, getProjectRepository, getProjectCommits, getProjectIssues } = require('../controllers/authController');
 const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
+const { GoogleGenAI } = require('@google/genai');
+const { sendReleaseSummaryEmail } = require('../services/emailService');
 
 // GET /api/projects/overview - fetch projects with statistics for projects page
 router.get('/overview', protect, async (req, res) => {
@@ -41,87 +43,134 @@ router.get('/overview', protect, async (req, res) => {
       projects = await Project.find({ ProjectID: { $in: projectIds } });
     }
 
-    // Enhance each project with statistics
-    const projectsWithStats = await Promise.all(
-      projects.map(async (project) => {
-        try {
-          // Get task count and progress for this project
-          const tasks = await TaskDetails.find({
-            ProjectID_FK: project.ProjectID,
-            IsActive: true,
-            Type: { $ne: "User Story" } // Exclude user stories from task count
-          });
+    const projectIds = projects.map(p => p.ProjectID);
 
-          const completedTasks = tasks.filter(task => task.Status === 6).length;
-          const totalTasks = tasks.length;
-          const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    // 1. Batch fetch all active tasks for these projects
+    const allTasks = await TaskDetails.find({
+      ProjectID_FK: { $in: projectIds },
+      IsActive: true,
+      Type: { $ne: "User Story" } // Exclude user stories from task count
+    });
 
-          // Get team members count for this project
-          const projectTeamDetails = await ProjectDetails.find({
-            ProjectID: project.ProjectID,
-            IsActive: true
-          });
+    // 2. Batch fetch all ProjectDetails for these projects
+    const allProjectDetails = await ProjectDetails.find({
+      ProjectID: { $in: projectIds },
+      IsActive: true
+    });
 
-          const assignedTeamIds = projectTeamDetails.map(pd => pd.TeamID);
-          const allTeamDetails = await TeamDetails.find({
-            TeamID_FK: { $in: assignedTeamIds },
-            IsMemberActive: true
-          });
+    const assignedTeamIds = [...new Set(allProjectDetails.map(pd => pd.TeamID))];
 
-          // Get unique member count and details
-          const uniqueMemberIds = [...new Set(allTeamDetails.map(td => td.MemberID))];
-          const membersCount = uniqueMemberIds.length;
-          
-          // Get member details
-          const members = await User.find({ _id: { $in: uniqueMemberIds } });
-          const memberDetails = members.map(member => ({
-            _id: member._id,
-            firstName: member.firstName,
-            lastName: member.lastName,
-            email: member.email,
-            username: member.username
-          }));
+    // 3. Batch fetch TeamDetails for assigned teams
+    const allTeamDetails = await TeamDetails.find({
+      TeamID_FK: { $in: assignedTeamIds },
+      IsMemberActive: true
+    });
 
-          // Get teams assigned to this project
-          const teams = await Team.find({ TeamID: { $in: assignedTeamIds } });
-          const projectTeams = teams.map(team => ({
-            TeamID: team.TeamID,
-            Name: team.TeamName,
-            Description: team.TeamDescription,
-            TeamType: team.TeamType,
-            IsActive: team.IsActive,
-            TeamColor: team.TeamColor
-          }));
+    const uniqueMemberIds = [...new Set(allTeamDetails.map(td => td.MemberID))];
 
-          return {
-            ...project.toObject(),
-            tasksCount: totalTasks,
-            membersCount: membersCount,
-            members: memberDetails,
-            progress: progress,
-            teams: projectTeams,
-            tasks: tasks.map(task => ({
-              TaskID: task.TaskID,
-              Name: task.Name,
-              Status: task.Status,
-              Type: task.Type,
-              Priority: task.Priority
-            }))
-          };
-        } catch (error) {
-          console.error(`Error fetching stats for project ${project.ProjectID}:`, error);
-          return {
-            ...project.toObject(),
-            tasksCount: 0,
-            membersCount: 0,
-            members: [],
-            progress: 0,
-            teams: [],
-            tasks: []
-          };
-        }
-      })
-    );
+    // 4. Batch fetch User details
+    const allUsers = await User.find({ _id: { $in: uniqueMemberIds } }).select('_id firstName lastName email username');
+
+    // 5. Batch fetch Team details
+    const allTeams = await Team.find({ TeamID: { $in: assignedTeamIds } });
+
+    // Map helpers
+    const userMap = new Map();
+    allUsers.forEach(user => {
+      userMap.set(user._id.toString(), {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        username: user.username
+      });
+    });
+
+    const teamMap = new Map();
+    allTeams.forEach(team => {
+      teamMap.set(team.TeamID, {
+        TeamID: team.TeamID,
+        Name: team.TeamName,
+        Description: team.TeamDescription,
+        TeamType: team.TeamType,
+        IsActive: team.IsActive,
+        TeamColor: team.TeamColor
+      });
+    });
+
+    // Group tasks by project in memory
+    const projectTasksMap = new Map();
+    allTasks.forEach(task => {
+      const pid = task.ProjectID_FK;
+      if (!projectTasksMap.has(pid)) {
+        projectTasksMap.set(pid, []);
+      }
+      projectTasksMap.get(pid).push(task);
+    });
+
+    // Group ProjectDetails by project in memory
+    const projectTeamsMap = new Map();
+    allProjectDetails.forEach(pd => {
+      const pid = pd.ProjectID;
+      if (!projectTeamsMap.has(pid)) {
+        projectTeamsMap.set(pid, []);
+      }
+      projectTeamsMap.get(pid).push(pd.TeamID);
+    });
+
+    // Group TeamDetails by team in memory
+    const teamMembersMap = new Map();
+    allTeamDetails.forEach(td => {
+      const tid = td.TeamID_FK;
+      if (!teamMembersMap.has(tid)) {
+        teamMembersMap.set(tid, []);
+      }
+      teamMembersMap.get(tid).push(td.MemberID);
+    });
+
+    // Construct final list of projects with their statistics
+    const projectsWithStats = projects.map(project => {
+      const pid = project.ProjectID;
+
+      // Tasks stats
+      const tasks = projectTasksMap.get(pid) || [];
+      const completedTasks = tasks.filter(task => task.Status === 6).length;
+      const totalTasks = tasks.length;
+      const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+      // Teams stats
+      const projectTeamIds = projectTeamsMap.get(pid) || [];
+      const projectTeams = projectTeamIds
+        .map(tid => teamMap.get(tid))
+        .filter(Boolean);
+
+      // Members stats
+      const projectMemberIds = new Set();
+      projectTeamIds.forEach(tid => {
+        const members = teamMembersMap.get(tid) || [];
+        members.forEach(mid => projectMemberIds.add(mid.toString()));
+      });
+
+      const memberDetails = [...projectMemberIds]
+        .map(mid => userMap.get(mid))
+        .filter(Boolean);
+
+      return {
+        ...project.toObject(),
+        tasksCount: totalTasks,
+        membersCount: projectMemberIds.size,
+        members: memberDetails,
+        progress: progress,
+        teams: projectTeams,
+        tasks: tasks.map(task => ({
+          TaskID: task.TaskID,
+          Name: task.Name,
+          Status: task.Status,
+          Type: task.Type,
+          Priority: task.Priority
+        }))
+      };
+    });
 
     res.json(projectsWithStats);
   } catch (err) {
@@ -310,4 +359,174 @@ router.post('/:projectId/github/unlink', protect, unlinkRepositoryFromProject);
 router.get('/:projectId/github/repository', protect, getProjectRepository);
 router.get('/:projectId/github/commits', protect, getProjectCommits);
 router.get('/:projectId/github/issues', protect, getProjectIssues);
+
+// Generate release summary using Gemini LLM
+router.post('/:projectId/releases/generate', protect, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { startDate, endDate } = req.body;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: 'Start date and end date are required' });
+    }
+
+    // Find the project
+    const project = await Project.findOne({ ProjectID: projectId });
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+
+    // Fetch all completed tasks in the project within the range
+    const completedTasks = await TaskDetails.find({
+      ProjectID_FK: projectId,
+      Status: 6, // Completed status code
+      ModifiedDate: { $gte: new Date(startDate), $lte: new Date(endDate) },
+      IsActive: true
+    });
+
+    // Fetch commits from linked GitHub repository if connected
+    let commits = [];
+    if (project.githubRepository?.connected) {
+      const Integration = require('../models/Integration');
+      const linkingIntegration = await Integration.findOne({
+        userId: project.githubRepository.connectedBy,
+        integrationType: 'github'
+      });
+
+      if (linkingIntegration && linkingIntegration.isConnected && linkingIntegration.accessToken) {
+        try {
+          const axios = require('axios');
+          const response = await axios.get(
+            `https://api.github.com/repos/${project.githubRepository.repositoryFullName}/commits`,
+            {
+              headers: {
+                'Authorization': `token ${linkingIntegration.accessToken}`,
+                'Accept': 'application/vnd.github.v3+json'
+              },
+              params: {
+                since: new Date(startDate).toISOString(),
+                until: new Date(endDate).toISOString(),
+                per_page: 50
+              }
+            }
+          );
+          commits = response.data.map(c => ({
+            sha: c.sha,
+            message: c.commit.message,
+            author: c.commit.author.name,
+            date: c.commit.author.date
+          }));
+        } catch (githubErr) {
+          console.error('Error fetching commits during release generation:', githubErr.message);
+        }
+      }
+    }
+
+    if (completedTasks.length === 0 && commits.length === 0) {
+      return res.json({
+        success: true,
+        releaseSummary: "No activity (completed tasks or commits) was found within the specified date range to generate a release summary."
+      });
+    }
+
+    // Initialize Google Generative AI
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ error: 'Gemini API key is not configured' });
+    }
+
+    const geminiAI = new GoogleGenAI({});
+    
+    // Construct prompt
+    const prompt = `You are a professional project release manager. 
+Your task is to generate a premium quality, clear, and engaging markdown release summary (changelog) for the project "${project.Name}".
+
+Here is the activity data for the release period from ${startDate} to ${endDate}:
+
+Completed Tasks:
+${completedTasks.length > 0 ? completedTasks.map(t => `- [${t.Type}] ${t.Name}: ${t.Description || 'No description'}`).join('\n') : 'No completed tasks.'}
+
+Recent Git Commits:
+${commits.length > 0 ? commits.map(c => `- Commit: ${c.message} (by ${c.author})`).join('\n') : 'No recent commits.'}
+
+Instructions:
+1. Summarize the major accomplishments, new features, bug fixes, and improvements.
+2. Group the items into logical sections (e.g., "New Features", "Bug Fixes", "Improvements", etc.).
+3. Format it beautifully using clean Markdown (headers, bullet points, bold text).
+4. Keep the tone professional, encouraging, and clear.
+5. Avoid technical jargon or raw commit hashes unless relevant.
+6. Do NOT include markdown styling wrapper like blockquotes or generic intro text like "Here is your release notes". Just return the markdown changelog body directly starting with section headers.`;
+
+    const response = await geminiAI.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        thinkingConfig: {
+          thinkingBudget: 0
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      releaseSummary: response.text
+    });
+  } catch (error) {
+    console.error('Error generating release summary:', error);
+    res.status(500).json({ error: 'Failed to generate release summary' });
+  }
+});
+
+// Email release summary to team members
+router.post('/:projectId/releases/email', protect, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { version, title, description, releaseContent } = req.body;
+
+    if (!version || !releaseContent) {
+      return res.status(400).json({ error: 'Version and releaseContent are required' });
+    }
+
+    // Find the project
+    const project = await Project.findOne({ ProjectID: projectId });
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+
+    // Fetch team members of this project
+    const projectDetails = await ProjectDetails.find({ ProjectID: projectId, IsActive: true });
+    const teamIds = projectDetails.map(pd => pd.TeamID);
+
+    const teamMembers = await TeamDetails.find({ TeamID_FK: { $in: teamIds }, IsMemberActive: true });
+    const memberIds = teamMembers.map(tm => tm.MemberID);
+
+    const users = await User.find({ _id: { $in: memberIds } });
+
+    if (users.length === 0) {
+      return res.status(400).json({ error: 'No team members found for this project to email' });
+    }
+
+    // Send emails in parallel
+    const emailPromises = users.map(user => {
+      if (!user.email) return Promise.resolve(false);
+      return sendReleaseSummaryEmail(user.email, project.Name, version, title, description, releaseContent);
+    });
+
+    await Promise.all(emailPromises);
+
+    // Log user activity
+    await logActivity(
+      req.user._id,
+      'release_notes_sent',
+      'success',
+      `Emailed release notes for version ${version} to the project team`,
+      req,
+      { projectId, version, title }
+    );
+
+    res.json({
+      success: true,
+      message: `Release notes for version ${version} successfully emailed to ${users.length} team members.`
+    });
+  } catch (error) {
+    console.error('Error emailing release summary:', error);
+    res.status(500).json({ error: 'Failed to email release summary' });
+  }
+});
+
 module.exports = router; 

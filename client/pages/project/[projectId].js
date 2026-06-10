@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import StatusPill from '../../components/shared/StatusPill';
 import api, { authService, taskService, githubService } from '../../services/api';
-import { FaCheck, FaExternalLinkAlt , FaEdit, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList } from 'react-icons/fa';
+import { FaCheck, FaExternalLinkAlt , FaEdit, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList, FaPaperPlane } from 'react-icons/fa';
 import { FiCornerDownRight } from "react-icons/fi";
 import { MdDelete } from 'react-icons/md';
 import { FaTimeline } from "react-icons/fa6";
@@ -23,6 +23,7 @@ import ProjectActivity from '../../components/project/ProjectActivity';
 import GanttChart from '../../components/project/GanttChart';
 import ReportGenerator from '../../components/reports/ReportGenerator';
 import RAGManagement from '../../components/rag/RAGManagement';
+import ReleaseSummaryGenerator from '../../components/project/ReleaseSummaryGenerator';
 import { connectSocket, subscribe, getSocket } from '../../services/socket';
 import { useThemeClasses } from '../../components/shared/hooks/useThemeClasses';
 import { subtaskService } from '../../services/api';
@@ -1091,6 +1092,8 @@ const ProjectDetailsPage = () => {
     return <div className="p-8 text-red-500">Project not found.</div>;
   }
 
+  const showUserStories = userStories && userStories.length > 0;
+
   return (
     <>
       <Head>
@@ -1222,6 +1225,20 @@ const ProjectDetailsPage = () => {
                       <span>Generate Report</span>
                     </button>
                   )}
+                  <button
+                    onClick={() => setActiveTab('releases')}
+                    className={`${activeTab === 'releases'
+                      ? theme === 'dark'
+                        ? 'border-blue-400 text-blue-400'
+                        : 'border-blue-600 text-blue-600'
+                      : theme === 'dark'
+                        ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                  >
+                    <FaPaperPlane size={16} />
+                    <span>Releases</span>
+                  </button>
                 </nav>
               </div>
               <div className="flex items-center gap-4 ml-4 flex-shrink-0">
@@ -1542,7 +1559,7 @@ const ProjectDetailsPage = () => {
             </div>
             {/* Teams Assigned - Cards */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-              <div className='lg:col-span-3'>
+              <div className={showUserStories ? 'lg:col-span-3' : 'lg:col-span-5'}>
                 <div className="mb-4 flex items-center justify-between gap-4">
                   <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Teams Assigned</h2>
                   {isOwner && (
@@ -1779,7 +1796,8 @@ const ProjectDetailsPage = () => {
               </div>
 
               {/* User Stories Table */}
-              <div className={`lg:col-span-2`}>
+              {showUserStories && (
+                <div className={`lg:col-span-2`}>
                 <div className="flex justify-between mb-4">
                   <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>User Stories</h2>
                   <button
@@ -1863,6 +1881,7 @@ const ProjectDetailsPage = () => {
                   )}
                 </div>
               </div>
+            )}
             </div>
 
             {/* Tasks Table - Keep it full width below */}
@@ -2152,7 +2171,7 @@ const ProjectDetailsPage = () => {
             <KanbanBoard projectId={projectId} selectedUserStoryProp={selectedUserStory} projectMembersProp={projectMembers} taskListProp={taskList} />
           </div>
         ) : activeTab === 'timeline' ? (
-          <GanttChart tasks={taskList} userStories={userStories} project={project} />
+          <GanttChart tasks={taskList} userStories={userStories} project={project} onUpdateTask={handleUpdateTask} />
         ) : activeTab === 'files' ? (
           <ProjectFilesTab projectId={projectId} />
         ) : activeTab === 'list' ? (
@@ -2605,6 +2624,12 @@ const ProjectDetailsPage = () => {
             projectId={projectId}
             projectName={project?.Name}
             inline={true}
+          />
+        ) : activeTab === 'releases' ? (
+          <ReleaseSummaryGenerator
+            projectId={projectId}
+            projectName={project?.Name}
+            theme={theme}
           />
         ) : null}
 

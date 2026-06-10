@@ -10,16 +10,27 @@ import ProjectsSkeleton from '../components/skeletons/ProjectsSkeleton';
 import { useToast } from '../context/ToastContext';
 
 const ProjectsPage = () => {
-  const { setProjects, userDetails, getThemeClasses } = useGlobal();
+  const { projects, setProjects, userDetails, getThemeClasses, loading: globalLoading } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
   const router = useRouter();
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [projectsWithStats, setProjectsWithStats] = useState([]);
+  
+  const hasStats = projects && projects.length > 0 && projects.some(p => p.progress !== undefined);
+  const [loading, setLoading] = useState(!hasStats);
 
   const canManageProjects = userDetails?.role === 'Admin' || userDetails?.role === 'Owner';
+
+  // Synchronize loading state if global context projects change
+  useEffect(() => {
+    const hasStatsNow = projects && projects.length > 0 && projects.some(p => p.progress !== undefined);
+    if (hasStatsNow) {
+      setLoading(false);
+    } else if (!globalLoading && (!projects || projects.length === 0)) {
+      setLoading(false);
+    }
+  }, [projects, globalLoading]);
 
   // Fetch projects with statistics using the new API
   const fetchProjectsWithStats = async (showLoading = true) => {
@@ -33,11 +44,10 @@ const ProjectsPage = () => {
         setLoading(true);
       }
       const projectsData = await projectService.getProjectsOverview();
-      setProjectsWithStats(projectsData);
+      setProjects(projectsData);
     } catch (error) {
       console.error('Error fetching projects overview:', error);
       showToast('Failed to load projects', 'error');
-      setProjectsWithStats([]);
     } finally {
       if (showLoading) {
         setLoading(false);
@@ -46,7 +56,7 @@ const ProjectsPage = () => {
   };
 
   // Filter projects based on search term
-  const filteredProjects = projectsWithStats.filter(project =>
+  const filteredProjects = (projects || []).filter(project =>
     project.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (project.Description && project.Description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -71,7 +81,8 @@ const ProjectsPage = () => {
 
   useEffect(() => {
     if (userDetails?._id) {
-      fetchProjectsWithStats();
+      const hasStatsNow = projects && projects.length > 0 && projects.some(p => p.progress !== undefined);
+      fetchProjectsWithStats(!hasStatsNow);
     }
   }, [userDetails?._id]);
 
@@ -91,7 +102,7 @@ const ProjectsPage = () => {
     }
   }, [router, router.isReady, router.query]);
 
-  if (loading && projectsWithStats.length === 0) {
+  if (loading && (!projects || projects.length === 0)) {
     return <ProjectsSkeleton />;
   }
 

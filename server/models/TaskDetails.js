@@ -84,6 +84,14 @@ const TaskDetailsSchema = new mongoose.Schema({
   TicketNumber: {
     type: String,
     default: null
+  },
+  StartDate: {
+    type: Date,
+    default: null
+  },
+  Dependencies: {
+    type: [String],
+    default: []
   }
 });
 

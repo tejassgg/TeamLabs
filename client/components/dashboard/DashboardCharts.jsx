@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import {
   Chart as ChartJS,
@@ -31,17 +31,9 @@ ChartJS.register(
 );
 
 const DashboardCharts = ({ stats, theme }) => {
-  const [chartData, setChartData] = useState({});
-  const [loading, setLoading] = useState(true);
+  const chartData = useMemo(() => {
+    if (!stats?.charts) return null;
 
-  useEffect(() => {
-    if (stats?.charts) {
-      prepareChartData();
-      setLoading(false);
-    }
-  }, [stats, theme]);
-
-  const prepareChartData = () => {
     const charts = stats.charts;
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -156,14 +148,14 @@ const DashboardCharts = ({ stats, theme }) => {
       }]
     };
 
-    setChartData({
+    return {
       projectStatus: projectStatusData,
       taskType: taskTypeData,
       monthlyActivity: monthlyActivityData,
       teamPerformance: teamPerformanceData,
       activityOverview: activityData,
-    });
-  };
+    };
+  }, [stats, theme]);
 
   const chartOptions = {
     responsive: true,
@@ -237,7 +229,7 @@ const DashboardCharts = ({ stats, theme }) => {
     }
   };
 
-  if (loading || !stats?.charts) {
+  if (!chartData || !stats?.charts) {
     return <DashboardSkeleton />;
   }
 

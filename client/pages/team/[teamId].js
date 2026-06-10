@@ -883,6 +883,8 @@ const TeamDetailsPage = () => {
     }
   };
 
+  const showJoinRequests = isOwner && (joinRequests.length > 0 || loading);
+
   return (
     <>
       <Head>
@@ -931,7 +933,7 @@ const TeamDetailsPage = () => {
             <div className="flex flex-col lg:flex-row lg:justify-between gap-4 mb-4">
               {/* Team Description - Desktop View */}
               <div className={getThemeClasses(
-                'hidden md:flex w-1/3 md:items-start justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm h-fit',
+                `hidden md:flex ${showJoinRequests ? 'w-1/3' : 'w-full'} md:items-start justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm h-fit`,
                 'dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none'
               )}>
                 <div className="flex gap-3 flex-1 min-w-0">
@@ -1085,7 +1087,7 @@ const TeamDetailsPage = () => {
                 </div>
               </div>
               {/* Join Requests Table (Owner/Admin only) */}
-              {isOwner && (
+              {showJoinRequests && (
                 <div className='rounded-xl sm:w-2/3 w-full'>
                   <h2 className={getThemeClasses('text-xl mb-2 font-semibold text-gray-900', 'dark:text-gray-100')}>Join Requests</h2>
                   <div className={`overflow-x-auto ${getThemeClasses('rounded-xl border border-gray-200', 'dark:border-gray-700')}`}>

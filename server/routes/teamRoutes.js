@@ -24,7 +24,8 @@ router.get('/overview/:userId', protect, async (req, res) => {
 
     // Get all teams in the organization
     const teams = await Team.find({ organizationID: user.organizationID }).sort({ CreatedDate: -1 });
-    
+    const teamIds = teams.map(t => t.TeamID);
+
     // Get user's team memberships
     const userTeamDetails = await TeamDetails.find({
       MemberID: userId,
@@ -39,93 +40,91 @@ router.get('/overview/:userId', protect, async (req, res) => {
     });
     const pendingTeamIds = pendingRequests.map(req => req.teamId);
 
-    // Get statistics for each team
-    const teamsWithStats = await Promise.all(
-      teams.map(async (team) => {
-        try {
-          // Get member count and member details
-          const teamDetails = await TeamDetails.find({
-            TeamID_FK: team.TeamID,
-            IsMemberActive: true
-          });
-          const memberIds = teamDetails.map(td => td.MemberID);
-          const members = await User.find({ _id: { $in: memberIds } });
-          
-          // Format members with basic info
-          const teamMembers = members.map(member => ({
+    // Fetch related details in batches to prevent N+1 queries
+    let teamMembersMap = new Map();
+    let teamProjectsMap = new Map();
+    let taskCountMap = new Map();
+
+    if (teamIds.length > 0) {
+      const [allTeamDetails, allProjectDetails] = await Promise.all([
+        TeamDetails.find({ TeamID_FK: { $in: teamIds }, IsMemberActive: true }),
+        ProjectDetails.find({ TeamID: { $in: teamIds }, IsActive: true })
+      ]);
+
+      const memberIds = [...new Set(allTeamDetails.map(td => td.MemberID.toString()))];
+      const projectIds = [...new Set(allProjectDetails.map(pd => pd.ProjectID))];
+
+      const [allMembers, allProjects, taskCounts] = await Promise.all([
+        User.find({ _id: { $in: memberIds } }).select('firstName lastName email username'),
+        Project.find({ ProjectID: { $in: projectIds } }),
+        TaskDetails.aggregate([
+          { $match: { ProjectID_FK: { $in: projectIds }, IsActive: true } },
+          { $group: { _id: "$ProjectID_FK", count: { $sum: 1 } } }
+        ])
+      ]);
+
+      const membersMap = new Map(allMembers.map(m => [m._id.toString(), m]));
+      const projectsMap = new Map(allProjects.map(p => [p.ProjectID, p]));
+      taskCounts.forEach(tc => taskCountMap.set(tc._id, tc.count));
+
+      allTeamDetails.forEach(td => {
+        const member = membersMap.get(td.MemberID.toString());
+        if (member) {
+          if (!teamMembersMap.has(td.TeamID_FK)) {
+            teamMembersMap.set(td.TeamID_FK, []);
+          }
+          teamMembersMap.get(td.TeamID_FK).push({
             _id: member._id,
             firstName: member.firstName,
             lastName: member.lastName,
             email: member.email,
             username: member.username
-          }));
-
-          // Get projects for this team
-          const projectDetails = await ProjectDetails.find({
-            TeamID: team.TeamID,
-            IsActive: true
           });
-          const projectIds = projectDetails.map(pd => pd.ProjectID);
-          const projects = await Project.find({ ProjectID: { $in: projectIds } });
-          
-          // Get tasks count for this team's projects
-          const tasksCount = projectIds.length > 0 ? await TaskDetails.countDocuments({
-            ProjectID_FK: { $in: projectIds },
-            IsActive: true
-          }) : 0;
+        }
+      });
 
-          // Format projects with basic info
-          const teamProjects = projects.map(project => ({
+      allProjectDetails.forEach(pd => {
+        const project = projectsMap.get(pd.ProjectID);
+        if (project) {
+          if (!teamProjectsMap.has(pd.TeamID)) {
+            teamProjectsMap.set(pd.TeamID, []);
+          }
+          teamProjectsMap.get(pd.TeamID).push({
             ProjectID: project.ProjectID,
             Name: project.Name,
             Description: project.Description,
             ProjectStatusID: project.ProjectStatusID,
             DueDate: project.DueDate,
             IsActive: project.IsActive
-          }));
-
-          // Determine user's relationship to this team
-          const isOwner = team.OwnerID.toString() === userId;
-          const isMember = userTeamIds.includes(team.TeamID);
-          const hasPendingRequest = pendingTeamIds.includes(team.TeamID);
-
-          return {
-            ...team.toObject(),
-            membersCount: teamMembers.length,
-            members: teamMembers,
-            projectsCount: projects.length,
-            tasksCount,
-            projects: teamProjects,
-            userRelationship: {
-              isOwner,
-              isMember,
-              hasPendingRequest,
-              canRequestJoin: !isOwner && !isMember && !hasPendingRequest
-            }
-          };
-        } catch (error) {
-          console.error(`Error fetching stats for team ${team.TeamID}:`, error);
-          const isOwner = team.OwnerID.toString() === userId;
-          const isMember = userTeamIds.includes(team.TeamID);
-          const hasPendingRequest = pendingTeamIds.includes(team.TeamID);
-          
-          return {
-            ...team.toObject(),
-            membersCount: 0,
-            members: [],
-            projectsCount: 0,
-            tasksCount: 0,
-            projects: [],
-            userRelationship: {
-              isOwner,
-              isMember,
-              hasPendingRequest,
-              canRequestJoin: !isOwner && !isMember && !hasPendingRequest
-            }
-          };
+          });
         }
-      })
-    );
+      });
+    }
+
+    const teamsWithStats = teams.map((team) => {
+      const teamMembers = teamMembersMap.get(team.TeamID) || [];
+      const teamProjects = teamProjectsMap.get(team.TeamID) || [];
+      const tasksCount = teamProjects.reduce((sum, p) => sum + (taskCountMap.get(p.ProjectID) || 0), 0);
+
+      const isOwner = team.OwnerID.toString() === userId;
+      const isMember = userTeamIds.includes(team.TeamID);
+      const hasPendingRequest = pendingTeamIds.includes(team.TeamID);
+
+      return {
+        ...team.toObject(),
+        membersCount: teamMembers.length,
+        members: teamMembers,
+        projectsCount: teamProjects.length,
+        tasksCount,
+        projects: teamProjects,
+        userRelationship: {
+          isOwner,
+          isMember,
+          hasPendingRequest,
+          canRequestJoin: !isOwner && !isMember && !hasPendingRequest
+        }
+      };
+    });
 
     res.json(teamsWithStats);
   } catch (err) {

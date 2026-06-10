@@ -787,6 +787,87 @@ async function sendContactNotification({ ticketNumber, title, description, name,
   }
 }
 
+const sendReleaseSummaryEmail = async (to, projectName, version, title, description, releaseContent) => {
+  const mdToHtml = (md) => {
+    if (!md) return '';
+    return md
+      .replace(/### (.*)/g, '<h4 style="color: #6B39E7; font-size: 14px; margin-top: 16px; margin-bottom: 8px;">$1</h4>')
+      .replace(/## (.*)/g, '<h3 style="color: #1F1F1F; font-size: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-top: 20px; margin-bottom: 10px;">$1</h3>')
+      .replace(/# (.*)/g, '<h2 style="color: #1F1F1F; font-size: 18px; margin-top: 24px; margin-bottom: 12px;">$1</h2>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code style="background: #f1f5f9; padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 12px;">$1</code>')
+      .replace(/^- (.*)/gm, '<li style="margin-left: 20px; margin-bottom: 6px; font-size: 13px; line-height: 1.5; color: #334155;">$1</li>')
+      .replace(/\n\n/g, '<br/><br/>')
+      .replace(/\n/g, '<br/>');
+  };
+
+  const htmlContent = mdToHtml(releaseContent);
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Release Notes: ${projectName} ${version}</title>
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; margin: 0; padding: 40px 0;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;">
+        <tr>
+          <!-- Header Banner -->
+          <td style="background: linear-gradient(135deg, #6B39E7 0%, #8B5CF6 100%); padding: 32px; text-align: center;">
+            <div style="font-size: 11px; font-weight: 700; color: #c084fc; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">New Release Summary</div>
+            <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">${projectName}</h1>
+            <div style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; margin-top: 10px; backdrop-filter: blur(4px);">${version}</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 32px;">
+            <!-- Release Title / Info -->
+            <div style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9;">
+              <h2 style="color: #1e293b; font-size: 18px; font-weight: 700; margin: 0 0 8px 0;">${title || 'Release Summary'}</h2>
+              ${description ? `<p style="color: #64748b; font-size: 14px; line-height: 1.5; margin: 0;">${description}</p>` : ''}
+            </div>
+
+            <!-- AI-Generated Changelog Content -->
+            <div style="color: #334155; font-size: 14px; line-height: 1.6; margin-bottom: 32px;">
+              ${htmlContent}
+            </div>
+
+            <!-- Call to Action -->
+            <div style="text-align: center; margin-bottom: 32px; padding-top: 8px;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/project/${projectName}" 
+                 style="display: inline-block; background: #6B39E7; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 10px; font-weight: 600; font-size: 13px; transition: all 0.2s;">
+                🚀 Go to TeamLabs Workspace
+              </a>
+            </div>
+
+            <!-- Footer -->
+            <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f1f5f9; color: #94a3b8; font-size: 11px;">
+              <p style="margin: 0 0 6px 0;">You received this email because you are a member of the <strong>${projectName}</strong> project team.</p>
+              <p style="margin: 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to,
+      subject: `[Release] ${projectName} ${version} - ${title || 'Changelog'}`,
+      html
+    });
+    return true;
+  } catch (error) {
+    console.error('Error sending release summary email:', error);
+    return false;
+  }
+};
+
 module.exports = {
   sendResetEmail,
   sendEmailVerification,
@@ -795,8 +876,10 @@ module.exports = {
   sendInviteEmail,
   sendContactConfirmation,
   sendContactNotification,
+  sendReleaseSummaryEmail,
   emailService: {
     sendContactConfirmation,
-    sendContactNotification
+    sendContactNotification,
+    sendReleaseSummaryEmail
   }
 }; 

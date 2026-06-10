@@ -258,8 +258,8 @@ class RAGService {
    */
   async retrieveRelevantDocuments(query, options = {}) {
     try {
+      const organizationId = options.organizationId || options.organizationID;
       const {
-        organizationID,
         projectId = null,
         sourceTypes = ['project', 'task', 'report', 'user_activity', 'team'],
         limit = this.maxRetrievalResults,
@@ -267,16 +267,12 @@ class RAGService {
         categories = null
       } = options;
 
-      // if (!organizationID) {
-      //   throw new Error('Organization ID is required');
-      // }
-
       // Generate embedding for the query
       const queryEmbedding = await this.embeddingService.generateEmbedding(query);
 
       // Build search criteria
       const searchCriteria = {
-        organizationId: organizationID,
+        organizationId: organizationId,
         isActive: true,
         ...(projectId && { projectId }),
         ...(sourceTypes.length > 0 && { sourceType: { $in: sourceTypes } }),
@@ -290,8 +286,8 @@ class RAGService {
       if (documents.length === 0) {        
         try {
           // Trigger sync for the organization
-          if (organizationID) {
-            const syncResult = await this.syncService.syncOrganization(organizationID, sourceTypes, false);
+          if (organizationId) {
+            const syncResult = await this.syncService.syncOrganization(organizationId, { sourceTypes, forceUpdate: false });
             // Try to retrieve documents again after sync
             documents = await KnowledgeBase.find(searchCriteria);
           }
@@ -299,12 +295,12 @@ class RAGService {
           console.error('Error during sync:', syncError);
           // Continue with empty results if sync fails
         }
-
-        // If still no documents found, return empty array
-        if (documents.length === 0) {
-          console.log('No documents available even after sync attempt');
-          return [];
-        }
+      }
+      
+      // If still no documents found, return empty array
+      if (documents.length === 0) {
+        console.log('No documents available even after sync attempt');
+        return [];
       }
 
       // Calculate similarities and filter out documents with dimension mismatches

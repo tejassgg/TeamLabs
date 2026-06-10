@@ -246,60 +246,72 @@ router.get('/all', async (req, res) => {
             CommonType.find({ MasterType: 'TaskType' }).sort({ Code: 1 })
         ]);
 
-        // Use Promise.all to properly wait for all user details to be fetched
-        const tasksWithDetails = await Promise.all(tasks.map(async (task) => {
+        // Fetch related details in batches to prevent N+1 query performance problems
+        const userIds = [...new Set(
+            tasks.reduce((acc, t) => {
+                if (t.Assignee) acc.push(t.Assignee);
+                if (t.AssignedTo) acc.push(t.AssignedTo);
+                return acc;
+            }, [])
+        )];
+
+        let userMap = new Map();
+        let teamDetailsMap = new Map();
+        let teamMap = new Map();
+
+        if (userIds.length > 0) {
+            const [users, teamDetails] = await Promise.all([
+                User.find({ _id: { $in: userIds } }).select('firstName lastName username email'),
+                TeamDetails.find({ MemberID: { $in: userIds } })
+            ]);
+
+            users.forEach(u => userMap.set(u._id.toString(), u));
+            teamDetails.forEach(td => teamDetailsMap.set(td.MemberID.toString(), td));
+
+            const teamIds = [...new Set(teamDetails.map(td => td.TeamID_FK).filter(Boolean))];
+            if (teamIds.length > 0) {
+                const teams = await Team.find({ TeamID: { $in: teamIds } }).select('TeamID TeamName');
+                teams.forEach(t => teamMap.set(t.TeamID.toString(), t.TeamName));
+            }
+        }
+
+        const tasksWithDetails = tasks.map((task) => {
             const newTask = task.toObject();
 
-            // Fetch assignee details if exists
+            // Populate assignee details if exists
             if (newTask.Assignee) {
-                try {
-                    const assignee = await User.findById(task.Assignee);
-                    if (assignee) {
-                        const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
-                        let teamName = null;
-                        if (teamDetails) {
-                            const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
-                            teamName = team ? team.TeamName : null;
-                        }
-                        newTask.AssigneeDetails = {
-                            _id: assignee._id,
-                            username: assignee.username,
-                            fullName: assignee.firstName + " " + assignee.lastName,
-                            email: assignee.email,
-                            teamName: teamName
-                        };
-                    }
-                } catch (error) {
-                    console.error('Error fetching assignee details:', error);
+                const assignee = userMap.get(newTask.Assignee.toString());
+                if (assignee) {
+                    const td = teamDetailsMap.get(assignee._id.toString());
+                    const teamName = td ? (teamMap.get(td.TeamID_FK?.toString()) || null) : null;
+                    newTask.AssigneeDetails = {
+                        _id: assignee._id,
+                        username: assignee.username,
+                        fullName: assignee.firstName + " " + assignee.lastName,
+                        email: assignee.email,
+                        teamName: teamName
+                    };
                 }
             }
 
-            // Fetch assignedTo details if exists
+            // Populate assignedTo details if exists
             if (newTask.AssignedTo) {
-                try {
-                    const assignedTo = await User.findById(task.AssignedTo);
-                    if (assignedTo) {
-                        const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
-                        let teamName = null;
-                        if (teamDetails) {
-                            const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
-                            teamName = team ? team.TeamName : null;
-                        }
-                        newTask.AssignedToDetails = {
-                            _id: assignedTo._id,
-                            username: assignedTo.username,
-                            fullName: assignedTo.firstName + " " + assignedTo.lastName,
-                            email: assignedTo.email,
-                            teamName: teamName
-                        };
-                    }
-                } catch (error) {
-                    console.error('Error fetching assignedTo details:', error);
+                const assignedTo = userMap.get(newTask.AssignedTo.toString());
+                if (assignedTo) {
+                    const td = teamDetailsMap.get(assignedTo._id.toString());
+                    const teamName = td ? (teamMap.get(td.TeamID_FK?.toString()) || null) : null;
+                    newTask.AssignedToDetails = {
+                        _id: assignedTo._id,
+                        username: assignedTo.username,
+                        fullName: assignedTo.firstName + " " + assignedTo.lastName,
+                        email: assignedTo.email,
+                        teamName: teamName
+                    };
                 }
             }
 
             return newTask;
-        }));
+        });
 
         res.json({
             tasks: tasksWithDetails,
@@ -380,20 +392,76 @@ router.get('/project/:projectId', async (req, res) => {
         const projectId = req.params.projectId;
         const tasks = await TaskDetails.find({ ProjectID_FK: projectId, IsActive: true, Type: { $ne: "User Story" } }).sort({ CreatedDate: 1 });
 
-        // Use Promise.all to properly wait for all user details to be fetched
-        const newTaskList = await Promise.all(tasks.map(async (task) => {
+        const taskIds = tasks.map(t => t.TaskID);
+
+        const Subtask = require('../models/Subtask');
+        const [attachments, comments, subtasks] = await Promise.all([
+            Attachment.find({ TaskID: { $in: taskIds } }),
+            Comment.find({ TaskID: { $in: taskIds } }),
+            Subtask.find({ TaskID_FK: { $in: taskIds }, IsActive: true }).sort({ IsCompleted: -1, CreatedDate: 1 }).lean()
+        ]);
+
+        const attachmentCountMap = new Map();
+        attachments.forEach(att => {
+            attachmentCountMap.set(att.TaskID, (attachmentCountMap.get(att.TaskID) || 0) + 1);
+        });
+
+        const commentCountMap = new Map();
+        comments.forEach(c => {
+            commentCountMap.set(c.TaskID, (commentCountMap.get(c.TaskID) || 0) + 1);
+        });
+
+        const subtasksMap = new Map();
+        subtasks.forEach(s => {
+            if (!subtasksMap.has(s.TaskID_FK)) {
+                subtasksMap.set(s.TaskID_FK, []);
+            }
+            subtasksMap.get(s.TaskID_FK).push(s);
+        });
+
+        // Gather all distinct user IDs referenced in tasks and subtasks
+        const userIds = [...new Set([
+            ...tasks.reduce((acc, t) => {
+                if (t.Assignee) acc.push(t.Assignee);
+                if (t.AssignedTo) acc.push(t.AssignedTo);
+                return acc;
+            }, []),
+            ...subtasks.reduce((acc, s) => {
+                if (s.CreatedBy) acc.push(s.CreatedBy);
+                if (s.CompletedBy) acc.push(s.CompletedBy);
+                return acc;
+            }, [])
+        ])];
+
+        let userMap = new Map();
+        let teamDetailsMap = new Map();
+        let teamMap = new Map();
+
+        if (userIds.length > 0) {
+            const [users, teamDetails] = await Promise.all([
+                User.find({ _id: { $in: userIds } }).select('firstName lastName username email'),
+                TeamDetails.find({ MemberID: { $in: userIds } })
+            ]);
+
+            users.forEach(u => userMap.set(u._id.toString(), u));
+            teamDetails.forEach(td => teamDetailsMap.set(td.MemberID.toString(), td));
+
+            const teamIds = [...new Set(teamDetails.map(td => td.TeamID_FK).filter(Boolean))];
+            if (teamIds.length > 0) {
+                const teams = await Team.find({ TeamID: { $in: teamIds } }).select('TeamID TeamName');
+                teams.forEach(t => teamMap.set(t.TeamID.toString(), t.TeamName));
+            }
+        }
+
+        const newTaskList = tasks.map((task) => {
             const newTask = task.toObject();
 
-            // Fetch assignee details if exists
+            // Populate assignee details if exists
             if (newTask.Assignee) {
-                const assignee = await User.findById(task.Assignee);
+                const assignee = userMap.get(newTask.Assignee.toString());
                 if (assignee) {
-                    const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
-                    let teamName = null;
-                    if (teamDetails) {
-                        const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
-                        teamName = team ? team.TeamName : null;
-                    }
+                    const td = teamDetailsMap.get(assignee._id.toString());
+                    const teamName = td ? (teamMap.get(td.TeamID_FK?.toString()) || null) : null;
                     newTask.AssigneeDetails = {
                         _id: assignee._id,
                         username: assignee.username,
@@ -404,16 +472,12 @@ router.get('/project/:projectId', async (req, res) => {
                 }
             }
 
-            // Fetch assignedTo details if exists
+            // Populate assignedTo details if exists
             if (newTask.AssignedTo) {
-                const assignedTo = await User.findById(task.AssignedTo);
+                const assignedTo = userMap.get(newTask.AssignedTo.toString());
                 if (assignedTo) {
-                    const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
-                    let teamName = null;
-                    if (teamDetails) {
-                        const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
-                        teamName = team ? team.TeamName : null;
-                    }
+                    const td = teamDetailsMap.get(assignedTo._id.toString());
+                    const teamName = td ? (teamMap.get(td.TeamID_FK?.toString()) || null) : null;
                     newTask.AssignedToDetails = {
                         _id: assignedTo._id,
                         username: assignedTo.username,
@@ -424,56 +488,39 @@ router.get('/project/:projectId', async (req, res) => {
                 }
             }
 
-            // Get attachments and comments count
-            const [attachmentsCount, commentsCount] = await Promise.all([
-                Attachment.countDocuments({ TaskID: task.TaskID }),
-                Comment.countDocuments({ TaskID: task.TaskID })
-            ]);
+            newTask.attachmentsCount = attachmentCountMap.get(task.TaskID) || 0;
+            newTask.commentsCount = commentCountMap.get(task.TaskID) || 0;
 
-            newTask.attachmentsCount = attachmentsCount;
-            newTask.commentsCount = commentsCount;
-
-            // Fetch active subtasks for this task (sorted by CreatedDate)
-            try {
-                const Subtask = require('../models/Subtask');
-                const rawSubtasks = await Subtask.find({ TaskID_FK: task.TaskID, IsActive: true })
-                    .sort({ IsCompleted: -1, CreatedDate: 1 })
-                    .lean();
-
-                // Optionally enrich with minimal creator/completer display data
-                const populatedSubtasks = await Promise.all(rawSubtasks.map(async (s) => {
-                    const subtask = { ...s };
-                    if (s.CreatedBy) {
-                        const u = await User.findById(s.CreatedBy).select('firstName lastName');
-                        if (u) {
-                            subtask.CreatedByDetails = {
-                                _id: u._id,
-                                fullName: `${u.firstName} ${u.lastName}`,
-                            };
-                        }
+            const rawSub = subtasksMap.get(task.TaskID) || [];
+            newTask.subtasks = rawSub.map(s => {
+                const sub = { ...s };
+                if (s.CreatedBy) {
+                    const u = userMap.get(s.CreatedBy.toString());
+                    if (u) {
+                        sub.CreatedByDetails = {
+                            _id: u._id,
+                            fullName: `${u.firstName} ${u.lastName}`
+                        };
                     }
-                    if (s.CompletedBy) {
-                        const u2 = await User.findById(s.CompletedBy).select('firstName lastName');
-                        if (u2) {
-                            subtask.CompletedByDetails = {
-                                _id: u2._id,
-                                fullName: `${u2.firstName} ${u2.lastName}`,
-                            };
-                        }
+                }
+                if (s.CompletedBy) {
+                    const u = userMap.get(s.CompletedBy.toString());
+                    if (u) {
+                        sub.CompletedByDetails = {
+                            _id: u._id,
+                            fullName: `${u.firstName} ${u.lastName}`
+                        };
                     }
-                    return subtask;
-                }));
-                newTask.subtasks = populatedSubtasks;
-            } catch (e) {
-                newTask.subtasks = [];
-            }
+                }
+                return sub;
+            });
 
             return newTask;
-        }));
+        });
 
         res.json(newTaskList);
     } catch (error) {
-        console.log(error);
+        console.error('Error fetching project tasks:', error);
         res.status(500).json({ error: 'Failed to fetch project tasks' });
     }
 });
@@ -630,6 +677,23 @@ router.patch('/:taskId/status', async (req, res) => {
         });
 
         await taskHistory.save();
+
+        // Check if completing the task and validate dependencies
+        if (Status === 6) {
+            if (task.Dependencies && task.Dependencies.length > 0) {
+                const incompleteDependencies = await TaskDetails.find({
+                    TaskID: { $in: task.Dependencies },
+                    Status: { $ne: 6 },
+                    IsActive: true
+                });
+                if (incompleteDependencies.length > 0) {
+                    const names = incompleteDependencies.map(t => `"${t.Name}"`).join(', ');
+                    return res.status(400).json({
+                        error: `Cannot complete task. It depends on incomplete task(s): ${names}.`
+                    });
+                }
+            }
+        }
 
         // Update status
         task.Status = Status;
@@ -1050,6 +1114,24 @@ router.patch('/:taskId', async (req, res) => {
 
         await taskHistory.save();
 
+        // Validate dependencies if updating status to Completed (6)
+        if (updateData.Status === 6 || (updateData.Status === undefined && task.Status === 6)) {
+            const checkDeps = updateData.Dependencies !== undefined ? updateData.Dependencies : task.Dependencies;
+            if (checkDeps && checkDeps.length > 0) {
+                const incompleteDependencies = await TaskDetails.find({
+                    TaskID: { $in: checkDeps },
+                    Status: { $ne: 6 },
+                    IsActive: true
+                });
+                if (incompleteDependencies.length > 0) {
+                    const names = incompleteDependencies.map(t => `"${t.Name}"`).join(', ');
+                    return res.status(400).json({
+                        error: `Cannot complete task. It depends on incomplete task(s): ${names}.`
+                    });
+                }
+            }
+        }
+
         // Update task fields
         if (updateData.Name !== undefined) task.Name = updateData.Name;
         if (updateData.Description !== undefined) task.Description = updateData.Description;
@@ -1057,7 +1139,10 @@ router.patch('/:taskId', async (req, res) => {
         if (updateData.Priority !== undefined) task.Priority = updateData.Priority;
         if (updateData.ParentID !== undefined) task.ParentID = updateData.ParentID;
         if (updateData.IsActive !== undefined) task.IsActive = updateData.IsActive;
+        if (updateData.Status !== undefined) task.Status = updateData.Status;
         if (updateData.DueDate !== undefined) task.DueDate = updateData.DueDate ? new Date(updateData.DueDate) : null;
+        if (updateData.StartDate !== undefined) task.StartDate = updateData.StartDate ? new Date(updateData.StartDate) : null;
+        if (updateData.Dependencies !== undefined) task.Dependencies = Array.isArray(updateData.Dependencies) ? updateData.Dependencies : [];
 
         // Ensure DueDate present for user stories to satisfy schema requirement
         if (task.Type === 'User Story' && !task.DueDate) {
