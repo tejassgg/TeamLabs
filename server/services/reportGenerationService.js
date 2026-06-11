@@ -701,7 +701,7 @@ Generate the report now:
   async callLLM(prompt) {
     try {
       const response = await this.geminiAI.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.5-flash",
         contents: prompt,
         config: {
           thinkingConfig: {
@@ -756,7 +756,7 @@ Generate the report now:
         generationTime: Date.now() - this.startTime,
         dataPoints: projectData.tasks.length,
         accuracy: this.calculateAccuracy(projectData),
-        llmModel: 'gemini-2.5-flash',
+        llmModel: 'gemini-3.5-flash',
         promptTokens: llmResponse.usageMetadata?.promptTokenCount || 0,
         responseTokens: llmResponse.usageMetadata?.candidatesTokenCount || 0,
         advancedOptions: config.advancedOptions || {}

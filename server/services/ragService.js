@@ -92,7 +92,7 @@ class RAGService {
             categories
           },
           embedding,
-          embeddingModel: 'text-embedding-004'
+          embeddingModel: 'gemini-embedding-001'
         };
 
         // Save or update in knowledge base

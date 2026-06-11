@@ -455,7 +455,7 @@ Instructions:
 6. Do NOT include markdown styling wrapper like blockquotes or generic intro text like "Here is your release notes". Just return the markdown changelog body directly starting with section headers.`;
 
     const response = await geminiAI.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       contents: prompt,
       config: {
         thinkingConfig: {

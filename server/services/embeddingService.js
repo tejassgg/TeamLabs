@@ -11,7 +11,8 @@ class EmbeddingService {
     }
 
     this.geminiAI = new GoogleGenAI({});
-    this.model = 'text-embedding-004'; // Gemini's latest embedding model
+    this.model = 'gemini-embedding-001'; // Gemini's latest embedding model
+    this.outputDimensionality = 768; // Matches previous model dimension (768)
     this.maxChunkSize = 1000; // Maximum characters per chunk
     this.overlapSize = 100; // Overlap between chunks for context preservation
   }
@@ -28,7 +29,10 @@ class EmbeddingService {
       }
       const result = await this.geminiAI.models.embedContent({
         model: this.model,
-        contents: text
+        contents: text,
+        config: {
+          outputDimensionality: this.outputDimensionality
+        }
       });
       return result.embeddings[0].values;
     } catch (error) {
@@ -149,9 +153,10 @@ class EmbeddingService {
       return 0;
     }
 
-    // if (embedding1.length !== embedding2.length) {
-    //   console.warn(`Embedding dimension mismatch: ${embedding1.length} vs ${embedding2.length}. Using 0 similarity.`);
-    // }
+    if (embedding1.length !== embedding2.length) {
+      console.warn(`Embedding dimension mismatch: ${embedding1.length} vs ${embedding2.length}. Using 0 similarity.`);
+      return 0;
+    }
 
     let dotProduct = 0;
     let norm1 = 0;

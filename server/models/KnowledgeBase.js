@@ -73,7 +73,7 @@ const KnowledgeBaseSchema = new mongoose.Schema({
   },
   embeddingModel: {
     type: String,
-    default: 'text-embedding-004' // Google's embedding model
+    default: 'gemini-embedding-001' // Google's embedding model
   },
   isActive: {
     type: Boolean,
