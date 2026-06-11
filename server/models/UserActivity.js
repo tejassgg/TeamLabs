@@ -45,6 +45,8 @@ const userActivitySchema = new mongoose.Schema({
       'team_become_admin',
       // Report activities
       'report_generated', 'report_deleted',
+      // Release activities
+      'release_notes_sent',
       // Timesheet
       'add_timesheet', 'edit_timesheet', 'delete_timesheet', 'user_punchIn', 'user_punchOut'
     ]

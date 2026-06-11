@@ -168,7 +168,7 @@ The RAG system automatically enhances report generation by:
 
 ### Embedding Model
 
-- **Model**: Google's `text-embedding-004`
+- **Model**: Google's `gemini-embedding-001` (configured with output dimensionality of 768)
 - **Dimensions**: 768-dimensional vectors
 - **Language Support**: Multiple languages
 - **Performance**: Optimized for speed and accuracy
