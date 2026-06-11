@@ -787,7 +787,7 @@ async function sendContactNotification({ ticketNumber, title, description, name,
   }
 }
 
-const sendReleaseSummaryEmail = async (to, projectName, version, title, description, releaseContent) => {
+const sendReleaseSummaryEmail = async (to, projectName, version, title, description, releaseContent, projectId) => {
   const mdToHtml = (md) => {
     if (!md) return '';
     return md
@@ -836,7 +836,7 @@ const sendReleaseSummaryEmail = async (to, projectName, version, title, descript
 
             <!-- Call to Action -->
             <div style="text-align: center; margin-bottom: 32px; padding-top: 8px;">
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/project/${projectName}" 
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/project/${projectId || projectName}" 
                  style="display: inline-block; background: #6B39E7; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 10px; font-weight: 600; font-size: 13px; transition: all 0.2s;">
                 🚀 Go to TeamLabs Workspace
               </a>

@@ -504,7 +504,7 @@ router.post('/:projectId/releases/email', protect, async (req, res) => {
     // Send emails in parallel
     const emailPromises = users.map(user => {
       if (!user.email) return Promise.resolve(false);
-      return sendReleaseSummaryEmail(user.email, project.Name, version, title, description, releaseContent);
+      return sendReleaseSummaryEmail(user.email, project.Name, version, title, description, releaseContent, project.ProjectID);
     });
 
     await Promise.all(emailPromises);
