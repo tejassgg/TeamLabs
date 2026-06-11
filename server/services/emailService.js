@@ -233,7 +233,7 @@ async function sendResetEmail(to, username, link) {
 
   try {
     await transporter.sendMail({
-      from: process.env.GMAIL_USER,
+      from: process.env.SMTP_USER,
       to,
       subject: 'Reset your TeamLabs password',
       html
@@ -290,7 +290,7 @@ async function sendEmailVerification(to, username, link) {
 
   try {
     await transporter.sendMail({
-      from: process.env.GMAIL_USER,
+      from: process.env.SMTP_USER,
       to,
       subject: 'Verify your TeamLabs email',
       html
@@ -386,7 +386,7 @@ async function sendTaskAssignmentEmail(to, taskName, taskDetails, assignedBy, pr
 
   try {
     await transporter.sendMail({
-      from: process.env.GMAIL_USER,
+      from: process.env.SMTP_USER,
       to,
       subject: `${taskType}: ${taskName}`,
       html
@@ -508,7 +508,7 @@ async function sendCommentMentionEmail(to, mentionTo, commentContent, taskName, 
 
   try {
     await transporter.sendMail({
-      from: process.env.GMAIL_USER,
+      from: process.env.SMTP_USER,
       to,
       subject: `You were mentioned in a comment on ${taskName}`,
       html
@@ -574,7 +574,7 @@ async function sendInviteEmail(to, inviteLink, inviterName) {
   
   try {
   await transporter.sendMail({
-    from: process.env.GMAIL_USER,
+    from: process.env.SMTP_USER,
     to,
     subject: 'You are invited to join TeamLabs',
     html
@@ -659,7 +659,7 @@ async function sendContactConfirmation({ to, name, ticketNumber, title, descript
 
   try {
     await transporter.sendMail({
-      from: process.env.GMAIL_USER,
+      from: process.env.SMTP_USER,
       to,
       subject: `Support Request Confirmation - ${ticketNumber}`,
       html
@@ -775,8 +775,8 @@ async function sendContactNotification({ ticketNumber, title, description, name,
 
   try {
     await transporter.sendMail({
-      from: process.env.GMAIL_USER,
-      to: process.env.GMAIL_USER, // Send to support team
+      from: process.env.SMTP_USER,
+      to: process.env.SMTP_USER, // Send to support team
       subject: `New Support Request - ${ticketNumber}: ${title}`,
       html
     });
@@ -856,7 +856,7 @@ const sendReleaseSummaryEmail = async (to, projectName, version, title, descript
 
   try {
     await transporter.sendMail({
-      from: process.env.GMAIL_USER,
+      from: process.env.SMTP_USER,
       to,
       subject: `[Release] ${projectName} ${version} - ${title || 'Changelog'}`,
       html
