@@ -27,7 +27,8 @@ const AuthNavbar = ({ openLogin, showLogin }) => {
         <div className="flex justify-between items-center h-14 sm:h-16 w-full">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none">
+            <Link href="/" className="flex items-center gap-2 text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none">
+              <img src="/static/logo.png" alt="TeamLabs Logo" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" />
               TeamLabs
             </Link>
           </div>

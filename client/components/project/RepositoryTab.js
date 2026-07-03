@@ -153,7 +153,7 @@ const RepositoryTab = ({ projectId, projectRepository }) => {
                 </thead>
                 <tbody>
                   {repositoryCommits.map((commit, index) => (
-                    <tr key={commit.sha} className={tableRowClasses}>
+                    <tr key={`${commit.sha}-${index}`} className={tableRowClasses}>
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <span className={`font-mono text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>

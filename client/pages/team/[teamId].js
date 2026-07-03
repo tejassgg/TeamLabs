@@ -1663,7 +1663,7 @@ const TeamDetailsPage = () => {
                           <th className={getThemeClasses(
                             'py-3 px-4 text-left hidden sm:table-cell text-gray-700',
                             'dark:text-gray-300'
-                          )}>Date Assigned</th>
+                          )}>Assigned On</th>
                           <th className={getThemeClasses(
                             'py-3 px-4 text-left text-gray-700',
                             'dark:text-gray-300'

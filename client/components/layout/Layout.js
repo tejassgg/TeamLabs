@@ -782,7 +782,8 @@ const Layout = ({ children, pageProject, pageTitle }) => {
                 {currentPageTitle}
               </div>
             ) : (
-              <Link href="/" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none">
+              <Link href="/" className="flex items-center gap-2 text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none">
+                <img src="/static/logo.png" alt="TeamLabs Logo" className="w-8 h-8 object-contain" />
                 TeamLabs
               </Link>
             )}

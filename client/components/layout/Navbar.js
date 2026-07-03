@@ -216,11 +216,11 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
           {/* Left side - Logo */}
           <div className="flex-shrink-0">
             {pageTitle ? (
-              <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none" onClick={handleLogoClick}>
+              <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none cursor-pointer" onClick={handleLogoClick}>
                 {pageTitle}
               </div>
             ) : (
-              <Link href="/" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none" onClick={handleLogoClick}>
+              <Link href="/" className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none" onClick={handleLogoClick}>
                 TeamLabs
               </Link>
             )}

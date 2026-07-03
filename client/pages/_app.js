@@ -25,6 +25,7 @@ function AppContainer({ Component, pageProps }) {
       <Head>
         <meta name="google-site-verification" content="ivQ4dQ4n6SQQQzFKGvExuXcTIGgarOIRsQrEMhuXg34" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/static/logo.png" />
       </Head>
       <div className={theme} style={{ minHeight: '100vh' }}>
         <RouteProtection>

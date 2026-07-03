@@ -16,7 +16,7 @@ const CustomToast = ({ message, type = 'success', onClose, duration = 3500 }) =>
   }, [duration, onClose]);
 
   const getToastStyles = () => {
-    const baseStyles = 'fixed top-20 right-6 z-50 flex items-start gap-4 px-5 py-4 rounded-xl shadow-2xl transform transition-all duration-500 ease-in-out animate-slide-in w-[420px] max-w-[90vw]';
+    const baseStyles = 'fixed top-20 right-6 z-50 flex items-center gap-4 px-3 py-2 rounded-xl shadow-2xl transform transition-all duration-500 ease-in-out animate-slide-in w-[420px] max-w-[90vw]';
 
     const typeStyles = {
       success: theme === 'dark'
@@ -37,7 +37,7 @@ const CustomToast = ({ message, type = 'success', onClose, duration = 3500 }) =>
   };
 
   const getIcon = () => {
-    const iconProps = { size: 24 };
+    const iconProps = { size: 16 };
     switch (type) {
       case 'success':
         return <FaCheckCircle className="flex-shrink-0" {...iconProps} />;
@@ -58,13 +58,13 @@ const CustomToast = ({ message, type = 'success', onClose, duration = 3500 }) =>
       <p className="text-base font-semibold leading-snug break-words flex-1">{message}</p>
       <button
         onClick={onClose}
-        className={`ml-2 p-1.5 rounded-full hover:bg-opacity-20 transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-white/20' : 'hover:bg-black/10'
+        className={`ml-2 p-1 rounded-full hover:bg-opacity-20 transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-white/20' : 'hover:bg-black/10'
           }`}
       >
-        <FaTimes size={16} />
+        <FaTimes size={12} />
       </button>
       {/* Progress bar */}
-      <div className="absolute bottom-0 left-0 h-2 bg-current opacity-20 animate-progress rounded-b-xl" />
+      <div className="absolute bottom-0 left-0 h-1 bg-current opacity-20 animate-progress rounded-b-xl" />
     </div>
   );
 };

@@ -664,7 +664,7 @@ const Dashboard = () => {
         {/* Tab Navigation */}
         {!shouldShowWelcomeMessage && (
           <div className="mb-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4 w-full">
               {(() => {
                 // Get current date and time
                 const now = new Date();
@@ -710,22 +710,22 @@ const Dashboard = () => {
                 const firstName = userDetails?.firstName || '';
 
                 return (
-                  <div className="flex flex-col mt-2 ">
-                    <div className={`text-md ${theme === 'dark' ? 'text-gray-100' : 'text-gray-500'}`}>
+                  <div className="flex flex-col mt-2">
+                    <div className={`text-sm sm:text-md ${theme === 'dark' ? 'text-gray-100' : 'text-gray-500'}`}>
                       {dayName}, {dateString}
                     </div>
-                    <div className={`text-4xl font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>
+                    <div className={`text-xl sm:text-3xl md:text-4xl font-medium tracking-tight ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>
                       {greeting}! {firstName},
                     </div>
                   </div>
                 );
               })()}
-              <div className="flex items-center gap-3 mt-4 sm:mt-0">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 {isEditMode ? (
                   <>
                     <button
                       onClick={resetLayout}
-                      className={`px-4 py-2.5 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition-all duration-200 ${
+                      className={`px-2.5 py-1.5 sm:px-4 sm:py-2.5 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition-all duration-200 ${
                         theme === 'dark'
                           ? 'border-white/10 hover:bg-slate-800 text-slate-400 bg-slate-900/30'
                           : 'border-slate-200 hover:bg-slate-100 text-slate-600 bg-white shadow-sm'
@@ -735,7 +735,7 @@ const Dashboard = () => {
                     </button>
                     <button
                       onClick={() => setIsEditMode(false)}
-                      className="px-4 py-2.5 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition-all duration-200 shadow-md shadow-emerald-600/10"
+                      className="px-2.5 py-1.5 sm:px-4 sm:py-2.5 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition-all duration-200 shadow-md shadow-emerald-600/10"
                     >
                       <FaCheck size={11} /> Save & Exit
                     </button>
@@ -743,13 +743,13 @@ const Dashboard = () => {
                 ) : (
                   <button
                     onClick={() => setIsEditMode(true)}
-                    className={`px-4 py-2.5 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all duration-200 border ${
+                    className={`px-2.5 py-1.5 sm:px-4 sm:py-2.5 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all duration-200 border ${
                       theme === 'dark'
                         ? 'border-white/10 hover:bg-slate-800 hover:text-white text-slate-400 bg-slate-900/50'
                         : 'border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-600 bg-white shadow-sm'
                     }`}
                   >
-                    <FaWrench size={11} /> Customize Dashboard
+                    <FaWrench size={11} /> Customize
                   </button>
                 )}
               </div>

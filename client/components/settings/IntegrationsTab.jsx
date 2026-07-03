@@ -14,7 +14,7 @@ import {
 } from 'react-icons/fa';
 import { SiGooglemeet } from "react-icons/si";
 
-const IntegrationsTab = ({ 
+const IntegrationsTab = ({
   integrations: prefetchedIntegrations,
   loadingIntegrations: prefetchedLoadingIntegrations,
   onRefreshIntegrations
@@ -240,9 +240,9 @@ const IntegrationsTab = ({
                 </div>
 
                 {/* Controls */}
-                <div className="flex items-center justify-between lg:mt-12 mt-6">
+                <div className="flex items-center justify-between lg:mt-6 mt-3">
                   <button
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border  text-sm font-medium transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-gray-700 border-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-gray-200' }`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border  text-sm font-medium transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-gray-700 border-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-gray-200'}`}
                     onClick={() => { setSelectedIntegration(integration); setShowDetailsModal(true); }}
                   >
                     <FaCog size={14} />

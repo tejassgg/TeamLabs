@@ -537,6 +537,7 @@ function Home() {
         <title>TeamLabs | AI-Powered Velocity Project Management SaaS</title>
         <meta name="description" content="Unlock hyper-velocity team performance with AI-powered task automation, modular Kanban boards, real-time Slack-like messaging, and advanced analytics dashboards." />
         <meta name="keywords" content="project management, team collaboration, kanban board, AI assistant, analytics dashboard, cloud saas" />
+        <link rel="icon" href="/static/logo.png" />
       </Head>
 
       {/* Futuristic Background Dot Grid and Radial Lights */}
@@ -588,19 +589,19 @@ function Home() {
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
                 {isAuthenticated ? (
                   <div className="flex flex-wrap gap-4 items-center">
-                    <Link href="/dashboard" className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-base hover:opacity-90 shadow-xl shadow-indigo-600/25 transition-transform transform hover:-translate-y-0.5 flex items-center gap-2">
+                    <Link href="/dashboard" className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-base hover:opacity-90 shadow-xl shadow-indigo-600/25 transition-transform transform hover:-translate-y-0.5 flex items-center gap-2">
                       Go to Dashboard <FaChevronRight size={14} />
                     </Link>
-                    <button onClick={handleLogout} className={`px-6 py-4 border font-bold text-base rounded-xl flex items-center gap-2 transition-all ${theme === 'dark' ? 'border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300' : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700'}`}>
+                    <button onClick={handleLogout} className={`px-4 py-2 border font-bold text-base rounded-xl flex items-center gap-2 transition-all ${theme === 'dark' ? 'border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300' : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700'}`}>
                       <FaSignOutAlt /> Logout
                     </button>
                   </div>
                 ) : (
                   <>
-                    <button onClick={openRegister} className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-base hover:opacity-90 shadow-xl shadow-indigo-600/25 transition-transform transform hover:-translate-y-0.5">
+                    <button onClick={openRegister} className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-base hover:opacity-90 shadow-xl shadow-indigo-600/25 transition-transform transform hover:-translate-y-0.5">
                       Start Free Trial
                     </button>
-                    <button onClick={openLogin} className={`px-8 py-4 border font-bold text-base rounded-xl flex items-center justify-center gap-2 transition-all ${theme === 'dark' ? 'border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300' : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700'}`}>
+                    <button onClick={openLogin} className={`px-4 py-2 border font-bold text-base rounded-xl flex items-center justify-center gap-2 transition-all ${theme === 'dark' ? 'border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300' : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700'}`}>
                       <FaSignInAlt /> Login
                     </button>
                   </>

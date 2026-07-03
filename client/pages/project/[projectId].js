@@ -1976,7 +1976,7 @@ const ProjectDetailsPage = () => {
                         </th>
                         <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
                           <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center">
-                            <span>Date Assigned</span>
+                            <span>Assigned On</span>
                             {getTasksSortIcon('assignedDate')}
                           </button>
                         </th>
@@ -2130,23 +2130,23 @@ const ProjectDetailsPage = () => {
                                 <button
                                   onClick={() => handleEditTask(task)}
                                   className={getThemeClasses(
-                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                    'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
                                     'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
                                   )}
                                   title="Edit Task"
                                 >
-                                  <FaEdit size={14} />
+                                  <FaEdit size={12} />
                                 </button>
                                 <button
                                   onClick={() => confirmDeleteTask(task)}
                                   className={getThemeClasses(
-                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                    'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
                                     'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
                                   )}
                                   title="Delete Task"
                                   disabled={removing}
                                 >
-                                  <MdDelete size={18} />
+                                  <MdDelete size={16} />
                                 </button>
                               </div>
                             </td>
@@ -2256,7 +2256,7 @@ const ProjectDetailsPage = () => {
                                     <th className={`py-3 px-4 tracking-wider w-1/3 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Task</th>
                                     <th className={`py-3 px-4 tracking-wider w-1/6 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assigned To</th>
                                     <th className={`py-3 px-4 tracking-wider hidden sm:table-cell w-1/6 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assignee</th>
-                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell w-24 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Date Assigned</th>
+                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell w-24 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assigned On</th>
                                     <th className={`py-3 px-4 tracking-wider hidden sm:table-cell w-20 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Priority</th>
                                     <th className={`py-3 px-4 tracking-wider hidden sm:table-cell w-20 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Task Type</th>
                                     <th className={`py-3 px-4 tracking-wider text-center hidden sm:table-cell w-24 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Actions</th>
@@ -2489,7 +2489,7 @@ const ProjectDetailsPage = () => {
                             {/* Commits */}
                             <div className="space-y-3">
                               {dateCommits.map((commit, index) => (
-                                <div key={commit.sha} className="relative pl-6">
+                                <div key={`${commit.sha}-${index}`} className="relative pl-6">
                                   {/* Timeline dot */}
                                   <div className={getThemeClasses("absolute left-0 top-2 w-2 h-2 bg-blue-500 rounded-full border-2 border-white", "dark:bg-blue-400 dark:border-gray-900")}></div>
 

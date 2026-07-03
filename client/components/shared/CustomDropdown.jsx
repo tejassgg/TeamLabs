@@ -157,7 +157,7 @@ const CustomDropdown = ({
   };
 
   return (
-    <div className={`relative ${width} ${className}`} ref={dropdownRef}>
+    <div className={`relative ${width} ${className} ${isOpen ? 'z-[99]' : ''}`} ref={dropdownRef}>
       {/* Label */}
       {label && (
         <label className={getThemeClasses(
@@ -211,7 +211,7 @@ const CustomDropdown = ({
       {/* Dropdown Options */}
       {isOpen && (
         <div className={`
-          absolute z-50 w-full mt-2 rounded-xl shadow-lg overflow-hidden
+          absolute z-[9999] w-full mt-2 rounded-xl shadow-lg overflow-hidden
           ${getThemeClasses(
             'bg-white border border-gray-200',
             'dark:bg-[#232323] dark:border-gray-600'

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { FaTasks, FaCalendarAlt, FaClock, FaCheckCircle, FaExclamationTriangle, FaSearch, FaSpinner, FaFlag, FaEdit, FaTrash, FaTimes, FaShieldAlt, FaRocket, FaSort, FaSortUp, FaSortDown, FaFilter, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaTasks, FaCalendarAlt, FaClock, FaCheckCircle, FaExclamationTriangle, FaSearch, FaSpinner, FaFlag, FaEdit, FaTrash, FaTimes, FaShieldAlt, FaRocket, FaSort, FaSortUp, FaSortDown, FaFilter, FaChevronLeft, FaChevronRight, FaChartBar } from 'react-icons/fa';
 
 import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
@@ -48,13 +48,14 @@ const MyTasksPage = () => {
 
   // Filter and search states
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState([]);
-  const [priorityFilter, setPriorityFilter] = useState([]);
-  const [projectFilter, setProjectFilter] = useState([]);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
+  const [projectFilter, setProjectFilter] = useState('');
   const [sortBy, setSortBy] = useState('deadline');
   const [sortOrder, setSortOrder] = useState('asc');
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
 
   const filterDropdownRef = useRef(null);
 
@@ -127,18 +128,18 @@ const MyTasksPage = () => {
     }
 
     // Status filter
-    if (statusFilter.length > 0) {
-      filtered = filtered.filter(task => statusFilter.includes(task.Status));
+    if (statusFilter) {
+      filtered = filtered.filter(task => task.Status === statusFilter);
     }
 
     // Priority filter
-    if (priorityFilter.length > 0) {
-      filtered = filtered.filter(task => priorityFilter.includes(task.Priority));
+    if (priorityFilter) {
+      filtered = filtered.filter(task => task.Priority === priorityFilter);
     }
 
     // Project filter
-    if (projectFilter.length > 0) {
-      filtered = filtered.filter(task => projectFilter.includes(task.ProjectID));
+    if (projectFilter) {
+      filtered = filtered.filter(task => task.ProjectID === projectFilter);
     }
 
     // Sort
@@ -246,7 +247,7 @@ const MyTasksPage = () => {
       <div>
         {/* Filters and Search */}
         <div className='bg-transparent mb-2'>
-          <div className="flex flex-col lg:flex-row gap-4 w-full justify-between">
+          <div className="flex flex-col lg:flex-row gap-4 w-full justify-between mt-3">
             {/* Search */}
             <div className="flex-1 lg:w-1/2">
               <div className="relative">
@@ -265,19 +266,31 @@ const MyTasksPage = () => {
             </div>
 
             {/* Filters */}
-            <div className="flex flex-col lg:flex-row gap-4 w-full lg:w-1/2 lg:justify-end relative" ref={filterDropdownRef}>
+            <div className="flex flex-row gap-2 w-full lg:w-auto lg:justify-end relative" ref={filterDropdownRef}>
+              {/* Show Stats button for mobile only */}
+              <button
+                onClick={() => setIsStatsModalOpen(true)}
+                className={getThemeClasses(
+                  'md:hidden flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition-colors flex-1',
+                  'md:hidden flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-700 hover:bg-gray-600 text-white transition-colors flex-1'
+                )}
+              >
+                <FaChartBar className="w-4 h-4 text-blue-500" />
+                <span>Stats</span>
+              </button>
+
               <button
                 onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
                 className={getThemeClasses(
-                  'flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition-colors',
-                  'flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-700 hover:bg-gray-600 text-white transition-colors'
+                  'flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition-colors flex-1 lg:flex-none',
+                  'flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-700 hover:bg-gray-600 text-white transition-colors flex-1 lg:flex-none'
                 )}
               >
                 <FaFilter className="w-4 h-4" />
                 <span>Filters</span>
-                {(statusFilter.length > 0 || priorityFilter.length > 0 || projectFilter.length > 0) && (
+                {((statusFilter ? 1 : 0) + (priorityFilter ? 1 : 0) + (projectFilter ? 1 : 0)) > 0 && (
                   <span className="bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {statusFilter.length + priorityFilter.length + projectFilter.length}
+                    {(statusFilter ? 1 : 0) + (priorityFilter ? 1 : 0) + (projectFilter ? 1 : 0)}
                   </span>
                 )}
               </button>
@@ -303,100 +316,66 @@ const MyTasksPage = () => {
                     </button>
                   </div>
 
-                  <div className="p-4 max-h-[60vh] overflow-y-auto">
+                  <div className="p-4 overflow-visible relative z-20">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                       {/* Status Column */}
                       <div>
-                        <h4 className={getThemeClasses('text-sm font-semibold mb-3 text-gray-900', 'text-sm font-semibold mb-3 text-white')}>Status</h4>
-                        <div className="space-y-2">
-                          {projectStatuses.map(status => (
-                            <label key={status.Code} className="flex items-start gap-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={statusFilter.includes(status.Code)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setStatusFilter([...statusFilter, status.Code]);
-                                  } else {
-                                    setStatusFilter(statusFilter.filter(s => s !== status.Code));
-                                  }
-                                }}
-                                className={getThemeClasses(
-                                  'mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                                  'mt-0.5 w-4 h-4 rounded border-gray-600 bg-[#2A2A2A] checked:bg-blue-600'
-                                )}
-                              />
-                              <span className={getThemeClasses('text-sm text-gray-700', 'text-sm text-gray-300')}>{status.Value}</span>
-                            </label>
-                          ))}
-                        </div>
+                        <h4 className={getThemeClasses('text-sm font-semibold mb-2 text-gray-900', 'text-sm font-semibold mb-2 text-white')}>Status</h4>
+                        <CustomDropdown
+                          value={statusFilter}
+                          onChange={(val) => setStatusFilter(val)}
+                          options={[
+                            { value: '', label: 'All Statuses' },
+                            ...projectStatuses.map(status => ({ value: status.Code, label: status.Value }))
+                          ]}
+                          placeholder="All Statuses"
+                          size="sm"
+                        />
                       </div>
 
                       {/* Priority Column */}
                       <div>
-                        <h4 className={getThemeClasses('text-sm font-semibold mb-3 text-gray-900', 'text-sm font-semibold mb-3 text-white')}>Priority</h4>
-                        <div className="space-y-2">
-                          {['High', 'Medium', 'Low'].map(priority => (
-                            <label key={priority} className="flex items-start gap-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={priorityFilter.includes(priority)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setPriorityFilter([...priorityFilter, priority]);
-                                  } else {
-                                    setPriorityFilter(priorityFilter.filter(p => p !== priority));
-                                  }
-                                }}
-                                className={getThemeClasses(
-                                  'mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                                  'mt-0.5 w-4 h-4 rounded border-gray-600 bg-[#2A2A2A] checked:bg-blue-600'
-                                )}
-                              />
-                              <span className={getThemeClasses('text-sm text-gray-700', 'text-sm text-gray-300')}>{priority}</span>
-                            </label>
-                          ))}
-                        </div>
+                        <h4 className={getThemeClasses('text-sm font-semibold mb-2 text-gray-900', 'text-sm font-semibold mb-2 text-white')}>Priority</h4>
+                        <CustomDropdown
+                          value={priorityFilter}
+                          onChange={(val) => setPriorityFilter(val)}
+                          options={[
+                            { value: '', label: 'All Priorities' },
+                            { value: 'High', label: 'High' },
+                            { value: 'Medium', label: 'Medium' },
+                            { value: 'Low', label: 'Low' }
+                          ]}
+                          placeholder="All Priorities"
+                          size="sm"
+                        />
                       </div>
 
                       {/* Projects Column */}
                       <div>
-                        <h4 className={getThemeClasses('text-sm font-semibold mb-3 text-gray-900', 'text-sm font-semibold mb-3 text-white')}>Projects</h4>
-                        <div className="space-y-2">
-                          {projects.map(project => (
-                            <label key={project.ProjectID} className="flex items-start gap-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={projectFilter.includes(project.ProjectID)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setProjectFilter([...projectFilter, project.ProjectID]);
-                                  } else {
-                                    setProjectFilter(projectFilter.filter(p => p !== project.ProjectID));
-                                  }
-                                }}
-                                className={getThemeClasses(
-                                  'mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                                  'mt-0.5 w-4 h-4 rounded border-gray-600 bg-[#2A2A2A] checked:bg-blue-600'
-                                )}
-                              />
-                              <span className={getThemeClasses('text-sm text-gray-700', 'text-sm text-gray-300')}>{project.Name}</span>
-                            </label>
-                          ))}
-                        </div>
+                        <h4 className={getThemeClasses('text-sm font-semibold mb-2 text-gray-900', 'text-sm font-semibold mb-2 text-white')}>Projects</h4>
+                        <CustomDropdown
+                          value={projectFilter}
+                          onChange={(val) => setProjectFilter(val)}
+                          options={[
+                            { value: '', label: 'All Projects' },
+                            ...projects.map(project => ({ value: project.ProjectID, label: project.Name }))
+                          ]}
+                          placeholder="All Projects"
+                          size="sm"
+                        />
                       </div>
                     </div>
                   </div>
 
                   <div className={getThemeClasses(
-                    'p-4 border-t border-gray-200 flex justify-between gap-3',
-                    'p-4 border-t border-gray-600 flex justify-between gap-3'
+                    'p-4 border-t border-gray-200 flex justify-between gap-3 relative z-10',
+                    'p-4 border-t border-gray-600 flex justify-between gap-3 relative z-10'
                   )}>
                     <button
                       onClick={() => {
-                        setStatusFilter([]);
-                        setPriorityFilter([]);
-                        setProjectFilter([]);
+                        setStatusFilter('');
+                        setPriorityFilter('');
+                        setProjectFilter('');
                       }}
                       className={getThemeClasses(
                         'px-4 py-2 text-sm rounded-lg text-gray-700 hover:text-red-600 transition-colors',
@@ -418,9 +397,9 @@ const MyTasksPage = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="w-full lg:w-1/2 mb-2">
-          <div className="grid grid-cols-5 gap-2">
+        {/* Stats Cards - Hidden on Mobile, shown on Desktop */}
+        <div className="hidden md:block w-full lg:w-1/2 mb-2">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             <div className={getThemeClasses(
               'bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300',
               'bg-transparent border border-gray-700 hover:bg-gray-800/30 rounded-xl p-4 hover:shadow-lg transition-all duration-300'
@@ -428,8 +407,8 @@ const MyTasksPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className={getThemeClasses(
-                    'text-sm font-medium text-gray-600 text-nowrap',
-                    'text-sm font-medium text-gray-400 text-nowrap'
+                    'text-sm font-medium text-gray-600',
+                    'text-sm font-medium text-gray-400'
                   )}>Total Tasks</p>
                   <p className={getThemeClasses(
                     'text-2xl font-bold text-gray-900',
@@ -449,8 +428,8 @@ const MyTasksPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className={getThemeClasses(
-                    'text-sm font-medium text-gray-600 text-nowrap',
-                    'text-sm font-medium text-gray-400 text-nowrap'
+                    'text-sm font-medium text-gray-600',
+                    'text-sm font-medium text-gray-400'
                   )}>Completed</p>
                   <p className={getThemeClasses(
                     'text-2xl font-bold text-green-600',
@@ -470,8 +449,8 @@ const MyTasksPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className={getThemeClasses(
-                    'text-sm font-medium text-gray-600 text-nowrap',
-                    'text-sm font-medium text-gray-400 text-nowrap'
+                    'text-sm font-medium text-gray-600',
+                    'text-sm font-medium text-gray-400'
                   )}>Overdue</p>
                   <p className={getThemeClasses(
                     'text-2xl font-bold text-red-600',
@@ -491,8 +470,8 @@ const MyTasksPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className={getThemeClasses(
-                    'text-sm font-medium text-gray-600 text-nowrap',
-                    'text-sm font-medium text-gray-400 text-nowrap'
+                    'text-sm font-medium text-gray-600',
+                    'text-sm font-medium text-gray-400'
                   )}>Due Today</p>
                   <p className={getThemeClasses(
                     'text-2xl font-bold text-yellow-600',
@@ -506,14 +485,14 @@ const MyTasksPage = () => {
             </div>
 
             <div className={getThemeClasses(
-              'bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300',
-              'bg-transparent border border-gray-700 hover:bg-gray-800/30 rounded-xl p-4 hover:shadow-lg transition-all duration-300'
+              'bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300 col-span-2 sm:col-span-1',
+              'bg-transparent border border-gray-700 hover:bg-gray-800/30 rounded-xl p-4 hover:shadow-lg transition-all duration-300 col-span-2 sm:col-span-1'
             )}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className={getThemeClasses(
-                    'text-sm font-medium text-gray-600 text-nowrap',
-                    'text-sm font-medium text-gray-400 text-nowrap'
+                    'text-sm font-medium text-gray-600',
+                    'text-sm font-medium text-gray-400'
                   )}>High Priority</p>
                   <p className={getThemeClasses(
                     'text-2xl font-bold text-red-600',
@@ -589,8 +568,8 @@ const MyTasksPage = () => {
           {/* Pagination Controls */}
           {filteredTasks.length > 0 && (
             <div className={getThemeClasses(
-              'flex flex-col sm:flex-row items-center justify-between gap-4 p-1 bg-white shadow-sm',
-              'flex flex-col sm:flex-row items-center justify-between gap-4 p-1 bg-[#232323] shadow-sm'
+              'flex flex-col sm:flex-row items-center justify-between gap-2 p-1 bg-white shadow-sm',
+              'flex flex-col sm:flex-row items-center justify-between gap-2 p-1 bg-[#232323] shadow-sm'
             )}>
               <div className={getThemeClasses('text-sm text-gray-650 text-gray-500', 'text-sm text-gray-400')}>
                 Showing <span className="font-semibold text-blue-500">{indexOfFirstTask + 1}</span> to{' '}
@@ -670,13 +649,13 @@ const MyTasksPage = () => {
               )}>
                 <FaTasks className="w-16 h-16 mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">
-                  {searchTerm || statusFilter.length > 0 || priorityFilter.length > 0 || projectFilter.length > 0
+                  {searchTerm || statusFilter || priorityFilter || projectFilter
                     ? 'No tasks match your filters'
                     : 'No tasks assigned to you'
                   }
                 </h3>
                 <p className={tableSecondaryTextClasses}>
-                  {searchTerm || statusFilter.length > 0 || priorityFilter.length > 0 || projectFilter.length > 0
+                  {searchTerm || statusFilter || priorityFilter || projectFilter
                     ? 'Try adjusting your search criteria'
                     : 'Check with your team lead to get assigned to tasks'
                   }
@@ -729,7 +708,7 @@ const MyTasksPage = () => {
                         onClick={() => handleHeaderSort('deadline')}
                         className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors mx-auto ${tableHeaderTextClasses}`}
                       >
-                        Date Assigned
+                        Assigned On
                         {getSortIcon('deadline')}
                       </button>
                     </th>
@@ -742,7 +721,7 @@ const MyTasksPage = () => {
                         {getSortIcon('priority')}
                       </button>
                     </th>
-                    <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                    <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('status')}
                         className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
@@ -770,7 +749,7 @@ const MyTasksPage = () => {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center flex-wrap gap-2 mb-1">
                             <button
                               onClick={() => handleTaskClick(task.TaskID || task._id, task.ProjectID)}
                               className={getThemeClasses(
@@ -781,7 +760,12 @@ const MyTasksPage = () => {
                             >
                               {task.Name}
                             </button>
-                            {getTaskTypeBadgeComponent(task.Type)}
+                            <div className="flex items-center gap-1.5">
+                              {getTaskTypeBadgeComponent(task.Type)}
+                              <span className="md:hidden">
+                                {getProjectStatusBadgeComponent(task.Status, true)}
+                              </span>
+                            </div>
                           </div>
                           <span className={getThemeClasses(
                             'text-xs text-gray-500',
@@ -866,7 +850,7 @@ const MyTasksPage = () => {
                           {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-left">
+                      <td className="hidden md:table-cell py-3 px-4 text-left">
                         {getProjectStatusBadgeComponent(task.Status, true)}
                       </td>
                       <td className="py-3 px-4 text-left">
@@ -901,6 +885,113 @@ const MyTasksPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Stats Modal for Mobile View */}
+      {isStatsModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="absolute inset-0" onClick={() => setIsStatsModalOpen(false)} />
+          <div className={getThemeClasses(
+            'relative w-full max-w-md mx-4 bg-white border border-gray-100 rounded-xl shadow-lg p-6 transform transition-all',
+            'relative w-full max-w-md mx-4 bg-[#18181b] border border-[#232323] rounded-xl shadow-lg p-6 text-white transform transition-all'
+          )}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={getThemeClasses('text-lg font-semibold text-gray-900', 'text-lg font-semibold text-white')}>
+                Task Analytics
+              </h3>
+              <button
+                onClick={() => setIsStatsModalOpen(false)}
+                className={getThemeClasses(
+                  'text-gray-400 hover:text-gray-600 text-xl font-bold transition-colors',
+                  'text-gray-400 hover:text-gray-300 text-xl font-bold transition-colors'
+                )}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="space-y-3 mb-6">
+              {/* Total Tasks */}
+              <div className={getThemeClasses(
+                'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
+                'bg-[#232323]/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
+              )}>
+                <div>
+                  <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>Total Tasks</p>
+                  <p className={getThemeClasses('text-xl font-bold mt-0.5 text-gray-900', 'text-xl font-bold mt-0.5 text-white')}>{stats.totalTasks}</p>
+                </div>
+                <div className="p-2 rounded-xl bg-blue-100 bg-blue-900/20 text-blue-600 text-blue-400">
+                  <FaTasks className="w-4 h-4" />
+                </div>
+              </div>
+              
+              {/* Completed */}
+              <div className={getThemeClasses(
+                'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
+                'bg-[#232323]/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
+              )}>
+                <div>
+                  <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>Completed</p>
+                  <p className={getThemeClasses('text-xl font-bold mt-0.5 text-green-600', 'text-xl font-bold mt-0.5 text-green-400')}>{stats.completedTasks}</p>
+                </div>
+                <div className="p-2 rounded-xl bg-green-100 bg-green-900/20 text-green-600 text-green-400">
+                  <FaCheckCircle className="w-4 h-4" />
+                </div>
+              </div>
+
+              {/* Overdue */}
+              <div className={getThemeClasses(
+                'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
+                'bg-[#232323]/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
+              )}>
+                <div>
+                  <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>Overdue</p>
+                  <p className={getThemeClasses('text-xl font-bold mt-0.5 text-red-650 text-red-500', 'text-xl font-bold mt-0.5 text-red-400')}>{stats.overdueTasks}</p>
+                </div>
+                <div className="p-2 rounded-xl bg-red-100 bg-red-900/20 text-red-600 text-red-400">
+                  <FaExclamationTriangle className="w-4 h-4" />
+                </div>
+              </div>
+
+              {/* Due Today */}
+              <div className={getThemeClasses(
+                'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
+                'bg-[#232323]/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
+              )}>
+                <div>
+                  <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>Due Today</p>
+                  <p className={getThemeClasses('text-xl font-bold mt-0.5 text-yellow-650 text-yellow-500', 'text-xl font-bold mt-0.5 text-yellow-400')}>{stats.dueTodayTasks}</p>
+                </div>
+                <div className="p-2 rounded-xl bg-yellow-100 bg-yellow-900/20 text-yellow-600 text-yellow-400">
+                  <FaCalendarAlt className="w-4 h-4" />
+                </div>
+              </div>
+
+              {/* High Priority */}
+              <div className={getThemeClasses(
+                'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
+                'bg-[#232323]/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
+              )}>
+                <div>
+                  <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>High Priority</p>
+                  <p className={getThemeClasses('text-xl font-bold mt-0.5 text-red-650 text-red-500', 'text-xl font-bold mt-0.5 text-red-455 text-red-400')}>{stats.highPriorityTasks}</p>
+                </div>
+                <div className="p-2 rounded-xl bg-red-100 bg-red-900/20 text-red-600 text-red-400">
+                  <FaFlag className="w-4 h-4" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <button
+                onClick={() => setIsStatsModalOpen(false)}
+                className="px-4 py-2 text-sm rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

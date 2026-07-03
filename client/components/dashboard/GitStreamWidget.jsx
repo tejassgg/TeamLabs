@@ -89,9 +89,9 @@ const GitStreamWidget = ({ organizationId, theme }) => {
           </div>
         )}
 
-        {!loading && !error && commits.map((commit) => (
+        {!loading && !error && commits.map((commit, index) => (
           <div 
-            key={commit.sha} 
+            key={`${commit.sha}-${index}`} 
             className={`p-3 rounded-xl mb-3 border transition-all duration-200 ${
               theme === 'dark' 
                 ? 'bg-slate-900/40 border-white/5 hover:border-white/10' 

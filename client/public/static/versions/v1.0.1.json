@@ -29,7 +29,7 @@
     },
     {
       "title": "Fixed Column Alignment",
-      "description": "Implemented table-fixed layout with consistent column widths across all status sections, ensuring perfect alignment of Task, Assigned To, Assignee, Date Assigned, Priority, Task Type, and Actions columns."
+      "description": "Implemented table-fixed layout with consistent column widths across all status sections, ensuring perfect alignment of Task, Assigned To, Assignee, Assigned On, Priority, Task Type, and Actions columns."
     }
   ],
   "improvements_bug_fixes": [
