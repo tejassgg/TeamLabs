@@ -15,6 +15,15 @@ const POLICY_VERSIONS = {
   COOKIE_POLICY: '1.0'
 };
 
+const mapPolicyType = (policyType) => {
+  if (!policyType) return '';
+  const upper = policyType.toUpperCase();
+  if (upper === 'PRIVACY' || upper === 'PRIVACY_POLICY') return 'PRIVACY_POLICY';
+  if (upper === 'TERMS' || upper === 'TERMS_OF_SERVICE') return 'TERMS_OF_SERVICE';
+  if (upper === 'COOKIE' || upper === 'COOKIE_POLICY') return 'COOKIE_POLICY';
+  return upper;
+};
+
 /**
  * Check if a policy has been accepted
  * @param {string} policyType - The type of policy (privacy, terms, cookie)
@@ -24,14 +33,15 @@ export const isPolicyAccepted = (policyType) => {
   if (typeof window === 'undefined') return false; // SSR safety
   
   try {
-    const key = POLICY_KEYS[policyType.toUpperCase()];
+    const mappedType = mapPolicyType(policyType);
+    const key = POLICY_KEYS[mappedType];
     if (!key) return false;
     
     const stored = localStorage.getItem(key);
     if (!stored) return false;
     
     const data = JSON.parse(stored);
-    const currentVersion = POLICY_VERSIONS[policyType.toUpperCase()];
+    const currentVersion = POLICY_VERSIONS[mappedType];
     
     // Check if the stored version matches current version
     return data.version === currentVersion && data.accepted === true;
@@ -50,10 +60,11 @@ export const acceptPolicy = (policyType) => {
   if (typeof window === 'undefined') return false; // SSR safety
   
   try {
-    const key = POLICY_KEYS[policyType];
+    const mappedType = mapPolicyType(policyType);
+    const key = POLICY_KEYS[mappedType];
     if (!key) return false;
     
-    const currentVersion = POLICY_VERSIONS[policyType];
+    const currentVersion = POLICY_VERSIONS[mappedType];
     const acceptanceData = {
       accepted: true,
       version: currentVersion,
@@ -78,7 +89,8 @@ export const getPolicyAcceptanceData = (policyType) => {
   if (typeof window === 'undefined') return null; // SSR safety
   
   try {
-    const key = POLICY_KEYS[policyType];
+    const mappedType = mapPolicyType(policyType);
+    const key = POLICY_KEYS[mappedType];
     if (!key) return null;
     
     const stored = localStorage.getItem(key);
@@ -134,7 +146,7 @@ export const getAcceptanceStats = () => {
     };
     
     Object.entries(POLICY_KEYS).forEach(([policyType, key]) => {
-      const data = getPolicyAcceptanceData(policyType.toLowerCase().replace('_', ''));
+      const data = getPolicyAcceptanceData(policyType);
       stats.acceptanceDetails[policyType] = data;
       if (data && data.accepted) {
         stats.acceptedPolicies++;

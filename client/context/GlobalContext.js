@@ -5,7 +5,7 @@ import { getProjectStatusStyle, getProjectStatusBadge } from '../components/proj
 import { getTaskTypeStyle, getTaskTypeBadge } from '../components/task/TaskTypeBadge';
 import { getDeadlineStatus, calculateDeadlineText } from '../components/shared/DeadlineStatusBadge';
 import { useRouter } from 'next/router';
-import { subscribe } from '../services/socket';
+import { subscribe, connectSocket } from '../services/socket';
 
 const GlobalContext = createContext();
 
@@ -327,6 +327,13 @@ export const GlobalProvider = ({ children }) => {
 
     initializeData();
   }, [userDetails, router.pathname]);
+
+  // Connect socket when user details are retrieved/changed
+  useEffect(() => {
+    if (userDetails) {
+      connectSocket();
+    }
+  }, [userDetails]);
 
   // Subscribe to real-time team events
   useEffect(() => {

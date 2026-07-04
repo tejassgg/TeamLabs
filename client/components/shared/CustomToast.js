@@ -16,7 +16,7 @@ const CustomToast = ({ message, type = 'success', onClose, duration = 3500 }) =>
   }, [duration, onClose]);
 
   const getToastStyles = () => {
-    const baseStyles = 'fixed top-20 right-6 z-50 flex items-center gap-4 px-3 py-2 rounded-xl shadow-2xl transform transition-all duration-500 ease-in-out animate-slide-in w-[420px] max-w-[90vw]';
+    const baseStyles = 'fixed top-20 right-6 z-50 flex items-center gap-4 px-4 py-2.5 rounded-lg shadow-2xl transform transition-all duration-500 ease-in-out animate-slide-in w-[420px] max-w-[90vw]';
 
     const typeStyles = {
       success: theme === 'dark'
@@ -55,7 +55,7 @@ const CustomToast = ({ message, type = 'success', onClose, duration = 3500 }) =>
   return (
     <div className={getToastStyles()}>
       {getIcon()}
-      <p className="text-base font-semibold leading-snug break-words flex-1">{message}</p>
+      <p className="text-base font-medium leading-snug break-words flex-1">{message}</p>
       <button
         onClick={onClose}
         className={`ml-2 p-1 rounded-full hover:bg-opacity-20 transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-white/20' : 'hover:bg-black/10'

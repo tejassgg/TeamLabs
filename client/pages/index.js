@@ -40,10 +40,12 @@ import {
   FaArrowUp,
   FaArrowDown,
   FaCommentAlt,
-  FaCalendarAlt
+  FaCalendarAlt,
+  FaCookieBite
 } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
-import { getAllPolicyStatus } from '../utils/policyAcceptance';
+import { getAllPolicyStatus, acceptPolicy } from '../utils/policyAcceptance';
+import { useToast } from '../context/ToastContext';
 import PrivacyPolicyModal from '../components/shared/PrivacyPolicyModal';
 import TermsOfServiceModal from '../components/shared/TermsOfServiceModal';
 import CookiePolicyModal from '../components/shared/CookiePolicyModal';
@@ -113,6 +115,7 @@ const features = [
 function Home() {
   const { logout, isAuthenticated } = useGlobal();
   const { theme } = useTheme();
+  const { showToast } = useToast();
   const router = useRouter();
   const [stats, setStats] = useState(defaultStats);
   const [loading, setLoading] = useState(true);
@@ -120,6 +123,7 @@ function Home() {
   const [showTermsOfService, setShowTermsOfService] = useState(false);
   const [showCookiePolicy, setShowCookiePolicy] = useState(false);
   const [showContactSupport, setShowContactSupport] = useState(false);
+  const [showCookieBanner, setShowCookieBanner] = useState(false);
   const [policyStatus, setPolicyStatus] = useState({
     privacyPolicy: false,
     termsOfService: false,
@@ -371,6 +375,25 @@ function Home() {
     setPolicyStatus(status);
   }, []);
 
+  // Show cookie banner if cookie policy is not accepted
+  useEffect(() => {
+    if (policyStatus && !policyStatus.cookiePolicy) {
+      const timer = setTimeout(() => {
+        setShowCookieBanner(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowCookieBanner(false);
+    }
+  }, [policyStatus]);
+
+  const handleAcceptCookies = () => {
+    acceptPolicy('COOKIE_POLICY');
+    setPolicyStatus(getAllPolicyStatus());
+    setShowCookieBanner(false);
+    showToast('Cookie Policy accepted!', 'success');
+  };
+
   // AI Terminal Simulation logic
   const runTerminalSimulation = async (promptKey) => {
     setTerminalStatus('typing');
@@ -522,6 +545,28 @@ function Home() {
   const handleLogout = () => {
     logout();
   };
+
+  // URL Hash and Query Parameter modal auto-open (for Google ID verification deep links)
+  useEffect(() => {
+    const checkHashAndQuery = () => {
+      if (typeof window === 'undefined') return;
+      const hash = window.location.hash;
+      const urlParams = new URLSearchParams(window.location.search);
+      const modalParam = urlParams.get('modal');
+
+      if (hash === '#privacy' || hash === '#privacy-policy' || modalParam === 'privacy') {
+        setShowPrivacyPolicy(true);
+      } else if (hash === '#terms' || hash === '#terms-of-service' || modalParam === 'terms') {
+        setShowTermsOfService(true);
+      } else if (hash === '#cookie' || hash === '#cookie-policy' || modalParam === 'cookie') {
+        setShowCookiePolicy(true);
+      }
+    };
+
+    checkHashAndQuery();
+    window.addEventListener('hashchange', checkHashAndQuery);
+    return () => window.removeEventListener('hashchange', checkHashAndQuery);
+  }, [router.query]);
 
   const openLogin = () => {
     router.push('/auth?type=login');
@@ -1433,7 +1478,7 @@ function Home() {
         </section>
 
         {/* Footer Redesign */}
-        <footer className="relative w-full border-t border-indigo-500/10 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <footer className="relative w-full border-t border-indigo-500/10 py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 text-left mb-12">
             
             {/* Brand column */}
@@ -1488,7 +1533,7 @@ function Home() {
 
           {/* Bottom Bar */}
           <div className="pt-8 border-t border-indigo-500/5 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-semibold text-slate-500">
-            <p>&copy; {new Date().getFullYear()} TeamLabs SaaS. All rights reserved. Created with ❤️ for hyper-velocity developer scrums.</p>
+            <p>&copy; {new Date().getFullYear()} TeamLabs. All rights reserved.</p>
             <div className="flex flex-wrap gap-4 items-center">
               <button onClick={() => setShowPrivacyPolicy(true)} className="hover:text-indigo-500 transition-colors flex items-center gap-1">
                 Privacy Policy {policyStatus.privacyPolicy && <FaCheck className="text-emerald-500" size={10} />}
@@ -1502,6 +1547,46 @@ function Home() {
             </div>
           </div>
         </footer>
+
+        {/* Cookie Consent Banner */}
+        {showCookieBanner && (
+          <div className={`fixed bottom-6 left-6 right-6 md:left-auto md:right-8 md:max-w-md z-50 p-5 rounded-2xl border shadow-2xl transition-all duration-500 ease-in-out transform translate-y-0 scale-100 flex flex-col gap-4 animate-fade-in-up ${
+            theme === 'dark'
+              ? 'bg-slate-900 border-slate-800 text-slate-100 shadow-slate-950/80'
+              : 'bg-white border-slate-200 text-slate-800 shadow-slate-200/50'
+          }`}>
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center bg-indigo-600 text-white shadow-md shadow-indigo-600/10">
+                <FaCookieBite className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold leading-tight">Cookie Consent</h4>
+                <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                  We use cookies to optimize our AI-powered velocity project management SaaS, analyze site telemetry, and personalize your experience. By clicking &quot;Accept All&quot;, you agree to our cookie storage.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2.5 ml-auto">
+              <button
+                onClick={() => setShowCookiePolicy(true)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                  theme === 'dark'
+                    ? 'border-slate-800 text-slate-300 hover:bg-slate-800'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Preferences
+              </button>
+              <button
+                onClick={handleAcceptCookies}
+                className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all"
+              >
+                Accept All
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Modal Modifiers */}
         <PrivacyPolicyModal isOpen={showPrivacyPolicy} onClose={() => { setShowPrivacyPolicy(false); setPolicyStatus(getAllPolicyStatus()); }} />

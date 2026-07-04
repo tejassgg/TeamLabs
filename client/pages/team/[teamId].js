@@ -219,8 +219,9 @@ const TeamDetailsPage = () => {
     const unsubscribeMemberStatusUpdated = subscribe('team.member.status.updated', (data) => {
       if (data.data.teamId === teamId) {
         // Update member status in the list
+        const targetMemberId = data.data.memberId || data.data.member?.MemberID;
         setMembers(prev => prev.map(m =>
-          m.MemberID === data.data.memberId
+          m.MemberID === targetMemberId
             ? { ...m, IsMemberActive: data.data.member.IsMemberActive }
             : m
         ));
@@ -974,7 +975,7 @@ const TeamDetailsPage = () => {
                   <StatusPill status={team.IsActive ? 'Active' : 'InActive'} theme={theme} showPulseOnActive />
                   {team.teamTypeValue && (
                     <div className={getThemeClasses(
-                      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200',
+                      'inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200',
                       'dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50'
                     )}>
                       {team.teamTypeValue}
@@ -1227,12 +1228,12 @@ const TeamDetailsPage = () => {
                                 <button
                                   onClick={(e) => handleDeleteMeeting(m.MeetingID, e)}
                                   className={getThemeClasses(
-                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                    'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
                                     'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
                                   )}
                                   title="Delete meeting"
                                 >
-                                  <FaTrash size={14} />
+                                  <FaTrash size={12} />
                                 </button>
                               </div>
                             )}
@@ -1262,7 +1263,7 @@ const TeamDetailsPage = () => {
                               {(() => {
                                 const status = getDeadlineStatusComponent(meetingDays.text);
                                 return (
-                                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
+                                  <span className={`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
                                     <span className={`w-2 h-2 rounded-full ${status.dotColor} ${meetingDays.status !== 'past' && meetingDays.status !== 'yesterday' ? 'animate-pulse' : ''}`}></span>
                                     {status.text}
                                   </span>
@@ -1548,19 +1549,19 @@ const TeamDetailsPage = () => {
                                     setShowRevokeDialog(true);
                                   }}
                                   className={getThemeClasses(
-                                    `inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${member.IsMemberActive
-                                      ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                    `inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${member.IsMemberActive
+                                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                                     }`,
                                     `dark:${member.IsMemberActive
-                                      ? 'bg-blue-900/50 text-blue-300 hover:bg-blue-900/70'
-                                      : 'bg-green-900/50 text-green-300 hover:bg-green-900/70'
+                                      ? 'bg-green-900/50 text-green-300 hover:bg-green-900/70'
+                                      : 'bg-blue-900/50 text-blue-300 hover:bg-blue-900/70'
                                     }`
                                   )}
                                   title={member.IsMemberActive ? 'Revoke Access' : 'Grant Access'}
                                   disabled={toggling === member.TeamDetailsID}
                                 >
-                                  <FaToggleOn size={14} />
+                                  <FaToggleOn size={12} />
                                 </button>
                                 <button
                                   onClick={() => {
@@ -1573,13 +1574,13 @@ const TeamDetailsPage = () => {
                                     setShowRemoveDialog(true);
                                   }}
                                   className={getThemeClasses(
-                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                    'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
                                     'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
                                   )}
                                   title="Remove Member"
                                   disabled={removing === member.TeamDetailsID}
                                 >
-                                  <FaTimes size={14} />
+                                  <FaTimes size={12} />
                                 </button>
                               </div>
                             </td>

@@ -345,12 +345,14 @@ const TaskDetailsPage = () => {
         const currentIndex = statusEntries.findIndex(([statusCode]) => parseInt(statusCode) === status);
         if (currentIndex === -1) return 0;
 
+        const totalSteps = statusEntries.length;
+        if (currentIndex === totalSteps - 1) return 100;
+
         // Calculate percentage to stop at the center of the current status circle
         // For 6 statuses: 0%, 16.67%, 33.33%, 50%, 66.67%, 83.33%
         // We want to stop at the center of the current status, not extend beyond it
-        const totalSteps = statusEntries.length;
         const progressPerStep = 100 / totalSteps;
-        const progressToCurrentStep = (currentIndex + 0.7) * progressPerStep; // +0.5 to stop at center
+        const progressToCurrentStep = (currentIndex + 0.7) * progressPerStep; // +0.7 to stop at center
 
         return Math.round(progressToCurrentStep);
     };

@@ -8,14 +8,40 @@ const { formatTime12Hour } = require('./services/dateUtils');
 
 let ioInstance = null;
 
+function parseCookies(cookieString) {
+  if (!cookieString) return {};
+  const cookies = {};
+  cookieString.split(';').forEach(cookie => {
+    const parts = cookie.split('=');
+    if (parts.length >= 2) {
+      const name = parts[0].trim();
+      const val = parts.slice(1).join('=').trim();
+      cookies[name] = decodeURIComponent(val);
+    }
+  });
+  return cookies;
+}
+
 function getTokenFromHandshake(handshake) {
-  // Prefer auth.token, then query.token, then Authorization header
+  // 1. Prefer auth.token
   const authToken = handshake.auth && handshake.auth.token;
-  if (authToken) return authToken;
+  if (authToken && authToken !== 'undefined') return authToken;
+
+  // 2. Check query params
   const queryToken = handshake.query && (handshake.query.token || handshake.query.authToken);
-  if (queryToken) return queryToken;
+  if (queryToken && queryToken !== 'undefined') return queryToken;
+
+  // 3. Check Authorization header
   const headerAuth = handshake.headers && (handshake.headers.authorization || handshake.headers.Authorization);
   if (headerAuth && headerAuth.startsWith('Bearer ')) return headerAuth.split(' ')[1];
+
+  // 4. Parse from cookie header (for httpOnly session cookies)
+  const cookieHeader = handshake.headers.cookie;
+  if (cookieHeader) {
+    const cookies = parseCookies(cookieHeader);
+    if (cookies.token) return cookies.token;
+  }
+
   return null;
 }
 
@@ -38,7 +64,10 @@ function initSocket(server) {
   const io = new Server(server, {
     path: process.env.SOCKET_IO_PATH || '/socket.io',
     cors: {
-      origin: process.env.SOCKET_CORS_ORIGINS ? process.env.SOCKET_CORS_ORIGINS.split(',') : '*',
+      origin: (origin, callback) => {
+        // Dynamically echo back the requesting origin to satisfy credentials: true requirements
+        callback(null, true);
+      },
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
       credentials: true

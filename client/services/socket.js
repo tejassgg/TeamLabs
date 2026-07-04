@@ -12,16 +12,25 @@ let isConnecting = false;
 const subscribers = new Map(); // eventName -> Set<callback>
 
 export function connectSocket() {
-  if (socket || isConnecting) return socket;
+  const isLoggedIn = typeof window !== 'undefined' && localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) {
+    if (socket) {
+      disconnectSocket();
+    }
+    return null;
+  }
+
+  if (socket) {
+    return socket;
+  }
+
+  if (isConnecting) return null;
   isConnecting = true;
-  const token = Cookies.get('token');
+
   socket = io(SOCKET_URL, {
     path: SOCKET_PATH,
     transports: ['websocket', 'polling'],
-    auth: { token },
-    cors: {
-      origin: process.env.NEXT_PUBLIC_SOCKET_CORS_ORIGINS ? process.env.NEXT_PUBLIC_SOCKET_CORS_ORIGINS.split(',') : '*',
-    },
+    withCredentials: true,
     reconnection: true,
     reconnectionAttempts: Infinity,
     reconnectionDelay: 500,
