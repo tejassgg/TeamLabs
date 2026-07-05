@@ -11,7 +11,7 @@ const speakeasy = require('speakeasy');
 const { logActivity } = require('../services/activityService');
 const { sendResetEmail } = require('../services/emailService');
 const Invite = require('../models/Invite');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID: uuidv4 } = require('crypto');
 require('dotenv').config();
 const { emitToOrg } = require('../socket');
 const ForgotPasswordHistory = require('../models/ForgotPasswordHistory');

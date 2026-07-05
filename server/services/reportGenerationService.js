@@ -1,6 +1,6 @@
 const { GoogleGenAI } = require('@google/genai');
 const mongoose = require('mongoose');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID: uuidv4 } = require('crypto');
 const fs = require('fs').promises;
 const path = require('path');
 
