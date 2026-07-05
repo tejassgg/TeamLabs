@@ -15,6 +15,7 @@ out/
 
 # Environment Variables
 .env*.local
+.env*
 
 # OS Files
 .DS_Store
