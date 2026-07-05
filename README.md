@@ -6,11 +6,11 @@
 
 **Transform your team's productivity with our comprehensive project management platform featuring AI-powered assistance, real-time collaboration, and advanced analytics.**
 
-[![React](https://img.shields.io/badge/React-18.2.0-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-13.4.13-000000?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=node.js)](https://nodejs.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-7.8.7-47A248?style=flat-square&logo=mongodb)](https://mongodb.com/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.3.3-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![React](https://img.shields.io/badge/React-19.2.7-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.2.10-000000?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-Express%205-339933?style=flat-square&logo=node.js)](https://nodejs.org/)
+[![MongoDB/Mongoose](https://img.shields.io/badge/Mongoose-9.7.3-47A248?style=flat-square&logo=mongodb)](https://mongodb.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4.3.2-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 
 [Live Demo](#-live-demo) • [Features](#-features) • [Pricing](#-pricing) • [Getting Started](#-getting-started) • [Documentation](#-documentation)
 
@@ -288,37 +288,39 @@
 ## 🛠️ Tech Stack
 
 ### Frontend Architecture
-- **React 18.2.0** - Modern UI library with hooks
-- **Next.js 13.4.13** - Full-stack React framework
-- **Tailwind CSS 3.3.3** - Utility-first styling
-- **Chart.js 4.5.0** - Interactive data visualization
-- **React Hook Form 7.45.4** - Performant form management
+- **React 19.2.7** - Modern UI library with concurrent features and hooks
+- **Next.js 16.2.10 (Turbopack)** - High-performance full-stack React framework
+- **Tailwind CSS 4.3.2** - Next-generation CSS-first utility styling engine
+- **Chart.js 4.5.1** - Interactive data visualization
+- **React Hook Form 7.81.0** - Performant form management
 - **React Beautiful DnD 13.1.1** - Smooth drag-and-drop
 
 ### Backend Infrastructure
 - **Node.js** - High-performance JavaScript runtime
-- **Express.js 4.21.2** - Fast, unopinionated web framework
+- **Express.js 5.2.1** - Modern, fast web framework
 - **MongoDB 7.8.7** - Flexible NoSQL database
-- **Mongoose 7.8.7** - Elegant MongoDB object modeling
+- **Mongoose 9.7.3** - Elegant MongoDB object modeling with modern validation
 - **JWT** - Secure token-based authentication
 
 ### Security & Authentication
 - **Google OAuth** - Social login integration
 - **Speakeasy 2.0.0** - Two-factor authentication
-- **bcryptjs 2.4.3** - Secure password hashing
+- **bcryptjs 3.0.3** - Secure password hashing
+- **express-mongo-sanitize 2.2.0** - Sanitization middleware protecting against NoSQL query injection
 - **CORS** - Cross-origin resource sharing
 - **Session Management** - Secure session handling
 
 ### Payment & Integration
-- **Stripe 18.2.1** - Global payment processing
-- **@stripe/stripe-js 7.4.0** - Stripe JavaScript SDK
+- **Stripe 22.3.0** - Global payment processing SDK
+- **@stripe/stripe-js 9.9.0** - Stripe JavaScript SDK for Client-Side Payments
 - **Webhook Support** - Real-time payment notifications
 
 ### Development & DevOps
 - **Swagger** - Interactive API documentation
-- **Nodemon** - Development server with auto-reload
-- **PostCSS** - Advanced CSS processing
-- **Autoprefixer** - Automatic vendor prefixing
+- **Nodemon 3.1.14** - Development server with auto-reload
+- **PostCSS 8.5.16** - Advanced CSS processing
+- **@tailwindcss/postcss 4.3.2** - PostCSS plugin integration for Tailwind v4
+- **Autoprefixer 10.5.2** - Automatic vendor prefixing
 
 ---
 
@@ -456,6 +458,7 @@ GET  /api/chatbot/history   # Conversation history
 - **Multi-layer authentication** with JWT and 2FA
 - **Role-based access control** at organization and project levels
 - **Data encryption** for sensitive information
+- **Input Sanitization**: Global protection against NoSQL query injection via `express-mongo-sanitize`
 - **Audit logging** for compliance and security monitoring
 - **Rate limiting** to prevent abuse
 
