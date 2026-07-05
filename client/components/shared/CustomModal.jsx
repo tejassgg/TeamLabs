@@ -18,7 +18,7 @@ const CustomModal = ({ isOpen, onClose, title, children, actions, getThemeClasse
     : 'text-gray-400 hover:text-gray-600 text-xl font-bold';
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className={containerClasses}>
         {(title || onClose) && (
           <div className="flex items-center justify-between mb-4">

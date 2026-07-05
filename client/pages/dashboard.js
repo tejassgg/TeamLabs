@@ -1147,7 +1147,7 @@ const Dashboard = () => {
 
         {/* Remove Member Confirmation Dialog */}
         {showRemoveDialog && removingUser && (
-          <div className={`fixed inset-0 flex items-center justify-center z-50 ${theme === 'dark' ? 'bg-black bg-opacity-70' : 'bg-black bg-opacity-50'}`}>
+          <div className={`fixed inset-0 flex items-center justify-center z-50 ${theme === 'dark' ? 'bg-black/70' : 'bg-black/50'}`}>
             <div className={`rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border ${theme === 'dark' ? 'bg-[#232323] border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-100'}`}>
               <div className="flex items-center gap-3 mb-4">
                 <span className="w-3 h-3 rounded-full bg-red-500"></span>
@@ -1178,7 +1178,7 @@ const Dashboard = () => {
 
         {/* Invite Modal */}
         {showInviteModal && (
-          <div className={`fixed inset-0 flex items-center justify-center z-50 ${theme === 'dark' ? 'bg-black bg-opacity-70' : 'bg-black bg-opacity-50'}`}>
+          <div className={`fixed inset-0 flex items-center justify-center z-50 ${theme === 'dark' ? 'bg-black/70' : 'bg-black/50'}`}>
             <div className={`rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border ${theme === 'dark' ? 'bg-[#232323] border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-100'}`}>
               <div className="flex items-center gap-3 mb-4">
                 <span className="w-3 h-3 rounded-full bg-blue-500"></span>

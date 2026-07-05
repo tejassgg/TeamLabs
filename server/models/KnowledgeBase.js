@@ -98,9 +98,8 @@ KnowledgeBaseSchema.index({ 'metadata.categories': 1 });
 KnowledgeBaseSchema.index({ createdAt: -1 });
 
 // Update the updatedAt field before saving
-KnowledgeBaseSchema.pre('save', function(next) {
+KnowledgeBaseSchema.pre('save', function() {
   this.updatedAt = new Date();
-  next();
 });
 
 module.exports = mongoose.model('KnowledgeBase', KnowledgeBaseSchema);

@@ -27,7 +27,7 @@ const TaskDetailsSchema = new mongoose.Schema({
   },
   Type: {
     type: String,
-    enum: ['Task', 'Bug', 'User Story', 'Feature', 'Improvement', 'Documentation', 'Maintenance'],
+    enum: ['Task', 'Bug', 'User Story', 'Feature', 'Improvement', 'Documentation', 'Maintenance', 'Support'],
     required: true
   },
   Priority: {

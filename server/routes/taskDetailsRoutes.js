@@ -214,8 +214,8 @@ router.get('/', async (req, res) => {
     }
 });
 
-// GET /api/task-details/all - Get all tasks with user details for query board (filtered by organization)
-router.get('/all', async (req, res) => {
+// GET /api/task-details/all - Get all tasks with user details for query board (filtered by user's teams and organization)
+router.get('/all', protect, async (req, res) => {
     try {
         const { organizationId } = req.query;
         
@@ -223,8 +223,36 @@ router.get('/all', async (req, res) => {
             return res.status(400).json({ error: 'Organization ID is required' });
         }
 
-        // First, get all projects for the organization
-        const projects = await Project.find({ OrganizationID: organizationId }).select('ProjectID');
+        const myUserId = req.user._id;
+
+        // Find teams where user is a member
+        const myTeamDetails = await TeamDetails.find({ MemberID: myUserId, IsMemberActive: true });
+        const memberTeamIds = myTeamDetails.map(td => td.TeamID_FK);
+
+        // Find teams where user is the owner
+        const ownedTeams = await Team.find({ OwnerID: myUserId, IsActive: true });
+        const ownedTeamIds = ownedTeams.map(team => team.TeamID);
+
+        // Combine unique team IDs
+        const myTeamIds = [...new Set([...memberTeamIds, ...ownedTeamIds].map(id => id.toString()))];
+
+        if (myTeamIds.length === 0) {
+            return res.json({ tasks: [], commonTypes: {} });
+        }
+
+        // Get projects for these teams
+        const projectAssignments = await ProjectDetails.find({ TeamID: { $in: myTeamIds }, IsActive: true });
+        const assignedProjectIds = projectAssignments.map(pa => pa.ProjectID);
+
+        if (assignedProjectIds.length === 0) {
+            return res.json({ tasks: [], commonTypes: {} });
+        }
+
+        // First, get all projects for the organization that are assigned to the user's teams
+        const projects = await Project.find({ 
+            ProjectID: { $in: assignedProjectIds },
+            OrganizationID: organizationId 
+        }).select('ProjectID');
         const projectIds = projects.map(project => project.ProjectID);
 
         if (projectIds.length === 0) {

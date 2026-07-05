@@ -153,8 +153,7 @@ export const GlobalProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const data = await authService.register(userData);
-      setUserDetails(data);
-      return { success: true };
+      return { success: true, message: data?.message };
     } catch (error) {
       return {
         success: false,

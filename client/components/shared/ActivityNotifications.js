@@ -161,9 +161,11 @@ const ActivityNotifications = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className={`absolute right-0 mt-2 w-96 rounded-xl shadow-lg py-1 ${
-      theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-    } ring-1 ring-black ring-opacity-5 focus:outline-none z-50`}>
+    <div className={`fixed md:absolute top-16 md:top-auto left-4 md:left-auto right-4 md:right-0 mt-2 md:w-96 w-auto rounded-xl shadow-lg py-1 border z-50 ${
+      theme === 'dark' 
+        ? 'bg-gray-800 text-white border-gray-700' 
+        : 'bg-white text-gray-900 border-gray-200'
+    } focus:outline-none`}>
       <div className={`px-4 py-2 border-b ${
         theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
       }`}>
@@ -211,8 +213,8 @@ const ActivityNotifications = ({ isOpen, onClose }) => {
             {activities.map((activity) => (
               <div
                 key={activity._id}
-                className={`px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150 ${
-                  theme === 'dark' ? 'border-gray-700' : 'border-gray-100'
+                className={`px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-150 border-b ${
+                  theme === 'dark' ? 'border-gray-700/50 last:border-b-0' : 'border-gray-100 last:border-b-0'
                 }`}
               >
                 <div className="flex items-start space-x-3">

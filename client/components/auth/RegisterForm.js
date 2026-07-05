@@ -6,6 +6,7 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useToast } from '../../context/ToastContext';
 import { GoogleLogin } from '@react-oauth/google';
 import { commonTypeService } from '../../services/api';
 
@@ -15,6 +16,7 @@ const RegisterForm = ({ onOpenLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { register: registerUser, googleLogin } = useGlobal();
   const { theme } = useTheme();
+  const { showToast } = useToast();
   const router = useRouter();
   const inviteToken = (router?.query?.inviteToken || router?.query?.invite || null);
   const [step, setStep] = useState(1);
@@ -88,6 +90,14 @@ const RegisterForm = ({ onOpenLogin }) => {
       const result = await registerUser({ ...data, profileImage: imageUrl, inviteToken });
       if (result.success) {
         showToast('Registration Successful!', 'success');
+        showToast(`An email has been sent to ${data.email}. Please verify to activate your account.`, 'info');
+        setTimeout(() => {
+          if (onOpenLogin) {
+            onOpenLogin();
+          } else {
+            router.push('/auth?type=login');
+          }
+        }, 2000);
       } else {
         setError(result.message);
       }

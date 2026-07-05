@@ -44,6 +44,12 @@ export const getStatusConfig = (status) => {
       bgColor: 'bg-gray-500/10',
       icon: FaPowerOff,
       label: 'Offline'
+    },
+    'InActive': {
+      color: 'text-red-500',
+      bgColor: 'bg-red-500/10',
+      icon: FaPowerOff,
+      label: 'InActive'
     }
   };
   return config[status] || config['Offline'];

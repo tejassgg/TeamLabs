@@ -22,11 +22,10 @@ inviteSchema.methods.isExpired = function() {
 };
 
 // Pre-save middleware to update status if expired
-inviteSchema.pre('save', function(next) {
+inviteSchema.pre('save', function() {
   if (this.status === 'Pending' && this.isExpired()) {
     this.status = 'Expired';
   }
-  next();
 });
 
 module.exports = mongoose.model('Invite', inviteSchema); 

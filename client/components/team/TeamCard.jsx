@@ -12,7 +12,7 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
   const { showToast } = useToast();
   const { userDetails, getInitials, getAvatarColor, getThemeClasses } = useGlobal();
   const [isRequesting, setIsRequesting] = useState(false);
-  
+
 
   const handleCardClick = () => {
     router.push(`/team/${team.TeamID}`);
@@ -22,7 +22,7 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent card click
     setIsRequesting(true);
-    
+
     try {
       await teamService.requestToJoinTeam(team.TeamID, userDetails._id);
       showToast('Join request sent successfully!', 'success');
@@ -112,7 +112,7 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
           {/* Team Type Badge and Active Status */}
           <div className="flex items-center gap-2">
             {/* Active Status Pill */}
-            <StatusPill status={team.IsActive ? 'Active' : 'Offline'} theme={theme} showPulseOnActive />
+            <StatusPill status={team.IsActive ? 'Active' : 'InActive'} theme={theme} showPulseOnActive />
 
             {/* Team Type Badge */}
             <span className={getThemeClasses(
@@ -251,7 +251,7 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
 
         {/* Request to Join Button - Show for non-members */}
         {team.userRelationship && team.userRelationship.canRequestJoin && (
-          <div 
+          <div
             className="mt-3 pt-3 border-t border-gray-200"
             onClick={(e) => e.stopPropagation()}
           >
@@ -271,7 +271,7 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
 
         {/* Pending Request Status */}
         {team.userRelationship && team.userRelationship.hasPendingRequest && (
-          <div 
+          <div
             className="mt-3 pt-3 border-t border-gray-200"
             onClick={(e) => e.stopPropagation()}
           >

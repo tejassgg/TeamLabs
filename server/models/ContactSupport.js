@@ -113,15 +113,13 @@ const contactSupportSchema = new mongoose.Schema({
 });
 
 // Update updatedAt field on save
-contactSupportSchema.pre('save', function(next) {
+contactSupportSchema.pre('save', function() {
   this.updatedAt = new Date();
-  next();
 });
 
 // Index for better query performance
 contactSupportSchema.index({ email: 1 });
 contactSupportSchema.index({ status: 1 });
 contactSupportSchema.index({ createdAt: -1 });
-contactSupportSchema.index({ ticketNumber: 1 });
 
 module.exports = mongoose.model('ContactSupport', contactSupportSchema);

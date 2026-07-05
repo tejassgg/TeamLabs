@@ -463,12 +463,12 @@ const QueryBoard = () => {
         ) : (
           <>
             {/* Desktop Table View */}
-            <div className={`overflow-x-auto overflow-y-auto max-h-[85vh] custom-scrollbar mb-2 rounded-xl border ${getThemeClasses('bg-white border-gray-200 shadow', 'dark:bg-transparent dark:border-gray-700')} hidden lg:block`}>
-              <table className="w-full">
+            <div className={`overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)] custom-scrollbar mb-2 rounded-xl border ${getThemeClasses('bg-white border-gray-200 shadow', 'dark:bg-transparent dark:border-gray-700')} hidden lg:block`}>
+              <table className="w-full table-fixed">
                 <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#18181b] border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
                   <tr className={getTableHeaderClasses()}>
                     <th
-                      className={`text-left py-3 px-4 font-semibold text-sm cursor-pointer select-none w-[24%] min-w-[220px] ${getTableHeaderTextClasses()}`}
+                      className={`text-left py-3 px-4 font-semibold text-sm cursor-pointer select-none w-[30%] hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 ${getTableHeaderTextClasses()}`}
                       onClick={() => sortData('Name')}
                     >
                       <div className="flex items-center gap-1">
@@ -477,7 +477,7 @@ const QueryBoard = () => {
                       </div>
                     </th>
                     <th
-                      className={`text-left py-3 px-4 font-semibold text-sm cursor-pointer select-none w-[20%] min-w-[170px] ${getTableHeaderTextClasses()}`}
+                      className={`text-left py-3 px-4 font-semibold text-sm cursor-pointer select-none w-[15%] hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 ${getTableHeaderTextClasses()}`}
                       onClick={() => sortData('AssignedToDetails')}
                     >
                       <div className="flex items-center gap-1">
@@ -486,7 +486,7 @@ const QueryBoard = () => {
                       </div>
                     </th>
                     <th
-                      className={`text-left py-3 px-4 font-semibold text-sm cursor-pointer select-none w-[20%] min-w-[170px] ${getTableHeaderTextClasses()}`}
+                      className={`text-left py-3 px-4 font-semibold text-sm cursor-pointer select-none w-[15%] hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 ${getTableHeaderTextClasses()}`}
                       onClick={() => sortData('AssigneeDetails')}
                     >
                       <div className="flex items-center gap-1">
@@ -495,7 +495,7 @@ const QueryBoard = () => {
                       </div>
                     </th>
                     <th
-                      className={`text-left py-3 px-4 font-semibold text-sm cursor-pointer select-none w-[12%] min-w-[130px] ${getTableHeaderTextClasses()}`}
+                      className={`text-left py-3 px-4 font-semibold text-sm cursor-pointer select-none w-[12%] hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 ${getTableHeaderTextClasses()}`}
                       onClick={() => sortData('AssignedDate')}
                     >
                       <div className="flex items-center gap-1">
@@ -504,7 +504,7 @@ const QueryBoard = () => {
                       </div>
                     </th>
                     <th
-                      className={`text-left py-3 px-4 font-semibold text-sm cursor-pointer select-none w-[10%] min-w-[110px] ${getTableHeaderTextClasses()}`}
+                      className={`text-left py-3 px-4 font-semibold text-sm cursor-pointer select-none w-[10%] hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 ${getTableHeaderTextClasses()}`}
                       onClick={() => sortData('Priority')}
                     >
                       <div className="flex items-center gap-1">
@@ -513,7 +513,7 @@ const QueryBoard = () => {
                       </div>
                     </th>
                     <th
-                      className={`text-left py-3 px-4 font-semibold text-sm cursor-pointer select-none w-[10%] min-w-[110px] ${getTableHeaderTextClasses()}`}
+                      className={`text-left py-3 px-4 font-semibold text-sm cursor-pointer select-none w-[10%] hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 ${getTableHeaderTextClasses()}`}
                       onClick={() => sortData('Status')}
                     >
                       <div className="flex items-center gap-1">
@@ -521,7 +521,7 @@ const QueryBoard = () => {
                         {getSortIcon('Status')}
                       </div>
                     </th>
-                    <th className={`py-3 px-4 font-semibold text-sm w-[4%] text-center ${getTableHeaderTextClasses()}`}>
+                    <th className={`py-3 px-4 font-semibold text-sm w-[8%] text-center ${getTableHeaderTextClasses()}`}>
                       Actions
                     </th>
                   </tr>
@@ -529,12 +529,12 @@ const QueryBoard = () => {
                 <tbody>
                   {filteredTasks.map(task => (
                     <tr key={task.TaskID} className={getTableRowClasses()}>
-                      <td className="py-3 px-4 max-w-[240px]">
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2 mb-1 min-w-0">
+                      <td className="py-3 px-4 overflow-hidden">
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-2 mb-1 w-full min-w-0">
                             <button
                               onClick={() => router.push(`/task/${task.TaskID}`)}
-                              className={`truncate font-medium transition-colors duration-200 text-left ${getThemeClasses(
+                              className={`truncate block max-w-full font-medium transition-colors duration-200 text-left ${getThemeClasses(
                                 "text-gray-900 hover:text-blue-600 hover:underline",
                                 "dark:text-gray-100 dark:hover:text-blue-400"
                               )}`}
@@ -547,7 +547,7 @@ const QueryBoard = () => {
                             </div>
                           </div>
                           {task.Description && (
-                            <span className={`truncate text-xs ${getThemeClasses("text-gray-500", "dark:text-gray-400")}`} title={task.Description}>
+                            <span className={`truncate block w-full text-xs ${getThemeClasses("text-gray-500", "dark:text-gray-400")}`} title={task.Description}>
                               {task.Description}
                             </span>
                           )}

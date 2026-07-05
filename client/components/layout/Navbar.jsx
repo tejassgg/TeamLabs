@@ -4,12 +4,12 @@ import { useRouter } from 'next/router';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { authService } from '../../services/api';
-import { 
-  FaUser, 
-  FaSignOutAlt, 
-  FaMoon, 
-  FaSun, 
-  FaCog, 
+import {
+  FaUser,
+  FaSignOutAlt,
+  FaMoon,
+  FaSun,
+  FaCog,
   FaHistory,
   FaChevronDown
 } from 'react-icons/fa';
@@ -55,41 +55,39 @@ const Navbar = ({ showWelcomeMessage = false, versionUpdateAvailable = false, la
                 Welcome, {userDetails.firstName || userDetails.username}!
               </span>
             )}
-            
+
             {/* Version Indicator */}
-            <VersionIndicator 
+            <VersionIndicator
               versionUpdateAvailable={versionUpdateAvailable}
               latestVersion={latestVersion}
               onClick={onVersionUpdateClick}
             />
-            
+
             {/* Current Version Info (for debugging/admin) */}
-            {user?.role === 'Admin' && user?.organizationID === '1' && (
+            {userDetails?.role === 'Admin' && userDetails?.organizationID === '1' && (
               <CurrentVersionInfo />
             )}
-            
+
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className={`p-2 rounded-full ${
-                theme === 'dark' 
-                  ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
+              className={`p-2 rounded-full ${theme === 'dark'
+                  ? 'text-gray-300 hover:text-white hover:bg-gray-700'
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-              } transition-colors duration-200`}
+                } transition-colors duration-200`}
             >
               {theme === 'dark' ? <FaSun size={20} /> : <FaMoon size={20} />}
             </button>
 
             {/* User Menu */}
-            {user && (
+            {userDetails && (
               <div className="relative">
                 <button
                   onClick={toggleUserMenu}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md ${
-                    theme === 'dark'
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-md ${theme === 'dark'
                       ? 'text-gray-300 hover:text-white hover:bg-gray-700'
                       : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                  } transition-colors duration-200`}
+                    } transition-colors duration-200`}
                 >
                   <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                     {userDetails.profileImage ? (
@@ -110,40 +108,35 @@ const Navbar = ({ showWelcomeMessage = false, versionUpdateAvailable = false, la
 
                 {/* Dropdown Menu */}
                 {isUserMenuOpen && (
-                  <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 ${
-                    theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-                  } ring-1 ring-black ring-opacity-5 focus:outline-none z-50`}>
-                    <Link href="/profile" className={`flex items-center space-x-2 px-4 py-2 ${
-                      theme === 'dark' 
-                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
+                  <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                    } ring-1 ring-black ring-opacity-5 focus:outline-none z-50`}>
+                    <Link href="/profile" className={`flex items-center space-x-2 px-4 py-2 ${theme === 'dark'
+                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
                         : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    }`}>
+                      }`}>
                       <FaUser size={16} />
                       <span>Profile</span>
                     </Link>
-                    <Link href="/profile?tab=activity" className={`flex items-center space-x-2 px-4 py-2 ${
-                      theme === 'dark' 
-                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
+                    <Link href="/profile?tab=activity" className={`flex items-center space-x-2 px-4 py-2 ${theme === 'dark'
+                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
                         : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    }`}>
+                      }`}>
                       <FaHistory size={16} />
                       <span>Activity History</span>
                     </Link>
-                    <Link href="/settings" className={`flex items-center space-x-2 px-4 py-2 ${
-                      theme === 'dark' 
-                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
+                    <Link href="/settings" className={`flex items-center space-x-2 px-4 py-2 ${theme === 'dark'
+                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
                         : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    }`}>
+                      }`}>
                       <FaCog size={16} />
                       <span>Settings</span>
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className={`w-full flex items-center space-x-2 px-4 py-2 ${
-                        theme === 'dark' 
-                          ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
+                      className={`w-full flex items-center space-x-2 px-4 py-2 ${theme === 'dark'
+                          ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
                           : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                      }`}
+                        }`}
                     >
                       <FaSignOutAlt size={16} />
                       <span>Logout</span>

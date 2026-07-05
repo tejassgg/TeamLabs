@@ -138,17 +138,37 @@ router.get('/:teamId', protect, ensureTeamMember, async (req, res) => {
         ]
       }).sort({ CreatedDate: 1 });
 
-      // Map tasks with project names
+      const allTaskUserIds = [...new Set(
+        tasks.flatMap(t => [t.Assignee, t.AssignedTo].filter(Boolean))
+      )];
+      const taskUsers = await User.find({ _id: { $in: allTaskUserIds } });
+
+      // Map tasks with project names and user details
       teamTasks.push(...tasks.map(task => {
         const project = teamProjects.find(p => p.ProjectID === task.ProjectID_FK);
+        const assigneeUser = taskUsers.find(u => u._id.toString() === task.Assignee);
+        const assignedToUser = taskUsers.find(u => u._id.toString() === task.AssignedTo);
         return {
           TaskID: task.TaskID,
-          Title: task.Title,
-          TaskName: task.Name,
-          TaskType: task.Type,
+          Name: task.Name,
+          Description: task.Description,
+          Type: task.Type,
           Priority: task.Priority,
-          Assignee: task.Assignee || task.AssignedTo,
-          ProjectName: project ? project.Name : 'Unknown Project'
+          Status: task.Status,
+          CreatedDate: task.CreatedDate,
+          AssignedDate: task.AssignedDate,
+          Assignee: task.Assignee,
+          AssignedTo: task.AssignedTo,
+          ProjectID_FK: task.ProjectID_FK,
+          ProjectName: project ? project.Name : 'Unknown Project',
+          AssigneeDetails: assigneeUser ? {
+            fullName: `${assigneeUser.firstName} ${assigneeUser.lastName}`.trim(),
+            email: assigneeUser.email
+          } : null,
+          AssignedToDetails: assignedToUser ? {
+            fullName: `${assignedToUser.firstName} ${assignedToUser.lastName}`.trim(),
+            email: assignedToUser.email
+          } : null
         };
       }));
     }

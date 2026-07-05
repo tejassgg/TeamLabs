@@ -12,7 +12,7 @@
 [![MongoDB/Mongoose](https://img.shields.io/badge/Mongoose-9.7.3-47A248?style=flat-square&logo=mongodb)](https://mongodb.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4.3.2-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 
-[Live Demo](#-live-demo) • [Features](#-features) • [Pricing](#-pricing) • [Getting Started](#-getting-started) • [Documentation](#-documentation)
+[Live Demo](#-live-demo) • [Features](#-features) • [Pricing](#-pricing) • [Documentation](#-documentation)
 
 </div>
 
@@ -24,7 +24,6 @@
 - [✨ Features](#-features)
 - [🎯 Use Cases](#-use-cases)
 - [💰 Pricing](#-pricing)
-- [🚀 Getting Started](#-getting-started)
 - [🛠️ Tech Stack](#-tech-stack)
 - [📖 Documentation](#-documentation)
 - [🔧 API Reference](#-api-reference)
@@ -153,135 +152,41 @@
 
 ---
 
-## 💰 Pricing
+## 💰 Pricing & Subscription Plans
 
-### 🆓 Free Plan
-**Perfect for small teams getting started**
-- Up to 5 team members
-- 3 active projects
-- Basic task management
-- Standard support
+### 🆓 Basic Free Account
+**Perfect for small teams and developers**
+- **$0 / mo**
+- ✓ 3 Projects
+- ✓ 3 User Stories
+- ✓ 20 Tasks per Story
+- ✓ Basic Slack-like Chat
 
-### 💼 Professional Plan
-**$29/month per user**
-- Unlimited team members
-- Unlimited projects
-- Advanced analytics
-- AI assistant
-- Priority support
-- Custom integrations
+### 💼 Premium Monthly `[MOST POPULAR]`
+**Best choice for scaling team velocities**
+- **$49 / mo**
+- ✓ Unlimited Active Projects
+- ✓ Unlimited Stories & Subtasks
+- ✓ Smart AI Assistant Playground
+- ✓ Timesheet Clock integrations
+- ✓ Excel/PDF Progress Reporting
 
-### 🏢 Enterprise Plan
-**Custom pricing**
-- Everything in Professional
-- Custom security features
-- Dedicated support
-- SLA guarantees
-- Custom integrations
-- On-premise deployment options
-
-*All plans include 14-day free trial. No credit card required.*
-
-### Subscription Plans
-- **Free Plan**: Limited to 3 projects, 3 user stories, and 20 tasks per user story
-- **Monthly Premium**: $99/month - Unlimited projects, tasks, and premium features
-- **Annual Premium**: $708/year - 40% discount with all premium features
-
-### Downgrade & Refund System
-- **Annual to Monthly Downgrade**: Pro-rated refund based on remaining subscription time
-- **Annual to Free Downgrade**: Full refund for remaining time
-- **Refund Eligibility**: Minimum 7 days remaining on annual subscription
-- **Payment Tracking**: Complete audit trail with refund payment records
+### 👑 Premium Annual `[BEST VALUE (SAVE 29%)]`
+**Max savings for permanent scrums**
+- **$419 / yr** *(Equivalent to just **$34.92 / month**)*
+- 🌟 All Premium Monthly features
+- ✓ Premium Priority SLA Support
+- ✓ Dedicated Account Executive
+- ✓ 29% discount rate automatically applied
 
 ---
 
-## 🚀 Getting Started
-
-### Quick Start (5 minutes)
-
-1. **Sign Up Free**
-   ```bash
-   # Visit our website or clone the repository
-   git clone https://github.com/yourusername/teamlabs.git
-   ```
-
-2. **Choose Your Setup**
-   - **Cloud Hosted**: Use our managed service (recommended)
-   - **Self-Hosted**: Deploy on your own infrastructure
-
-3. **Invite Your Team**
-   - Send email invitations
-   - Set up team roles
-   - Configure project access
-
-4. **Create Your First Project**
-   - Use project templates
-   - Set up your team
-   - Start adding tasks
-
-### Self-Hosted Installation
-
-#### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (v5 or higher)
-- npm or yarn package manager
-
-#### Installation Steps
-
-1. **Clone and Install**
-   ```bash
-   git clone https://github.com/yourusername/teamlabs.git
-   cd teamlabs
-   
-   # Install server dependencies
-   cd server && npm install
-   
-   # Install client dependencies
-   cd ../client && npm install
-   ```
-
-2. **Environment Configuration**
-   
-   **Server (.env)**
-   ```env
-   PORT=5000
-   MONGODB_URI=mongodb://localhost:27017/teamlabs
-   JWT_SECRET=your_jwt_secret_here
-   GOOGLE_CLIENT_ID=your_google_client_id
-   GOOGLE_CLIENT_SECRET=your_google_client_secret
-   STRIPE_SECRET_KEY=your_stripe_secret_key
-   STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
-   ```
-
-   **Client (.env.local)**
-   ```env
-   NEXT_PUBLIC_API_URL=http://localhost:5000/api
-   NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
-   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-   ```
-
-3. **Database Setup**
-   ```bash
-   # Start MongoDB
-   mongod
-   
-   # Run database seeds (optional)
-   cd server && npm run seed
-   ```
-
-4. **Launch Application**
-   ```bash
-   # Start server
-   cd server && npm run dev
-   
-   # Start client (new terminal)
-   cd client && npm run dev
-   ```
-
-5. **Access Your Instance**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000
-   - API Documentation: http://localhost:5000/api-docs
+### 🔄 Downgrade & Refund System
+TeamLabs supports flexible billing and automatic pro-rated refunds:
+- **Annual to Monthly Downgrade**: Receives a pro-rated refund based on the remaining subscription time.
+- **Annual to Free Downgrade**: Receives a full refund for the remaining unused subscription duration.
+- **Refund Eligibility**: Downgrade must be initiated with at least 7 days remaining on the annual subscription.
+- **Payment Tracking**: Full audit logs with automated payment tracking for all refunds.
 
 ---
 
@@ -487,6 +392,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Ready to transform your team's productivity?** 
 
-[Get Started Now](#-getting-started) • [View Documentation](#-documentation) • [Contact Support](mailto:support@teamlabs.com)
+[View Documentation](#-documentation) • [Contact Support](mailto:support@teamlabs.com)
 
 </div> 

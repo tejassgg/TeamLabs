@@ -127,7 +127,6 @@ const paymentSchema = new mongoose.Schema({
 // Indexes for better query performance
 paymentSchema.index({ organizationID: 1, status: 1 });
 paymentSchema.index({ userId: 1, status: 1 });
-paymentSchema.index({ paymentId: 1 });
 paymentSchema.index({ createdAt: -1 });
 
 // Virtual for subscription status
@@ -146,7 +145,7 @@ paymentSchema.virtual('daysRemaining').get(function() {
 });
 
 // Pre-save middleware to set subscription end date
-paymentSchema.pre('save', function(next) {
+paymentSchema.pre('save', function() {
   if (this.isNew && this.status === 'completed' && !this.subscriptionEndDate) {
     const startDate = new Date();
     const endDate = new Date(startDate);
@@ -159,7 +158,6 @@ paymentSchema.pre('save', function(next) {
     
     this.subscriptionEndDate = endDate;
   }
-  next();
 });
 
 // Static method to get active subscription

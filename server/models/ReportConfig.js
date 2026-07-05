@@ -100,9 +100,8 @@ const ReportConfigSchema = new mongoose.Schema({
 });
 
 // Update the updatedAt field before saving
-ReportConfigSchema.pre('save', function(next) {
+ReportConfigSchema.pre('save', function() {
   this.updatedAt = new Date();
-  next();
 });
 
 module.exports = mongoose.model('ReportConfig', ReportConfigSchema);

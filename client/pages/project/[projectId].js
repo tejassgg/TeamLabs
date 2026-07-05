@@ -244,27 +244,60 @@ const ProjectDetailsPage = () => {
     const offCreated = subscribe('kanban.task.created', (payload) => {
       const { data } = payload || {};
       if (!data || data.projectId !== projectId) return;
-      setTaskList(prev => [...prev, data.task]);
+      if (data.task.Type === 'User Story') {
+        setUserStories(prev => {
+          if (prev.some(t => t.TaskID === data.task.TaskID)) return prev;
+          return [...prev, data.task];
+        });
+      } else {
+        setTaskList(prev => {
+          if (prev.some(t => t.TaskID === data.task.TaskID)) return prev;
+          return [...prev, data.task];
+        });
+      }
     });
     const offUpdated = subscribe('kanban.task.updated', (payload) => {
       const { data } = payload || {};
       if (!data || data.projectId !== projectId) return;
-      setTaskList(prev => prev.map(t => t.TaskID === data.task.TaskID ? { ...t, ...data.task } : t));
+      if (data.task.Type === 'User Story') {
+        setUserStories(prev => {
+          const exists = prev.some(t => t.TaskID === data.task.TaskID);
+          if (exists) {
+            return prev.map(t => t.TaskID === data.task.TaskID ? { ...t, ...data.task } : t);
+          } else {
+            return [...prev, data.task];
+          }
+        });
+        setTaskList(prev => prev.filter(t => t.TaskID !== data.task.TaskID));
+      } else {
+        setTaskList(prev => {
+          const exists = prev.some(t => t.TaskID === data.task.TaskID);
+          if (exists) {
+            return prev.map(t => t.TaskID === data.task.TaskID ? { ...t, ...data.task } : t);
+          } else {
+            return [...prev, data.task];
+          }
+        });
+        setUserStories(prev => prev.filter(t => t.TaskID !== data.task.TaskID));
+      }
     });
     const offStatus = subscribe('kanban.task.status.updated', (payload) => {
       const { data } = payload || {};
       if (!data || data.projectId !== projectId) return;
       setTaskList(prev => prev.map(t => t.TaskID === data.taskId ? { ...t, Status: data.status } : t));
+      setUserStories(prev => prev.map(t => t.TaskID === data.taskId ? { ...t, Status: data.status } : t));
     });
     const offDeleted = subscribe('kanban.task.deleted', (payload) => {
       const { data } = payload || {};
       if (!data || data.projectId !== projectId) return;
       setTaskList(prev => prev.filter(t => t.TaskID !== data.taskId));
+      setUserStories(prev => prev.filter(t => t.TaskID !== data.taskId));
     });
     const offAssigned = subscribe('kanban.task.assigned', (payload) => {
       const { data } = payload || {};
       if (!data || data.projectId !== projectId) return;
       setTaskList(prev => prev.map(t => t.TaskID === data.taskId ? { ...t, AssignedTo: data.assignedTo, Status: data.status } : t));
+      setUserStories(prev => prev.map(t => t.TaskID === data.taskId ? { ...t, AssignedTo: data.assignedTo, Status: data.status } : t));
     });
     return () => {
       offCreated && offCreated();
@@ -1035,7 +1068,8 @@ const ProjectDetailsPage = () => {
   };
 
   const tasksSorted = useMemo(() => {
-    const copy = [...taskList];
+    const filtered = taskList.filter(t => t.Type !== 'User Story');
+    const copy = [...filtered];
     const dir = tasksSortDir === 'asc' ? 1 : -1;
     // Always show Not Assigned (Status === 1) first
     copy.sort((a, b) => {
@@ -1099,7 +1133,7 @@ const ProjectDetailsPage = () => {
     return <div className="p-8 text-red-500">Project not found.</div>;
   }
 
-  const showUserStories = userStories && userStories.length > 0;
+  const showUserStories = !!userStories;
 
   return (
     <>
@@ -1726,7 +1760,7 @@ const ProjectDetailsPage = () => {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
-                                <StatusPill status={team.IsActive ? 'Active' : 'Offline'} theme={theme} showPulseOnActive />
+                                <StatusPill status={team.IsActive ? 'Active' : 'Inactive'} theme={theme} showPulseOnActive />
                               </div>
                             </div>
                             <div className="flex items-center justify-between mt-6">
@@ -1949,7 +1983,7 @@ const ProjectDetailsPage = () => {
                     No tasks for this project.
                   </div>
                 ) : (
-                  <table className="w-full">
+                  <table className="w-full table-fixed">
                     <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#18181b] border-gray-500' : 'bg-gray-50 border-gray-200'}`}>
                       <tr className={tableHeaderClasses}>
                         <th className="py-3 px-4 text-center w-[50px]">
@@ -1963,43 +1997,43 @@ const ProjectDetailsPage = () => {
                             )}
                           />
                         </th>
-                        <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1">
+                        <th className={`py-3 px-4 text-left w-[30%] ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Name</span>
                             {getTasksSortIcon('name')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center gap-1">
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assigned To</span>
                             {getTasksSortIcon('assignedTo')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('assignee')} className="inline-flex items-center gap-1">
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('assignee')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assignee</span>
                             {getTasksSortIcon('assignee')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center">
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[12%] ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assigned On</span>
                             {getTasksSortIcon('assignedDate')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center gap-1">
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[10%] ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Priority</span>
                             {getTasksSortIcon('priority')}
                           </button>
                         </th>
-                        <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center gap-1">
+                        <th className={`py-3 px-4 text-left w-[10%] ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Status</span>
                             {getTasksSortIcon('status')}
                           </button>
                         </th>
-                        <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Actions</th>
+                        <th className={`py-3 px-4 text-left w-[8%] ${tableHeaderTextClasses}`}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2031,25 +2065,25 @@ const ProjectDetailsPage = () => {
                                 )}
                               />
                             </td>
-                            <td className="py-3 px-4">
-                              <div className="flex flex-col">
-                                <div className="flex items-center gap-2 mb-1">
+                            <td className="py-3 px-4 overflow-hidden">
+                              <div className="flex flex-col min-w-0">
+                                <div className="flex items-center gap-2 mb-1 w-full min-w-0">
                                   <button
                                     onClick={() => router.push(`/task/${task.TaskID}`)}
                                     className={getThemeClasses(
-                                      'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium',
+                                      'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full',
                                       'dark:hover:text-blue-400'
                                     )}
-                                    title="Click to view task details"
+                                    title={task.Name}
                                   >
                                     {task.Name}
                                   </button>
                                   {getTaskTypeBadgeComponent(task.Type)}
                                 </div>
                                 <span className={getThemeClasses(
-                                  'text-xs text-gray-500',
+                                  'text-xs text-gray-500 truncate block w-full',
                                   'dark:text-gray-400'
-                                )}>{task.Description}</span>
+                                )} title={task.Description}>{task.Description}</span>
                                 {/* Show assigned to on mobile if available */}
                                 {task.AssignedTo && task.AssignedToDetails && (
                                   <div className={getThemeClasses(
@@ -3173,7 +3207,7 @@ const ProjectDetailsPage = () => {
 
         {/* Delete Task Confirmation Dialog */}
         {showDeleteTaskDialog && taskToDelete && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className={getThemeClasses(
               "bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100",
               "dark:bg-gray-800 dark:border-gray-700"
@@ -3238,7 +3272,7 @@ const ProjectDetailsPage = () => {
         )}
         {/* Bulk Delete Tasks Confirmation Dialog */}
         {showBulkDeleteDialog && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className={getThemeClasses(
               "bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100",
               "dark:bg-gray-800 dark:border-gray-700"
@@ -3378,7 +3412,7 @@ const ProjectDetailsPage = () => {
 
         {/* GitHub Repository Management Modal */}
         {showRepositoryModal && projectRepository && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className={`max-w-md w-full mx-4 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">

@@ -1,4 +1,4 @@
-import Navbar from './Navbar';
+import Navbar from './Navbar.js';
 import { useTheme } from '../../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
 import { FaCog, FaChevronLeft, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaRegClipboard, FaProjectDiagram, FaCalendarAlt } from 'react-icons/fa';
@@ -784,7 +784,6 @@ const Layout = ({ children, pageProject, pageTitle }) => {
               </div>
             ) : (
               <Link href="/" className="flex items-center gap-2 text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none">
-                <img src="/static/logo.png" alt="TeamLabs Logo" className="w-8 h-8 object-contain" />
                 TeamLabs
               </Link>
             )}
@@ -793,18 +792,8 @@ const Layout = ({ children, pageProject, pageTitle }) => {
             <Navbar
               isMobile={true}
               theme={theme}
-              toggleTheme={toggleTheme}
               onLogout={logout}
               pageTitle={currentPageTitle}
-              versionUpdateAvailable={versionUpdateAvailable}
-              latestVersion={latestRelease?.version}
-              onVersionUpdateClick={() => {
-                // Scroll to release notification banner
-                const banner = document.querySelector('[data-release-banner]');
-                if (banner) {
-                  banner.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
             />
           </div>
         </div>
@@ -819,18 +808,8 @@ const Layout = ({ children, pageProject, pageTitle }) => {
             <div style={{ width: '100%' }}>
               <Navbar
                 theme={theme}
-                toggleTheme={toggleTheme}
                 onLogout={logout}
                 pageTitle={currentPageTitle}
-                versionUpdateAvailable={versionUpdateAvailable}
-                latestVersion={latestRelease?.version}
-                onVersionUpdateClick={() => {
-                  // Scroll to release notification banner
-                  const banner = document.querySelector('[data-release-banner]');
-                  if (banner) {
-                    banner.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
               />
             </div>
           </div>
@@ -876,7 +855,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
       {isMobile && (
         <div
           className={`fixed inset-0 z-30 transition-all duration-500 ease-in-out ${isMobileSidebarOpen
-            ? 'bg-black bg-opacity-50 pointer-events-auto'
+            ? 'bg-black/50 pointer-events-auto'
             : 'bg-transparent pointer-events-none'
             }`}
           onClick={() => setIsMobileSidebarOpen(false)}

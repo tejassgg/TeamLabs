@@ -133,7 +133,6 @@ function Home() {
 
   // REDESIGN STATES
   const [activeTab, setActiveTab] = useState('analytics');
-  const [isAnnual, setIsAnnual] = useState(true);
 
   // AI TERMINAL STATES
   const [selectedPrompt, setSelectedPrompt] = useState('sprint');
@@ -1332,22 +1331,7 @@ function Home() {
               Optimize sprint cycles on a plan tailored to developer requirements. Save up to 29% annually.
             </p>
 
-            {/* Toggle Switch */}
-            <div className="inline-flex items-center justify-center p-1 rounded-full border border-indigo-500/20 bg-indigo-500/5 max-w-max select-none">
-              <button
-                onClick={() => setIsAnnual(false)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${!isAnnual ? 'bg-indigo-600 text-white shadow-lg' : theme === 'dark' ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600 hover:text-slate-800'}`}
-              >
-                Monthly Plan
-              </button>
-              <button
-                onClick={() => setIsAnnual(true)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${isAnnual ? 'bg-indigo-600 text-white shadow-lg' : theme === 'dark' ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600 hover:text-slate-800'}`}
-              >
-                <span>Annual Plan</span>
-                <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-extrabold uppercase animate-pulse">Save 29%</span>
-              </button>
-            </div>
+
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
@@ -1406,11 +1390,9 @@ function Home() {
 
             {/* Card 3: Premium Annual */}
             <div className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between text-left relative reveal reveal-fade-up reveal-delay-300 ${theme === 'dark' ? 'bg-slate-950/30 border-white/5 hover:border-slate-800' : 'bg-white border-slate-200 hover:shadow-xl'}`}>
-              {isAnnual && (
-                <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold uppercase tracking-widest shadow-lg">
-                  BEST VALUE (SAVE 29%)
-                </div>
-              )}
+              <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold uppercase tracking-widest shadow-lg">
+                BEST VALUE (SAVE 29%)
+              </div>
               <div className="flex flex-col gap-4">
                 <div>
                   <h3 className="text-xl font-extrabold">Premium Annual</h3>
@@ -1418,12 +1400,10 @@ function Home() {
                 </div>
                 <div className="py-2 flex flex-col">
                   <div>
-                    <span className="text-5xl font-extrabold">{isAnnual ? '$419' : '$588'}</span>
-                    <span className="text-sm font-semibold text-slate-500">/{isAnnual ? 'yr' : 'mo'}</span>
+                    <span className="text-5xl font-extrabold">$419</span>
+                    <span className="text-sm font-semibold text-slate-500">/yr</span>
                   </div>
-                  {isAnnual && (
-                    <span className="text-xs text-emerald-500 font-extrabold mt-1.5">Equivalent to just $34.92 / month</span>
-                  )}
+                  <span className="text-xs text-emerald-500 font-extrabold mt-1.5">Equivalent to just $34.92 / month</span>
                 </div>
                 <hr className="border-indigo-500/10" />
                 <ul className="flex flex-col gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300">

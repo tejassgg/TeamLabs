@@ -195,23 +195,23 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-3">
-      <div className={`relative w-full sm:max-w-3xl max-h-[95vh] overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl border ${getThemeClasses('bg-white border-gray-200', 'bg-gray-950 border-gray-800')}`}>
-        <div className={`sticky top-0 z-10 bg-gradient-to-r ${getThemeClasses('from-blue-50 to-indigo-50 border-b border-gray-200', 'from-gray-900 to-gray-950 border-b border-gray-800')}`}>
+    <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50 p-3">
+      <div className={`relative w-full sm:max-w-3xl max-h-[95vh] overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl border ${getThemeClasses('bg-white border-gray-200', 'bg-[#18181b] border-[#232323]')}`}>
+        <div className={`sticky top-0 z-10 ${getThemeClasses('bg-white border-b border-gray-100', 'bg-[#18181b] border-b border-[#232323]')}`}>
           <div className="flex items-start sm:items-center justify-between p-4 sm:p-6 gap-3">
             <div className="flex items-start sm:items-center">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-3 sm:mr-4 ${getThemeClasses('bg-gradient-to-r from-blue-600 to-indigo-600', 'bg-gradient-to-r from-blue-500 to-indigo-500')}`}>
-                <FaHeadset className="w-6 h-6 text-white" />
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-3 sm:mr-4 ${getThemeClasses('bg-blue-50 text-blue-600', 'bg-blue-900/30 text-blue-400')}`}>
+                <FaHeadset className="w-6 h-6" />
               </div>
               <div>
                 <h1 className={`text-2xl sm:text-3xl font-bold ${getThemeClasses('text-gray-900', 'text-white')}`}>Contact Support</h1>
-                <p className={`text-xs sm:text-sm mt-1 ${getThemeClasses('text-gray-600', 'text-white')}`}>We typically respond within 24 hours.</p>
+                <p className={`text-xs sm:text-sm mt-1 ${getThemeClasses('text-gray-500', 'text-gray-400')}`}>We typically respond within 24 hours.</p>
               </div>
             </div>
             <button
               onClick={handleClose}
               disabled={loading}
-              className={`p-3 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark' ? 'hover:bg-gray-800 text-gray-400 hover:text-white' : 'hover:bg-white hover:shadow-md text-gray-500 hover:text-gray-700'}`}
+              className={`p-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${getThemeClasses('hover:bg-gray-100 text-gray-400 hover:text-gray-600', 'hover:bg-gray-800 text-gray-400 hover:text-gray-300')}`}
             >
               <FaTimes className="w-5 h-5" />
             </button>
@@ -254,7 +254,7 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder="Enter your full name"
-                      className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${getThemeClasses('bg-transparent border-gray-200 text-gray-900 placeholder-gray-400', 'border-gray-800 text-white placeholder-gray-500')}`}
+                      className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 transition-all duration-200 ${getThemeClasses('bg-transparent border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500', 'bg-transparent border-gray-700 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400')}`}
                       disabled={loading}
                       required
                     />
@@ -269,7 +269,7 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="your.email@example.com"
-                      className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${getThemeClasses('bg-transparent border-gray-200 text-gray-900 placeholder-gray-400', 'border-gray-800 text-white placeholder-gray-500')}`}
+                      className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 transition-all duration-200 ${getThemeClasses('bg-transparent border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500', 'bg-transparent border-gray-700 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400')}`}
                       disabled={loading}
                       required
                     />
@@ -286,7 +286,7 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
                     value={formData.title}
                     onChange={handleInputChange}
                     placeholder="Brief description of your issue"
-                    className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${getThemeClasses('bg-transparent border-gray-200 text-gray-900 placeholder-gray-400', 'border-gray-800 text-white placeholder-gray-500')}`}
+                    className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 transition-all duration-200 ${getThemeClasses('bg-transparent border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500', 'bg-transparent border-gray-700 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400')}`}
                     disabled={loading}
                     required
                   />
@@ -302,7 +302,7 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
                     onChange={handleInputChange}
                     placeholder="Please provide detailed information about your issue, including steps to reproduce if applicable"
                     rows={4}
-                    className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${getThemeClasses('bg-transparent border-gray-200 text-gray-900 placeholder-gray-400', 'border-gray-800 text-white placeholder-gray-500')}`}
+                    className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 transition-all duration-200 ${getThemeClasses('bg-transparent border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500', 'bg-transparent border-gray-700 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400')}`}
                     disabled={loading}
                     required
                   />
@@ -380,14 +380,17 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
                     type="button"
                     onClick={handleClose}
                     disabled={loading}
-                    className={`px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 border ${getThemeClasses('bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-200', 'bg-gray-800 text-white hover:bg-gray-700 border-gray-800')}`}
+                    className={`px-6 py-2.5 rounded-xl font-medium transition-all duration-200 border ${getThemeClasses(
+                      'border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
+                      'border-gray-700 bg-transparent text-gray-300 hover:bg-gray-800/50'
+                    )}`}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold transition-all duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <>
@@ -407,9 +410,9 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        <div className={`sticky bottom-0 bg-gradient-to-r ${getThemeClasses('from-gray-50 to-gray-100 border-t border-gray-200', 'from-gray-900 to-gray-950 border-t border-gray-800')}`}>
+        <div className={`sticky bottom-0 ${getThemeClasses('bg-white border-t border-gray-100', 'bg-[#18181b] border-t border-[#232323]')}`}>
           <div className="p-4">
-            <p className={`text-xs text-center ${getThemeClasses('text-gray-500', 'text-white')}`}>
+            <p className={`text-xs text-center ${getThemeClasses('text-gray-500', 'text-gray-400')}`}>
               We typically respond within 24 hours. For urgent issues, please call our support line.
             </p>
           </div>

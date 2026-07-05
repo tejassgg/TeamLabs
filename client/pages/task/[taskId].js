@@ -1465,7 +1465,7 @@ const TaskDetailsPage = () => {
                                 <FaCalendarAlt className={getThemeClasses("text-blue-500", "dark:text-blue-400")} />
                                 Task Dates
                             </h2>
-                            <div className="flex items-center justify-between gap-4 pb-4">
+                            <div className="flex items-start justify-between gap-4 pb-4">
                                 <div>
                                     <div className={getThemeClasses(
                                         "text-sm font-medium text-gray-500 mb-1",
@@ -1505,7 +1505,7 @@ const TaskDetailsPage = () => {
                                     </div>
                                 )}
                                 {task.TicketNumber && (
-                                    <div className="">
+                                    <div>
                                         <div className={getThemeClasses(
                                             "text-sm font-medium text-gray-500 mb-1",
                                             "dark:text-gray-400"

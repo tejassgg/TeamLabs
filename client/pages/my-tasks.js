@@ -662,7 +662,7 @@ const MyTasksPage = () => {
                 </p>
               </div>
             ) : (
-              <table className="w-full">
+              <table className="w-full table-fixed">
                 <thead>
                   <tr className={getTableHeaderClasses() + " bg-gray-50"}>
                     <th className="py-3 px-4 text-center w-[50px]">
@@ -676,61 +676,61 @@ const MyTasksPage = () => {
                         )}
                       />
                     </th>
-                    <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                    <th className={`py-3 px-4 text-left w-[30%] ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('name')}
-                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
+                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors w-full text-left ${tableHeaderTextClasses}`}
                       >
                         Name
                         {getSortIcon('name')}
                       </button>
                     </th>
-                    <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('assignedTo')}
-                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
+                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors w-full text-left ${tableHeaderTextClasses}`}
                       >
                         Assigned To
                         {getSortIcon('assignedTo')}
                       </button>
                     </th>
-                    <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('assignee')}
-                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
+                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors w-full text-left ${tableHeaderTextClasses}`}
                       >
                         Assignee
                         {getSortIcon('assignee')}
                       </button>
                     </th>
-                    <th className={`hidden md:table-cell py-3 px-4 text-center ${tableHeaderTextClasses}`}>
+                    <th className={`hidden md:table-cell py-3 px-4 text-center w-[12%] ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('deadline')}
-                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors mx-auto ${tableHeaderTextClasses}`}
+                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors mx-auto w-full text-center ${tableHeaderTextClasses}`}
                       >
                         Assigned On
                         {getSortIcon('deadline')}
                       </button>
                     </th>
-                    <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[10%] ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('priority')}
-                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
+                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors w-full text-left ${tableHeaderTextClasses}`}
                       >
                         Priority
                         {getSortIcon('priority')}
                       </button>
                     </th>
-                    <th className={`hidden md:table-cell py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[10%] ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('status')}
-                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors ${tableHeaderTextClasses}`}
+                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors w-full text-left ${tableHeaderTextClasses}`}
                       >
                         Status
                         {getSortIcon('status')}
                       </button>
                     </th>
-                    <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>Actions</th>
+                    <th className={`py-3 px-4 text-left w-[8%] ${tableHeaderTextClasses}`}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -747,16 +747,16 @@ const MyTasksPage = () => {
                           )}
                         />
                       </td>
-                      <td className="py-3 px-4">
-                        <div className="flex flex-col">
-                          <div className="flex items-center flex-wrap gap-2 mb-1">
+                      <td className="py-3 px-4 overflow-hidden">
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center flex-wrap gap-2 mb-1 w-full min-w-0">
                             <button
                               onClick={() => handleTaskClick(task.TaskID || task._id, task.ProjectID)}
                               className={getThemeClasses(
-                                'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium',
-                                'text-left hover:text-blue-400 hover:underline transition-colors cursor-pointer font-medium'
+                                'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full',
+                                'text-left hover:text-blue-400 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full'
                               )}
-                              title="Click to view task details"
+                              title={task.Name}
                             >
                               {task.Name}
                             </button>
@@ -768,9 +768,9 @@ const MyTasksPage = () => {
                             </div>
                           </div>
                           <span className={getThemeClasses(
-                            'text-xs text-gray-500',
-                            'text-xs text-gray-400'
-                          )}>{task.Description}</span>
+                            'text-xs text-gray-500 truncate block w-full',
+                            'text-xs text-gray-400 truncate block w-full'
+                          )} title={task.Description}>{task.Description}</span>
                           {/* Show assigned to on mobile if available */}
                           {task.AssignedTo && task.AssignedToDetails && (
                             <div className={getThemeClasses(
@@ -888,7 +888,7 @@ const MyTasksPage = () => {
 
       {/* Stats Modal for Mobile View */}
       {isStatsModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="absolute inset-0" onClick={() => setIsStatsModalOpen(false)} />
           <div className={getThemeClasses(
             'relative w-full max-w-md mx-4 bg-white border border-gray-100 rounded-xl shadow-lg p-6 transform transition-all',

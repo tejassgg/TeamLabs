@@ -121,3 +121,15 @@ body {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* Ensure cursor pointer on hover for all clickable elements */
+button,
+a,
+[role="button"],
+select,
+input[type="submit"],
+input[type="button"],
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+}

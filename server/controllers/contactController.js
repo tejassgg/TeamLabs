@@ -67,17 +67,17 @@ const submitContactRequest = async (req, res) => {
       const taskData = {
         Name: `Support Request: ${title}`,
         Description: `Support request from ${name} (${email})\n\nDescription: ${description}`,
-        Type: 'Bug',
+        Type: 'Support',
         Priority: 'High',
-        ProjectID_FK: '1718b30e-236e-490c-bb3a-8a75bfdb37df',
-        ParentID: '978ccbd0-9051-40c9-abdc-0d7af4136503', // UserStory ID for customer support
+        ProjectID_FK: '3c807b27-ce80-4ae7-9f72-9aeb1fe8c27c',
+        ParentID: '97285d540-a692-416a-ac8d-a554fb261751', // UserStory ID for customer support
         Status: 2, // Assigned
         AssignedDate: new Date(),
-        CreatedBy: '68d3130111a3cf84135b14e4', // System user for support requests
+        CreatedBy: '6a4aaeb1c8c1c41d326c769e', // System user for support requests
         IsActive: true,
         CreatedDate: new Date(),
         TicketNumber: contactRequest.ticketNumber,
-        Assignee: '68d3130111a3cf84135b14e4',
+        Assignee: '6a4aaeb1c8c1c41d326c769e',
         AssignedTo: '681d488bb30030619cf0053d',
         DueDate: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000)
       };
@@ -86,6 +86,29 @@ const submitContactRequest = async (req, res) => {
       createdTask = await newTask.save();
       
       console.log(`Created support task: ${createdTask.TaskID} for contact request: ${contactRequest.ticketNumber}`);
+
+      // Log activity for project detail page visibility
+      try {
+        const { logActivity } = require('../services/activityService');
+        const User = require('../models/User');
+        const user = await User.findOne({ email: email.toLowerCase().trim() });
+        const activityUserId = user ? user._id : '6a4aaeb1c8c1c41d326c769e';
+
+        await logActivity(
+          activityUserId,
+          'task_create',
+          'success',
+          `Created support ticket #${contactRequest.ticketNumber}: "${title}"`,
+          req,
+          {
+            projectId: '3c807b27-ce80-4ae7-9f72-9aeb1fe8c27c',
+            taskId: createdTask.TaskID,
+            taskName: createdTask.Name
+          }
+        );
+      } catch (activityError) {
+        console.error('Failed to log support ticket activity:', activityError);
+      }
     } catch (taskError) {
       console.error('Failed to create support task:', taskError);
       // Don't fail the contact request if task creation fails

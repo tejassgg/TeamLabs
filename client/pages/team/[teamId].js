@@ -7,8 +7,8 @@ import { useGlobal } from '../../context/GlobalContext';
 import api, { authService, teamService, meetingService } from '../../services/api';
 import CustomModal from '../../components/shared/CustomModal';
 import StatusDropdown from '../../components/shared/StatusDropdown';
-import { FaCog, FaTrash, FaTimes, FaPlus, FaExternalLinkAlt, FaClock, FaArrowRight, FaToggleOn, FaUsers, FaAlignLeft, FaTag, FaCalendarAlt, FaUserFriends, FaSignOutAlt, FaCheck } from 'react-icons/fa';
-import { getTaskTypeBadge, getPriorityBadge } from '../../components/task/TaskTypeBadge';
+import { FaCog, FaTrash, FaTimes, FaPlus, FaExternalLinkAlt, FaClock, FaArrowRight, FaToggleOn, FaUsers, FaAlignLeft, FaTag, FaCalendarAlt, FaUserFriends, FaSignOutAlt, FaCheck, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
+import { getTaskTypeBadge, getPriorityBadge, getTaskStatusBadge } from '../../components/task/TaskTypeBadge';
 import TeamDetailsSkeleton from '../../components/skeletons/TeamDetailsSkeleton';
 import { subscribe } from '../../services/socket';
 import Link from 'next/link';
@@ -112,6 +112,77 @@ const TeamDetailsPage = () => {
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [isGoogleCalendarConnected, setIsGoogleCalendarConnected] = useState(false);
   const [showGoogleCalendarPrompt, setShowGoogleCalendarPrompt] = useState(false);
+  const [tasksSortKey, setTasksSortKey] = useState('name');
+  const [tasksSortDir, setTasksSortDir] = useState('asc');
+
+  const handleTasksSort = (key) => {
+    if (tasksSortKey === key) {
+      setTasksSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setTasksSortKey(key);
+      setTasksSortDir('asc');
+    }
+  };
+
+  const getTasksSortIcon = (key) => {
+    if (tasksSortKey !== key) return <FaSort className={getThemeClasses('text-gray-400', 'text-gray-500')} size={12} />;
+    return tasksSortDir === 'asc'
+      ? <FaSortUp className={getThemeClasses('text-blue-600', 'text-blue-400')} size={12} />
+      : <FaSortDown className={getThemeClasses('text-blue-600', 'text-blue-400')} size={12} />;
+  };
+
+  const priorityRank = (p) => {
+    const map = { 'High': 3, 'Medium': 2, 'Low': 1 };
+    return map[p] || 0;
+  };
+
+  const getTaskStatusText = (statusCode) => {
+    const statusTexts = {
+      1: 'Not Assigned',
+      2: 'Assigned',
+      3: 'In Progress',
+      4: 'QA',
+      5: 'Deployment',
+      6: 'Completed'
+    };
+    return statusTexts[statusCode] || 'Unknown';
+  };
+
+  const teamTasksSorted = useMemo(() => {
+    const copy = [...teamTasks];
+    const dir = tasksSortDir === 'asc' ? 1 : -1;
+    // Always show Not Assigned (Status === 1) first
+    copy.sort((a, b) => {
+      const aUnassigned = a.Status === 1 ? 0 : 1;
+      const bUnassigned = b.Status === 1 ? 0 : 1;
+      if (aUnassigned !== bUnassigned) return aUnassigned - bUnassigned;
+      const getAssignedTo = (t) => t.AssignedToDetails?.fullName || '';
+      const getAssignee = (t) => t.AssigneeDetails?.fullName || '';
+      const getStatus = (t) => (t.Status || '').toString();
+      switch (tasksSortKey) {
+        case 'name':
+          return (a.Name || '').localeCompare(b.Name || '') * dir;
+        case 'projectName':
+          return (a.ProjectName || '').localeCompare(b.ProjectName || '') * dir;
+        case 'assignedTo':
+          return getAssignedTo(a).localeCompare(getAssignedTo(b)) * dir;
+        case 'assignee':
+          return getAssignee(a).localeCompare(getAssignee(b)) * dir;
+        case 'assignedDate': {
+          const av = a.AssignedDate ? new Date(a.AssignedDate).getTime() : 0;
+          const bv = b.AssignedDate ? new Date(b.AssignedDate).getTime() : 0;
+          return (av - bv) * dir;
+        }
+        case 'priority':
+          return (priorityRank(a.Priority) - priorityRank(b.Priority)) * dir;
+        case 'status':
+          return getStatus(a).localeCompare(getStatus(b)) * dir;
+        default:
+          return 0;
+      }
+    });
+    return copy;
+  }, [teamTasks, tasksSortKey, tasksSortDir]);
 
   useEffect(() => {
     if (teamId) {
@@ -1533,7 +1604,7 @@ const TeamDetailsPage = () => {
                             {new Date(member.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
                           </td>
                           <td className="hidden md:table-cell py-3 px-4 text-center">
-                            <StatusPill status={member.IsMemberActive ? 'Active' : 'Offline'} theme={theme} showPulseOnActive />
+                            <StatusPill status={member.IsMemberActive ? 'Active' : 'Inactive'} theme={theme} showPulseOnActive />
                           </td>
                           {isOwner && (
                             <td className="py-3 px-4 text-center">
@@ -1737,6 +1808,173 @@ const TeamDetailsPage = () => {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* Team Tasks Section */}
+            <div className="mb-8 mt-6">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Team Tasks</h2>
+                </div>
+              </div>
+              <div className={`overflow-x-auto overflow-y-auto max-h-[80vh] custom-scrollbar mb-2 rounded-xl border ${getThemeClasses('border-gray-200', 'dark:border-gray-700')}`}>
+                {teamTasksSorted.length === 0 ? (
+                  <div className={getThemeClasses(
+                    'text-center py-8 text-gray-400',
+                    'dark:text-gray-500'
+                  )}>
+                    No tasks assigned to this team.
+                  </div>
+                ) : (
+                  <table className="w-full table-fixed">
+                    <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#18181b] border-gray-500' : 'bg-gray-50 border-gray-200'}`}>
+                      <tr className={getThemeClasses('text-left text-md font-semibold text-gray-400 uppercase', 'bg-gray-50 dark:bg-[#18181b]')}>
+                        <th className={`py-3 px-4 text-left w-[30%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                          <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                            <span>Name</span>
+                            {getTasksSortIcon('name')}
+                          </button>
+                        </th>
+                        <th className={`py-3 px-4 text-left w-[15%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                          <button type="button" onClick={() => handleTasksSort('projectName')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                            <span>Project</span>
+                            {getTasksSortIcon('projectName')}
+                          </button>
+                        </th>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                          <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                            <span>Assigned To</span>
+                            {getTasksSortIcon('assignedTo')}
+                          </button>
+                        </th>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                          <button type="button" onClick={() => handleTasksSort('assignee')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                            <span>Assignee</span>
+                            {getTasksSortIcon('assignee')}
+                          </button>
+                        </th>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[10%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                          <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                            <span>Assigned On</span>
+                            {getTasksSortIcon('assignedDate')}
+                          </button>
+                        </th>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[7%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                          <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                            <span>Priority</span>
+                            {getTasksSortIcon('priority')}
+                          </button>
+                        </th>
+                        <th className={`py-3 px-4 text-left w-[8%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                          <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                            <span>Status</span>
+                            {getTasksSortIcon('status')}
+                          </button>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {teamTasksSorted.map(task => {
+                        const getPriorityBackgroundColor = (priority) => {
+                          const styles = {
+                            'High': 'bg-red-50 dark:bg-red-900/10',
+                            'Medium': 'bg-yellow-50 dark:bg-yellow-900/10',
+                            'Low': 'bg-green-50 dark:bg-green-900/10'
+                          };
+                          return styles[priority] || '';
+                        };
+
+                        const rowClasses = task.Type === 'Support'
+                          ? `${getThemeClasses('border-b border-gray-100 hover:bg-gray-50/50 transition-colors last:border-b-0', 'dark:border-gray-700 dark:hover:bg-gray-700/30')} ${getPriorityBackgroundColor(task.Priority)}`
+                          : getThemeClasses(
+                              'border-b border-gray-100 hover:bg-gray-50/50 transition-colors last:border-b-0',
+                              'dark:border-gray-700 dark:hover:bg-gray-700/30'
+                            );
+
+                        return (
+                          <tr key={task.TaskID} className={rowClasses}>
+                            <td className="py-3 px-4 overflow-hidden">
+                              <div className="flex flex-col min-w-0">
+                                <div className="flex items-center gap-2 mb-1 w-full min-w-0">
+                                  <button
+                                    onClick={() => router.push(`/task/${task.TaskID}`)}
+                                    className={getThemeClasses(
+                                      'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full',
+                                      'dark:hover:text-blue-400'
+                                    )}
+                                    title={task.Name}
+                                  >
+                                    {task.Name}
+                                  </button>
+                                  {getTaskTypeBadge(task.Type)}
+                                </div>
+                                <span className={getThemeClasses(
+                                  'text-xs text-gray-500 truncate block w-full',
+                                  'dark:text-gray-400'
+                                )} title={task.Description}>{task.Description}</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 overflow-hidden">
+                              <span className={getThemeClasses(
+                                'text-sm font-medium text-gray-900 truncate block',
+                                'dark:text-gray-100'
+                              )} title={task.ProjectName}>
+                                {task.ProjectName}
+                              </span>
+                            </td>
+                            <td className="hidden md:table-cell py-3 px-4">
+                              {task.AssignedToDetails ? (
+                                <div className="flex items-center gap-3">
+                                  <div className={getThemeClasses(
+                                    'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm flex-shrink-0',
+                                    'dark:from-blue-600 dark:to-blue-700'
+                                  )}>
+                                    {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                  </div>
+                                  <div className="flex flex-col min-w-0">
+                                    <span className={getThemeClasses('text-sm text-gray-900 truncate block', 'dark:text-gray-100')}>{task.AssignedToDetails.fullName}</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-sm text-gray-400">Not Assigned</span>
+                              )}
+                            </td>
+                            <td className="hidden md:table-cell py-3 px-4">
+                              {task.AssigneeDetails ? (
+                                <div className="flex items-center gap-3">
+                                  <div className={getThemeClasses(
+                                    'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm flex-shrink-0',
+                                    'dark:from-green-600 dark:to-green-700'
+                                  )}>
+                                    {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                  </div>
+                                  <div className="flex flex-col min-w-0">
+                                    <span className={getThemeClasses('text-sm text-gray-900 truncate block', 'dark:text-gray-100')}>{task.AssigneeDetails.fullName}</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-sm text-gray-400">Not Assigned</span>
+                              )}
+                            </td>
+                            <td className={getThemeClasses(
+                              'hidden md:table-cell py-3 px-4 text-sm text-gray-600',
+                              'dark:text-gray-400'
+                            )}>
+                              {task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
+                            </td>
+                            <td className="hidden md:table-cell py-3 px-4">
+                              {getPriorityBadge(task.Priority)}
+                            </td>
+                            <td className="py-3 px-4">
+                              {getTaskStatusBadge(task.Status, theme === 'dark', getTaskStatusText(task.Status))}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
 
@@ -2703,7 +2941,7 @@ const TeamDetailsPage = () => {
 
             {/* Google Calendar Connection Prompt Modal */}
             {showGoogleCalendarPrompt && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                 <div className={getThemeClasses('bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100', 'bg-[#18181b] border-[#232323]')}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className={getThemeClasses('text-lg font-semibold text-gray-900', 'dark:text-gray-100')}>Connect Google Calendar</h3>

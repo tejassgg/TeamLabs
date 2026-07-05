@@ -142,7 +142,7 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate }) => {
                 {/* Project Created Date at the end of the timeline */}
                 {projectCreatedDate && (
                   <div className="flex w-full justify-center items-center mt-8">
-                    <div className="absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-64">
+                    <div className="absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-72">
                       <span className={getThemeClasses("bg-white px-4 py-1 rounded-full shadow text-gray-500 font-semibold text-base border border-gray-200", "dark:bg-[#23272F] dark:text-gray-400 dark:border-gray-700 dark:shadow-lg")}>Project Created: {new Date(projectCreatedDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                     </div>
                   </div>

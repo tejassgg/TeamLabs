@@ -120,7 +120,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
   // If in mobile navbar, show only the user profile button
   if (isMobile) {
     return (
-      <div className={`flex items-center gap-1.5 p-2`}>
+      <div className={`flex items-center gap-3.5 p-2`}>
         {/* Status Dropdown */}
         <StatusDropdown
           isMobile={isMobile}
@@ -176,29 +176,44 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
             </button>
             {/* Dropdown Menu */}
             {isUserMenuOpen && (
-              <div className={`absolute right-0 top-full mt-1 w-48 rounded-xl shadow-lg py-1 border z-50 ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'}`}
-              >
-                <div className={`px-4 py-2 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
+              <div className={`absolute right-0 top-full mt-1 w-48 rounded-xl shadow-lg py-1 border z-50 ${
+                theme === 'dark' 
+                  ? 'bg-gray-800 text-white border-gray-700' 
+                  : 'bg-white text-gray-900 border-gray-200'
+              }`}>
+                <div className={`px-4 py-2 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                   <p className="font-medium text-sm truncate">{userDetails.firstName} {userDetails.lastName}</p>
                   <p className="text-xs text-gray-400 truncate">{userDetails.email}</p>
                 </div>
                 <Link
                   href="/profile"
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                  className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${
+                    theme === 'dark' 
+                      ? 'hover:bg-gray-700 text-gray-300 hover:text-white' 
+                      : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
+                  }`}
                 >
                   <FaUser size={16} />
                   <span>Profile</span>
                 </Link>
                 <Link
                   href="/settings"
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                  className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${
+                    theme === 'dark' 
+                      ? 'hover:bg-gray-700 text-gray-300 hover:text-white' 
+                      : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
+                  }`}
                 >
                   <FaCog size={16} />
                   <span>Settings</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-red-300' : 'hover:bg-blue-100 text-red-600'}`}
+                  className={`w-full flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${
+                    theme === 'dark' 
+                      ? 'hover:bg-gray-700 text-red-400 hover:text-red-300' 
+                      : 'hover:bg-gray-100 text-red-600 hover:text-red-700'
+                  }`}
                 >
                   <FaSignOutAlt size={16} />
                   <span>Logout</span>
@@ -228,7 +243,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
           </div>
 
           {/* Right side - User menu and Notifications */}
-          <div className="flex items-center space-x-2 mr-2 lg:space-x-6">
+          <div className="flex items-center space-x-4 mr-2 lg:space-x-6">
             {/* Status Dropdown */}
             <StatusDropdown
               currentStatus={userStatus}
@@ -284,29 +299,44 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
                 </button>
                 {/* Dropdown Menu */}
                 {isUserMenuOpen && (
-                  <div className={`absolute right-0 mt-2 w-48 rounded-xl shadow-lg py-1 border z-50 ${theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA] border-[#424242]' : 'bg-white text-gray-900 border-gray-200'}`}
-                  >
-                    <div className={`px-4 py-2 border-b ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
+                  <div className={`absolute right-0 mt-2 w-48 rounded-xl shadow-lg py-1 border z-50 ${
+                    theme === 'dark' 
+                      ? 'bg-gray-800 text-white border-gray-700' 
+                      : 'bg-white text-gray-900 border-gray-200'
+                  }`}>
+                    <div className={`px-4 py-2 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                       <p className="font-medium text-sm truncate">{userDetails.firstName} {userDetails.lastName}</p>
                       <p className="text-xs text-gray-400 truncate">{userDetails.email}</p>
                     </div>
                     <Link
                       href="/profile"
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                      className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${
+                        theme === 'dark' 
+                          ? 'hover:bg-gray-700 text-gray-300 hover:text-white' 
+                          : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
+                      }`}
                     >
                       <FaUser size={16} />
                       <span>Profile</span>
                     </Link>
                     <Link
                       href="/settings"
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                      className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${
+                        theme === 'dark' 
+                          ? 'hover:bg-gray-700 text-gray-300 hover:text-white' 
+                          : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
+                      }`}
                     >
                       <FaCog size={16} />
                       <span>Settings</span>
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition ${theme === 'dark' ? 'hover:bg-[#424242] text-red-300' : 'hover:bg-blue-100 text-red-600'}`}
+                      className={`w-full flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${
+                        theme === 'dark' 
+                          ? 'hover:bg-gray-700 text-red-400 hover:text-red-300' 
+                          : 'hover:bg-gray-100 text-red-600 hover:text-red-700'
+                      }`}
                     >
                       <FaSignOutAlt size={16} />
                       <span>Logout</span>

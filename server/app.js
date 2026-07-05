@@ -52,6 +52,20 @@ const { initSocket } = require('./socket');
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+
+// Express 5 query getter compatibility workaround for express-mongo-sanitize
+app.use((req, res, next) => {
+  if (req.query) {
+    Object.defineProperty(req, 'query', {
+      value: { ...req.query },
+      writable: true,
+      configurable: true,
+      enumerable: true,
+    });
+  }
+  next();
+});
+
 app.use(mongoSanitize());
 
 // Configure CORS

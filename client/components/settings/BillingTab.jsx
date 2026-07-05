@@ -783,7 +783,7 @@ const BillingTab = ({
       </div>
 
       {showDowngradeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} max-w-md w-full mx-4 p-6 rounded-xl shadow-2xl`}>
             <div className={`${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'} border-b`}>
               <div className="flex items-center gap-3 justify-start">

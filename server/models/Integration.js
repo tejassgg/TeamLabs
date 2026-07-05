@@ -161,7 +161,7 @@ IntegrationSchema.statics.findExpiredTokens = function() {
 };
 
 // Pre-save middleware
-IntegrationSchema.pre('save', function(next) {
+IntegrationSchema.pre('save', function() {
   // Update connectedAt when connection status changes to true
   if (this.isModified('isConnected') && this.isConnected && !this.connectedAt) {
     this.connectedAt = new Date();
@@ -171,8 +171,6 @@ IntegrationSchema.pre('save', function(next) {
   if (this.isModified('isConnected') && !this.isConnected) {
     this.connectedAt = null;
   }
-  
-  next();
 });
 
 module.exports = mongoose.model('Integration', IntegrationSchema);
