@@ -17,7 +17,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
         return startOfWeek;
     });
     const [selectedTask, setSelectedTask] = useState(null);
-    
+
     // Interactive drag state
     const [dragState, setDragState] = useState(null);
     const [previewDates, setPreviewDates] = useState(null);
@@ -72,10 +72,10 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
 
         const itemsWithTimeline = allItems.map(item => {
             const itemId = item.TaskID || item._id;
-            
+
             // Check if this item is currently being dragged
             const isDraggingThis = previewDates && previewDates.taskId === itemId;
-            
+
             let startDate;
             if (isDraggingThis) {
                 startDate = previewDates.startDate;
@@ -168,7 +168,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
         document.body.style.cursor = 'default';
         const finalPreview = previewDates;
         const targetItem = dragState.item;
-        
+
         setDragState(null);
         setPreviewDates(null);
 
@@ -204,7 +204,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
         if (!container) return;
 
         const rect = container.getBoundingClientRect();
-        
+
         const initialStartDate = item.startDate;
         const initialEndDate = item.endDate;
 
@@ -347,7 +347,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'week'
                                     ? theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
                                     : theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'
-                                }`}
+                                    }`}
                             >
                                 Week
                             </button>
@@ -356,7 +356,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'month'
                                     ? theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
                                     : theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'
-                                }`}
+                                    }`}
                             >
                                 Month
                             </button>
@@ -365,7 +365,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'quarter'
                                     ? theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
                                     : theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'
-                                }`}
+                                    }`}
                             >
                                 Quarter
                             </button>
@@ -397,7 +397,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                             </div>
                         )}
                     </div>
-                    
+
                     <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} italic`}>
                         Tip: Drag timeline bars to reschedule, or stretch ends to change duration
                     </div>
@@ -405,12 +405,13 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
             </div>
 
             {/* Timeline Wrapper */}
-            <div className={`border rounded-2xl ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} overflow-x-auto overflow-y-visible`}>
+            <div className={`border rounded-2xl ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} max-h-[800px] overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800`}>
                 <div className="min-w-max flex flex-col">
                     {/* Header Row */}
-                    <div className={`flex min-w-max border-b ${theme === 'dark' ? 'border-gray-800 bg-[#161616]' : 'border-gray-200 bg-gray-50'}`}>
+                    <div className={`flex min-w-max border-b sticky top-0 z-30 ${theme === 'dark' ? 'border-gray-800 bg-[#161616]' : 'border-gray-200 bg-gray-50'}`}>
                         {/* Task List Header */}
-                        <div className="w-80 p-4 font-semibold text-sm flex-shrink-0">
+                        <div className={`w-80 p-4 font-semibold text-sm flex-shrink-0 sticky left-0 z-40 border-r ${theme === 'dark' ? 'bg-[#161616] border-gray-800' : 'bg-gray-50 border-gray-200'
+                            }`}>
                             Task / User Story Info
                         </div>
                         {/* Dates Header Columns */}
@@ -418,13 +419,12 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                             {timelineHeaders.map((header, index) => (
                                 <div
                                     key={index}
-                                    className={`flex-1 p-3 text-center text-xs font-semibold border-r last:border-r-0 ${
-                                        header.isToday 
-                                            ? 'text-blue-500 border-blue-500/20 bg-blue-500/5' 
-                                            : header.isWeekend
-                                                ? theme === 'dark' ? 'border-gray-800 text-gray-500 bg-gray-900/50' : 'border-gray-250 text-gray-450 bg-gray-50'
-                                                : theme === 'dark' ? 'border-gray-800 text-gray-400' : 'border-gray-200 text-gray-600'
-                                    }`}
+                                    className={`flex-1 p-3 text-center text-xs font-semibold border-r last:border-r-0 ${header.isToday
+                                        ? 'text-blue-500 border-blue-500/20 bg-blue-500/5'
+                                        : header.isWeekend
+                                            ? theme === 'dark' ? 'border-gray-800 text-gray-500 bg-gray-900/50' : 'border-gray-250 text-gray-450 bg-gray-50'
+                                            : theme === 'dark' ? 'border-gray-800 text-gray-400' : 'border-gray-200 text-gray-600'
+                                        }`}
                                     style={{ minWidth: '100px' }}
                                 >
                                     <div>{header.label}</div>
@@ -434,7 +434,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                     </div>
 
                     {/* Timeline Body Rows */}
-                    <div className="max-h-[580px] overflow-y-auto overflow-x-hidden">
+                    <div className="flex flex-col">
                         {timelineData.items.length === 0 ? (
                             <div className={`p-12 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                                 <FaCalendarAlt size={48} className="mx-auto mb-4 opacity-40" />
@@ -449,43 +449,42 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                                 });
 
                                 return (
-                                    <div 
-                                        key={item.TaskID || item._id} 
-                                        className={`flex border-b last:border-b-0 relative group transition-colors duration-200 ${
-                                            theme === 'dark' ? 'border-gray-800 hover:bg-gray-800/40' : 'border-gray-150 hover:bg-gray-50/50'
-                                        }`}
+                                    <div
+                                        key={item.TaskID || item._id}
+                                        className={`flex border-b last:border-b-0 relative group transition-colors duration-200 ${theme === 'dark' ? 'border-gray-800 hover:bg-gray-800/40' : 'border-gray-150 hover:bg-gray-50/50'
+                                            }`}
                                     >
                                         {/* Task Metadata Info Column */}
-                                        <div className={`w-80 p-3.5 border-r ${
-                                            theme === 'dark' ? 'bg-[#121212] border-gray-800' : 'bg-white border-gray-200'
-                                        } flex-shrink-0 relative z-10 flex flex-col justify-center`}>
+                                        <div className={`w-80 p-3.5 border-r sticky left-0 z-10 flex-shrink-0 flex flex-col justify-center transition-colors duration-200 ${theme === 'dark'
+                                            ? 'bg-[#121212] border-gray-800 group-hover:bg-[#1e1e20]'
+                                            : 'bg-white border-gray-200 group-hover:bg-gray-50'
+                                            }`}>
                                             <div className="flex items-start gap-2.5">
                                                 <span className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${getStatusColor(item.Status, item.Type)}`}></span>
                                                 <div className="flex-1 min-w-0">
                                                     <div className={`font-semibold text-sm truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                                         {item.Name}
                                                     </div>
-                                                    
+
                                                     {/* Type / Priority Badges */}
                                                     <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                                                         {getTaskTypeBadge(item.Type)}
                                                         {item.Priority && getPriorityBadge(item.Priority)}
-                                                        
+
                                                         {/* Dependencies Edit Trigger */}
-                                                        <button 
+                                                        <button
                                                             onClick={() => {
                                                                 setDependencyTask(item);
                                                                 setShowDependencyModal(true);
                                                             }}
-                                                            className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border flex items-center gap-1 transition-all ${
-                                                                isBlocked
-                                                                    ? 'bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20'
-                                                                    : item.Dependencies?.length > 0
-                                                                        ? 'bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20'
-                                                                        : theme === 'dark'
-                                                                            ? 'bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700'
-                                                                            : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
-                                                            }`}
+                                                            className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border flex items-center gap-1 transition-all ${isBlocked
+                                                                ? 'bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20'
+                                                                : item.Dependencies?.length > 0
+                                                                    ? 'bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20'
+                                                                    : theme === 'dark'
+                                                                        ? 'bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700'
+                                                                        : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                                                                }`}
                                                         >
                                                             <FaLink size={8} />
                                                             {item.Dependencies?.length > 0 ? `${item.Dependencies.length} Prerequisites` : 'Add Prerequisites'}
@@ -505,12 +504,10 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                                         {/* Gantt Bar Column Track */}
                                         <div className="flex-1 min-w-max relative py-4 pointer-events-none h-16">
                                             {/* Bar container */}
-                                            <div 
-                                                className={`absolute top-3 bottom-3 rounded-lg flex items-center transition-shadow shadow-md hover:shadow-lg select-none pointer-events-auto border-2 ${
-                                                    getStatusColor(item.Status, item.Type)
-                                                } ${
-                                                    theme === 'dark' ? 'border-gray-900/30 text-white' : 'border-white/30 text-white'
-                                                }`}
+                                            <div
+                                                className={`group absolute top-3 bottom-3 rounded-lg flex items-center transition-shadow shadow-md hover:shadow-lg select-none pointer-events-auto border-2 ${getStatusColor(item.Status, item.Type)
+                                                    } ${theme === 'dark' ? 'border-gray-900/30 text-white' : 'border-white/30 text-white'
+                                                    }`}
                                                 style={{
                                                     left: `${item.startPercentage}%`,
                                                     width: `${Math.max(item.durationPercentage, 1.5)}%`,
@@ -522,21 +519,42 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                                                 title={`${item.Name} (${formatDateUTC(item.startDate)} - ${formatDateUTC(item.endDate)})`}
                                             >
                                                 {/* Left Edge Resize Handle */}
-                                                <div 
-                                                    className="absolute left-0 top-0 bottom-0 w-2 hover:bg-white/30 cursor-col-resize rounded-l-md transition-colors"
+                                                <div
+                                                    className="absolute left-0 top-0 bottom-0 w-3 cursor-col-resize rounded-l-md flex items-center justify-center bg-black/15 dark:bg-white/15 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                                     onMouseDown={(e) => handleMouseDown(e, item, 'resize-left')}
-                                                ></div>
+                                                    title="Drag to extend or shorten start date"
+                                                >
+                                                    <div className="w-[1.5px] h-3.5 bg-white/80 rounded-full"></div>
+                                                </div>
 
                                                 {/* Bar Title Label */}
-                                                <div className="flex-1 px-3.5 text-xs font-semibold truncate flex items-center pointer-events-none select-none">
-                                                    {item.Name}
+                                                <div className="flex-1 px-3.5 text-xs font-semibold truncate flex items-center gap-1.5 pointer-events-none select-none">
+                                                    {item.AssignedToDetails && (
+                                                        <div className="flex-shrink-0 w-4 h-4">
+                                                            {item.AssignedToDetails.profileImage ? (
+                                                                <img
+                                                                    src={item.AssignedToDetails.profileImage}
+                                                                    alt={item.AssignedToDetails.fullName}
+                                                                    className="w-4 h-4 rounded-full object-cover border border-white/20"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-white text-[8px] font-bold">
+                                                                    {item.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    <span className="truncate">{item.Name}</span>
                                                 </div>
 
                                                 {/* Right Edge Resize Handle */}
-                                                <div 
-                                                    className="absolute right-0 top-0 bottom-0 w-2 hover:bg-white/30 cursor-col-resize rounded-r-md transition-colors"
+                                                <div
+                                                    className="absolute right-0 top-0 bottom-0 w-3 cursor-col-resize rounded-r-md flex items-center justify-center bg-black/15 dark:bg-white/15 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                                     onMouseDown={(e) => handleMouseDown(e, item, 'resize-right')}
-                                                ></div>
+                                                    title="Drag to extend or shorten end date"
+                                                >
+                                                    <div className="w-[1.5px] h-3.5 bg-white/80 rounded-full"></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -549,55 +567,66 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
 
             {/* Dependency Management Modal */}
             {showDependencyModal && dependencyTask && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className={`w-full max-w-lg rounded-2xl shadow-2xl p-6 border ${
-                        theme === 'dark' ? 'bg-[#1c1c1e] border-gray-800 text-white' : 'bg-white border-gray-150 text-gray-900'
-                    }`}>
-                        <div className="flex items-center justify-between border-b pb-3 mb-4">
-                            <h3 className="text-lg font-bold flex items-center gap-2">
-                                <FaLink className="text-blue-500" />
-                                Manage Prerequisites: {dependencyTask.Name}
-                            </h3>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className={`w-full max-w-lg rounded-3xl shadow-2xl p-6 border transition-all duration-300 ${theme === 'dark' ? 'bg-[#18181b] border-[#232323] text-zinc-100' : 'bg-white border-gray-100 text-gray-900'
+                        }`}>
+                        <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-4 mb-5">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                                    <FaLink size={16} />
+                                </div>
+                                <div className="min-w-0">
+                                    <h3 className="text-lg font-bold">Manage Prerequisites</h3>
+                                    <p className="text-xs text-gray-500 dark:text-zinc-400 font-medium truncate max-w-[280px] mt-0.5">
+                                        For: {dependencyTask.Name}
+                                    </p>
+                                </div>
+                            </div>
                             <button
                                 onClick={() => {
                                     setShowDependencyModal(false);
                                     setDependencyTask(null);
                                 }}
-                                className={`p-1.5 rounded-lg transition-colors ${
-                                    theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                                }`}
+                                className={`p-2 rounded-xl transition-all duration-200 ${theme === 'dark'
+                                    ? 'hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200'
+                                    : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                                    }`}
                             >
-                                <FaTimes size={16} />
+                                <FaTimes size={14} />
                             </button>
                         </div>
 
                         {/* List current dependencies */}
                         <div className="mb-6">
-                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Active Prerequisites</h4>
+                            <h4 className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-3">
+                                Active Prerequisites
+                            </h4>
                             {(!dependencyTask.Dependencies || dependencyTask.Dependencies.length === 0) ? (
-                                <p className={`text-sm italic ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>No dependencies currently defined.</p>
+                                <div className={`text-sm italic p-4 text-center border border-dashed rounded-2xl ${theme === 'dark' ? 'border-zinc-800 text-zinc-500' : 'border-gray-200 text-gray-400'
+                                    }`}>
+                                    No dependencies currently defined.
+                                </div>
                             ) : (
-                                <div className="space-y-2 max-h-36 overflow-y-auto">
+                                <div className="space-y-2 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
                                     {dependencyTask.Dependencies.map(depId => {
                                         const dep = allItems.find(t => (t.TaskID || t._id) === depId);
                                         if (!dep) return null;
                                         return (
-                                            <div 
-                                                key={depId} 
-                                                className={`flex items-center justify-between p-2.5 rounded-xl border ${
-                                                    theme === 'dark' ? 'bg-gray-900/60 border-gray-800' : 'bg-gray-50 border-gray-200'
-                                                }`}
+                                            <div
+                                                key={depId}
+                                                className={`flex items-center justify-between p-3.5 rounded-2xl border transition-colors ${theme === 'dark' ? 'bg-zinc-900/40 border-zinc-800/80' : 'bg-gray-50/50 border-gray-150'
+                                                    }`}
                                             >
-                                                <div className="flex items-center gap-2 min-w-0">
-                                                    <span className={`w-2 h-2 rounded-full ${getStatusColor(dep.Status, dep.Type)}`}></span>
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <span className={`w-2.5 h-2.5 rounded-full ${getStatusColor(dep.Status, dep.Type)}`}></span>
                                                     <span className="text-sm font-semibold truncate">{dep.Name}</span>
                                                 </div>
                                                 <button
                                                     onClick={() => handleRemoveDependency(depId)}
-                                                    className="text-red-400 hover:text-red-500 p-1 rounded transition-colors"
-                                                    title="Remove dependency link"
+                                                    className="p-2 rounded-xl text-rose-550 hover:text-white hover:bg-rose-500 transition-all duration-200"
+                                                    title="Remove prerequisite"
                                                 >
-                                                    <FaUnlink size={12} />
+                                                    <FaUnlink size={11} />
                                                 </button>
                                             </div>
                                         );
@@ -608,35 +637,44 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
 
                         {/* Add new dependencies */}
                         <div>
-                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Add Prerequisite Task</h4>
-                            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                            <h4 className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-3">
+                                Add Prerequisite Task
+                            </h4>
+                            <div className="space-y-2 max-h-48 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
                                 {allItems
-                                    .filter(item => 
+                                    .filter(item =>
                                         (item.TaskID || item._id) !== (dependencyTask.TaskID || dependencyTask._id) &&
                                         !(dependencyTask.Dependencies || []).includes(item.TaskID || item._id)
                                     )
                                     .map(item => (
-                                        <div 
-                                            key={item.TaskID || item._id} 
-                                            className={`flex items-center justify-between p-2 rounded-lg hover:bg-gray-500/10 cursor-pointer transition-all ${
-                                                theme === 'dark' ? 'border-gray-800' : 'border-gray-100'
-                                            }`}
-                                            onClick={() => handleAddDependency(item.TaskID || item._id)}
+                                        <div
+                                            key={item.TaskID || item._id}
+                                            className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${theme === 'dark'
+                                                ? 'border-[#232323] hover:bg-zinc-800/40'
+                                                : 'border-gray-100 hover:bg-gray-50/50'
+                                                }`}
                                         >
-                                            <div className="flex items-center gap-2 min-w-0">
+                                            <div className="flex items-center gap-3 min-w-0">
                                                 <span className={`w-1.5 h-1.5 rounded-full ${getStatusColor(item.Status, item.Type)}`}></span>
-                                                <span className="text-xs font-medium truncate">{item.Name}</span>
+                                                <span className="text-xs font-semibold truncate">{item.Name}</span>
                                             </div>
-                                            <span className="text-[10px] text-blue-500 font-bold uppercase tracking-wide">Link</span>
+                                            <button
+                                                onClick={() => handleAddDependency(item.TaskID || item._id)}
+                                                className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white text-blue-600 dark:text-blue-400 font-bold text-xs rounded-xl transition-all duration-200"
+                                            >
+                                                Link
+                                            </button>
                                         </div>
                                     ))
                                 }
-                                {allItems.filter(item => 
+                                {allItems.filter(item =>
                                     (item.TaskID || item._id) !== (dependencyTask.TaskID || dependencyTask._id) &&
                                     !(dependencyTask.Dependencies || []).includes(item.TaskID || item._id)
                                 ).length === 0 && (
-                                    <p className={`text-xs italic ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>No other tasks available to link.</p>
-                                )}
+                                        <p className={`text-xs italic text-center py-4 ${theme === 'dark' ? 'text-zinc-550' : 'text-gray-400'}`}>
+                                            No other tasks available to link.
+                                        </p>
+                                    )}
                             </div>
                         </div>
                     </div>
@@ -645,70 +683,91 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
 
             {/* Task Detail Modal */}
             {selectedTask && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className={`max-w-lg w-full p-6 rounded-2xl shadow-2xl border ${
-                        theme === 'dark' ? 'bg-[#1c1c1e] border-gray-800 text-white' : 'bg-white border-gray-150 text-gray-900'
-                    }`}>
-                        <div className="flex items-center justify-between border-b pb-3 mb-4">
-                            <h3 className="text-lg font-bold">
-                                Task details
-                            </h3>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className={`max-w-lg w-full p-6 rounded-3xl shadow-2xl border transition-all duration-300 ${theme === 'dark' ? 'bg-[#18181b] border-[#232323] text-zinc-100' : 'bg-white border-gray-100 text-gray-900'
+                        }`}>
+                        <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-4 mb-5">
+                            <div className="flex items-center gap-3">
+                                <span className={`w-3 h-3 rounded-full ${getStatusColor(selectedTask.Status, selectedTask.Type)}`}></span>
+                                <h3 className="text-lg font-bold">Task Details</h3>
+                            </div>
                             <button
                                 onClick={() => setSelectedTask(null)}
-                                className={`p-1.5 rounded-lg transition-colors ${
-                                    theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                                }`}
+                                className={`p-2 rounded-xl transition-all duration-200 ${theme === 'dark'
+                                    ? 'hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200'
+                                    : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                                    }`}
                             >
-                                <FaTimes size={16} />
+                                <FaTimes size={14} />
                             </button>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-5">
                             <div>
-                                <span className={`text-xs font-bold text-gray-500 uppercase tracking-wider`}>Name</span>
-                                <p className="text-sm font-semibold mt-1">{selectedTask.Name}</p>
+                                <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                    Name
+                                </span>
+                                <p className="text-sm font-semibold mt-1 break-words">{selectedTask.Name}</p>
                             </div>
 
                             {selectedTask.Description && (
                                 <div>
-                                    <span className={`text-xs font-bold text-gray-500 uppercase tracking-wider`}>Description</span>
-                                    <p className={`text-sm mt-1 leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{selectedTask.Description}</p>
+                                    <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                        Description
+                                    </span>
+                                    <p className={`text-sm mt-1 leading-relaxed break-words ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                        {selectedTask.Description}
+                                    </p>
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="flex items-center gap-2.5">
-                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Type:</span>
-                                    {getTaskTypeBadge(selectedTask.Type)}
+                            <div className="grid grid-cols-2 gap-4 border-t border-b border-gray-100 dark:border-zinc-800 py-4 my-2">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                        Type
+                                    </span>
+                                    <div className="mt-1">{getTaskTypeBadge(selectedTask.Type)}</div>
                                 </div>
 
                                 {selectedTask.Priority && (
-                                    <div className="flex items-center gap-2.5">
-                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Priority:</span>
-                                        {getPriorityBadge(selectedTask.Priority)}
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                            Priority
+                                        </span>
+                                        <div className="mt-1">{getPriorityBadge(selectedTask.Priority)}</div>
                                     </div>
                                 )}
                             </div>
 
                             <div>
-                                <span className={`text-xs font-bold text-gray-500 uppercase tracking-wider`}>Duration</span>
-                                <p className="text-sm font-semibold mt-1">
-                                    {formatDateUTC(selectedTask.startDate)} — {formatDateUTC(selectedTask.endDate)}
-                                </p>
+                                <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                    Duration
+                                </span>
+                                <div className="text-sm font-semibold mt-1 flex items-center gap-2">
+                                    <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 rounded-lg text-xs">
+                                        {formatDateUTC(selectedTask.startDate)}
+                                    </span>
+                                    <span className="text-gray-400">—</span>
+                                    <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 rounded-lg text-xs">
+                                        {formatDateUTC(selectedTask.endDate)}
+                                    </span>
+                                </div>
                             </div>
 
                             {((selectedTask.commentCount || 0) > 0 || (selectedTask.attachmentCount || 0) > 0) && (
-                                <div>
-                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Activity Summary</span>
+                                <div className="border-t border-gray-100 dark:border-zinc-800 pt-4">
+                                    <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                        Activity Summary
+                                    </span>
                                     <div className="flex items-center gap-4 mt-2">
                                         {(selectedTask.commentCount || 0) > 0 && (
-                                            <div className={`flex items-center gap-1.5 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                <FaRegComment className="w-3.5 h-3.5" />
+                                            <div className={`flex items-center gap-1.5 text-sm ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>
+                                                <FaRegComment className="w-4 h-4" />
                                                 <span>{selectedTask.commentCount || 0} comments</span>
                                             </div>
                                         )}
                                         {(selectedTask.attachmentCount || 0) > 0 && (
-                                            <div className={`flex items-center gap-1.5 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                            <div className={`flex items-center gap-1.5 text-sm ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>
                                                 <TiAttachment size={18} />
                                                 <span>{selectedTask.attachmentCount || 0} attachments</span>
                                             </div>

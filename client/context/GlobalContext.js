@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useTheme } from './ThemeContext';
 import { teamService, projectService, authService, taskService, commonTypeService } from '../services/api';
 import { getProjectStatusStyle, getProjectStatusBadge } from '../components/project/ProjectStatusBadge';
-import { getTaskTypeStyle, getTaskTypeBadge } from '../components/task/TaskTypeBadge';
+import { getTaskTypeStyle, getTaskTypeBadge, getTaskStatusBadge } from '../components/task/TaskTypeBadge';
 import { getDeadlineStatus, calculateDeadlineText } from '../components/shared/DeadlineStatusBadge';
 import { useRouter } from 'next/router';
 import { subscribe, connectSocket } from '../services/socket';
@@ -74,6 +74,11 @@ export const GlobalProvider = ({ children }) => {
   // Get task type badge component
   const getTaskTypeBadgeComponent = (type) => {
     return getTaskTypeBadge(type);
+  };
+
+  // Get task status badge component (reusable globally)
+  const getStatus = (statusCode) => {
+    return getTaskStatusBadge(statusCode, theme === 'dark');
   };
 
   // Get task status text
@@ -760,6 +765,7 @@ export const GlobalProvider = ({ children }) => {
     getTaskTypeStyleComponent,
     getTaskTypeBadgeComponent,
     getTaskStatusText,
+    getStatus,
     getDeadlineStatusComponent,
     calculateDeadlineTextComponent,
     setUserDetails,

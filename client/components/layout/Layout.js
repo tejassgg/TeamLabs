@@ -560,6 +560,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
   const currentPageTitle = getPageTitle();
   const currentPageProject = getPageProject();
   const hideTitleOnMobile = isMobile && (router.pathname === '/project/[projectId]' || router.pathname === '/task/[taskId]');
+  const hideBreadcrumbOnMobile = isMobile && router.pathname === '/task/[taskId]';
 
   // Inline editing functions
   const handleEditProjectName = (project) => {
@@ -848,23 +849,25 @@ const Layout = ({ children, pageProject, pageTitle }) => {
           )}
 
           <div className="p-2">
-            <DynamicBreadcrumb
-              teams={teams}
-              projects={projects}
-              tasksDetails={tasksDetails}
-              currentPageProject={currentPageProject}
-              onEditProjectName={handleEditProjectName}
-              onEditTaskName={handleEditTaskName}
-              onSaveProjectName={handleSaveProjectName}
-              onSaveTaskName={handleSaveTaskName}
-              onCancelEdit={handleCancelEdit}
-              editingProjectId={editingProjectId}
-              editingTaskId={editingTaskId}
-              editingProjectName={editingProjectName}
-              editingTaskName={editingTaskName}
-              setEditingProjectName={setEditingProjectName}
-              setEditingTaskName={setEditingTaskName}
-            />
+            {!hideBreadcrumbOnMobile && (
+              <DynamicBreadcrumb
+                teams={teams}
+                projects={projects}
+                tasksDetails={tasksDetails}
+                currentPageProject={currentPageProject}
+                onEditProjectName={handleEditProjectName}
+                onEditTaskName={handleEditTaskName}
+                onSaveProjectName={handleSaveProjectName}
+                onSaveTaskName={handleSaveTaskName}
+                onCancelEdit={handleCancelEdit}
+                editingProjectId={editingProjectId}
+                editingTaskId={editingTaskId}
+                editingProjectName={editingProjectName}
+                editingTaskName={editingTaskName}
+                setEditingProjectName={setEditingProjectName}
+                setEditingTaskName={setEditingTaskName}
+              />
+            )}
             {children}
           </div>
         </main>

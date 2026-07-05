@@ -65,7 +65,13 @@ const ProjectsPage = () => {
     try {
       const newProject = await projectService.addProject(projectData);
       setProjects(prevProjects => [...prevProjects, newProject]);
-      showToast('Project added successfully!', 'success');
+      showToast('Project added successfully!', 'success', 5000, {
+        description: `Project "${newProject?.Name || projectData?.Name || ''}" has been created.`,
+        action: {
+          label: 'View',
+          onClick: () => router.push(`/project/${newProject.ProjectID || newProject._id}`)
+        }
+      });
       // Refresh projects with stats after adding new project (without showing loading)
       await fetchProjectsWithStats(false);
       return newProject;

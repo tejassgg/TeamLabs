@@ -59,7 +59,7 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate }) => {
   const days = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
 
   return (
-    <div className={getThemeClasses("relative px-2 py-6", "relative px-2 py-6")}> 
+    <div className={getThemeClasses("relative px-2 py-6", "relative px-2 py-6")}>
       <h2 className={getThemeClasses("text-2xl font-bold mb-8 text-gray-900", "dark:text-gray-100")}>Latest Activity</h2>
       {loading ? (
         <div className="flex justify-center items-center py-12">
@@ -103,7 +103,7 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate }) => {
                   <div key={date} className="mb-16 flex w-full min-h-[120px] relative items-center">
                     {/* Centered day/date label */}
                     <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center w-48">
-                      <span className={getThemeClasses("bg-white px-4 py-1 rounded-full shadow text-gray-700 font-semibold text-base border border-gray-200", "dark:bg-[#23272F] dark:text-gray-100 dark:border-gray-700 dark:shadow-lg")}>{formatDay(date)}</span>
+                      <span className={getThemeClasses("text-sm bg-white px-4 py-1 rounded-full shadow text-gray-700 font-semibold text-base border border-gray-200", "dark:bg-[#23272F] dark:text-gray-100 dark:border-gray-700 dark:shadow-lg")}>{formatDay(date)}</span>
                     </div>
                     {/* Timeline sides */}
                     {i % 2 === 0 ? (
@@ -265,19 +265,19 @@ function ActivityRow({ act, theme, align }) {
         <span className={getThemeClasses("text-xs text-gray-400 text-right ", "text-xs text-gray-500 text-right")}>{new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
         {/* Details and time */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start">
+          <div className="flex items-between gap-2">
             {/* Image */}
             <div className="flex-shrink-0">
               {act.user?.profileImage ? (
-                <img src={act.user.profileImage} alt="avatar" className={getThemeClasses("w-10 h-10 rounded-full object-cover border border-gray-200", "w-10 h-10 rounded-full object-cover border border-gray-700")} />
+                <img src={act.user.profileImage} alt="avatar" className={getThemeClasses("w-8 h-8 rounded-full object-cover border border-gray-200", "w-8 h-8 rounded-full object-cover border border-gray-700")} />
               ) : (
-                <div className={getThemeClasses("w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg", "w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center text-blue-300 font-bold text-lg")}>
+                <div className={getThemeClasses("w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg", "w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center text-blue-300 font-bold text-lg")}>
                   {(act.user?.firstName && act.user?.lastName) ? act.user.firstName[0] + act.user.lastName[0] : 'UN'}
                 </div>
               )}
             </div>
             <div className="flex flex-col">
-              <div className={getThemeClasses("text-gray-900 font-medium text-base w-[90%]", "dark:text-gray-100 font-medium text-base w-[90%]")}>{renderDetailsWithLink()}</div>
+              <div className={getThemeClasses("text-sm text-gray-900 font-medium text-base", "dark:text-gray-100 font-medium text-base w-[90%]")}>{renderDetailsWithLink()}</div>
               {secondRow}
             </div>
           </div>
@@ -287,22 +287,22 @@ function ActivityRow({ act, theme, align }) {
   } else {
     // align === 'right'
     return (
-      <div className="flex items-start gap-2 w-full ">
+      <div className="flex items-center gap-2 w-full ">
         {/* Image */}
         <div className="flex-shrink-0">
           {act.user?.profileImage ? (
-            <img src={act.user.profileImage} alt="avatar" className={getThemeClasses("w-10 h-10 rounded-full object-cover border border-gray-200", "w-10 h-10 rounded-full object-cover border border-gray-700")} />
+            <img src={act.user.profileImage} alt="avatar" className={getThemeClasses("w-8 h-8 rounded-full object-cover border border-gray-200", "w-8 h-8 rounded-full object-cover border border-gray-700")} />
           ) : (
-            <div className={getThemeClasses("w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg", "w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center text-blue-300 font-bold text-lg")}>
+            <div className={getThemeClasses("w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg", "w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center text-blue-300 font-bold text-lg")}>
               {(act.user?.firstName && act.user?.lastName) ? act.user.firstName[0] + act.user.lastName[0] : 'UN'}
             </div>
           )}
         </div>
         {/* Details and time */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start">
+          <div className="flex items-between gap-2">
             <div className="flex flex-col">
-              <div className={getThemeClasses("text-gray-900 font-medium text-base w-[90%]", "dark:text-gray-100 font-medium text-base w-[90%]")}>{renderDetailsWithLink()}</div>
+              <div className={getThemeClasses("text-sm text-gray-900 font-medium text-base", "dark:text-gray-100 font-medium text-base w-[90%]")}>{renderDetailsWithLink()}</div>
               {secondRow}
             </div>
             <span className={getThemeClasses("text-xs text-gray-400 text-right whitespace-nowrap", "text-xs text-gray-500 text-right whitespace-nowrap ")}>{new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -313,7 +313,7 @@ function ActivityRow({ act, theme, align }) {
   }
 }
 
-export default ProjectActivity; 
+export default ProjectActivity;
 
 // Mobile-friendly compact activity row
 function MobileActivityRow({ act }) {
@@ -396,7 +396,7 @@ function MobileActivityRow({ act }) {
   let secondRow = null;
   if (act.type === 'comment_added' && act.metadata && act.metadata.comment) {
     secondRow = (
-      <div className={getThemeClasses("text-gray-700 text-xs mt-1", "dark:text-gray-200 text-xs mt-1")}> 
+      <div className={getThemeClasses("text-gray-700 text-xs mt-1", "dark:text-gray-200 text-xs mt-1")}>
         {act.metadata.comment}
       </div>
     );

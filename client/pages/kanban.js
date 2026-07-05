@@ -613,7 +613,15 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
               const newTask = await taskService.addTaskDetails(taskData, 'fromProject');
               // setTasks(prev => [...prev, newTask]);
               setShowAddTaskModal(false);
-              showToast('Task added successfully', 'success');
+              
+              const typeLabel = newTask.Type === 'User Story' ? 'User Story' : 'Task';
+              showToast(`${typeLabel} added successfully`, 'success', 5000, {
+                description: `${typeLabel} "${newTask?.Name || taskData?.Name || ''}" has been created.`,
+                action: {
+                  label: 'View',
+                  onClick: () => router.push(`/task/${newTask.TaskID}`)
+                }
+              });
             } catch (err) {
               showToast('Failed to add task', 'error');
             }
