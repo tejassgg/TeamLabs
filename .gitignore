@@ -14,8 +14,7 @@ out/
 *.js.map
 
 # Environment Variables
-.env
-.env.local
+.env*.local
 
 # OS Files
 .DS_Store

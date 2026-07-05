@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
+const mongoSanitize = require('express-mongo-sanitize');
 
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
@@ -51,6 +52,7 @@ const { initSocket } = require('./socket');
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+app.use(mongoSanitize());
 
 // Configure CORS
 app.use(cors({
