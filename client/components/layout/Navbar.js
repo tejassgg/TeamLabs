@@ -123,6 +123,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
       <div className={`flex items-center gap-1.5 p-2`}>
         {/* Status Dropdown */}
         <StatusDropdown
+          isMobile={isMobile}
           currentStatus={userStatus}
           onStatusChange={handleStatusChange}
           theme={theme}

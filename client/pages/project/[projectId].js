@@ -885,7 +885,6 @@ const ProjectDetailsPage = () => {
   const handleAddTask = async (taskData) => {
     try {
       const newTask = await taskService.addTaskDetails(taskData);
-      
       const typeLabel = newTask.Type === 'User Story' ? 'User Story' : 'Task';
       showToast(`${typeLabel} added successfully!`, 'success', 5000, {
         description: `${typeLabel} "${newTask?.Name || taskData?.Name || ''}" has been created.`,
@@ -1483,7 +1482,7 @@ const ProjectDetailsPage = () => {
                       {(() => {
                         const status = getDeadlineStatusComponent(deadline);
                         return (
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
+                          <span className={`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
                             <span className={`w-2 h-2 rounded-full ${status.dotColor} ${deadline !== 'Deadline Passed' && deadline !== 'No Deadline' ? 'animate-pulse' : ''}`}></span>
                             {status.text}
                           </span>

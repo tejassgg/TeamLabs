@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fa';
 
 // Enhanced StatusDropdown component
-const StatusDropdown = ({ currentStatus, onStatusChange, theme, isReadOnly = false }) => {
+const StatusDropdown = ({ isMobile, currentStatus, onStatusChange, theme, isReadOnly = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [isChanging, setIsChanging] = useState(false);
@@ -102,8 +102,12 @@ const StatusDropdown = ({ currentStatus, onStatusChange, theme, isReadOnly = fal
         )}
         <div className="relative flex items-center gap-2">
           <StatusIcon className={`${statusConfig[currentStatus]?.color || 'text-gray-500'} text-sm transition-transform duration-200 group-hover:scale-110`} />
-          {/* <span className="text-sm font-medium transition-all duration-200">{currentStatus}</span> */}
-          {/* <FaChevronDown className={`text-xs transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} /> */}
+          {!isMobile && (
+            <>
+              <span className="text-sm font-medium transition-all duration-200">{currentStatus}</span>
+              <FaChevronDown className={`text-xs transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </>
+          )}
         </div>
       </button>
 
