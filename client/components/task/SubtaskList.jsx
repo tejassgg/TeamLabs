@@ -221,7 +221,7 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <FaTasks className={getThemeClasses("text-gray-500", "dark:text-gray-400")} />
-        <span className={getThemeClasses("text-lg font-semibold text-gray-900", "dark:text-gray-100")}>Subtasks</span>
+        <h3 className={getThemeClasses("text-base font-bold text-gray-900 flex items-center gap-2", "dark:text-white")}>Subtasks</h3>
         <span className={getThemeClasses("bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full", "dark:bg-blue-900/30 dark:text-blue-300")}>{subtasks.length}</span>
       </div>
 
@@ -259,8 +259,8 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
                     style={{ cursor: 'pointer' }}
                   >
                     {subtask.IsCompleted ? (
-                      <svg viewBox="0 0 20 20" className="w-3 h-3 text-white">
-                        <path fill="currentColor" d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.5 7.5a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L8.5 12.086l6.793-6.793a1 1 0 0 1 1.414 0Z"/>
+                      <svg viewBox="0 0 20 20" className="w-3.5 h-3.5 text-white" fill="currentColor">
+                        <path d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.5 7.5a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L8.5 12.086l6.793-6.793a1 1 0 0 1 1.414 0Z" />
                       </svg>
                     ) : null}
                   </span>
@@ -293,8 +293,8 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
                         <div
                           onClick={() => beginInlineEdit(subtask)}
                           className={getThemeClasses(
-                            `text-md ${subtask.IsCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`,
-                            `text-md ${subtask.IsCompleted ? 'line-through text-gray-500' : 'text-gray-100'}`
+                            `text-sm ${subtask.IsCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`,
+                            `text-sm ${subtask.IsCompleted ? 'line-through text-gray-500' : 'text-gray-100'}`
                           )}
                           style={{ cursor: canEditSubtask(subtask) ? 'text' : 'default' }}
                           title={canEditSubtask(subtask) ? 'Click to edit' : undefined}
@@ -324,12 +324,12 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
                         <button
                           onClick={() => handleDeleteSubtask(subtask.SubtaskID)}
                           className={getThemeClasses(
-                            "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-all duration-200",
-                            "dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-red-900/20"
+                            "inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed",
+                            "dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70"
                           )}
                           title="Delete subtask"
                         >
-                          <FaTrash size={12} className='text-red-500 dark:text-red-400' />
+                          <FaTimes size={12} className='text-red-500 dark:text-red-400' />
                         </button>
                       )}
                     </div>

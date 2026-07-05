@@ -2,13 +2,13 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { FaCheckCircle, FaClock, FaEdit, FaProjectDiagram, FaCalendarAlt, FaChevronDown, FaPlus, FaTasks } from 'react-icons/fa';
+import { FaCheckCircle, FaClock, FaEdit, FaProjectDiagram, FaCalendarAlt, FaChevronDown, FaPlus, FaTasks, FaImage, FaMicrophone, FaPaperclip, FaTag, FaPaperPlane, FaReply, FaTrash, FaTimes, FaCheck } from 'react-icons/fa';
 import { MdDelete } from 'react-icons/md';
 import TaskCollaborationIndicator from '../../components/shared/TaskCollaborationIndicator';
 import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useToast } from '../../context/ToastContext';
-import { taskService, taskDetailsService } from '../../services/api';
+import { taskService, taskDetailsService, commentService } from '../../services/api';
 import TaskDetailsSkeleton from '../../components/skeletons/TaskDetailsSkeleton';
 import { statusMap, statusIcons, statusColors, useThemeClasses } from '../../components/kanban/kanbanUtils';
 import { connectSocket, subscribe, getSocket } from '../../services/socket';
@@ -52,6 +52,104 @@ const TaskDetailsPage = () => {
     const [deleting, setDeleting] = useState(false);
     const [userStoryTasks, setUserStoryTasks] = useState([]);
     const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+
+    // Mobile specific comment states & helpers
+    const [mobileCommentText, setMobileCommentText] = useState('');
+    const [mobileSubmitting, setMobileSubmitting] = useState(false);
+
+    const getMobileDueDateText = (dueDate) => {
+        if (!dueDate) return 'Today 11:59 PM';
+        const date = new Date(dueDate);
+        const today = new Date();
+        const isToday = date.toDateString() === today.toDateString();
+        
+        const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        
+        if (isToday) {
+            return `Today ${timeStr}`;
+        }
+        
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const isTomorrow = date.toDateString() === tomorrow.toDateString();
+        if (isTomorrow) {
+            return `Tomorrow ${timeStr}`;
+        }
+        
+        return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${timeStr}`;
+    };
+
+    const handleMobileCommentSubmit = async () => {
+        if (!mobileCommentText.trim() || mobileSubmitting) return;
+        setMobileSubmitting(true);
+        try {
+            await commentService.addComment(
+                task.TaskID,
+                userDetails?.fullName || userDetails?.username || 'User',
+                mobileCommentText.trim()
+            );
+            setMobileCommentText('');
+            showToast('Comment posted successfully!', 'success');
+        } catch (err) {
+            console.error('Failed to post mobile comment:', err);
+            showToast('Failed to post comment', 'error');
+        } finally {
+            setMobileSubmitting(false);
+        }
+    };
+
+    const renderCommentContent = (content) => {
+        if (!content) return '';
+        const mentionRegex = /@([A-Za-z_]+)/g;
+        const parts = [];
+        let lastIndex = 0;
+        let match;
+
+        while ((match = mentionRegex.exec(content)) !== null) {
+            if (match.index > lastIndex) {
+                parts.push(content.substring(lastIndex, match.index));
+            }
+            const displayName = match[1].replace(/_/g, ' ');
+            parts.push(
+                <span key={match.index} className="font-bold text-blue-600 bg-blue-50 px-1 rounded dark:text-blue-400 dark:bg-blue-900/30">
+                    @{displayName}
+                </span>
+            );
+            lastIndex = match.index + match[0].length;
+        }
+        if (lastIndex < content.length) {
+            parts.push(content.substring(lastIndex));
+        }
+        return parts.length > 0 ? parts : content;
+    };
+
+    const [editingCommentId, setEditingCommentId] = useState(null);
+    const [editingCommentText, setEditingCommentText] = useState('');
+
+    const handleEditComment = async (commentId) => {
+        if (!editingCommentText.trim()) return;
+        try {
+            await commentService.updateComment(commentId, { Content: editingCommentText.trim() });
+            setEditingCommentId(null);
+            setEditingCommentText('');
+            showToast('Comment updated successfully', 'success');
+        } catch (err) {
+            console.error('Failed to update comment:', err);
+            showToast('Failed to update comment', 'error');
+        }
+    };
+
+    const handleDeleteComment = async (commentId) => {
+        if (confirm('Are you sure you want to delete this comment?')) {
+            try {
+                await commentService.deleteComment(commentId);
+                showToast('Comment deleted successfully', 'success');
+            } catch (err) {
+                console.error('Failed to delete comment:', err);
+                showToast('Failed to delete comment', 'error');
+            }
+        }
+    };
 
     useEffect(() => {
         const fetchTaskDetails = async () => {
@@ -428,7 +526,15 @@ const TaskDetailsPage = () => {
             // Set ParentID to current user story's TaskID and always set ProjectID_FK
             const newTask = await taskService.addTaskDetails({ ...taskData, ParentID: task.TaskID, ProjectID_FK: task.ProjectID_FK }, 'fromProject');
             setUserStoryTasks(prev => [...prev, newTask]);
-            showToast('Task added successfully!', 'success');
+            
+            const typeLabel = newTask.Type === 'User Story' ? 'User Story' : 'Task';
+            showToast(`${typeLabel} added successfully!`, 'success', 5000, {
+                description: `${typeLabel} "${newTask?.Name || taskData?.Name || ''}" has been created.`,
+                action: {
+                    label: 'View',
+                    onClick: () => router.push(`/task/${newTask.TaskID}`)
+                }
+            });
             setShowAddTaskModal(false);
         } catch (err) {
             showToast('Failed to add task', 'error');
@@ -468,7 +574,394 @@ const TaskDetailsPage = () => {
                 <title>{task.Name} | TeamLabs</title>
             </Head>
             <div className="mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" data-task-id={taskId}>
+                {/* Mobile View */}
+                <div className="lg:hidden space-y-2 pb-28 px-1">
+                    {/* Title */}
+                    <div className="pt-2">
+                        <h1 className={getThemeClasses(
+                            "text-2xl font-bold text-gray-900 leading-tight",
+                            "dark:text-white"
+                        )}>
+                            {task.Name}
+                        </h1>
+                    </div>
+
+                    {/* Metadata Card */}
+                    <div className={getThemeClasses(
+                        "bg-gray-50/80 border border-gray-100 rounded-2xl p-4 grid grid-cols-3 gap-4 shadow-sm",
+                        "dark:bg-[#202024]/40 dark:border-[#2b2b30]"
+                    )}>
+                        {/* Members */}
+                        <div>
+                            <span className={getThemeClasses("text-xs font-semibold text-gray-500 block mb-2", "dark:text-gray-400")}>
+                                Members:
+                            </span>
+                            <div className="flex items-center -space-x-1.5 overflow-hidden">
+                                {projectMembers.length > 0 ? (
+                                    <>
+                                        {projectMembers.slice(0, 3).map((member, idx) => (
+                                            <div
+                                                key={member._id || idx}
+                                                className={getThemeClasses(
+                                                    "inline-block h-6 w-6 rounded-full ring-2 ring-white bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-[9px] flex-shrink-0 shadow-sm",
+                                                    "dark:ring-[#1a1a1e] dark:from-blue-600 dark:to-blue-700"
+                                                )}
+                                                title={member.fullName}
+                                            >
+                                                {getUserInitials(member.fullName)}
+                                            </div>
+                                        ))}
+                                        {projectMembers.length > 3 && (
+                                            <div className={getThemeClasses(
+                                                "flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-[9px] font-semibold text-gray-500 ring-2 ring-white shadow-sm",
+                                                "dark:bg-gray-800 dark:text-gray-400 dark:ring-[#1a1a1e]"
+                                            )}>
+                                                +{projectMembers.length - 3}
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Priority */}
+                        <div>
+                            <span className={getThemeClasses("text-xs font-semibold text-gray-500 block mb-1.5", "dark:text-gray-400")}>
+                                Priority:
+                            </span>
+                            <div className="mt-1">
+                                {task.Priority ? (
+                                    getPriorityBadge(task.Priority)
+                                ) : (
+                                    <span className="text-gray-500 dark:text-gray-400 text-xs">-</span>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Due Date */}
+                        <div>
+                            <span className={getThemeClasses("text-xs font-semibold text-gray-500 block mb-1.5", "dark:text-gray-400")}>
+                                Due date:
+                            </span>
+                            <div className="flex items-center gap-1 mt-1 text-gray-700 dark:text-gray-300 font-medium">
+                                <div className="w-5 h-5 rounded-full border border-green-200 bg-green-50 text-green-600 flex items-center justify-center flex-shrink-0 dark:bg-green-950/20 dark:border-green-800 dark:text-green-400">
+                                    <FaClock size={10} />
+                                </div>
+                                <span className="text-[11px] whitespace-nowrap">{getMobileDueDateText(task.DueDate)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-2">
+                        <h3 className={getThemeClasses("text-base font-bold text-gray-900 flex items-center gap-2", "dark:text-white")}>
+                            <FaTasks className={getThemeClasses("text-gray-500", "dark:text-gray-400")} />
+                            Description
+                        </h3>
+                        {task.Description ? (
+                            <p className={getThemeClasses("text-sm text-gray-600 leading-relaxed", "dark:text-gray-300")}>
+                                {task.Description}
+                            </p>
+                        ) : (
+                            <p className={getThemeClasses("text-sm text-gray-400 italic", "dark:text-gray-500")}>
+                                No description provided
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Divider */}
+                    <div className={getThemeClasses("border-t border-gray-100", "dark:border-gray-800")} />
+
+                    {/* Attachment Section */}
+                    <div>
+                        <TaskAttachments taskId={task.TaskID} userId={userDetails?._id} initialAttachments={attachments} />
+                    </div>
+
+                    {/* Divider */}
+                    <div className={getThemeClasses("border-t border-gray-100", "dark:border-gray-800")} />
+
+                    {/* Subtasks Section */}
+                    <div>
+                        <SubtaskList taskId={task.TaskID} subtasks={subtasks} onSubtasksChange={setSubtasks} />
+                    </div>
+
+                    {/* Divider */}
+                    <div className={getThemeClasses("border-t border-gray-100", "dark:border-gray-800")} />
+
+                    {/* Comments List */}
+                    <div className="space-y-4">
+                        <h3 className={getThemeClasses("text-base font-bold text-gray-900 flex items-center gap-2", "dark:text-white")}>
+                            <FaReply className={getThemeClasses("text-gray-500", "dark:text-gray-400")} />
+                            Comments ({comments.length})
+                        </h3>
+                        <div className="space-y-3">
+                            {comments.length === 0 ? (
+                                <p className={getThemeClasses("text-sm text-gray-400 italic", "dark:text-gray-500")}>No comments yet.</p>
+                            ) : (
+                                comments.map(comment => {
+                                    const isAuthor = comment.Author === (userDetails?.fullName || userDetails?.username) || userDetails?.role === 'Admin';
+                                    const isEditing = editingCommentId === comment.CommentID;
+                                    return (
+                                        <div key={comment.CommentID} className={getThemeClasses("p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex gap-3 items-start", "dark:bg-[#202024]/20 dark:border-[#2b2b30]")}>
+                                            <div className="w-7 h-7 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-xs flex-shrink-0">
+                                                {getUserInitials(comment.Author)}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between gap-2 mb-1">
+                                                    <div className="flex items-center gap-1.5 min-w-0">
+                                                        <span className={getThemeClasses("font-semibold text-xs text-gray-900 truncate", "dark:text-gray-200")}>{comment.Author}</span>
+                                                        <span className="text-[10px] text-gray-400 shrink-0">•</span>
+                                                        <span className="text-[10px] text-gray-400 shrink-0">{formatTimeAgo(comment.Timestamp)}</span>
+                                                        {comment.edited && (
+                                                            <span className="text-[9px] text-blue-500 font-semibold shrink-0 dark:text-blue-400"> (edited)</span>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    {/* Actions */}
+                                                    {isAuthor && !isEditing && (
+                                                        <div className="flex items-center gap-1.5 shrink-0">
+                                                            <button
+                                                                onClick={() => { setEditingCommentId(comment.CommentID); setEditingCommentText(comment.Content); }}
+                                                                className={getThemeClasses(
+                                                                    'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                                                    'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
+                                                                )}
+                                                                title="Edit"
+                                                            >
+                                                                <FaEdit size={10} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteComment(comment.CommentID)}
+                                                                className={getThemeClasses(
+                                                                    'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                                                    'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
+                                                                )}
+                                                                title="Delete"
+                                                            >
+                                                                <FaTrash size={10} />
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                
+                                                {isEditing ? (
+                                                    <div className="space-y-2 mt-1">
+                                                        <textarea
+                                                            value={editingCommentText}
+                                                            onChange={(e) => setEditingCommentText(e.target.value)}
+                                                            className={getThemeClasses(
+                                                                "w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white resize-none",
+                                                                "dark:bg-[#1a1a1e] dark:border-gray-700 dark:text-white"
+                                                            )}
+                                                            rows={2}
+                                                            autoFocus
+                                                        />
+                                                        <div className="flex items-center gap-1.5">
+                                                            <button
+                                                                onClick={() => handleEditComment(comment.CommentID)}
+                                                                className="px-2 py-1 bg-green-500 text-white rounded text-[10px] font-semibold hover:bg-green-600 flex items-center gap-1 transition-colors"
+                                                            >
+                                                                <FaCheck size={8} /> Save
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setEditingCommentId(null)}
+                                                                className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-[10px] font-semibold hover:bg-gray-200 flex items-center gap-1 transition-colors dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                                                            >
+                                                                <FaTimes size={8} /> Cancel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <p className={getThemeClasses("text-xs text-gray-600 leading-relaxed break-words", "dark:text-gray-300")}>{renderCommentContent(comment.Content)}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div className={getThemeClasses("border-t border-gray-100", "dark:border-gray-800")} />
+
+                    {/* Project Information Section */}
+                    {project && (
+                        <div className={getThemeClasses(
+                            "border border-gray-100 rounded-2xl p-4 bg-gray-50/30",
+                            "dark:border-gray-800 dark:bg-transparent"
+                        )}>
+                            <h2 className={getThemeClasses("text-lg font-bold text-gray-900 flex items-center gap-2 mb-3 pb-2 border-b border-gray-100", "dark:text-gray-100 dark:border-gray-800")}>
+                                <FaProjectDiagram className={getThemeClasses("text-blue-500", "dark:text-blue-400")} size={18} />
+                                Project Info
+                            </h2>
+                            <div className="space-y-3.5">
+                                <div>
+                                    <div className={getThemeClasses(
+                                        "text-xs font-semibold text-gray-400 mb-0.5",
+                                        "dark:text-gray-500"
+                                    )}>Project Name</div>
+                                    <Link
+                                        href={`/project/${project.ProjectID || project._id}`}
+                                        className={getThemeClasses(
+                                            "text-blue-600 hover:text-blue-800 font-semibold text-sm block",
+                                            "dark:text-blue-400 dark:hover:text-blue-300"
+                                        )}
+                                    >
+                                        {project.Name}
+                                    </Link>
+                                </div>
+                                {project.Description && (
+                                    <div>
+                                        <div className={getThemeClasses(
+                                            "text-xs font-semibold text-gray-400 mb-0.5",
+                                            "dark:text-gray-500"
+                                        )}>Description</div>
+                                        <div className={getThemeClasses(
+                                            "text-sm text-gray-600 leading-relaxed",
+                                            "dark:text-gray-300"
+                                        )}>
+                                            {project.Description}
+                                        </div>
+                                    </div>
+                                )}
+                                {project.DueDate && (
+                                    <div>
+                                        <div className={getThemeClasses(
+                                            "text-xs font-semibold text-gray-400 mb-0.5",
+                                            "dark:text-gray-500"
+                                        )}>Project Deadline</div>
+                                        <div className={getThemeClasses(
+                                            "text-sm text-gray-800 font-semibold",
+                                            "dark:text-gray-200"
+                                        )}>
+                                            {new Date(project.DueDate).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Divider */}
+                    <div className={getThemeClasses("border-t border-gray-100", "dark:border-gray-800")} />
+
+                    {/* History Section */}
+                    <div className={getThemeClasses(
+                        "border border-gray-100 rounded-2xl p-4 bg-gray-50/30",
+                        "dark:border-gray-800 dark:bg-transparent"
+                    )}>
+                        <h2 className={getThemeClasses("text-lg font-bold text-gray-900 flex items-center gap-2 mb-3 pb-2 border-b border-gray-100", "dark:text-gray-100 dark:border-gray-800")}>
+                            <FaClock className={getThemeClasses("text-green-500", "dark:text-green-400")} size={18} />
+                            History
+                        </h2>
+                        <div>
+                            {activityLoading ? (
+                                <div className={getThemeClasses(
+                                    "text-center py-6 text-gray-400 text-sm",
+                                    "dark:text-gray-500"
+                                )}>Loading activity...</div>
+                            ) : taskActivity?.length > 0 ? (
+                                <div className="space-y-3.5 pb-2">
+                                    {taskActivity.map((activity, index) => (
+                                        <div key={activity._id || index} className="flex items-start gap-2.5">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className={getThemeClasses(
+                                                    "text-xs text-gray-800 font-medium leading-relaxed break-words",
+                                                    "dark:text-gray-200"
+                                                )}>
+                                                    {formatActivityDisplay(activity)}
+                                                </div>
+                                                <div className={getThemeClasses(
+                                                    "text-[10px] text-gray-400 mt-0.5",
+                                                    "dark:text-gray-500"
+                                                )}>
+                                                    {new Date(activity.timestamp).toLocaleString()}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {/* Pagination Controls */}
+                                    <div className="flex justify-end items-center gap-2 mt-4 pt-2 border-t border-gray-50 dark:border-gray-800/40">
+                                        <button
+                                            className={getThemeClasses(
+                                                "px-2.5 py-1 text-xs rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50 transition-colors",
+                                                "dark:bg-gray-800 dark:hover:bg-gray-700"
+                                            )}
+                                            disabled={activityPage === 1}
+                                            onClick={() => setActivityPage(p => Math.max(1, p - 1))}
+                                        >
+                                            Prev
+                                        </button>
+                                        <span className={getThemeClasses(
+                                            "text-xs text-gray-500",
+                                            "dark:text-gray-400"
+                                        )}>
+                                            Page {activityPage} of {activityTotalPages}
+                                        </span>
+                                        <button
+                                            className={getThemeClasses(
+                                                "px-2.5 py-1 text-xs rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50 transition-colors",
+                                                "dark:bg-gray-800 dark:hover:bg-gray-700"
+                                            )}
+                                            disabled={activityPage === activityTotalPages}
+                                            onClick={() => setActivityPage(p => Math.min(activityTotalPages, p + 1))}
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-6">
+                                    <div className={getThemeClasses(
+                                        "text-gray-400 text-xs",
+                                        "dark:text-gray-500"
+                                    )}>No activity recorded yet</div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Sticky Comment Box Bar */}
+                    <div className={getThemeClasses(
+                        "fixed bottom-0 left-0 right-0 z-45 bg-white border-t border-gray-200 px-4 py-3 shadow-xl flex flex-col gap-2 pb-safe",
+                        "dark:bg-[#18181b] dark:border-gray-800"
+                    )}>
+                        <div className="flex items-center gap-3">                            
+                            {/* Input container */}
+                            <div className="flex-1 relative">
+                                <input
+                                    type="text"
+                                    placeholder="Comment on the task..."
+                                    value={mobileCommentText}
+                                    onChange={(e) => setMobileCommentText(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleMobileCommentSubmit()}
+                                    className={getThemeClasses(
+                                        "w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50/50 transition-all",
+                                        "dark:bg-[#202024]/60 dark:border-gray-700 dark:text-white dark:placeholder-gray-500 dark:focus:bg-[#1c1c20] dark:focus:ring-blue-500"
+                                    )}
+                                />
+                            </div>
+                            <button
+                                onClick={handleMobileCommentSubmit}
+                                disabled={!mobileCommentText.trim() || mobileSubmitting}
+                                className={`rounded-xl p-2.5 text-white flex items-center justify-center transition-all duration-200 shadow-sm ${
+                                    mobileCommentText.trim() && !mobileSubmitting
+                                        ? 'bg-blue-600 hover:bg-blue-700 transform hover:scale-105 active:scale-95'
+                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                                }`}
+                            >
+                                <FaPaperPlane size={12} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Desktop View */}
+                <div className="hidden lg:grid grid-cols-3 gap-8" data-task-id={taskId}>
                     {/* Left/Main Section */}
                     <div className="lg:col-span-2">
                         {/* Task Progress Bar */}

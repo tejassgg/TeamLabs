@@ -1169,14 +1169,14 @@ const TeamDetailsPage = () => {
                                   </button>
                                   <button
                                     className={getThemeClasses(
-                                      'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed',
+                                      'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed',
                                       'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
                                     )}
                                     onClick={() => handleRejectRequest(req._id)}
                                     disabled={processingRequest === req._id + '-reject'}
                                     title="Reject Request"
                                   >
-                                    <FaTimes size={14} />
+                                    <FaTimes size={12} />
                                   </button>
                                 </div>
                               </td>
@@ -1636,7 +1636,7 @@ const TeamDetailsPage = () => {
                     </div>
                   )}
                 </div>
-                <div className={`overflow-x-auto mb-2 rounded-xl border ${getThemeClasses('border-gray-200', 'dark:border-gray-700')}`}>
+                <div className={`mb-2 rounded-xl border ${getThemeClasses('border-gray-200', 'dark:border-gray-700')}`}>
                   {activeProjects.length > 0 ? (
                     <table className="w-full">
                       <thead>

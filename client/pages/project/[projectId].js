@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import StatusPill from '../../components/shared/StatusPill';
 import api, { authService, taskService, githubService } from '../../services/api';
-import { FaCheck, FaExternalLinkAlt , FaEdit, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList, FaPaperPlane } from 'react-icons/fa';
+import { FaCheck, FaExternalLinkAlt , FaEdit, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList, FaPaperPlane, FaTrash } from 'react-icons/fa';
 import { FiCornerDownRight } from "react-icons/fi";
 import { MdDelete } from 'react-icons/md';
 import { FaTimeline } from "react-icons/fa6";
@@ -885,7 +885,15 @@ const ProjectDetailsPage = () => {
   const handleAddTask = async (taskData) => {
     try {
       const newTask = await taskService.addTaskDetails(taskData);
-      showToast('Task added successfully!', 'success');
+      
+      const typeLabel = newTask.Type === 'User Story' ? 'User Story' : 'Task';
+      showToast(`${typeLabel} added successfully!`, 'success', 5000, {
+        description: `${typeLabel} "${newTask?.Name || taskData?.Name || ''}" has been created.`,
+        action: {
+          label: 'View',
+          onClick: () => router.push(`/task/${newTask.TaskID}`)
+        }
+      });
 
       // Update task list directly instead of refetching
       if (newTask.Type === 'User Story') {
@@ -1762,13 +1770,13 @@ const ProjectDetailsPage = () => {
                                       setRevokingTeam(team);
                                       setShowRevokeDialog(true);
                                     }}
-                                    className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
+                                    className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
                                       ? getThemeClasses('bg-blue-100 text-blue-700 hover:bg-blue-200', 'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50')
                                       : getThemeClasses('bg-green-100 text-green-700 hover:bg-green-200', 'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-800/50')}`}
                                     title={team.IsActive ? 'Revoke Access' : 'Grant Access'}
                                     disabled={toggling === team.TeamID}
                                   >
-                                    <FaToggleOn size={16} />
+                                    <FaToggleOn size={14} />
                                   </button>
                                   <button
                                     onClick={() => {
@@ -1776,13 +1784,13 @@ const ProjectDetailsPage = () => {
                                       setShowRemoveDialog(true);
                                     }}
                                     className={getThemeClasses(
-                                      'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                      'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
                                       'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
                                     )}
                                     title="Remove Team"
                                     disabled={removing}
                                   >
-                                    <FaTimes size={16} />
+                                    <FaTimes size={14} />
                                   </button>
                                 </div>
                               )}
@@ -1855,22 +1863,22 @@ const ProjectDetailsPage = () => {
                                 <button
                                   onClick={() => handleEditTask(story)}
                                   className={getThemeClasses(
-                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
+                                    'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
                                     'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
                                   )}
                                   title="Edit User Story"
                                 >
-                                  <FaEdit size={14} />
+                                  <FaEdit size={12} />
                                 </button>
                                 <button
                                   onClick={() => confirmDeleteUserStory(story)}
                                   className={getThemeClasses(
-                                    'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                                    'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
                                     'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
                                   )}
                                   title="Delete User Story"
                                 >
-                                  <MdDelete size={18} />
+                                  <FaTrash size={12} />
                                 </button>
                               </div>
                             </td>

@@ -55,7 +55,13 @@ const TeamsPage = () => {
     try {
       const newTeam = await teamService.addTeam(teamData);
       setTeams(prevTeams => [...prevTeams, newTeam.team]);
-      showToast('Team added successfully!', 'success');
+      showToast('Team added successfully!', 'success', 5000, {
+        description: `Team "${newTeam?.team?.TeamName || teamData?.TeamName || ''}" has been created.`,
+        action: {
+          label: 'View',
+          onClick: () => router.push(`/team/${newTeam?.team?.TeamID}`)
+        }
+      });
       // Refresh teams with stats after adding new team (without showing loading)
       await fetchTeamsWithStats(false);
       return newTeam;

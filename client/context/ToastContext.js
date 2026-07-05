@@ -6,9 +6,15 @@ const ToastContext = createContext(null);
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
 
-  const showToast = useCallback((message, type = 'success', duration = 5000) => {
+  const showToast = useCallback((messageOrOptions, type = 'success', duration = 5000, options = {}) => {
     const id = Date.now();
-    setToasts(prev => [...prev, { id, message, type, duration }]);
+    let toastConfig = {};
+    if (typeof messageOrOptions === 'object' && messageOrOptions !== null) {
+      toastConfig = { id, duration: 5000, ...messageOrOptions };
+    } else {
+      toastConfig = { id, message: messageOrOptions, type, duration, ...options };
+    }
+    setToasts(prev => [...prev, toastConfig]);
   }, []);
 
   const removeToast = useCallback((id) => {
@@ -32,9 +38,7 @@ export const ToastProvider = ({ children }) => {
         {toasts.map(toast => (
           <div key={toast.id} data-toast-id={toast.id}>
             <CustomToast
-              message={toast.message}
-              type={toast.type}
-              duration={toast.duration}
+              {...toast}
               onClose={() => removeToast(toast.id)}
             />
           </div>
