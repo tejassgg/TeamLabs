@@ -59,8 +59,6 @@ const registerUser = async (req, res) => {
       inviteToken
     } = req.body;
 
-    console.log(req.body);
-
     // Basic required field validation
     if (!email || !password) {
       return res.status(400).json({ message: 'Missing required fields' });

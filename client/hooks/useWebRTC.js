@@ -71,7 +71,7 @@ export const useWebRTC = (callType, callData, currentUser) => {
       
       return stream;
     } catch (error) {
-      console.log(error);
+      console.error(error);
       let errorMessage = 'Failed to access camera and microphone.';
       if (error.name === 'NotAllowedError') {
         errorMessage = 'Camera and microphone access denied. Please allow access to use video calling.';

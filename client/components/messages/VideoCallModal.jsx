@@ -4,9 +4,9 @@ import { useWebRTC } from '../../hooks/useWebRTC';
 import { useTheme } from '../../context/ThemeContext';
 import { useVideoCall } from '../../context/VideoCallContext';
 
-const VideoCallModal = ({ 
-  isOpen, 
-  onClose, 
+const VideoCallModal = ({
+  isOpen,
+  onClose,
   callType,
   callData,
   onAnswer,
@@ -56,19 +56,19 @@ const VideoCallModal = ({
     cleanup,
     monitorConnectionQuality
   } = useWebRTC(callType, callData, currentUser);
- 
-   // Resolve remote participant display name
-   let remoteDisplayName = '';
-   if (callData?.callerId === currentUser._id) {
-     remoteDisplayName = callData?.recipientName;
-   } else {
-     remoteDisplayName = callData?.callerName;
-   }
-   const headerTitle = connectionState.status === 'connected'
-     ? remoteDisplayName
-     : callType === 'incoming'
-       ? `Incoming call from ${remoteDisplayName}`
-       : `Calling ${remoteDisplayName}`;
+
+  // Resolve remote participant display name
+  let remoteDisplayName = '';
+  if (callData?.callerId === currentUser._id) {
+    remoteDisplayName = callData?.recipientName;
+  } else {
+    remoteDisplayName = callData?.callerName;
+  }
+  const headerTitle = connectionState.status === 'connected'
+    ? remoteDisplayName
+    : callType === 'incoming'
+      ? `Incoming call from ${remoteDisplayName}`
+      : `Calling ${remoteDisplayName}`;
 
   // Set ring start time for incoming calls
   useEffect(() => {
@@ -85,7 +85,7 @@ const VideoCallModal = ({
     const doAnswer = async () => {
       try {
         await initializeLocalStream();
-      } catch (_) {}
+      } catch (_) { }
       setTimeout(() => {
         handleAnswer();
         onAnswer && onAnswer();
@@ -306,11 +306,11 @@ const VideoCallModal = ({
 
       const handleLoadedMetadata = () => {
         if (remoteVideo.readyState >= 1) {
-          remoteVideo.play().catch(() => {});
+          remoteVideo.play().catch(() => { });
         }
       };
       const handleCanPlay = () => {
-        remoteVideo.play().catch(() => {});
+        remoteVideo.play().catch(() => { });
       };
 
       remoteVideo.addEventListener('loadedmetadata', handleLoadedMetadata);
@@ -466,23 +466,22 @@ const VideoCallModal = ({
             connectionState.status === 'connected' ||
             connectionState.status === 'failed'
           ) && (
-            <div className="absolute top-3 left-3 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded flex items-center gap-2">
-              <span
-                className={`inline-block w-2 h-2 rounded-full ${
-                  connectionState.status === 'connected'
-                    ? 'bg-green-400'
-                    : connectionState.status === 'connecting'
-                    ? 'bg-yellow-400'
-                    : 'bg-red-500'
-                }`}
-              />
-              <span>
-                {connectionState.status === 'connecting' && 'Connecting'}
-                {connectionState.status === 'connected' && 'Connected'}
-                {connectionState.status === 'failed' && 'Connection failed'}
-              </span>
-            </div>
-          )}
+              <div className="absolute top-3 left-3 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded flex items-center gap-2">
+                <span
+                  className={`inline-block w-2 h-2 rounded-full ${connectionState.status === 'connected'
+                      ? 'bg-green-400'
+                      : connectionState.status === 'connecting'
+                        ? 'bg-yellow-400'
+                        : 'bg-red-500'
+                    }`}
+                />
+                <span>
+                  {connectionState.status === 'connecting' && 'Connecting'}
+                  {connectionState.status === 'connected' && 'Connected'}
+                  {connectionState.status === 'failed' && 'Connection failed'}
+                </span>
+              </div>
+            )}
 
           {/* Screen sharing indicator */}
           {screenShareState.isScreenSharing && (
@@ -572,9 +571,9 @@ const VideoCallModal = ({
                 <button onClick={toggleSpeaker} className={`p-4 rounded-full transition-colors shadow-lg ${isSpeakerOn ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-500 hover:bg-gray-600'} text-white`} title={isSpeakerOn ? 'Mute Speaker' : 'Unmute Speaker'}>
                   {isSpeakerOn ? <FaVolumeUp size={20} /> : <FaVolumeMute size={20} />}
                 </button>
-                <button 
-                  onClick={screenShareState.isScreenSharing ? stopScreenShare : startScreenShare} 
-                  className={`p-4 rounded-full transition-colors shadow-lg ${screenShareState.isScreenSharing ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white`} 
+                <button
+                  onClick={screenShareState.isScreenSharing ? stopScreenShare : startScreenShare}
+                  className={`p-4 rounded-full transition-colors shadow-lg ${screenShareState.isScreenSharing ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
                   title={screenShareState.isScreenSharing ? 'Stop Screen Sharing' : 'Start Screen Sharing'}
                 >
                   {screenShareState.isScreenSharing ? <FaStop size={20} /> : <FaDesktop size={20} />}

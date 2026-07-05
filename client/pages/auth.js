@@ -177,7 +177,7 @@ const Auth = () => {
                       ? 'translate-x-full opacity-0 absolute inset-0' 
                       : 'translate-x-0 opacity-100'
                   }`}>
-                    <RegisterForm onOpenLogin={openLogin} />
+                    <RegisterForm onOpenLogin={openLogin} isVisible={router.query.type !== 'login'} />
                   </div>
                 </>
               )}

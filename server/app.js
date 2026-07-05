@@ -68,9 +68,29 @@ app.use((req, res, next) => {
 
 app.use(mongoSanitize());
 
-// Configure CORS
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'https://team-labs.app',
+  'https://www.team-labs.app'
+];
+
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    
+    if (allowedOrigins.includes(normalizedOrigin) || normalizedOrigin.endsWith('team-labs.app')) {
+      return callback(null, true);
+    }
+    
+    return callback(null, false);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true

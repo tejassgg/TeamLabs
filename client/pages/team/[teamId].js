@@ -855,7 +855,6 @@ const TeamDetailsPage = () => {
     try {
       const res = await meetingService.getMeeting(meetingId);
       if (res.success) {
-        console.log(res);
         setMeetingDetails(res);
         setShowMeetingDetailsModal(true);
         setIsEditingMeeting(false);

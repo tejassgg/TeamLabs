@@ -116,7 +116,6 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
     try {
       const response = await reportService.getReport(reportId);
       if (response.success) {
-        console.log(response.report);
         setGeneratedReport(response.report);
         setActiveTab('generate'); // Switch to generate tab to show the report
       } else {
@@ -292,14 +291,14 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
           } transition-all duration-300`}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-start space-x-4">
-              <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600' } transition-all duration-300`}>
+              <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'} transition-all duration-300`}>
                 <FaFileAlt className="text-xl" />
               </div>
               <div>
-                <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900' } transition-colors duration-300`}>
+                <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>
                   Progress Reports
                 </h2>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600' } transition-colors duration-300`}>
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} transition-colors duration-300`}>
                   {projectName}
                 </p>
                 <div className="flex items-center space-x-2 mt-1">
@@ -1099,7 +1098,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                             return (
                               <div className='flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2'>
                                 <div key={index} className={`text-xs sm:text-sm font-semibold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
-                                  {console.log(trimmedLine.split(':')[0].trim())} {trimmedLine.split(':')[0].trim()}:
+                                  {trimmedLine.split(':')[0].trim()}:
                                 </div>
                                 <div key={index} className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
                                   {trimmedLine.startsWith('REPORTING PERIOD:') ? (
@@ -1278,7 +1277,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                               {report.status}
                             </span>
                           </div>
-                          <div className={`text-xs sm:text-sm space-y-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600' } transition-colors duration-300`}>
+                          <div className={`text-xs sm:text-sm space-y-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} transition-colors duration-300`}>
                             <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 space-y-1 sm:space-y-0">
                               <span className="flex items-center space-x-2">
                                 <FaClock className="text-xs flex-shrink-0" />

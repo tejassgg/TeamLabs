@@ -11,7 +11,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { commonTypeService } from '../../services/api';
 
 
-const RegisterForm = ({ onOpenLogin }) => {
+const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { register: registerUser, googleLogin } = useGlobal();
@@ -28,8 +28,10 @@ const RegisterForm = ({ onOpenLogin }) => {
   const [phoneExtensions, setPhoneExtensions] = useState([]);
   const fileInputRef = useRef();
 
-  // Fetch user roles and phone extensions when component mounts
+  // Fetch user roles and phone extensions when component mounts and is visible
   useEffect(() => {
+    if (!isVisible) return;
+
     const fetchData = async () => {
       try {
         const [roles, extensions] = await Promise.all([
@@ -47,7 +49,7 @@ const RegisterForm = ({ onOpenLogin }) => {
       }
     };
     fetchData();
-  }, []);
+  }, [isVisible]);
 
   // Use a single form with real-time validation
   const { register, handleSubmit, watch, trigger, formState: { errors } } = useForm({ mode: 'onChange' });

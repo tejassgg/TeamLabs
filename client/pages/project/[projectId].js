@@ -871,7 +871,6 @@ const ProjectDetailsPage = () => {
     setError('');
     try {
       const res = await api.delete(`/project-details/${projectId}/team/${teamId}`);
-      console.log(res.data);
 
       if (res.data.success) {
         setTeams(prev => prev.filter(team => team.TeamID !== teamId));

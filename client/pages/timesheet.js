@@ -158,13 +158,12 @@ const TimeSheet = () => {
         // ... (existing function, no changes needed)
         try {
             const data = await timesheetService.punchIn();
-            console.log('PunchIn Data: ', data);
             setPunchedInTime(data.punchIn.InTime)
             setPunchID(data.punchIn._id)
             showToast(data.message);
         }
         catch (error) {
-            console.log(error);
+            console.error(error);
         }
     };
 
