@@ -430,7 +430,7 @@ class KnowledgeBaseSyncService {
           sourceId: document._id.toString()
         },
         docData,
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
 
       return { success: true, action: forceUpdate ? 'updated' : 'created' };

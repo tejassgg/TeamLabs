@@ -423,7 +423,7 @@ router.put('/config/:configId', auth, async (req, res) => {
     const config = await ReportConfig.findOneAndUpdate(
       { configId, userId: req.user._id },
       { ...updates, updatedAt: new Date() },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!config) {

@@ -35,33 +35,12 @@ const AuthNavbar = ({ openLogin, showLogin }) => {
           <div className="flex items-center gap-2 sm:gap-3">
 
             {/* Theme toggle and Auth buttons */}
-            {/* <button
+            <button
               onClick={toggleTheme}
-              className={`p-1.5 sm:p-2 rounded-lg transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-yellow-300 bg-gray-800 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 bg-gray-100/10 hover:bg-gray-200'}`}
+              className={`p-1.5 sm:p-2 rounded-lg transition-colors ${theme === 'dark' ? 'text-yellow-300 hover:text-yellow-400 bg-gray-800 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 bg-gray-105 bg-gray-100 hover:bg-gray-200'}`}
               title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {theme === 'dark' ? <FaSun className="text-sm sm:text-base" /> : <FaMoon className="text-sm sm:text-base" />}
-            </button> */}
-
-            <button
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] justify-start`}
-              onClick={toggleTheme}
-              aria-label="Toggle dark/light mode"
-            >
-              <span className="ml-auto">
-                <span
-                  className={`relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in ml-2 ${theme === 'dark' ? 'bg-blue-700' : 'bg-gray-300'}`}
-                  style={{ borderRadius: '9999px' }}
-                >
-                  <span className={`absolute left-1 top-1 w-4 h-4 rounded-full flex items-center justify-center transition-transform duration-200 ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'} `}>
-                    {theme === 'dark' ? (
-                      <FaRegSun className="text-yellow-300" size={12} />
-                    ) : (
-                      <FaRegMoon className="text-gray-600" size={12} />
-                    )}
-                  </span>
-                </span>
-              </span>
             </button>
 
             {/* Auth button */}

@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 const CommonType = require('../models/CommonType');
 
 dotenv.config();
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.MONGO_URI);
 
 const SubscriptionFeatures = [
   // Monthly Plan Features
@@ -21,12 +21,12 @@ const SubscriptionFeatures = [
   { Value: 'Advanced Analytics', Code: 10, MasterType: 'SubscriptionFeatures', Description: 'annual' },
   { Value: 'Priority Support', Code: 11, MasterType: 'SubscriptionFeatures', Description: 'annual' },
   { Value: 'All Members Premium', Code: 12, MasterType: 'SubscriptionFeatures', Description: 'annual' },
-  { Value: '40% Annual Discount', Code: 13, MasterType: 'SubscriptionFeatures', Description: 'annual' },
+  { Value: '29% Annual Discount', Code: 13, MasterType: 'SubscriptionFeatures', Description: 'annual' },
   
   // Free Plan Features
   { Value: '3 Projects', Code: 14, MasterType: 'SubscriptionFeatures', Description: 'free' },
-  { Value: '3 User Stories', Code: 15, MasterType: 'SubscriptionFeatures', Description: 'free' },
-  { Value: '20 Tasks per Story', Code: 16, MasterType: 'SubscriptionFeatures', Description: 'free' },
+  { Value: '1 Story per Project', Code: 15, MasterType: 'SubscriptionFeatures', Description: 'free' },
+  { Value: '10 Tasks per Story', Code: 16, MasterType: 'SubscriptionFeatures', Description: 'free' },
   { Value: 'Basic Support', Code: 17, MasterType: 'SubscriptionFeatures', Description: 'free' }
 ];
 

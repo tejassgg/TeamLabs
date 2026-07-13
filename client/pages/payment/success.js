@@ -1,24 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
-import { paymentService } from '../../services/api';
+import { paymentService, authService } from '../../services/api';
 
 const PaymentSuccess = () => {
   const router = useRouter();
-  const { userDetails } = useGlobal();
+  const { userDetails, setUserDetails } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [confirmed, setConfirmed] = useState(false);
+  const hasConfirmed = useRef(false);
 
   useEffect(() => {
     const sessionId = router.query.session_id;
-    if (!sessionId) return;
+    if (!sessionId || hasConfirmed.current) return;
+    hasConfirmed.current = true;
     (async () => {
       try {
         // 1) Load the session details for display
@@ -31,6 +33,16 @@ const PaymentSuccess = () => {
         if (confirmRes?.success) {
           setConfirmed(true);
           showToast('Subscription activated successfully', 'success');
+          
+          // Refresh user profile details to update sidebar and hide Upgrade to Pro button
+          try {
+            const currentUser = await authService.getUserProfile();
+            if (currentUser) {
+              setUserDetails(currentUser);
+            }
+          } catch (profileError) {
+            console.error('Error fetching updated profile details:', profileError);
+          }
         }
       } catch (_) {
         // No-op; UI will still show success screen

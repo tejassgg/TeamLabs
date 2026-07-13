@@ -1350,9 +1350,9 @@ function Home() {
                 <hr className="border-indigo-500/10" />
                 <ul className="flex flex-col gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
                   <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>3 Projects</span></li>
-                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>3 User Stories</span></li>
-                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>20 Tasks per Story</span></li>
-                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Basic Slack-like Chat</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>1 Story per Project</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>10 Tasks per Story</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Basic Support</span></li>
                 </ul>
               </div>
               <button onClick={openRegister} className={`w-full py-3.5 mt-8 font-bold text-sm rounded-xl transition-all ${theme === 'dark' ? 'bg-slate-800 hover:bg-slate-700 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}>
@@ -1376,11 +1376,12 @@ function Home() {
                 </div>
                 <hr className="border-indigo-500/10" />
                 <ul className="flex flex-col gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Unlimited Active Projects</span></li>
-                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Unlimited Stories & Subtasks</span></li>
-                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Smart AI Assistant Playground</span></li>
-                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Timesheet Clock integrations</span></li>
-                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Excel/PDF Progress Reporting</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Unlimited Projects</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Unlimited User Stories</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Unlimited Tasks</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Advanced Analytics</span></li>
+                  <li className="flex items-center gap-2.5"><FaCrown className="text-indigo-500 shrink-0 animate-pulse" size={12} /> <span>Priority Support</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>All Members Premium</span></li>
                 </ul>
               </div>
               <button onClick={openRegister} className="w-full py-3.5 mt-8 font-bold text-sm text-white rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 shadow-lg shadow-indigo-600/20 transition-all">
@@ -1402,15 +1403,19 @@ function Home() {
                   <div>
                     <span className="text-5xl font-extrabold">$419</span>
                     <span className="text-sm font-semibold text-slate-500">/yr</span>
+                    <span className="text-lg text-slate-400 dark:text-slate-500 line-through ml-2 font-bold">$588</span>
                   </div>
-                  <span className="text-xs text-emerald-500 font-extrabold mt-1.5">Equivalent to just $34.92 / month</span>
+                  <span className="text-xs text-emerald-500 font-extrabold mt-1.5">Equivalent to just $34.91 / month</span>
                 </div>
                 <hr className="border-indigo-500/10" />
                 <ul className="flex flex-col gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                  <li className="flex items-center gap-2.5"><FaCrown className="text-indigo-500 shrink-0 animate-pulse" size={12} /> <span>All Premium Monthly features</span></li>
-                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Premium Priority SLA Support</span></li>
-                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Dedicated Account Executive</span></li>
-                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>29% discount rate automatically applied</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Unlimited Projects</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Unlimited User Stories</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Unlimited Tasks</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Advanced Analytics</span></li>
+                  <li className="flex items-center gap-2.5"><FaCrown className="text-indigo-500 shrink-0 animate-pulse" size={12} /> <span>Priority Support</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>All Members Premium</span></li>
+                  <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>29% Annual Discount</span></li>
                 </ul>
               </div>
               <button onClick={openRegister} className="w-full py-3.5 mt-8 font-bold text-sm text-white rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 shadow-lg shadow-purple-600/20 transition-all">

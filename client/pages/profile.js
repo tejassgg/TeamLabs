@@ -19,7 +19,6 @@ const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
-  const [showSocialLinks, setShowSocialLinks] = useState(false);
   const [activities, setActivities] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
   const [organizations, setOrganizations] = useState([]);
@@ -474,33 +473,23 @@ const Profile = () => {
 
                   {/* Social Media Links */}
                   <div className="mt-6">
-                    <button
-                      onClick={() => setShowSocialLinks(!showSocialLinks)}
-                      className={`${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-600'} transition-colors duration-200 flex items-center justify-center mx-auto space-x-2`}
-                    >
-                      <span>{showSocialLinks ? 'Hide Social Links' : 'Show Social Links'}</span>
-                      <FaGlobe className="text-sm" />
-                    </button>
-
-                    {showSocialLinks && (
-                      <div className="mt-4 flex justify-center space-x-4">
-                        <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
-                          <FaGithub size={24} />
-                        </a>
-                        <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
-                          <FaLinkedin size={24} />
-                        </a>
-                        <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
-                          <FaTwitter size={24} />
-                        </a>
-                        <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
-                          <FaFacebook size={24} />
-                        </a>
-                        <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
-                          <FaInstagram size={24} />
-                        </a>
-                      </div>
-                    )}
+                    <div className="flex justify-center space-x-4">
+                      <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                        <FaGithub size={24} />
+                      </a>
+                      <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                        <FaLinkedin size={24} />
+                      </a>
+                      <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                        <FaTwitter size={24} />
+                      </a>
+                      <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                        <FaFacebook size={24} />
+                      </a>
+                      <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                        <FaInstagram size={24} />
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>

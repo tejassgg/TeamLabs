@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useRouter } from 'next/router';
-import { 
-  FaUsers, 
-  FaFolder, 
-  FaRocket, 
-  FaPlus, 
+import {
+  FaUsers,
+  FaFolder,
+  FaRocket,
+  FaPlus,
   FaLightbulb,
   FaArrowRight,
   FaStar,
@@ -113,7 +113,7 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
-      <div className={`relative text-center py-12 overflow-hidden`}>
+      <div className={`relative text-center py-16 overflow-hidden`}>
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-20 h-20 bg-blue-500 rounded-full blur-xl"></div>
@@ -121,7 +121,7 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
           <div className="absolute bottom-10 left-1/4 w-12 h-12 bg-green-500 rounded-full blur-xl"></div>
           <div className="absolute bottom-20 right-1/3 w-14 h-14 bg-yellow-500 rounded-full blur-xl"></div>
         </div>
-        
+
         <div className="relative max-w-4xl mx-auto px-6">
           <div className="mb-8">
             <div className="relative inline-block">
@@ -138,7 +138,7 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
           <p className={`text-lg lg:mb-8 mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto leading-relaxed`}>
             Let's get your workspace organized and start collaborating with your team. Choose an action below to get started, or explore our features to see what TeamLabs can do for you.
           </p>
-          
+
           {/* Decorative Elements */}
           <div className="flex justify-center items-center gap-4 mb-6">
             <div className={`w-2 h-2 rounded-full ${theme === 'dark' ? 'bg-blue-400' : 'bg-blue-500'} animate-pulse`}></div>
@@ -153,11 +153,10 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
         {actionCards.map((card, index) => (
           <div
             key={card.id}
-            className={`group relative p-8 rounded-2xl border-2 transition-all duration-300 hover:shadow-2xl hover:scale-102 hover:-translate-y-2 ${
-              theme === 'dark' 
-                ? `bg-gradient-to-br ${card.darkGradient} border-gray-700 hover:border-gray-600` 
-                : `bg-gradient-to-br ${card.gradient} border-gray-200 hover:border-gray-300`
-            }`}
+            className={`group relative p-8 rounded-2xl border-2 transition-all duration-300 hover:shadow-2xl hover:scale-102 hover:-translate-y-2 ${theme === 'dark'
+              ? `bg-gradient-to-br ${card.darkGradient} border-gray-700 hover:border-gray-600`
+              : `bg-gradient-to-br ${card.gradient} border-gray-200 hover:border-gray-300`
+              }`}
             style={{ animationDelay: `${index * 0.1}s` }}
           >
             {/* Card Background Pattern */}
@@ -165,21 +164,21 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
               <div className="absolute top-4 right-4 w-16 h-16 bg-current rounded-full blur-2xl"></div>
               <div className="absolute bottom-4 left-4 w-12 h-12 bg-current rounded-full blur-xl"></div>
             </div>
-            
+
             <div className="relative">
               {/* Icon Container */}
               <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/70'} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                 {card.icon}
               </div>
-              
+
               <h3 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'} group-hover:text-opacity-90 transition-all duration-300`}>
                 {card.title}
               </h3>
-              
+
               <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} leading-relaxed`}>
                 {card.description}
               </p>
-              
+
               {/* Features List */}
               <ul className={`space-y-2 mb-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                 {card.features.map((feature, featureIndex) => (
@@ -200,7 +199,7 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
                 </span>
               </button>
             </div>
-            
+
             {/* Hover Effect Overlay */}
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
           </div>
@@ -212,7 +211,7 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
         onClose={() => setShowTeamModal(false)}
         onAddTeam={handleCreateTeam}
       />
-      
+
       <AddProjectModal
         isOpen={showProjectModal}
         onClose={() => setShowProjectModal(false)}

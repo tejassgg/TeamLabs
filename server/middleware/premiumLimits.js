@@ -55,13 +55,26 @@ const checkUserStoryLimit = async (req, res, next) => {
     if (user.isPremiumMember && user.isSubscriptionActive()) {
       return next(); // Premium users have unlimited access
     }
-    if (org.usageLimits.userStoriesCreated >= 3) {
+
+    const TaskDetails = require('../models/TaskDetails');
+    const projectId = req.body.taskDetail?.ProjectID_FK;
+    if (!projectId) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
+
+    const existingStoriesCount = await TaskDetails.countDocuments({
+      ProjectID_FK: projectId,
+      Type: 'User Story',
+      IsActive: true
+    });
+
+    if (existingStoriesCount >= 1) {
       return res.status(403).json({ 
         status: 403,
         error: 'User Story limit reached',
-        message: 'Your organization has reached the maximum number of user stories (3) for free users. Upgrade to premium for unlimited user stories.',
-        limit: 3,
-        current: org.usageLimits.userStoriesCreated,
+        message: 'Your organization is limited to 1 user story per project for free users. Upgrade to premium for unlimited user stories.',
+        limit: 1,
+        current: existingStoriesCount,
         type: 'userStory'
       });
     }
@@ -90,13 +103,25 @@ const checkTaskLimit = async (req, res, next) => {
     if (user.isPremiumMember && user.isSubscriptionActive()) {
       return next(); // Premium users have unlimited access
     }
-    if (org.usageLimits.tasksCreated >= 20) {
+    const TaskDetails = require('../models/TaskDetails');
+    const parentId = req.body.taskDetail?.ParentID;
+    if (!parentId) {
+      return res.status(400).json({ error: 'Parent User Story ID is required' });
+    }
+
+    const existingTasksCount = await TaskDetails.countDocuments({
+      ParentID: parentId,
+      Type: { $ne: 'User Story' },
+      IsActive: true
+    });
+
+    if (existingTasksCount >= 10) {
       return res.status(403).json({ 
         status: 403,
         error: 'Task limit reached',
-        message: 'Your organization has reached the maximum number of tasks (20) per user story for free users. Upgrade to premium for unlimited tasks.',
-        limit: 20,
-        current: org.usageLimits.tasksCreated,
+        message: 'Your organization has reached the maximum number of tasks (10) per user story for free users. Upgrade to premium for unlimited tasks.',
+        limit: 10,
+        current: existingTasksCount,
         type: 'task'
       });
     }

@@ -21,6 +21,14 @@ export const GlobalProvider = ({ children }) => {
   const { theme } = useTheme();
   const router = useRouter();
   const [userDetails, setUserDetails] = useState(null);
+  const [isLoggedInState, setIsLoggedInState] = useState(false);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsLoggedInState(localStorage.getItem('isLoggedIn') === 'true');
+    }
+  }, []);
+
   const [teams, setTeams] = useState([]);
   const [projects, setProjects] = useState([]);
   const [tasksDetails, setTasksDetails] = useState([]);
@@ -121,6 +129,7 @@ export const GlobalProvider = ({ children }) => {
       }
       setUserDetails(data);
       localStorage.setItem('isLoggedIn', 'true');
+      setIsLoggedInState(true);
       return { success: true };
     } catch (error) {
       return {
@@ -140,6 +149,7 @@ export const GlobalProvider = ({ children }) => {
       setUserDetails(data);
       setTempAuthData(null);
       localStorage.setItem('isLoggedIn', 'true');
+      setIsLoggedInState(true);
       return { success: true };
     } catch (error) {
       return {
@@ -178,6 +188,7 @@ export const GlobalProvider = ({ children }) => {
       const data = await authService.googleLogin(credential, inviteToken);
       setUserDetails(data);
       localStorage.setItem('isLoggedIn', 'true');
+      setIsLoggedInState(true);
       return { 
         success: true,
         needsAdditionalDetails: data.needsAdditionalDetails || false
@@ -222,6 +233,7 @@ export const GlobalProvider = ({ children }) => {
     // Reset any fetch guard refs
     if (dataFetchedRef && typeof dataFetchedRef === 'object') dataFetchedRef.current = false;
     localStorage.removeItem('isLoggedIn');
+    setIsLoggedInState(false);
     router.push('/');
   };
 
@@ -276,20 +288,33 @@ export const GlobalProvider = ({ children }) => {
         return;
       }
 
+      // If on the landing page, do not query the server-side profile API to optimize network calls
+      if (router.pathname === '/') {
+        setLoading(false);
+        return;
+      }
+
+      if (userDetails) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
         const currentUser = await authService.getUserProfile();
         setUserDetails(currentUser);
+        setIsLoggedInState(true);
       } catch (error) {
         console.error('Authentication error:', error);
         localStorage.removeItem('isLoggedIn');
+        setIsLoggedInState(false);
       } finally {
         setLoading(false);
       }
     };
 
     initAuth();
-  }, []);
+  }, [router.pathname, userDetails]);
 
   // Initial data fetch
   useEffect(() => {
@@ -743,7 +768,7 @@ export const GlobalProvider = ({ children }) => {
     setProjects,
     setTeams,
     setTasksDetails,
-    isAuthenticated: !!userDetails,
+    isAuthenticated: isLoggedInState || !!userDetails,
     loading,
     login,
     verifyLogin2FA,

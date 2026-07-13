@@ -356,8 +356,16 @@ const googleLogin = async (req, res) => {
       return res.json(userData);
     } else {
       // If user doesn't exist, create new user with partial profile
-      // Generate username from email
-      const username = email.split('@')[0] + Math.floor(Math.random() * 1000);
+      // Generate username from email (use base prefix if unique, otherwise append random suffix)
+      const base = email.split('@')[0];
+      let candidate = base;
+      let exists = await User.findOne({ username: candidate });
+      while (exists) {
+        const suffix = Math.floor(Math.random() * 10000);
+        candidate = `${base}${suffix}`;
+        exists = await User.findOne({ username: candidate });
+      }
+      const username = candidate;
 
       // Create random password for Google users
       const password = Math.random().toString(36).slice(-8);
@@ -876,7 +884,7 @@ const updateUserStatus = async (req, res) => {
     const user = await User.findByIdAndUpdate(
       userId,
       { status },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!user) {
@@ -1456,7 +1464,7 @@ const linkRepositoryToProject = async (req, res) => {
         'githubRepository.connectedAt': new Date(),
         'githubRepository.connectedBy': userId
       },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     // Log the activity
@@ -1524,7 +1532,7 @@ const unlinkRepositoryFromProject = async (req, res) => {
         'githubRepository.connectedAt': null,
         'githubRepository.connectedBy': null
       },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     // Log the activity
@@ -1561,7 +1569,7 @@ const updateOnboardingStatus = async (req, res) => {
     const user = await User.findByIdAndUpdate(
       userId,
       updateData,
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!user) {

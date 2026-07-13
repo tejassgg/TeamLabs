@@ -234,7 +234,7 @@ router.patch('/comments/:commentId', async (req, res) => {
     const updatedComment = await Comment.findOneAndUpdate(
       { CommentID: commentId }, 
       { ...update, Content: update.Content?.trim() }, 
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     // Log the activity

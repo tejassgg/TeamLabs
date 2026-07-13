@@ -240,8 +240,7 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
   };
 
   const getProgressPercentage = () => {
-    const completedSteps = Object.values(setupProgress).filter(Boolean).length;
-    return Math.round((completedSteps / Object.keys(setupProgress).length) * 100);
+    return Math.round((currentStep / (setupSteps.length - 1)) * 100);
   };
 
   const CurrentStepComponent = setupSteps[currentStep].component;
@@ -330,7 +329,7 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
               disabled={currentStep === 0 || loading}
               className={`px-6 py-2 rounded-lg transition-colors duration-200 ${currentStep === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
             >
-              Back
+              Previous
             </button>
             <div className="flex items-center gap-3">
               {footerState.showSkip && (
@@ -360,8 +359,12 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
 };
 
 // Welcome Step Component
-const WelcomeStep = ({ step, onNext, onPrevious }) => {
+const WelcomeStep = ({ step, onNext, onPrevious, setFooterState }) => {
   const { theme } = useTheme();
+
+  useEffect(() => {
+    setFooterState && setFooterState({ showSkip: false, showContinue: false, canContinue: false });
+  }, [setFooterState]);
 
   return (
     <div className="p-8 text-center">
@@ -409,9 +412,14 @@ const WelcomeStep = ({ step, onNext, onPrevious }) => {
 };
 
 // Profile Step Component
-const ProfileStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrganization, setSelectedOrganization }) => {
+const ProfileStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrganization, setSelectedOrganization, setFooterState }) => {
   const { theme } = useTheme();
   const [profileCompleted, setProfileCompleted] = useState(setupProgress.profileComplete);
+
+  // Configure sticky footer for Profile step: hide Skip and Continue buttons (user must use the form buttons)
+  useEffect(() => {
+    setFooterState && setFooterState({ showSkip: false, showContinue: false, canContinue: false });
+  }, [setFooterState]);
 
   // When profile is completed, allow continue
   const handleProfileComplete = (data) => {

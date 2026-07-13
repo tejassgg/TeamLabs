@@ -364,7 +364,7 @@ router.post('/:teamId/join-requests/:requestId/accept', protect, async (req, res
         ModifiedBy: adminId,
         $setOnInsert: { CreatedDate: new Date() } // Only set CreatedDate if creating new document
       },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
     res.json({ message: 'Request accepted', request });
 

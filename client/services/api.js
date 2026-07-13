@@ -379,13 +379,22 @@ export const authService = {
       throw error.response?.data || { message: 'Failed to upgrade subscription' };
     }
   },
-  cancelSubscription: async (organizationID, userId) => {
+  cancelSubscription: async (organizationID, userId, cancelImmediately = true) => {
     try {
-      const response = await api.post(`/payment/cancel/${organizationID}`, { userId });
+      const response = await api.post(`/payment/cancel/${organizationID}`, { userId, cancelImmediately });
       return response.data;
     } catch (error) {
       if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to cancel subscription' };
+    }
+  },
+  resumeSubscription: async (organizationID, userId) => {
+    try {
+      const response = await api.post(`/payment/resume/${organizationID}`, { userId });
+      return response.data;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to resume subscription' };
     }
   },
 

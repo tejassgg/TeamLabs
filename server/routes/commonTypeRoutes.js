@@ -128,9 +128,9 @@ router.get('/subscription-catalog', async (req, res) => {
       },
       prices: {
         freeMonthly: getPrice('free_monthly') || '0',
-        premiumMonthly: getPrice('premium_monthly') || '79',
-        premiumAnnualMonthlyEq: getPrice('premium_annual_monthly_equivalent') || '47.4',
-        premiumAnnualYearly: getPrice('premium_annual_yearly_total') || '569'
+        premiumMonthly: getPrice('premium_monthly') || '49',
+        premiumAnnualMonthlyEq: getPrice('premium_annual_monthly_equivalent') || '34.92',
+        premiumAnnualYearly: getPrice('premium_annual_yearly_total') || '419'
       }
     });
   } catch (err) {

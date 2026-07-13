@@ -221,7 +221,7 @@ const getSubscriptionStatus = async (req, res) => {
 const cancelSubscription = async (req, res) => {
   try {
     const { organizationID } = req.params;
-    const { userId } = req.body;
+    const { userId, cancelImmediately = true } = req.body;
 
     // Find active subscription
     const activeSubscription = await Payment.getActiveSubscription(organizationID);
@@ -235,47 +235,70 @@ const cancelSubscription = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Only the organization admin can cancel the subscription.' });
     }
 
-    // Mirror downgrade to free (with prorated refund when eligible)
-    // Eligibility: completed, not expired, and >= 1 day remaining
-    const now = new Date();
-    const hasExpired = now >= activeSubscription.subscriptionEndDate;
-    let refundResult = null;
-    if (activeSubscription.status === 'completed' && !hasExpired) {
-      const remainingDays = Math.ceil((activeSubscription.subscriptionEndDate - now) / (1000 * 60 * 60 * 24));
-      if (remainingDays >= 1) {
-        try {
-          refundResult = await Payment.createDowngradeRefund(activeSubscription, 'free', userId);
-          await issueStripeRefundIfApplicable(activeSubscription, refundResult.refundAmount);
-        } catch (refundError) {
-          console.error('Refund processing error (cancel):', refundError);
-          return res.status(500).json({ success: false, message: 'Failed to process refund during cancellation.' });
+    if (cancelImmediately) {
+      // Mirror downgrade to free (with prorated refund when eligible)
+      // Eligibility: completed, not expired, and >= 1 day remaining
+      const now = new Date();
+      const hasExpired = now >= activeSubscription.subscriptionEndDate;
+      let refundResult = null;
+      if (activeSubscription.status === 'completed' && !hasExpired) {
+        const remainingDays = Math.ceil((activeSubscription.subscriptionEndDate - now) / (1000 * 60 * 60 * 24));
+        if (remainingDays >= 1) {
+          try {
+            refundResult = await Payment.createDowngradeRefund(activeSubscription, 'free', userId);
+            await issueStripeRefundIfApplicable(activeSubscription, refundResult.refundAmount);
+          } catch (refundError) {
+            console.error('Refund processing error (cancel):', refundError);
+            return res.status(500).json({ success: false, message: 'Failed to process refund during cancellation.' });
+          }
         }
       }
-    }
 
-    // Cancel Stripe subscription (stop auto payments) if tracked
-    try {
-      const subscriptionId = activeSubscription?.gatewayResponse?.subscriptionId;
-      if (subscriptionId) {
-        await stripe.subscriptions.cancel(String(subscriptionId));
+      // Cancel Stripe subscription (stop auto payments) if tracked
+      try {
+        const subscriptionId = activeSubscription?.gatewayResponse?.subscriptionId;
+        if (subscriptionId) {
+          await stripe.subscriptions.cancel(String(subscriptionId));
+        }
+      } catch (e) {
+        console.error('Stripe subscription cancel failed:', e?.message || e);
       }
-    } catch (e) {
-      console.error('Stripe subscription cancel failed:', e?.message || e);
-      // Continue; we still deactivate locally
+
+      // Deactivate premium immediately
+      await deactivateOrganizationPremium(organizationID);
+
+      // Save renewal state
+      activeSubscription.autoRenew = false;
+      await activeSubscription.save();
+
+      return res.json({
+        success: true,
+        message: 'Subscription cancelled immediately and downgraded to Free',
+        data: refundResult ? {
+          refundAmount: refundResult.refundAmount,
+          remainingDays: refundResult.remainingDays,
+          refundPaymentId: refundResult.refundPayment?.paymentId
+        } : null
+      });
+    } else {
+      // Cancel at period end (retain active status until expired)
+      try {
+        const subscriptionId = activeSubscription?.gatewayResponse?.subscriptionId;
+        if (subscriptionId) {
+          await stripe.subscriptions.update(String(subscriptionId), { cancel_at_period_end: true });
+        }
+      } catch (e) {
+        console.error('Stripe subscription update cancel_at_period_end failed:', e?.message || e);
+      }
+
+      activeSubscription.autoRenew = false;
+      await activeSubscription.save();
+
+      return res.json({
+        success: true,
+        message: 'Subscription will cancel at the end of the current billing period. Auto-renew has been disabled.'
+      });
     }
-
-    // Deactivate premium immediately
-    await deactivateOrganizationPremium(organizationID);
-
-    return res.json({
-      success: true,
-      message: 'Subscription cancelled and downgraded to Free',
-      data: refundResult ? {
-        refundAmount: refundResult.refundAmount,
-        remainingDays: refundResult.remainingDays,
-        refundPaymentId: refundResult.refundPayment?.paymentId
-      } : null
-    });
   } catch (error) {
     console.error('Cancel subscription error:', error);
     res.status(500).json({
@@ -745,9 +768,9 @@ const getOrganizationPaymentData = async (req, res) => {
     const getPrice = (desc) => pricesAll.find(p => p.Description === desc)?.Value;
     const subscriptionPrices = {
       freeMonthly: getPrice('free_monthly') || '0',
-      premiumMonthly: getPrice('premium_monthly') || '79',
-      premiumAnnualMonthlyEq: getPrice('premium_annual_monthly_equivalent') || '47.4',
-      premiumAnnualYearly: getPrice('premium_annual_yearly_total') || '569'
+      premiumMonthly: getPrice('premium_monthly') || '49',
+      premiumAnnualMonthlyEq: getPrice('premium_annual_monthly_equivalent') || '34.92',
+      premiumAnnualYearly: getPrice('premium_annual_yearly_total') || '419'
     };
 
     res.json({
@@ -777,11 +800,50 @@ const getOrganizationPaymentData = async (req, res) => {
   }
 };
 
+const resumeSubscription = async (req, res) => {
+  try {
+    const { organizationID } = req.params;
+    const { userId } = req.body;
+
+    const activeSubscription = await Payment.getActiveSubscription(organizationID);
+    if (!activeSubscription) {
+      return res.status(404).json({ success: false, message: 'No active subscription found' });
+    }
+
+    const isAdmin = await isOrgAdmin(organizationID, userId);
+    if (!isAdmin) {
+      return res.status(403).json({ success: false, message: 'Only the organization admin can resume the subscription.' });
+    }
+
+    try {
+      const subscriptionId = activeSubscription?.gatewayResponse?.subscriptionId;
+      if (subscriptionId) {
+        await stripe.subscriptions.update(String(subscriptionId), { cancel_at_period_end: false });
+      }
+    } catch (e) {
+      console.error('Stripe subscription resume failed:', e?.message || e);
+      return res.status(500).json({ success: false, message: 'Failed to reactivate subscription on Stripe' });
+    }
+
+    activeSubscription.autoRenew = true;
+    await activeSubscription.save();
+
+    return res.json({
+      success: true,
+      message: 'Subscription auto-renewal reactivated successfully.'
+    });
+  } catch (error) {
+    console.error('Resume subscription error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
 module.exports = {
   processPayment,
   getPaymentHistory,
   getSubscriptionStatus,
   cancelSubscription,
+  resumeSubscription,
   downgradeSubscription,
   calculateDowngradeRefund,
   upgradeSubscription,
@@ -797,19 +859,51 @@ async function issueStripeRefundIfApplicable(activeSubscription, refundAmountDol
     if (!invoiceId) return;
 
     // Retrieve invoice to get charge id
-    const invoice = await stripe.invoices.retrieve(String(invoiceId));
-    const chargeId = invoice?.charge;
-    if (!chargeId) return;
+    const invoice = await stripe.invoices.retrieve(String(invoiceId), {
+      expand: ['payment_intent', 'charge', 'payments']
+    });
+
+    let chargeId = null;
+    let paymentIntentId = null;
+
+    if (invoice?.charge) {
+      chargeId = typeof invoice.charge === 'object' ? invoice.charge.id : invoice.charge;
+    }
+    if (invoice?.payment_intent) {
+      paymentIntentId = typeof invoice.payment_intent === 'object' ? invoice.payment_intent.id : invoice.payment_intent;
+    }
+
+    if (invoice?.payments?.data) {
+      for (const p of invoice.payments.data) {
+        if (p.payment) {
+          if (!chargeId && p.payment.charge) {
+            chargeId = typeof p.payment.charge === 'object' ? p.payment.charge.id : p.payment.charge;
+          }
+          if (!paymentIntentId && p.payment.payment_intent) {
+            paymentIntentId = typeof p.payment.payment_intent === 'object' ? p.payment.payment_intent.id : p.payment.payment_intent;
+          }
+        }
+      }
+    }
+
+    if (!chargeId && !paymentIntentId) return;
 
     // Create partial refund in cents
     const amountCents = Math.max(0, Math.round((refundAmountDollars || 0) * 100));
     if (amountCents <= 0) return;
 
-    await stripe.refunds.create({
-      charge: chargeId,
+    const refundPayload = {
       amount: amountCents,
       reason: 'requested_by_customer'
-    });
+    };
+
+    if (chargeId) {
+      refundPayload.charge = chargeId;
+    } else {
+      refundPayload.payment_intent = paymentIntentId;
+    }
+
+    await stripe.refunds.create(refundPayload);
   } catch (e) {
     // Log and continue; internal refund record already created
     console.error('Stripe refund attempt failed:', e?.message || e);

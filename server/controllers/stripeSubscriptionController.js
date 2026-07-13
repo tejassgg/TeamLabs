@@ -90,46 +90,155 @@ exports.confirmCheckoutSession = async (req, res) => {
     }
 
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
-    const currentPeriodStart = new Date(subscription.current_period_start * 1000);
     const price = subscription.items?.data?.[0]?.price;
     const plan = price?.recurring?.interval === 'year' ? 'annual' : 'monthly';
 
-    // Persist payment
-    const Payment = require('../models/Payment');
-    const payment = new Payment({
-      paymentId: `STRIPE_${subscription.id}`,
-      amount: (price?.unit_amount || 0) / 100,
-      currency: (price?.currency || 'usd').toUpperCase(),
-      status: 'completed',
-      plan: plan,
-      billingCycle: plan,
-      paymentMethod: 'card',
-      organizationID: String(organizationID),
-      userId: userId,
-      subscriptionStartDate: currentPeriodStart,
-      subscriptionEndDate: currentPeriodEnd,
-      autoRenew: true,
-      transactionId: subscription.latest_invoice,
-      gatewayResponse: { sessionId: session.id, subscriptionId: subscription.id },
-    });
-    await payment.save();
+    const currentPeriodStart = (subscription.current_period_start && !isNaN(subscription.current_period_start))
+      ? new Date(subscription.current_period_start * 1000)
+      : new Date();
 
-    // Update organization & users
-    const org = await Organization.findOne({ OrganizationID: Number(organizationID) });
-    if (org) {
-      org.isPremium = true;
-      org.subscription = { plan, startDate: currentPeriodStart, endDate: currentPeriodEnd };
-      await org.save();
+    const currentPeriodEnd = (subscription.current_period_end && !isNaN(subscription.current_period_end))
+      ? new Date(subscription.current_period_end * 1000)
+      : new Date(Date.now() + (plan === 'annual' ? 365 : 30) * 24 * 60 * 60 * 1000);
+
+    // Persist payment & update organization/users with a single retry
+    let dbSuccess = false;
+    let attempt = 0;
+    const maxAttempts = 2;
+    let lastError = null;
+
+    while (attempt < maxAttempts && !dbSuccess) {
+      attempt++;
+      try {
+        const Payment = require('../models/Payment');
+        
+        let payment = await Payment.findOne({ paymentId: `STRIPE_${subscription.id}` });
+        if (!payment) {
+          payment = new Payment({
+            paymentId: `STRIPE_${subscription.id}`,
+            amount: (price?.unit_amount || 0) / 100,
+            currency: (price?.currency || 'usd').toUpperCase(),
+            status: 'completed',
+            plan: plan,
+            billingCycle: plan,
+            paymentMethod: 'card',
+            organizationID: String(organizationID),
+            userId: userId,
+            subscriptionStartDate: currentPeriodStart,
+            subscriptionEndDate: currentPeriodEnd,
+            autoRenew: true,
+            transactionId: subscription.latest_invoice,
+            gatewayResponse: { sessionId: session.id, subscriptionId: subscription.id },
+          });
+          await payment.save();
+        }
+
+        const org = await Organization.findOne({ OrganizationID: Number(organizationID) });
+        if (org) {
+          org.isPremium = true;
+          org.subscription = { plan, startDate: currentPeriodStart, endDate: currentPeriodEnd };
+          await org.save();
+        }
+
+        const users = await User.find({ organizationID: String(organizationID) });
+        await Promise.all(users.map(u => u.activatePremium(plan, currentPeriodStart, currentPeriodEnd)));
+
+        dbSuccess = true;
+      } catch (err) {
+        lastError = err;
+        console.error(`Database subscription activation attempt ${attempt} failed:`, err);
+        if (attempt < maxAttempts) {
+          // Wait 1 second before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
     }
-    const users = await User.find({ organizationID: String(organizationID) });
-    await Promise.all(users.map(u => u.activatePremium(plan, currentPeriodStart, currentPeriodEnd)));
+
+    if (!dbSuccess) {
+      console.error('Subscription activation failed after retry. Initiating Stripe refund and cancellation...');
+      try {
+        if (subscriptionId) {
+          await stripe.subscriptions.cancel(subscriptionId);
+          console.log(`Subscription ${subscriptionId} cancelled successfully.`);
+        }
+
+        if (subscription.latest_invoice) {
+          const invoice = await stripe.invoices.retrieve(subscription.latest_invoice, {
+            expand: ['payment_intent', 'charge', 'payments']
+          });
+          const paymentIntentId = getInvoicePaymentIntentId(invoice);
+          const chargeId = getInvoiceChargeId(invoice);
+
+          if (paymentIntentId) {
+            const refund = await stripe.refunds.create({
+              payment_intent: paymentIntentId,
+              reason: 'requested_by_customer',
+              metadata: {
+                reason: 'Subscription activation failed',
+                organizationID: String(organizationID),
+                userId: userId
+              }
+            });
+            console.log(`Refund initiated successfully for payment intent ${paymentIntentId}. Refund ID: ${refund.id}`);
+          } else if (chargeId) {
+            const refund = await stripe.refunds.create({
+              charge: chargeId,
+              reason: 'requested_by_customer',
+              metadata: {
+                reason: 'Subscription activation failed',
+                organizationID: String(organizationID),
+                userId: userId
+              }
+            });
+            console.log(`Refund initiated successfully for charge ${chargeId}. Refund ID: ${refund.id}`);
+          }
+        }
+      } catch (refundError) {
+        console.error('Failed to cancel or refund Stripe subscription:', refundError);
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to activate subscription. A refund has been issued and the subscription has been cancelled.',
+        error: lastError?.message
+      });
+    }
 
     return res.json({ success: true });
   } catch (err) {
     console.error('confirmCheckoutSession error', err);
     return res.status(500).json({ success: false, message: 'Failed to confirm checkout session' });
   }
+};
+
+const getInvoicePaymentIntentId = (invoice) => {
+  if (!invoice) return null;
+  if (invoice.payment_intent) {
+    return typeof invoice.payment_intent === 'object' ? invoice.payment_intent.id : invoice.payment_intent;
+  }
+  if (invoice.payments && invoice.payments.data) {
+    for (const p of invoice.payments.data) {
+      if (p.payment && p.payment.payment_intent) {
+        return typeof p.payment.payment_intent === 'object' ? p.payment.payment_intent.id : p.payment.payment_intent;
+      }
+    }
+  }
+  return null;
+};
+
+const getInvoiceChargeId = (invoice) => {
+  if (!invoice) return null;
+  if (invoice.charge) {
+    return typeof invoice.charge === 'object' ? invoice.charge.id : invoice.charge;
+  }
+  if (invoice.payments && invoice.payments.data) {
+    for (const p of invoice.payments.data) {
+      if (p.payment && p.payment.charge) {
+        return typeof p.payment.charge === 'object' ? p.payment.charge.id : p.payment.charge;
+      }
+    }
+  }
+  return null;
 };
 
 exports.listCustomerInvoices = async (req, res) => {
@@ -141,35 +250,55 @@ exports.listCustomerInvoices = async (req, res) => {
 
     // Fetch latest 20 invoices and refunds in parallel
     const [invoicesResult, refundsResult] = await Promise.all([
-      stripe.invoices.list({ customer: org.stripeCustomerId, limit: 20 }),
+      stripe.invoices.list({ 
+        customer: org.stripeCustomerId, 
+        limit: 20,
+        expand: ['data.payment_intent', 'data.charge', 'data.payments']
+      }),
       stripe.refunds.list({ limit: 20 })
     ]);
 
     const invoices = invoicesResult.data;
-    const refunds = refundsResult.data.filter(refund => 
-      refund.charge && invoices.some(invoice => 
-        invoice.charge === refund.charge || invoice.payment_intent === refund.payment_intent
-      )
-    );
+    const refunds = refundsResult.data.filter(refund => {
+      const refundCharge = typeof refund.charge === 'object' ? refund.charge?.id : refund.charge;
+      const refundPI = typeof refund.payment_intent === 'object' ? refund.payment_intent?.id : refund.payment_intent;
+      
+      return (refundCharge || refundPI) && invoices.some(invoice => {
+        const invoiceCharge = getInvoiceChargeId(invoice);
+        const invoicePI = getInvoicePaymentIntentId(invoice);
+        
+        return (refundCharge && invoiceCharge === refundCharge) || 
+               (refundPI && invoicePI === refundPI);
+      });
+    });
     
-    // Extract unique user IDs from subscription metadata and refund metadata
+    // Extract unique user IDs and customer emails from invoices and refunds
     const userIds = [...new Set([
       ...invoices
-        .filter(invoice => invoice.subscription_details?.metadata?.userId)
-        .map(invoice => invoice.subscription_details.metadata.userId),
+        .map(invoice => (invoice.parent?.subscription_details || invoice.subscription_details)?.metadata?.userId)
+        .filter(Boolean),
       ...refunds
-        .filter(refund => refund.metadata?.userId)
-        .map(refund => refund.metadata.userId)
+        .map(refund => refund.metadata?.userId)
+        .filter(Boolean)
     ])];
 
-    // Fetch user details for all unique user IDs
+    const emails = [...new Set(
+      invoices.map(invoice => invoice.customer_email?.toLowerCase()).filter(Boolean)
+    )];
+
+    // Fetch user details for all unique user IDs or emails
     const userDetailsMap = {};
-    if (userIds.length > 0) {
+    if (userIds.length > 0 || emails.length > 0) {
       const User = require('../models/User');
-      const users = await User.find({ _id: { $in: userIds } }).select('_id firstName lastName email profileImage role');
+      const users = await User.find({
+        $or: [
+          { _id: { $in: userIds } },
+          { email: { $in: emails } }
+        ]
+      }).select('_id firstName lastName email profileImage role');
       
       users.forEach(user => {
-        userDetailsMap[user._id.toString()] = {
+        const details = {
           fullName: `${user.firstName} ${user.lastName}`,
           email: user.email,
           profileImage: user.profileImage,
@@ -177,18 +306,48 @@ exports.listCustomerInvoices = async (req, res) => {
           lastName: user.lastName,
           role: user.role,
         };
+        userDetailsMap[user._id.toString()] = details;
+        if (user.email) {
+          userDetailsMap[user.email.toLowerCase()] = details;
+        }
       });
     }
 
-    // Enhance invoices with user details
+    // Enhance invoices with user details and refund info
     const enhancedInvoices = invoices.map(invoice => {
-      const userId = invoice.subscription_details?.metadata?.userId;
-      const userDetails = userId ? userDetailsMap[userId] : null;
+      const userId = (invoice.parent?.subscription_details || invoice.subscription_details)?.metadata?.userId;
+      const userDetails = (userId ? userDetailsMap[userId] : null) || (invoice.customer_email ? userDetailsMap[invoice.customer_email.toLowerCase()] : null);
       
+      // Match against refunds list to check if invoice has been refunded
+      const invoiceCharge = getInvoiceChargeId(invoice);
+      const invoicePI = getInvoicePaymentIntentId(invoice);
+      const matchingRefunds = refundsResult.data.filter(refund => {
+        const refundCharge = typeof refund.charge === 'object' ? refund.charge?.id : refund.charge;
+        const refundPI = typeof refund.payment_intent === 'object' ? refund.payment_intent?.id : refund.payment_intent;
+
+        return (refundCharge && refundCharge === invoiceCharge) || 
+               (refundPI && refundPI === invoicePI);
+      });
+
+      const isRefunded = matchingRefunds.length > 0;
+      const totalRefunded = matchingRefunds.reduce((sum, r) => sum + (r.amount || 0), 0);
+      
+      let status = invoice.status;
+      if (isRefunded) {
+        if (totalRefunded >= invoice.total) {
+          status = 'refunded';
+        } else {
+          status = 'partially_refunded';
+        }
+      }
+
       return {
         ...invoice,
         userDetails: userDetails || null,
-        type: 'invoice'
+        type: 'invoice',
+        status: status,
+        isRefunded,
+        totalRefunded
       };
     });
 
@@ -198,9 +357,15 @@ exports.listCustomerInvoices = async (req, res) => {
       const userDetails = userId ? userDetailsMap[userId] : null;
       
       // Find the related invoice for additional context
-      const relatedInvoice = invoices.find(invoice => 
-        invoice.charge === refund.charge || invoice.payment_intent === refund.payment_intent
-      );
+      const relatedInvoice = invoices.find(invoice => {
+        const invoiceCharge = getInvoiceChargeId(invoice);
+        const invoicePI = getInvoicePaymentIntentId(invoice);
+        const refundCharge = typeof refund.charge === 'object' ? refund.charge?.id : refund.charge;
+        const refundPI = typeof refund.payment_intent === 'object' ? refund.payment_intent?.id : refund.payment_intent;
+
+        return (refundCharge && invoiceCharge === refundCharge) || 
+               (refundPI && invoicePI === refundPI);
+      });
       
       return {
         ...refund,

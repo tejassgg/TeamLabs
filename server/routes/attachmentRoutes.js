@@ -270,7 +270,7 @@ router.patch('/:attachmentId', async (req, res) => {
     const attachment = await Attachment.findOneAndUpdate(
       { AttachmentID: attachmentId },
       { ...updateData, UpdatedAt: new Date() },
-      { new: true }
+      { returnDocument: 'after' }
     );
     
     if (!attachment) {

@@ -352,7 +352,7 @@ router.post('/:projectId/team/:teamId', protect, async (req, res) => {
 router.patch('/:projectId/team/:teamId/toggle', protect, async (req, res) => {
   let projectDetailz = null;
   try {
-    const projectDetail = await ProjectDetails.findOne({ ProjectID: req.params.projectId, TeamID: teamId });
+    const projectDetail = await ProjectDetails.findOne({ ProjectID: req.params.projectId, TeamID: req.params.teamId });
     if (!projectDetail) return res.status(404).json({ error: 'Team not found in project' });
     projectDetailz = projectDetail.toObject();
     projectDetail.IsActive = !projectDetail.IsActive;
@@ -369,7 +369,7 @@ router.patch('/:projectId/team/:teamId/toggle', protect, async (req, res) => {
     res.status(200).json({ success: true, message: `${projectDetail.TeamName} access updated successfully`, projectMembers: allProjectMembers });
   } catch (err) {
     await logActivity(
-      ModifiedBy,
+      req.user._id,
       'project_team_toggle',
       'error',
       `Failed to remove team from project: ${err.message}`,
@@ -377,8 +377,7 @@ router.patch('/:projectId/team/:teamId/toggle', protect, async (req, res) => {
       {
         projectId: req.params.projectId,
         teamId: req.params.teamId,
-        teamName: projectDetailz.TeamName,
-        projectId: req.params.projectId,
+        teamName: projectDetailz?.TeamName || '',
         error: err.message
       }
     );

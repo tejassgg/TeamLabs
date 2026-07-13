@@ -5,10 +5,10 @@ import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import { authService } from '../../services/api';
 import { paymentService } from '../../services/api';
-import { FaUsers, FaCrown, FaStar, FaInfinity, FaCheckCircle, FaCheck } from 'react-icons/fa';
+import { FaUsers, FaCrown, FaStar, FaInfinity, FaCheckCircle, FaCheck, FaArrowUp, FaArrowDown, FaTimes } from 'react-icons/fa';
 
-const BillingTab = ({ 
-  getThemeClasses, 
+const BillingTab = ({
+  getThemeClasses,
   subscriptionData: prefetchedSubscriptionData,
   subscriptionFeatures: prefetchedSubscriptionFeatures,
   subscriptionPrices: prefetchedSubscriptionPrices,
@@ -43,6 +43,16 @@ const BillingTab = ({
   });
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [cancelOption, setCancelOption] = useState('expiry');
+
+  const currentExpiryDate = useMemo(() => {
+    if (subscriptionData?.subscription?.subscriptionEndDate) {
+      return new Date(subscriptionData.subscription.subscriptionEndDate).toLocaleDateString();
+    }
+    return '';
+  }, [subscriptionData]);
+
+  const todayDateStr = useMemo(() => new Date().toLocaleDateString(), []);
 
   useEffect(() => {
     if (!userDetails?.organizationID) return;
@@ -103,24 +113,38 @@ const BillingTab = ({
         text: 'Current Plan',
         disabled: true,
         className: theme === 'dark'
-          ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-          : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-      };
-    } else if (planOrder[planType] > planOrder[currentPlan]) {
-      return {
-        text: 'Upgrade',
-        disabled: false,
-        className: planType === 'monthly'
-          ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-          : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+          ? 'bg-gray-850 text-gray-500 border border-white/5 cursor-not-allowed'
+          : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
       };
     }
+
+    const isCancelled = subscriptionData?.subscription?.autoRenew === false;
+    let text = planOrder[planType] > planOrder[currentPlan] ? 'Upgrade' : 'Downgrade';
+    if (planType === 'free' && currentPlan !== 'free') {
+      text = isCancelled ? 'Cancel Cancellation' : 'Cancel Subscription';
+    }
+
+    let className = '';
+    if (planType === 'monthly') {
+      className = 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white shadow-lg shadow-indigo-600/20 transition-all font-bold text-sm rounded-xl py-3.5';
+    } else if (planType === 'annual') {
+      className = 'bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white shadow-lg shadow-purple-600/20 transition-all font-bold text-sm rounded-xl py-3.5';
+    } else {
+      if (currentPlan !== 'free') {
+        className = isCancelled
+          ? 'bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-90 text-white shadow-lg shadow-emerald-600/20 transition-all font-bold text-sm rounded-xl py-3.5'
+          : 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white shadow-lg shadow-red-600/20 transition-all font-bold text-sm rounded-xl py-3.5';
+      } else {
+        className = theme === 'dark'
+          ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm rounded-xl py-3.5'
+          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl py-3.5';
+      }
+    }
+
     return {
-      text: 'Downgrade',
+      text,
       disabled: false,
-      className: theme === 'dark'
-        ? 'bg-gray-600 hover:bg-gray-500 text-white'
-        : 'bg-gray-500 hover:bg-gray-600 text-white'
+      className
     };
   };
 
@@ -182,7 +206,7 @@ const BillingTab = ({
 
   const handleDowngradeToMonthly = async () => {
     try {
-        const response = await authService.post(`/payment/downgrade/${userDetails.organizationID}`, { newPlan: 'monthly', userId: userDetails._id });
+      const response = await authService.post(`/payment/downgrade/${userDetails.organizationID}`, { newPlan: 'monthly', userId: userDetails._id });
       if (response.data.success) {
         const originalPlan = response.data.data.originalPlan;
         showToast(`Successfully downgraded from ${originalPlan} to monthly plan. Refund amount: $${response.data.data.refundAmount}`, 'success');
@@ -194,6 +218,21 @@ const BillingTab = ({
     } catch (error) {
       console.error('Downgrade error:', error);
       showToast(error.response?.data?.message || 'Failed to downgrade. Please try again.', 'error');
+    }
+  };
+
+  const handleResumeSubscription = async () => {
+    try {
+      const res = await authService.resumeSubscription(userDetails.organizationID, userDetails._id);
+      if (res?.success) {
+        showToast('Subscription auto-renewal reactivated successfully', 'success');
+        onRefreshSubscription();
+        fetchStripeInvoices();
+      } else {
+        showToast(res?.message || 'Failed to resume subscription', 'error');
+      }
+    } catch (e) {
+      showToast(e?.message || 'Failed to resume subscription', 'error');
     }
   };
 
@@ -316,10 +355,15 @@ const BillingTab = ({
               <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 Current Plan: {subscriptionData?.hasActiveSubscription ? `Premium ${subscriptionData?.subscription?.plan === 'annual' ? '(Annual)' : '(Monthly)'}` : 'Free'}
               </h3>
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
+              <p className={`text-sm mt-1 ${subscriptionData?.subscription?.autoRenew === false
+                  ? 'text-amber-605 dark:text-amber-400 font-semibold'
+                  : theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                }`}>
                 {subscriptionData?.hasActiveSubscription
-                  ? `Active until ${new Date(subscriptionData.subscription.subscriptionEndDate).toLocaleDateString()}`
-                  : 'Limited to 3 projects, 3 user stories, and 20 tasks per user story'}
+                  ? subscriptionData.subscription.autoRenew === false
+                    ? `Subscription is cancelled. You will still have access until ${new Date(subscriptionData.subscription.subscriptionEndDate).toLocaleDateString()}`
+                    : `Active until ${new Date(subscriptionData.subscription.subscriptionEndDate).toLocaleDateString()}`
+                  : 'Limited to 3 projects, 1 story per project and 10 tasks per user story'}
               </p>
               {subscriptionData?.hasActiveSubscription && (
                 <p className={`text-sm ${theme === 'dark' ? 'text-green-400' : 'text-green-600'} mt-1`}>
@@ -331,22 +375,28 @@ const BillingTab = ({
               <button
                 onClick={onRefreshSubscription}
                 disabled={loadingSubscription}
-                className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700' }`}
+                className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'}`}
                 title="Refresh subscription data" >
                 <svg className={`w-5 h-5 ${loadingSubscription ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </button>
               {subscriptionData?.hasActiveSubscription && (
-                <button
-                  onClick={() => setShowCancelModal(true)}
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold shadow transition-all duration-200 ${theme === 'dark'
-                    ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white hover:shadow-md'
-                    : 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white hover:shadow-md'
-                    }`}
-                >
-                  Cancel Subscription
-                </button>
+                subscriptionData.subscription.autoRenew === false ? (
+                  <button
+                    onClick={handleResumeSubscription}
+                    className="px-4 py-2 rounded-xl text-sm font-semibold shadow transition-all duration-200 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white hover:shadow-md animate-pulse"
+                  >
+                    Cancel Cancellation
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowCancelModal(true)}
+                    className="px-4 py-2 rounded-xl text-sm font-semibold shadow transition-all duration-200 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white hover:shadow-md"
+                  >
+                    Cancel Subscription
+                  </button>
+                )
               )}
               <div className={`px-4 py-2 rounded-full text-sm text-center font-medium ${subscriptionData?.hasActiveSubscription
                 ? theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700'
@@ -371,107 +421,166 @@ const BillingTab = ({
 
         <div className={`max-w-7xl mx-auto ${subscriptionData?.hasActiveSubscription ? 'mt-12' : ''}`}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {subscriptionPlans.map((plan) => (
-              <div key={plan.id} className={`group relative p-8 rounded-2xl border-2 transition-all duration-500 ${plan.id === 'monthly' ? 'scale-105' : ''} hover:scale-105 hover:shadow-2xl ${plan.backgroundGradient} ${plan.borderColor} ${theme === 'dark' ? '' : 'shadow-lg hover:shadow-xl'}`}>
-                {plan.badge && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <div className={`px-4 py-2 rounded-full text-xs font-bold ${plan.badge.color} shadow-lg`}>
-                      {plan.badge.text}
+            {subscriptionPlans.map((plan) => {
+              const isCurrent = getCurrentPlan() === plan.id && plan.id !== 'free';
+
+              // Determine card container classes
+              let cardBgBorderClasses = '';
+              if (isCurrent) {
+                cardBgBorderClasses = theme === 'dark'
+                  ? 'bg-slate-950/60 border-2 border-emerald-500 shadow-2xl shadow-emerald-500/10 ring-2 ring-emerald-500/20'
+                  : 'bg-emerald-50/10 border-2 border-emerald-500 shadow-2xl shadow-emerald-500/10 ring-2 ring-emerald-500/10';
+              } else {
+                cardBgBorderClasses = theme === 'dark'
+                  ? 'bg-slate-950/30 border-white/5 hover:border-slate-800'
+                  : 'bg-white border-slate-200 hover:shadow-xl';
+              }
+
+              // Determine badges
+              const hasActiveSub = subscriptionData?.hasActiveSubscription;
+              let topBadge = null;
+
+              if (!hasActiveSub) {
+                if (plan.id === 'monthly') {
+                  topBadge = (
+                    <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-indigo-600 text-white text-[10px] font-extrabold uppercase tracking-widest shadow-lg z-20">
+                      MOST POPULAR
                     </div>
-                  </div>
-                )}
-                <div className="relative z-10 flex flex-col h-full">
-                  <div className="flex flex-col items-center mb-4">
-                    <h3 className={`mb-1 text-3xl font-bold bg-gradient-to-r ${plan.titleGradient} bg-clip-text text-transparent`}>
-                      {plan.name}
-                    </h3>
-                    <p className={`text-md ${plan.descriptionColor}`}>{plan.description}</p>
-                  </div>
-                  <div className="text-center mb-6">
-                    {plan.showPrice && (
-                      <>
-                        <div className="flex items-center justify-center gap-1 mb-2">
-                          {plan.showSavings && (
-                            <div className="line-through">
-                              <span className={`text-md font-semibold ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`}>
-                                ${plan.originalPrice}
-                              </span>
-                              <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>/yr</span>
+                  );
+                } else if (plan.id === 'annual') {
+                  topBadge = (
+                    <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold uppercase tracking-widest shadow-lg z-20">
+                      BEST VALUE (SAVE 29%)
+                    </div>
+                  );
+                }
+              } else {
+                if (isCurrent) {
+                  if (plan.id === 'monthly') {
+                    topBadge = (
+                      <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-indigo-600 text-white text-[10px] font-extrabold uppercase tracking-widest shadow-lg z-20">
+                        MOST POPULAR
+                      </div>
+                    );
+                  } else if (plan.id === 'annual') {
+                    topBadge = (
+                      <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold uppercase tracking-widest shadow-lg z-20">
+                        BEST VALUE (SAVE 29%)
+                      </div>
+                    );
+                  }
+                }
+              }
+
+              return (
+                <div
+                  key={plan.id}
+                  className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between text-left relative ${cardBgBorderClasses}`}
+                >
+                  {topBadge}
+                  {isCurrent && !topBadge && (
+                    <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-green-500 text-white text-[10px] font-extrabold uppercase tracking-widest shadow-lg z-20">
+                      CURRENT PLAN
+                    </div>
+                  )}
+                  {isCurrent && topBadge && (
+                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2.5 py-0.5 rounded bg-green-500 text-white text-[8px] font-extrabold uppercase tracking-wider shadow-md z-20 whitespace-nowrap">
+                      ✓ ACTIVE CURRENT PLAN
+                    </div>
+                  )}
+
+                  <div className="flex flex-col gap-4 h-full justify-between">
+                    <div className="flex flex-col gap-4">
+                      <div>
+                        <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                          {plan.id === 'free' ? 'Basic Free Account' : plan.name}
+                        </h3>
+                        <p className="text-xs mt-1 text-slate-500">
+                          {plan.id === 'free'
+                            ? 'Perfect for small teams and developers.'
+                            : plan.id === 'monthly'
+                              ? 'Best choice for scaling team velocities.'
+                              : 'Max savings for permanent scrums.'}
+                        </p>
+                      </div>
+
+                      <div className="py-2">
+                        {plan.id === 'annual' ? (
+                          <div className="flex flex-col">
+                            <div>
+                              <span className="text-5xl font-extrabold text-slate-900 dark:text-white">${plan.priceValue}</span>
+                              <span className="text-sm font-semibold text-slate-500">/yr</span>
+                              <span className="text-lg text-slate-400 dark:text-slate-500 line-through ml-2 font-bold">$588</span>
                             </div>
-                          )}
-                          <span className={`text-5xl font-bold bg-gradient-to-r ${plan.priceGradient} bg-clip-text text-transparent`}>
-                            ${plan.priceValue}
-                          </span>
-                          <span className={`text-md mt-6 font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-800'}`}>
-                            {plan.priceUnit}
-                          </span>
-                        </div>
-                        {plan.showSavings && (
-                          <div className="flex items-center justify-center gap-2">
-                            <div className="flex items-center justify-center gap-1">
-                              <span className={`text-md font-semibold ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`}>
-                                ${plan.monthlyEquivalent}
-                              </span>
-                              <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>/mo</span>
-                            </div>
-                            <div className="absolute -top-12 -right-1 transform translate-x-1/4">
-                              <div className={`px-4 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg`}>
-                                Save 29%
-                              </div>
-                            </div>
+                            <span className="text-xs text-emerald-500 font-extrabold mt-1.5">
+                              Equivalent to just ${plan.monthlyEquivalent} / month
+                            </span>
+                          </div>
+                        ) : (
+                          <div>
+                            <span className="text-5xl font-extrabold text-slate-900 dark:text-white">${plan.priceValue}</span>
+                            <span className="text-sm font-semibold text-slate-500">/mo</span>
                           </div>
                         )}
-                        <div className={`w-16 h-0.5 mx-auto rounded-full bg-gradient-to-r ${plan.priceGradient} ${plan.showSavings ? 'mt-2' : ''}`}></div>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex-grow">
-                    <ul className="space-y-4 mb-4">
-                      {plan.features.map((feature) => (
-                        <li key={feature.Code} className="flex items-center gap-3">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${plan.id === 'free'
-                            ? theme === 'dark' ? 'bg-green-600/20' : 'bg-green-400'
-                            : feature.Value.toLowerCase().includes('discount')
-                              ? 'bg-gradient-to-r from-green-500 to-emerald-500'
-                              : plan.id === 'monthly'
-                                ? 'bg-gradient-to-r from-blue-600 to-purple-600'
-                                : 'bg-gradient-to-r from-purple-600 to-pink-600'
-                            }`}>
-                            {getFeatureIcon(feature)}
-                          </div>
-                          <span className={`text-md ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {feature.Value}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <button
-                    disabled={getPlanButtonInfo(plan.id).disabled}
-                    onClick={() => {
-                      if (plan.id === 'free' && getCurrentPlan() !== 'free') {
-                        showDowngradeConfirmation('free');
-                      } else if (plan.id === 'monthly') {
-                        if (getCurrentPlan() === 'annual') {
-                          showDowngradeConfirmation('monthly');
-                        } else if (getCurrentPlan() !== 'monthly') {
-                          startStripeCheckout('monthly');
+                      </div>
+
+                      <hr className="border-indigo-500/10" />
+
+                      <ul className="flex flex-col gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                        {plan.features.map((feature) => {
+                          const isCrown = feature.Value.toLowerCase().includes('priority') ||
+                            feature.Value.toLowerCase().includes('executive') ||
+                            feature.Value.toLowerCase().includes('crown') ||
+                            feature.Value.toLowerCase().includes('monthly');
+                          return (
+                            <li key={feature.Code} className="flex items-center gap-2.5">
+                              {isCrown ? (
+                                <FaCrown className="text-indigo-500 shrink-0 animate-pulse" size={12} />
+                              ) : (
+                                <FaCheck className="text-indigo-500 shrink-0" size={12} />
+                              )}
+                              <span>{feature.Value}</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+
+                    <button
+                      disabled={getPlanButtonInfo(plan.id).disabled}
+                      onClick={() => {
+                        if (plan.id === 'free' && getCurrentPlan() !== 'free') {
+                          if (subscriptionData?.subscription?.autoRenew === false) {
+                            handleResumeSubscription();
+                          } else {
+                            setShowCancelModal(true);
+                          }
+                        } else if (plan.id === 'monthly') {
+                          if (getCurrentPlan() === 'annual') {
+                            showDowngradeConfirmation('monthly');
+                          } else if (getCurrentPlan() !== 'monthly') {
+                            startStripeCheckout('monthly');
+                          }
+                        } else if (plan.id === 'annual') {
+                          if (getCurrentPlan() === 'monthly') {
+                            setShowUpgradeModal(true);
+                          } else if (getCurrentPlan() !== 'annual') {
+                            startStripeCheckout('annual');
+                          }
                         }
-                      } else if (plan.id === 'annual') {
-                        if (getCurrentPlan() === 'monthly') {
-                          setShowUpgradeModal(true);
-                        } else if (getCurrentPlan() !== 'annual') {
-                          startStripeCheckout('annual');
-                        }
-                      }
-                    }}
-                    className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${getPlanButtonInfo(plan.id).className}`}
-                  >
-                    {getPlanButtonInfo(plan.id).text}
-                  </button>
+                      }}
+                      className={`w-full py-3.5 mt-8 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 ${getPlanButtonInfo(plan.id).className}`}
+                    >
+                      <span>{getPlanButtonInfo(plan.id).text}</span>
+                      {getPlanButtonInfo(plan.id).text === 'Upgrade' && <FaArrowUp size={11} />}
+                      {getPlanButtonInfo(plan.id).text === 'Downgrade' && <FaArrowDown size={11} />}
+                      {getPlanButtonInfo(plan.id).text === 'Cancel Subscription' && <FaTimes size={11} />}
+                      {getPlanButtonInfo(plan.id).text === 'Cancel Cancellation' && <FaCheck size={11} />}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -480,7 +589,7 @@ const BillingTab = ({
             <h3 className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'} text-2xl font-semibold`}>Transaction History</h3>
           </div>
           <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-lg`}>Manage payment methods, invoices, and subscription in Stripe.</p>
-          <div className={`mt-6 rounded-xl border shadow-sm`}>
+          <div className={`mt-6 rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} shadow-sm`}>
             <div className={getThemeClasses('p-4 border-b border-gray-200', 'dark:border-gray-700')}>
               <div className="flex items-center justify-between">
                 <h4 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Recent Stripe Transactions</h4>
@@ -650,8 +759,10 @@ const BillingTab = ({
                               <>
                                 <span className="font-semibold text-red-600 dark:text-red-400">-${((inv.amount || 0) / 100).toFixed(2)}</span>
                                 <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>{inv.currency?.toUpperCase()}</span>
-                                {inv.amount !== inv.total && (
+                                {inv.relatedInvoice && (inv.relatedInvoice.total - inv.amount) > 0 ? (
                                   <span className={`text-xs ${getThemeClasses('text-orange-600', 'dark:text-orange-400')}`}>Partial refund</span>
+                                ) : (
+                                  <span className={`text-xs ${getThemeClasses('text-red-600', 'dark:text-red-400')}`}>Full refund</span>
                                 )}
                               </>
                             ) : (
@@ -677,15 +788,21 @@ const BillingTab = ({
                                     : (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700'))
                               : (inv.status === 'paid'
                                 ? (theme === 'dark' ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-700')
-                                : inv.status === 'open'
-                                  ? (theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700')
-                                  : inv.status === 'void'
-                                    ? (theme === 'dark' ? 'bg-red-600/20 text-red-400' : 'bg-red-100 text-red-700')
-                                    : (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700'))
+                                : inv.status === 'refunded'
+                                  ? (theme === 'dark' ? 'bg-red-600/20 text-red-400' : 'bg-red-100 text-red-700')
+                                  : inv.status === 'partially_refunded'
+                                    ? (theme === 'dark' ? 'bg-orange-600/20 text-orange-400' : 'bg-orange-100 text-orange-700')
+                                    : inv.status === 'open'
+                                      ? (theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700')
+                                      : inv.status === 'void'
+                                        ? (theme === 'dark' ? 'bg-red-600/20 text-red-400' : 'bg-red-100 text-red-700')
+                                        : (theme === 'dark' ? 'bg-gray-600/20 text-gray-400' : 'bg-gray-100 text-gray-700'))
                               }`}>
                               {inv.type === 'refund'
                                 ? (inv.status === 'succeeded' ? 'Refunded' : inv.status?.charAt(0).toUpperCase() + inv.status?.slice(1))
-                                : (inv.status?.charAt(0).toUpperCase() + inv.status?.slice(1))}
+                                : inv.status === 'partially_refunded'
+                                  ? 'Partially Refunded'
+                                  : (inv.status?.charAt(0).toUpperCase() + inv.status?.slice(1))}
                             </span>
                             {inv.type === 'refund' && inv.status === 'succeeded' && inv.created && (
                               <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>
@@ -819,27 +936,131 @@ const BillingTab = ({
       )}
 
       {showCancelModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className={`${theme === 'dark' ? 'border-gray-700 bg-[#111214]' : 'border-gray-200 bg-white'} max-w-md w-full mx-4 rounded-2xl shadow-2xl border-2`}>
-            <div className={`${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'} p-6 border-b`}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fadeIn">
+          <div className={`${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} max-w-lg w-full mx-4 p-6 rounded-xl shadow-2xl`}>
+            <div className={`pb-4 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-100'}`}>
               <div className="flex items-center gap-3 justify-start">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.721-1.36 3.486 0l6.518 11.59c.75 1.335-.213 3.01-1.743 3.01H3.482c-1.53 0-2.493-1.675-1.743-3.01L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a1 1 0 01-1-1V8a1 1 0 112 0v3a1 1 0 01-1 1z" clipRule="evenodd" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 shadow-md">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                 </div>
-                <h3 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Cancel Premium Subscription</h3>
+                <div className="text-left">
+                  <h3 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Cancel Subscription</h3>
+                  <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-0.5`}>Choose how you would like to cancel your Premium plan</p>
+                </div>
               </div>
-              <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm text-center mt-3`}>
-                This will stop auto‑renewal. You will retain premium access until your current billing period ends.
-              </p>
             </div>
-            <div className="p-6 space-y-3">
-              <button onClick={async () => { try { const res = await authService.cancelSubscription(userDetails.organizationID, userDetails._id); if (res?.success) { setShowCancelModal(false); showToast('Subscription cancelled successfully', 'success'); onRefreshSubscription(); } else { showToast(res?.message || 'Failed to cancel subscription', 'error'); } } catch (e) { showToast(e?.message || 'Failed to cancel subscription', 'error'); } }} className={`w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-200 shadow ${'bg-gradient-to-r from-blue-600 to-purple-700'}`}>
-                Confirm Cancellation
-              </button>
-              <button onClick={() => setShowCancelModal(false)} className={`w-full py-3 px-4 rounded-xl font-semibold transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 hover:bg-gray-700' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}>
+
+            <div className="my-6 space-y-4">
+              {/* Option 1: Cancel Immediately */}
+              <div
+                onClick={() => setCancelOption('immediate')}
+                className={`group p-4 rounded-xl border cursor-pointer transition-all duration-200 text-left ${cancelOption === 'immediate'
+                    ? 'border-indigo-600 bg-indigo-600/5 ring-1 ring-indigo-600/10'
+                    : theme === 'dark'
+                      ? 'border-gray-700 hover:border-gray-600 hover:bg-gray-700/20'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50/50'
+                  }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`mt-0.5 p-2 rounded-lg transition-colors duration-200 ${cancelOption === 'immediate'
+                      ? 'bg-indigo-600 text-white'
+                      : theme === 'dark' ? 'bg-gray-700 text-gray-400 group-hover:bg-indigo-600 group-hover:text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-indigo-600 group-hover:text-white'
+                    }`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between text-left gap-4">
+                      <h4 className={`font-bold text-sm ${cancelOption === 'immediate' ? 'text-indigo-600 dark:text-indigo-400' : theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        Cancel Immediately Today (With Partial Refund)
+                        <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mt-0.5">Date: {todayDateStr}</span>
+                      </h4>
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${cancelOption === 'immediate' ? 'border-indigo-600 bg-indigo-600' : 'border-gray-400'}`}>
+                        {cancelOption === 'immediate' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      </div>
+                    </div>
+                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-2 leading-relaxed`}>
+                      Your premium features will stop working immediately today ({todayDateStr}). We will calculate the remaining unused days of your subscription and issue a prorated refund back to your payment method.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Option 2: Cancel at End of Period */}
+              <div
+                onClick={() => setCancelOption('expiry')}
+                className={`group p-4 rounded-xl border cursor-pointer transition-all duration-200 text-left ${cancelOption === 'expiry'
+                    ? 'border-indigo-600 bg-indigo-600/5 ring-1 ring-indigo-600/10'
+                    : theme === 'dark'
+                      ? 'border-gray-700 hover:border-gray-600 hover:bg-gray-700/20'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50/50'
+                  }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`mt-0.5 p-2 rounded-lg transition-colors duration-200 ${cancelOption === 'expiry'
+                      ? 'bg-indigo-600 text-white'
+                      : theme === 'dark' ? 'bg-gray-700 text-gray-400 group-hover:bg-indigo-600 group-hover:text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-indigo-600 group-hover:text-white'
+                    }`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between text-left gap-4">
+                      <h4 className={`font-bold text-sm ${cancelOption === 'expiry' ? 'text-indigo-600 dark:text-indigo-400' : theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        Cancel Today (Retain Premium Access)
+                        <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mt-0.5">Access until: {currentExpiryDate || 'Expiry'}</span>
+                      </h4>
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${cancelOption === 'expiry' ? 'border-indigo-600 bg-indigo-600' : 'border-gray-400'}`}>
+                        {cancelOption === 'expiry' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      </div>
+                    </div>
+                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-2 leading-relaxed`}>
+                      Your subscription will remain active with full Premium access until the end of your current billing period on {currentExpiryDate || 'expiry'}. Auto-billing will be turned off and no refund is issued.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className={`px-5 py-2.5 rounded-xl font-semibold border transition-all duration-200 text-sm ${theme === 'dark'
+                    ? 'border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+              >
                 Keep Subscription
+              </button>
+              <button
+                onClick={async () => {
+                  if (!cancelOption) return;
+                  const cancelImmediately = cancelOption === 'immediate';
+                  try {
+                    const res = await authService.cancelSubscription(userDetails.organizationID, userDetails._id, cancelImmediately);
+                    if (res?.success) {
+                      setShowCancelModal(false);
+                      if (cancelImmediately) {
+                        showToast('Subscription cancelled immediately and refund issued', 'success');
+                      } else {
+                        showToast('Auto-renew disabled. Premium active until end of cycle', 'success');
+                      }
+                      onRefreshSubscription();
+                      fetchStripeInvoices();
+                    } else {
+                      showToast(res?.message || 'Failed to cancel subscription', 'error');
+                    }
+                  } catch (e) {
+                    showToast(e?.message || 'Failed to cancel subscription', 'error');
+                  }
+                }}
+                className="px-6 py-2.5 rounded-xl font-semibold text-white shadow bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-200 text-sm"
+              >
+                Proceed
               </button>
             </div>
           </div>

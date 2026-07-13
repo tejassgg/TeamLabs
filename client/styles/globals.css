@@ -14,6 +14,7 @@
   --color-primary: #6B39E7;
   --color-dark: #1F1F1F;
   --color-light: #93A8AC;
+  --font-sans: 'Source Sans Pro', sans-serif;
 }
 
 @variant dark (&:where(.dark, .dark *));
@@ -81,12 +82,13 @@
 
 /* Custom styles */
 :root {
-  --font-family: 'Inter', sans-serif;
+  --font-family: 'Source Sans Pro', sans-serif;
 }
 
 body {
-  @apply bg-white text-dark;
+  @apply bg-white text-dark;  
   font-family: var(--font-family);
+  zoom: 0.9;
 }
 
 .input-field {

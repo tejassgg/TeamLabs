@@ -5,6 +5,7 @@ const {
   getPaymentHistory, 
   getSubscriptionStatus, 
   cancelSubscription,
+  resumeSubscription,
   downgradeSubscription,
   calculateDowngradeRefund,
   upgradeSubscription,
@@ -34,6 +35,9 @@ router.get('/organization/:organizationID', protect, getOrganizationPaymentData)
 
 // Cancel subscription
 router.post('/cancel/:organizationID', protect, cancelSubscription);
+
+// Resume/reactivate subscription
+router.post('/resume/:organizationID', protect, resumeSubscription);
 
 // Downgrade subscription
 router.post('/downgrade/:organizationID', protect, downgradeSubscription);

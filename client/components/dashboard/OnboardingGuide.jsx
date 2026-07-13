@@ -198,9 +198,6 @@ const OnboardingGuide = ({ isOpen, onClose }) => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold">Onboarding Guide</h1>
-              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                Step {currentStep + 1} of {guideSteps.length}
-              </p>
             </div>
             <button
               onClick={onClose}
@@ -208,36 +205,6 @@ const OnboardingGuide = ({ isOpen, onClose }) => {
             >
               <FaTimes size={18} />
             </button>
-          </div>
-        </div>
-
-        {/* Progress Steps */}
-        <div className={`p-4 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} flex-shrink-0`}>
-          <div className="flex items-center justify-between">
-            {guideSteps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
-                  index < currentStep 
-                    ? 'bg-green-500 text-white' 
-                    : index === currentStep 
-                    ? 'bg-blue-500 text-white' 
-                    : theme === 'dark' 
-                    ? 'bg-gray-600 text-gray-300' 
-                    : 'bg-gray-200 text-gray-600'
-                }`}>
-                  {index < currentStep ? <FaCheck size={10} /> : index + 1}
-                </div>
-                {index < guideSteps.length - 1 && (
-                  <div className={`w-12 h-0.5 mx-2 ${
-                    index < currentStep 
-                      ? 'bg-green-500' 
-                      : theme === 'dark' 
-                      ? 'bg-gray-600' 
-                      : 'bg-gray-200'
-                  }`} />
-                )}
-              </div>
-            ))}
           </div>
         </div>
 

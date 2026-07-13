@@ -112,7 +112,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
       <div className="relative">
         <button
           ref={btnRef}
-          className={`flex items-center gap-3 w-full px-3 py-1 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-sm
+          className={`flex items-center gap-3 w-full py-1 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-sm
             ${active
               ? `${theme === 'dark'
                 ? 'bg-blue-800 text-white font-bold border-l-4 border-blue-400'
@@ -120,7 +120,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
               : theme === 'dark'
                 ? 'hover:bg-[#424242] text-blue-200 border-l-4 border-transparent'
                 : 'hover:bg-blue-100 text-blue-600 border-l-4 border-transparent'}
-            ${!isMobile && collapsed ? 'justify-center' : 'justify-start'}
+            ${!isMobile && collapsed ? 'px-0 justify-center border-r-4 border-r-transparent' : 'px-3 justify-start'}
           `}
           onClick={onClick}
           tabIndex={0}
@@ -130,7 +130,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           onMouseLeave={() => setShowTooltip(false)}
           onBlur={() => setShowTooltip(false)}
         >
-          <span className="text-lg">{icon}</span>
+          <span className="text-lg flex items-center justify-center">{icon}</span>
           {(!isMobile && collapsed) ? null : <span className="font-medium text-base">{label}</span>}
         </button>
         {!isMobile && collapsed && showTooltip && (
@@ -148,7 +148,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
 
   return (
     <>
-      <aside className={`fixed top-0 left-0 h-screen z-40 transition-all duration-500 ease-in-out
+      <aside className={`fixed top-0 left-0 h-[111.2vh] z-40 transition-all duration-500 ease-in-out
           ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'}
           flex flex-col justify-between shadow-2xl
           ${isMobile ?
@@ -156,7 +156,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           `${collapsed ? 'w-16' : 'w-64'}`}
         `}
         style={{
-          minHeight: '100vh',
+          minHeight: '111.2vh',
           overflow: 'visible',
           transform: isMobile && !isOpen ? 'translateX(-100%)' : 'translateX(0)',
           transition: 'all 500ms cubic-bezier(0.4, 0, 0.2, 1)'
@@ -340,7 +340,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
         </nav>
 
         {/* Bottom: Logout & Theme Switch */}
-        <div className={`flex flex-col gap-2 p-4 border-t ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
+        <div className={`flex flex-col gap-1.5 p-4 border-t ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
           {/* Upgrade to Premium Button - Only show for admin users without premium */}
           {userDetails?.role === 'Admin' && !userDetails?.isPremiumMember && (!isMobile && !collapsed) && (
             <button onClick={() => handleNavigation('/settings?tab=billing')}
@@ -362,62 +362,20 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             onClick={() => setIsChatBotOpen(!isChatBotOpen)}
             theme={theme}
           />
-          <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center ml-6' : 'justify-between'}`}>
-            <SidebarButton
-              icon={<FaCog className='text-red-600' />}
-              label="Settings"
-              onClick={async () => {
-                router.push('/settings');
-              }}
-              theme={theme}
-            />
-            <button
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] ${(!isMobile && collapsed) ? 'justify-center' : 'justify-start'}`}
-              onClick={toggleTheme}
-              aria-label="Toggle dark/light mode"
-            >
-              {(!isMobile && collapsed) ? null : (
-                <span className="ml-auto">
-                  <span
-                    className={`relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in ml-2 ${theme === 'dark' ? 'bg-blue-700' : 'bg-gray-300'}`}
-                    style={{ borderRadius: '9999px' }}
-                  >
-                    <span className={`absolute left-1 top-1 w-4 h-4 rounded-full flex items-center justify-center transition-transform duration-200 ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'} `}>
-                      {theme === 'dark' ? (
-                        <FaRegSun className="text-yellow-300" size={12} />
-                      ) : (
-                        <FaRegMoon className="text-gray-600" size={12} />
-                      )}
-                    </span>
-                  </span>
-                </span>
-              )}
-            </button>
-          </div>
-          {collapsed && (
-            <button
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] ${(!isMobile && collapsed) ? 'justify-center' : 'justify-start'}`}
-              onClick={toggleTheme}
-              aria-label="Toggle dark/light mode"
-            >
-              {(isMobile) ? null : (
-                <span className="ml-auto">
-                  <span
-                    className={`relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in ml-2 ${theme === 'dark' ? 'bg-blue-700' : 'bg-gray-300'}`}
-                    style={{ borderRadius: '9999px' }}
-                  >
-                    <span className={`absolute left-1 top-1 w-4 h-4 rounded-full flex items-center justify-center transition-transform duration-200 ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'} `}>
-                      {theme === 'dark' ? (
-                        <FaRegSun className="text-yellow-300" size={12} />
-                      ) : (
-                        <FaRegMoon className="text-gray-600" size={12} />
-                      )}
-                    </span>
-                  </span>
-                </span>
-              )}
-            </button>
-          )}
+          <SidebarButton
+            icon={<FaCog className='text-red-600' />}
+            label="Settings"
+            onClick={async () => {
+              router.push('/settings');
+            }}
+            theme={theme}
+          />
+          <SidebarButton
+            icon={theme === 'dark' ? <FaRegSun className="text-yellow-300" /> : <FaRegMoon className="text-gray-600" />}
+            label={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            onClick={toggleTheme}
+            theme={theme}
+          />
         </div>
 
         {/* Mobile close button */}
