@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
 import { useToast } from '../context/ToastContext';
 import ProjectStatusDropdown from '../components/dashboard/ProjectStatusDropdown';
-import { FaTrash, FaProjectDiagram, FaChartBar, FaRedo, FaPlus, FaGripHorizontal, FaExpandAlt, FaCompressAlt, FaTimes, FaCog, FaEye, FaUndo, FaWrench, FaCheck, FaEyeSlash } from 'react-icons/fa';
+import { FaTrash, FaProjectDiagram, FaChartBar, FaRedo, FaPlus, FaGripHorizontal, FaExpandAlt, FaCompressAlt, FaCog, FaTimes, FaUndo, FaWrench, FaCheck, FaClock, FaUserFriends } from 'react-icons/fa';
 import { getStatusConfig } from '../components/dashboard/StatusConfig';
 import api from '../services/api';
 import { projectService } from '../services/api';
@@ -14,7 +14,6 @@ import { connectSocket, subscribe } from '../services/socket';
 import OnboardingGuide from '../components/dashboard/OnboardingGuide';
 import AdminWelcomeMessage from '../components/dashboard/AdminWelcomeMessage';
 import { FcInvite, FcAcceptDatabase, FcExpired } from "react-icons/fc";
-import { FaClock, FaUserFriends } from "react-icons/fa";
 
 // Modular Dashboard Widgets
 import RecentCommentsWidget from '../components/dashboard/RecentCommentsWidget';
@@ -29,7 +28,7 @@ DashboardCharts = require('../components/dashboard/DashboardCharts').default
 
 const Dashboard = () => {
   const { theme } = useTheme();
-  const { projectStatuses, getProjectStatus, teams, projects, userDetails, formatDateWithTime, loading } = useGlobal();
+  const { projectStatuses, getProjectStatus, teams, projects, userDetails, formatDateWithTime, loading, tasksDetails, setTasksDetails } = useGlobal();
   const { showToast } = useToast();
   const router = useRouter();
   const [stats, setStats] = useState(null);
@@ -37,15 +36,14 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [removingUser, setRemovingUser] = useState(null);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const isAdmin = userDetails?.role === 'Admin';
   const [activeTab, setActiveTab] = useState('metrics');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteStatus, setInviteStatus] = useState('');
   const [invitedEmails, setInvitedEmails] = useState([]);
   const [showOnboardingGuide, setShowOnboardingGuide] = useState(false);
-  const [dashboardTasks, setDashboardTasks] = useState(null);
-  const [tasksLoading, setTasksLoading] = useState(false);
+  const statsFetchedOrgIdRef = useRef(null);
 
   // Widget customization states
   const DEFAULT_WIDGETS = useMemo(() => [
@@ -54,9 +52,6 @@ const Dashboard = () => {
     { id: 'recentComments', title: 'Recent Comments', visible: true, colSpan: 1 },
     { id: 'burndown', title: 'Task Burndown', visible: true, colSpan: 1 },
     { id: 'gitStream', title: 'GitHub Commit Stream', visible: true, colSpan: 1 },
-    { id: 'recentProjects', title: 'Recent Projects', visible: true, colSpan: 1 },
-    { id: 'members', title: 'Organization Members', visible: true, colSpan: 1 },
-    { id: 'invites', title: 'Pending Invites', visible: true, colSpan: 1 },
   ], []);
 
   const [widgets, setWidgets] = useState([]);
@@ -137,25 +132,17 @@ const Dashboard = () => {
       }
     };
 
-    const fetchTasks = async () => {
-      setTasksLoading(true);
-      try {
-        const response = await api.get(`/task-details/all?organizationId=${userDetails.organizationID}`);
-        setDashboardTasks(response.data?.tasks || []);
-      } catch (err) {
-        console.error('Failed to fetch user tasks for dashboard widgets:', err);
-      } finally {
-        setTasksLoading(false);
-      }
-    };
+
 
     if (userDetails?.organizationID) {
-      if (userDetails?.role === 'Admin') {
-        setIsAdmin(true);
+      if (statsFetchedOrgIdRef.current === userDetails.organizationID) {
+        return;
       }
+      statsFetchedOrgIdRef.current = userDetails.organizationID;
+
+
       setStatsLoading(true);
       fetchDashboardStats();
-      fetchTasks();
 
       // Phase 1: connect socket and subscribe to org member presence/updates
       connectSocket();
@@ -404,229 +391,9 @@ const Dashboard = () => {
   };
 
   // Modular widgets rendering
-  const renderRecentProjectsWidget = () => (
-    <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${
-      theme === 'dark' 
-        ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl text-[#F3F6FA]' 
-        : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl text-gray-900'
-    }`}>
-      <div className="pb-4 mb-4 border-b border-slate-200/10">
-        <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
-          <FaProjectDiagram className="text-indigo-500" />
-          <span>Recent Projects</span>
-        </h2>
-      </div>
-      <div className="flex-1 overflow-x-visible">
-        <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-slate-900/30' : 'border-gray-200 bg-slate-50/20'}`}>
-          <div className="max-h-64 overflow-y-auto overflow-x-visible rounded-xl">
-            <table className="w-full text-xs">
-              <thead className="sticky top-0 z-10">
-                <tr className={`${theme === 'dark' ? 'border-gray-800 bg-slate-950' : 'bg-slate-50 border-gray-200'} border-b`}>
-                  <th className="py-2.5 px-3 text-left">Project</th>
-                  <th className="py-2.5 px-3 text-left">Deadline</th>
-                  <th className="py-2.5 px-3 text-left">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats?.recentProjects?.map(project => {
-                  const currentStatus = getProjectStatus(project.projectStatusId || 1);
-                  return (
-                    <tr key={project.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-800/50 hover:bg-gray-800/30' : 'border-gray-100 hover:bg-gray-50'} border-b cursor-pointer`} >
-                      <td className="py-2 px-3">
-                        <div className="flex flex-col">
-                          <span className={`font-semibold cursor-pointer hover:text-blue-500 transition-all duration-200 hover:underline ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`} onClick={() => router.push(`/project/${project.id}`)}> {project.name} </span>
-                          {project.description && (
-                            <span className={`text-[10px] mt-0.5 truncate max-w-[150px] ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>{project.description}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-2 px-3 whitespace-nowrap">
-                        <span className={`text-[10px] ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}> {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'} </span>
-                      </td>
-                      <td className="py-2 px-3">
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <ProjectStatusDropdown
-                            currentStatus={currentStatus}
-                            availableStatuses={projectStatuses}
-                            onStatusChange={handleProjectStatusUpdate}
-                            projectId={project.id}
-                            theme={theme}
-                            disabled={!isAdmin}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {(!stats?.recentProjects || stats.recentProjects.length === 0) && (
-                  <tr>
-                    <td colSpan={3} className={`text-center py-6 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}> No Recent Projects </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
-  const renderMembersWidget = () => (
-    <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${
-      theme === 'dark' 
-        ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl text-[#F3F6FA]' 
-        : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl text-gray-900'
-    }`}>
-      <div className="pb-4 mb-4 border-b border-slate-200/10">
-        <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
-          <FaUserFriends className="text-indigo-500" />
-          <span>Organization Members</span>
-        </h2>
-      </div>
-      <div className="flex-1">
-        <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-slate-900/30' : 'border-gray-200 bg-slate-50/20'}`}>
-          <div className="max-h-64 overflow-y-auto rounded-xl">
-            <table className="w-full text-xs">
-              <thead className="sticky top-0 z-10">
-                <tr className={`${theme === 'dark' ? 'bg-slate-950 border-gray-800' : 'bg-slate-50 border-gray-200'} border-b`}>
-                  <th className="py-2.5 px-3 text-left">Member</th>
-                  <th className="py-2.5 px-3 text-left">Status</th>
-                  {isAdmin && <th className="py-2.5 px-3 text-center">Action</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {stats?.members?.map(member => {
-                  const statusConfig = getStatusConfig(member.status);
-                  const StatusIcon = statusConfig.icon;
-                  return (
-                    <tr key={member.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-800/50 hover:bg-gray-800/30' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
-                      <td className="py-2 px-3">
-                        <div className="flex items-center gap-2 max-w-[150px]">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-600'}`}> 
-                            {member.name.split(' ').map(n => n[0]).join('')} 
-                          </div>
-                          <div className="flex flex-col truncate">
-                            <span className={`font-semibold truncate ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}> {member.name} </span>
-                            <span className="text-[9px] text-slate-500 truncate">{member.email}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-2 px-3">
-                        <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium border ${
-                          theme === 'dark' ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'
-                        }`}>
-                          <StatusIcon className={`${statusConfig.color} text-[10px]`} />
-                          <span className={theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-700'}> {statusConfig.label} </span>
-                        </div>
-                      </td>
-                      {isAdmin && userDetails.organizationID && (
-                        <td className="py-2 px-3 text-center">
-                          <button
-                            onClick={() => {
-                              setRemovingUser(member);
-                              setShowRemoveDialog(true);
-                            }}
-                            className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs transition ${theme === 'dark' ? 'text-red-300 bg-[#232323] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
-                            title="Remove Member"
-                          >
-                            <FaTrash size={10} />
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
-  const renderInvitesWidget = () => (
-    <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${
-      theme === 'dark' 
-        ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl text-[#F3F6FA]' 
-        : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl text-gray-900'
-    }`}>
-      <div className="pb-4 mb-4 border-b border-slate-200/10 flex items-center justify-between">
-        <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
-          <FcInvite />
-          <span>Pending Invites</span>
-        </h2>
-        {isAdmin && (
-          <button
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm transition-colors ${
-              theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white'
-            }`}
-            onClick={() => setShowInviteModal(true)}
-          >
-            <FaPlus size={10} /> Invite
-          </button>
-        )}
-      </div>
-      <div className="flex-1">
-        <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-slate-900/30' : 'border-gray-200 bg-slate-50/20'}`}>
-          <div className="max-h-64 overflow-y-auto rounded-xl">
-            <table className="w-full text-xs">
-              <thead className="sticky top-0 z-10">
-                <tr className={`${theme === 'dark' ? 'bg-slate-950 border-gray-800' : 'bg-slate-50 border-gray-200'} border-b`}>
-                  <th className="py-2.5 px-3 text-left">Email</th>
-                  <th className="py-2.5 px-3 text-left">Status</th>
-                  <th className="py-2.5 px-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats?.invites?.map(invite => {
-                  const statusBadge = getInviteStatusBadge(invite);
-                  return (
-                    <tr key={invite._id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-800/50 hover:bg-gray-800/30' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
-                      <td className="py-2 px-3 truncate max-w-[120px]">
-                        <span className={`font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{invite.email}</span>
-                      </td>
-                      <td className="py-2 px-3">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-medium bg-gradient-to-r ${statusBadge.bgColor} ${statusBadge.textColor} border ${statusBadge.borderColor}`}>
-                          {statusBadge.text}
-                        </span>
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          {invite.status === 'Pending' && (
-                            <button
-                              onClick={() => handleResendInvite(invite._id)}
-                              className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs transition ${theme === 'dark' ? 'text-blue-300 bg-[#232323] hover:bg-blue-900' : 'text-blue-700 bg-blue-100 hover:bg-blue-200'}`}
-                              title="Resend Invite"
-                            >
-                              <FaRedo size={10} />
-                            </button>
-                          )}
-                          {invite.status !== 'Accepted' && (
-                            <button
-                              onClick={() => handleDeleteInvite(invite._id)}
-                              className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs transition ${theme === 'dark' ? 'text-red-300 bg-[#232323] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
-                              title="Delete Invite"
-                            >
-                              <FaTrash size={10} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {stats?.invites?.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="text-center py-6 text-slate-500">No pending invites</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+
 
   const renderWidgetContent = (id) => {
     switch (id) {
@@ -644,9 +411,8 @@ const Dashboard = () => {
           <TimeTrackerWidget
             userDetails={userDetails}
             theme={theme}
-            tasks={dashboardTasks || []}
-            setTasks={setDashboardTasks}
-            tasksLoading={tasksLoading}
+            tasks={tasksDetails || []}
+            setTasks={setTasksDetails}
           />
         );
       case 'recentComments':
@@ -656,18 +422,13 @@ const Dashboard = () => {
           <BurndownWidget
             organizationId={userDetails?.organizationID}
             theme={theme}
-            tasks={dashboardTasks || []}
-            tasksLoading={tasksLoading}
+            tasks={tasksDetails || []}
           />
         );
       case 'gitStream':
         return <GitStreamWidget organizationId={userDetails?.organizationID} theme={theme} />;
-      case 'recentProjects':
-        return renderRecentProjectsWidget();
-      case 'members':
-        return renderMembersWidget();
-      case 'invites':
-        return renderInvitesWidget();
+
+
       default:
         return null;
     }
@@ -893,11 +654,11 @@ const Dashboard = () => {
                     onDragStart={(e) => handleDragStart(e, idx)}
                     onDragOver={(e) => handleDragOver(e, idx)}
                     onDragEnd={handleDragEnd}
-                    className={`transition-all duration-300 ${
+                    className={`transition-all duration-300 relative hover:z-30 focus-within:z-30 ${
                       widget.colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'
                     } ${
                       isEditMode 
-                        ? 'border-2 border-dashed border-indigo-500/40 rounded-3xl p-1 relative cursor-grab active:cursor-grabbing hover:border-indigo-500/70 group' 
+                        ? 'border-2 border-dashed border-indigo-500/40 rounded-3xl p-1 cursor-grab active:cursor-grabbing hover:border-indigo-500/70 group' 
                         : ''
                     }`}
                   >
