@@ -11,7 +11,8 @@ import {
   FaCog,
   FaChevronDown,
   FaBell,
-  FaCircle
+  FaCircle,
+  FaSearch
 } from 'react-icons/fa';
 import ActivityNotifications from '../shared/ActivityNotifications';
 import { useToast } from '../../context/ToastContext';
@@ -27,7 +28,7 @@ const isProfileComplete = (userDetails) => {
   return requiredFields.every(field => userDetails[field] && userDetails[field].toString().trim() !== '');
 };
 
-const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
+const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
   const { userDetails } = useGlobal();
   const router = useRouter();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -128,6 +129,17 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
           onStatusChange={handleStatusChange}
           theme={theme}
         />
+        {/* Search Trigger (Mobile) */}
+        <button
+          onClick={onSearchClick}
+          className={`p-1.5 rounded-lg transition-all duration-200 ${theme === 'dark'
+              ? 'text-blue-200 hover:bg-[#424242]'
+              : 'text-blue-600 hover:bg-blue-100'
+            }`}
+          aria-label="Search organization"
+        >
+          <FaSearch size={18} />
+        </button>
         {/* Notification Button */}
         <div className="notifications-container relative">
           <button
@@ -244,6 +256,33 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle }) => {
 
           {/* Right side - User menu and Notifications */}
           <div className="flex items-center space-x-4 mr-2 lg:space-x-6">
+            {/* Search Trigger (Desktop) */}
+            <button
+              onClick={onSearchClick}
+              className={`hidden md:flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition-all duration-200 cursor-pointer shadow-sm
+                ${theme === 'dark'
+                  ? 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white'
+                  : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                }
+              `}
+              // title="What are you looking for?"
+            >
+              <FaSearch className="text-xs text-gray-400" />
+              <span className="font-medium text-xs text-gray-400 dark:text-gray-500">What are you looking for?</span>
+              <div className="flex items-center gap-1 ml-2">
+                <kbd className={`px-1 py-0.2 rounded text-xs font-sans border shadow-sm select-none
+                  ${theme === 'dark' ? 'bg-gray-900 border-gray-800 text-gray-500' : 'bg-white border-gray-200 text-gray-400'}
+                `}>
+                  ⌘
+                </kbd>
+                <span className="text-xs text-gray-400 select-none">+</span>
+                <kbd className={`px-1.5 py-0.2 rounded text-xs font-sans border shadow-sm select-none
+                  ${theme === 'dark' ? 'bg-gray-900 border-gray-800 text-gray-500' : 'bg-white border-gray-200 text-gray-400'}
+                `}>
+                  /
+                </kbd>
+              </div>
+            </button>
             {/* Status Dropdown */}
             <StatusDropdown
               currentStatus={userStatus}

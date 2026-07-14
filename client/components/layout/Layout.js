@@ -15,6 +15,7 @@ import DynamicBreadcrumb from '../shared/DynamicBreadcrumb';
 import { useThemeClasses } from '../shared/hooks/useThemeClasses';
 import ReleaseNotificationBanner from '../shared/ReleaseNotificationBanner';
 import useReleaseNotifications from '../../hooks/useReleaseNotifications';
+import SearchModal from '../shared/SearchModal';
 
 const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const { theme, toggleTheme } = useTheme();
@@ -423,6 +424,19 @@ const Layout = ({ children, pageProject, pageTitle }) => {
   const { teams, projects, tasksDetails, userDetails, loading, setProjects, setTasksDetails } = useGlobal();
   const [showFirstTimeSetup, setShowFirstTimeSetup] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
+  // Keyboard listener for search modal (Ctrl + / or Cmd + /)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        setIsSearchModalOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   // Release notifications hook
   const { latestRelease, hasNewRelease, versionUpdateAvailable, dismissRelease, markAsSeen } = useReleaseNotifications();
@@ -752,6 +766,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
               theme={theme}
               onLogout={logout}
               pageTitle={currentPageTitle}
+              onSearchClick={() => setIsSearchModalOpen(true)}
             />
           </div>
         </div>
@@ -768,6 +783,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
                 theme={theme}
                 onLogout={logout}
                 pageTitle={currentPageTitle}
+                onSearchClick={() => setIsSearchModalOpen(true)}
               />
             </div>
           </div>
@@ -824,6 +840,12 @@ const Layout = ({ children, pageProject, pageTitle }) => {
       <FirstTimeSetup
         isOpen={showFirstTimeSetup}
         onComplete={() => setShowFirstTimeSetup(false)}
+      />
+
+      {/* Organization Search Modal */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
       />
     </div>
   );

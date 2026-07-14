@@ -646,7 +646,7 @@ function Home() {
                       Start Free Trial
                     </button>
                     <button onClick={openLogin} className={`px-4 py-2 border font-bold text-base rounded-xl flex items-center justify-center gap-2 transition-all ${theme === 'dark' ? 'border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300' : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700'}`}>
-                      <FaSignInAlt /> Login
+                      <FaSignInAlt /> Sign In
                     </button>
                   </>
                 )}

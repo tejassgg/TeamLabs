@@ -235,14 +235,14 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
                     {isLandingPage && (
                       <div className="flex flex-wrap justify-center gap-2">
                         <Link
-                          href="/"
+                          href="/auth?type=login"
                           className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-95 ${
                             theme === 'dark'
                               ? 'bg-blue-600 hover:bg-blue-700 text-white'
                               : 'bg-blue-50 hover:bg-blue-105 text-blue-600'
                           }`}
                         >
-                          Login
+                          Sign In
                         </Link>
                         <Link
                           href="/auth"

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useTheme } from './ThemeContext';
-import { teamService, projectService, authService, taskService, commonTypeService } from '../services/api';
+import { teamService, projectService, authService, taskService, commonTypeService, searchService } from '../services/api';
 import { getProjectStatusStyle, getProjectStatusBadge } from '../components/project/ProjectStatusBadge';
 import { getTaskTypeStyle, getTaskTypeBadge, getTaskStatusBadge } from '../components/task/TaskTypeBadge';
 import { getDeadlineStatus, calculateDeadlineText } from '../components/shared/DeadlineStatusBadge';
@@ -37,6 +37,10 @@ export const GlobalProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [tempAuthData, setTempAuthData] = useState(null);
   const dataFetchedRef = useRef(false);
+
+  // Search data prefetching
+  const [searchData, setSearchData] = useState(null);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState(null);
   const [onboardingData, setOnboardingData] = useState({
     onboardingCompleted: false,
@@ -227,6 +231,7 @@ export const GlobalProvider = ({ children }) => {
     setTasksDetails([]);
     setOrganization(null);
     setProjectStatuses([]);
+    setSearchData(null);
     setTempAuthData(null);
     setError(null);
 
@@ -235,6 +240,21 @@ export const GlobalProvider = ({ children }) => {
     localStorage.removeItem('isLoggedIn');
     setIsLoggedInState(false);
     router.push('/');
+  };
+
+  // Fetch search prefetch data globally
+  const fetchSearchDataGlobal = async (force = false) => {
+    if (searchData && !force) return;
+    setSearchLoading(true);
+    try {
+      const responseData = await searchService.prefetchData();
+      setSearchData(responseData);
+      return responseData;
+    } catch (err) {
+      console.error('Error prefetching search data globally:', err);
+    } finally {
+      setSearchLoading(false);
+    }
   };
 
   // Update user data
@@ -344,6 +364,9 @@ export const GlobalProvider = ({ children }) => {
                 onboardingComplete: false
               }
             });
+
+            // Trigger search data prefetch globally on dashboard load
+            fetchSearchDataGlobal();
           }
       } catch (err) {
         setError('Failed to fetch user overview');
@@ -822,6 +845,9 @@ export const GlobalProvider = ({ children }) => {
     isEmpty,
     isNotEmpty,
     debounce,
+    searchData,
+    searchLoading,
+    fetchSearchDataGlobal,
   };
 
   return (

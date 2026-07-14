@@ -1601,6 +1601,27 @@ export const timesheetService = {
       throw error.response?.data || { message: 'Failed to fetch timesheet report' };
     }
   }
-}
+};
+
+export const searchService = {
+  prefetchData: async () => {
+    try {
+      const response = await api.get('/search/prefetch');
+      return response.data;
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') console.log(error);
+      throw error.response?.data || { message: 'Failed to prefetch search data' };
+    }
+  },
+  search: async (query) => {
+    try {
+      const response = await api.get('/search', { params: { q: query } });
+      return response.data;
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') console.log(error);
+      throw error.response?.data || { message: 'Failed to search data' };
+    }
+  }
+};
 
 export default api; 

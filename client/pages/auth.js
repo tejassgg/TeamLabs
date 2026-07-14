@@ -56,6 +56,12 @@ const Auth = () => {
         setShowLogin(true);
         setShowVerify(false);
         setVerifyToken(null);
+        setShowResetPassword(false);
+      } else {
+        setShowLogin(false);
+        setShowVerify(false);
+        setVerifyToken(null);
+        setShowResetPassword(false);
       }
     }
   }, [router.isReady, router.query]);
@@ -79,7 +85,7 @@ const Auth = () => {
       <Head>
         <title>Auth | TeamLabs</title>
       </Head>
-      <AuthNavbar openLogin={openLogin} showLogin={showLogin} />
+      <AuthNavbar openLogin={openLogin} openRegister={openRegister} showLogin={showLogin} />
       <div className={`min-h-screen w-full flex flex-col justify-center items-center pt-16 transition-colors duration-300 ${
         theme === 'dark' ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gray-100'
       }`}>
@@ -161,23 +167,58 @@ const Auth = () => {
                 </div>
               ) : (
                 <>
-                  <div className={`transition-all duration-500 ease-in-out transform ${
-                    showLogin 
-                      ? 'translate-x-0 opacity-100' 
-                      : '-translate-x-full opacity-0 absolute inset-0'
-                  }`}>
-                    <LoginForm 
-                      onSuccess={() => router.push('/dashboard')} 
-                      onOpenRegister={openRegister}
-                      onOpenForgotPassword={() => setShowForgotPasswordModal(true)}
+                  {/* Sliding Pill Tab Switcher */}
+                  <div className={`relative flex p-1 rounded-xl mb-8 ${theme === 'dark' ? 'bg-gray-900/60' : 'bg-gray-100'}`}>
+                    <div
+                      className={`absolute top-1 bottom-1 rounded-lg transition-all duration-300 ease-out shadow-sm ${
+                        theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                      }`}
+                      style={{
+                        width: 'calc(50% - 4px)',
+                        left: showLogin ? '4px' : 'calc(50%)',
+                      }}
                     />
+                    <button
+                      onClick={openLogin}
+                      className={`relative z-10 flex-1 py-2.5 text-center font-bold text-sm sm:text-base rounded-lg transition-colors duration-200 focus:outline-none ${
+                        showLogin
+                          ? theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          : theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      Sign In
+                    </button>
+                    <button
+                      onClick={openRegister}
+                      className={`relative z-10 flex-1 py-2.5 text-center font-bold text-sm sm:text-base rounded-lg transition-colors duration-200 focus:outline-none ${
+                        !showLogin
+                          ? theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          : theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      Sign Up
+                    </button>
                   </div>
-                  <div className={`transition-all duration-500 ease-in-out transform ${
-                    showLogin 
-                      ? 'translate-x-full opacity-0 absolute inset-0' 
-                      : 'translate-x-0 opacity-100'
-                  }`}>
-                    <RegisterForm onOpenLogin={openLogin} isVisible={router.query.type !== 'login'} />
+
+                  <div className="relative">
+                    <div className={`transition-all duration-500 ease-in-out transform absolute inset-0 ${
+                      showLogin 
+                        ? 'translate-x-0 opacity-100' 
+                        : '-translate-x-full opacity-0 pointer-events-none'
+                    }`}>
+                      <LoginForm 
+                        onSuccess={() => router.push('/dashboard')} 
+                        onOpenRegister={openRegister}
+                        onOpenForgotPassword={() => setShowForgotPasswordModal(true)}
+                      />
+                    </div>
+                    <div className={`transition-all duration-500 ease-in-out transform ${
+                      showLogin 
+                        ? 'translate-x-full opacity-0 pointer-events-none' 
+                        : 'translate-x-0 opacity-100'
+                    }`}>
+                      <RegisterForm onOpenLogin={openLogin} isVisible={router.query.type !== 'login'} />
+                    </div>
                   </div>
                 </>
               )}
