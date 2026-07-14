@@ -59,18 +59,11 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
     }
   };
 
-  // Refresh subscription data when component becomes visible (user returns from payment)
+  // Fetch on mount or userDetails loaded
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && userDetails?.organizationID) {
-        fetchSubscriptionData();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
+    if (userDetails?.organizationID) {
+      fetchSubscriptionData();
+    }
   }, [userDetails?.organizationID, userDetails?.role]);
 
   const handleNavigation = (path) => {

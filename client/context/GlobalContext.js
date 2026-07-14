@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react';
 import { useTheme } from './ThemeContext';
 import { teamService, projectService, authService, taskService, commonTypeService, searchService } from '../services/api';
 import { getProjectStatusStyle, getProjectStatusBadge } from '../components/project/ProjectStatusBadge';
@@ -37,9 +37,21 @@ export const GlobalProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [tempAuthData, setTempAuthData] = useState(null);
   const dataFetchedRef = useRef(false);
+  const [orgMembers, setOrgMembers] = useState([]);
 
-  // Search data prefetching
-  const [searchData, setSearchData] = useState(null);
+  // Compute searchData dynamically from current context states
+  const searchData = useMemo(() => {
+    return {
+      projects,
+      teams,
+      users: orgMembers,
+      tasks: tasksDetails,
+      attachments: [],
+      comments: [],
+      meetings: [],
+      subtasks: [],
+    };
+  }, [projects, teams, orgMembers, tasksDetails]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState(null);
   const [onboardingData, setOnboardingData] = useState({
@@ -231,7 +243,7 @@ export const GlobalProvider = ({ children }) => {
     setTasksDetails([]);
     setOrganization(null);
     setProjectStatuses([]);
-    setSearchData(null);
+    setOrgMembers([]);
     setTempAuthData(null);
     setError(null);
 
@@ -242,19 +254,9 @@ export const GlobalProvider = ({ children }) => {
     router.push('/');
   };
 
-  // Fetch search prefetch data globally
+  // Fetch search prefetch data globally (no-op since we compute it locally)
   const fetchSearchDataGlobal = async (force = false) => {
-    if (searchData && !force) return;
-    setSearchLoading(true);
-    try {
-      const responseData = await searchService.prefetchData();
-      setSearchData(responseData);
-      return responseData;
-    } catch (err) {
-      console.error('Error prefetching search data globally:', err);
-    } finally {
-      setSearchLoading(false);
-    }
+    return searchData;
   };
 
   // Update user data
@@ -299,86 +301,70 @@ export const GlobalProvider = ({ children }) => {
     }
   };
 
-  // Initial authentication check
+  // Combined Authentication & Initial Data Fetch
   useEffect(() => {
-    const initAuth = async () => {
+    const initAuthAndData = async () => {
       const storedLoggedIn = localStorage.getItem('isLoggedIn');
       if (!storedLoggedIn) {
         setLoading(false);
         return;
       }
 
-      // If on the landing page, do not query the server-side profile API to optimize network calls
+      // If on the landing page, do not query the server-side APIs to optimize network calls
       if (router.pathname === '/') {
         setLoading(false);
         return;
       }
 
-      if (userDetails) {
+      // If data is already fetched and userDetails exists, skip refetching
+      if (dataFetchedRef.current && userDetails) {
         setLoading(false);
         return;
       }
 
-      setLoading(true);
-      try {
-        const currentUser = await authService.getUserProfile();
-        setUserDetails(currentUser);
-        setIsLoggedInState(true);
-      } catch (error) {
-        console.error('Authentication error:', error);
-        localStorage.removeItem('isLoggedIn');
-        setIsLoggedInState(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initAuth();
-  }, [router.pathname, userDetails]);
-
-  // Initial data fetch
-  useEffect(() => {
-    const initializeData = async () => {
-      if (!userDetails || router.pathname === '/' || dataFetchedRef.current) {
-        return;
-      }
       dataFetchedRef.current = true;
       setLoading(true);
-        try {
-          const overview = await authService.getUserOverview();
-          if (overview) {          
-            setUserDetails(overview.user);
-            setTeams(overview.teams);
-            setProjects(overview.projects);
-            setOrganization(overview.organization);
-            setTasksDetails(overview.tasks);
-            setProjectStatuses(overview.projectStatuses);
-            setOnboardingData({
-              onboardingCompleted: overview.onboardingCompleted || false,
-              onboardingStep: overview.onboardingStep || 'welcome',
-              onboardingProgress: overview.onboardingProgress || {
-                profileComplete: false,
-                organizationComplete: false,
-                teamCreated: false,
-                projectCreated: false,
-                onboardingComplete: false
-              }
-            });
+      try {
+        const overview = await authService.getUserOverview();
+        if (overview) {          
+          setUserDetails(overview.user);
+          setTeams(overview.teams);
+          setProjects(overview.projects);
+          setOrganization(overview.organization);
+          setTasksDetails(overview.tasks);
+          setProjectStatuses(overview.projectStatuses);
+          setOrgMembers(overview.users || []);
+          setOnboardingData({
+            onboardingCompleted: overview.onboardingCompleted || false,
+            onboardingStep: overview.onboardingStep || 'welcome',
+            onboardingProgress: overview.onboardingProgress || {
+              profileComplete: false,
+              organizationComplete: false,
+              teamCreated: false,
+              projectCreated: false,
+              onboardingComplete: false
+            }
+          });
+          setIsLoggedInState(true);
 
-            // Trigger search data prefetch globally on dashboard load
-            fetchSearchDataGlobal();
-          }
+          // Trigger search data prefetch globally on dashboard load (no-op now)
+          fetchSearchDataGlobal();
+        }
       } catch (err) {
-        setError('Failed to fetch user overview');
-        console.error('Error initializing data:', err);
-        dataFetchedRef.current = false; // Reset on error to allow retry
+        console.error('Authentication/Initialization error:', err);
+        dataFetchedRef.current = false;
+        // Clear session on authentication failure
+        localStorage.removeItem('isLoggedIn');
+        setIsLoggedInState(false);
+        setUserDetails(null);
+        router.push('/');
       } finally {
         setLoading(false);
       }
     };
 
-    initializeData();
-  }, [userDetails, router.pathname]);
+    initAuthAndData();
+  }, [router.pathname]);
 
   // Connect socket when user details are retrieved/changed
   useEffect(() => {

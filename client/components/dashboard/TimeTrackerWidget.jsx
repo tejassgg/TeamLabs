@@ -6,7 +6,7 @@ import { useToast } from '../../context/ToastContext';
 import CustomDropdown from '../shared/CustomDropdown';
 import { getTaskTypeStyle } from '../task/TaskTypeBadge';
 
-const TimeTrackerWidget = ({ userDetails, theme }) => {
+const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: setPropTasks, tasksLoading }) => {
   const { showToast } = useToast();
   const [tasks, setTasks] = useState([]);
   const [selectedTaskId, setSelectedTaskId] = useState('');
@@ -21,23 +21,29 @@ const TimeTrackerWidget = ({ userDetails, theme }) => {
 
   // Fetch tasks assigned to this user
   useEffect(() => {
-    const fetchUserTasks = async () => {
-      if (!userDetails?.organizationID) return;
-      setFetchingTasks(true);
-      try {
-        const response = await api.get(`/task-details/all?organizationId=${userDetails.organizationID}`);
-        const allTasks = response.data?.tasks || [];
-        // Filter tasks assigned to this user that are not completed (Status !== 6)
-        const myTasks = allTasks.filter(t => t.AssignedTo === userDetails._id && t.Status !== 6);
-        setTasks(myTasks);
-      } catch (err) {
-        console.error('Failed to fetch user tasks for tracker:', err);
-      } finally {
-        setFetchingTasks(false);
-      }
-    };
-    fetchUserTasks();
-  }, [userDetails]);
+    if (propTasks !== undefined && propTasks !== null) {
+      const myTasks = propTasks.filter(t => t.AssignedTo === userDetails?._id && t.Status !== 6);
+      setTasks(myTasks);
+      setFetchingTasks(tasksLoading);
+    } else {
+      const fetchUserTasks = async () => {
+        if (!userDetails?.organizationID) return;
+        setFetchingTasks(true);
+        try {
+          const response = await api.get(`/task-details/all?organizationId=${userDetails.organizationID}`);
+          const allTasks = response.data?.tasks || [];
+          // Filter tasks assigned to this user that are not completed (Status !== 6)
+          const myTasks = allTasks.filter(t => t.AssignedTo === userDetails._id && t.Status !== 6);
+          setTasks(myTasks);
+        } catch (err) {
+          console.error('Failed to fetch user tasks for tracker:', err);
+        } finally {
+          setFetchingTasks(false);
+        }
+      };
+      fetchUserTasks();
+    }
+  }, [userDetails, propTasks, tasksLoading]);
 
   useEffect(() => {
     if (isRunning) {

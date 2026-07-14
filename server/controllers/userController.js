@@ -162,6 +162,11 @@ exports.getUserOverview = async (req, res) => {
     // Project Statuses (from CommonType)
     const projectStatuses = await CommonType.find({ MasterType: 'ProjectStatus' }).lean();
 
+    // Organization Members (active users in the organization)
+    const users = await User.find({ organizationID: user.organizationID, isActive: true })
+      .select('firstName lastName username email profileImage role createdDate status')
+      .lean();
+
     res.json({
       user,
       teams,
@@ -169,6 +174,7 @@ exports.getUserOverview = async (req, res) => {
       organization,
       tasks,
       projectStatuses,
+      users,
       onboardingCompleted: user.onboardingCompleted,
       onboardingStep: user.onboardingStep,
       onboardingProgress: user.onboardingProgress

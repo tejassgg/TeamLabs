@@ -54,7 +54,7 @@ const highlightText = (text, query) => {
 const SearchModal = ({ isOpen, onClose }) => {
   const router = useRouter();
   const { theme } = useTheme();
-  const { userDetails, searchData, searchLoading, fetchSearchDataGlobal } = useGlobal();
+  const { userDetails, searchData, searchLoading, fetchSearchDataGlobal, getTaskTypeStyleComponent } = useGlobal();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
@@ -223,6 +223,7 @@ const SearchModal = ({ isOpen, onClose }) => {
     // Tasks
     if (activeData.tasks) {
       activeData.tasks.forEach(t => {
+        const typeStyle = getTaskTypeStyleComponent ? getTaskTypeStyleComponent(t.Type) : null;
         items.push({
           type: 'task',
           category: 'Tasks',
@@ -230,7 +231,11 @@ const SearchModal = ({ isOpen, onClose }) => {
           name: `[${t.TicketNumber || 'Task'}] ${t.Name}`,
           desc: `${t.Type} • Priority: ${t.Priority} • Status: ${getTaskStatusLabel(t.Status)}`,
           url: `/task/${t.TaskID}`,
-          icon: <FaTasks className="text-green-500" />
+          icon: typeStyle?.icon ? (
+            <span className={`${typeStyle.textColor} flex items-center justify-center`}>
+              {typeStyle.icon}
+            </span>
+          ) : <FaTasks className="text-green-500" />
         });
       });
     }

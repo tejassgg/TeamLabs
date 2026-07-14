@@ -3,12 +3,17 @@ import { Line } from 'react-chartjs-2';
 import { FaFire, FaSync } from 'react-icons/fa';
 import api from '../../services/api';
 
-const BurndownWidget = ({ organizationId, theme }) => {
+const BurndownWidget = ({ organizationId, theme, tasks: propTasks, tasksLoading }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const fetchTasks = async () => {
+    if (propTasks !== undefined && propTasks !== null) {
+      setTasks(propTasks);
+      setLoading(tasksLoading);
+      return;
+    }
     if (!organizationId) return;
     setLoading(true);
     setError('');
@@ -25,7 +30,7 @@ const BurndownWidget = ({ organizationId, theme }) => {
 
   useEffect(() => {
     fetchTasks();
-  }, [organizationId]);
+  }, [organizationId, propTasks, tasksLoading]);
 
   const burndownData = useMemo(() => {
     if (tasks.length === 0) return null;

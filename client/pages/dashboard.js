@@ -44,6 +44,8 @@ const Dashboard = () => {
   const [inviteStatus, setInviteStatus] = useState('');
   const [invitedEmails, setInvitedEmails] = useState([]);
   const [showOnboardingGuide, setShowOnboardingGuide] = useState(false);
+  const [dashboardTasks, setDashboardTasks] = useState(null);
+  const [tasksLoading, setTasksLoading] = useState(false);
 
   // Widget customization states
   const DEFAULT_WIDGETS = useMemo(() => [
@@ -135,12 +137,25 @@ const Dashboard = () => {
       }
     };
 
+    const fetchTasks = async () => {
+      setTasksLoading(true);
+      try {
+        const response = await api.get(`/task-details/all?organizationId=${userDetails.organizationID}`);
+        setDashboardTasks(response.data?.tasks || []);
+      } catch (err) {
+        console.error('Failed to fetch user tasks for dashboard widgets:', err);
+      } finally {
+        setTasksLoading(false);
+      }
+    };
+
     if (userDetails?.organizationID) {
       if (userDetails?.role === 'Admin') {
         setIsAdmin(true);
       }
       setStatsLoading(true);
       fetchDashboardStats();
+      fetchTasks();
 
       // Phase 1: connect socket and subscribe to org member presence/updates
       connectSocket();
@@ -253,7 +268,7 @@ const Dashboard = () => {
         unsubTeamStatusUpdated && unsubTeamStatusUpdated();
       };
     }
-  }, [userDetails]);
+  }, [userDetails?.organizationID, userDetails?.role]);
 
   const handleRemoveUser = async (userId) => {
     setRemovingUser(userId);
@@ -625,11 +640,26 @@ const Dashboard = () => {
           </div>
         );
       case 'timeTracker':
-        return <TimeTrackerWidget userDetails={userDetails} theme={theme} />;
+        return (
+          <TimeTrackerWidget
+            userDetails={userDetails}
+            theme={theme}
+            tasks={dashboardTasks || []}
+            setTasks={setDashboardTasks}
+            tasksLoading={tasksLoading}
+          />
+        );
       case 'recentComments':
         return <RecentCommentsWidget organizationId={userDetails?.organizationID} theme={theme} />;
       case 'burndown':
-        return <BurndownWidget organizationId={userDetails?.organizationID} theme={theme} />;
+        return (
+          <BurndownWidget
+            organizationId={userDetails?.organizationID}
+            theme={theme}
+            tasks={dashboardTasks || []}
+            tasksLoading={tasksLoading}
+          />
+        );
       case 'gitStream':
         return <GitStreamWidget organizationId={userDetails?.organizationID} theme={theme} />;
       case 'recentProjects':
