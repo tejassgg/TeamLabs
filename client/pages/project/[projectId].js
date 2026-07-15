@@ -212,8 +212,8 @@ const ProjectDetailsPage = () => {
   const [projectActivity, setProjectActivity] = useState([]);
 
   // Sorting state for Tasks table
-  const [tasksSortKey, setTasksSortKey] = useState('name'); // name | assignedTo | assignee | assignedDate | priority | status
-  const [tasksSortDir, setTasksSortDir] = useState('asc'); // asc | desc
+  const [tasksSortKey, setTasksSortKey] = useState('assignedDate'); // name | assignedTo | assignee | assignedDate | priority | status
+  const [tasksSortDir, setTasksSortDir] = useState('desc'); // asc | desc
 
   const getThemeClasses = useThemeClasses();
 
@@ -1608,8 +1608,8 @@ const ProjectDetailsPage = () => {
                         <input
                           type="text"
                           className={getThemeClasses(
-                            'border rounded-xl px-4 py-2 w-64 text-sm font-medium shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200',
-                            'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
+                            'border rounded-xl px-4 py-2 w-64 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white border-gray-300 text-gray-900',
+                            'dark:bg-[#18181b] dark:border-[#232323] dark:text-gray-100 dark:focus:outline-none dark:focus:ring-blue-500 dark:focus:border-blue-500'
                           )}
                           value={teamSearch}
                           onChange={e => {
@@ -1638,8 +1638,8 @@ const ProjectDetailsPage = () => {
                             type="submit"
                             disabled={!selectedTeam}
                             className={getThemeClasses(
-                              'px-3 py-2 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 disabled:opacity-50',
-                              'dark:from-blue-600 dark:to-blue-700'
+                              'px-4 py-2 text-sm text-white font-semibold rounded-xl transition-all duration-200 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 shadow-sm',
+                              'dark:bg-blue-600 dark:hover:bg-blue-500'
                             )}
                             title={selectedTeam ? 'Add selected team to project' : 'Select a team from dropdown'}
                           >
@@ -1648,19 +1648,19 @@ const ProjectDetailsPage = () => {
                         )}
                       </div>
                       {isTeamInputFocused && filteredAvailableTeams.length > 0 && (
-                        <div className="absolute top-full right-0 z-50 mt-1 w-[22rem]">
+                        <div className="absolute top-full right-0 z-50 mt-2 w-96 animate-fadeIn">
                           <ul className={getThemeClasses(
-                            'border rounded-xl bg-white max-h-60 overflow-y-auto shadow-lg border-gray-200',
-                            'dark:bg-gray-800 dark:border-gray-700'
+                            'border border-gray-200 rounded-xl bg-white max-h-80 overflow-y-auto shadow-2xl py-1.5 scrollbar-thin',
+                            'dark:bg-[#18181b] dark:border-[#232323]'
                           )}>
                             {filteredAvailableTeams.map((team, index) => (
-                              <li key={`${team.TeamID}-${index}`} className={getThemeClasses('px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150', 'dark:border-gray-700')}>
+                              <li key={`${team.TeamID}-${index}`} className={getThemeClasses('px-3 py-1.5 border-b border-gray-100 last:border-b-0 transition-colors duration-150', 'dark:border-zinc-800/60')}>
                                 <div className="flex items-center justify-between gap-2">
                                   <div
-                                    className={getThemeClasses('flex-1 cursor-pointer rounded-lg p-2 hover:bg-blue-50', 'dark:hover:bg-blue-900/30')}
+                                    className={getThemeClasses('flex-1 cursor-pointer rounded-lg p-2 hover:bg-gray-50 transition-colors duration-150', 'dark:hover:bg-zinc-800/40')}
                                     onMouseEnter={(e) => {
                                       const el = e.currentTarget;
-                                      el.style.backgroundColor = hexToRgba(team.TeamColor, theme === 'dark' ? 0.15 : 0.12) || '';
+                                      el.style.backgroundColor = hexToRgba(team.TeamColor, theme === 'dark' ? 0.15 : 0.08) || '';
                                     }}
                                     onMouseLeave={(e) => {
                                       const el = e.currentTarget;
@@ -1672,23 +1672,26 @@ const ProjectDetailsPage = () => {
                                       setIsTeamInputFocused(false);
                                     }}
                                   >
-                                    <div className="flex items-start gap-3">
+                                    <div className="flex items-center gap-3">
                                       <div
-                                        className={getThemeClasses('w-8 h-8 rounded-full flex items-center justify-center font-semibold flex-shrink-0', 'dark:bg-blue-900/50')}
-                                        style={{ backgroundColor: hexToRgba(team.TeamColor, theme === 'dark' ? 0.12 : 0.2) }}
+                                        className="w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0 text-xs"
+                                        style={{ 
+                                          backgroundColor: hexToRgba(team.TeamColor, theme === 'dark' ? 0.18 : 0.12),
+                                          color: team.TeamColor || (theme === 'dark' ? '#60A5FA' : '#2563EB')
+                                        }}
                                       >
                                         {(team.TeamName || '').split(' ').map(n => n[0]).join('')}
                                       </div>
                                       <div className="flex-1 min-w-0">
-                                        <div className={getThemeClasses('font-medium text-gray-900 truncate', 'dark:text-gray-100')}>
+                                        <div className={getThemeClasses('font-semibold text-gray-900 text-sm truncate', 'dark:text-gray-100')}>
                                           {team.TeamName}
                                         </div>
                                         {team.TeamDescription && (
-                                          <div className={getThemeClasses('text-sm text-gray-600 truncate', 'dark:text-gray-400')}>
+                                          <div className={getThemeClasses('text-xs text-gray-500 truncate mt-0.5', 'dark:text-gray-400')}>
                                             {team.TeamDescription}
                                           </div>
                                         )}
-                                        <div className={getThemeClasses('text-xs text-gray-400 mt-1', 'dark:text-gray-500')}>
+                                        <div className={getThemeClasses('text-[10px] text-gray-400 mt-0.5', 'dark:text-gray-500')}>
                                           Members: {Array.isArray(team.teamMembers) ? team.teamMembers.length : (team.memberCount ?? 0)}
                                         </div>
                                       </div>
@@ -1697,9 +1700,12 @@ const ProjectDetailsPage = () => {
                                   <button
                                     type="button"
                                     onClick={() => { setSelectedTeam(team); handleAddTeam(team.TeamID); }}
-                                    className={getThemeClasses('ml-2 p-2 text-sm text-blue-700 font-medium rounded-full transition-all duration-200 bg-blue-100 hover:bg-blue-600 hover:text-white shadow-sm', 'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800')}
+                                    className={getThemeClasses(
+                                      'ml-1 p-2 rounded-full transition-all duration-200 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white',
+                                      'dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-600 dark:hover:text-white'
+                                    )}
                                   >
-                                    <FaPlus size={14} />
+                                    <FaPlus size={12} />
                                   </button>
                                 </div>
                               </li>
@@ -1710,8 +1716,8 @@ const ProjectDetailsPage = () => {
                               type="button"
                               onClick={() => setShowAllTeams(true)}
                               className={getThemeClasses(
-                                'w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200',
-                                'dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30'
+                                'w-full mt-2 px-4 py-2.5 text-xs text-blue-600 hover:text-blue-700 font-semibold hover:bg-blue-50 rounded-xl transition-colors duration-200 border border-gray-150 bg-white shadow-sm',
+                                'dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-zinc-800/40 dark:bg-[#18181b] dark:border-[#232323]'
                               )}
                             >
                               Show All Teams ({orgTeams.length})
@@ -1745,10 +1751,8 @@ const ProjectDetailsPage = () => {
                                   {initials}
                                 </div>
                                 <div className="min-w-0">
-                                  <Link href={`/team/${team.TeamID}`} legacyBehavior>
-                                    <a className={`${tableTextClasses} hover:text-blue-600 hover:underline transition-colors cursor-pointer block truncate`} title="View Team Details">
-                                      {team?.TeamName || team.TeamID}
-                                    </a>
+                                  <Link href={`/team/${team.TeamID}`} className={`${tableTextClasses} hover:text-blue-600 hover:underline transition-colors cursor-pointer block truncate`} title="View Team Details">
+                                    {team?.TeamName || team.TeamID}
                                   </Link>
                                   {team?.TeamDescription && (
                                     <div className={`${tableSecondaryTextClasses} truncate`}>{team.TeamDescription}</div>
@@ -1875,8 +1879,8 @@ const ProjectDetailsPage = () => {
                             <td className="py-3 px-4">
                               <div className="flex items-center gap-3">
                                 <div className="flex flex-col">
-                                  <Link href={`/task/${story.TaskID}`} legacyBehavior>
-                                    <a className={tableTextClasses + ' hover:text-blue-600 hover:underline transition-colors cursor-pointer'} title="View User Story Details">{story.Name}</a>
+                                  <Link href={`/task/${story.TaskID}`} className={tableTextClasses + ' hover:text-blue-600 hover:underline transition-colors cursor-pointer'} title="View User Story Details">
+                                    {story.Name}
                                   </Link>
                                   {story.Description && (
                                     <span className={tableSecondaryTextClasses}>{story.Description}</span>
@@ -2002,42 +2006,41 @@ const ProjectDetailsPage = () => {
                             {getTasksSortIcon('name')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[16%] ${tableHeaderTextClasses}`}>
                           <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assigned To</span>
                             {getTasksSortIcon('assignedTo')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[16%] ${tableHeaderTextClasses}`}>
                           <button type="button" onClick={() => handleTasksSort('assignee')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assignee</span>
                             {getTasksSortIcon('assignee')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[12%] ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                        <th className={`hidden md:table-cell py-3 px-4 w-[10%] ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center justify-center w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assigned On</span>
                             {getTasksSortIcon('assignedDate')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[10%] ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[8%] ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Priority</span>
                             {getTasksSortIcon('priority')}
                           </button>
                         </th>
-                        <th className={`py-3 px-4 text-left w-[10%] ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                        <th className={`py-3 px-4 text-left w-[8%] ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Status</span>
                             {getTasksSortIcon('status')}
                           </button>
                         </th>
-                        <th className={`py-3 px-4 text-left w-[8%] ${tableHeaderTextClasses}`}>Actions</th>
+                        <th className={`py-3 px-4 text-center w-[8%] ${tableHeaderTextClasses}`}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {tasksSorted.map(task => {
-                        // Get priority style for background color if task has TicketNumber
                         const getPriorityBackgroundColor = (priority) => {
                           const styles = {
                             'High': 'bg-red-50 dark:bg-red-900/10',
@@ -2047,7 +2050,7 @@ const ProjectDetailsPage = () => {
                           return styles[priority] || '';
                         };
 
-                        const ticketRowClasses = task.TicketNumber
+                        const ticketRowClasses = task.Type === 'Support'
                           ? `${tableRowClasses} ${getPriorityBackgroundColor(task.Priority)}`
                           : tableRowClasses;
 
@@ -2079,10 +2082,20 @@ const ProjectDetailsPage = () => {
                                   </button>
                                   {getTaskTypeBadgeComponent(task.Type)}
                                 </div>
-                                <span className={getThemeClasses(
-                                  'text-xs text-gray-500 truncate block w-full',
-                                  'dark:text-gray-400'
-                                )} title={task.Description}>{task.Description}</span>
+                                <div className="flex items-center justify-start gap-1 min-w-0 w-full text-xs">
+                                  {task.TicketNumber && (
+                                    <span className="font-semibold font-mono text-blue-600 dark:text-blue-400 shrink-0">
+                                      #{task.TicketNumber}
+                                    </span>
+                                  )}
+                                  {task.TicketNumber && task.Description && (
+                                    <span className="text-gray-300 dark:text-gray-600 shrink-0">•</span>
+                                  )}
+                                  <span className={getThemeClasses(
+                                    'text-gray-500 truncate block',
+                                    'dark:text-gray-400'
+                                  )} title={task.Description}>{task.Description}</span>
+                                </div>
                                 {/* Show assigned to on mobile if available */}
                                 {task.AssignedTo && task.AssignedToDetails && (
                                   <div className={getThemeClasses(
@@ -2158,7 +2171,7 @@ const ProjectDetailsPage = () => {
                               )}
                             </td>
                             <td className="hidden md:table-cell py-3 px-4">
-                              <div className="flex items-center gap-1.5">
+                              <div className="flex items-center justify-center gap-1.5">
                                 {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
                               </div>
                             </td>
@@ -2264,7 +2277,7 @@ const ProjectDetailsPage = () => {
                       {/* Status Header Row */}
                       <tr>
                         <td colSpan="8" className="p-0">
-                          <div className={`flex items-center ${indexx === 0 ? '' : 'mt-4'}`}>
+                          <div className={`flex items-center ${indexx === 0 ? '' : 'mt-2'}`}>
                             <div className="flex items-center justify-center w-8 h-12" onClick={(e) => { e.preventDefault(); toggleAccordion(code); }}>
                               {openAccordions[code] ? (
                                 <FaSortUp className={`${statusStyle.iconColor} transition-transform duration-300 cursor-pointer`} size={14} />

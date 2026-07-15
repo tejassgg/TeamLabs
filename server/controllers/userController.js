@@ -9,6 +9,10 @@ const Invite = require('../models/Invite');
 const crypto = require('crypto');
 const emailService = require('../services/emailService');
 const Organization = require('../models/Organization');
+const Comment = require('../models/Comment');
+const Attachment = require('../models/Attachment');
+const Subtask = require('../models/Subtask');
+const Meeting = require('../models/Meeting');
 const { emitToOrg } = require('../socket');
 
 exports.updateUser = async (req, res) => {
@@ -167,6 +171,21 @@ exports.getUserOverview = async (req, res) => {
       .select('firstName lastName username email profileImage role createdDate status')
       .lean();
 
+    // Fetch comments, attachments, subtasks, and meetings for search/overview
+    const taskIds = tasks.map(t => t.TaskID);
+    const teamIds = teams.map(t => t.TeamID);
+    const projectIds = projects.map(p => p.ProjectID || p._id);
+
+    const comments = await Comment.find({ TaskID: { $in: taskIds } }).lean();
+    const attachments = await Attachment.find({
+      $or: [
+        { TaskID: { $in: taskIds } },
+        { ProjectID: { $in: projectIds } }
+      ]
+    }).lean();
+    const subtasks = await Subtask.find({ TaskID_FK: { $in: taskIds }, IsActive: true }).lean();
+    const meetings = await Meeting.find({ TeamID_FK: { $in: teamIds }, IsActive: true }).lean();
+
     res.json({
       user,
       teams,
@@ -175,6 +194,10 @@ exports.getUserOverview = async (req, res) => {
       tasks,
       projectStatuses,
       users,
+      comments,
+      attachments,
+      subtasks,
+      meetings,
       onboardingCompleted: user.onboardingCompleted,
       onboardingStep: user.onboardingStep,
       onboardingProgress: user.onboardingProgress

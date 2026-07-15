@@ -19,6 +19,26 @@ const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
 const Subtask = require('../models/Subtask');
 const { protect } = require('../middleware/auth');
 
+// Helper function to get the next ticket number sequentially
+async function getNextTicketNumber() {
+    try {
+        const tasks = await TaskDetails.find({ TicketNumber: /^\d+$/ }).select('TicketNumber').lean();
+        let maxNum = 2499;
+        for (const t of tasks) {
+            if (t.TicketNumber) {
+                const num = parseInt(t.TicketNumber, 10);
+                if (!isNaN(num) && num > maxNum && num < 100000) {
+                    maxNum = num;
+                }
+            }
+        }
+        return String(maxNum + 1);
+    } catch (err) {
+        console.error('Error in getNextTicketNumber:', err);
+        return String(2500 + Math.floor(Math.random() * 1000)); // fallback
+    }
+}
+
 // Middleware to check limits based on task type
 const checkTaskTypeLimit = async (req, res, next) => {
     const taskType = req.body.taskDetail?.Type;
@@ -62,6 +82,10 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
             } else {
                 taskData.DueDate = new Date(taskData.DueDate);
             }
+        }
+
+        if (!taskData.TicketNumber) {
+            taskData.TicketNumber = await getNextTicketNumber();
         }
 
         const newTaskDetail = new TaskDetails(taskData);
@@ -201,6 +225,17 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
             console.error('Failed to log error activity:', logError);
         }
         res.status(500).json({ error: 'Failed to create task' });
+    }
+});
+
+// GET /api/task-details/next-number - Get the next sequential task number
+router.get('/next-number', async (req, res) => {
+    try {
+        const nextNum = await getNextTicketNumber();
+        res.json({ nextTicketNumber: nextNum });
+    } catch (err) {
+        console.error('Failed to get next ticket number:', err);
+        res.status(500).json({ error: 'Failed to retrieve next ticket number' });
     }
 });
 

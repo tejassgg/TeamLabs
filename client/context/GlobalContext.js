@@ -38,6 +38,10 @@ export const GlobalProvider = ({ children }) => {
   const [tempAuthData, setTempAuthData] = useState(null);
   const dataFetchedRef = useRef(false);
   const [orgMembers, setOrgMembers] = useState([]);
+  const [attachments, setAttachments] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [meetings, setMeetings] = useState([]);
+  const [subtasks, setSubtasks] = useState([]);
 
   // Compute searchData dynamically from current context states
   const searchData = useMemo(() => {
@@ -46,12 +50,12 @@ export const GlobalProvider = ({ children }) => {
       teams,
       users: orgMembers,
       tasks: tasksDetails,
-      attachments: [],
-      comments: [],
-      meetings: [],
-      subtasks: [],
+      attachments,
+      comments,
+      meetings,
+      subtasks,
     };
-  }, [projects, teams, orgMembers, tasksDetails]);
+  }, [projects, teams, orgMembers, tasksDetails, attachments, comments, meetings, subtasks]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState(null);
   const [onboardingData, setOnboardingData] = useState({
@@ -244,6 +248,10 @@ export const GlobalProvider = ({ children }) => {
     setOrganization(null);
     setProjectStatuses([]);
     setOrgMembers([]);
+    setAttachments([]);
+    setComments([]);
+    setMeetings([]);
+    setSubtasks([]);
     setTempAuthData(null);
     setError(null);
 
@@ -334,6 +342,10 @@ export const GlobalProvider = ({ children }) => {
           setTasksDetails(overview.tasks);
           setProjectStatuses(overview.projectStatuses);
           setOrgMembers(overview.users || []);
+          setAttachments(overview.attachments || []);
+          setComments(overview.comments || []);
+          setMeetings(overview.meetings || []);
+          setSubtasks(overview.subtasks || []);
           setOnboardingData({
             onboardingCompleted: overview.onboardingCompleted || false,
             onboardingStep: overview.onboardingStep || 'welcome',

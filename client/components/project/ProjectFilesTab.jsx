@@ -49,24 +49,24 @@ const ProjectFilesTab = ({ projectId }) => {
       }
     `;
     document.head.appendChild(style);
-    
+
     return () => {
       document.head.removeChild(style);
     };
   }, []);
-  
+
   // State variables
   const [projectAttachments, setProjectAttachments] = useState([]);
   const [attachmentsLoading, setAttachmentsLoading] = useState(false);
   const [fileSearch, setFileSearch] = useState('');
   const [fileFilter, setFileFilter] = useState('all');
-  const [fileViewMode, setFileViewMode] = useState('table'); // 'table', 'grid'
+  const [fileViewMode, setFileViewMode] = useState('grid'); // 'table', 'grid'
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [attachmentToDelete, setAttachmentToDelete] = useState(null);
 
   // Add state for kebab menu
   const [openMenuId, setOpenMenuId] = useState(null);
-  
+
   // Add state for file upload
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -75,7 +75,7 @@ const ProjectFilesTab = ({ projectId }) => {
   // Function to get file type icon
   const getFileTypeIcon = (filename) => {
     const extension = filename.split('.').pop()?.toLowerCase();
-    
+
     if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'webp'].includes(extension)) {
       return <FaFileImage className="text-blue-500" />;
     } else if (['pdf'].includes(extension)) {
@@ -129,7 +129,7 @@ const ProjectFilesTab = ({ projectId }) => {
   // Delete attachment function
   const deleteAttachment = async () => {
     if (!attachmentToDelete) return;
-    
+
     try {
       await attachmentService.deleteAttachment(attachmentToDelete.AttachmentID);
       showToast('Attachment deleted successfully', 'success');
@@ -207,7 +207,7 @@ const ProjectFilesTab = ({ projectId }) => {
           if (!uploaded || !uploaded.FileURL) {
             throw new Error('Upload failed');
           }
-          
+
           showToast(`${file.name} uploaded successfully`, 'success');
         } catch (error) {
           console.error('Error uploading file:', error);
@@ -247,7 +247,7 @@ const ProjectFilesTab = ({ projectId }) => {
   // Filter attachments based on search and filter
   const filteredAttachments = projectAttachments.filter(attachment => {
     const matchesSearch = attachment.Filename.toLowerCase().includes(fileSearch.toLowerCase());
-    const matchesFilter = fileFilter === 'all' || 
+    const matchesFilter = fileFilter === 'all' ||
       (fileFilter === 'images' && attachment.Filename.match(/\.(jpg|jpeg|png|gif|svg)$/i)) ||
       (fileFilter === 'documents' && attachment.Filename.match(/\.(doc|docx|xls|xlsx|ppt|pptx)$/i)) ||
       (fileFilter === 'pdf' && attachment.Filename.match(/\.pdf$/i)) ||
@@ -293,7 +293,7 @@ const ProjectFilesTab = ({ projectId }) => {
             )}
             {uploading ? 'Uploading...' : 'Upload Files'}
           </button>
-          
+
           {/* Hidden file input */}
           <input
             ref={fileInputRef}
@@ -303,7 +303,7 @@ const ProjectFilesTab = ({ projectId }) => {
             className="hidden"
             accept="*/*"
           />
-          
+
           <select
             value={fileFilter}
             onChange={(e) => setFileFilter(e.target.value)}
@@ -318,7 +318,7 @@ const ProjectFilesTab = ({ projectId }) => {
             <option value="pdf">PDFs</option>
             <option value="code">Code Files</option>
           </select>
-          <div className={getThemeClasses("flex border border-gray-300 rounded-lg overflow-hidden","dark:border-gray-600")}> 
+          <div className={getThemeClasses("flex border border-gray-300 rounded-lg overflow-hidden", "dark:border-gray-600")}>
             <button
               onClick={() => setFileViewMode('table')}
               className={`px-3 py-2 ${fileViewMode === 'table' ? getThemeClasses('bg-blue-500 text-white', 'dark:bg-blue-600') : getThemeClasses('bg-white text-gray-700', 'dark:bg-transparent dark:text-gray-300')}`}
@@ -426,8 +426,8 @@ const ProjectFilesTab = ({ projectId }) => {
           {fileViewMode === 'grid' && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {filteredAttachments.map((attachment, index) => (
-                <div 
-                  key={attachment.AttachmentID} 
+                <div
+                  key={attachment.AttachmentID}
                   className={getThemeClasses(
                     "group relative bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 ease-out hover:scale-105",
                     "dark:bg-transparent dark:border-gray-700 dark:hover:shadow-gray-900/50"

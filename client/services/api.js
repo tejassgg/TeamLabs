@@ -682,6 +682,15 @@ export const projectService = {
 };
 
 export const taskService = {
+  getNextTaskNumber: async () => {
+    try {
+      const response = await api.get('/task-details/next-number');
+      return response.data.nextTicketNumber;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to fetch next task number' };
+    }
+  },
   addTaskDetails: async (taskData, mode) => {
     try {
       const response = await api.post('/task-details', { taskDetail: taskData, mode: mode });

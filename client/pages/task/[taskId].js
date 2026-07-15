@@ -571,7 +571,7 @@ const TaskDetailsPage = () => {
     return (
         <>
             <Head>
-                <title>{task.Name} | TeamLabs</title>
+                <title>{task.TicketNumber ? `${task.TicketNumber} - ${task.Name}` : task.Name}</title>
             </Head>
             <div className="mx-auto">
                 {/* Mobile View */}
@@ -582,7 +582,7 @@ const TaskDetailsPage = () => {
                             "text-2xl font-bold text-gray-900 leading-tight",
                             "dark:text-white"
                         )}>
-                            {task.Name}
+                            {task.TicketNumber ? `${task.TicketNumber} - ` : ''}{task.Name}
                         </h1>
                     </div>
 
@@ -1374,7 +1374,7 @@ const TaskDetailsPage = () => {
                                     </button>
                                     {memberDropdownOpen && (
                                         <div className={getThemeClasses(
-                                            "absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10",
+                                            "absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10",
                                             "dark:bg-gray-800 dark:border-gray-700"
                                         )}>
                                             <div className="py-1">
@@ -1509,11 +1509,11 @@ const TaskDetailsPage = () => {
                                         <div className={getThemeClasses(
                                             "text-sm font-medium text-gray-500 mb-1",
                                             "dark:text-gray-400"
-                                        )}>Support Ticket</div>
-                                        <div className={getThemeClasses(
-                                            "text-orange-800 font-medium",
-                                            "dark:text-orange-300"
-                                        )}>
+                                        )}>{task.Type === 'Support' ? 'Support Ticket' : 'Task Number'}</div>
+                                        <div className={task.Type === 'Support'
+                                            ? getThemeClasses("text-orange-800 font-medium", "dark:text-orange-300")
+                                            : getThemeClasses("text-blue-800 font-semibold font-mono text-base", "dark:text-blue-300")
+                                        }>
                                             #{task.TicketNumber}
                                         </div>
                                     </div>

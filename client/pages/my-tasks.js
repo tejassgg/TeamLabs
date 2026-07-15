@@ -767,10 +767,20 @@ const MyTasksPage = () => {
                               </span>
                             </div>
                           </div>
-                          <span className={getThemeClasses(
-                            'text-xs text-gray-500 truncate block w-full',
-                            'text-xs text-gray-400 truncate block w-full'
-                          )} title={task.Description}>{task.Description}</span>
+                          <div className="flex items-center gap-1.5 min-w-0 w-full text-xs">
+                            {task.TicketNumber && (
+                              <span className="font-semibold font-mono text-blue-600 dark:text-blue-400 shrink-0">
+                                #{task.TicketNumber}
+                              </span>
+                            )}
+                            {task.TicketNumber && task.Description && (
+                              <span className="text-gray-300 dark:text-gray-600 shrink-0">•</span>
+                            )}
+                            <span className={getThemeClasses(
+                              'text-xs text-gray-500 truncate block w-full',
+                              'text-xs text-gray-400 truncate block w-full'
+                            )} title={task.Description}>{task.Description}</span>
+                          </div>
                           {/* Show assigned to on mobile if available */}
                           {task.AssignedTo && task.AssignedToDetails && (
                             <div className={getThemeClasses(

@@ -1860,13 +1860,13 @@ const TeamDetailsPage = () => {
                           </button>
                         </th>
                         <th className={`hidden md:table-cell py-3 px-4 text-left w-[7%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
-                          <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                          <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Priority</span>
                             {getTasksSortIcon('priority')}
                           </button>
                         </th>
                         <th className={`py-3 px-4 text-left w-[8%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
-                          <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                          <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Status</span>
                             {getTasksSortIcon('status')}
                           </button>
@@ -1908,10 +1908,20 @@ const TeamDetailsPage = () => {
                                   </button>
                                   {getTaskTypeBadge(task.Type)}
                                 </div>
-                                <span className={getThemeClasses(
-                                  'text-xs text-gray-500 truncate block w-full',
-                                  'dark:text-gray-400'
-                                )} title={task.Description}>{task.Description}</span>
+                                <div className="flex items-center gap-1.5 min-w-0 w-full text-xs">
+                                  {task.TicketNumber && (
+                                    <span className="font-semibold font-mono text-blue-600 dark:text-blue-400 shrink-0">
+                                      #{task.TicketNumber}
+                                    </span>
+                                  )}
+                                  {task.TicketNumber && task.Description && (
+                                    <span className="text-gray-300 dark:text-gray-600 shrink-0">•</span>
+                                  )}
+                                  <span className={getThemeClasses(
+                                    'text-gray-500 truncate block',
+                                    'dark:text-gray-400'
+                                  )} title={task.Description}>{task.Description}</span>
+                                </div>
                               </div>
                             </td>
                             <td className="py-3 px-4 overflow-hidden">
@@ -1957,15 +1967,15 @@ const TeamDetailsPage = () => {
                               )}
                             </td>
                             <td className={getThemeClasses(
-                              'hidden md:table-cell py-3 px-4 text-sm text-gray-600',
+                              'hidden md:table-cell flex items-center justify-center py-3 px-4 text-sm text-gray-600',
                               'dark:text-gray-400'
                             )}>
-                              {task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
+                              <span>{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                             </td>
-                            <td className="hidden md:table-cell py-3 px-4">
+                            <td className="hidden md:table-cell flex justify-center py-3 px-4">
                               {getPriorityBadge(task.Priority)}
                             </td>
-                            <td className="py-3 px-4">
+                            <td className="py-3 px-4 ">
                               {getTaskStatusBadge(task.Status, theme === 'dark', getTaskStatusText(task.Status))}
                             </td>
                           </tr>

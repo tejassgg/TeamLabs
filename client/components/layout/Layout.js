@@ -482,11 +482,13 @@ const Layout = ({ children, pageProject, pageTitle }) => {
     if (path === '/teams') return 'Teams';
     if (path === '/projects') return 'Projects';
 
-    // Dynamic routes
     if (path === '/task/[taskId]') {
       const taskId = query.taskId;
       const task = tasksDetails.find(t => t.TaskID === taskId || t._id === taskId);
-      return task?.Name || 'Task Details';
+      if (task) {
+        return task.TicketNumber ? `${task.TicketNumber} - ${task.Name}` : task.Name;
+      }
+      return 'Task Details';
     }
 
     if (path === '/project/[projectId]') {

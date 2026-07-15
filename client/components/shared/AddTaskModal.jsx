@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import CustomModal from './CustomModal';
 import CustomDropdown from './CustomDropdown';
-import { commonTypeService } from '../../services/api';
+import { commonTypeService, taskService } from '../../services/api';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { getTaskTypeBadge, getPriorityBadge } from '../task/TaskTypeBadge';
@@ -147,6 +147,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
   const [createdBy] = useState(userDetails?._id || '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [nextTaskNumber, setNextTaskNumber] = useState('');
 
   // Check if we're in edit mode
   const isEditMode = !!editingTask;
@@ -159,6 +160,19 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       setIsAnimating(true);
     }
   }, [isOpen]);
+
+  // Load next sequential task number when opening modal in add mode
+  useEffect(() => {
+    if (isOpen && !isEditMode) {
+      taskService.getNextTaskNumber()
+        .then(number => {
+          setNextTaskNumber(number);
+        })
+        .catch(err => {
+          console.error('Failed to load next task number:', err);
+        });
+    }
+  }, [isOpen, isEditMode]);
 
   const handleClose = () => {
     setIsAnimating(true);
@@ -311,7 +325,11 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
 
   const modalTitle = isEditMode
     ? (mode === 'fromSideBar' ? 'Edit User Story' : name)
-    : (mode === 'fromSideBar' ? 'Add User Story' : (addTaskTypeMode === 'userStory' ? 'Add New User Story' : 'Add New Task'));
+    : (mode === 'fromSideBar' 
+        ? `Add User Story ${nextTaskNumber ? `(#${nextTaskNumber})` : ''}` 
+        : (addTaskTypeMode === 'userStory' 
+            ? `Add New User Story ${nextTaskNumber ? `(#${nextTaskNumber})` : ''}` 
+            : `Add New Task ${nextTaskNumber ? `(#${nextTaskNumber})` : ''}`));
 
   return (
     <div className="fixed inset-0 z-40">
