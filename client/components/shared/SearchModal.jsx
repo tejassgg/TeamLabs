@@ -228,7 +228,7 @@ const SearchModal = ({ isOpen, onClose }) => {
           type: 'task',
           category: 'Tasks',
           id: t.TaskID,
-          name: `[${t.TicketNumber || 'Task'}] ${t.Name}`,
+          name: `${t.Name} - #${t.TicketNumber} `,
           desc: `${t.Type} • Priority: ${t.Priority} • Status: ${getTaskStatusLabel(t.Status)}`,
           url: `/task/${t.TaskID}`,
           icon: typeStyle?.icon ? (
