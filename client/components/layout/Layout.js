@@ -436,22 +436,21 @@ const Layout = ({ children, pageProject, pageTitle }) => {
 
   // Apply user's font preference on mount
   useEffect(() => {
-    if (userDetails?.fontFamily) {
-      const fontOptions = [
-        { value: 'Inter', fontFamily: 'Inter, sans-serif' },
-        { value: 'Roboto', fontFamily: 'Roboto, sans-serif' },
-        { value: 'Open Sans', fontFamily: 'Open Sans, sans-serif' },
-        { value: 'Lato', fontFamily: 'Lato, sans-serif' },
-        { value: 'Montserrat', fontFamily: 'Montserrat, sans-serif' },
-        { value: 'Poppins', fontFamily: 'Poppins, sans-serif' },
-        { value: 'Source Sans Pro', fontFamily: 'Source Sans Pro, sans-serif' },
-        { value: 'Nunito', fontFamily: 'Nunito, sans-serif' },
-        { value: 'JetBrains Mono', fontFamily: 'JetBrains Mono, monospace' }
-      ];
-      const selectedFont = fontOptions.find(f => f.value === userDetails.fontFamily);
-      if (selectedFont) {
-        document.documentElement.style.setProperty('--font-family', selectedFont.fontFamily);
-      }
+    const fontOptions = [
+      { value: 'Inter', fontFamily: 'Inter, sans-serif' },
+      { value: 'Roboto', fontFamily: 'Roboto, sans-serif' },
+      { value: 'Open Sans', fontFamily: 'Open Sans, sans-serif' },
+      { value: 'Lato', fontFamily: 'Lato, sans-serif' },
+      { value: 'Montserrat', fontFamily: 'Montserrat, sans-serif' },
+      { value: 'Poppins', fontFamily: 'Poppins, sans-serif' },
+      { value: 'Source Sans Pro', fontFamily: 'Source Sans Pro, sans-serif' },
+      { value: 'Nunito', fontFamily: 'Nunito, sans-serif' },
+      { value: 'JetBrains Mono', fontFamily: 'JetBrains Mono, monospace' }
+    ];
+    const userFont = userDetails?.fontFamily || 'JetBrains Mono';
+    const selectedFont = fontOptions.find(f => f.value === userFont);
+    if (selectedFont) {
+      document.documentElement.style.setProperty('--font-family', selectedFont.fontFamily);
     }
   }, [userDetails?.fontFamily]);
 

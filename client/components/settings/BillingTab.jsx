@@ -348,7 +348,7 @@ const BillingTab = ({
 
   return (
     <>
-      <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+      <div className="p-6 bg-white dark:bg-transparent">
         <div className={`mb-4 p-6 rounded-xl ${theme === 'dark' ? 'bg-transparent' : 'bg-gray-50'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>

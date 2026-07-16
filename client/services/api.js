@@ -976,6 +976,14 @@ export const taskDetailsService = {
   getFullTaskDetails: async (taskId) => {
     const res = await api.get(`/task-details/${taskId}/full`);
     return res.data;
+  },
+  addGitLink: async (taskId, gitLinkData) => {
+    const res = await api.post(`/task-details/${taskId}/git-links`, gitLinkData);
+    return res.data;
+  },
+  deleteGitLink: async (taskId, linkId) => {
+    const res = await api.delete(`/task-details/${taskId}/git-links/${linkId}`);
+    return res.data;
   }
 };
 
@@ -1185,6 +1193,28 @@ export const githubService = {
     } catch (error) {
       if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch commits' };
+    }
+  },
+
+  // Get project branches
+  getProjectBranches: async (projectId) => {
+    try {
+      const response = await api.get(`/projects/${projectId}/github/branches`);
+      return response.data;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to fetch branches' };
+    }
+  },
+
+  // Get project pull requests
+  getProjectPullRequests: async (projectId) => {
+    try {
+      const response = await api.get(`/projects/${projectId}/github/pullrequests`);
+      return response.data;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to fetch pull requests' };
     }
   },
 

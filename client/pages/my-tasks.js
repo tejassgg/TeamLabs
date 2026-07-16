@@ -51,8 +51,8 @@ const MyTasksPage = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [projectFilter, setProjectFilter] = useState('');
-  const [sortBy, setSortBy] = useState('deadline');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortBy, setSortBy] = useState('assignedDate');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
@@ -150,6 +150,10 @@ const MyTasksPage = () => {
         case 'deadline':
           aValue = a.Deadline ? new Date(a.Deadline) : new Date('9999-12-31');
           bValue = b.Deadline ? new Date(b.Deadline) : new Date('9999-12-31');
+          break;
+        case 'assignedDate':
+          aValue = a.AssignedDate ? new Date(a.AssignedDate) : new Date('1970-01-01');
+          bValue = b.AssignedDate ? new Date(b.AssignedDate) : new Date('1970-01-01');
           break;
         case 'priority':
           const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
@@ -569,7 +573,7 @@ const MyTasksPage = () => {
           {filteredTasks.length > 0 && (
             <div className={getThemeClasses(
               'flex flex-col sm:flex-row items-center justify-between gap-2 p-1 bg-white shadow-sm',
-              'flex flex-col sm:flex-row items-center justify-between gap-2 p-1 bg-[#232323] shadow-sm'
+              'flex flex-col sm:flex-row items-center justify-between gap-2 p-1 shadow-sm'
             )}>
               <div className={getThemeClasses('text-sm text-gray-650 text-gray-500', 'text-sm text-gray-400')}>
                 Showing <span className="font-semibold text-blue-500">{indexOfFirstTask + 1}</span> to{' '}
@@ -607,9 +611,9 @@ const MyTasksPage = () => {
                             currentPage === pageNum
                               ? 'px-3 py-1.5 rounded-lg text-sm font-bold text-white bg-blue-600 shadow-sm shadow-blue-500/20'
                               : getThemeClasses(
-                                  'px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm font-medium text-gray-700 bg-white',
-                                  'px-3 py-1.5 rounded-lg border border-gray-600 hover:bg-gray-800/40 text-sm font-medium text-gray-300 bg-[#2A2A2A]'
-                                )
+                                'px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm font-medium text-gray-700 bg-white',
+                                'px-3 py-1.5 rounded-lg border border-gray-600 hover:bg-gray-800/40 text-sm font-medium text-gray-300 bg-[#2A2A2A]'
+                              )
                           }
                         >
                           {pageNum}
@@ -641,7 +645,7 @@ const MyTasksPage = () => {
             </div>
           )}
 
-          <div className="overflow-x-auto border border-gray-300 rounded-xl">
+          <div className={getThemeClasses('overflow-x-auto border border-gray-300 rounded-xl', 'overflow-x-auto border border-zinc-800 rounded-xl')}>
             {filteredTasks.length === 0 ? (
               <div className={getThemeClasses(
                 'text-center py-8 text-gray-400',
@@ -664,7 +668,7 @@ const MyTasksPage = () => {
             ) : (
               <table className="w-full table-fixed">
                 <thead>
-                  <tr className={getTableHeaderClasses() + " bg-gray-50"}>
+                  <tr className={getTableHeaderClasses('bg-gray-50 border-b border-gray-200', 'bg-zinc-800/40 border-b border-zinc-700')}>
                     <th className="py-3 px-4 text-center w-[50px]">
                       <input
                         type="checkbox"
@@ -705,11 +709,11 @@ const MyTasksPage = () => {
                     </th>
                     <th className={`hidden md:table-cell py-3 px-4 text-center w-[12%] ${tableHeaderTextClasses}`}>
                       <button
-                        onClick={() => handleHeaderSort('deadline')}
+                        onClick={() => handleHeaderSort('assignedDate')}
                         className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors mx-auto w-full text-center ${tableHeaderTextClasses}`}
                       >
                         Assigned On
-                        {getSortIcon('deadline')}
+                        {getSortIcon('assignedDate')}
                       </button>
                     </th>
                     <th className={`hidden md:table-cell py-3 px-4 text-left w-[10%] ${tableHeaderTextClasses}`}>
@@ -918,7 +922,7 @@ const MyTasksPage = () => {
                 ×
               </button>
             </div>
-            
+
             <div className="space-y-3 mb-6">
               {/* Total Tasks */}
               <div className={getThemeClasses(
@@ -933,7 +937,7 @@ const MyTasksPage = () => {
                   <FaTasks className="w-4 h-4" />
                 </div>
               </div>
-              
+
               {/* Completed */}
               <div className={getThemeClasses(
                 'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
@@ -990,7 +994,7 @@ const MyTasksPage = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex justify-end">
               <button
                 onClick={() => setIsStatsModalOpen(false)}

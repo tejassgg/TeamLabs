@@ -2,13 +2,13 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { FaCheckCircle, FaClock, FaEdit, FaProjectDiagram, FaCalendarAlt, FaChevronDown, FaPlus, FaTasks, FaImage, FaMicrophone, FaPaperclip, FaTag, FaPaperPlane, FaReply, FaTrash, FaTimes, FaCheck } from 'react-icons/fa';
+import { FaCheckCircle, FaClock, FaEdit, FaProjectDiagram, FaCalendarAlt, FaChevronDown, FaPlus, FaTasks, FaImage, FaMicrophone, FaPaperclip, FaTag, FaPaperPlane, FaReply, FaTrash, FaTimes, FaCheck, FaCodeBranch, FaGitAlt } from 'react-icons/fa';
 import { MdDelete } from 'react-icons/md';
 import TaskCollaborationIndicator from '../../components/shared/TaskCollaborationIndicator';
 import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { useToast } from '../../context/ToastContext';
-import { taskService, taskDetailsService, commentService } from '../../services/api';
+import { taskService, taskDetailsService, commentService, githubService } from '../../services/api';
 import TaskDetailsSkeleton from '../../components/skeletons/TaskDetailsSkeleton';
 import { statusMap, statusIcons, statusColors, useThemeClasses } from '../../components/kanban/kanbanUtils';
 import { connectSocket, subscribe, getSocket } from '../../services/socket';
@@ -19,6 +19,7 @@ import SubtaskList from '../../components/task/SubtaskList';
 import CustomModal from '../../components/shared/CustomModal';
 import { getPriorityBadge, getTaskTypeBadge } from '../../components/task/TaskTypeBadge';
 import AddTaskModal from '../../components/shared/AddTaskModal';
+import CustomDropdown from '../../components/shared/CustomDropdown';
 
 const TaskDetailsPage = () => {
     const router = useRouter();
@@ -48,6 +49,16 @@ const TaskDetailsPage = () => {
     const [newTaskName, setNewTaskName] = useState('');
     const editTaskNameInputRef = useRef(null);
     const taskNameSpanRef = useRef(null);
+
+    // Git Link state variables
+    const [isGitLinkModalOpen, setIsGitLinkModalOpen] = useState(false);
+    const [gitLinkType, setGitLinkType] = useState('Commit');
+    const [gitCommitSha, setGitCommitSha] = useState('');
+    const [gitComment, setGitComment] = useState('');
+    const [gitCommitMessage, setGitCommitMessage] = useState('');
+    const [gitSubmitting, setGitSubmitting] = useState(false);
+    const [gitCommitsList, setGitCommitsList] = useState([]);
+    const [gitCommitsLoading, setGitCommitsLoading] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [userStoryTasks, setUserStoryTasks] = useState([]);
@@ -62,20 +73,20 @@ const TaskDetailsPage = () => {
         const date = new Date(dueDate);
         const today = new Date();
         const isToday = date.toDateString() === today.toDateString();
-        
+
         const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-        
+
         if (isToday) {
             return `Today ${timeStr}`;
         }
-        
+
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         const isTomorrow = date.toDateString() === tomorrow.toDateString();
         if (isTomorrow) {
             return `Tomorrow ${timeStr}`;
         }
-        
+
         return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${timeStr}`;
     };
 
@@ -230,8 +241,12 @@ const TaskDetailsPage = () => {
         if (!taskId) return;
         const offTaskUpdated = subscribe('task.updated', (payload) => {
             const { data } = payload || {};
-            if (!data || data.taskId !== taskId) return;
-            setTask(prev => ({ ...prev, ...(data.changes || {}) }));
+            if (!data) return;
+            if (data.task && data.task.TaskID === taskId) {
+                setTask(prev => ({ ...prev, ...data.task }));
+            } else if (data.taskId === taskId) {
+                setTask(prev => ({ ...prev, ...(data.changes || {}) }));
+            }
         });
         // Also react to project-level kanban status updates for redundancy
         const offKanbanStatus = subscribe('kanban.task.status.updated', (payload) => {
@@ -521,12 +536,113 @@ const TaskDetailsPage = () => {
         }
     };
 
+    const handleFindCommits = async () => {
+        if (!project) return;
+        setGitCommitsLoading(true);
+        try {
+            const data = await githubService.getProjectCommits(project.ProjectID || project._id);
+            setGitCommitsList(data.commits || []);
+            if ((data.commits || []).length === 0) {
+                showToast('No commits found in the repository', 'info');
+            }
+        } catch (err) {
+            console.error('Error finding commits:', err);
+            showToast('Failed to load commits from GitHub', 'error');
+        } finally {
+            setGitCommitsLoading(false);
+        }
+    };
+
+    const handleFindBranches = async () => {
+        if (!project) return;
+        setGitCommitsLoading(true);
+        try {
+            const data = await githubService.getProjectBranches(project.ProjectID || project._id);
+            setGitCommitsList(data.branches || []);
+            if ((data.branches || []).length === 0) {
+                showToast('No branches found in the repository', 'info');
+            }
+        } catch (err) {
+            console.error('Error finding branches:', err);
+            showToast('Failed to load branches from GitHub', 'error');
+        } finally {
+            setGitCommitsLoading(false);
+        }
+    };
+
+    const handleFindPullRequests = async () => {
+        if (!project) return;
+        setGitCommitsLoading(true);
+        try {
+            const data = await githubService.getProjectPullRequests(project.ProjectID || project._id);
+            setGitCommitsList(data.pulls || []);
+            if ((data.pulls || []).length === 0) {
+                showToast('No pull requests found in the repository', 'info');
+            }
+        } catch (err) {
+            console.error('Error finding pull requests:', err);
+            showToast('Failed to load pull requests from GitHub', 'error');
+        } finally {
+            setGitCommitsLoading(false);
+        }
+    };
+
+    const handleSubmitGitLink = async (e) => {
+        e?.preventDefault();
+        if (!gitCommitSha) {
+            showToast('Commit SHA is required', 'error');
+            return;
+        }
+
+        setGitSubmitting(true);
+        try {
+            const repoFullName = project?.githubRepository?.repositoryFullName || 'Unknown Repository';
+            const res = await taskDetailsService.addGitLink(taskId, {
+                linkType: gitLinkType,
+                repository: repoFullName,
+                commitSha: gitCommitSha,
+                comment: gitComment,
+                commitMessage: gitCommitMessage
+            });
+
+            if (res.success) {
+                setTask(prev => ({ ...prev, gitLinks: res.gitLinks }));
+                showToast('Git link added successfully', 'success');
+                // Reset form
+                setGitCommitSha('');
+                setGitComment('');
+                setGitCommitMessage('');
+                setGitCommitsList([]);
+                setIsGitLinkModalOpen(false);
+            }
+        } catch (err) {
+            console.error('Error adding git link:', err);
+            showToast(err.error || 'Failed to add git link', 'error');
+        } finally {
+            setGitSubmitting(false);
+        }
+    };
+
+    const handleDeleteGitLink = async (linkId) => {
+        if (!window.confirm('Are you sure you want to remove this git link?')) return;
+        try {
+            const res = await taskDetailsService.deleteGitLink(taskId, linkId);
+            if (res.success) {
+                setTask(prev => ({ ...prev, gitLinks: res.gitLinks }));
+                showToast('Git link removed successfully', 'success');
+            }
+        } catch (err) {
+            console.error('Error removing git link:', err);
+            showToast('Failed to remove git link', 'error');
+        }
+    };
+
     const handleAddTask = async (taskData) => {
         try {
             // Set ParentID to current user story's TaskID and always set ProjectID_FK
             const newTask = await taskService.addTaskDetails({ ...taskData, ParentID: task.TaskID, ProjectID_FK: task.ProjectID_FK }, 'fromProject');
             setUserStoryTasks(prev => [...prev, newTask]);
-            
+
             const typeLabel = newTask.Type === 'User Story' ? 'User Story' : 'Task';
             showToast(`${typeLabel} added successfully!`, 'success', 5000, {
                 description: `${typeLabel} "${newTask?.Name || taskData?.Name || ''}" has been created.`,
@@ -718,7 +834,7 @@ const TaskDetailsPage = () => {
                                                             <span className="text-[9px] text-blue-500 font-semibold shrink-0 dark:text-blue-400"> (edited)</span>
                                                         )}
                                                     </div>
-                                                    
+
                                                     {/* Actions */}
                                                     {isAuthor && !isEditing && (
                                                         <div className="flex items-center gap-1.5 shrink-0">
@@ -745,7 +861,7 @@ const TaskDetailsPage = () => {
                                                         </div>
                                                     )}
                                                 </div>
-                                                
+
                                                 {isEditing ? (
                                                     <div className="space-y-2 mt-1">
                                                         <textarea
@@ -846,6 +962,109 @@ const TaskDetailsPage = () => {
                     )}
 
                     {/* Divider */}
+                    {project?.githubRepository?.connected && (
+                        <>
+                            <div className={getThemeClasses("border-t border-gray-100", "dark:border-gray-800")} />
+
+                            {/* Development Section (Mobile UI) */}
+                            <div className={getThemeClasses(
+                                "border border-gray-100 rounded-2xl p-4 bg-gray-50/30",
+                                "dark:border-gray-800 dark:bg-transparent"
+                            )}>
+                                <h2 className={getThemeClasses("text-lg font-bold text-gray-900 flex items-center gap-2 mb-3 pb-2 border-b border-gray-100", "dark:text-gray-100 dark:border-gray-800")}>
+                                    <FaCodeBranch className="text-blue-500" size={18} />
+                                    Development
+                                </h2>
+                                <div className={getThemeClasses(
+                                    "flex gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50 mb-3",
+                                    "dark:border-zinc-800 dark:bg-zinc-900/50 mb-3"
+                                )}>
+                                    <div className="bg-[#e84c22] rounded-lg p-2.5 flex items-center justify-center h-11 w-11 shrink-0 shadow-sm">
+                                        <FaGitAlt className="text-white text-2xl" />
+                                    </div>
+                                    <div className={getThemeClasses("text-sm leading-relaxed text-gray-600", "dark:text-gray-300")}>
+                                        Link a GitHub <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium" onClick={() => { setGitLinkType('Commit'); setIsGitLinkModalOpen(true); }}>commit</span>,{' '}
+                                        <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium" onClick={() => { setGitLinkType('Pull Request'); setIsGitLinkModalOpen(true); }}>pull request</span> or{' '}
+                                        <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium" onClick={() => { setGitLinkType('Branch'); setIsGitLinkModalOpen(true); }}>branch</span> to see the status of your development.
+                                    </div>
+                                </div>
+
+                                {/* List of linked items */}
+                                {task?.gitLinks?.length > 0 && (
+                                    <div className="max-h-60 overflow-y-auto mt-3 pl-3 space-y-1">
+                                        {task.gitLinks.map((link) => {
+                                            const repoUrl = project?.githubRepository?.repositoryUrl;
+                                            const commitUrl = repoUrl
+                                                ? (link.linkType === 'Commit'
+                                                    ? `${repoUrl}/commit/${link.commitSha}`
+                                                    : (link.linkType === 'Branch'
+                                                        ? `${repoUrl}/tree/${link.commitSha}`
+                                                        : (link.linkType === 'Pull Request'
+                                                            ? `${repoUrl}/pull/${link.commitSha}`
+                                                            : null)))
+                                                : null;
+                                            const displaySha = link.linkType === 'Commit'
+                                                ? `#${link.commitSha.substring(0, 7)}`
+                                                : `#${link.commitSha}`;
+
+                                            return (
+                                                <div
+                                                    key={link._id}
+                                                    className="py-1 flex items-center justify-between gap-3 text-xs"
+                                                    title={`Comment: ${link.comment || 'No comment'}\nLinked by ${link.linkedBy} on ${new Date(link.linkedAt).toLocaleDateString()}`}
+                                                >
+                                                    <div className="flex items-center gap-1.5 min-w-0 flex-1 flex-wrap">
+                                                        <span
+                                                            className={getThemeClasses(
+                                                                "text-blue-600 shrink-0 flex items-center justify-center w-5 h-5",
+                                                                "text-blue-400"
+                                                            )}
+                                                            title={link.linkType}
+                                                        >
+                                                            {link.linkType === 'Commit' && <FaGitAlt className="text-sm" />}
+                                                            {link.linkType === 'Branch' && <FaCodeBranch className="text-sm" />}
+                                                            {link.linkType === 'Pull Request' && <FaGitAlt className="text-sm" />}
+                                                        </span>
+                                                        {commitUrl ? (
+                                                            <a
+                                                                href={commitUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="font-mono font-semibold text-blue-600 dark:text-blue-400 hover:underline shrink-0"
+                                                            >
+                                                                {displaySha}
+                                                            </a>
+                                                        ) : (
+                                                            <span className="font-mono font-semibold text-gray-700 dark:text-gray-300 shrink-0">
+                                                                {displaySha}
+                                                            </span>
+                                                        )}
+                                                        {(link.commitMessage || link.comment) && (
+                                                            <span className={getThemeClasses("text-gray-505 font-medium truncate block max-w-[500px]", "dark:text-gray-400")} title={link.commitMessage || link.comment}>
+                                                                - {link.commitMessage || link.comment}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleDeleteGitLink(link._id)}
+                                                        className={getThemeClasses(
+                                                            "inline-flex items-center justify-center w-6 h-6 rounded-full text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 shrink-0",
+                                                            "dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50"
+                                                        )}
+                                                        title="Remove link"
+                                                    >
+                                                        <FaTimes size={10} />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+
+                    {/* Divider */}
                     <div className={getThemeClasses("border-t border-gray-100", "dark:border-gray-800")} />
 
                     {/* History Section */}
@@ -930,7 +1149,7 @@ const TaskDetailsPage = () => {
                         "fixed bottom-0 left-0 right-0 z-45 bg-white border-t border-gray-200 px-4 py-3 shadow-xl flex flex-col gap-2 pb-safe",
                         "dark:bg-[#18181b] dark:border-gray-800"
                     )}>
-                        <div className="flex items-center gap-3">                            
+                        <div className="flex items-center gap-3">
                             {/* Input container */}
                             <div className="flex-1 relative">
                                 <input
@@ -948,11 +1167,10 @@ const TaskDetailsPage = () => {
                             <button
                                 onClick={handleMobileCommentSubmit}
                                 disabled={!mobileCommentText.trim() || mobileSubmitting}
-                                className={`rounded-xl p-2.5 text-white flex items-center justify-center transition-all duration-200 shadow-sm ${
-                                    mobileCommentText.trim() && !mobileSubmitting
-                                        ? 'bg-blue-600 hover:bg-blue-700 transform hover:scale-105 active:scale-95'
-                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
-                                }`}
+                                className={`rounded-xl p-2.5 text-white flex items-center justify-center transition-all duration-200 shadow-sm ${mobileCommentText.trim() && !mobileSubmitting
+                                    ? 'bg-blue-600 hover:bg-blue-700 transform hover:scale-105 active:scale-95'
+                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                                    }`}
                             >
                                 <FaPaperPlane size={12} />
                             </button>
@@ -961,9 +1179,9 @@ const TaskDetailsPage = () => {
                 </div>
 
                 {/* Desktop View */}
-                <div className="hidden lg:grid grid-cols-3 gap-8" data-task-id={taskId}>
+                <div className="hidden lg:grid grid-cols-6 gap-4" data-task-id={taskId}>
                     {/* Left/Main Section */}
-                    <div className="lg:col-span-2">
+                    <div className="lg:col-span-3">
                         {/* Task Progress Bar */}
                         <div className="mb-6">
                             <div className={getThemeClasses(
@@ -1111,57 +1329,57 @@ const TaskDetailsPage = () => {
                                                 {task.Priority && getPriorityBadge(task.Priority)}
                                             </div>
                                             <div className="flex items-center gap-2">
-                                            {/* Status Dropdown */}
-                                            <div className="relative status-dropdown">
-                                                <button
-                                                    onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                                                    className={getThemeClasses(
-                                                        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium bg-transparent border-none shadow-none transition-colors cursor-pointer",
-                                                        "dark:bg-transparent border-none shadow-none dark:text-gray-100"
-                                                    )}
-                                                    style={{ minWidth: 120 }}
-                                                    disabled={updatingStatus}
-                                                >
-                                                    <span className={`inline-flex items-center gap-2 ${statusInfo.statusStyle.textLight}`}>{statusInfo.statusIcon} {statusInfo.statusName}</span>
-                                                    <FaChevronDown size={12} className={getThemeClasses("ml-1 text-gray-400", "dark:text-gray-500")} />
-                                                </button>
-                                                {statusDropdownOpen && (
-                                                    <div className={getThemeClasses(
-                                                        "absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10",
-                                                        "dark:bg-gray-800 dark:border-gray-700"
-                                                    )}>
-                                                        <div className="py-1">
-                                                            {Object.entries(statusMap).map(([statusCode, statusName]) => {
-                                                                const currentStatusInfo = getStatusInfo(parseInt(statusCode));
-                                                                const isCurrentStatus = parseInt(statusCode) === task.Status;
-                                                                return (
-                                                                    <button
-                                                                        key={statusCode}
-                                                                        onClick={() => handleStatusUpdate(parseInt(statusCode))}
-                                                                        disabled={updatingStatus || isCurrentStatus}
-                                                                        className={getThemeClasses(
-                                                                            `w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 ${isCurrentStatus ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`,
-                                                                            `dark:hover:bg-gray-700 ${isCurrentStatus ? 'dark:bg-blue-900/30 dark:text-blue-300' : 'dark:text-gray-300'}`
-                                                                        )}
-                                                                    >
-                                                                        {currentStatusInfo.statusIcon}
-                                                                        {statusName}
-                                                                        {isCurrentStatus && (
-                                                                            <span className={getThemeClasses(
-                                                                                "ml-auto text-blue-600",
-                                                                                "dark:text-blue-400"
-                                                                            )}>
-                                                                                <FaCheckCircle size={12} />
-                                                                            </span>
-                                                                        )}
-                                                                    </button>
-                                                                );
-                                                            })}
+                                                {/* Status Dropdown */}
+                                                <div className="relative status-dropdown">
+                                                    <button
+                                                        onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                                                        className={getThemeClasses(
+                                                            "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium bg-transparent border-none shadow-none transition-colors cursor-pointer",
+                                                            "dark:bg-transparent border-none shadow-none dark:text-gray-100"
+                                                        )}
+                                                        style={{ minWidth: 120 }}
+                                                        disabled={updatingStatus}
+                                                    >
+                                                        <span className={`inline-flex items-center gap-2 ${statusInfo.statusStyle.textLight}`}>{statusInfo.statusIcon} {statusInfo.statusName}</span>
+                                                        <FaChevronDown size={12} className={getThemeClasses("ml-1 text-gray-400", "dark:text-gray-500")} />
+                                                    </button>
+                                                    {statusDropdownOpen && (
+                                                        <div className={getThemeClasses(
+                                                            "absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10",
+                                                            "dark:bg-gray-800 dark:border-gray-700"
+                                                        )}>
+                                                            <div className="py-1">
+                                                                {Object.entries(statusMap).map(([statusCode, statusName]) => {
+                                                                    const currentStatusInfo = getStatusInfo(parseInt(statusCode));
+                                                                    const isCurrentStatus = parseInt(statusCode) === task.Status;
+                                                                    return (
+                                                                        <button
+                                                                            key={statusCode}
+                                                                            onClick={() => handleStatusUpdate(parseInt(statusCode))}
+                                                                            disabled={updatingStatus || isCurrentStatus}
+                                                                            className={getThemeClasses(
+                                                                                `w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 ${isCurrentStatus ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`,
+                                                                                `dark:hover:bg-gray-700 ${isCurrentStatus ? 'dark:bg-blue-900/30 dark:text-blue-300' : 'dark:text-gray-300'}`
+                                                                            )}
+                                                                        >
+                                                                            {currentStatusInfo.statusIcon}
+                                                                            {statusName}
+                                                                            {isCurrentStatus && (
+                                                                                <span className={getThemeClasses(
+                                                                                    "ml-auto text-blue-600",
+                                                                                    "dark:text-blue-400"
+                                                                                )}>
+                                                                                    <FaCheckCircle size={12} />
+                                                                                </span>
+                                                                            )}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {/* Delete Icon */}
+                                                    )}
+                                                </div>
+                                                {/* Delete Icon */}
                                                 <button
                                                     onClick={handleDeleteTask}
                                                     className={getThemeClasses(
@@ -1454,89 +1672,77 @@ const TaskDetailsPage = () => {
                             <TaskComments taskId={task.TaskID} userId={userDetails?._id} userName={userDetails?.fullName || userDetails?.username || 'User'} initialComments={comments} projectMembers={projectMembers} />
                         </div>
                     </div>
-                    {/* Right Column - Project Info & Actions */}
-                    <div className="space-y-5">
+                    <div className='lg:col-span-1'>
                         {/* --- TASK DATES SECTION --- */}
-                        <div className={getThemeClasses(
-                            "border border-gray-200 rounded-xl px-6 bg-transparent",
-                            "dark:border-gray-700 dark:bg-transparent"
-                        )}>
-                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900 flex items-center gap-2 border-b border-gray-200 py-4", "dark:text-gray-100 dark:border-gray-700")}>
-                                <FaCalendarAlt className={getThemeClasses("text-blue-500", "dark:text-blue-400")} />
-                                Task Dates
-                            </h2>
-                            <div className="flex items-start justify-between gap-4 pb-4">
-                                <div>
-                                    <div className={getThemeClasses(
-                                        "text-sm font-medium text-gray-500 mb-1",
-                                        "dark:text-gray-400"
-                                    )}>Created Date</div>
-                                    <div className={getThemeClasses(
-                                        "text-gray-900 font-medium",
-                                        "dark:text-gray-100"
-                                    )}>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h3 className={getThemeClasses("text-base font-bold text-gray-900 flex items-center gap-2", "dark:text-gray-100")}>
+                                    <FaCalendarAlt className="text-blue-500" /> Task Dates
+                                </h3>
+                            </div>
+                            <div className={getThemeClasses(
+                                "flex flex-col gap-3 p-4 rounded-xl border border-gray-100 bg-gray-50",
+                                "dark:border-zinc-800 dark:bg-zinc-900/50"
+                            )}>
+                                {/* Created Date */}
+                                <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
+                                    <span className={getThemeClasses("text-xs font-semibold text-gray-500 flex items-center gap-2", "dark:text-gray-400")}>
+                                        <FaCalendarAlt className="text-blue-550 text-[11px]" /> Created
+                                    </span>
+                                    <span className={getThemeClasses("text-xs font-semibold text-gray-900", "dark:text-gray-100")}>
                                         {task.CreatedDate ? new Date(task.CreatedDate).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'long',
+                                            month: 'short',
                                             day: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
+                                            year: 'numeric'
                                         }) : 'Not available'}
-                                    </div>
+                                    </span>
                                 </div>
-                                {task.AssignedDate && (
-                                    <div>
-                                        <div className={getThemeClasses(
-                                            "text-sm font-medium text-gray-500 mb-1",
-                                            "dark:text-gray-400"
-                                        )}>Assigned Date</div>
-                                        <div className={getThemeClasses(
-                                            "text-gray-900 font-medium",
-                                            "dark:text-gray-100"
-                                        )}>
-                                            {new Date(task.AssignedDate).toLocaleDateString('en-US', {
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-                                {task.TicketNumber && (
-                                    <div>
-                                        <div className={getThemeClasses(
-                                            "text-sm font-medium text-gray-500 mb-1",
-                                            "dark:text-gray-400"
-                                        )}>{task.Type === 'Support' ? 'Support Ticket' : 'Task Number'}</div>
-                                        <div className={task.Type === 'Support'
-                                            ? getThemeClasses("text-orange-800 font-medium", "dark:text-orange-300")
-                                            : getThemeClasses("text-blue-800 font-semibold font-mono text-base", "dark:text-blue-300")
-                                        }>
-                                            #{task.TicketNumber}
-                                        </div>
-                                    </div>
-                                )}
+
+                                {/* Assigned Date */}
+                                <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
+                                    <span className={getThemeClasses("text-xs font-semibold text-gray-500 flex items-center gap-2", "dark:text-gray-400")}>
+                                        <FaClock className="text-purple-550 text-[11px]" /> Assigned
+                                    </span>
+                                    <span className={getThemeClasses("text-xs font-semibold text-gray-900", "dark:text-gray-100")}>
+                                        {task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric'
+                                        }) : 'Not assigned'}
+                                    </span>
+                                </div>
+
+                                {/* Due Date */}
+                                <div className="flex items-center justify-between">
+                                    <span className={getThemeClasses("text-xs font-semibold text-gray-500 flex items-center gap-2", "dark:text-gray-400")}>
+                                        <FaClock className="text-orange-555 text-[11px]" /> Due Date
+                                    </span>
+                                    <span className={getThemeClasses("text-xs font-semibold text-gray-900", "dark:text-gray-100")}>
+                                        {task.DueDate ? new Date(task.DueDate).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric'
+                                        }) : 'Today 11:59 PM'}
+                                    </span>
+                                </div>
                             </div>
                         </div>
-
+                    </div>
+                    {/* Right Column - Project Info & Actions */}
+                    <div className="lg:col-span-2 space-y-5">
                         {/* --- PROJECT INFORMATION SECTION --- */}
-                        <div className={getThemeClasses(
-                            "border border-gray-200 rounded-xl px-6 bg-transparent",
-                            "dark:border-gray-700 dark:bg-transparent"
-                        )}>
-                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900 flex items-center gap-2 border-b border-gray-200 py-4", "dark:text-gray-100 dark:border-gray-700")}>
-                                <FaProjectDiagram className={getThemeClasses("text-purple-500", "dark:text-purple-400")} />
-                                Project Information
-                            </h2>
-                            {project && (
-                                <div className="space-y-4 pb-4">
-                                    <div>
-                                        <div className={getThemeClasses(
-                                            "text-sm font-medium text-gray-500 mb-1",
-                                            "dark:text-gray-400"
-                                        )}>Project Name</div>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h3 className={getThemeClasses("text-base font-bold text-gray-900 flex items-center gap-2", "dark:text-gray-100")}>
+                                    <FaProjectDiagram className="text-blue-500" /> Project Info
+                                </h3>
+                            </div>
+                            <div className={getThemeClasses(
+                                "flex gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50",
+                                "dark:border-zinc-800 dark:bg-zinc-900/50"
+                            )}>
+                                {project && (
+                                    <div className="space-y-2 pb-2">
                                         <Link
                                             href={`/project/${project.ProjectID || project._id}`}
                                             className={getThemeClasses(
@@ -1546,113 +1752,205 @@ const TaskDetailsPage = () => {
                                         >
                                             {project.Name}
                                         </Link>
-                                    </div>
-                                    {project.Description && (
-                                        <div>
-                                            <div className={getThemeClasses(
-                                                "text-sm font-medium text-gray-500 mb-1",
-                                                "dark:text-gray-400"
-                                            )}>Description</div>
+                                        {project.Description && (
                                             <div className={getThemeClasses(
                                                 "text-gray-900",
                                                 "dark:text-gray-100"
                                             )}>
                                                 {project.Description}
                                             </div>
-                                        </div>
-                                    )}
-                                    {project.DueDate && (
-                                        <div>
-                                            <div className={getThemeClasses(
-                                                "text-sm font-medium text-gray-500 mb-1",
-                                                "dark:text-gray-400"
-                                            )}>Project Deadline</div>
-                                            <div className={getThemeClasses(
-                                                "text-gray-900 font-medium",
-                                                "dark:text-gray-100"
-                                            )}>
-                                                {new Date(project.DueDate).toLocaleDateString()}
+                                        )}
+                                        {project.DueDate && (
+                                            <div>
+                                                <div className={getThemeClasses(
+                                                    "text-sm font-medium text-gray-500 mb-1",
+                                                    "dark:text-gray-400"
+                                                )}>Project Deadline</div>
+                                                <div className={getThemeClasses(
+                                                    "text-gray-900 font-medium",
+                                                    "dark:text-gray-100"
+                                                )}>
+                                                    {new Date(project.DueDate).toLocaleDateString()}
+                                                </div>
                                             </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* --- DEVELOPMENT SECTION --- */}
+                        {project?.githubRepository?.connected && (
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h3 className={getThemeClasses("text-base font-bold text-gray-900 flex items-center gap-2", "dark:text-gray-100")}>
+                                        <FaCodeBranch className="text-blue-500" /> Development
+                                    </h3>
+                                </div>
+                                <div className={getThemeClasses(
+                                    "flex gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50",
+                                    "dark:border-zinc-800 dark:bg-zinc-900/50"
+                                )}>
+                                    <div className="bg-[#e84c22] rounded-lg p-2.5 flex items-center justify-center h-11 w-11 shrink-0 shadow-sm">
+                                        <FaGitAlt className="text-white text-2xl" />
+                                    </div>
+                                    <div className={getThemeClasses("text-sm leading-relaxed text-gray-600", "dark:text-gray-300")}>
+                                        Link a GitHub <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium" onClick={() => { setGitLinkType('Commit'); setIsGitLinkModalOpen(true); }}>commit</span>,{' '}
+                                        <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium" onClick={() => { setGitLinkType('Pull Request'); setIsGitLinkModalOpen(true); }}>pull request</span> or{' '}
+                                        <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium" onClick={() => { setGitLinkType('Branch'); setIsGitLinkModalOpen(true); }}>branch</span> to see the status of your development.                                    </div>
+                                </div>
+
+                                {/* List of linked items */}
+                                {task?.gitLinks?.length > 0 && (
+                                    <div className="max-h-60 overflow-y-auto mt-3 pl-8 space-y-1">
+                                        {task.gitLinks.map((link) => {
+                                            const repoUrl = project?.githubRepository?.repositoryUrl;
+                                            const commitUrl = repoUrl
+                                                ? (link.linkType === 'Commit'
+                                                    ? `${repoUrl}/commit/${link.commitSha}`
+                                                    : (link.linkType === 'Branch'
+                                                        ? `${repoUrl}/tree/${link.commitSha}`
+                                                        : (link.linkType === 'Pull Request'
+                                                            ? `${repoUrl}/pull/${link.commitSha}`
+                                                            : null)))
+                                                : null;
+                                            const displaySha = link.linkType === 'Commit'
+                                                ? `#${link.commitSha.substring(0, 7)}`
+                                                : `#${link.commitSha}`;
+
+                                            return (
+                                                <div
+                                                    key={link._id}
+                                                    className="py-1 flex items-center justify-between gap-3 text-xs"
+                                                    title={`Comment: ${link.comment || 'No comment'}\nLinked by ${link.linkedBy} on ${new Date(link.linkedAt).toLocaleDateString()}`}
+                                                >
+                                                    <div className="flex items-center gap-1.5 min-w-0 flex-1 flex-wrap">
+                                                        <span
+                                                            className={getThemeClasses(
+                                                                "text-blue-600 shrink-0 flex items-center justify-center w-5 h-5",
+                                                                "text-blue-400"
+                                                            )}
+                                                            title={link.linkType}
+                                                        >
+                                                            {link.linkType === 'Commit' && <FaGitAlt className="text-sm" />}
+                                                            {link.linkType === 'Branch' && <FaCodeBranch className="text-sm" />}
+                                                            {link.linkType === 'Pull Request' && <FaGitAlt className="text-sm" />}
+                                                        </span>
+                                                        {commitUrl ? (
+                                                            <a
+                                                                href={commitUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="font-mono font-semibold text-blue-600 dark:text-blue-400 hover:underline shrink-0"
+                                                            >
+                                                                {displaySha}
+                                                            </a>
+                                                        ) : (
+                                                            <span className="font-mono font-semibold text-gray-700 dark:text-gray-300 shrink-0">
+                                                                {displaySha}
+                                                            </span>
+                                                        )}
+                                                        {(link.commitMessage || link.comment) && (
+                                                            <span className={getThemeClasses("text-gray-505 font-medium truncate block max-w-[500px]", "dark:text-gray-400")} title={link.commitMessage || link.comment}>
+                                                                - {link.commitMessage || link.comment}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleDeleteGitLink(link._id)}
+                                                        className={getThemeClasses(
+                                                            "inline-flex items-center justify-center w-5 h-5 rounded-full text-red-600 hover:bg-red-200 hover:shadow-sm transition-all duration-200 shrink-0",
+                                                            "dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50"
+                                                        )}
+                                                        title="Remove link"
+                                                    >
+                                                        <FaTimes size={12} />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* --- HISTORY SECTION --- */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h3 className={getThemeClasses("text-base font-bold text-gray-900 flex items-center gap-2", "dark:text-gray-100")}>
+                                    <FaClock className="text-blue-500" /> History
+                                </h3>
+                            </div>
+                            <div className={getThemeClasses(
+                                "flex gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50",
+                                "dark:border-zinc-800 dark:bg-zinc-900/50"
+                            )}>
+                                <div className="w-full">
+                                    {activityLoading ? (
+                                        <div className={getThemeClasses(
+                                            "text-center py-8 text-gray-400",
+                                            "dark:text-gray-300"
+                                        )}>Loading...</div>
+                                    ) : taskActivity?.length > 0 ? (
+                                        <div className="space-y-4 pb-4">
+                                            {taskActivity.map((activity, index) => (
+                                                <div key={activity._id || index} className="flex items-start gap-3">
+                                                    <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                                    <div className="flex-1">
+                                                        <div className={getThemeClasses(
+                                                            "text-sm text-gray-900 font-medium",
+                                                            "dark:text-gray-100"
+                                                        )}>
+                                                            {formatActivityDisplay(activity)}
+                                                        </div>
+                                                        <div className={getThemeClasses(
+                                                            "text-xs text-gray-500 mt-1",
+                                                            "dark:text-gray-400"
+                                                        )}>
+                                                            {new Date(activity.timestamp).toLocaleString()}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {/* Pagination Controls */}
+                                            <div className="flex justify-end items-center gap-2 mt-4">
+                                                <button
+                                                    className={getThemeClasses(
+                                                        "px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50",
+                                                        "dark:bg-gray-700 dark:hover:bg-gray-600"
+                                                    )}
+                                                    disabled={activityPage === 1}
+                                                    onClick={() => setActivityPage(p => Math.max(1, p - 1))}
+                                                >
+                                                    Prev
+                                                </button>
+                                                <span className={getThemeClasses(
+                                                    "text-sm text-gray-600",
+                                                    "dark:text-gray-300"
+                                                )}>
+                                                    Page {activityPage} of {activityTotalPages}
+                                                </span>
+                                                <button
+                                                    className={getThemeClasses(
+                                                        "px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50",
+                                                        "dark:bg-gray-700 dark:hover:bg-gray-600"
+                                                    )}
+                                                    disabled={activityPage === activityTotalPages}
+                                                    onClick={() => setActivityPage(p => Math.min(activityTotalPages, p + 1))}
+                                                >
+                                                    Next
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <div className={getThemeClasses(
+                                                "text-gray-400 text-sm",
+                                                "dark:text-gray-300"
+                                            )}>No activity recorded yet</div>
                                         </div>
                                     )}
                                 </div>
-                            )}
-                        </div>
-
-                        {/* --- HISTORY SECTION --- */}
-                        <div className={getThemeClasses(
-                            "border border-gray-200 rounded-xl px-6 bg-transparent",
-                            "dark:border-gray-700 dark:bg-transparent"
-                        )}>
-                            <h2 className={getThemeClasses("text-xl font-semibold mb-4 text-gray-900 flex items-center gap-2 border-b border-gray-200 py-4", "dark:text-gray-100 dark:border-gray-700")}>
-                                <FaClock className={getThemeClasses("text-green-500", "dark:text-green-400")} />
-                                History
-                            </h2>
-                            <div>
-                                {activityLoading ? (
-                                    <div className={getThemeClasses(
-                                        "text-center py-8 text-gray-400",
-                                        "dark:text-gray-300"
-                                    )}>Loading...</div>
-                                ) : taskActivity?.length > 0 ? (
-                                    <div className="space-y-4 pb-4">
-                                        {taskActivity.map((activity, index) => (
-                                            <div key={activity._id || index} className="flex items-start gap-3">
-                                                <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                                <div className="flex-1">
-                                                    <div className={getThemeClasses(
-                                                        "text-sm text-gray-900 font-medium",
-                                                        "dark:text-gray-100"
-                                                    )}>
-                                                        {formatActivityDisplay(activity)}
-                                                    </div>
-                                                    <div className={getThemeClasses(
-                                                        "text-xs text-gray-500 mt-1",
-                                                        "dark:text-gray-400"
-                                                    )}>
-                                                        {new Date(activity.timestamp).toLocaleString()}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {/* Pagination Controls */}
-                                        <div className="flex justify-end items-center gap-2 mt-4">
-                                            <button
-                                                className={getThemeClasses(
-                                                    "px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50",
-                                                    "dark:bg-gray-700 dark:hover:bg-gray-600"
-                                                )}
-                                                disabled={activityPage === 1}
-                                                onClick={() => setActivityPage(p => Math.max(1, p - 1))}
-                                            >
-                                                Prev
-                                            </button>
-                                            <span className={getThemeClasses(
-                                                "text-sm text-gray-600",
-                                                "dark:text-gray-300"
-                                            )}>
-                                                Page {activityPage} of {activityTotalPages}
-                                            </span>
-                                            <button
-                                                className={getThemeClasses(
-                                                    "px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50",
-                                                    "dark:bg-gray-700 dark:hover:bg-gray-600"
-                                                )}
-                                                disabled={activityPage === activityTotalPages}
-                                                onClick={() => setActivityPage(p => Math.min(activityTotalPages, p + 1))}
-                                            >
-                                                Next
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-8">
-                                        <div className={getThemeClasses(
-                                            "text-gray-400 text-sm",
-                                            "dark:text-gray-300"
-                                        )}>No activity recorded yet</div>
-                                    </div>
-                                )}
                             </div>
                         </div>
 
@@ -1771,6 +2069,409 @@ const TaskDetailsPage = () => {
                     )}>
                         Are you sure you want to delete this task? This action cannot be undone.
                     </p>
+                </CustomModal>
+            )}
+            {isGitLinkModalOpen && (
+                <CustomModal
+                    isOpen={isGitLinkModalOpen}
+                    onClose={() => setIsGitLinkModalOpen(false)}
+                    title="Add link"
+                    getThemeClasses={getThemeClasses}
+                    maxWidthClass="max-w-4xl"
+                    actions={
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => setIsGitLinkModalOpen(false)}
+                                className={getThemeClasses(
+                                    'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 text-sm font-semibold',
+                                    'dark:text-gray-400 dark:hover:bg-gray-700 dark:border-zinc-800'
+                                )}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSubmitGitLink}
+                                disabled={!gitCommitSha || gitSubmitting}
+                                className={getThemeClasses(
+                                    `px-4 py-2.5 rounded-xl text-white font-semibold transition-all duration-200 text-sm ${!gitCommitSha
+                                        ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 cursor-not-allowed border border-gray-200 dark:border-zinc-800'
+                                        : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md'
+                                    }`,
+                                    `px-4 py-2.5 rounded-xl text-white font-semibold transition-all duration-200 text-sm ${!gitCommitSha
+                                        ? 'bg-zinc-850 text-zinc-500 cursor-not-allowed border border-zinc-800'
+                                        : 'bg-blue-600 hover:bg-blue-700'
+                                    }`
+                                )}
+                            >
+                                {gitSubmitting ? 'Adding...' : 'Add link'}
+                            </button>
+                        </>
+                    }
+                >
+                    <div className="space-y-4">
+                        <div>
+                            <span className={getThemeClasses("text-xs font-semibold text-gray-500", "dark:text-zinc-400")}>
+                                You are adding a link from:
+                            </span>
+                            <div className={getThemeClasses(
+                                "flex items-start gap-2.5 p-3 rounded-xl border border-gray-150 bg-gray-50/50 mt-1.5",
+                                "dark:border-zinc-800 dark:bg-zinc-900/30"
+                            )}>
+                                <input
+                                    type="checkbox"
+                                    checked
+                                    disabled
+                                    className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 mt-0.5 shrink-0"
+                                />
+                                <div className="min-w-0">
+                                    <p className={getThemeClasses("text-sm font-semibold text-gray-900 truncate", "dark:text-white")}>
+                                        {task?.TicketNumber ? `#${task.TicketNumber} ` : ''}{task?.Name}
+                                    </p>
+                                    <p className="text-[11px] text-gray-405 dark:text-gray-500 mt-0.5">
+                                        Updated {new Date(task?.ModifiedDate || task?.CreatedDate || new Date()).toLocaleDateString()} • {statusMap[task?.Status] || 'To Do'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className={getThemeClasses("block text-xs font-semibold text-gray-600 mb-1.5", "dark:text-zinc-350")}>
+                                Link type:
+                            </label>
+                            <CustomDropdown
+                                value={gitLinkType}
+                                onChange={(val) => {
+                                    setGitLinkType(val);
+                                    setGitCommitSha('');
+                                    setGitComment('');
+                                    setGitCommitMessage('');
+                                    setGitCommitsList([]);
+                                }}
+                                options={[
+                                    { value: 'Commit', label: 'Commit' },
+                                    { value: 'Branch', label: 'Branch' },
+                                    { value: 'Pull Request', label: 'Pull Request' }
+                                ]}
+                                size="sm"
+                            />
+                        </div>
+
+                        <div>
+                            <label className={getThemeClasses("block text-xs font-semibold text-gray-600 mb-1.5", "dark:text-zinc-305")}>
+                                Repository:
+                            </label>
+                            <select
+                                disabled
+                                className={getThemeClasses(
+                                    "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 text-sm focus:outline-none",
+                                    "w-full px-3.5 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900/60 text-zinc-400 text-sm focus:outline-none"
+                                )}
+                            >
+                                <option>{project?.githubRepository?.repositoryFullName || 'No connected repository'}</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className={getThemeClasses("block text-xs font-semibold text-gray-600 mb-1.5", "dark:text-zinc-305")}>
+                                {gitLinkType === 'Branch' ? 'Branch name:' : (gitLinkType === 'Pull Request' ? 'Pull request number:' : 'Commit:')}
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder={
+                                        gitLinkType === 'Branch'
+                                            ? 'Enter branch name (e.g. main)'
+                                            : (gitLinkType === 'Pull Request' ? 'Enter pull request number (e.g. 12)' : 'Enter commit SHA (e.g. 5ea9f32)')
+                                    }
+                                    value={gitCommitSha}
+                                    onChange={e => setGitCommitSha(e.target.value)}
+                                    className={getThemeClasses(
+                                        "flex-1 px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900",
+                                        "flex-1 px-3.5 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                    )}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={
+                                        gitLinkType === 'Branch'
+                                            ? handleFindBranches
+                                            : (gitLinkType === 'Pull Request' ? handleFindPullRequests : handleFindCommits)
+                                    }
+                                    disabled={gitCommitsLoading}
+                                    className={getThemeClasses(
+                                        "px-4 py-2.5 rounded-xl bg-gray-105 hover:bg-gray-200 text-gray-750 text-xs font-semibold border border-gray-200 transition-colors disabled:opacity-50",
+                                        "px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-zinc-700 transition-colors disabled:opacity-50"
+                                    )}
+                                >
+                                    {gitCommitsLoading
+                                        ? 'Searching...'
+                                        : (gitLinkType === 'Branch' ? 'Find branches' : (gitLinkType === 'Pull Request' ? 'Find pull requests' : 'Find commits'))
+                                    }
+                                </button>
+                            </div>
+                        </div>                        {/* Recent commits selection list */}
+                        {gitCommitsList.length > 0 && (
+                            <div className="space-y-2 mt-3">
+                                <label className={getThemeClasses(
+                                    "block text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-zinc-500",
+                                    "block text-xs font-bold uppercase tracking-widest text-zinc-500"
+                                )}>
+                                    {gitLinkType === 'Branch'
+                                        ? 'Select a branch:'
+                                        : (gitLinkType === 'Pull Request' ? 'Select a recent pull request:' : 'Select a recent commit:')}
+                                </label>
+                                <div className={getThemeClasses(
+                                    "border border-gray-100 rounded-2xl bg-white max-h-56 overflow-y-auto divide-y divide-gray-50 shadow-inner p-1.5 space-y-1 scrollbar-thin scrollbar-thumb-gray-250 scrollbar-track-transparent",
+                                    "border border-zinc-800 rounded-2xl bg-zinc-900 max-h-56 overflow-y-auto divide-y divide-zinc-850 shadow-inner p-1.5 space-y-1 dark:scrollbar-thumb-zinc-700"
+                                )}>
+                                    {gitCommitsList.map((c) => {
+                                        if (gitLinkType === 'Pull Request') {
+                                            const isSelected = gitCommitSha === String(c.number);
+                                            const prStatusColor = c.state === 'open'
+                                                ? 'bg-green-50 text-green-800 border-green-200 dark:bg-green-950/20 dark:text-green-300 dark:border-green-900/50'
+                                                : 'bg-purple-50 text-purple-800 border-purple-200 dark:bg-purple-950/20 dark:text-purple-300 dark:border-purple-900/50';
+                                            return (
+                                                <button
+                                                    key={c.number}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setGitCommitSha(String(c.number));
+                                                        setGitComment(`PR #${c.number}: ${c.title}`);
+                                                        setGitCommitMessage(`PR #${c.number}: ${c.title}`);
+                                                    }}
+                                                    className={getThemeClasses(
+                                                        `w-full text-left p-3 rounded-xl transition-all duration-200 flex items-start gap-3 border relative overflow-hidden ${isSelected
+                                                            ? 'bg-blue-50/60 border-blue-200 text-blue-900 shadow-sm scale-[0.99]'
+                                                            : 'bg-transparent border-transparent hover:bg-gray-50/70 text-gray-700'
+                                                        }`,
+                                                        `w-full text-left p-3 rounded-xl transition-all duration-200 flex items-start gap-3 border relative overflow-hidden ${isSelected
+                                                            ? 'bg-blue-950/20 border-blue-800 text-blue-300 shadow-sm scale-[0.99]'
+                                                            : 'bg-transparent border-transparent hover:bg-zinc-800/40 text-zinc-300'
+                                                        }`
+                                                    )}
+                                                >
+                                                    {/* Selected Indicator Left Bar */}
+                                                    {isSelected && (
+                                                        <span className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 dark:bg-blue-500 rounded-r" />
+                                                    )}
+
+                                                    {/* PR Icon Avatar circle */}
+                                                    <div className={getThemeClasses(
+                                                        `w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-sm font-bold ${isSelected
+                                                            ? 'bg-blue-100 text-blue-700'
+                                                            : 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400'
+                                                        }`,
+                                                        `w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-sm font-bold ${isSelected
+                                                            ? 'bg-blue-900/40 text-blue-300'
+                                                            : 'bg-zinc-850 text-zinc-405'
+                                                        }`
+                                                    )}>
+                                                        <FaGitAlt />
+                                                    </div>
+
+                                                    {/* PR details */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex justify-between items-center gap-2 mb-0.5">
+                                                            <span className={getThemeClasses(
+                                                                `font-mono text-xs font-bold px-1.5 py-0.5 rounded ${isSelected
+                                                                    ? 'bg-blue-100 text-blue-850'
+                                                                    : 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300'
+                                                                }`,
+                                                                `font-mono text-xs font-bold px-1.5 py-0.5 rounded ${isSelected
+                                                                    ? 'bg-blue-900/60 text-blue-305'
+                                                                    : 'bg-zinc-800 text-zinc-300'
+                                                                }`
+                                                            )}>
+                                                                #{c.number}
+                                                            </span>
+                                                            <span className={`text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded border ${prStatusColor}`}>
+                                                                {c.state}
+                                                            </span>
+                                                        </div>
+                                                        <p className={getThemeClasses(
+                                                            `text-sm font-semibold truncate ${isSelected ? 'text-blue-900' : 'text-gray-905'}`,
+                                                            `text-sm font-semibold truncate ${isSelected ? 'text-blue-300' : 'text-white'}`
+                                                        )}>
+                                                            {c.title}
+                                                        </p>
+                                                        <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                                                            branch: {c.branch} • by {c.user}
+                                                        </p>
+                                                    </div>
+                                                </button>
+                                            );
+                                        }
+
+                                        if (gitLinkType === 'Branch') {
+                                            const isSelected = gitCommitSha === c.name;
+                                            return (
+                                                <button
+                                                    key={c.name}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setGitCommitSha(c.name);
+                                                        setGitComment(`Branch: ${c.name}`);
+                                                        setGitCommitMessage(`Branch: ${c.name}`);
+                                                    }}
+                                                    className={getThemeClasses(
+                                                        `w-full text-left p-3 rounded-xl transition-all duration-200 flex items-start gap-3 border relative overflow-hidden ${isSelected
+                                                            ? 'bg-blue-50/60 border-blue-200 text-blue-900 shadow-sm scale-[0.99]'
+                                                            : 'bg-transparent border-transparent hover:bg-gray-50/70 text-gray-700'
+                                                        }`,
+                                                        `w-full text-left p-3 rounded-xl transition-all duration-200 flex items-start gap-3 border relative overflow-hidden ${isSelected
+                                                            ? 'bg-blue-950/20 border-blue-800 text-blue-300 shadow-sm scale-[0.99]'
+                                                            : 'bg-transparent border-transparent hover:bg-zinc-800/40 text-zinc-300'
+                                                        }`
+                                                    )}
+                                                >
+                                                    {/* Selected Indicator Left Bar */}
+                                                    {isSelected && (
+                                                        <span className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 dark:bg-blue-500 rounded-r" />
+                                                    )}
+
+                                                    {/* Branch Icon Avatar circle */}
+                                                    <div className={getThemeClasses(
+                                                        `w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-sm font-bold ${isSelected
+                                                            ? 'bg-blue-100 text-blue-700'
+                                                            : 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400'
+                                                        }`,
+                                                        `w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-sm font-bold ${isSelected
+                                                            ? 'bg-blue-900/40 text-blue-300'
+                                                            : 'bg-zinc-850 text-zinc-405'
+                                                        }`
+                                                    )}>
+                                                        <FaCodeBranch />
+                                                    </div>
+
+                                                    {/* Branch details */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex justify-between items-center gap-2 mb-0.5">
+                                                            <span className={getThemeClasses(
+                                                                `font-mono text-xs font-bold px-1.5 py-0.5 rounded ${isSelected
+                                                                    ? 'bg-blue-100 text-blue-850'
+                                                                    : 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300'
+                                                                }`,
+                                                                `font-mono text-xs font-bold px-1.5 py-0.5 rounded ${isSelected
+                                                                    ? 'bg-blue-900/60 text-blue-305'
+                                                                    : 'bg-zinc-800 text-zinc-300'
+                                                                }`
+                                                            )}>
+                                                                {c.name}
+                                                            </span>
+                                                            {c.protected && (
+                                                                <span className="text-[9px] uppercase tracking-wider font-extrabold text-red-500 bg-red-50 dark:bg-red-950/20 px-1.5 py-0.5 rounded border border-red-200 dark:border-red-900/50">
+                                                                    Protected
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                                                            Last commit: {c.commitSha?.substring(0, 7)}
+                                                        </p>
+                                                    </div>
+                                                </button>
+                                            );
+                                        }
+
+                                        const isSelected = gitCommitSha === c.sha;
+                                        const committerName = c.committer?.name || 'GitHub User';
+                                        const authorInitials = committerName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                                        const commitDate = new Date(c.committer?.date || new Date()).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        });
+
+                                        return (
+                                            <button
+                                                key={c.sha}
+                                                type="button"
+                                                onClick={() => {
+                                                    setGitCommitSha(c.sha);
+                                                    setGitComment(c.message || '');
+                                                    setGitCommitMessage(c.message || '');
+                                                }}
+                                                className={getThemeClasses(
+                                                    `w-full text-left p-3 rounded-xl transition-all duration-200 flex items-start gap-3 border relative overflow-hidden ${isSelected
+                                                        ? 'bg-blue-50/60 border-blue-200 text-blue-900 shadow-sm scale-[0.99]'
+                                                        : 'bg-transparent border-transparent hover:bg-gray-50/70 text-gray-700'
+                                                    }`,
+                                                    `w-full text-left p-3 rounded-xl transition-all duration-200 flex items-start gap-3 border relative overflow-hidden ${isSelected
+                                                        ? 'bg-blue-950/20 border-blue-800 text-blue-300 shadow-sm scale-[0.99]'
+                                                        : 'bg-transparent border-transparent hover:bg-zinc-800/40 text-zinc-300'
+                                                    }`
+                                                )}
+                                            >
+                                                {/* Author Avatar circle */}
+                                                <div className={getThemeClasses(
+                                                    `w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold ${isSelected
+                                                        ? 'bg-blue-100 text-blue-700'
+                                                        : 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400'
+                                                    }`,
+                                                    `w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold ${isSelected
+                                                        ? 'bg-blue-900/40 text-blue-300'
+                                                        : 'bg-zinc-850 text-zinc-405'
+                                                    }`
+                                                )}>
+                                                    {authorInitials}
+                                                </div>
+
+                                                {/* Commit details */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex justify-between items-center gap-2 mb-0.5">
+                                                        <span className={getThemeClasses(
+                                                            `font-mono text-xs font-bold px-1.5 py-0.5 rounded ${isSelected
+                                                                ? 'bg-blue-100 text-blue-850'
+                                                                : 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300'
+                                                            }`,
+                                                            `font-mono text-xs font-bold px-1.5 py-0.5 rounded ${isSelected
+                                                                ? 'bg-blue-900/60 text-blue-305'
+                                                                : 'bg-zinc-800 text-zinc-300'
+                                                            }`
+                                                        )}>
+                                                            #{c.sha.substring(0, 7)}
+                                                        </span>
+                                                        <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                                                            {commitDate}
+                                                        </span>
+                                                    </div>
+                                                    <p className={getThemeClasses(
+                                                        `text-sm font-semibold truncate ${isSelected ? 'text-blue-900' : 'text-gray-905'}`,
+                                                        `text-sm font-semibold truncate ${isSelected ? 'text-blue-300' : 'text-white'}`
+                                                    )}>
+                                                        {c.message && c.message.length > 60
+                                                            ? `${c.message.substring(0, 60)}...`
+                                                            : c.message}
+                                                    </p>
+                                                    <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                                                        by {committerName}
+                                                    </p>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        <div>
+                            <label className={getThemeClasses("block text-xs font-semibold text-gray-600 mb-1.5", "dark:text-zinc-305")}>
+                                Comment:
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Enter a comment"
+                                value={gitComment}
+                                onChange={e => setGitComment(e.target.value)}
+                                className={getThemeClasses(
+                                    "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900",
+                                    "w-full px-3.5 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                )}
+                            />
+                        </div>
+                    </div>
                 </CustomModal>
             )}
         </>

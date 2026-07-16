@@ -5,6 +5,9 @@ const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const UserActivity = require('../models/UserActivity');
 const Organization = require('../models/Organization');
+const Project = require('../models/Project');
+const Integration = require('../models/Integration');
+const CommonType = require('../models/CommonType');
 const axios = require('axios');
 const qrcode = require('qrcode');
 const speakeasy = require('speakeasy');
@@ -1249,7 +1252,6 @@ const getGitHubStatus = async (req, res) => {
       return res.status(400).json({ success: false, error: 'User ID is required' });
     }
 
-    const Integration = require('../models/Integration');
     const integration = await Integration.findOne({ userId, integrationType: 'github' });
 
     if (!integration) {
@@ -1289,8 +1291,6 @@ const getIntegrationsStatus = async (req, res) => {
       return res.status(400).json({ success: false, error: 'User ID is required' });
     }
 
-    const Integration = require('../models/Integration');
-    const CommonType = require('../models/CommonType');
     const user = await User.findById(userId).select('email profileImage organizationID');
 
     if (!user) {
@@ -1372,7 +1372,6 @@ const getUserRepositories = async (req, res) => {
       return res.status(400).json({ success: false, error: 'User ID is required' });
     }
 
-    const Integration = require('../models/Integration');
     const integration = await Integration.findOne({ userId, integrationType: 'github' });
 
     if (!integration || !integration.isConnected) {
@@ -1427,15 +1426,11 @@ const linkRepositoryToProject = async (req, res) => {
     }
 
     // Check if user has GitHub connected
-    const Integration = require('../models/Integration');
     const integration = await Integration.findOne({ userId, integrationType: 'github' });
 
     if (!integration || !integration.isConnected) {
       return res.status(400).json({ success: false, error: 'GitHub account not connected' });
     }
-
-    // Import Project model
-    const Project = require('../models/Project');
 
     // Find the project
     const project = await Project.findOne({ ProjectID: projectId });
@@ -1496,9 +1491,6 @@ const unlinkRepositoryFromProject = async (req, res) => {
     if (!projectId) {
       return res.status(400).json({ success: false, error: 'Project ID is required' });
     }
-
-    // Import Project model
-    const Project = require('../models/Project');
 
     // Find the project
     const project = await Project.findOne({ ProjectID: projectId });
@@ -1633,9 +1625,6 @@ const getProjectCommits = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Project ID is required' });
     }
 
-    // Import Project model
-    const Project = require('../models/Project');
-
     // Find the project
     const project = await Project.findOne({ ProjectID: projectId });
     if (!project) {
@@ -1648,7 +1637,6 @@ const getProjectCommits = async (req, res) => {
     }
 
     // Get the user who linked the repository
-    const Integration = require('../models/Integration');
     const linkingIntegration = await Integration.findOne({
       userId: project.githubRepository.connectedBy,
       integrationType: 'github'
@@ -1721,9 +1709,6 @@ const getProjectIssues = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Project ID is required' });
     }
 
-    // Import Project model
-    const Project = require('../models/Project');
-
     // Find the project
     const project = await Project.findOne({ ProjectID: projectId });
     if (!project) {
@@ -1736,7 +1721,6 @@ const getProjectIssues = async (req, res) => {
     }
 
     // Get the user who linked the repository
-    const Integration = require('../models/Integration');
     const linkingIntegration = await Integration.findOne({
       userId: project.githubRepository.connectedBy,
       integrationType: 'github'
@@ -1803,6 +1787,129 @@ const getProjectIssues = async (req, res) => {
   }
 };
 
+const getProjectBranches = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const userId = req.user._id;
+
+    if (!projectId) {
+      return res.status(400).json({ success: false, error: 'Project ID is required' });
+    }
+
+    const project = await Project.findOne({ ProjectID: projectId });
+    if (!project) {
+      return res.status(404).json({ success: false, error: 'Project not found' });
+    }
+
+    if (!project.githubRepository?.connected) {
+      return res.status(400).json({ success: false, error: 'No repository linked to this project' });
+    }
+
+    const linkingIntegration = await Integration.findOne({
+      userId: project.githubRepository.connectedBy,
+      integrationType: 'github'
+    });
+
+    if (!linkingIntegration || !linkingIntegration.isConnected) {
+      return res.status(400).json({ success: false, error: 'Repository owner not connected to GitHub' });
+    }
+
+    const response = await axios.get(
+      `https://api.github.com/repos/${project.githubRepository.repositoryFullName}/branches`,
+      {
+        headers: {
+          'Authorization': `token ${linkingIntegration.accessToken}`,
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        params: {
+          per_page: 100
+        }
+      }
+    );
+
+    const branches = response.data.map(branch => ({
+      name: branch.name,
+      commitSha: branch.commit?.sha,
+      protected: branch.protected
+    }));
+
+    res.json({
+      success: true,
+      branches
+    });
+  } catch (error) {
+    console.error('Error fetching project branches:', error);
+    if (error.response?.status === 404) {
+      return res.status(404).json({ success: false, error: 'Repository not found or access denied' });
+    }
+    res.status(500).json({ success: false, error: 'Failed to fetch branches' });
+  }
+};
+
+const getProjectPullRequests = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const userId = req.user._id;
+
+    if (!projectId) {
+      return res.status(400).json({ success: false, error: 'Project ID is required' });
+    }
+
+    const project = await Project.findOne({ ProjectID: projectId });
+    if (!project) {
+      return res.status(404).json({ success: false, error: 'Project not found' });
+    }
+
+    if (!project.githubRepository?.connected) {
+      return res.status(400).json({ success: false, error: 'No repository linked to this project' });
+    }
+
+    const linkingIntegration = await Integration.findOne({
+      userId: project.githubRepository.connectedBy,
+      integrationType: 'github'
+    });
+
+    if (!linkingIntegration || !linkingIntegration.isConnected) {
+      return res.status(400).json({ success: false, error: 'Repository owner not connected to GitHub' });
+    }
+
+    const response = await axios.get(
+      `https://api.github.com/repos/${project.githubRepository.repositoryFullName}/pulls`,
+      {
+        headers: {
+          'Authorization': `token ${linkingIntegration.accessToken}`,
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        params: {
+          state: 'all',
+          per_page: 100
+        }
+      }
+    );
+
+    const pulls = response.data.map(pr => ({
+      id: pr.id,
+      number: pr.number,
+      title: pr.title,
+      state: pr.state,
+      htmlUrl: pr.html_url,
+      branch: pr.head?.ref,
+      user: pr.user?.login
+    }));
+
+    res.json({
+      success: true,
+      pulls
+    });
+  } catch (error) {
+    console.error('Error fetching project pull requests:', error);
+    if (error.response?.status === 404) {
+      return res.status(404).json({ success: false, error: 'Repository not found or access denied' });
+    }
+    res.status(500).json({ success: false, error: 'Failed to fetch pull requests' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -1835,6 +1942,8 @@ module.exports = {
   unlinkRepositoryFromProject,
   getProjectRepository,
   getProjectCommits,
+  getProjectBranches,
+  getProjectPullRequests,
   getProjectIssues,
   updateOnboardingStatus
 }; 

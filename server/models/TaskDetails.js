@@ -92,6 +92,40 @@ const TaskDetailsSchema = new mongoose.Schema({
   Dependencies: {
     type: [String],
     default: []
+  },
+  gitLinks: {
+    type: [{
+      linkType: {
+        type: String,
+        required: true,
+        enum: ['Commit', 'Pull Request', 'Branch']
+      },
+      repository: {
+        type: String,
+        required: true
+      },
+      commitSha: {
+        type: String,
+        required: true
+      },
+      comment: {
+        type: String,
+        default: ''
+      },
+      commitMessage: {
+        type: String,
+        default: ''
+      },
+      linkedAt: {
+        type: Date,
+        default: Date.now
+      },
+      linkedBy: {
+        type: String,
+        required: true
+      }
+    }],
+    default: []
   }
 });
 

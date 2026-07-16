@@ -1681,4 +1681,96 @@ router.get('/:taskId/full', async (req, res) => {
     }
 });
 
+// POST /api/task-details/:taskId/git-links - Add a git link to a task
+router.post('/:taskId/git-links', protect, async (req, res) => {
+    try {
+        const { taskId } = req.params;
+        const { linkType, repository, commitSha, comment, commitMessage } = req.body;
+
+        if (!linkType || !repository || !commitSha) {
+            return res.status(400).json({ error: 'linkType, repository and commitSha are required' });
+        }
+
+        const task = await TaskDetails.findOne({ TaskID: taskId, IsActive: true });
+        if (!task) {
+            return res.status(404).json({ error: 'Task not found' });
+        }
+
+        const userFullName = req.user.firstName + ' ' + req.user.lastName;
+        const newLink = {
+            linkType,
+            repository,
+            commitSha,
+            comment: comment || '',
+            commitMessage: commitMessage || '',
+            linkedAt: new Date(),
+            linkedBy: userFullName
+        };
+
+        if (!task.gitLinks) {
+            task.gitLinks = [];
+        }
+
+        task.gitLinks.push(newLink);
+        await task.save();
+
+        // Log the activity
+        await logActivity(
+            req.user._id,
+            'task_git_link_added',
+            'success',
+            `Linked ${linkType} ${commitSha} to task ${task.TicketNumber || task.Name}`,
+            req,
+            { taskId: task.TaskID, commitSha }
+        );
+
+        // Emit real-time update
+        emitToTask(task.TaskID, 'task.updated', { task });
+
+        res.json({ success: true, gitLinks: task.gitLinks });
+    } catch (err) {
+        console.error('Error adding git link:', err);
+        res.status(500).json({ error: 'Failed to add git link' });
+    }
+});
+
+// DELETE /api/task-details/:taskId/git-links/:linkId - Delete a git link from a task
+router.delete('/:taskId/git-links/:linkId', protect, async (req, res) => {
+    try {
+        const { taskId, linkId } = req.params;
+
+        const task = await TaskDetails.findOne({ TaskID: taskId, IsActive: true });
+        if (!task) {
+            return res.status(404).json({ error: 'Task not found' });
+        }
+
+        const linkIndex = task.gitLinks.findIndex(link => link._id.toString() === linkId);
+        if (linkIndex === -1) {
+            return res.status(404).json({ error: 'Git link not found' });
+        }
+
+        const removedLink = task.gitLinks[linkIndex];
+        task.gitLinks.splice(linkIndex, 1);
+        await task.save();
+
+        // Log the activity
+        await logActivity(
+            req.user._id,
+            'task_git_link_removed',
+            'success',
+            `Removed linked ${removedLink.linkType} ${removedLink.commitSha} from task ${task.TicketNumber || task.Name}`,
+            req,
+            { taskId: task.TaskID }
+        );
+
+        // Emit real-time update
+        emitToTask(task.TaskID, 'task.updated', { task });
+
+        res.json({ success: true, gitLinks: task.gitLinks });
+    } catch (err) {
+        console.error('Error deleting git link:', err);
+        res.status(500).json({ error: 'Failed to delete git link' });
+    }
+});
+
 module.exports = router; 

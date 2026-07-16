@@ -190,7 +190,7 @@ const IntegrationsTab = ({
 
 
   return (
-    <div className={`p-6 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+    <div className="p-6 bg-white dark:bg-transparent">
       <div className="mb-6">
         <h2 className={`text-2xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
           Integrations

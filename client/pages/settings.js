@@ -54,7 +54,7 @@ const Settings = () => {
   const [showSessionTimeoutDropdown, setShowSessionTimeoutDropdown] = useState(false);
   const [showFontDropdown, setShowFontDropdown] = useState(false);
   const [userSettings, setUserSettings] = useState({
-    fontFamily: userDetails?.fontFamily || 'Inter'
+    fontFamily: userDetails?.fontFamily || 'JetBrains Mono'
   });
   const [subscriptionData, setSubscriptionData] = useState(null);
   const [subscriptionFeatures, setSubscriptionFeatures] = useState({
@@ -99,7 +99,7 @@ const Settings = () => {
         loginNotifications: userDetails.loginNotifications !== false
       });
       setUserSettings({
-        fontFamily: userDetails.fontFamily || 'Inter'
+        fontFamily: userDetails.fontFamily || 'JetBrains Mono'
       });
     }
   }, [userDetails]);
@@ -333,7 +333,7 @@ const Settings = () => {
         </div>
 
         {/* Settings Content */}
-        <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+        <div className="bg-white dark:bg-transparent">
           {/* Appearance & Security Settings */}
           {activeTab === 'general' && (
             <div className='p-6 max-w-4xl'>
@@ -445,10 +445,10 @@ const Settings = () => {
                         ? 'border-gray-700 bg-transparent text-white hover:bg-[#232323]'
                         : 'border-gray-200 bg-white text-gray-900 hover:bg-gray-50'
                         }`}
-                      style={{ fontFamily: fontOptions.find(f => f.value === userSettings.fontFamily)?.fontFamily || 'Inter, sans-serif' }}
+                      style={{ fontFamily: fontOptions.find(f => f.value === userSettings.fontFamily)?.fontFamily || 'JetBrains Mono, monospace' }}
                     >
                       <span>
-                        {fontOptions.find(f => f.value === userSettings.fontFamily)?.label || 'Inter'}
+                        {fontOptions.find(f => f.value === userSettings.fontFamily)?.label || 'JetBrains Mono'}
                       </span>
                       <svg className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`} viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />

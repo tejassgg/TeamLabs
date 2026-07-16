@@ -216,7 +216,7 @@ exports.getGitHubStatus = async (req, res) => {
 
 exports.getUserRepositories = async (req, res) => {
   try {
-    const { userId } = req.user?._id;
+    const userId = req.user?._id;
     if (!userId) {
       return res.status(400).json({ success: false, error: 'User ID is required' });
     }

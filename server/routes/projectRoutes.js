@@ -9,7 +9,7 @@ const Team = require('../models/Team');
 const { logActivity } = require('../services/activityService');
 const { checkProjectLimit, incrementUsage } = require('../middleware/premiumLimits');
 const { protect } = require('../middleware/auth');
-const { linkRepositoryToProject, unlinkRepositoryFromProject, getProjectRepository, getProjectCommits, getProjectIssues } = require('../controllers/authController');
+const { linkRepositoryToProject, unlinkRepositoryFromProject, getProjectRepository, getProjectCommits, getProjectBranches, getProjectPullRequests, getProjectIssues } = require('../controllers/authController');
 const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
 const { GoogleGenAI } = require('@google/genai');
 const { sendReleaseSummaryEmail } = require('../services/emailService');
@@ -358,6 +358,8 @@ router.post('/:projectId/github/link', protect, linkRepositoryToProject);
 router.post('/:projectId/github/unlink', protect, unlinkRepositoryFromProject);
 router.get('/:projectId/github/repository', protect, getProjectRepository);
 router.get('/:projectId/github/commits', protect, getProjectCommits);
+router.get('/:projectId/github/branches', protect, getProjectBranches);
+router.get('/:projectId/github/pullrequests', protect, getProjectPullRequests);
 router.get('/:projectId/github/issues', protect, getProjectIssues);
 
 // Generate release summary using Gemini LLM

@@ -16,7 +16,7 @@ const userActivitySchema = new mongoose.Schema({
       // Project activities
       'project_create', 'project_update', 'project_delete', 'project_settings_update', 'project_team_add', 'project_team_remove', 'project_team_toggle',
       // Task activities
-      'task_create', 'task_update', 'task_delete', 'task_complete', 'task_assign',
+      'task_create', 'task_update', 'task_delete', 'task_complete', 'task_assign', 'task_git_link_added', 'task_git_link_removed',
       // User Story activities
       'user_story_create', 'user_story_update', 'user_story_delete',
       // Comment activities

@@ -1,13 +1,13 @@
 import React from 'react';
 
-const CustomModal = ({ isOpen, onClose, title, children, actions, getThemeClasses }) => {
+const CustomModal = ({ isOpen, onClose, title, children, actions, getThemeClasses, maxWidthClass = 'max-w-md' }) => {
   if (!isOpen) return null;
   const containerClasses = getThemeClasses
     ? getThemeClasses(
-        'bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100',
+        `bg-white rounded-xl p-6 ${maxWidthClass} w-full mx-4 shadow-lg border border-gray-100`,
         'dark:bg-[#18181b] dark:border-[#232323]'
       )
-    : 'bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100';
+    : `bg-white rounded-xl p-6 ${maxWidthClass} w-full mx-4 shadow-lg border border-gray-100`;
 
   const titleClasses = getThemeClasses
     ? getThemeClasses('text-lg font-semibold text-gray-900', 'text-lg font-semibold text-white')
