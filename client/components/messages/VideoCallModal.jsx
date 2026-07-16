@@ -469,10 +469,10 @@ const VideoCallModal = ({
               <div className="absolute top-3 left-3 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded flex items-center gap-2">
                 <span
                   className={`inline-block w-2 h-2 rounded-full ${connectionState.status === 'connected'
-                      ? 'bg-green-400'
-                      : connectionState.status === 'connecting'
-                        ? 'bg-yellow-400'
-                        : 'bg-red-500'
+                    ? 'bg-green-400'
+                    : connectionState.status === 'connecting'
+                      ? 'bg-yellow-400'
+                      : 'bg-red-500'
                     }`}
                 />
                 <span>
@@ -501,9 +501,9 @@ const VideoCallModal = ({
           >
             <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
             {/* Self label */}
-            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-[10px] text-center py-0.5">You</div>
+            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs text-center py-0.5">You</div>
             {/* Local status chips */}
-            <div className="absolute top-0 left-0 m-1 bg-black bg-opacity-70 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1">
+            <div className="absolute top-0 left-0 m-1 bg-black bg-opacity-70 text-white text-xs px-1.5 py-0.5 rounded flex items-center gap-1">
               {localMicMuted ? <FaMicrophoneSlash size={10} /> : <FaMicrophone size={10} />}
               {localCamOff ? <FaVideoSlash size={10} /> : <FaVideo size={10} />}
             </div>

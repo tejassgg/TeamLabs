@@ -114,7 +114,7 @@ const CookiePolicyModal = ({ isOpen, onClose }) => {
           {/* Sticky Left Sidebar Navigation */}
           <div className={`hidden md:flex w-60 shrink-0 border-r flex-col p-4 overflow-y-auto space-y-1 ${theme === 'dark' ? 'border-slate-800 bg-slate-950/40' : 'border-slate-100 bg-slate-50/50'
             }`}>
-            <span className="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase px-3 mb-2 block">
+            <span className="text-xs font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase px-3 mb-2 block">
               Document Index
             </span>
             {sections.map((sec) => (
@@ -517,7 +517,7 @@ const CookiePolicyModal = ({ isOpen, onClose }) => {
         {/* Footer */}
         <div className={`p-5 flex flex-col sm:flex-row items-center sm:justify-between gap-4 border-t transition-all duration-300 ${theme === 'dark' ? 'border-slate-800 bg-slate-950' : 'border-slate-100 bg-white'
           }`}>
-          <div className="text-[10px] font-bold tracking-wide uppercase text-slate-400 dark:text-slate-500">
+          <div className="text-xs font-bold tracking-wide uppercase text-slate-400 dark:text-slate-500">
             TeamLabs Cookie Policy • Version 1.0
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">

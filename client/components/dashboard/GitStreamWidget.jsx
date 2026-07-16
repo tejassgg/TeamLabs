@@ -42,11 +42,10 @@ const GitStreamWidget = ({ organizationId, theme }) => {
   };
 
   return (
-    <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${
-      theme === 'dark' 
-        ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl' 
+    <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${theme === 'dark'
+        ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl'
         : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
-    }`}>
+      }`}>
       <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200/10">
         <div>
           <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
@@ -57,12 +56,11 @@ const GitStreamWidget = ({ organizationId, theme }) => {
             Live code updates across organization projects
           </p>
         </div>
-        <button 
-          onClick={fetchCommits} 
+        <button
+          onClick={fetchCommits}
           disabled={loading}
-          className={`p-2 rounded-lg transition-all ${
-            theme === 'dark' ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'
-          }`}
+          className={`p-2 rounded-lg transition-all ${theme === 'dark' ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'
+            }`}
           title="Refresh commit stream"
         >
           <FaSync size={12} className={loading ? 'animate-spin' : ''} />
@@ -90,18 +88,16 @@ const GitStreamWidget = ({ organizationId, theme }) => {
         )}
 
         {!loading && !error && commits.map((commit, index) => (
-          <div 
-            key={`${commit.sha}-${index}`} 
-            className={`p-3 rounded-xl mb-3 border transition-all duration-200 ${
-              theme === 'dark' 
-                ? 'bg-slate-900/40 border-white/5 hover:border-white/10' 
+          <div
+            key={`${commit.sha}-${index}`}
+            className={`p-3 rounded-xl mb-3 border transition-all duration-200 ${theme === 'dark'
+                ? 'bg-slate-900/40 border-white/5 hover:border-white/10'
                 : 'bg-slate-50 border-slate-200/50 hover:border-slate-200'
-            }`}
+              }`}
           >
             <div className="flex items-start gap-3">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                theme === 'dark' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-900'
-              }`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${theme === 'dark' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-900'
+                }`}>
                 <FaGithub size={14} />
               </div>
               <div className="flex-1 min-w-0">
@@ -109,28 +105,28 @@ const GitStreamWidget = ({ organizationId, theme }) => {
                   <span className="font-semibold text-xs truncate">
                     {commit.authorName}
                   </span>
-                  <span className="text-[10px] text-slate-500 shrink-0">
+                  <span className="text-xs text-slate-500 shrink-0">
                     {formatRelativeTime(commit.date)}
                   </span>
                 </div>
                 <div className="text-xs text-slate-500 mt-0.5 truncate">
                   in <span className="font-medium text-slate-400">{commit.projectName}</span>
                 </div>
-                
+
                 <p className={`text-xs mt-2 break-words leading-relaxed font-mono ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
                   {commit.message}
                 </p>
 
                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200/10">
-                  <span className="font-mono text-[10px] text-slate-500">
+                  <span className="font-mono text-xs text-slate-500">
                     {commit.sha.substring(0, 7)}
                   </span>
                   {commit.htmlUrl && (
-                    <a 
-                      href={commit.htmlUrl} 
-                      target="_blank" 
+                    <a
+                      href={commit.htmlUrl}
+                      target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[10px] text-blue-500 hover:underline flex items-center gap-1"
+                      className="text-xs text-blue-500 hover:underline flex items-center gap-1"
                     >
                       View Commit <FaExternalLinkAlt size={8} />
                     </a>

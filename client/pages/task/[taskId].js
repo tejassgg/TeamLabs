@@ -712,8 +712,8 @@ const TaskDetailsPage = () => {
                                                 <div className="flex items-center justify-between gap-2 mb-1">
                                                     <div className="flex items-center gap-1.5 min-w-0">
                                                         <span className={getThemeClasses("font-semibold text-xs text-gray-900 truncate", "dark:text-gray-200")}>{comment.Author}</span>
-                                                        <span className="text-[10px] text-gray-400 shrink-0">•</span>
-                                                        <span className="text-[10px] text-gray-400 shrink-0">{formatTimeAgo(comment.Timestamp)}</span>
+                                                        <span className="text-xs text-gray-400 shrink-0">•</span>
+                                                        <span className="text-xs text-gray-400 shrink-0">{formatTimeAgo(comment.Timestamp)}</span>
                                                         {comment.edited && (
                                                             <span className="text-[9px] text-blue-500 font-semibold shrink-0 dark:text-blue-400"> (edited)</span>
                                                         )}
@@ -761,13 +761,13 @@ const TaskDetailsPage = () => {
                                                         <div className="flex items-center gap-1.5">
                                                             <button
                                                                 onClick={() => handleEditComment(comment.CommentID)}
-                                                                className="px-2 py-1 bg-green-500 text-white rounded text-[10px] font-semibold hover:bg-green-600 flex items-center gap-1 transition-colors"
+                                                                className="px-2 py-1 bg-green-500 text-white rounded text-xs font-semibold hover:bg-green-600 flex items-center gap-1 transition-colors"
                                                             >
                                                                 <FaCheck size={8} /> Save
                                                             </button>
                                                             <button
                                                                 onClick={() => setEditingCommentId(null)}
-                                                                className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-[10px] font-semibold hover:bg-gray-200 flex items-center gap-1 transition-colors dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                                                                className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-semibold hover:bg-gray-200 flex items-center gap-1 transition-colors dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                                                             >
                                                                 <FaTimes size={8} /> Cancel
                                                             </button>
@@ -876,7 +876,7 @@ const TaskDetailsPage = () => {
                                                     {formatActivityDisplay(activity)}
                                                 </div>
                                                 <div className={getThemeClasses(
-                                                    "text-[10px] text-gray-400 mt-0.5",
+                                                    "text-xs text-gray-400 mt-0.5",
                                                     "dark:text-gray-500"
                                                 )}>
                                                     {new Date(activity.timestamp).toLocaleString()}

@@ -721,7 +721,7 @@ const QueryBoard = () => {
                       <div className="flex items-center gap-2 mt-1">
                         {task.AssignedToDetails && (
                           <div className={getThemeClasses(
-                            'w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-[10px] flex-shrink-0',
+                            'w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-xs flex-shrink-0',
                             'dark:from-blue-600 dark:to-blue-700'
                           )}>
                             {getUserInitials(task.AssignedToDetails.fullName)}
@@ -736,7 +736,7 @@ const QueryBoard = () => {
                         <div className="flex items-center gap-2 mt-1">
                           {task.AssigneeDetails && (
                             <div className={getThemeClasses(
-                              'w-6 h-6 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-[10px] flex-shrink-0',
+                              'w-6 h-6 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-xs flex-shrink-0',
                               'dark:from-green-600 dark:to-green-700'
                             )}>
                               {getUserInitials(task.AssigneeDetails.fullName)}

@@ -239,6 +239,16 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
     }
   }, [isOpen, mode, projectIdDefault, isEditMode, addTaskTypeMode]);
 
+  // Set default due date for All Task Type except User Story as Selected user Story's due date
+  useEffect(() => {
+    if (isOpen && !isEditMode && type && type !== 'User Story' && parentId) {
+      const selectedUserStory = userStories.find(us => us.TaskID === parentId || us._id === parentId);
+      if (selectedUserStory && selectedUserStory.DueDate) {
+        setDueDate(new Date(selectedUserStory.DueDate).toISOString().split('T')[0]);
+      }
+    }
+  }, [parentId, type, userStories, isOpen, isEditMode]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -264,6 +274,20 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       return;
     }
 
+    if (dueDate) {
+      const selectedDueDate = new Date(dueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const originalDueDateStr = editingTask?.DueDate ? new Date(editingTask.DueDate).toISOString().split('T')[0] : '';
+      const isDueDateUnchanged = isEditMode && (dueDate === originalDueDateStr);
+
+      if (!isDueDateUnchanged && selectedDueDate < today) {
+        setError('Due Date cannot be in the past');
+        return;
+      }
+    }
+
     setLoading(true);
     setError('');
 
@@ -276,7 +300,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       ProjectID_FK: projectId,
       ParentID: mode === 'fromProject' && type !== 'User Story' ? parentId : null,
       AssignedTo: mode === 'fromProject' && type !== 'User Story' ? (assignedTo || undefined) : undefined,
-      DueDate: type === 'User Story' && dueDate ? new Date(dueDate) : undefined,
+      DueDate: dueDate ? new Date(dueDate) : undefined,
       CreatedBy: createdBy
     };
 
@@ -324,12 +348,14 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
   if (!isOpen) return null;
 
   const modalTitle = isEditMode
-    ? (mode === 'fromSideBar' ? 'Edit User Story' : name)
-    : (mode === 'fromSideBar' 
-        ? `Add User Story ${nextTaskNumber ? `(#${nextTaskNumber})` : ''}` 
-        : (addTaskTypeMode === 'userStory' 
-            ? `Add New User Story ${nextTaskNumber ? `(#${nextTaskNumber})` : ''}` 
-            : `Add New Task ${nextTaskNumber ? `(#${nextTaskNumber})` : ''}`));
+    ? (mode === 'fromSideBar' || editingTask?.Type === 'User Story'
+      ? `Edit User Story ${editingTask?.TicketNumber ? `(#${editingTask.TicketNumber})` : ''}`
+      : `Edit Task ${editingTask?.TicketNumber ? `(#${editingTask.TicketNumber})` : ''}`)
+    : (mode === 'fromSideBar'
+      ? `Add User Story ${nextTaskNumber ? `(#${nextTaskNumber})` : ''}`
+      : (addTaskTypeMode === 'userStory'
+        ? `Add New User Story ${nextTaskNumber ? `(#${nextTaskNumber})` : ''}`
+        : `Add New Task ${nextTaskNumber ? `(#${nextTaskNumber})` : ''}`));
 
   return (
     <div className="fixed inset-0 z-40">
@@ -337,7 +363,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}
         onClick={handleClose}
       />
-      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
+      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-2xl ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
 
         <div className="flex items-center justify-between mb-6">
           <h3 className={getThemeClasses(
@@ -369,18 +395,26 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 Name<span className="text-red-500 ml-1">*</span>
               </label>
             </div>
-            <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className={getThemeClasses(
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-              )}
-              maxLength={150}
-              required
-              placeholder="Enter task name"
-            />
+            <div className="flex-1 flex flex-col">
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                className={getThemeClasses(
+                  'w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
+                  'w-full px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
+                )}
+                maxLength={150}
+                required
+                placeholder="Enter task name"
+              />
+              <span className={getThemeClasses(
+                'text-xs text-gray-400 text-right mt-1',
+                'text-xs text-gray-500 text-right mt-1'
+              )}>
+                {(name || '').length} / 150
+              </span>
+            </div>
           </div>
 
           <div className="flex items-start gap-4">
@@ -461,32 +495,33 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
               </div>
             </div>
           )}
-          {type === 'User Story' && (
+          {type && (
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 min-w-[120px]">
-                <FaCalendarAlt className={getThemeClasses(
-                  'text-gray-500',
-                  'text-gray-400'
-                )} size={16} />
-                <label className={getThemeClasses(
-                  'text-sm font-medium text-gray-700',
-                  'text-sm font-medium text-white'
-                )}>
-                  Due Date<span className="text-red-500 ml-1">*</span>
-                </label>
-              </div>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className={getThemeClasses(
-                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-                )}
-                required
-              />
-            </div>
-          )}
+               <div className="flex items-center gap-2 min-w-[120px]">
+                 <FaCalendarAlt className={getThemeClasses(
+                   'text-gray-500',
+                   'text-gray-400'
+                 )} size={16} />
+                 <label className={getThemeClasses(
+                   'text-sm font-medium text-gray-700',
+                   'text-sm font-medium text-white'
+                 )}>
+                   Due Date{type === 'User Story' && <span className="text-red-500 ml-1">*</span>}
+                 </label>
+               </div>
+               <input
+                 type="date"
+                 value={dueDate}
+                 onChange={(e) => setDueDate(e.target.value)}
+                 min={new Date().toLocaleDateString('en-CA')}
+                 className={getThemeClasses(
+                   'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
+                   'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
+                 )}
+                 required={type === 'User Story'}
+               />
+             </div>
+           )}
 
           {mode === 'fromSideBar' && (
             <div className="flex items-center gap-4">

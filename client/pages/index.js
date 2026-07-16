@@ -930,7 +930,7 @@ function Home() {
                                 <IconComponent className={col.iconColor} size={14} />
                                 <span className={`text-xs sm:text-sm font-bold ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>{col.title}</span>
                               </div>
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${col.pillBg}`}>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-extrabold border ${col.pillBg}`}>
                                 {col.count}
                               </span>
                             </div>
@@ -994,7 +994,7 @@ function Home() {
                                       className={`p-3.5 rounded-xl border flex flex-col gap-2.5 transition-all duration-200 text-left relative cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-[1.01] ${theme === 'dark' ? 'bg-slate-950 border-white/10 text-white hover:border-indigo-500/30' : 'bg-white border-slate-200 text-slate-800 hover:border-indigo-500/20'}`}
                                     >
                                       {/* Top Badges Row */}
-                                      <div className="flex items-center justify-between text-[10px] font-extrabold uppercase">
+                                      <div className="flex items-center justify-between text-xs font-extrabold uppercase">
                                         <div className={`px-2 py-0.5 rounded border flex items-center gap-1 ${catStyle.bg}`}>
                                           <CatIcon size={9} />
                                           <span>{task.type}</span>
@@ -1042,15 +1042,15 @@ function Home() {
                                         <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold uppercase shrink-0 ${task.avatarColor}`}>
                                           {task.avatar}
                                         </div>
-                                        <span className="text-[10px] font-bold text-slate-400 shrink-0">Progress</span>
+                                        <span className="text-xs font-bold text-slate-400 shrink-0">Progress</span>
                                         <div className="flex-grow bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                                           <div className={`h-full transition-all duration-300 ${progressPercent === 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${progressPercent}%` }}></div>
                                         </div>
-                                        <span className="text-[10px] font-extrabold text-slate-500 shrink-0">{progressPercent}%</span>
+                                        <span className="text-xs font-extrabold text-slate-500 shrink-0">{progressPercent}%</span>
                                       </div>
 
                                       {/* Footer: Date & Comments */}
-                                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 mt-1.5 pt-1">
+                                      <div className="flex items-center justify-between text-xs font-bold text-slate-400 mt-1.5 pt-1">
                                         <div className="flex items-center gap-1">
                                           <FaCalendarAlt size={9} />
                                           <span>{task.dueDate}</span>
@@ -1101,7 +1101,7 @@ function Home() {
                       <div className="flex items-center gap-2 border-b border-indigo-500/10 pb-2 text-xs">
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 block"></span>
                         <span className="font-extrabold tracking-wider uppercase text-slate-500">#sprint-planning</span>
-                        <span className="ml-auto text-[10px] text-slate-400">3 active contributors</span>
+                        <span className="ml-auto text-xs text-slate-400">3 active contributors</span>
                       </div>
 
                       {/* Chat messages */}
@@ -1175,9 +1175,9 @@ function Home() {
                               <div key={t.id} className={`p-3 rounded-lg border text-xs flex justify-between items-center ${theme === 'dark' ? 'bg-slate-950 border-white/5' : 'bg-white border-slate-200'}`}>
                                 <div>
                                   <p className="font-bold">{t.title}</p>
-                                  <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">{t.type}</span>
+                                  <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">{t.type}</span>
                                 </div>
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${t.priority === 'High' ? 'bg-red-500/10 text-red-500' : t.priority === 'Medium' ? 'bg-amber-500/10 text-amber-500' : 'bg-slate-500/10 text-slate-500'}`}>
+                                <span className={`px-2 py-0.5 rounded text-xs font-extrabold ${t.priority === 'High' ? 'bg-red-500/10 text-red-500' : t.priority === 'Medium' ? 'bg-amber-500/10 text-amber-500' : 'bg-slate-500/10 text-slate-500'}`}>
                                   {t.priority}
                                 </span>
                               </div>
@@ -1238,7 +1238,7 @@ function Home() {
                                   {log.date} @ {log.time}
                                 </span>
                                 {log.duration && (
-                                  <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-500 font-extrabold text-[10px]">
+                                  <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-500 font-extrabold text-xs">
                                     Duration: {log.duration}
                                   </span>
                                 )}
@@ -1362,7 +1362,7 @@ function Home() {
 
             {/* Card 2: Premium Monthly */}
             <div className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between text-left relative reveal reveal-fade-up reveal-delay-150 ${theme === 'dark' ? 'bg-slate-950/30 border-indigo-500/40 hover:border-indigo-500' : 'bg-white border-indigo-500/40 hover:shadow-xl shadow-lg shadow-indigo-500/5'}`}>
-              <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-indigo-600 text-white text-[10px] font-extrabold uppercase tracking-widest shadow-lg">
+              <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-indigo-600 text-white text-xs font-extrabold uppercase tracking-widest shadow-lg">
                 MOST POPULAR
               </div>
               <div className="flex flex-col gap-4">
@@ -1391,7 +1391,7 @@ function Home() {
 
             {/* Card 3: Premium Annual */}
             <div className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between text-left relative reveal reveal-fade-up reveal-delay-300 ${theme === 'dark' ? 'bg-slate-950/30 border-white/5 hover:border-slate-800' : 'bg-white border-slate-200 hover:shadow-xl'}`}>
-              <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold uppercase tracking-widest shadow-lg">
+              <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-500 text-white text-xs font-extrabold uppercase tracking-widest shadow-lg">
                 BEST VALUE (SAVE 29%)
               </div>
               <div className="flex flex-col gap-4">

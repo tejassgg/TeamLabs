@@ -80,13 +80,20 @@ const getUserActivities = async (userId, page = 1, limit = 10) => {
   }
 };
 
-const getProjectActivities = async (projectId) => {
+const getProjectActivities = async (projectId, limit = 20, skip = 0) => {
   try {
+    const total = await UserActivity.countDocuments({ 'metadata.projectId': projectId });
+
     // Find all activities where metadata.projectId matches
-    let activities = await UserActivity.find({ 'metadata.projectId': projectId })
+    let query = UserActivity.find({ 'metadata.projectId': projectId })
       .populate('user', 'firstName lastName email profileImage')
-      .sort({ timestamp: -1 })
-      .lean();
+      .sort({ timestamp: -1 });
+
+    if (limit > 0) {
+      query = query.skip(skip).limit(limit);
+    }
+
+    let activities = await query.lean();
 
     // For comment_added activities, fetch the comment details
     const Comment = require('../models/Comment');
@@ -99,7 +106,9 @@ const getProjectActivities = async (projectId) => {
       }
     }));
 
-    return activities;
+    const hasMore = skip + activities.length < total;
+
+    return { activities, hasMore, total };
   } catch (error) {
     console.error('Error fetching project activities:', error);
     throw error;

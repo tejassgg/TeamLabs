@@ -161,8 +161,8 @@ const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: set
 
   return (
     <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${theme === 'dark'
-        ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl'
-        : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
+      ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl'
+      : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
       }`}>
       <div className="pb-4 mb-4 border-b border-slate-200/10 flex items-start justify-between">
         <div>
@@ -219,7 +219,7 @@ const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: set
             className="text-xs"
           />
           {fetchingTasks && (
-            <span className="text-[10px] text-slate-500 flex items-center gap-1 mt-1">
+            <span className="text-xs text-slate-500 flex items-center gap-1 mt-1">
               <FaSpinner className="animate-spin" /> Fetching tasks...
             </span>
           )}
@@ -234,8 +234,8 @@ const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: set
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className={`w-full text-xs px-3 py-2 rounded-xl border outline-none ${theme === 'dark'
-                ? 'bg-slate-900 border-white/10 text-white'
-                : 'bg-slate-50 border-slate-200 text-slate-900'
+              ? 'bg-slate-900 border-white/10 text-white'
+              : 'bg-slate-50 border-slate-200 text-slate-900'
               }`}
           />
         </div>
@@ -245,8 +245,8 @@ const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: set
           <button
             onClick={handleStartPause}
             className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 text-white shadow-md transition-all ${isRunning
-                ? 'bg-amber-500 hover:bg-amber-600'
-                : 'bg-indigo-600 hover:bg-indigo-700'
+              ? 'bg-amber-500 hover:bg-amber-600'
+              : 'bg-indigo-600 hover:bg-indigo-700'
               }`}
           >
             {isRunning ? (
@@ -264,8 +264,8 @@ const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: set
             <button
               onClick={handleReset}
               className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${theme === 'dark'
-                  ? 'border-white/10 hover:bg-slate-800 text-slate-400'
-                  : 'border-slate-200 hover:bg-slate-100 text-slate-600'
+                ? 'border-white/10 hover:bg-slate-800 text-slate-400'
+                : 'border-slate-200 hover:bg-slate-100 text-slate-600'
                 }`}
               title="Reset Timer"
             >

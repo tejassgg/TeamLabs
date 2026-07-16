@@ -110,12 +110,12 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
         {isSupport ? (
           <>
             <span className={getThemeClasses(
-              "inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-100 text-amber-700 border border-amber-200",
+              "inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-700 border border-amber-200",
               "dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700"
             )}>Support</span>
             {task.TicketNumber && (
               <span className={getThemeClasses(
-                "ml-auto text-[10px] font-medium px-2 py-0.5 rounded bg-amber-200 text-amber-800 border border-amber-300",
+                "ml-auto text-xs font-medium px-2 py-0.5 rounded bg-amber-200 text-amber-800 border border-amber-300",
                 "dark:bg-amber-800 dark:text-amber-100 dark:border-amber-700"
               )}>#{task.TicketNumber}</span>
             )}
@@ -123,7 +123,7 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
         ) : (
           task.TicketNumber && (
             <span className={getThemeClasses(
-              "ml-auto text-[10px] font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200",
+              "ml-auto text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200",
               "dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800"
             )}>#{task.TicketNumber}</span>
           )
@@ -170,7 +170,7 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
       <div className="mt-3 flex items-center justify-between gap-2">
         {task.AssignedToDetails && (
           <div className={getThemeClasses(
-            'w-6 h-6 rounded-md bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white text-[10px] font-semibold',
+            'w-6 h-6 rounded-md bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-semibold',
             'dark:from-blue-600 dark:to-blue-700'
           )}>
             {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
@@ -211,8 +211,8 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
         <div className="flex items-center gap-2">
           <span className={getThemeClasses('text-xs font-medium text-gray-700', 'text-xs font-medium text-white')}>
             Due {(() => {
-              const d = task.AssignedDate || task.CreatedDate;
-              return d ? new Date(d).toLocaleDateString(undefined, { month: 'short', day: '2-digit' }) : 'No due date';
+              const d = task.DueDate || task.AssignedDate || task.CreatedDate;
+              return d ? new Date(d).toLocaleDateString(undefined, { month: 'short', day: '2-digit', timeZone: 'UTC' }) : 'No due date';
             })()}
           </span>
         </div>

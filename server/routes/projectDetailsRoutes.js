@@ -201,7 +201,7 @@ router.get('/:projectId', async (req, res) => {
     const projectMembers = await User.find({ _id: { $in: memberIds } }).select('_id firstName lastName email profileImage');
 
     // Fetch project activity
-    const activity = await getProjectActivities(projectId);
+    const { activities, hasMore } = await getProjectActivities(projectId, 20, 0);
 
     res.json({
       project,
@@ -210,11 +210,31 @@ router.get('/:projectId', async (req, res) => {
       userStories: processedUserStories,
       taskList: newTaskList,
       projectMembers,
-      activity
+      activity: activities,
+      hasMoreActivities: hasMore
     });
   } catch (err) {
     console.error('Error fetching project details:', err);
     res.status(500).json({ error: 'Failed to fetch project details' });
+  }
+});
+
+// GET /api/project-details/:projectId/activities - Get paginated activities for a project
+router.get('/:projectId/activities', async (req, res) => {
+  try {
+    const projectId = req.params.projectId;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = parseInt(req.query.skip) || 0;
+
+    const { activities, hasMore } = await getProjectActivities(projectId, limit, skip);
+
+    res.json({
+      activities,
+      hasMore
+    });
+  } catch (err) {
+    console.error('Error fetching project activities:', err);
+    res.status(500).json({ error: 'Failed to fetch project activities' });
   }
 });
 

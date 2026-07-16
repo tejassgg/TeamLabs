@@ -74,14 +74,19 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
         }
         taskData.IsActive = true;
         // taskData.CreatedBy = taskData.Assignee;
-        // Ensure DueDate for user stories to satisfy schema requirement
-        if (taskData.Type === 'User Story') {
-            if (!taskData.DueDate) {
-                const base = taskData.CreatedDate || new Date();
-                taskData.DueDate = new Date(base.getTime() + 7 * 24 * 60 * 60 * 1000);
-            } else {
-                taskData.DueDate = new Date(taskData.DueDate);
+        // Handle DueDate for all task types
+        if (taskData.DueDate) {
+            const dueDate = new Date(taskData.DueDate);
+            const today = new Date();
+            const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+            yesterday.setHours(0, 0, 0, 0);
+            if (dueDate < yesterday) {
+                return res.status(400).json({ error: 'Due Date cannot be in the past' });
             }
+            taskData.DueDate = dueDate;
+        } else if (taskData.Type === 'User Story') {
+            const base = taskData.CreatedDate || new Date();
+            taskData.DueDate = new Date(base.getTime() + 7 * 24 * 60 * 60 * 1000);
         }
 
         if (!taskData.TicketNumber) {
@@ -1006,7 +1011,13 @@ router.patch('/:taskId/assign', protect, async (req, res) => {
             emitToProject(task.ProjectID_FK, 'kanban.task.assigned', {
                 event: 'kanban.task.assigned',
                 version: 1,
-                data: { projectId: task.ProjectID_FK, taskId: task.TaskID, assignedTo: AssignedTo, status: task.Status },
+                data: { 
+                    projectId: task.ProjectID_FK, 
+                    taskId: task.TaskID, 
+                    assignedTo: AssignedTo, 
+                    assignedToDetails: assignedToDetails || null,
+                    status: task.Status 
+                },
                 meta: { emittedAt: new Date().toISOString() }
             });
         } catch (e) {}
@@ -1203,9 +1214,42 @@ router.patch('/:taskId', async (req, res) => {
         if (updateData.ParentID !== undefined) task.ParentID = updateData.ParentID;
         if (updateData.IsActive !== undefined) task.IsActive = updateData.IsActive;
         if (updateData.Status !== undefined) task.Status = updateData.Status;
-        if (updateData.DueDate !== undefined) task.DueDate = updateData.DueDate ? new Date(updateData.DueDate) : null;
+        if (updateData.DueDate !== undefined) {
+            if (updateData.DueDate) {
+                const newDueDate = new Date(updateData.DueDate);
+                const currentDueDate = task.DueDate ? new Date(task.DueDate) : null;
+                // Only validate if DueDate is actually being changed
+                const isChanged = !currentDueDate || (newDueDate.getTime() !== currentDueDate.getTime());
+                if (isChanged) {
+                    const today = new Date();
+                    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+                    yesterday.setHours(0, 0, 0, 0);
+                    if (newDueDate < yesterday) {
+                        return res.status(400).json({ error: 'Due Date cannot be in the past' });
+                    }
+                }
+                task.DueDate = newDueDate;
+            } else {
+                task.DueDate = null;
+            }
+        }
         if (updateData.StartDate !== undefined) task.StartDate = updateData.StartDate ? new Date(updateData.StartDate) : null;
         if (updateData.Dependencies !== undefined) task.Dependencies = Array.isArray(updateData.Dependencies) ? updateData.Dependencies : [];
+        if (updateData.Assignee !== undefined) task.Assignee = updateData.Assignee;
+        if (updateData.AssignedTo !== undefined) {
+            const oldAssignedTo = task.AssignedTo;
+            task.AssignedTo = updateData.AssignedTo;
+            if (updateData.AssignedTo !== oldAssignedTo) {
+                task.AssignedDate = updateData.AssignedTo ? new Date() : null;
+                if (updateData.Status === undefined) {
+                    if (updateData.AssignedTo && task.Status === 1) {
+                        task.Status = 2;
+                    } else if (!updateData.AssignedTo && task.Status === 2) {
+                        task.Status = 1;
+                    }
+                }
+            }
+        }
 
         // Ensure DueDate present for user stories to satisfy schema requirement
         if (task.Type === 'User Story' && !task.DueDate) {
@@ -1215,6 +1259,87 @@ router.patch('/:taskId', async (req, res) => {
         }
 
         await task.save();
+
+        // If this is a User Story and DueDate was updated, update all tasks under this User Story
+        if (task.Type === 'User Story' && updateData.DueDate !== undefined) {
+            const childTasks = await TaskDetails.find({
+                ParentID: task.TaskID,
+                Type: { $ne: 'User Story' },
+                IsActive: true
+            });
+
+            for (const child of childTasks) {
+                child.DueDate = task.DueDate;
+                await child.save();
+
+                // Build child details and emit real-time updates
+                const updatedChild = child.toObject();
+
+                // Fetch assignee details if exists
+                if (updatedChild.Assignee) {
+                    const assignee = await User.findById(updatedChild.Assignee);
+                    if (assignee) {
+                        const teamDetails = await TeamDetails.findOne({ MemberID: assignee._id });
+                        let teamName = null;
+                        if (teamDetails) {
+                            const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                            teamName = team ? team.TeamName : null;
+                        }
+                        updatedChild.AssigneeDetails = {
+                            _id: assignee._id,
+                            username: assignee.username,
+                            fullName: assignee.firstName + " " + assignee.lastName,
+                            email: assignee.email,
+                            teamName: teamName
+                        };
+                    } else {
+                        updatedChild.AssigneeDetails = null;
+                    }
+                } else {
+                    updatedChild.AssigneeDetails = null;
+                }
+
+                // Fetch assignedTo details if exists
+                if (updatedChild.AssignedTo) {
+                    const assignedTo = await User.findById(updatedChild.AssignedTo);
+                    if (assignedTo) {
+                        const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
+                        let teamName = null;
+                        if (teamDetails) {
+                            const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                            teamName = team ? team.TeamName : null;
+                        }
+                        updatedChild.AssignedToDetails = {
+                            _id: assignedTo._id,
+                            username: assignedTo.username,
+                            fullName: assignedTo.firstName + " " + assignedTo.lastName,
+                            email: assignedTo.email,
+                            teamName: teamName
+                        };
+                    } else {
+                        updatedChild.AssignedToDetails = null;
+                    }
+                } else {
+                    updatedChild.AssignedToDetails = null;
+                }
+
+                // Emit task field updates to project and task rooms for child task
+                try {
+                    emitToProject(child.ProjectID_FK, 'kanban.task.updated', {
+                        event: 'kanban.task.updated',
+                        version: 1,
+                        data: { projectId: child.ProjectID_FK, task: updatedChild },
+                        meta: { emittedAt: new Date().toISOString() }
+                    });
+                    emitToTask(child.TaskID, 'task.updated', {
+                        event: 'task.updated',
+                        version: 1,
+                        data: { taskId: child.TaskID, changes: updatedChild },
+                        meta: { emittedAt: new Date().toISOString() }
+                    });
+                } catch (e) {}
+            }
+        }
 
         const updatedTask = task.toObject();
 
@@ -1235,7 +1360,11 @@ router.patch('/:taskId', async (req, res) => {
                     email: assignee.email,
                     teamName: teamName
                 };
+            } else {
+                updatedTask.AssigneeDetails = null;
             }
+        } else {
+            updatedTask.AssigneeDetails = null;
         }
 
         // Fetch assignedTo details if exists
@@ -1255,7 +1384,11 @@ router.patch('/:taskId', async (req, res) => {
                     email: assignedTo.email,
                     teamName: teamName
                 };
+            } else {
+                updatedTask.AssignedToDetails = null;
             }
+        } else {
+            updatedTask.AssignedToDetails = null;
         }
 
         // Log the activity

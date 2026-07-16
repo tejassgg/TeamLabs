@@ -151,7 +151,7 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
                 <h3 className="font-semibold text-sm tracking-wide truncate">TeamLabs Assistant</h3>
                 <div className="flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                  <span className="text-[10px] text-blue-100 font-medium">Always online</span>
+                  <span className="text-xs text-blue-100 font-medium">Always online</span>
                 </div>
               </div>
             </div>
@@ -194,7 +194,7 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
                       }`}
                       onClick={() => loadPreviousConversation(conversation)}
                     >
-                      <div className="text-[10px] font-semibold text-gray-400 mb-1">
+                      <div className="text-xs font-semibold text-gray-400 mb-1">
                         {new Date(conversation.lastInteraction).toLocaleString()}
                       </div>
                       <div className={`text-xs truncate ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>

@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import StatusPill from '../../components/shared/StatusPill';
 import api, { authService, taskService, githubService } from '../../services/api';
-import { FaCheck, FaExternalLinkAlt , FaEdit, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList, FaPaperPlane, FaTrash } from 'react-icons/fa';
+import { FaCheck, FaExternalLinkAlt , FaEdit, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList, FaPaperPlane, FaTrash, FaCog } from 'react-icons/fa';
 import { FiCornerDownRight } from "react-icons/fi";
 import { MdDelete } from 'react-icons/md';
 import { FaTimeline } from "react-icons/fa6";
@@ -210,6 +210,8 @@ const ProjectDetailsPage = () => {
   const [issuesPage, setIssuesPage] = useState(1);
   const [hasMoreIssues, setHasMoreIssues] = useState(true);
   const [projectActivity, setProjectActivity] = useState([]);
+  const [hasMoreActivities, setHasMoreActivities] = useState(false);
+  const [loadingMoreActivities, setLoadingMoreActivities] = useState(false);
 
   // Sorting state for Tasks table
   const [tasksSortKey, setTasksSortKey] = useState('assignedDate'); // name | assignedTo | assignee | assignedDate | priority | status
@@ -296,8 +298,8 @@ const ProjectDetailsPage = () => {
     const offAssigned = subscribe('kanban.task.assigned', (payload) => {
       const { data } = payload || {};
       if (!data || data.projectId !== projectId) return;
-      setTaskList(prev => prev.map(t => t.TaskID === data.taskId ? { ...t, AssignedTo: data.assignedTo, Status: data.status } : t));
-      setUserStories(prev => prev.map(t => t.TaskID === data.taskId ? { ...t, AssignedTo: data.assignedTo, Status: data.status } : t));
+      setTaskList(prev => prev.map(t => t.TaskID === data.taskId ? { ...t, AssignedTo: data.assignedTo, AssignedToDetails: data.assignedToDetails || null, Status: data.status } : t));
+      setUserStories(prev => prev.map(t => t.TaskID === data.taskId ? { ...t, AssignedTo: data.assignedTo, AssignedToDetails: data.assignedToDetails || null, Status: data.status } : t));
     });
     return () => {
       offCreated && offCreated();
@@ -322,6 +324,7 @@ const ProjectDetailsPage = () => {
           setUserStories(res.data.userStories);
           setProjectMembers(res.data.projectMembers || []);
           setProjectActivity(res.data.activity || []);
+          setHasMoreActivities(res.data.hasMoreActivities || false);
           setActiveTab('manage');
         })
         .catch(err => {
@@ -369,6 +372,25 @@ const ProjectDetailsPage = () => {
   }, [showRepositoryList]);
 
 
+
+  const handleLoadMoreActivities = async () => {
+    if (loadingMoreActivities) return;
+    setLoadingMoreActivities(true);
+    try {
+      const response = await api.get(`/project-details/${projectId}/activities`, {
+        params: {
+          limit: 20,
+          skip: projectActivity.length
+        }
+      });
+      setProjectActivity(prev => [...prev, ...(response.data.activities || [])]);
+      setHasMoreActivities(response.data.hasMore);
+    } catch (err) {
+      showToast('Failed to load more activities', 'error');
+    } finally {
+      setLoadingMoreActivities(false);
+    }
+  };
 
   const fetchProjectRepository = async () => {
     try {
@@ -926,12 +948,12 @@ const ProjectDetailsPage = () => {
         }
       });
 
-      // Update task list directly instead of refetching
-      if (newTask.Type === 'User Story') {
-        setUserStories(prev => [...prev, newTask]);
-      } else {
-        setTaskList(prev => [...prev, newTask]);
-      }
+      // Update task list directly instead of refetching --commenting below lines to fix duplicate task entries in case of socket.io
+      // if (newTask.Type === 'User Story') {
+      //   setUserStories(prev => [...prev, newTask]);
+      // } else {
+      //   setTaskList(prev => [...prev, newTask]);
+      // }     
 
       return newTask; // Return the new task for the modal to handle
     } catch (err) {
@@ -1088,6 +1110,11 @@ const ProjectDetailsPage = () => {
         case 'assignedDate': {
           const av = a.AssignedDate ? new Date(a.AssignedDate).getTime() : 0;
           const bv = b.AssignedDate ? new Date(b.AssignedDate).getTime() : 0;
+          return (av - bv) * dir;
+        }
+        case 'dueDate': {
+          const av = a.DueDate ? new Date(a.DueDate).getTime() : 0;
+          const bv = b.DueDate ? new Date(b.DueDate).getTime() : 0;
           return (av - bv) * dir;
         }
         case 'priority':
@@ -1307,7 +1334,7 @@ const ProjectDetailsPage = () => {
                         title="Project Settings"
                         onClick={handleOpenModal}
                       >
-                        <FaEdit size={18} />
+                        <FaCog size={18} />
                         {/* Settings */}
                       </button>
                     </div>
@@ -1691,7 +1718,7 @@ const ProjectDetailsPage = () => {
                                             {team.TeamDescription}
                                           </div>
                                         )}
-                                        <div className={getThemeClasses('text-[10px] text-gray-400 mt-0.5', 'dark:text-gray-500')}>
+                                        <div className={getThemeClasses('text-xs text-gray-400 mt-0.5', 'dark:text-gray-500')}>
                                           Members: {Array.isArray(team.teamMembers) ? team.teamMembers.length : (team.memberCount ?? 0)}
                                         </div>
                                       </div>
@@ -1789,7 +1816,7 @@ const ProjectDetailsPage = () => {
                                     ))}
                                     {team.teamMembers.length > 3 && (
                                       <div className={getThemeClasses(
-                                        'w-7 h-7 rounded-full border-2 border-white bg-gray-100 text-gray-600 text-[10px] font-semibold flex items-center justify-center',
+                                        'w-7 h-7 rounded-full border-2 border-white bg-gray-100 text-gray-600 text-xs font-semibold flex items-center justify-center',
                                         'dark:bg-gray-700 dark:border-gray-700 dark:text-gray-300'
                                       )}
                                       >
@@ -1882,9 +1909,19 @@ const ProjectDetailsPage = () => {
                                   <Link href={`/task/${story.TaskID}`} className={tableTextClasses + ' hover:text-blue-600 hover:underline transition-colors cursor-pointer'} title="View User Story Details">
                                     {story.Name}
                                   </Link>
-                                  {story.Description && (
-                                    <span className={tableSecondaryTextClasses}>{story.Description}</span>
-                                  )}
+                                  <div className="flex items-center justify-start gap-1 min-w-0 w-full text-xs mt-0.5">
+                                    {story.TicketNumber && (
+                                      <span className="font-semibold font-mono text-blue-600 dark:text-blue-400 shrink-0">
+                                        #{story.TicketNumber}
+                                      </span>
+                                    )}
+                                    {story.TicketNumber && story.Description && (
+                                      <span className="text-gray-300 dark:text-gray-600 shrink-0">•</span>
+                                    )}
+                                    {story.Description && (
+                                      <span className={`${tableSecondaryTextClasses} truncate block`} title={story.Description}>{story.Description}</span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </td>
@@ -2000,28 +2037,34 @@ const ProjectDetailsPage = () => {
                             )}
                           />
                         </th>
-                        <th className={`py-3 px-4 text-left w-[30%] ${tableHeaderTextClasses}`}>
+                        <th className={`py-3 px-4 text-left w-[26%] ${tableHeaderTextClasses}`}>
                           <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Name</span>
                             {getTasksSortIcon('name')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[16%] ${tableHeaderTextClasses}`}>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>
                           <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assigned To</span>
                             {getTasksSortIcon('assignedTo')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[16%] ${tableHeaderTextClasses}`}>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>
                           <button type="button" onClick={() => handleTasksSort('assignee')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assignee</span>
                             {getTasksSortIcon('assignee')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 w-[10%] ${tableHeaderTextClasses}`}>
+                        <th className={`hidden md:table-cell py-3 px-4 w-[9%] ${tableHeaderTextClasses}`}>
                           <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center justify-center w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assigned On</span>
                             {getTasksSortIcon('assignedDate')}
+                          </button>
+                        </th>
+                        <th className={`hidden md:table-cell py-3 px-4 w-[9%] ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('dueDate')} className="inline-flex items-center justify-center w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                            <span>Due Date</span>
+                            {getTasksSortIcon('dueDate')}
                           </button>
                         </th>
                         <th className={`hidden md:table-cell py-3 px-4 text-left w-[8%] ${tableHeaderTextClasses}`}>
@@ -2170,6 +2213,9 @@ const ProjectDetailsPage = () => {
                                 '-'
                               )}
                             </td>
+                            <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
+                              <span>{formatDateUTC(task.DueDate)}</span>
+                            </td>
                             <td className="hidden md:table-cell py-3 px-4">
                               <div className="flex items-center justify-center gap-1.5">
                                 {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
@@ -2214,7 +2260,14 @@ const ProjectDetailsPage = () => {
             {/* Project Activity Timeline - moved below Tasks Table */}
             {projectActivity.length > 0 && (
               <div className="mb-8">
-                <ProjectActivity projectId={projectId} activity={projectActivity} projectCreatedDate={project?.CreatedDate} />
+                <ProjectActivity
+                  projectId={projectId}
+                  activity={projectActivity}
+                  projectCreatedDate={project?.CreatedDate}
+                  hasMore={hasMoreActivities}
+                  onLoadMore={handleLoadMoreActivities}
+                  loadingMore={loadingMoreActivities}
+                />
               </div>
             )}
           </div>
@@ -2224,7 +2277,7 @@ const ProjectDetailsPage = () => {
             <KanbanBoard projectId={projectId} selectedUserStoryProp={selectedUserStory} projectMembersProp={projectMembers} taskListProp={taskList} />
           </div>
         ) : activeTab === 'timeline' ? (
-          <GanttChart tasks={taskList} userStories={userStories} project={project} onUpdateTask={handleUpdateTask} />
+          <GanttChart tasks={taskList} userStories={userStories} project={project} onUpdateTask={handleUpdateTask} onEditTask={handleEditTask} />
         ) : activeTab === 'files' ? (
           <ProjectFilesTab projectId={projectId} />
         ) : activeTab === 'list' ? (

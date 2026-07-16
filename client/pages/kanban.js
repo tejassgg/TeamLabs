@@ -255,7 +255,7 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
     const offAssigned = subscribe('kanban.task.assigned', (payload) => {
       const { data } = payload || {};
       if (!data || data.projectId !== selectedProject) return;
-      setAllTasks((prev) => prev.map(t => t.TaskID === data.taskId ? { ...t, AssignedTo: data.assignedTo, Status: data.status } : t));
+      setAllTasks((prev) => prev.map(t => t.TaskID === data.taskId ? { ...t, AssignedTo: data.assignedTo, AssignedToDetails: data.assignedToDetails || null, Status: data.status } : t));
     });
     return () => {
       offCreated && offCreated();
@@ -343,7 +343,7 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
               disabled={projects.length === 0}
               variant="filled"
               size="md"
-              className="w-full sm:w-64"
+              className="w-full sm:w-96"
             />
           </div>
         )}

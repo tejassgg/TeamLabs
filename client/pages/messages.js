@@ -1487,7 +1487,7 @@ export default function MessagesPage() {
                                 <div className="font-medium truncate flex items-center gap-2">
                                   <span className="truncate">{displayName}</span>
                                   {(unreadCounts[c._id] > 0) && (
-                                    <span className={`ml-auto whitespace-nowrap text-[10px] px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700'}`}>
+                                    <span className={`ml-auto whitespace-nowrap text-xs px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700'}`}>
                                       {unreadCounts[c._id]} unread
                                     </span>
                                   )}
@@ -1534,7 +1534,7 @@ export default function MessagesPage() {
                                 <div className="font-medium truncate flex items-center gap-2">
                                   <span className="truncate">{displayName}</span>
                                   {(unreadCounts[c._id] > 0) && (
-                                    <span className={`ml-auto whitespace-nowrap text-[10px] px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700'}`}>
+                                    <span className={`ml-auto whitespace-nowrap text-xs px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700'}`}>
                                       {unreadCounts[c._id]} unread
                                     </span>
                                   )}
@@ -1814,7 +1814,7 @@ export default function MessagesPage() {
                                       {m.sender?.profileImage ? (
                                         <img src={m.sender.profileImage} alt="" className="w-7 h-7 object-cover" />
                                       ) : (
-                                        <span className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
+                                        <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
                                           {`${(m.sender?.firstName || '')[0] || ''}${(m.sender?.lastName || '')[0] || ''}`.toUpperCase() || 'U'}
                                         </span>
                                       )}
@@ -1852,7 +1852,7 @@ export default function MessagesPage() {
 
                                 {/* Read receipts (basic): show "Read" for messages you sent that have been read by others */}
                                 {mine && Array.isArray(m.readBy) && m.readBy.some((uid) => String(uid) !== String(userDetails?._id)) && (
-                                  <div className={`mt-1 text-[10px] opacity-60 ${mine ? 'text-right' : ''}`}>
+                                  <div className={`mt-1 text-xs opacity-60 ${mine ? 'text-right' : ''}`}>
                                     Read
                                   </div>
                                 )}
@@ -2062,7 +2062,7 @@ export default function MessagesPage() {
                             )}
                             {groupMembers.map((u) => (
                               <span key={u._id} className={`px-2 py-1 rounded-full text-sm border ${panel} flex items-center gap-2`}>
-                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{u.initials}</span>
+                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{u.initials}</span>
                                 {u.name}
                                 {String(u._id) !== String(userDetails?._id) && (
                                   <button
@@ -2286,7 +2286,7 @@ export default function MessagesPage() {
 
                             return (
                               <div key={p._id} className={`px-2 py-1 rounded-full border ${panel} flex items-center gap-2`}>
-                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</span>
+                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</span>
                                 <div className="flex flex-col">
                                   <span className="text-sm">{fullName}</span>
                                   {(String(p._id) === String(convDetails?.createdBy) || convDetails?.admins?.includes(p._id)) && (
@@ -2491,7 +2491,7 @@ function AddMembersDropdown({ theme, panel, orgUsers, onAdd }) {
                   setSelected(prev => isSel ? prev.filter(id => id !== u._id) : [...prev, u._id]);
                 }} className={`w-full flex items-center justify-between px-3 py-2 text-left ${isSel ? (theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-50 text-blue-700') : (theme === 'dark' ? 'hover:bg-[#2A2A2A]' : 'hover:bg-gray-50')}`}>
                   <span className="flex items-center gap-2">
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{(u.initials || 'U')}</span>
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{(u.initials || 'U')}</span>
                     <span className="font-medium">{u.name}</span>
                     <span className="opacity-70 text-xs ml-1">{u.email}</span>
                   </span>
@@ -2525,7 +2525,7 @@ function SingleUserDropdown({ theme, panel, users, selected, onChange }) {
         <span className="flex items-center gap-2">
           {selected ? (
             <>
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{selected.initials || 'U'}</span>
+              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{selected.initials || 'U'}</span>
               <span className="font-medium">{selected.name}</span>
               <span className="opacity-70 text-xs ml-1">{selected.email}</span>
             </>
@@ -2547,7 +2547,7 @@ function SingleUserDropdown({ theme, panel, users, selected, onChange }) {
             }).map(u => (
               <button type="button" key={u._id} onClick={() => { onChange(u); setOpen(false); }} className={`w-full flex items-center justify-between px-3 py-2 text-left ${theme === 'dark' ? 'hover:bg-[#2A2A2A]' : 'hover:bg-gray-50'}`}>
                 <span className="flex items-center gap-2">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{u.initials || 'U'}</span>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{u.initials || 'U'}</span>
                   <span className="font-medium">{u.name}</span>
                   <span className="opacity-70 text-xs ml-1">{u.email}</span>
                 </span>

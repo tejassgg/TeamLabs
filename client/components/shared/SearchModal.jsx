@@ -846,7 +846,6 @@ const SearchModal = ({ isOpen, onClose }) => {
                 {/* Main Actions List */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-4 px-3 py-2 select-none">
-                    <div className={`flex-1 border-t border-gray-200`}></div>
                     <span className={`text-sm font-medium tracking-wider ${theme === 'dark' ? 'text-gray-300' : 'text-gray-400'}`}>
                       Main Actions
                     </span>
@@ -898,7 +897,6 @@ const SearchModal = ({ isOpen, onClose }) => {
                 {/* Members List */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-4 px-3 py-2 select-none">
-                    <div className={`flex-1 border-t border-gray-200`}></div>
                     <span className={`text-sm font-medium tracking-wider ${theme === 'dark' ? 'text-gray-300' : 'text-gray-400'}`}>
                       Members
                     </span>
@@ -965,7 +963,6 @@ const SearchModal = ({ isOpen, onClose }) => {
                 {activeTab === 'all' && getVisibleQuickActions().length > 0 && (
                   <div className="space-y-2 pb-2">
                     <div className="flex items-center gap-4 px-3 py-2 select-none">
-                      <div className={`flex-1 border-t border-gray-200`}></div>
                       <span className={`text-sm font-medium tracking-wider ${theme === 'dark' ? 'text-gray-300' : 'text-gray-400'}`}>
                         Quick Actions
                       </span>
@@ -984,8 +981,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                     <div key={cat} className="space-y-1">
                       {/* Section Header */}
                       <div className="flex items-center gap-4 px-3 py-2 select-none">
-                        <div className={`flex-1 border-t ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-100'}`}></div>
-                        <span className={`text-sm font-semibold tracking-wider flex items-center gap-1.5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                        <span className={`text-sm font-medium tracking-wider flex items-center gap-1.5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
                           <span>{categoryTitles[cat]}</span>
                           <span className="text-xs font-normal font-mono">({group.totalCount})</span>
                         </span>

@@ -34,7 +34,7 @@ function getFileIcon(fileName) {
   return <FaFile className="text-gray-400" />;
 }
 
-const ProjectActivity = ({ projectId, activity, projectCreatedDate }) => {
+const ProjectActivity = ({ projectId, activity, projectCreatedDate, hasMore = false, onLoadMore = () => { }, loadingMore = false }) => {
   const { theme } = useTheme();
   const { formatFileSize, getThemeClasses } = useGlobal();
   const [activities, setActivities] = useState(activity || []);
@@ -91,6 +91,21 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate }) => {
                 </div>
               ))}
             </div>
+            {hasMore && (
+              <div className="flex justify-center mt-6">
+                <button
+                  onClick={onLoadMore}
+                  disabled={loadingMore}
+                  className={getThemeClasses(
+                    "px-2 py-1 text-xs font-medium border border-gray-200 hover:border-blue-500 bg-white hover:bg-gray-50 text-gray-600 hover:text-blue-600 rounded-lg shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
+                    "dark:bg-[#18181b] dark:border-gray-700 dark:hover:border-blue-400 dark:hover:bg-gray-800 dark:text-gray-300 dark:hover:text-blue-400"
+                  )}
+                >
+                  {loadingMore && <FaSpinner className="animate-spin text-blue-500" />}
+                  {loadingMore ? 'Loading...' : 'Load More'}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Desktop timeline view */}
@@ -100,7 +115,7 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate }) => {
                 {/* Vertical timeline line */}
                 <div className={getThemeClasses("absolute left-1/2 top-0 w-1 h-full bg-gradient-to-b from-gray-200 via-blue-200 to-gray-200 rounded-full -translate-x-1/2 z-0", "absolute left-1/2 top-0 w-1 h-full bg-gradient-to-b from-gray-800 via-blue-900 to-gray-800 rounded-full -translate-x-1/2 z-0")} />
                 {days.map((date, i) => (
-                  <div key={date} className="mb-16 flex w-full min-h-[120px] relative items-center">
+                  <div key={date} className="mb-4 flex w-full min-h-[120px] relative items-center">
                     {/* Centered day/date label */}
                     <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center w-48">
                       <span className={getThemeClasses("text-sm bg-white px-4 py-1 rounded-full shadow text-gray-700 font-semibold text-base border border-gray-200", "dark:bg-[#23272F] dark:text-gray-100 dark:border-gray-700 dark:shadow-lg")}>{formatDay(date)}</span>
@@ -110,7 +125,7 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate }) => {
                       <>
                         {/* Left side */}
                         <div className="w-1/2 pr-8 flex flex-col items-end">
-                          <div className="min-w-[600px] max-w-5xl border-t">
+                          <div className="min-w-[600px] max-w-5xl border-t border-gray-200 dark:border-gray-700">
                             {/* Big card for the day */}
                             <div className={getThemeClasses("px-6 py-4", "") + " space-y-6"}>
                               {grouped[date].map((act, j) => (
@@ -139,10 +154,25 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate }) => {
                     )}
                   </div>
                 ))}
+                {hasMore && (
+                  <div className="flex justify-center my-6 relative z-10">
+                    <button
+                      onClick={onLoadMore}
+                      disabled={loadingMore}
+                      className={getThemeClasses(
+                        "px-2 py-1 text-xs font-medium border border-gray-200 hover:border-blue-500 bg-white hover:bg-gray-50 text-gray-600 hover:text-blue-600 rounded-lg shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
+                        "dark:bg-[#18181b] dark:border-gray-700 dark:hover:border-blue-400 dark:hover:bg-gray-800 dark:text-gray-300 dark:hover:text-blue-400"
+                      )}
+                    >
+                      {loadingMore && <FaSpinner className="animate-spin text-blue-500" />}
+                      {loadingMore ? 'Loading...' : 'Load More'}
+                    </button>
+                  </div>
+                )}
                 {/* Project Created Date at the end of the timeline */}
                 {projectCreatedDate && (
                   <div className="flex w-full justify-center items-center mt-8">
-                    <div className="absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-72">
+                    <div className="absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-96">
                       <span className={getThemeClasses("bg-white px-4 py-1 rounded-full shadow text-gray-500 font-semibold text-base border border-gray-200", "dark:bg-[#23272F] dark:text-gray-400 dark:border-gray-700 dark:shadow-lg")}>Project Created: {new Date(projectCreatedDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                     </div>
                   </div>

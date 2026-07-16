@@ -5,7 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
 import { getTaskTypeBadge, getPriorityBadge } from '../task/TaskTypeBadge';
 
-const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => {
+const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEditTask }) => {
     const { theme } = useTheme();
     const { formatDateUTC, getUserInitials, showToast } = useGlobal();
     const [viewMode, setViewMode] = useState('week'); // 'week', 'month', 'quarter'
@@ -16,7 +16,6 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
         startOfWeek.setDate(today.getDate() - dayOfWeek);
         return startOfWeek;
     });
-    const [selectedTask, setSelectedTask] = useState(null);
 
     // Interactive drag state
     const [dragState, setDragState] = useState(null);
@@ -451,7 +450,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                                 return (
                                     <div
                                         key={item.TaskID || item._id}
-                                        className={`flex border-b last:border-b-0 relative group transition-colors duration-200 ${theme === 'dark' ? 'border-gray-800 hover:bg-gray-800/40' : 'border-gray-150 hover:bg-gray-50/50'
+                                        className={`flex border-b last:border-b-0 relative group transition-colors duration-200 ${theme === 'dark' ? 'border-gray-800 hover:bg-gray-800/40' : 'border-gray-200 hover:bg-gray-100'
                                             }`}
                                     >
                                         {/* Task Metadata Info Column */}
@@ -462,8 +461,11 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                                             <div className="flex items-start gap-2.5">
                                                 <span className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${getStatusColor(item.Status, item.Type)}`}></span>
                                                 <div className="flex-1 min-w-0">
-                                                    <div className={`font-semibold text-sm truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                                        {item.Name}
+                                                    <div
+                                                        className={`font-semibold text-sm truncate cursor-pointer hover:underline hover:text-blue-600 dark:hover:text-blue-400 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}
+                                                        onClick={() => onEditTask && onEditTask(item)}
+                                                    >
+                                                        {item.TicketNumber ? `#${item.TicketNumber} ` : ''}{item.Name}
                                                     </div>
 
                                                     {/* Type / Priority Badges */}
@@ -477,7 +479,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                                                                 setDependencyTask(item);
                                                                 setShowDependencyModal(true);
                                                             }}
-                                                            className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border flex items-center gap-1 transition-all ${isBlocked
+                                                            className={`px-1.5 py-0.5 rounded text-xs font-semibold border flex items-center gap-1 transition-all ${isBlocked
                                                                 ? 'bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20'
                                                                 : item.Dependencies?.length > 0
                                                                     ? 'bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20'
@@ -493,7 +495,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
 
                                                     {/* Blocked Alert Description */}
                                                     {isBlocked && (
-                                                        <div className="flex items-center gap-1 mt-1 text-[10px] font-semibold text-red-400">
+                                                        <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-red-400">
                                                             <FaExclamationTriangle size={8} /> Blocked by prerequisites
                                                         </div>
                                                     )}
@@ -515,8 +517,8 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                                                     cursor: 'grab'
                                                 }}
                                                 onMouseDown={(e) => handleMouseDown(e, item, 'shift')}
-                                                onClick={() => setSelectedTask(item)}
-                                                title={`${item.Name} (${formatDateUTC(item.startDate)} - ${formatDateUTC(item.endDate)})`}
+                                                onClick={() => onEditTask && onEditTask(item)}
+                                                title={`${item.Name} (${formatDateUTC(item.StartDate || item.CreatedDate || item.startDate)} - ${formatDateUTC(item.DueDate || item.endDate)})`}
                                             >
                                                 {/* Left Edge Resize Handle */}
                                                 <div
@@ -598,7 +600,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
 
                         {/* List current dependencies */}
                         <div className="mb-6">
-                            <h4 className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-3">
+                            <h4 className="text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-3">
                                 Active Prerequisites
                             </h4>
                             {(!dependencyTask.Dependencies || dependencyTask.Dependencies.length === 0) ? (
@@ -637,7 +639,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
 
                         {/* Add new dependencies */}
                         <div>
-                            <h4 className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-3">
+                            <h4 className="text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-3">
                                 Add Prerequisite Task
                             </h4>
                             <div className="space-y-2 max-h-48 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
@@ -676,105 +678,6 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask }) => 
                                         </p>
                                     )}
                             </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Task Detail Modal */}
-            {selectedTask && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className={`max-w-lg w-full p-6 rounded-3xl shadow-2xl border transition-all duration-300 ${theme === 'dark' ? 'bg-[#18181b] border-[#232323] text-zinc-100' : 'bg-white border-gray-100 text-gray-900'
-                        }`}>
-                        <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-4 mb-5">
-                            <div className="flex items-center gap-3">
-                                <span className={`w-3 h-3 rounded-full ${getStatusColor(selectedTask.Status, selectedTask.Type)}`}></span>
-                                <h3 className="text-lg font-bold">Task Details</h3>
-                            </div>
-                            <button
-                                onClick={() => setSelectedTask(null)}
-                                className={`p-2 rounded-xl transition-all duration-200 ${theme === 'dark'
-                                    ? 'hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200'
-                                    : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
-                                    }`}
-                            >
-                                <FaTimes size={14} />
-                            </button>
-                        </div>
-
-                        <div className="space-y-5">
-                            <div>
-                                <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
-                                    Name
-                                </span>
-                                <p className="text-sm font-semibold mt-1 break-words">{selectedTask.Name}</p>
-                            </div>
-
-                            {selectedTask.Description && (
-                                <div>
-                                    <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
-                                        Description
-                                    </span>
-                                    <p className={`text-sm mt-1 leading-relaxed break-words ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                                        {selectedTask.Description}
-                                    </p>
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-2 gap-4 border-t border-b border-gray-100 dark:border-zinc-800 py-4 my-2">
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
-                                        Type
-                                    </span>
-                                    <div className="mt-1">{getTaskTypeBadge(selectedTask.Type)}</div>
-                                </div>
-
-                                {selectedTask.Priority && (
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
-                                            Priority
-                                        </span>
-                                        <div className="mt-1">{getPriorityBadge(selectedTask.Priority)}</div>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div>
-                                <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
-                                    Duration
-                                </span>
-                                <div className="text-sm font-semibold mt-1 flex items-center gap-2">
-                                    <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 rounded-lg text-xs">
-                                        {formatDateUTC(selectedTask.startDate)}
-                                    </span>
-                                    <span className="text-gray-400">—</span>
-                                    <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 rounded-lg text-xs">
-                                        {formatDateUTC(selectedTask.endDate)}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {((selectedTask.commentCount || 0) > 0 || (selectedTask.attachmentCount || 0) > 0) && (
-                                <div className="border-t border-gray-100 dark:border-zinc-800 pt-4">
-                                    <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
-                                        Activity Summary
-                                    </span>
-                                    <div className="flex items-center gap-4 mt-2">
-                                        {(selectedTask.commentCount || 0) > 0 && (
-                                            <div className={`flex items-center gap-1.5 text-sm ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>
-                                                <FaRegComment className="w-4 h-4" />
-                                                <span>{selectedTask.commentCount || 0} comments</span>
-                                            </div>
-                                        )}
-                                        {(selectedTask.attachmentCount || 0) > 0 && (
-                                            <div className={`flex items-center gap-1.5 text-sm ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>
-                                                <TiAttachment size={18} />
-                                                <span>{selectedTask.attachmentCount || 0} attachments</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>

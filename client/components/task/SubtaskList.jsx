@@ -284,7 +284,7 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
                           maxLength={NAME_LIMIT}
                           autoFocus
                         />
-                        <div className={getThemeClasses('text-[10px] text-gray-400 mt-0.5', 'text-[10px] text-gray-500 mt-0.5')}>
+                        <div className={getThemeClasses('text-xs text-gray-400 mt-0.5', 'text-xs text-gray-500 mt-0.5')}>
                           {editingName.length}/{NAME_LIMIT}
                         </div>
                       </div>
@@ -398,7 +398,7 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
               maxLength={NAME_LIMIT}
               autoFocus
             />
-            <span className={getThemeClasses('ml-auto text-[10px] text-gray-400', 'ml-auto text-[10px] text-gray-500')}>
+            <span className={getThemeClasses('ml-auto text-xs text-gray-400', 'ml-auto text-xs text-gray-500')}>
               {newSubtaskName.length}/{NAME_LIMIT}
             </span>
           </div>

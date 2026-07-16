@@ -211,7 +211,7 @@ const ToastPreviewPage = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Light Mode Container */}
                 <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200/60 flex flex-col items-center justify-center min-h-[160px]">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 self-start">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 self-start">
                     LIGHT THEME PREVIEW
                   </span>
                   <div className="w-full flex justify-center">
@@ -229,7 +229,7 @@ const ToastPreviewPage = () => {
 
                 {/* Dark Mode Container */}
                 <div className="dark bg-zinc-950 p-6 rounded-2xl border border-zinc-800 flex flex-col items-center justify-center min-h-[160px]">
-                  <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-4 self-start">
+                  <span className="text-xs font-bold text-zinc-600 uppercase tracking-widest mb-4 self-start">
                     DARK THEME PREVIEW
                   </span>
                   <div className="w-full flex justify-center">
@@ -248,7 +248,7 @@ const ToastPreviewPage = () => {
 
               {/* Code Snippet Box */}
               <div className="bg-gray-900 rounded-2xl p-4 overflow-x-auto border border-gray-800">
-                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2 font-mono">
+                <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-2 font-mono">
                   Usage Code
                 </span>
                 <pre className="text-emerald-400 font-mono text-[13px] leading-relaxed">
