@@ -57,16 +57,18 @@ const AuthNavbar = ({ openLogin, openRegister, showLogin }) => {
                 <span className="mr-1 sm:mr-2 ">Logout</span>
                 <FaSignOutAlt className="text-xs sm:text-sm" />
               </button>
-            ) : !showLogin ? (
-              <button onClick={handleLogin} className={`inline-flex items-center px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 border-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${theme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`} >
-                <FaSignInAlt className="mr-1 sm:mr-2 text-xs sm:text-sm" />
-                <span className=" ">Sign In</span>
-              </button>
-            ) : (
-              <button onClick={handleRegister} className={`inline-flex items-center px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 border-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${theme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`} >
-                <FaSignInAlt className="mr-1 sm:mr-2 text-xs sm:text-sm" />
-                <span className=" ">Sign Up</span>
-              </button>
+            ) : router.pathname !== '/auth' && (
+              !showLogin ? (
+                <button onClick={handleLogin} className={`inline-flex items-center px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 border-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${theme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`} >
+                  <FaSignInAlt className="mr-1 sm:mr-2 text-xs sm:text-sm" />
+                  <span className=" ">Sign In</span>
+                </button>
+              ) : (
+                <button onClick={handleRegister} className={`inline-flex items-center px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 border-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${theme === 'dark' ? 'border-gray-600 hover:bg-gray-800 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`} >
+                  <FaSignInAlt className="mr-1 sm:mr-2 text-xs sm:text-sm" />
+                  <span className=" ">Sign Up</span>
+                </button>
+              )
             )}
           </div>
         </div>

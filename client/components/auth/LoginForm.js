@@ -159,7 +159,7 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
       {/* Header Section */}
       <div className="mb-6 w-full">
         <div className="text-left">
-          <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4 w-full ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className={`text-3xl lg:text-5xl font-bold mb-2 sm:mb-4 w-full ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
             Welcome <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Back</span>
           </h1>
           <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -226,7 +226,7 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+        <div className="flex flex-row items-center justify-between gap-2">
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -246,9 +246,8 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
             Forgot password?
           </button>
         </div>
-        {/* Button layout aligned with RegisterForm */}
         <div className="mt-2 flex flex-col items-center gap-4">
-          <div className="w-full flex flex-col-reverse sm:flex-row items-center justify-center gap-3">
+          <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3">
             <GoogleLogin
               onSuccess={handleGoogleLoginSuccess}
               onError={handleGoogleLoginError}
@@ -257,7 +256,7 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
             <span className={`text-sm sm:mx-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>or</span>
             <button
               type="submit"
-              className={`w-full sm:w-auto py-1 sm:py-2 px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 text-white hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'}`}
+              className={`w-auto py-1 sm:py-2 px-8 sm:px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 text-white hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'}`}
               disabled={isLoading}
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
