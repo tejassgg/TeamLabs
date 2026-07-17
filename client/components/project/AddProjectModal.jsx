@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { authService } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
-import { FaProjectDiagram, FaAlignLeft, FaCalendarAlt } from 'react-icons/fa';
+import { FaProjectDiagram, FaAlignLeft, FaCalendarAlt, FaCheck } from 'react-icons/fa';
 
 const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projectOwner }) => {
   const { theme } = useTheme();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [goals, setGoals] = useState([]);
+  const [goalInput, setGoalInput] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
   const getThemeClasses = (lightClass, darkClass) => {
@@ -31,25 +33,41 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
     }, 300); // Match the transition duration
   };
 
+  const handleAddGoal = () => {
+    if (goalInput.trim()) {
+      setGoals([...goals, goalInput.trim()]);
+      setGoalInput('');
+    }
+  };
+
+  const handleRemoveGoal = (index) => {
+    setGoals(goals.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!name.trim()) {
       setError('Project Name is required');
       return;
     }
-    
+
     try {
+      setIsSubmitting(true);
       await onAddProject({
         Name: name.trim(),
         Description: description.trim(),
         DueDate: dueDate ? new Date(dueDate) : null,
         ProjectOwner: projectOwner,
         OrganizationID: organizationId,
-        IsActive: false
+        IsActive: false,
+        Goals: goals
       });
       setName('');
       setDescription('');
       setDueDate('');
+      setGoals([]);
+      setGoalInput('');
       setError('');
       handleClose();
     } catch (error) {
@@ -65,6 +83,8 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
       } else {
         setError('Failed to add project. Please try again.');
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -92,7 +112,7 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
             ×
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6" autoComplete="on">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 min-w-[120px]">
@@ -121,7 +141,7 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
               placeholder="Enter project name"
             />
           </div>
-          
+
           <div className="flex items-start gap-4">
             <div className="flex items-center gap-2 min-w-[120px] pt-2">
               <FaAlignLeft className={getThemeClasses(
@@ -142,13 +162,12 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
                 'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 resize-none',
                 'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500 resize-none'
               )}
-              maxLength={100}
-              rows={3}
+              rows={5}
               autoComplete="off"
               placeholder="Enter project description"
             />
           </div>
-          
+
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 min-w-[120px]">
               <FaCalendarAlt className={getThemeClasses(
@@ -170,10 +189,67 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
                 'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
                 'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
               )}
-              autoComplete="off"
             />
           </div>
-          
+
+          {/* Goals Input Section */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <FaCheck className={getThemeClasses('text-gray-500', 'text-gray-400')} size={14} />
+              <label className={getThemeClasses(
+                'text-sm font-medium text-gray-700',
+                'text-sm font-medium text-gray-300'
+              )}>
+                Project Goals
+              </label>
+            </div>
+            
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={goalInput}
+                onChange={e => setGoalInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddGoal(); } }}
+                className={getThemeClasses(
+                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
+                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
+                )}
+                placeholder="Add a key project goal..."
+              />
+              <button
+                type="button"
+                onClick={handleAddGoal}
+                className={getThemeClasses(
+                  "px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 border border-blue-200 rounded-lg transition-colors",
+                  "px-3 py-1.5 text-xs font-semibold text-blue-400 hover:bg-zinc-800 border border-zinc-700 rounded-lg transition-colors"
+                )}
+              >
+                Add
+              </button>
+            </div>
+
+            {/* List of current goals */}
+            {goals.length > 0 && (
+              <div className="space-y-2 max-h-40 overflow-y-auto pt-2">
+                {goals.map((goal, idx) => (
+                  <div key={idx} className={getThemeClasses(
+                    "flex items-center justify-between p-2.5 bg-gray-50 border border-gray-150 rounded-xl",
+                    "flex items-center justify-between p-2.5 bg-[#1f1f23] border border-[#2b2b30] rounded-xl"
+                  )}>
+                    <span className="text-xs font-medium truncate max-w-[85%]">{goal}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveGoal(idx)}
+                      className="text-red-500 hover:text-red-700 text-xs font-bold px-1.5"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {error && <div className="text-red-500 text-sm mt-4">{error}</div>}
           <div className="flex justify-end gap-3 pt-6">
             <button
@@ -188,9 +264,10 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200"
+              disabled={isSubmitting}
+              className={`px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Create
+              {isSubmitting ? 'Creating...' : 'Create'}
             </button>
           </div>
         </form>

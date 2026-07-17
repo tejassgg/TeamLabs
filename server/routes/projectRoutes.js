@@ -201,19 +201,24 @@ router.get('/:userId', async (req, res) => {
 // POST /api/projects - add a new project
 router.post('/', checkProjectLimit, async (req, res) => {
   try {
-    const { Name, Description, ProjectOwner, OrganizationID, DueDate } = req.body;
+    const { Name, Description, ProjectOwner, OrganizationID, DueDate, Goals } = req.body;
     if (!Name) return res.status(400).json({ error: 'Project Name is required' });
     if (!OrganizationID) return res.status(400).json({ error: 'OrganisationID is required' });
     if (!ProjectOwner) return res.status(401).json({ error: 'Unauthorized: ProjectOwner not found' });
+
+    const parsedGoals = Array.isArray(Goals)
+      ? Goals.map(g => typeof g === 'string' ? { text: g, completed: false } : g)
+      : [];
 
     const newProject = new Project({
       Name,
       Description,
       ProjectOwner,
       OrganizationID,
-      DueDate: new Date(DueDate),
+      DueDate: DueDate ? new Date(DueDate) : null,
       IsActive: true,
-      ProjectStatusID: 1
+      ProjectStatusID: 1,
+      Goals: parsedGoals
     });
     await newProject.save();
 
@@ -262,7 +267,7 @@ router.post('/', checkProjectLimit, async (req, res) => {
 // PATCH /api/projects/:projectId - update project info
 router.patch('/:projectId', async (req, res) => {
   try {
-    const { Name, Description, DueDate, ProjectStatusID } = req.body;
+    const { Name, Description, DueDate, ProjectStatusID, Goals } = req.body;
 
     // Try to find project by _id first, then by ProjectID
     let project = await Project.findOne({ ProjectID: req.params.projectId });
@@ -279,6 +284,7 @@ router.patch('/:projectId', async (req, res) => {
     if (Description !== undefined) project.Description = Description;
     if (DueDate !== undefined) project.DueDate = DueDate ? new Date(DueDate) : null;
     if (ProjectStatusID !== undefined) project.ProjectStatusID = ProjectStatusID;
+    if (Goals !== undefined) project.Goals = Goals;
     project.ModifiedDate = new Date();
     await project.save();
 

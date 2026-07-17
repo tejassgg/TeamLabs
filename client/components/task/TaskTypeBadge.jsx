@@ -116,7 +116,7 @@ export const getPriorityBadge = (priority) => {
   const style = getPriorityStyle(priority);
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-medium ${style.bgColor} ${style.textColor} border ${style.borderColor} shadow-sm transition-all duration-200`}>
+    <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${style.textColor}`}>
       {style.icon}
       {priority}
     </span>

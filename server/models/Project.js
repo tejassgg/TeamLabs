@@ -18,7 +18,6 @@ const ProjectSchema = new mongoose.Schema({
   },
   Description: {
     type: String,
-    maxlength: 100
   },
   ProjectOwner: {
     type: String,
@@ -92,6 +91,13 @@ const ProjectSchema = new mongoose.Schema({
       type: String,
       default: null
     }
+  },
+  Goals: {
+    type: [{
+      text: { type: String, required: true },
+      completed: { type: Boolean, default: false }
+    }],
+    default: []
   }
 });
 
