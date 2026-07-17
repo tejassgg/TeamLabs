@@ -33,6 +33,7 @@ const reportRoutes = require('./routes/reportRoutes');
 const ragRoutes = require('./routes/ragRoutes');
 const releaseNotificationRoutes = require('./routes/releaseNotificationRoutes');
 const reportSchedulingService = require('./services/reportSchedulingService');
+const keepAliveService = require('./services/keepAliveService');
 const timesheetRoutes = require('./routes/timesheetRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 
@@ -117,7 +118,7 @@ app.use('/api/search', searchRoutes);
 
 // Test route
 app.get('/', (req, res) => {
-  res.send('API is running...');
+  res.json({ status: 'ok' });
 });
 
 // Error handling middleware
@@ -139,6 +140,9 @@ server.listen(PORT, () => {
 
   // Initialize report scheduling service
   reportSchedulingService.initialize();
+
+  // Initialize keep-alive self-ping service
+  keepAliveService.initialize();
 
   console.log(`Server running on port ${PORT}`);
   console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
