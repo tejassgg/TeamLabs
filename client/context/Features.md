@@ -75,3 +75,12 @@ Automation service for generating and distributing project progress summaries:
 To prevent hosting environments from putting the container to sleep (free-tier inactive spin-downs):
 *   **Automatic Wakefulness**: [keepAliveService.js](file:///server/services/keepAliveService.js) registers on startup and issues a self-ping GET request to its public endpoint (`process.env.SERVER_URL`) every **5 minutes**.
 *   **Preventing Cold Starts**: Simulating consistent traffic signals to the hosting provider that the service is in active use, avoiding typical 50+ second delay cold starts.
+
+---
+
+## 📱 8. Client-Side Data Caching (SWR)
+
+To optimize frontend network requests, query performance, and overall responsiveness:
+*   **Stale-While-Revalidate (SWR) Caching**: Utilizes the `swr` caching library to instant-render pages using cached states, while updating data silently in the background.
+*   **Query Deduping & Focus Revalidation**: Automatically groups concurrent requests to the same endpoints into a single HTTP payload and revalidates expired resources when tabs regain focus.
+*   **Integrated Views**: Integrated across all core pages, including the User Dashboard, Projects List, Teams Workspace, Personal Tasks, Timesheets Log, Dynamic Task Details, and Dynamic Project Boards.

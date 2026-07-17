@@ -14,6 +14,7 @@ import { connectSocket, subscribe } from '../services/socket';
 import OnboardingGuide from '../components/dashboard/OnboardingGuide';
 import AdminWelcomeMessage from '../components/dashboard/AdminWelcomeMessage';
 import { FcInvite, FcAcceptDatabase, FcExpired } from "react-icons/fc";
+import useSWR from 'swr';
 
 // Modular Dashboard Widgets
 import RecentCommentsWidget from '../components/dashboard/RecentCommentsWidget';
@@ -32,7 +33,6 @@ const Dashboard = () => {
   const { showToast } = useToast();
   const router = useRouter();
   const [stats, setStats] = useState(null);
-  const [statsLoading, setStatsLoading] = useState(false);
   const [error, setError] = useState('');
   const [removingUser, setRemovingUser] = useState(null);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
@@ -44,6 +44,33 @@ const Dashboard = () => {
   const [invitedEmails, setInvitedEmails] = useState([]);
   const [showOnboardingGuide, setShowOnboardingGuide] = useState(false);
   const statsFetchedOrgIdRef = useRef(null);
+
+  // SWR-based dashboard stats query
+  const { data: dashboardData, error: dashboardFetchError } = useSWR(
+    userDetails?.organizationID ? `/dashboard/${userDetails.organizationID}` : null,
+    null,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+    }
+  );
+
+  const statsLoading = !dashboardData && !dashboardFetchError && !stats && !!userDetails?.organizationID;
+
+  // Sync dashboardData with stats local state
+  useEffect(() => {
+    if (dashboardData) {
+      setStats(dashboardData);
+    }
+  }, [dashboardData]);
+
+  // Sync stats fetching error state
+  useEffect(() => {
+    if (dashboardFetchError) {
+      setError('Failed to fetch dashboard statistics');
+      console.error(dashboardFetchError);
+    }
+  }, [dashboardFetchError]);
 
   // Widget customization states
   const DEFAULT_WIDGETS = useMemo(() => [
@@ -119,31 +146,7 @@ const Dashboard = () => {
   const shouldShowWelcomeMessage = isAdmin && teams.length === 0 && projects.length === 0;
 
   useEffect(() => {
-    // Phase 1: connect socket and subscribe to org member presence/updates
-    const fetchDashboardStats = async () => {
-      try {
-        const response = await api.get(`/dashboard/${userDetails.organizationID}`);
-        setStats(response.data);
-      } catch (err) {
-        setError('Failed to fetch dashboard statistics');
-        console.error(err);
-      } finally {
-        setStatsLoading(false);
-      }
-    };
-
-
-
     if (userDetails?.organizationID) {
-      if (statsFetchedOrgIdRef.current === userDetails.organizationID) {
-        return;
-      }
-      statsFetchedOrgIdRef.current = userDetails.organizationID;
-
-
-      setStatsLoading(true);
-      fetchDashboardStats();
-
       // Phase 1: connect socket and subscribe to org member presence/updates
       connectSocket();
       const unsubPresence = subscribe('org.member.presence', (payload) => {

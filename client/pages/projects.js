@@ -8,6 +8,7 @@ import AddProjectModal from '../components/project/AddProjectModal';
 import ProjectCard from '../components/project/ProjectCard';
 import ProjectsSkeleton from '../components/skeletons/ProjectsSkeleton';
 import { useToast } from '../context/ToastContext';
+import useSWR from 'swr';
 
 const ProjectsPage = () => {
   const { projects, setProjects, userDetails, getThemeClasses, loading: globalLoading } = useGlobal();
@@ -17,43 +18,26 @@ const ProjectsPage = () => {
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const hasStats = projects && projects.length > 0 && projects.some(p => p.progress !== undefined);
-  const [loading, setLoading] = useState(!hasStats);
-
   const canManageProjects = userDetails?.role === 'Admin' || userDetails?.role === 'Owner';
 
-  // Synchronize loading state if global context projects change
+  // SWR-based projects overview query
+  const { data: projectsData, error: fetchError, mutate } = useSWR(
+    userDetails?._id ? '/projects/overview' : null,
+    () => projectService.getProjectsOverview(),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+    }
+  );
+
+  const loading = !projectsData && !fetchError;
+
+  // Sync SWR projectsData with the global context to keep it in sync
   useEffect(() => {
-    const hasStatsNow = projects && projects.length > 0 && projects.some(p => p.progress !== undefined);
-    if (hasStatsNow) {
-      setLoading(false);
-    } else if (!globalLoading && (!projects || projects.length === 0)) {
-      setLoading(false);
-    }
-  }, [projects, globalLoading]);
-
-  // Fetch projects with statistics using the new API
-  const fetchProjectsWithStats = async (showLoading = true) => {
-    if (!userDetails?._id) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      if (showLoading) {
-        setLoading(true);
-      }
-      const projectsData = await projectService.getProjectsOverview();
+    if (projectsData) {
       setProjects(projectsData);
-    } catch (error) {
-      console.error('Error fetching projects overview:', error);
-      showToast('Failed to load projects', 'error');
-    } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
     }
-  };
+  }, [projectsData, setProjects]);
 
   // Filter projects based on search term
   const filteredProjects = (projects || []).filter(project =>
@@ -64,7 +48,13 @@ const ProjectsPage = () => {
   const handleAddProject = async (projectData) => {
     try {
       const newProject = await projectService.addProject(projectData);
-      setProjects(prevProjects => [...prevProjects, newProject]);
+      
+      // Optimistic cache update or mutate cache directly
+      mutate(async (prev) => {
+        if (!prev) return [newProject];
+        return [...prev, newProject];
+      }, { revalidate: true });
+
       showToast('Project added successfully!', 'success', 5000, {
         description: `Project "${newProject?.Name || projectData?.Name || ''}" has been created.`,
         action: {
@@ -72,8 +62,6 @@ const ProjectsPage = () => {
           onClick: () => router.push(`/project/${newProject.ProjectID || newProject._id}`)
         }
       });
-      // Refresh projects with stats after adding new project (without showing loading)
-      await fetchProjectsWithStats(false);
       return newProject;
     } catch (err) {
       if (err.status == 403) {
@@ -83,14 +71,6 @@ const ProjectsPage = () => {
       }
     }
   };
-
-
-  useEffect(() => {
-    if (userDetails?._id) {
-      const hasStatsNow = projects && projects.length > 0 && projects.some(p => p.progress !== undefined);
-      fetchProjectsWithStats(!hasStatsNow);
-    }
-  }, [userDetails?._id]);
 
   // Auto-open Add Project modal if query param addProject=1 is present
   useEffect(() => {

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { FaTasks, FaCalendarAlt, FaClock, FaCheckCircle, FaExclamationTriangle, FaSearch, FaSpinner, FaFlag, FaEdit, FaTrash, FaTimes, FaShieldAlt, FaRocket, FaSort, FaSortUp, FaSortDown, FaFilter, FaChevronLeft, FaChevronRight, FaChartBar } from 'react-icons/fa';
+import useSWR from 'swr';
 
 import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
@@ -38,7 +39,6 @@ const MyTasksPage = () => {
 
 
   // State management
-  const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
@@ -80,40 +80,40 @@ const MyTasksPage = () => {
     highPriorityTasks: 0
   });
 
-  useEffect(() => {
-    if (userDetails) {
-      fetchUserData();
+  // SWR-based query for personal tasks and stats
+  const { data: myTasksRes, error: fetchError } = useSWR(
+    userDetails?._id ? '/auth/my-tasks-data' : null,
+    () => authService.getMyTasksData(),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
     }
-  }, [userDetails]);
+  );
+
+  const loading = !myTasksRes && !fetchError;
+
+  // Synchronize query response with page state hooks
+  useEffect(() => {
+    if (myTasksRes && myTasksRes.success) {
+      const { tasks, projects, stats } = myTasksRes.data;
+      setTasks(tasks);
+      setProjects(projects);
+      setStats(stats);
+    }
+  }, [myTasksRes]);
+
+  // Sync request errors
+  useEffect(() => {
+    if (fetchError) {
+      console.error('Error fetching user data:', fetchError);
+      showToast('Failed to load your tasks and projects', 'error');
+    }
+  }, [fetchError]);
 
   useEffect(() => {
     applyFilters();
     setCurrentPage(1);
   }, [tasks, searchTerm, statusFilter, priorityFilter, projectFilter, sortBy, sortOrder]);
-
-  const fetchUserData = async () => {
-    try {
-      setLoading(true);
-
-      // Fetch all user data in a single API call
-      const response = await authService.getMyTasksData();
-
-      if (response.success) {
-        const { tasks, projects, stats } = response.data;
-        setTasks(tasks);
-        setProjects(projects);
-        setStats(stats);
-      } else {
-        throw new Error(response.error || 'Failed to fetch user data');
-      }
-
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      showToast('Failed to load your tasks and projects', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
 
 
   const applyFilters = () => {

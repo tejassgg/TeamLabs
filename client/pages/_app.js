@@ -10,6 +10,8 @@ import { GlobalProvider } from '../context/GlobalContext';
 import { ToastProvider } from '../context/ToastContext';
 import RouteProtection from '../components/shared/RouteProtection';
 import Layout from '../components/layout/Layout';
+import { SWRConfig } from 'swr';
+import api from '../services/api';
 
 function AppContainer({ Component, pageProps }) {
   useEffect(() => {
@@ -48,15 +50,21 @@ function MyApp({ Component, pageProps }) {
 
     // </SessionProvider>
     <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
-      <ThemeProvider>
-        <GlobalProvider>
-          <ToastProvider>
-            <VideoCallProvider>
-              <AppContainer Component={Component} pageProps={pageProps} />
-            </VideoCallProvider>
-          </ToastProvider>
-        </GlobalProvider>
-      </ThemeProvider>
+      <SWRConfig value={{
+        fetcher: (url) => api.get(url).then(res => res.data),
+        revalidateOnFocus: false,
+        dedupingInterval: 5000,
+      }}>
+        <ThemeProvider>
+          <GlobalProvider>
+            <ToastProvider>
+              <VideoCallProvider>
+                <AppContainer Component={Component} pageProps={pageProps} />
+              </VideoCallProvider>
+            </ToastProvider>
+          </GlobalProvider>
+        </ThemeProvider>
+      </SWRConfig>
     </GoogleOAuthProvider>
   );
 }

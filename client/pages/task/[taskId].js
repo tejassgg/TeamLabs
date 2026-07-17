@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import useSWR from 'swr';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -31,7 +32,6 @@ const TaskDetailsPage = () => {
 
     const [task, setTask] = useState(null);
     const [project, setProject] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [subtasks, setSubtasks] = useState([]);
     const [attachments, setAttachments] = useState([]);
@@ -162,39 +162,42 @@ const TaskDetailsPage = () => {
         }
     };
 
+    // SWR-based query for dynamic task details
+    const { data: fullTaskDetails, error: fetchError } = useSWR(
+        taskId && typeof taskId === 'string' && taskId.trim() !== '' ? `/task-details/${taskId}` : null,
+        () => taskDetailsService.getFullTaskDetails(taskId),
+        {
+            revalidateOnFocus: false,
+            dedupingInterval: 5000,
+        }
+    );
+
+    const loading = !fullTaskDetails && !fetchError && !!taskId;
+
+    // Sync SWR data with local states
     useEffect(() => {
-        const fetchTaskDetails = async () => {
-            if (!taskId) {
-                return; // Don't fetch if taskId is not available yet
-            }
+        if (fullTaskDetails) {
+            setTask(fullTaskDetails.task);
+            setProject(fullTaskDetails.project);
+            setProjectMembers(fullTaskDetails.projectMembers || []);
+            setSubtasks(fullTaskDetails.subtasks);
+            setAttachments(fullTaskDetails.attachments);
+            setComments(fullTaskDetails.comments);
+            setUserStoryTasks(fullTaskDetails.userStoryTasks || []);
+        }
+    }, [fullTaskDetails]);
 
-            // Validate taskId format
-            if (typeof taskId !== 'string' || taskId.trim() === '') {
-                setError('Invalid task ID');
-                setLoading(false);
-                return;
-            }
+    // Handle fetching error states
+    useEffect(() => {
+        if (fetchError) {
+            console.error('Error fetching task details:', fetchError);
+            setError('Failed to fetch task details');
+            showToast('Failed to fetch task details', 'error');
+        }
+    }, [fetchError]);
 
-            setLoading(true);
-            try {
-                const data = await taskDetailsService.getFullTaskDetails(taskId);
-                setTask(data.task);
-                setProject(data.project);
-                setProjectMembers(data.projectMembers || []);
-                setSubtasks(data.subtasks);
-                setAttachments(data.attachments);
-                setComments(data.comments);
-                setUserStoryTasks(data.userStoryTasks || []); // use directly from API
-            } catch (err) {
-                console.error('Error fetching task details:', err);
-                setError('Failed to fetch task details');
-                showToast('Failed to fetch task details', 'error');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchTaskDetails();
-        // Join task room for real-time
+    // Manage WebSocket presence rooms
+    useEffect(() => {
         if (taskId) {
             connectSocket();
             try { getSocket().emit('task.join', { taskId }); } catch (_) { }
@@ -204,7 +207,7 @@ const TaskDetailsPage = () => {
                 try { getSocket().emit('task.leave', { taskId }); } catch (_) { }
             }
         };
-    }, [taskId, router, userDetails]);
+    }, [taskId]);
 
     // Close dropdown when clicking outside
     useEffect(() => {

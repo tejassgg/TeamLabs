@@ -74,12 +74,12 @@ The current RAG flow has memory and indexing bottleneck challenges:
 
 The frontend fetches REST data inside raw `useEffect` hooks on every page component mount.
 
-### A. Implement React Query (TanStack Query) or SWR
+### A. Implement React Query (TanStack Query) or SWR [IMPLEMENTED]
 *   **Issue**: Navigating between Kanban boards, project details, and messages triggers fresh API calls every time. This increases database query load and causes visual shimmers.
 *   **Optimization**:
-    *   Integrate React Query to manage server states.
     *   **Stale-While-Revalidate**: Instant page renders using cached data while checking for changes in the background.
-    *   **Automatic Query Deduping**: If multiple components request the active project details concurrently, React Query aggregates them into a single API request.
+    *   **Automatic Query Deduping**: Grouping multiple components requesting similar project details concurrently into a single aggregated network payload.
+    *   **Implementation**: Fully integrated the `swr` package, configured defaults globally inside `_app.js`, and migrated all 7 main data-fetching client pages (`projects.js`, `dashboard.js`, `teams.js`, `my-tasks.js`, `timesheet.js`, `task/[taskId].js`, and `project/[projectId].js`).
 *   **Impact**: Reduces total client HTTP request counts by **30% - 50%** and creates a smoother user experience.
 
 ### B. Pagination and Field Selection

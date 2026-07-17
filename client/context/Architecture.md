@@ -51,6 +51,7 @@ Built on the **React 19.2.7** and **Next.js 16.2.10** frameworks. Key configurat
 *   **State Management**: React Context APIs handle global states:
     *   `AuthContext`: Stores user login profile, organization membership, and premium level.
     *   `SocketContext`: Establishes the real-time Socket.IO browser instance, exposing events handlers.
+*   **Data Fetching & Caching Layer**: Implements **SWR (stale-while-revalidate)** for query caching, automatic deduping, and background revalidation, reducing network overhead. Configured globally with an Axios fetcher inside [client/pages/_app.js](file:///client/pages/_app.js).
 *   **UI Components**: Divided into domain folders in [client/components/](file:///client/components/) (e.g. `auth`, `dashboard`, `kanban`, `rag`, `reports`, `shared`).
 
 ---

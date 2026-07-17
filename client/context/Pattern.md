@@ -30,6 +30,22 @@ Tailwind classes follow mobile-first standards:
 *   Small grids `grid-cols-1` scaling up to multi-column blocks on large screens `md:grid-cols-3`.
 *   Clickable hover states (`hover:scale-102 hover:shadow-md`) with smooth transition durations (`transition-all duration-300`).
 
+### SWR Data Fetching Pattern
+Client-side data fetching uses `useSWR` for query caching and request aggregation.
+*   **Global Provider Setup**: Shared defaults are configured within `_app.js` using `<SWRConfig>`.
+*   **Conditional Fetching**: Queries depending on route parameters use conditional cache keys:
+    ```javascript
+    const { data, error } = useSWR(
+      projectId ? `/project-details/${projectId}` : null
+    );
+    ```
+*   **Cache Mutating**: Creating or altering records triggers an optimistic local mutate or revalidation refetch:
+    ```javascript
+    const { mutate } = useSWR('/projects/overview');
+    // ... inside post handler
+    mutate(); // forces SWR background refresh
+    ```
+
 ---
 
 ## ⚙️ 2. Backend Security & Controller Patterns

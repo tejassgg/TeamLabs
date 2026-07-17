@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import ExcelJS from 'exceljs'; // <-- Import exceljs
 import { saveAs } from 'file-saver'; // <-- Import file-saver
 import { useGlobal } from '../context/GlobalContext';
@@ -15,7 +16,6 @@ const TimeSheet = () => {
     const getThemeClasses = useThemeClasses();
     const { showToast } = useToast();
     const [userTimeSheet, setUserTimeSheet] = useState([]);
-    const [loading, setLoading] = useState(false);
     const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString());
     const [punchID, setPunchID] = useState();
     const [punchedInTime, setPunchedInTime] = useState();
@@ -46,33 +46,28 @@ const TimeSheet = () => {
     const tableRowClasses = getTableRowClasses();
     const tableSecondaryTextClasses = getTableSecondaryTextClasses();
 
-    const fetchUserTimeSheet = async () => {
-        // ... (existing function, no changes needed)
-         if (!userDetails?._id) {
-            setLoading(false);
-            return;
+    const formattedDate = new Date(currentDate).toLocaleDateString().replaceAll('/', '-');
+
+    // SWR-based query for timesheet logs
+    const { data: timesheetData, error: fetchError, mutate } = useSWR(
+        userDetails?._id ? `/timesheet/history/${formattedDate}` : null,
+        () => timesheetService.getTimeSheetHistory(formattedDate),
+        {
+            revalidateOnFocus: false,
+            dedupingInterval: 2000,
         }
+    );
 
-        try {
-            setLoading(true);
+    const loading = !timesheetData && !fetchError && !!userDetails?._id;
 
-            const data = await timesheetService.getTimeSheetHistory(new Date(currentDate).toLocaleDateString().replaceAll('/', '-'));
-            if (data) {
-                if (data.message) {
-                    showToast(data.message, 'warning')
-                }
-                if (data.punchData) {
-                    setPunchID(data.punchData._id);
-                    setPunchedInTime(data.punchData.InTime);
-                    setPunchedOutTime(data.punchData.OutTime);
-                    setUserTimeSheet(data.timeSheet || []);
-                } else {
-                     setPunchID(null);
-                     setPunchedInTime(null);
-                     setPunchedOutTime(null);
-                     setUserTimeSheet([]);
-                     setTotalTime({ hours: 0, minutes: 0 });
-                }
+    // Sync query results with component states
+    useEffect(() => {
+        if (timesheetData) {
+            if (timesheetData.punchData) {
+                setPunchID(timesheetData.punchData._id);
+                setPunchedInTime(timesheetData.punchData.InTime);
+                setPunchedOutTime(timesheetData.punchData.OutTime);
+                setUserTimeSheet(timesheetData.timeSheet || []);
             } else {
                 setPunchID(null);
                 setPunchedInTime(null);
@@ -80,17 +75,19 @@ const TimeSheet = () => {
                 setUserTimeSheet([]);
                 setTotalTime({ hours: 0, minutes: 0 });
             }
+        }
+    }, [timesheetData]);
 
-        } catch (error) {
-            showToast(error.message || 'Failed to load timesheet', 'error');
+    // Handle fetching error states
+    useEffect(() => {
+        if (fetchError) {
+            showToast(fetchError.message || 'Failed to load timesheet', 'error');
             setUserTimeSheet([]);
             setPunchID(null);
             setPunchedInTime(null);
             setPunchedOutTime(null);
-        } finally {
-            setLoading(false);
         }
-    };
+    }, [fetchError]);
 
     function createDateFromTimeString(timeString, baseDate = new Date()) {
         // ... (existing function, no changes needed)
@@ -376,9 +373,7 @@ const TimeSheet = () => {
 
     // --- END NEW HELPER FUNCTIONS ---
 
-    useEffect(() => {
-        fetchUserTimeSheet();
-    }, [currentDate, userDetails]); // Added userDetails dependency
+
 
     useEffect(() => {
         // ... (calculateTotalTime, no changes needed)

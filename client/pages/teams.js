@@ -8,6 +8,7 @@ import AddTeamModal from '../components/team/AddTeamModal';
 import TeamCard from '../components/team/TeamCard';
 import TeamsSkeleton from '../components/skeletons/TeamsSkeleton';
 import { useToast } from '../context/ToastContext';
+import useSWR from 'swr';
 
 const TeamsPage = () => {
   const { setTeams, userDetails, getThemeClasses } = useGlobal();
@@ -16,34 +17,28 @@ const TeamsPage = () => {
   const { showToast } = useToast();
   const [isAddTeamOpen, setIsAddTeamOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
   const [teamsWithStats, setTeamsWithStats] = useState([]);
 
   const canManageTeams = userDetails?.role === 'Admin' || userDetails?.role === 'Owner';
 
-  // Fetch teams with statistics using the new API
-  const fetchTeamsWithStats = async (showLoading = true) => {
-    if (!userDetails?._id) {
-      setLoading(false);
-      return;
+  // SWR-based teams overview query
+  const { data: SWRTeamsData, error: SWRTeamsError, mutate } = useSWR(
+    userDetails?._id ? `/teams/overview/${userDetails._id}` : null,
+    () => teamService.getTeamsOverview(userDetails._id),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
     }
+  );
 
-    try {
-      if (showLoading) {
-        setLoading(true);
-      }
-      const teamsData = await teamService.getTeamsOverview(userDetails._id);
-      setTeamsWithStats(teamsData);
-    } catch (error) {
-      console.error('Error fetching teams overview:', error);
-      showToast('Failed to load teams', 'error');
-      setTeamsWithStats([]);
-    } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
+  const loading = !SWRTeamsData && !SWRTeamsError;
+
+  // Sync SWRTeamsData with teamsWithStats local state
+  useEffect(() => {
+    if (SWRTeamsData) {
+      setTeamsWithStats(SWRTeamsData);
     }
-  };
+  }, [SWRTeamsData]);
 
   // Filter teams based on search term
   const filteredTeams = teamsWithStats.filter(team =>
@@ -62,8 +57,8 @@ const TeamsPage = () => {
           onClick: () => router.push(`/team/${newTeam?.team?.TeamID}`)
         }
       });
-      // Refresh teams with stats after adding new team (without showing loading)
-      await fetchTeamsWithStats(false);
+      // Refresh teams overview cache
+      mutate();
       return newTeam;
     } catch (err) {
       if (err.status == 403) {
@@ -76,15 +71,8 @@ const TeamsPage = () => {
 
   const handleRequestSent = async (teamId) => {
     // Refresh teams to update the request status
-    await fetchTeamsWithStats(false);
+    mutate();
   };
-
-
-  useEffect(() => {
-    if (userDetails?._id) {
-      fetchTeamsWithStats();
-    }
-  }, [userDetails?._id]);
 
   // Auto-open Add Team modal if query param addTeam=1 is present
   useEffect(() => {

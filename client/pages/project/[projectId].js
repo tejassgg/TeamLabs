@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import useSWR from 'swr';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -55,7 +56,6 @@ const ProjectDetailsPage = () => {
   const { showToast } = useToast();
   const [project, setProject] = useState(null);
   const [teams, setTeams] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [orgTeams, setOrgTeams] = useState([]);
   const [showAddTeamDialog, setShowAddTeamDialog] = useState(false);
@@ -311,29 +311,40 @@ const ProjectDetailsPage = () => {
     };
   }, [projectId]);
 
-  useEffect(() => {
-    if (projectId) {
-      setLoading(true);
-      // Fetch all project details in one call
-      api.get(`/project-details/${projectId}`)
-        .then(res => {
-          setProject(res.data.project);
-          setTeams(res.data.teams);
-          setOrgTeams(res.data.orgTeams);
-          setTaskList(res.data.taskList);
-          setUserStories(res.data.userStories);
-          setProjectMembers(res.data.projectMembers || []);
-          setProjectActivity(res.data.activity || []);
-          setHasMoreActivities(res.data.hasMoreActivities || false);
-          setActiveTab('manage');
-        })
-        .catch(err => {
-          setError('Failed to fetch project');
-          router.push('/dashboard');
-        })
-        .finally(() => setLoading(false));
+  // SWR-based query for dynamic project details
+  const { data: projectDetailsData, error: fetchError } = useSWR(
+    projectId ? `/project-details/${projectId}` : null,
+    null,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
     }
-  }, [projectId, router]);
+  );
+
+  const loading = !projectDetailsData && !fetchError && !project && !!projectId;
+
+  // Sync SWR projectDetailsData with component local states
+  useEffect(() => {
+    if (projectDetailsData) {
+      setProject(projectDetailsData.project);
+      setTeams(projectDetailsData.teams);
+      setOrgTeams(projectDetailsData.orgTeams);
+      setTaskList(projectDetailsData.taskList);
+      setUserStories(projectDetailsData.userStories);
+      setProjectMembers(projectDetailsData.projectMembers || []);
+      setProjectActivity(projectDetailsData.activity || []);
+      setHasMoreActivities(projectDetailsData.hasMoreActivities || false);
+      setActiveTab('manage');
+    }
+  }, [projectDetailsData]);
+
+  // Handle fetching error states
+  useEffect(() => {
+    if (fetchError) {
+      setError('Failed to fetch project');
+      router.push('/dashboard');
+    }
+  }, [fetchError, router]);
 
 
   // Fetch project repository information
