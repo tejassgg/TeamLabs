@@ -148,6 +148,9 @@ export const GlobalProvider = ({ children }) => {
         };
       }
       setUserDetails(data);
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
       localStorage.setItem('isLoggedIn', 'true');
       setIsLoggedInState(true);
       return { success: true };
@@ -167,6 +170,9 @@ export const GlobalProvider = ({ children }) => {
       }
       const data = await authService.verifyLogin2FA(code, tempAuthData.userId);
       setUserDetails(data);
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
       setTempAuthData(null);
       localStorage.setItem('isLoggedIn', 'true');
       setIsLoggedInState(true);
@@ -207,6 +213,9 @@ export const GlobalProvider = ({ children }) => {
     try {
       const data = await authService.googleLogin(credential, inviteToken);
       setUserDetails(data);
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
       localStorage.setItem('isLoggedIn', 'true');
       setIsLoggedInState(true);
       return { 
@@ -226,6 +235,9 @@ export const GlobalProvider = ({ children }) => {
     try {
       const data = await authService.completeProfile(profileData);
       setUserDetails(data);
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
       return { success: true };
     } catch (error) {
       return {
@@ -258,6 +270,7 @@ export const GlobalProvider = ({ children }) => {
     // Reset any fetch guard refs
     if (dataFetchedRef && typeof dataFetchedRef === 'object') dataFetchedRef.current = false;
     localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('token');
     setIsLoggedInState(false);
     router.push('/');
   };
@@ -367,6 +380,7 @@ export const GlobalProvider = ({ children }) => {
         dataFetchedRef.current = false;
         // Clear session on authentication failure
         localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('token');
         setIsLoggedInState(false);
         setUserDetails(null);
         router.push('/');

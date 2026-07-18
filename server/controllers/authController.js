@@ -221,6 +221,7 @@ const loginUser = async (req, res) => {
       delete userData.password;
       const token = generateToken(user._id);
       setTokenCookie(res, token);
+      userData.token = token;
 
       return res.status(200).json(userData);
     } else {
@@ -356,6 +357,7 @@ const googleLogin = async (req, res) => {
       // Return user data with token and Google profile image
       const token = generateToken(user._id);
       setTokenCookie(res, token);
+      userData.token = token;
       return res.json(userData);
     } else {
       // If user doesn't exist, create new user with partial profile
@@ -455,6 +457,7 @@ const googleLogin = async (req, res) => {
       userData.status = 'Offline';
       const token = generateToken(user._id);
       setTokenCookie(res, token);
+      userData.token = token;
       res.status(201).json(userData);
     }
   } catch (error) {
@@ -804,7 +807,9 @@ const verifyLogin2FA = async (req, res) => {
     }
     const token = generateToken(user._id);
     setTokenCookie(res, token);
-    return res.status(200).json(user.toObject());
+    const userData = user.toObject();
+    userData.token = token;
+    return res.status(200).json(userData);
   } catch (error) {
     console.error('2FA Login Verification Error:', error);
     return res.status(500).json({ error: 'Internal server error', details: error.message });

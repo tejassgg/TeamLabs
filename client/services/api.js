@@ -13,6 +13,22 @@ const api = axios.create({
   withCredentials: true
 });
 
+// Request interceptor to add Authorization header with JWT token
+api.interceptors.request.use(
+  (config) => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Create axios instance for public endpoints (like 2FA verification)
 const publicApi = axios.create({
   baseURL: API_URL,
