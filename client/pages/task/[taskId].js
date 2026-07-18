@@ -2436,7 +2436,7 @@ const TaskDetailsPage = () => {
                                                         )}>
                                                             #{c.sha.substring(0, 7)}
                                                         </span>
-                                                        <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                                                        <span className="text-xs text-gray-400 dark:text-gray-500">
                                                             {commitDate}
                                                         </span>
                                                     </div>

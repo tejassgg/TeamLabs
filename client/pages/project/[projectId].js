@@ -4,7 +4,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import StatusPill from '../../components/shared/StatusPill';
-import api, { authService, taskService, githubService } from '../../services/api';
+import api, { authService, taskService, githubService, projectService } from '../../services/api';
 import { FaCheck, FaExternalLinkAlt, FaEdit, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList, FaPaperPlane, FaTrash, FaCog, FaClock } from 'react-icons/fa';
 import { FiCornerDownRight } from "react-icons/fi";
 import { MdDelete } from 'react-icons/md';
@@ -774,7 +774,7 @@ const ProjectDetailsPage = () => {
       // When search is empty, show first 10 teams by default
       const assignedIds = new Set(teams.map(t => t.TeamID));
       const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
-      setFilteredAvailableTeams(showAllTeams ? availableTeams : availableTeams.slice(0, 5));
+      setFilteredAvailableTeams(showAllTeams ? availableTeams : availableTeams.slice(0, 10));
       return;
     }
 
@@ -1282,22 +1282,7 @@ const ProjectDetailsPage = () => {
                     <span>Files</span>
                   </button>
 
-                  {projectRepository?.connected && (
-                    <button
-                      onClick={() => setActiveTab('repo')}
-                      className={`${activeTab === 'repo'
-                        ? theme === 'dark'
-                          ? 'border-blue-400 text-blue-400'
-                          : 'border-blue-600 text-blue-600'
-                        : theme === 'dark'
-                          ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
-                    >
-                      <FaGithub size={16} />
-                      <span>Repo</span>
-                    </button>
-                  )}
+
                   {userDetails?.role === 'Admin' && (
                     <button
                       onClick={() => setActiveTab('knowledge')}
@@ -1388,9 +1373,9 @@ const ProjectDetailsPage = () => {
         {activeTab === 'manage' ? (
           <div>
             {/* Split Top Layout: Details (Left) & KPI Progress Stats (Right) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
               {/* Left Column: Project Details Card */}
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-3">
                 <div className={getThemeClasses(
                   "h-full bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between gap-4",
                   "dark:bg-[#1e1e24] dark:border-gray-800 dark:shadow-none"
@@ -1403,9 +1388,10 @@ const ProjectDetailsPage = () => {
                         {project && (() => {
                           const statusStyle = getProjectStatusStyle(project.ProjectStatusID);
                           const statusDetails = getProjectStatus(project.ProjectStatusID) || { Value: 'NOT ASSIGNED' };
+                          const StatusIcon = statusStyle.icon;
                           return (
                             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.textColor} border ${statusStyle.borderColor}`}>
-                              <span className={`w-2 h-2 rounded-full ${statusStyle.dotColor}`}></span>
+                              <StatusIcon className={statusStyle.iconColor} size={12} />
                               {statusDetails.Value}
                             </span>
                           );
@@ -1455,7 +1441,7 @@ const ProjectDetailsPage = () => {
                   </div>
 
                   {/* Bottom Row: Members & Actions */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 mt-6 border-t border-gray-100 dark:border-gray-800">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 mt-6 border-t border-gray-200 dark:border-gray-800">
                     {/* Left: Project Members Avatars */}
                     {projectMembers.length > 0 ? (
                       <div className="flex items-center gap-2">
@@ -1530,25 +1516,7 @@ const ProjectDetailsPage = () => {
                         Share Project
                       </button>
 
-                      {/* GitHub Link Button for Owners */}
-                      {isOwner && (
-                        <button
-                          className={getThemeClasses(
-                            "p-2 text-gray-500 hover:text-green-500 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-colors shadow-sm",
-                            "dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:text-green-400 dark:hover:bg-gray-700"
-                          )}
-                          title={projectRepository ? "Manage Repository" : "Link GitHub Repository"}
-                          onClick={() => {
-                            if (projectRepository) {
-                              setShowRepositoryModal(true);
-                            } else {
-                              fetchUserRepositories();
-                            }
-                          }}
-                        >
-                          <FaGithub size={18} />
-                        </button>
-                      )}
+
                     </div>
                   </div>
                 </div>
@@ -1557,19 +1525,13 @@ const ProjectDetailsPage = () => {
               {/* Right Column: Project KPI & Progress Stats Card */}
               <div>
                 <div className={getThemeClasses(
-                  "h-full bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between gap-4",
-                  "dark:bg-[#1e1e24] dark:border-gray-800 dark:shadow-none"
+                  "h-full flex flex-col bg-transparent",
+                  "dark:border-gray-800 dark:shadow-none"
                 )}>
-                  <div>
-                    <h3 className={getThemeClasses(
-                      "text-lg font-bold text-gray-900 mb-4",
-                      "dark:text-white"
-                    )}>
-                      Project Progress
-                    </h3>
-
+                  <h2 className={getThemeClasses('text-xl font-semibold text-gray-900 mb-4', 'dark:text-gray-100')}>Progress</h2>
+                  <div className="h-full border border-gray-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm ">
                     {/* Progress Circle & Text */}
-                    <div className="flex items-center gap-5">
+                    <div className="flex items-center gap-5 ">
                       {(() => {
                         const totalTasksCount = taskList.length;
                         const completedTasksCount = taskList.filter(t => t.Status === 6).length;
@@ -1615,178 +1577,106 @@ const ProjectDetailsPage = () => {
                         );
                       })()}
                     </div>
-                  </div>
 
-                  {/* Task counts details */}
-                  <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
-                    <div className={getThemeClasses("p-3 bg-gray-50 rounded-xl", "p-3 bg-zinc-800/40")}>
-                      <span className={getThemeClasses("text-xs text-gray-500 block", "text-xs text-gray-400 block")}>In Progress</span>
-                      <span className={getThemeClasses("text-lg font-bold text-gray-900", "text-lg font-bold text-white")}>
-                        {taskList.filter(t => t.Status === 3).length}
-                      </span>
-                    </div>
-                    <div className={getThemeClasses("p-3 bg-gray-50 rounded-xl", "p-3 bg-zinc-800/40")}>
-                      <span className={getThemeClasses("text-xs text-gray-500 block", "text-xs text-gray-400 block")}>User Stories</span>
-                      <span className={getThemeClasses("text-lg font-bold text-gray-900", "text-lg font-bold text-white")}>
-                        {userStories.length}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Insights & Integrations Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
-              {/* Widget 2: Project Goals Tracker */}
-              <div className={getThemeClasses(
-                "lg:col-span-1 bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4 justify-between",
-                "dark:bg-[#1e1e24] dark:border-gray-800 dark:shadow-none"
-              )}>
-                <div>
-                  <h3 className={getThemeClasses("text-sm font-bold text-gray-800 mb-3 uppercase tracking-wider", "text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider")}>
-                    Project Goals
-                  </h3>
-
-                  {/* Goals List */}
-                  <div className="space-y-3.5 max-h-[140px] overflow-y-auto pr-1">
-                    {!project?.Goals || project.Goals.length === 0 ? (
-                      <p className={getThemeClasses("text-xs text-gray-400 italic", "text-xs text-gray-500 italic")}>No goals defined for this project.</p>
-                    ) : (
-                      project.Goals.map((goal) => (
-                        <div key={goal._id} className="flex items-center gap-3">
-                          <span
-                            role="checkbox"
-                            aria-checked={!!goal.completed}
-                            tabIndex={isOwner ? 0 : -1}
-                            onClick={() => isOwner && handleToggleGoal(goal._id)}
-                            onKeyDown={(e) => { if (isOwner && (e.key === 'Enter' || e.key === ' ')) handleToggleGoal(goal._id); }}
-                            className={getThemeClasses(
-                              `inline-flex items-center justify-center w-4 h-4 rounded-full border flex-shrink-0 ${goal.completed ? 'bg-green-600 border-transparent' : 'bg-white border-gray-300'} ${isOwner ? 'cursor-pointer' : 'cursor-default'}`,
-                              `inline-flex items-center justify-center w-4 h-4 rounded-full border flex-shrink-0 ${goal.completed ? 'bg-green-600 border-transparent' : 'bg-transparent border-gray-600'} ${isOwner ? 'cursor-pointer' : 'cursor-default'}`
-                            )}
-                          >
-                            {goal.completed ? (
-                              <svg viewBox="0 0 20 20" className="w-3.5 h-3.5 text-white" fill="currentColor">
-                                <path d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.5 7.5a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L8.5 12.086l6.793-6.793a1 1 0 0 1 1.414 0Z" />
-                              </svg>
-                            ) : null}
-                          </span>
-                          <span className={getThemeClasses(
-                            `text-xs font-semibold ${goal.completed ? 'text-gray-400 line-through' : 'text-gray-700'}`,
-                            `text-xs font-semibold ${goal.completed ? 'text-gray-500 line-through' : 'text-gray-300'}`
-                          )}>
-                            {goal.text}
-                          </span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {/* Add Goal Input */}
-                {isOwner && (
-                  <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex gap-2">
-                    <input
-                      type="text"
-                      value={newGoalText}
-                      onChange={e => setNewGoalText(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddGoalDirect(); } }}
-                      placeholder="Add new goal..."
-                      className={getThemeClasses(
-                        "flex-1 px-2.5 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 placeholder-gray-400",
-                        "flex-1 px-2.5 py-1.5 text-xs bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-500"
-                      )}
-                    />
-                    <button
-                      onClick={handleAddGoalDirect}
-                      className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
-                    >
-                      Add
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Widget 3: GitHub Sync Widget */}
-              <div className={getThemeClasses(
-                "col-span-1 bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4 justify-between",
-                "dark:bg-[#1e1e24] dark:border-gray-800 dark:shadow-none"
-              )}>
-                <div>
-                  <h3 className={getThemeClasses("text-sm font-bold text-gray-800 mb-3 uppercase tracking-wider", "text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider")}>
-                    GitHub Sync
-                  </h3>
-                  {projectRepository ? (
-                    <div className="space-y-3 text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className={getThemeClasses("text-gray-500", "text-gray-400")}>Repository:</span>
-                        <a
-                          href={projectRepository.repositoryUrl || `https://github.com/${projectRepository.repositoryFullName}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-bold text-blue-600 dark:text-blue-400 hover:underline truncate max-w-[150px]"
-                        >
-                          {projectRepository.repositoryFullName || projectRepository.repositoryName}
-                        </a>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className={getThemeClasses("text-gray-500", "text-gray-400")}>Branch:</span>
-                        <span className="font-semibold font-mono bg-gray-150 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-300">
-                          {projectRepository.branch || 'main'}
+                    {/* Task counts details */}
+                    <div className="grid grid-cols-2 gap-3 pt-4">
+                      <div className={getThemeClasses("p-3 bg-gray-50 rounded-xl", "p-3 bg-zinc-800/40")}>
+                        <span className={getThemeClasses("text-xs text-gray-500 block", "text-xs text-gray-400 block")}>In Progress</span>
+                        <span className={getThemeClasses("text-lg font-bold text-gray-900", "text-lg font-bold text-white")}>
+                          {taskList.filter(t => t.Status === 3).length}
                         </span>
                       </div>
-                      {commits && commits.length > 0 ? (
-                        <div className="pt-2 border-t border-gray-100 dark:border-gray-800 space-y-1">
-                          <span className={getThemeClasses("text-[10px] text-gray-400 block", "text-[10px] text-gray-500 block")}>LATEST COMMIT</span>
-                          <p className={getThemeClasses("text-gray-700 truncate font-mono text-[11px]", "text-gray-300 truncate font-mono text-[11px]")} title={commits[0].message}>
-                            {commits[0].message}
-                          </p>
-                          <span className="text-[10px] text-gray-400 dark:text-gray-500 block">
-                            by {commits[0].author?.name || 'Someone'} ({commits[0].sha?.slice(0, 7)})
-                          </span>
-                        </div>
+                      <div className={getThemeClasses("p-3 bg-gray-50 rounded-xl", "p-3 bg-zinc-800/40")}>
+                        <span className={getThemeClasses("text-xs text-gray-500 block", "text-xs text-gray-400 block")}>User Stories</span>
+                        <span className={getThemeClasses("text-lg font-bold text-gray-900", "text-lg font-bold text-white")}>
+                          {userStories.length}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Widget 2: Goals Tracker */}
+              <div className={getThemeClasses(
+                "lg:col-span-1 flex flex-col bg-transparent",
+                "dark:border-gray-800 dark:shadow-none"
+              )}>
+                <h2 className={getThemeClasses('text-xl font-semibold text-gray-900 mb-4', 'dark:text-gray-100')}>Goals</h2>
+                <div className={getThemeClasses(
+                  "h-full border border-gray-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm bg-white",
+                  "dark:bg-[#1e1e24] dark:border-gray-800 dark:shadow-none"
+                )}>
+                  <div>
+                    {/* Goals List */}
+                    <div className="space-y-3.5 max-h-[140px] overflow-y-auto pr-1">
+                      {!project?.Goals || project.Goals.length === 0 ? (
+                        <p className={getThemeClasses("text-xs text-gray-400 italic", "text-xs text-gray-500 italic")}>No goals defined for this project.</p>
                       ) : (
-                        <p className={getThemeClasses("text-xs text-gray-400 italic pt-2", "text-xs text-gray-500 italic pt-2")}>No commits loaded.</p>
+                        project.Goals.map((goal) => (
+                          <div key={goal._id} className="flex items-center gap-3">
+                            <span
+                              role="checkbox"
+                              aria-checked={!!goal.completed}
+                              tabIndex={isOwner ? 0 : -1}
+                              onClick={() => isOwner && handleToggleGoal(goal._id)}
+                              onKeyDown={(e) => { if (isOwner && (e.key === 'Enter' || e.key === ' ')) handleToggleGoal(goal._id); }}
+                              className={getThemeClasses(
+                                `inline-flex items-center justify-center w-4 h-4 rounded-full border flex-shrink-0 ${goal.completed ? 'bg-green-600 border-transparent' : 'bg-white border-gray-300'} ${isOwner ? 'cursor-pointer' : 'cursor-default'}`,
+                                `inline-flex items-center justify-center w-4 h-4 rounded-full border flex-shrink-0 ${goal.completed ? 'bg-green-600 border-transparent' : 'bg-transparent border-gray-600'} ${isOwner ? 'cursor-pointer' : 'cursor-default'}`
+                              )}
+                            >
+                              {goal.completed ? (
+                                <svg viewBox="0 0 20 20" className="w-3.5 h-3.5 text-white" fill="currentColor">
+                                  <path d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.5 7.5a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L8.5 12.086l6.793-6.793a1 1 0 0 1 1.414 0Z" />
+                                </svg>
+                              ) : null}
+                            </span>
+                            <span className={getThemeClasses(
+                              `text-xs font-semibold ${goal.completed ? 'text-gray-400 line-through' : 'text-gray-700'}`,
+                              `text-xs font-semibold ${goal.completed ? 'text-gray-500 line-through' : 'text-gray-300'}`
+                            )}>
+                              {goal.text}
+                            </span>
+                          </div>
+                        ))
                       )}
                     </div>
-                  ) : (
-                    <div className="text-center py-4">
-                      <p className={getThemeClasses("text-xs text-gray-500 mb-3", "text-xs text-gray-400 mb-3")}>
-                        No repository linked to this project.
-                      </p>
-                      {isOwner && (
-                        <button
-                          onClick={fetchUserRepositories}
-                          className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
-                        >
-                          Connect Repository
-                        </button>
-                      )}
+                  </div>
+
+                  {/* Add Goal Input */}
+                  {isOwner && (
+                    <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex gap-2">
+                      <input
+                        type="text"
+                        value={newGoalText}
+                        onChange={e => setNewGoalText(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddGoalDirect(); } }}
+                        placeholder="Add new goal..."
+                        className={getThemeClasses(
+                          "flex-1 px-2.5 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 placeholder-gray-400",
+                          "flex-1 px-2.5 py-1.5 text-xs bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-500"
+                        )}
+                      />
+                      <button
+                        onClick={handleAddGoalDirect}
+                        className={getThemeClasses(
+                          'px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white rounded-lg transition-colors shadow-sm',
+                          'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
+                        )}
+                      >
+                        Add
+                      </button>
                     </div>
                   )}
                 </div>
-                {projectRepository && (
-                  <button
-                    onClick={() => setActiveTab('repo')}
-                    className={getThemeClasses(
-                      "text-xs text-blue-600 hover:text-blue-700 font-bold block pt-1 text-left",
-                      "text-xs text-blue-400 hover:text-blue-300 font-bold block pt-1 text-left"
-                    )}
-                  >
-                    View Git Logs &rarr;
-                  </button>
-                )}
               </div>
             </div>
-            <div className='w-full flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mt-6'>
-              {/* Add Team Dropdown */}
-              {/* moved search to header */}
-            </div>
-            {/* Teams Assigned - Cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-              <div className={showUserStories ? 'lg:col-span-3' : 'lg:col-span-5'}>
-                <div className="mb-4 flex items-center justify-between gap-4">
+
+            {/* Teams Assigned & User Stories Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
+              <div className={showUserStories ? 'lg:col-span-4' : 'lg:col-span-6'}>
+                <div className="flex justify-between mb-2 gap-4">
                   <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Teams</h2>
                   {isOwner && (
                     <form onSubmit={(e) => { e.preventDefault(); if (selectedTeam) handleAddTeam(selectedTeam.TeamID); }} className="relative">
@@ -1794,7 +1684,7 @@ const ProjectDetailsPage = () => {
                         <input
                           type="text"
                           className={getThemeClasses(
-                            'border rounded-xl px-4 py-2 w-64 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white border-gray-300 text-gray-900',
+                            'border rounded-xl px-3 py-1.5 w-64 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white border-gray-300 text-gray-900',
                             'dark:bg-[#18181b] dark:border-[#232323] dark:text-gray-100 dark:focus:outline-none dark:focus:ring-blue-500 dark:focus:border-blue-500'
                           )}
                           value={teamSearch}
@@ -1920,7 +1810,7 @@ const ProjectDetailsPage = () => {
                       No teams assigned to this project.
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                       {teams.map((team) => {
                         const initials = team.TeamName.length > 0 ? team.TeamName.split(' ').map(n => n[0]).join('') : '';
                         return (
@@ -1952,7 +1842,7 @@ const ProjectDetailsPage = () => {
                                 <StatusPill status={team.IsActive ? 'Active' : 'Inactive'} theme={theme} showPulseOnActive />
                               </div>
                             </div>
-                            <div className="flex items-center justify-between mt-6">
+                            <div className="flex items-center justify-between mt-3">
                               {/* Members overlay */}
                               {team.teamMembers && team.teamMembers.length > 0 && (
                                 <div className='flex items-center'>
@@ -2028,12 +1918,12 @@ const ProjectDetailsPage = () => {
               {/* User Stories Table */}
               {showUserStories && (
                 <div className={`lg:col-span-2`}>
-                  <div className="flex justify-between mb-4">
+                  <div className="flex justify-between mb-2">
                     <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>User Stories</h2>
                     <button
                       onClick={() => { setAddTaskTypeMode('userStory'); setIsAddTaskOpen(true); }}
                       className={getThemeClasses(
-                        'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
+                        'flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-600 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
                         'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
                       )}
                     >
@@ -2041,7 +1931,7 @@ const ProjectDetailsPage = () => {
                       Create
                     </button>
                   </div>
-                  <div className={`overflow-x-auto ${tableContainerClasses}`}>
+                  <div className={`overflow-x-auto overflow-y-auto max-h-[220px] ${tableContainerClasses}`}>
                     {userStories.length === 0 ? (
                       <div className={getThemeClasses(
                         'text-center py-8 text-gray-400',
@@ -2051,7 +1941,7 @@ const ProjectDetailsPage = () => {
                       </div>
                     ) : (
                       <table className="w-full">
-                        <thead>
+                        <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-[#1e1e24]' : 'bg-white'}`}>
                           <tr className={tableHeaderClasses}>
                             <th className={`py-3 px-4 text-left w-[300px] ${tableHeaderTextClasses}`}>Name</th>
                             <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Due Date</th>
@@ -2062,7 +1952,7 @@ const ProjectDetailsPage = () => {
                         <tbody>
                           {userStories.map(story => (
                             <tr key={story._id} className={tableRowClasses}>
-                              <td className="py-3 px-4">
+                              <td className="py-1.5 px-4">
                                 <div className="flex items-center gap-3">
                                   <div className="flex flex-col">
                                     <Link href={`/task/${story.TaskID}`} className={tableTextClasses + ' hover:text-blue-600 hover:underline transition-colors cursor-pointer'} title="View User Story Details">
@@ -2084,13 +1974,13 @@ const ProjectDetailsPage = () => {
                                   </div>
                                 </div>
                               </td>
-                              <td className={`hidden md:table-cell py-3 px-4 ${tableSecondaryTextClasses}`}>
+                              <td className={`hidden md:table-cell py-1.5 px-4 ${tableSecondaryTextClasses}`}>
                                 <span>{formatDateUTC(story.DueDate)}</span>
                               </td>
-                              <td className="py-3 px-4 text-center">
+                              <td className="py-1.5 px-4 text-center">
                                 {getTaskStatusBadge(story.Status, theme === 'dark', getTaskStatusText(story.Status))}
                               </td>
-                              <td className="py-3 px-4 text-center">
+                              <td className="py-1.5 px-4 text-center">
                                 <div className="flex items-center justify-center gap-2">
                                   <button
                                     onClick={() => handleEditTask(story)}
@@ -2195,7 +2085,8 @@ const ProjectDetailsPage = () => {
                               'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
                             )}
                           />
-                        </th>                         <th className={`py-3 px-4 text-left w-[41%] ${tableHeaderTextClasses}`}>
+                        </th>
+                        <th className={`py-3 px-4 text-left w-[41%] ${tableHeaderTextClasses}`}>
                           <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Name</span>
                             {getTasksSortIcon('name')}
@@ -2642,183 +2533,6 @@ const ProjectDetailsPage = () => {
               </tbody>
             </table>
           </div>
-        ) : activeTab === 'repo' && projectRepository?.connected ? (
-          <div className={getThemeClasses("bg-white rounded-xl shadow p-6", "dark:bg-transparent")}>
-            <div className="flex items-center gap-2 mb-6">
-              <FaGithub size={22} className={getThemeClasses("text-gray-800", "dark:text-gray-100")} />
-              <h2 className={getThemeClasses("text-xl font-semibold text-gray-900", "dark:text-gray-100")}>Repository Activity</h2>
-            </div>
-
-            {/* Commits and Issues Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Commits Section */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <FaCode size={18} className={getThemeClasses("text-gray-600", "dark:text-gray-400")} />
-                    <h3 className={getThemeClasses("text-lg font-semibold text-gray-900", "dark:text-gray-100")}>Commits</h3>
-                  </div>
-                  {commits.length > 0 && (
-                    <div className={getThemeClasses("text-sm text-gray-500", "dark:text-gray-400")}>
-                      Page {commitsPage} of {commitsTotalPages}
-                    </div>
-                  )}
-                </div>
-                {commitsLoading && commits.length === 0 ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                    <span className={getThemeClasses("ml-3 text-sm text-gray-500", "dark:text-gray-400")}>Loading commits...</span>
-                  </div>
-                ) : commits.length === 0 ? (
-                  <div className={getThemeClasses("text-center py-8 text-gray-500", "dark:text-gray-400")}>No commits found.</div>
-                ) : (
-                  <>
-                    <div className="space-y-6">
-                      {Object.entries(groupCommitsByDate(commits)).map(([date, dateCommits]) => (
-                        <div key={date} className="relative">
-                          {/* Date Header */}
-                          <div className="flex items-center gap-3 mb-4">
-                            <div className={getThemeClasses("flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full", "dark:bg-blue-400")}></div>
-                            <h4 className={getThemeClasses("text-sm font-semibold text-gray-700", "dark:text-gray-300")}>{date}</h4>
-                            <div className={getThemeClasses("flex-1 h-px bg-gray-200", "dark:bg-gray-700")}></div>
-                          </div>
-
-                          {/* Timeline */}
-                          <div className="relative">
-                            {/* Timeline line */}
-                            <div className={getThemeClasses("absolute left-1 top-0 bottom-0 w-px bg-gray-200", "dark:bg-gray-700")}></div>
-
-                            {/* Commits */}
-                            <div className="space-y-3">
-                              {dateCommits.map((commit, index) => (
-                                <div key={`${commit.sha}-${index}`} className="relative pl-6">
-                                  {/* Timeline dot */}
-                                  <div className={getThemeClasses("absolute left-0 top-2 w-2 h-2 bg-blue-500 rounded-full border-2 border-white", "dark:bg-blue-400 dark:border-gray-900")}></div>
-
-                                  {/* Commit card */}
-                                  <div className={getThemeClasses("bg-gray-50 rounded-lg p-3 border border-gray-100", "dark:bg-transparent dark:border-gray-700")}>
-                                    <div className="flex items-start gap-2 mb-2">
-                                      <a
-                                        href={commit.html_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={getThemeClasses("font-mono text-blue-600 hover:underline text-xs flex-shrink-0", "dark:text-blue-400")}
-                                      >
-                                        {getShortSha(commit.sha)}
-                                      </a>
-                                      <span className={getThemeClasses("text-gray-900 font-medium text-sm line-clamp-2", "dark:text-gray-100")} title={commit.message}>
-                                        {commit.message.split('\n')[0]}
-                                      </span>
-                                    </div>
-
-                                    <div className={getThemeClasses("flex items-center justify-between text-xs text-gray-500", "dark:text-gray-400")}>
-                                      <div className="flex items-center gap-2">
-                                        <span>by {commit.author.name}</span>
-                                        <span>•</span>
-                                        <span>{formatTimeAgo(commit.author.date)}</span>
-                                      </div>
-
-                                      <a
-                                        href={commit.html_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={getThemeClasses("inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-white text-gray-700 hover:bg-blue-50 transition-colors border border-gray-200", "dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-blue-900/30 dark:border-gray-600")}
-                                      >
-                                        <FaGithub size={10} /> View
-                                      </a>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {commitsTotalPages > 1 && (
-                      <Pagination
-                        currentPage={commitsPage}
-                        totalPages={commitsTotalPages}
-                        onPageChange={goToCommitsPage}
-                        onNext={nextCommitsPage}
-                        onPrev={prevCommitsPage}
-                        loading={commitsLoading}
-                      />
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* Issues Section */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <FaQuestionCircle size={18} className={getThemeClasses("text-gray-600", "dark:text-gray-400")} />
-                  <h3 className={getThemeClasses("text-lg font-semibold text-gray-900", "dark:text-gray-100")}>Issues</h3>
-                </div>
-                {issuesLoading && issues.length === 0 ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                    <span className={getThemeClasses("ml-3 text-sm text-gray-500", "dark:text-gray-400")}>Loading issues...</span>
-                  </div>
-                ) : issues.length === 0 ? (
-                  <div className={getThemeClasses("text-center py-8 text-gray-500", "dark:text-gray-400")}>No issues found.</div>
-                ) : (
-                  <>
-                    <ul className={getThemeClasses("divide-y divide-gray-200", "dark:divide-gray-700")}>
-                      {issues.map(issue => (
-                        <li key={issue.id} className="py-3 flex flex-col gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className={getThemeClasses("text-gray-900 font-medium text-sm truncate", "dark:text-gray-100")} title={issue.title}>#{issue.number} {issue.title}</span>
-                            {getIssueStatusBadge(issue.state)}
-                          </div>
-                          <div className={getThemeClasses("flex items-center gap-2 text-xs text-gray-500", "dark:text-gray-400")}>
-                            <span>by {issue.user.login}</span>
-                            <span>•</span>
-                            <span>{formatIssueDate(issue.created_at)}</span>
-                            {issue.comments > 0 && (
-                              <>
-                                <span>•</span>
-                                <span>{issue.comments} comments</span>
-                              </>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <a href={issue.html_url} target="_blank" rel="noopener noreferrer" className={getThemeClasses("inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 hover:bg-blue-50 transition-colors", "dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-blue-900/30")}>
-                              <FaGithub size={12} /> View
-                            </a>
-                            {issue.labels.length > 0 && (
-                              <div className="flex gap-1">
-                                {issue.labels.slice(0, 2).map(label => (
-                                  <span key={label.id} className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: `#${label.color}`, color: parseInt(label.color, 16) > 0x888888 ? '#000' : '#fff' }}>
-                                    {label.name}
-                                  </span>
-                                ))}
-                                {issue.labels.length > 2 && (
-                                  <span className={getThemeClasses("text-xs text-gray-500", "dark:text-gray-400")}>+{issue.labels.length - 2}</span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                    {hasMoreIssues && (
-                      <div className="flex justify-center mt-4">
-                        <button
-                          onClick={loadMoreIssues}
-                          disabled={issuesLoading}
-                          className={getThemeClasses("px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-60", "dark:bg-blue-700 dark:hover:bg-blue-800")}
-                        >
-                          {issuesLoading ? 'Loading...' : 'Load More'}
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
         ) : activeTab === 'knowledge' && userDetails?.role === 'Admin' ? (
           <RAGManagement organizationId={project?.OrganizationID} />
         ) : activeTab === 'reports' && isOwner ? (
@@ -2980,242 +2694,7 @@ const ProjectDetailsPage = () => {
                   </div>
                 </div>
 
-                {/* GitHub Repository Selection/Information */}
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-2 min-w-[120px] pt-2">
-                    <FaGithub className={getThemeClasses(
-                      'text-gray-500',
-                      'text-white'
-                    )} size={16} />
-                    <label className={getThemeClasses(
-                      'text-sm font-medium text-gray-700',
-                      'text-sm font-medium text-white'
-                    )}>
-                      Repository
-                    </label>
-                  </div>
-                  {/* GitHub Repository Information */}
-                  <div className="flex-1">
-                    {projectRepository ? (
-                      <div className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-gray-800/30 border-gray-600' : 'bg-green-50 border-green-200'}`}>
-                        <div className="flex flex-col sm:flex-row justify-between">
-                          <div className="flex-1">
-                            <h4 className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-1`}>
-                              {projectRepository.repositoryFullName}
-                            </h4>
-                            {projectRepository.repositoryDescription && (
-                              <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-3`}>
-                                {projectRepository.repositoryDescription}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-2">
-                              {projectRepository.repositoryLanguage && (
-                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
-                                  <FaCode size={10} />
-                                  {projectRepository.repositoryLanguage}
-                                </span>
-                              )}
-                              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>
-                                <FaStar size={10} />
-                                {projectRepository.repositoryStars}
-                              </span>
-                              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
-                                <FaCodeBranch size={10} />
-                                {projectRepository.repositoryForks}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="w-full flex flex-row justify-end sm:items-end sm:flex-col mt-4 sm:mt-0 gap-2">
-                            <a
-                              href={projectRepository.repositoryUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'}`}
-                            >
-                              <FaLink size={10} />
-                              View
-                            </a>
-                            {isOwner && (
-                              <div className="flex flex-row sm:flex-col items-end gap-2 relative">
-                                <button
-                                  type="button"
-                                  onClick={handleUnlinkRepository}
-                                  disabled={unlinkingRepository}
-                                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
-                                >
-                                  {unlinkingRepository ? <FaSpinner className="animate-spin" size={10} /> : <FaUnlink size={10} />}
-                                  Unlink
-                                </button>
 
-                                <div className="relative" data-repository-dropdown>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setShowRepositoryList(true);
-                                      if (userRepositories.length === 0) fetchUserRepositories();
-                                    }}
-                                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-                                  >
-                                    <FaGithub size={10} />
-                                    Change
-                                  </button>
-
-                                  {showRepositoryList && (
-                                    <div className="absolute top-full right-0 mt-2 w-80 z-50">
-                                      <div className={`rounded-lg shadow-lg border ${theme === 'dark' ? 'bg-gray-100 border-gray-700' : 'bg-white border-gray-200'}`}>
-                                        <div className="p-3">
-                                          <div className="flex justify-between items-center mb-3">
-                                            <h4 className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                              Select Repository
-                                            </h4>
-                                            <button
-                                              onClick={() => setShowRepositoryList(false)}
-                                              className={`p-1 rounded hover:bg-opacity-10 ${theme === 'dark' ? 'hover:bg-white text-gray-400' : 'hover:bg-gray-900 text-gray-500'}`}
-                                            >
-                                              <FaTimes size={12} />
-                                            </button>
-                                          </div>
-
-                                          {repositoryLoading ? (
-                                            <div className="flex items-center justify-center py-4">
-                                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                                              <span className={`ml-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Loading...</span>
-                                            </div>
-                                          ) : userRepositories.length > 0 ? (
-                                            <div className="max-h-60 overflow-y-auto">
-                                              <div className="space-y-2">
-                                                {userRepositories.map((repo) => (
-                                                  <button
-                                                    key={repo.id}
-                                                    type="button"
-                                                    className={`w-full text-left p-3 rounded-lg border transition-colors ${theme === 'dark' ? 'border-gray-700 hover:border-blue-600 hover:bg-gray-700/50' : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'}`}
-                                                    onClick={() => handleLinkRepository(repo)}
-                                                  >
-                                                    <div className="flex items-start gap-2">
-                                                      <FaGithub className="text-green-600 mt-0.5" size={12} />
-                                                      <div className="flex-1 min-w-0">
-                                                        <div className={`text-sm font-medium truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                                          {repo.full_name}
-                                                        </div>
-                                                        {repo.description && (
-                                                          <div className={`text-xs truncate mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                                                            {repo.description}
-                                                          </div>
-                                                        )}
-                                                        <div className="mt-1 flex items-center gap-2 text-xs">
-                                                          {repo.language && (
-                                                            <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{repo.language}</span>
-                                                          )}
-                                                          <span className={`${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>★ {repo.stargazers_count}</span>
-                                                          <span className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}>⑂ {repo.forks_count}</span>
-                                                        </div>
-                                                      </div>
-                                                    </div>
-                                                  </button>
-                                                ))}
-                                              </div>
-                                            </div>
-                                          ) : (
-                                            <div className={`text-center py-4 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                              No repositories found
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        {isOwner && (
-                          <div className="relative" data-repository-dropdown>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setShowRepositoryList(true);
-                                if (userRepositories.length === 0) fetchUserRepositories();
-                              }}
-                              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-blue-700 hover:bg-blue-800 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-                            >
-                              <FaGithub size={14} />
-                              Select GitHub Repository
-                            </button>
-
-                            {showRepositoryList && (
-                              <div className="fixed sm:absolute left-4 right-4 sm:left-0 sm:right-auto sm:w-80 top-1/2 sm:top-full sm:mt-2 transform -translate-y-1/2 sm:translate-y-0 sm:transform-none z-50">
-                                <div className={`rounded-lg shadow-lg border ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                                  <div className="p-3">
-                                    <div className="flex justify-between items-center mb-3">
-                                      <h4 className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                        Select Repository
-                                      </h4>
-                                      <button
-                                        onClick={() => setShowRepositoryList(false)}
-                                        className={`p-1 rounded hover:bg-opacity-10 ${theme === 'dark' ? 'hover:bg-white text-gray-400' : 'hover:bg-gray-900 text-gray-500'}`}
-                                      >
-                                        <FaTimes size={12} />
-                                      </button>
-                                    </div>
-
-                                    {repositoryLoading ? (
-                                      <div className="flex items-center justify-center py-4">
-                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                                        <span className={`ml-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Loading...</span>
-                                      </div>
-                                    ) : userRepositories.length > 0 ? (
-                                      <div className="max-h-96 overflow-y-auto">
-                                        <div className="space-y-2">
-                                          {userRepositories.map((repo) => (
-                                            <button
-                                              key={repo.id}
-                                              type="button"
-                                              className={`w-full text-left p-3 rounded-lg border transition-colors ${theme === 'dark' ? 'border-gray-700 hover:border-blue-600 hover:bg-gray-700/50' : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'}`}
-                                              onClick={() => handleLinkRepository(repo)}
-                                            >
-                                              <div className="flex items-start gap-2">
-                                                <FaGithub className="text-green-600 mt-0.5" size={12} />
-                                                <div className="flex-1 min-w-0">
-                                                  <div className={`text-sm font-medium truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                                    {repo.full_name}
-                                                  </div>
-                                                  {repo.description && (
-                                                    <div className={`text-xs truncate mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                                                      {repo.description}
-                                                    </div>
-                                                  )}
-                                                  <div className="mt-1 flex items-center gap-2 text-xs">
-                                                    {repo.language && (
-                                                      <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{repo.language}</span>
-                                                    )}
-                                                    <span className={`${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>★ {repo.stargazers_count}</span>
-                                                    <span className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}>⑂ {repo.forks_count}</span>
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            </button>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    ) : (
-                                      <div className={`text-center py-4 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                        No repositories found
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
 
                 <div className="flex justify-end gap-4">
                   <button
