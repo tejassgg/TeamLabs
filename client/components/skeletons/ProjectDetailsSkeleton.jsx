@@ -5,148 +5,222 @@ const ProjectDetailsSkeleton = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  const skeletonClass = isDark ? 'animate-pulse bg-gray-700 rounded' : 'animate-pulse bg-gray-200 rounded';
-  const cardClass = isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200';
-  const textClass = isDark ? 'text-gray-300' : 'text-gray-900';
-  const secondaryTextClass = isDark ? 'text-gray-400' : 'text-gray-500';
+  const skeletonClass = isDark ? 'animate-pulse bg-zinc-800 rounded-lg' : 'animate-pulse bg-gray-200 rounded-lg';
+  const skeletonSubClass = isDark ? 'animate-pulse bg-zinc-700/50 rounded-lg' : 'animate-pulse bg-gray-150 rounded-lg';
+  const cardClass = isDark ? 'bg-[#1e1e24] border-gray-800' : 'bg-white border-gray-200';
 
   return (
-    <div className="mx-auto">
+    <div className="mx-auto select-none">
       {/* Tab Navigation Skeleton */}
       <div className="mb-6">
-        <div className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+        <div className={`border-b ${isDark ? 'border-zinc-800' : 'border-gray-200'}`}>
           <div className="-mb-px flex items-center justify-between">
             <nav className="flex space-x-8">
               {/* Active "Manage Project" tab */}
               <div className="flex items-center gap-2 py-4 px-1 border-b-2 border-blue-600">
-                <div className={`w-4 h-4 bg-blue-600 rounded ${skeletonClass}`}></div>
-                <div className={`h-4 w-28 bg-blue-600 ${skeletonClass}`}></div>
+                <div className="w-4 h-4 bg-blue-500/30 rounded-full animate-pulse"></div>
+                <div className="h-4 w-28 bg-blue-500/20 rounded-md animate-pulse"></div>
               </div>
               {/* Inactive tabs */}
-              {['Board', 'Timeline', 'List', 'Files', 'Repo', 'Knowledge Base'].map((tab, index) => (
-                <div key={index} className="flex items-center gap-2 py-4 px-1">
-                  <div className={`w-4 h-4 bg-gray-400 rounded ${skeletonClass}`}></div>
-                  <div className={`h-4 w-14 bg-gray-400 ${skeletonClass}`}></div>
+              {['Board', 'Timeline', 'List', 'Files', 'Knowledge Base', 'Releases'].map((tab, index) => (
+                <div key={index} className={`${tab === 'Board' ? 'hidden sm:flex' : 'flex'} items-center gap-2 py-4 px-1`}>
+                  <div className={`w-4 h-4 rounded-full ${skeletonClass}`}></div>
+                  <div className={`h-4 w-16 ${skeletonSubClass}`}></div>
                 </div>
               ))}
             </nav>
-            <div className="flex items-center gap-4">
-              <div className={`h-8 w-8 rounded-full bg-gray-400 ${skeletonClass}`}></div>
-              <div className={`h-8 w-8 rounded-full bg-gray-400 ${skeletonClass}`}></div>
+            <div className="flex items-center gap-3">
+              <div className={`h-8 w-8 rounded-full ${skeletonClass}`}></div>
+              <div className={`h-8 w-8 rounded-full ${skeletonClass}`}></div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Project Description - Enhanced UI Skeleton */}
-      <div className={`flex w-full items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm mb-6 ${isDark ? 'dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none' : ''}`}>
-        <div className="flex items-center gap-3">
-          <div className={`flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center ${isDark ? 'dark:bg-blue-900/50' : ''}`}>
-            <div className={`w-4 h-4 bg-blue-600 rounded-full ${skeletonClass}`}></div>
-          </div>
-          <div className="flex-1">
-            <div className={`h-5 w-40 mb-2 bg-blue-800 ${skeletonClass}`}></div>
-            <div className={`h-4 w-96 bg-blue-700 ${skeletonClass}`}></div>
+      {/* Split Top Layout: Details (Left, 3 cols) & Progress (1 col) & Goals (1 col) */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+        {/* Left Column: Project Details Card Skeleton */}
+        <div className="lg:col-span-3">
+          <div className={`h-full border rounded-2xl p-6 flex flex-col justify-between gap-6 ${cardClass} shadow-sm`}>
+            <div className="space-y-4">
+              {/* Top Row: Statuses */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {/* Status pill mock */}
+                  <div className={`h-6 w-24 rounded-full ${isDark ? 'bg-blue-900/20 border border-blue-800/40' : 'bg-blue-50 border border-blue-100'} animate-pulse flex items-center px-2.5`}>
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-2"></div>
+                    <div className={`h-2.5 w-12 ${isDark ? 'bg-blue-800' : 'bg-blue-200'} rounded`}></div>
+                  </div>
+                </div>
+                {/* Deadline pill mock */}
+                <div className={`h-6 w-28 rounded-full ${isDark ? 'bg-green-900/20 border border-green-800/40' : 'bg-green-50 border border-green-100'} animate-pulse flex items-center px-2.5`}>
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2"></div>
+                  <div className={`h-2.5 w-16 ${isDark ? 'bg-green-800' : 'bg-green-200'} rounded`}></div>
+                </div>
+              </div>
+
+              {/* Middle Row: Name & Description */}
+              <div className="space-y-3">
+                <div className={`h-7 w-2/3 ${skeletonClass}`}></div>
+                <div className="space-y-2 pt-1">
+                  <div className={`h-3.5 w-full ${skeletonSubClass}`}></div>
+                  <div className={`h-3.5 w-11/12 ${skeletonSubClass}`}></div>
+                  <div className={`h-3.5 w-4/5 ${skeletonSubClass}`}></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Row: Members & Actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-gray-150 dark:border-zinc-800/60">
+              {/* Avatars stacked */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center -space-x-2">
+                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1e1e24] ${skeletonClass}`}></div>
+                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1e1e24] ${skeletonClass}`}></div>
+                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1e1e24] ${skeletonClass}`}></div>
+                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1e1e24] ${skeletonClass}`}></div>
+                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1e1e24] flex items-center justify-center text-xs font-bold ${isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-gray-100 text-gray-500'}`}>+3</div>
+                </div>
+                <div className={`h-3 w-20 ${skeletonSubClass}`}></div>
+              </div>
+              {/* Action buttons (Edit & Share) */}
+              <div className="flex items-center gap-2">
+                <div className={`w-9 h-9 rounded-xl border ${isDark ? 'border-zinc-800' : 'border-gray-200'} ${skeletonClass}`}></div>
+                <div className={`w-9 h-9 rounded-xl ${isDark ? 'bg-blue-900/30' : 'bg-blue-50'} animate-pulse`}></div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 flex-shrink-0">
-          {/* "27 Days Left" Status Pill */}
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 border border-green-200 ${isDark ? 'dark:bg-green-900/30 dark:border-green-700' : ''}`}>
-            <div className={`w-2 h-2 bg-green-500 rounded-full ${skeletonClass}`}></div>
-            <div className={`h-4 w-20 bg-green-600 ${skeletonClass}`}></div>
-          </div>
-          {/* "Deployment" Status Pill */}
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-pink-100 border border-pink-200 ${isDark ? 'dark:bg-pink-900/30 dark:border-pink-700' : ''}`}>
-            <div className={`w-4 h-4 bg-pink-500 rounded ${skeletonClass}`}></div>
-            <div className={`h-4 w-20 bg-pink-600 ${skeletonClass}`}></div>
-          </div>
-          {/* Team Member Avatars Skeleton */}
-          <div className="flex items-center">
-            <div className={`w-8 h-8 rounded-full bg-gray-300 border-2 border-white ${skeletonClass}`}></div>
-            <div className={`w-8 h-8 rounded-full bg-purple-500 border-2 border-white -ml-2 ${skeletonClass}`}></div>
-            <div className={`w-8 h-8 rounded-full bg-purple-500 border-2 border-white -ml-2 ${skeletonClass}`}></div>
-            <div className={`w-8 h-8 rounded-full bg-gray-200 border-2 border-white -ml-2 flex items-center justify-center ${isDark ? 'dark:bg-gray-600' : ''}`}>
-              <div className={`h-3 w-4 bg-gray-500 ${skeletonClass}`}></div>
+        {/* Middle Column: Progress Card Skeleton */}
+        <div className="lg:col-span-1">
+          <div className={`h-full border rounded-2xl p-6 flex flex-col justify-between shadow-sm ${cardClass}`}>
+            <div className="flex flex-col items-center justify-center gap-2 py-2">
+              {/* Large Centered Circular Progress Skeleton */}
+              <div className="relative w-36 h-36 flex items-center justify-center flex-shrink-0">
+                <svg className="w-full h-full transform -rotate-90">
+                  <circle cx="72" cy="72" r="54" className={isDark ? 'text-zinc-800' : 'text-gray-100'} strokeWidth="10" stroke="currentColor" fill="transparent" />
+                  <circle cx="72" cy="72" r="54" className="text-emerald-500/20 animate-pulse" strokeWidth="10" strokeDasharray="339.3" strokeDashoffset="100" strokeLinecap="round" stroke="currentColor" fill="transparent" />
+                </svg>
+                <div className="absolute flex flex-col items-center justify-center text-center">
+                  <div className={`text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white ${skeletonClass} h-7 w-12 mb-1.5`}></div>
+                  <div className={`text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mt-1 ${skeletonSubClass} h-3.5 w-16`}></div>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center gap-1.5 text-center mt-2">
+                <div className={`h-5 w-16 rounded-full ${skeletonClass}`}></div>
+                <div className={`h-3.5 w-32 ${skeletonSubClass}`}></div>
+              </div>
+            </div>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-150 dark:border-zinc-800/60">
+              <div className={`p-3 rounded-xl ${isDark ? 'bg-zinc-800/30' : 'bg-gray-50'}`}>
+                <div className={`h-3 w-12 mb-2 ${skeletonSubClass}`}></div>
+                <div className={`h-5 w-6 ${skeletonClass}`}></div>
+              </div>
+              <div className={`p-3 rounded-xl ${isDark ? 'bg-zinc-800/30' : 'bg-gray-50'}`}>
+                <div className={`h-3 w-16 mb-2 ${skeletonSubClass}`}></div>
+                <div className={`h-5 w-6 ${skeletonClass}`}></div>
+              </div>
             </div>
           </div>
-          {/* GitHub Icon Skeleton */}
-          <div className={`w-6 h-6 rounded-full bg-gray-400 ${skeletonClass}`}></div>
-          {/* Refresh/Sync Icon Skeleton */}
-          <div className={`w-6 h-6 rounded-full bg-gray-400 ${skeletonClass}`}></div>
+        </div>
+
+        {/* Right Column: Goals Card Skeleton */}
+        <div className="lg:col-span-1">
+          <div className={`h-full border rounded-2xl p-6 flex flex-col justify-between gap-5 ${cardClass} shadow-sm`}>
+            <div>
+              {/* Inline Goals Title Badge Mockup */}
+              <div className="flex items-center gap-1.5 mb-4 border-b border-gray-100 dark:border-zinc-800/80 pb-3">
+                <div className={`w-3.5 h-3.5 rounded-full ${skeletonClass}`}></div>
+                <div className={`h-3 w-20 ${skeletonSubClass}`}></div>
+              </div>
+              {/* Goals List */}
+              <div className="space-y-3.5 pr-1">
+                {[1, 2, 3].map((g) => (
+                  <div key={g} className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border flex-shrink-0 ${isDark ? 'border-zinc-700 bg-zinc-800/40' : 'border-gray-300 bg-white'} ${skeletonClass}`}></div>
+                    <div className={`h-3.5 flex-1 ${skeletonSubClass}`} style={{ width: g === 1 ? '75%' : g === 2 ? '60%' : '80%' }}></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Add goal placeholder */}
+            <div className="pt-3 border-t border-gray-150 dark:border-zinc-800/60 flex gap-2">
+              <div className={`h-8 flex-1 ${skeletonSubClass}`}></div>
+              <div className={`h-8 w-12 ${skeletonClass}`}></div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Teams Assigned + User Stories side-by-side (2:1) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Left: Teams Assigned cards (span 2) */}
-        <div className="lg:col-span-2">
-          <div className={`h-6 w-36 mb-3 ${skeletonClass}`}></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Teams Assigned & User Stories Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+        {/* Left: Teams Assigned (lg:col-span-3) */}
+        <div className="lg:col-span-3">
+          <div className="flex justify-between items-center mb-4 gap-4">
+            <div className={`h-6 w-20 ${skeletonClass}`}></div>
+            <div className={`h-8 w-64 ${skeletonSubClass}`}></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className={`rounded-xl border ${cardClass} p-4`}>
+              <div key={i} className={`rounded-xl border p-4 ${cardClass} shadow-sm`}>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl ${skeletonClass}`}></div>
-                    <div className="flex flex-col">
-                      <div className={`h-4 w-28 ${skeletonClass}`}></div>
-                      <div className={`h-3 w-32 mt-1 ${skeletonClass}`}></div>
+                    <div className={`w-8 h-8 rounded-full ${skeletonClass} flex items-center justify-center`}></div>
+                    <div className="flex flex-col gap-1">
+                      <div className={`h-3.5 w-16 ${skeletonClass}`}></div>
+                      <div className={`h-2.5 w-20 ${skeletonSubClass}`}></div>
                     </div>
                   </div>
-                  <div className={`h-6 w-16 rounded-full ${skeletonClass}`}></div>
+                  <div className={`h-5 w-12 rounded-full ${isDark ? 'bg-zinc-800' : 'bg-gray-100'} animate-pulse`}></div>
                 </div>
-                <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center gap-2">
-                    <div className={`h-3 w-14 ${skeletonClass}`}></div>
-                    <div className={`h-3 w-24 ${skeletonClass}`}></div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-6 h-6 rounded-full ${skeletonClass}`}></div>
-                    <div className={`w-6 h-6 rounded-full ${skeletonClass}`}></div>
-                  </div>
-                </div>
-                <div className="mt-3 flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
-                  <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
-                  <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
-                  <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${skeletonClass}`}></div>
+                <div className="mt-4 pt-3 border-t border-gray-100 dark:border-zinc-800/40 flex items-center -space-x-1.5">
+                  <div className={`w-6 h-6 rounded-full border border-white dark:border-zinc-800 ${skeletonClass}`}></div>
+                  <div className={`w-6 h-6 rounded-full border border-white dark:border-zinc-800 ${skeletonClass}`}></div>
+                  <div className={`w-6 h-6 rounded-full border border-white dark:border-zinc-800 ${skeletonClass}`}></div>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Right: User Stories panel */}
-        <div className={`rounded-xl border ${cardClass} overflow-hidden`}>
+        {/* Right: User Stories (lg:col-span-2) */}
+        <div className={`lg:col-span-2 rounded-xl border ${cardClass} overflow-hidden shadow-sm`}>
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
-              <div className={`h-6 w-24 ${skeletonClass}`}></div>
-              <div className={`h-8 w-20 ${skeletonClass}`}></div>
+              <div className={`h-5 w-24 ${skeletonClass}`}></div>
+              <div className={`h-7 w-16 ${skeletonClass}`}></div>
             </div>
           </div>
-          <div className="overflow-x-auto">
+          <div className="p-4">
             <table className="w-full">
               <thead>
                 <tr className={`border-b border-gray-200 ${isDark ? 'border-gray-700' : ''}`}>
-                  <th className="py-3 px-4 text-left"><div className={`h-4 w-24 ${skeletonClass}`}></div></th>
-                  <th className="py-3 px-4 text-left"><div className={`h-4 w-24 ${skeletonClass}`}></div></th>
-                  <th className="py-3 px-4 text-left"><div className={`h-4 w-20 ${skeletonClass}`}></div></th>
-                  <th className="py-3 px-4 text-center"><div className={`h-4 w-20 ${skeletonClass}`}></div></th>
+                  <th className="py-2 px-3 text-left w-[180px]"><div className={`h-3 w-10 ${skeletonClass}`}></div></th>
+                  <th className="py-2 px-3 text-left w-[100px]"><div className={`h-3 w-14 ${skeletonClass}`}></div></th>
+                  <th className="py-2 px-3 text-center w-[90px]"><div className={`h-3 w-12 ${skeletonClass}`}></div></th>
+                  <th className="py-2 px-3 text-center w-[70px]"><div className={`h-3 w-12 ${skeletonClass}`}></div></th>
                 </tr>
               </thead>
               <tbody>
-                {[1].map((i) => (
-                  <tr key={i} className={`border-b border-gray-100 last:border-b-0 ${isDark ? 'border-gray-700' : ''}`}>
-                    <td className="py-3 px-4">
-                      <div className="flex flex-col">
-                        <div className={`h-4 w-32 ${skeletonClass}`}></div>
-                        <div className={`h-3 w-24 ${skeletonClass}`}></div>
+                {[1, 2].map((i) => (
+                  <tr key={i} className={`border-b border-gray-100 last:border-b-0 ${isDark ? 'border-gray-750' : ''}`}>
+                    <td className="py-3 px-3">
+                      <div className="flex flex-col gap-1">
+                        <div className={`h-3.5 w-28 ${skeletonClass}`}></div>
+                        <div className={`h-2.5 w-16 ${skeletonSubClass}`}></div>
                       </div>
                     </td>
-                    <td className="py-3 px-4"><div className={`h-4 w-24 ${skeletonClass}`}></div></td>
-                    <td className="py-3 px-4"><div className={`h-6 w-20 rounded-full ${skeletonClass}`}></div></td>
-                    <td className="py-3 px-4 text-center"><div className={`h-6 w-16 rounded-full ${skeletonClass}`}></div></td>
+                    <td className="py-3 px-3"><div className={`h-3 w-20 ${skeletonSubClass}`}></div></td>
+                    <td className="py-3 px-3 text-center"><div className={`h-5 w-16 rounded-full mx-auto ${isDark ? 'bg-zinc-800' : 'bg-gray-100'} animate-pulse`}></div></td>
+                    <td className="py-3 px-3 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <div className={`w-5 h-5 rounded ${skeletonClass}`}></div>
+                        <div className={`w-5 h-5 rounded ${skeletonClass}`}></div>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -157,10 +231,10 @@ const ProjectDetailsSkeleton = () => {
 
       {/* Tasks Table Skeleton - Full Width */}
       <div className="mb-8">
-        <div className={`rounded-xl border ${cardClass} overflow-hidden`}>
+        <div className={`rounded-xl border ${cardClass} overflow-hidden shadow-sm`}>
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
-              <div className={`h-6 w-16 ${skeletonClass}`}></div>
+              <div className={`h-5 w-12 ${skeletonClass}`}></div>
               <div className={`h-8 w-24 ${skeletonClass}`}></div>
             </div>
           </div>
@@ -169,80 +243,80 @@ const ProjectDetailsSkeleton = () => {
               <thead>
                 <tr className={`border-b border-gray-200 ${isDark ? 'border-gray-700' : ''}`}>
                   <th className="py-3 px-4 text-center w-[50px]">
-                    <div className={`h-4 w-4 ${skeletonClass}`}></div>
+                    <div className={`h-4 w-4 mx-auto ${skeletonClass}`}></div>
                   </th>
                   <th className="py-3 px-4 text-left">
-                    <div className={`h-4 w-16 ${skeletonClass}`}></div>
+                    <div className={`h-3 w-16 ${skeletonClass}`}></div>
                   </th>
                   <th className="py-3 px-4 text-left">
-                    <div className={`h-4 w-20 ${skeletonClass}`}></div>
+                    <div className={`h-3 w-20 ${skeletonClass}`}></div>
                   </th>
                   <th className="py-3 px-4 text-left">
-                    <div className={`h-4 w-16 ${skeletonClass}`}></div>
+                    <div className={`h-3 w-16 ${skeletonClass}`}></div>
                   </th>
                   <th className="py-3 px-4 text-center">
-                    <div className={`h-4 w-24 ${skeletonClass}`}></div>
+                    <div className={`h-3 w-24 ${skeletonClass}`}></div>
                   </th>
                   <th className="py-3 px-4 text-left">
-                    <div className={`h-4 w-16 ${skeletonClass}`}></div>
+                    <div className={`h-3 w-16 ${skeletonClass}`}></div>
                   </th>
                   <th className="py-3 px-4 text-left">
-                    <div className={`h-4 w-16 ${skeletonClass}`}></div>
+                    <div className={`h-3 w-16 ${skeletonClass}`}></div>
                   </th>
                   <th className="py-3 px-4 text-left">
-                    <div className={`h-4 w-20 ${skeletonClass}`}></div>
+                    <div className={`h-3 w-20 ${skeletonClass}`}></div>
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {[1,2,3,4,5,6,7,8].map((i) => (
-                  <tr key={i} className={`border-b border-gray-100 last:border-b-0 ${isDark ? 'border-gray-700' : ''}`}>
-                    <td className="py-3 px-4 text-center">
-                      <div className={`h-4 w-4 ${skeletonClass}`}></div>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <tr key={i} className={`border-b border-gray-100 last:border-b-0 ${isDark ? 'border-gray-750' : ''}`}>
+                    <td className="py-4.5 px-4 text-center">
+                      <div className={`h-4 w-4 mx-auto border ${isDark ? 'border-zinc-700 bg-zinc-800/40' : 'border-gray-300 bg-white'} ${skeletonClass}`}></div>
                     </td>
-                    <td className="py-3 px-4">
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className={`h-4 w-32 ${skeletonClass}`}></div>
-                          <div className={`h-5 w-16 rounded-full ${skeletonClass}`}></div>
+                    <td className="py-4.5 px-4">
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2">
+                          <div className={`h-3.5 w-40 ${skeletonClass}`}></div>
+                          <div className={`h-4.5 w-14 rounded-full ${isDark ? 'bg-zinc-800' : 'bg-gray-100'} animate-pulse`}></div>
                         </div>
-                        <div className={`h-3 w-24 ${skeletonClass}`}></div>
+                        <div className={`h-2.5 w-24 ${skeletonSubClass}`}></div>
                       </div>
                     </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full bg-blue-100 ${skeletonClass}`}></div>
-                        <div className="flex flex-col">
-                          <div className={`h-4 w-24 ${skeletonClass}`}></div>
-                          <div className={`h-3 w-16 ${skeletonClass}`}></div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full bg-green-100 ${skeletonClass}`}></div>
-                        <div className="flex flex-col">
-                          <div className={`h-4 w-24 ${skeletonClass}`}></div>
-                          <div className={`h-3 w-16 ${skeletonClass}`}></div>
+                    <td className="py-4.5 px-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-7 h-7 rounded-full ${skeletonClass}`}></div>
+                        <div className="flex flex-col gap-1">
+                          <div className={`h-3 w-20 ${skeletonClass}`}></div>
+                          <div className={`h-2 w-12 ${skeletonSubClass}`}></div>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-center">
-                      <div className="flex flex-col">
-                        <div className={`h-4 w-20 ${skeletonClass}`}></div>
+                    <td className="py-4.5 px-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-7 h-7 rounded-full ${skeletonClass}`}></div>
+                        <div className="flex flex-col gap-1">
+                          <div className={`h-3 w-20 ${skeletonClass}`}></div>
+                          <div className={`h-2 w-12 ${skeletonSubClass}`}></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4.5 px-4 text-center">
+                      <div className="flex flex-col gap-1 mx-auto w-fit">
                         <div className={`h-3 w-16 ${skeletonClass}`}></div>
+                        <div className={`h-2.5 w-10 ${skeletonSubClass} mx-auto`}></div>
                       </div>
                     </td>
-                    <td className="py-3 px-4">
-                      <div className={`h-5 w-16 rounded-full ${skeletonClass}`}></div>
+                    <td className="py-4.5 px-4">
+                      <div className={`h-5 w-16 rounded-full ${isDark ? 'bg-zinc-800' : 'bg-gray-100'} animate-pulse`}></div>
                     </td>
-                    <td className="py-3 px-4 text-left">
-                      <div className={`h-6 w-20 rounded-full ${skeletonClass}`}></div>
+                    <td className="py-4.5 px-4 text-left">
+                      <div className={`h-6 w-20 rounded-full ${isDark ? 'bg-zinc-800' : 'bg-gray-100'} animate-pulse`}></div>
                     </td>
-                    <td className="py-3 px-4 text-left">
-                      <div className="flex items-center justify-center gap-2">
-                        <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
-                        <div className={`w-8 h-8 rounded-full ${skeletonClass}`}></div>
+                    <td className="py-4.5 px-4 text-left">
+                      <div className="flex items-center gap-1.5">
+                        <div className={`w-7 h-7 rounded-lg ${skeletonClass}`}></div>
+                        <div className={`w-7 h-7 rounded-lg ${skeletonClass}`}></div>
                       </div>
                     </td>
                   </tr>
@@ -252,9 +326,8 @@ const ProjectDetailsSkeleton = () => {
           </div>
         </div>
       </div>
-
     </div>
   );
 };
 
-export default ProjectDetailsSkeleton; 
+export default ProjectDetailsSkeleton;

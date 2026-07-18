@@ -131,19 +131,19 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'text-green-600 bg-green-100 dark:bg-green-900/20 dark:text-green-400';
-      case 'generating': return 'text-blue-600 bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400';
+      case 'generating': return 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400';
       case 'failed': return 'text-red-600 bg-red-100 dark:bg-red-900/20 dark:text-red-400';
-      default: return 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-400';
+      default: return 'text-gray-600 bg-gray-100 dark:bg-[#1e1e24] dark:text-gray-400';
     }
   };
 
   const getReportTypeColor = (type) => {
     switch (type) {
       case 'executive': return 'text-purple-600 bg-purple-100 dark:bg-purple-900/20 dark:text-purple-400';
-      case 'detailed': return 'text-blue-600 bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400';
+      case 'detailed': return 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400';
       case 'technical': return 'text-green-600 bg-green-100 dark:bg-green-900/20 dark:text-green-400';
       case 'dashboard': return 'text-orange-600 bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400';
-      default: return 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-400';
+      default: return 'text-gray-600 bg-gray-100 dark:bg-[#1e1e24] dark:text-gray-400';
     }
   };
 
@@ -173,8 +173,8 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
             <button
               onClick={() => setShowGenerator(true)}
               className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105 ${theme === 'dark'
-                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/25'
-                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/25'
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/25'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/25'
               }`}
             >
               <FaPlus className="text-lg" />
@@ -187,7 +187,7 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
         <div className="mb-8">
           <div className={`border-b transition-colors duration-300 ${theme === 'dark'
             ? 'border-gray-700'
-            : 'border-gray-200'
+            : 'border-zinc-850 dark:border-zinc-800'
           }`}>
             <nav className="-mb-px flex space-x-8">
               <button
@@ -195,8 +195,8 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
                 className={`py-3 px-1 border-b-2 font-semibold text-sm transition-all duration-300 ${
                   activeTab === 'reports'
                     ? theme === 'dark'
-                      ? 'border-blue-400 text-blue-400'
-                      : 'border-blue-600 text-blue-600'
+                      ? 'border-emerald-400 text-emerald-400'
+                      : 'border-emerald-600 text-emerald-600'
                     : theme === 'dark'
                       ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -210,8 +210,8 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
                 className={`py-3 px-1 border-b-2 font-semibold text-sm transition-all duration-300 ${
                   activeTab === 'configs'
                     ? theme === 'dark'
-                      ? 'border-blue-400 text-blue-400'
-                      : 'border-blue-600 text-blue-600'
+                      ? 'border-emerald-400 text-emerald-400'
+                      : 'border-emerald-600 text-emerald-600'
                     : theme === 'dark'
                       ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -237,7 +237,7 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
                 placeholder="Search reports..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+                className={`w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${theme === 'dark'
                   ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
                   : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                 }`}
@@ -248,7 +248,7 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
             <select
               value={filters.reportType}
               onChange={(e) => setFilters({ ...filters, reportType: e.target.value })}
-              className={`px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
+              className={`px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${theme === 'dark'
                 ? 'bg-gray-800 border-gray-600 text-white'
                 : 'bg-white border-gray-300 text-gray-900'
               }`}
@@ -272,8 +272,8 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <div className={`animate-spin rounded-full h-12 w-12 border-b-2 transition-colors duration-300 ${theme === 'dark'
-              ? 'border-blue-400'
-              : 'border-blue-600'
+              ? 'border-emerald-400'
+              : 'border-emerald-600'
             }`}></div>
             <span className={`ml-4 text-lg font-medium transition-colors duration-300 ${theme === 'dark'
               ? 'text-gray-400'
@@ -286,7 +286,7 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
               <div className="text-center py-16">
                 <div className={`p-8 rounded-3xl mx-auto max-w-md ${theme === 'dark'
                   ? 'bg-gray-800 border border-gray-700'
-                  : 'bg-white border border-gray-200'
+                  : 'bg-white border border-zinc-850 dark:border-zinc-800'
                 } transition-all duration-300`}>
                   <FaFileAlt className={`mx-auto h-16 w-16 transition-colors duration-300 ${theme === 'dark'
                     ? 'text-gray-600'
@@ -306,8 +306,8 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
                     <button
                       onClick={() => setShowGenerator(true)}
                       className={`inline-flex items-center px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${theme === 'dark'
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/25'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/25'
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/25'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/25'
                       }`}
                     >
                       <FaPlus className="mr-2 text-lg" />
@@ -320,7 +320,7 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
               filteredReports.map((report) => (
                 <div key={report.reportId} className={`rounded-2xl shadow-lg border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] ${theme === 'dark'
                   ? 'bg-gray-800 border-gray-700'
-                  : 'bg-white border-gray-200'
+                  : 'bg-white border-zinc-850 dark:border-zinc-800'
                 }`}>
                   <div className="p-6">
                     <div className="flex items-start justify-between">
@@ -413,7 +413,7 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
               <div className="text-center py-16">
                 <div className={`p-8 rounded-3xl mx-auto max-w-md ${theme === 'dark'
                   ? 'bg-gray-800 border border-gray-700'
-                  : 'bg-white border border-gray-200'
+                  : 'bg-white border border-zinc-850 dark:border-zinc-800'
                 } transition-all duration-300`}>
                   <FaCog className={`mx-auto h-16 w-16 transition-colors duration-300 ${theme === 'dark'
                     ? 'text-gray-600'
@@ -435,7 +435,7 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
               filteredConfigs.map((config) => (
                 <div key={config.configId} className={`rounded-2xl shadow-lg border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] ${theme === 'dark'
                   ? 'bg-gray-800 border-gray-700'
-                  : 'bg-white border-gray-200'
+                  : 'bg-white border-zinc-850 dark:border-zinc-800'
                 }`}>
                   <div className="p-6">
                     <div className="flex items-start justify-between">
@@ -451,7 +451,7 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
                             {config.reportType.charAt(0).toUpperCase() + config.reportType.slice(1)}
                           </span>
                           <span className={`px-3 py-1 text-sm font-medium rounded-full transition-colors duration-300 ${
-                            config.isActive ? 'text-green-600 bg-green-100 dark:bg-green-900/20 dark:text-green-400' : 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-400'
+                            config.isActive ? 'text-green-600 bg-green-100 dark:bg-green-900/20 dark:text-green-400' : 'text-gray-600 bg-gray-100 dark:bg-[#1e1e24] dark:text-gray-400'
                           }`}>
                             {config.isActive ? 'Active' : 'Inactive'}
                           </span>

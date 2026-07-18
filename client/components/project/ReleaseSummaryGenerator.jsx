@@ -76,7 +76,7 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
 
   // Simple Markdown Renderer
   const renderMarkdown = (md) => {
-    if (!md) return <span className="text-slate-500 italic text-sm">No release notes content yet.</span>;
+    if (!md) return <span className="text-zinc-500 italic text-sm">No release notes content yet.</span>;
     
     // Split by lines and convert basic markdown
     const lines = md.split('\n');
@@ -84,10 +84,10 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
       <div className="space-y-2 text-sm leading-relaxed">
         {lines.map((line, idx) => {
           if (line.startsWith('### ')) {
-            return <h4 key={idx} className="text-md font-bold text-indigo-500 mt-4 mb-2">{line.replace('### ', '')}</h4>;
+            return <h4 key={idx} className="text-md font-bold text-emerald-500 mt-4 mb-2">{line.replace('### ', '')}</h4>;
           }
           if (line.startsWith('## ')) {
-            return <h3 key={idx} className="text-lg font-bold text-slate-800 dark:text-slate-100 mt-5 border-b border-slate-700/10 pb-1">{line.replace('## ', '')}</h3>;
+            return <h3 key={idx} className="text-lg font-bold text-slate-800 dark:text-slate-100 mt-5 border-b border-gray-150 dark:border-zinc-800/60 pb-1">{line.replace('## ', '')}</h3>;
           }
           if (line.startsWith('# ')) {
             return <h2 key={idx} className="text-xl font-bold text-slate-800 dark:text-slate-100 mt-6">{line.replace('# ', '')}</h2>;
@@ -99,7 +99,7 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
             return (
               <ul key={idx} className="list-disc pl-5">
                 <li className="text-slate-600 dark:text-slate-300">
-                  {parts.map((part, pIdx) => pIdx % 2 === 1 ? <strong key={pIdx} className="font-bold text-indigo-400">{part}</strong> : part)}
+                  {parts.map((part, pIdx) => pIdx % 2 === 1 ? <strong key={pIdx} className="font-bold text-emerald-400">{part}</strong> : part)}
                 </li>
               </ul>
             );
@@ -110,93 +110,83 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
     );
   };
 
+  const borderClass = theme === 'dark' ? 'border-zinc-800' : 'border-gray-200';
+  const cardClass = theme === 'dark' ? 'bg-[#1e1e24] border-zinc-800 dark:shadow-none' : 'bg-white border-gray-200 shadow-sm';
+  const inputClass = theme === 'dark' ? 'bg-[#18181b] border-zinc-800 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500' : 'bg-gray-50 border-gray-200 text-slate-950 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500';
+
   return (
     <div className="space-y-6">
       {/* Title Header */}
       <div className="flex flex-col gap-1">
-        <h2 className="text-2xl font-bold tracking-tight">Automated Release Summary Generator</h2>
-        <p className={`text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+        <h2 className={`text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Automated Release Summary Generator</h2>
+        <p className={`text-sm ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-500'}`}>
           Generate changelogs using AI and email them to the project team.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Release Configuration Form */}
-        <div className={`lg:col-span-1 p-6 rounded-2xl border backdrop-blur-md flex flex-col justify-between ${
-          theme === 'dark' 
-            ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl' 
-            : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
-        }`}>
+        <div className={`lg:col-span-1 p-6 rounded-2xl border flex flex-col justify-between ${cardClass}`}>
           <div className="space-y-4">
-            <h3 className="text-md font-bold mb-2 flex items-center gap-2 border-b border-slate-200/10 pb-2">
-              <FaCalendarAlt className="text-indigo-500" />
-              <span>Release Details</span>
+            <h3 className="text-md font-bold mb-2 flex items-center gap-2 border-b border-gray-150 dark:border-zinc-800/80 pb-2">
+              <FaCalendarAlt className="text-emerald-500" />
+              <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>Release Details</span>
             </h3>
 
             {/* Version */}
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">Release Version</label>
+              <label className="block text-xs font-semibold text-zinc-500 mb-1.5 uppercase">Release Version</label>
               <input
                 type="text"
                 placeholder="e.g. v1.0.4"
                 value={version}
                 onChange={e => setVersion(e.target.value)}
-                className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none ${
-                  theme === 'dark' ? 'bg-slate-900 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-950'
-                }`}
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none ${inputClass}`}
               />
             </div>
 
             {/* Title */}
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">Release Title</label>
+              <label className="block text-xs font-semibold text-zinc-500 mb-1.5 uppercase">Release Title</label>
               <input
                 type="text"
                 placeholder="e.g. Authentication Patch"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none ${
-                  theme === 'dark' ? 'bg-slate-900 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-950'
-                }`}
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none ${inputClass}`}
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">Brief Description</label>
+              <label className="block text-xs font-semibold text-zinc-500 mb-1.5 uppercase">Brief Description</label>
               <textarea
                 rows={2}
                 placeholder="Optional release comments..."
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none ${
-                  theme === 'dark' ? 'bg-slate-900 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-950'
-                }`}
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none ${inputClass}`}
               />
             </div>
 
             {/* Date range selection */}
             <div className="grid grid-cols-2 gap-3 pt-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">From Date</label>
+                <label className="block text-xs font-semibold text-zinc-500 mb-1.5 uppercase">From Date</label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={e => setStartDate(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-xl border text-xs outline-none ${
-                    theme === 'dark' ? 'bg-slate-900 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-950'
-                  }`}
+                  className={`w-full px-3 py-2 rounded-xl border text-xs outline-none ${inputClass}`}
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">To Date</label>
+                <label className="block text-xs font-semibold text-zinc-500 mb-1.5 uppercase">To Date</label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={e => setEndDate(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-xl border text-xs outline-none ${
-                    theme === 'dark' ? 'bg-slate-900 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-950'
-                  }`}
+                  className={`w-full px-3 py-2 rounded-xl border text-xs outline-none ${inputClass}`}
                 />
               </div>
             </div>
@@ -206,7 +196,7 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
             <button
               onClick={handleGenerate}
               disabled={generating}
-              className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-indigo-600/10"
+              className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/10 disabled:opacity-50"
             >
               {generating ? (
                 <>
@@ -224,26 +214,22 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
         </div>
 
         {/* Release Notes Draft Preview & Editor */}
-        <div className={`lg:col-span-2 p-6 rounded-2xl border backdrop-blur-md flex flex-col justify-between ${
-          theme === 'dark' 
-            ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl' 
-            : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
-        }`}>
+        <div className={`lg:col-span-2 p-6 rounded-2xl border flex flex-col justify-between ${cardClass}`}>
           <div className="flex-1 flex flex-col min-h-[300px]">
             {/* Header toolbar */}
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200/10">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-gray-150 dark:border-zinc-800/80">
               <h3 className="text-md font-bold flex items-center gap-2">
-                <FaFileAlt className="text-indigo-500" />
-                <span>Draft Release Notes</span>
+                <FaFileAlt className="text-emerald-500" />
+                <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>Draft Release Notes</span>
               </h3>
 
-              <div className="flex items-center border border-slate-200/10 rounded-xl overflow-hidden shadow-sm p-0.5">
+              <div className="flex items-center border border-gray-150 dark:border-zinc-850 rounded-xl overflow-hidden shadow-sm p-0.5 bg-gray-50 dark:bg-zinc-900/60">
                 <button
                   onClick={() => setPreviewMode('edit')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
                     previewMode === 'edit'
-                      ? theme === 'dark' ? 'bg-slate-800 text-white' : 'bg-white text-slate-900 shadow-sm'
-                      : 'text-slate-400 hover:text-slate-300'
+                      ? theme === 'dark' ? 'bg-zinc-800 text-white' : 'bg-white text-slate-900 shadow-sm border border-gray-100'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400'
                   }`}
                 >
                   <FaEdit size={11} /> Edit Draft
@@ -252,8 +238,8 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
                   onClick={() => setPreviewMode('preview')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
                     previewMode === 'preview'
-                      ? theme === 'dark' ? 'bg-slate-800 text-white' : 'bg-white text-slate-900 shadow-sm'
-                      : 'text-slate-400 hover:text-slate-300'
+                      ? theme === 'dark' ? 'bg-zinc-800 text-white' : 'bg-white text-slate-900 shadow-sm border border-gray-100'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400'
                   }`}
                 >
                   <FaEye size={11} /> Live Preview
@@ -269,12 +255,12 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
                   onChange={e => setReleaseNotes(e.target.value)}
                   placeholder="The AI-generated changelog draft will appear here, or you can start typing your own notes manually..."
                   className={`w-full flex-1 min-h-[250px] p-4 rounded-xl border text-sm font-mono outline-none resize-none ${
-                    theme === 'dark' ? 'bg-slate-900 border-white/10 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-800'
+                    theme === 'dark' ? 'bg-[#18181b] border-zinc-800 text-zinc-300 focus:border-emerald-500 focus:ring-1' : 'bg-gray-50 border-gray-200 text-slate-800 focus:border-emerald-500 focus:ring-1'
                   }`}
                 />
               ) : (
                 <div className={`w-full flex-1 min-h-[250px] p-5 rounded-xl border overflow-y-auto max-h-[350px] ${
-                  theme === 'dark' ? 'bg-slate-900 border-white/10' : 'bg-slate-50 border-slate-200'
+                  theme === 'dark' ? 'bg-[#18181b] border-zinc-800' : 'bg-gray-50 border-gray-200'
                 }`}>
                   {renderMarkdown(releaseNotes)}
                 </div>

@@ -4,9 +4,9 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import StatusPill from '../../components/shared/StatusPill';
-import api, { authService, taskService, githubService, projectService } from '../../services/api';
-import { FaCheck, FaExternalLinkAlt, FaEdit, FaTimes, FaSpinner, FaCode, FaQuestionCircle, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList, FaPaperPlane, FaTrash, FaCog, FaClock } from 'react-icons/fa';
-import { FiCornerDownRight } from "react-icons/fi";
+import api, { authService, taskService, githubService } from '../../services/api';
+import { FaCheck, FaExternalLinkAlt, FaEdit, FaTimes, FaSpinner, FaCode, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList, FaPaperPlane, FaTrash, FaCog, FaClock, FaShare, FaFlag } from 'react-icons/fa';
+import { FiCornerDownRight, FiShare2 } from "react-icons/fi";
 import { MdDelete } from 'react-icons/md';
 import { FaTimeline } from "react-icons/fa6";
 import AddTaskModal from '../../components/shared/AddTaskModal';
@@ -211,6 +211,8 @@ const ProjectDetailsPage = () => {
   const [hasMoreIssues, setHasMoreIssues] = useState(true);
   const [projectActivity, setProjectActivity] = useState([]);
   const [newGoalText, setNewGoalText] = useState('');
+  const [editingGoalId, setEditingGoalId] = useState(null);
+  const [editingGoalText, setEditingGoalText] = useState('');
   const [hasMoreActivities, setHasMoreActivities] = useState(false);
   const [loadingMoreActivities, setLoadingMoreActivities] = useState(false);
 
@@ -552,6 +554,37 @@ const ProjectDetailsPage = () => {
       showToast('Goal added successfully', 'success');
     } catch (err) {
       showToast('Failed to add goal', 'error');
+    }
+  };
+
+  const handleDeleteGoal = async (goalId) => {
+    if (!project) return;
+    const updatedGoals = project.Goals.filter(g => g._id !== goalId);
+    try {
+      const res = await api.patch(`/projects/${projectId}`, { Goals: updatedGoals });
+      setProject(res.data);
+      showToast('Goal deleted successfully', 'success');
+    } catch (err) {
+      showToast('Failed to delete goal', 'error');
+    }
+  };
+
+  const handleUpdateGoalText = async (goalId, newText) => {
+    if (!project) return;
+    const originalGoal = project.Goals.find(g => g._id === goalId);
+    if (!originalGoal) return;
+    if (!newText.trim() || newText.trim() === originalGoal.text) {
+      setEditingGoalId(null);
+      return;
+    }
+    const updatedGoals = project.Goals.map(g => g._id === goalId ? { ...g, text: newText.trim() } : g);
+    try {
+      const res = await api.patch(`/projects/${projectId}`, { Goals: updatedGoals });
+      setProject(res.data);
+      setEditingGoalId(null);
+      showToast('Goal updated successfully', 'success');
+    } catch (err) {
+      showToast('Failed to update goal', 'error');
     }
   };
 
@@ -1026,8 +1059,8 @@ const ProjectDetailsPage = () => {
 
   // Update the table container classes - transparent background with borders to blend with page
   const tableContainerClasses = getThemeClasses(
-    'rounded-xl border border-gray-200',
-    'dark:border-gray-700'
+    'rounded-xl border border-gray-200 bg-white',
+    'dark:border-gray-800 dark:bg-[#1e1e24] dark:shadow-none'
   );
 
   // Table styling classes from GlobalContext for consistency
@@ -1234,7 +1267,7 @@ const ProjectDetailsPage = () => {
                       : theme === 'dark'
                         ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                      } hidden sm:flex whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm items-center gap-2 transition-all duration-200`}
                   >
                     <FaChartBar size={16} />
                     <span>Board</span>
@@ -1424,7 +1457,7 @@ const ProjectDetailsPage = () => {
                       </h1>
                       {project.Description ? (
                         <p className={getThemeClasses(
-                          "text-sm text-gray-600 leading-relaxed max-w-4xl",
+                          "text-sm text-gray-600 leading-relaxed max-w-2xl",
                           "dark:text-gray-300"
                         )}>
                           {project.Description}
@@ -1495,11 +1528,12 @@ const ProjectDetailsPage = () => {
                         <button
                           onClick={handleOpenModal}
                           className={getThemeClasses(
-                            "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm",
-                            "dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700"
+                            "p-1.5 text-gray-700 bg-white border border-gray-200 hover:border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm",
+                            "dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600"
                           )}
+                          title="Edit Project"
                         >
-                          Edit Project
+                          <FaEdit size={14} />
                         </button>
                       )}
 
@@ -1509,77 +1543,129 @@ const ProjectDetailsPage = () => {
                           showToast('Project link copied to clipboard!', 'success');
                         }}
                         className={getThemeClasses(
-                          "px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm",
+                          "p-1.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 shadow-sm",
                           "dark:bg-blue-600 dark:hover:bg-blue-700"
                         )}
+                        title="Share Project"
                       >
-                        Share Project
+                        <FiShare2 size={14} />
                       </button>
-
-
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Right Column: Project KPI & Progress Stats Card */}
-              <div>
-                <div className={getThemeClasses(
-                  "h-full flex flex-col bg-transparent",
-                  "dark:border-gray-800 dark:shadow-none"
-                )}>
-                  <h2 className={getThemeClasses('text-xl font-semibold text-gray-900 mb-4', 'dark:text-gray-100')}>Progress</h2>
-                  <div className="h-full border border-gray-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm ">
+              <div >
+                <div className="h-full flex flex-col bg-transparent">
+                  <div className={getThemeClasses(
+                    "h-full border border-gray-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm",
+                    "dark:bg-[#1e1e24] dark:border-gray-800 dark:shadow-none"
+                  )}>
                     {/* Progress Circle & Text */}
-                    <div className="flex items-center gap-5 ">
-                      {(() => {
-                        const totalTasksCount = taskList.length;
-                        const completedTasksCount = taskList.filter(t => t.Status === 6).length;
-                        const progressPercent = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
-                        const radius = 28;
-                        const strokeWidth = 6;
-                        const circumference = 2 * Math.PI * radius;
-                        const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
+                    {(() => {
+                      const totalTasksCount = taskList.length;
+                      const completedTasksCount = taskList.filter(t => t.Status === 6).length;
+                      const progressPercent = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
 
-                        let healthText = 'On Track';
-                        let healthColor = 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
-                        if (deadline === 'Deadline Passed' && progressPercent < 100) {
-                          healthText = 'Overdue';
-                          healthColor = 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
-                        } else if (deadline !== 'No Deadline' && progressPercent < 40 && !deadline.includes('Days Left')) {
-                          healthText = 'Needs Attention';
-                          healthColor = 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
-                        }
+                      const radius = 54;
+                      const strokeWidth = 10;
+                      const C = 2 * Math.PI * radius; // 339.29
+                      const gap = 12;
 
-                        return (
-                          <>
-                            <div className="relative w-16 h-16 flex items-center justify-center flex-shrink-0">
-                              <svg className="w-full h-full transform -rotate-90">
-                                <circle cx="32" cy="32" r={radius} className="text-gray-150 dark:text-gray-800" strokeWidth={strokeWidth} stroke="currentColor" fill="transparent" />
-                                <circle cx="32" cy="32" r={radius} className="text-blue-600 dark:text-blue-500" strokeWidth={strokeWidth} strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" stroke="currentColor" fill="transparent" />
-                              </svg>
+                      let greenLength = 0;
+                      let grayLength = 0;
+                      let greenOffset = 0;
+                      let grayOffset = 0;
+
+                      if (progressPercent === 100) {
+                        greenLength = C;
+                        grayLength = 0;
+                      } else if (progressPercent === 0) {
+                        greenLength = 0;
+                        grayLength = C;
+                      } else {
+                        greenLength = (progressPercent / 100) * C - gap;
+                        grayLength = ((100 - progressPercent) / 100) * C - gap;
+                        greenOffset = -gap / 2;
+                        grayOffset = -(greenLength + 1.5 * gap);
+                      }
+
+                      let healthText = 'On Track';
+                      let healthColor = 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
+                      if (deadline === 'Deadline Passed' && progressPercent < 100) {
+                        healthText = 'Overdue';
+                        healthColor = 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
+                      } else if (deadline !== 'No Deadline' && progressPercent < 40 && !deadline.includes('Days Left')) {
+                        healthText = 'Needs Attention';
+                        healthColor = 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
+                      }
+
+                      return (
+                        <div className="flex flex-col items-center justify-center gap-2 py-2">
+                          <div className="relative w-32 h-32 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-full h-full transform -rotate-90">
+                              {/* Gray remainder path */}
+                              {grayLength > 0 && (
+                                <circle
+                                  cx="64"
+                                  cy="64"
+                                  r={radius}
+                                  className="text-gray-100 dark:text-zinc-800"
+                                  strokeWidth={strokeWidth}
+                                  strokeDasharray={`${grayLength} ${C}`}
+                                  strokeDashoffset={grayOffset}
+                                  strokeLinecap="round"
+                                  stroke="currentColor"
+                                  fill="transparent"
+                                />
+                              )}
+                              {/* Emerald progress path */}
+                              {greenLength > 0 && (
+                                <circle
+                                  cx="64"
+                                  cy="64"
+                                  r={radius}
+                                  className="text-emerald-500 dark:text-emerald-400"
+                                  strokeWidth={strokeWidth}
+                                  strokeDasharray={`${greenLength} ${C}`}
+                                  strokeDashoffset={greenOffset}
+                                  strokeLinecap="round"
+                                  stroke="currentColor"
+                                  fill="transparent"
+                                />
+                              )}
+                            </svg>
+                            <div className="absolute flex flex-col items-center justify-center text-center">
                               <span className={getThemeClasses(
-                                "absolute text-xs font-bold text-gray-800",
-                                "absolute text-xs font-bold text-white"
+                                "text-2xl font-extrabold tracking-tight text-slate-800",
+                                "text-white"
                               )}>
                                 {progressPercent}%
                               </span>
-                            </div>
-                            <div className="space-y-1">
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${healthColor}`}>
-                                {healthText}
+                              <span className={getThemeClasses(
+                                "text-xs font-bold uppercase tracking-widest text-slate-400 mt-1",
+                                "text-zinc-500 mt-1"
+                              )}>
+                                Progress
                               </span>
-                              <p className={getThemeClasses("text-xs text-gray-500", "dark:text-gray-400")}>
-                                {completedTasksCount} of {totalTasksCount} tasks completed
-                              </p>
                             </div>
-                          </>
-                        );
-                      })()}
-                    </div>
+                          </div>
+
+                          <div className="flex flex-col items-center gap-1.5 text-center">
+                            <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold border ${healthColor}`}>
+                              {healthText}
+                            </span>
+                            <p className={getThemeClasses("text-xs text-gray-500", "dark:text-gray-400")}>
+                              {completedTasksCount} of {totalTasksCount} tasks completed
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Task counts details */}
-                    <div className="grid grid-cols-2 gap-3 pt-4">
+                    <div className="grid grid-cols-2 gap-3 pt-2">
                       <div className={getThemeClasses("p-3 bg-gray-50 rounded-xl", "p-3 bg-zinc-800/40")}>
                         <span className={getThemeClasses("text-xs text-gray-500 block", "text-xs text-gray-400 block")}>In Progress</span>
                         <span className={getThemeClasses("text-lg font-bold text-gray-900", "text-lg font-bold text-white")}>
@@ -1602,42 +1688,89 @@ const ProjectDetailsPage = () => {
                 "lg:col-span-1 flex flex-col bg-transparent",
                 "dark:border-gray-800 dark:shadow-none"
               )}>
-                <h2 className={getThemeClasses('text-xl font-semibold text-gray-900 mb-4', 'dark:text-gray-100')}>Goals</h2>
                 <div className={getThemeClasses(
                   "h-full border border-gray-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm bg-white",
                   "dark:bg-[#1e1e24] dark:border-gray-800 dark:shadow-none"
                 )}>
                   <div>
+                    {/* Inline Goals Title Badge */}
+                    <div className="flex items-center gap-1.5 mb-4 border-b border-gray-100 dark:border-zinc-800/80 pb-3">
+                      <FaFlag className="text-blue-500 dark:text-blue-400 w-3.5 h-3.5" />
+                      <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500">Project Goals</span>
+                    </div>
+
                     {/* Goals List */}
-                    <div className="space-y-3.5 max-h-[140px] overflow-y-auto pr-1">
+                    <div className="space-y-3.5 overflow-y-auto pr-1">
                       {!project?.Goals || project.Goals.length === 0 ? (
                         <p className={getThemeClasses("text-xs text-gray-400 italic", "text-xs text-gray-500 italic")}>No goals defined for this project.</p>
                       ) : (
                         project.Goals.map((goal) => (
-                          <div key={goal._id} className="flex items-center gap-3">
-                            <span
-                              role="checkbox"
-                              aria-checked={!!goal.completed}
-                              tabIndex={isOwner ? 0 : -1}
-                              onClick={() => isOwner && handleToggleGoal(goal._id)}
-                              onKeyDown={(e) => { if (isOwner && (e.key === 'Enter' || e.key === ' ')) handleToggleGoal(goal._id); }}
-                              className={getThemeClasses(
-                                `inline-flex items-center justify-center w-4 h-4 rounded-full border flex-shrink-0 ${goal.completed ? 'bg-green-600 border-transparent' : 'bg-white border-gray-300'} ${isOwner ? 'cursor-pointer' : 'cursor-default'}`,
-                                `inline-flex items-center justify-center w-4 h-4 rounded-full border flex-shrink-0 ${goal.completed ? 'bg-green-600 border-transparent' : 'bg-transparent border-gray-600'} ${isOwner ? 'cursor-pointer' : 'cursor-default'}`
-                              )}
-                            >
-                              {goal.completed ? (
-                                <svg viewBox="0 0 20 20" className="w-3.5 h-3.5 text-white" fill="currentColor">
-                                  <path d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.5 7.5a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L8.5 12.086l6.793-6.793a1 1 0 0 1 1.414 0Z" />
-                                </svg>
-                              ) : null}
-                            </span>
-                            <span className={getThemeClasses(
-                              `text-xs font-semibold ${goal.completed ? 'text-gray-400 line-through' : 'text-gray-700'}`,
-                              `text-xs font-semibold ${goal.completed ? 'text-gray-500 line-through' : 'text-gray-300'}`
-                            )}>
-                              {goal.text}
-                            </span>
+                          <div key={goal._id} className="flex items-center justify-between gap-3 group">
+                            {editingGoalId === goal._id ? (
+                              <input
+                                type="text"
+                                value={editingGoalText}
+                                onChange={(e) => setEditingGoalText(e.target.value)}
+                                onBlur={() => handleUpdateGoalText(goal._id, editingGoalText)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleUpdateGoalText(goal._id, editingGoalText);
+                                  if (e.key === 'Escape') setEditingGoalId(null);
+                                }}
+                                className={getThemeClasses(
+                                  "flex-1 px-2.5 py-1 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900",
+                                  "flex-1 px-2.5 py-1 text-xs bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-blue-500 text-white"
+                                )}
+                                autoFocus
+                              />
+                            ) : (
+                              <>
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                  <span
+                                    role="checkbox"
+                                    aria-checked={!!goal.completed}
+                                    tabIndex={isOwner ? 0 : -1}
+                                    onClick={() => isOwner && handleToggleGoal(goal._id)}
+                                    onKeyDown={(e) => { if (isOwner && (e.key === 'Enter' || e.key === ' ')) handleToggleGoal(goal._id); }}
+                                    className={getThemeClasses(
+                                      `inline-flex items-center justify-center w-4 h-4 rounded-full border flex-shrink-0 ${goal.completed ? 'bg-green-600 border-transparent' : 'bg-white border-gray-300'} ${isOwner ? 'cursor-pointer' : 'cursor-default'}`,
+                                      `inline-flex items-center justify-center w-4 h-4 rounded-full border flex-shrink-0 ${goal.completed ? 'bg-green-600 border-transparent' : 'bg-transparent border-gray-600'} ${isOwner ? 'cursor-pointer' : 'cursor-default'}`
+                                    )}
+                                  >
+                                    {goal.completed ? (
+                                      <svg viewBox="0 0 20 20" className="w-3.5 h-3.5 text-white" fill="currentColor">
+                                        <path d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.5 7.5a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L8.5 12.086l6.793-6.793a1 1 0 0 1 1.414 0Z" />
+                                      </svg>
+                                    ) : null}
+                                  </span>
+                                  <span
+                                    onClick={() => {
+                                      if (isOwner) {
+                                        setEditingGoalId(goal._id);
+                                        setEditingGoalText(goal.text);
+                                      }
+                                    }}
+                                    className={getThemeClasses(
+                                      `text-xs font-semibold truncate ${goal.completed ? 'text-gray-400 line-through' : 'text-gray-700'} ${isOwner ? 'cursor-pointer hover:text-blue-600 dark:hover:text-blue-450' : ''}`,
+                                      `text-xs font-semibold truncate ${goal.completed ? 'text-gray-500 line-through' : 'text-gray-300'} ${isOwner ? 'cursor-pointer hover:text-blue-400 dark:hover:text-blue-350' : ''}`
+                                    )}
+                                    title={isOwner ? "Click to edit goal" : goal.text}
+                                  >
+                                    {goal.text}
+                                  </span>
+                                </div>
+                                {isOwner && (
+                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0">
+                                    <button
+                                      onClick={() => handleDeleteGoal(goal._id)}
+                                      className="p-1 rounded-md text-gray-450 hover:text-red-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-zinc-800 transition-all duration-150"
+                                      title="Delete Goal"
+                                    >
+                                      <FaTrash size={10} />
+                                    </button>
+                                  </div>
+                                )}
+                              </>
+                            )}
                           </div>
                         ))
                       )}
@@ -1674,8 +1807,8 @@ const ProjectDetailsPage = () => {
             </div>
 
             {/* Teams Assigned & User Stories Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
-              <div className={showUserStories ? 'lg:col-span-4' : 'lg:col-span-6'}>
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+              <div className={showUserStories ? 'lg:col-span-3' : 'lg:col-span-6'}>
                 <div className="flex justify-between mb-2 gap-4">
                   <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Teams</h2>
                   {isOwner && (
@@ -1777,8 +1910,8 @@ const ProjectDetailsPage = () => {
                                     type="button"
                                     onClick={() => { setSelectedTeam(team); handleAddTeam(team.TeamID); }}
                                     className={getThemeClasses(
-                                      'ml-1 p-2 rounded-full transition-all duration-200 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white',
-                                      'dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-600 dark:hover:text-white'
+                                      'ml-1 p-2 rounded-full transition-all duration-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white',
+                                      'dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-600 dark:hover:text-white'
                                     )}
                                   >
                                     <FaPlus size={12} />
@@ -1792,8 +1925,8 @@ const ProjectDetailsPage = () => {
                               type="button"
                               onClick={() => setShowAllTeams(true)}
                               className={getThemeClasses(
-                                'w-full mt-2 px-4 py-2.5 text-xs text-blue-600 hover:text-blue-700 font-semibold hover:bg-blue-50 rounded-xl transition-colors duration-200 border border-gray-150 bg-white shadow-sm',
-                                'dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-zinc-800/40 dark:bg-[#18181b] dark:border-[#232323]'
+                                'w-full mt-2 px-4 py-2.5 text-xs text-emerald-600 hover:text-emerald-700 font-semibold hover:bg-emerald-50 rounded-xl transition-colors duration-200 border border-gray-150 bg-white shadow-sm',
+                                'dark:text-emerald-400 dark:hover:text-emerald-300 dark:hover:bg-zinc-800/40 dark:bg-[#1e1e24] dark:border-[#232323]'
                               )}
                             >
                               Show All Teams ({orgTeams.length})
@@ -1810,24 +1943,24 @@ const ProjectDetailsPage = () => {
                       No teams assigned to this project.
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {teams.map((team) => {
                         const initials = team.TeamName.length > 0 ? team.TeamName.split(' ').map(n => n[0]).join('') : '';
                         return (
                           <div key={team.TeamID}
-                            className={getThemeClasses('relative rounded-xl border border-gray-200 p-4 hover:shadow-sm transition', 'dark:border-gray-700')}>
+                            className={getThemeClasses('relative rounded-xl border border-gray-200 p-4 bg-white hover:shadow-sm transition', 'dark:border-gray-800 dark:bg-[#1e1e24]')}>
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex items-start gap-3 min-w-0">
                                 <div
                                   className={getThemeClasses(
                                     'w-10 h-10 rounded-full flex items-center justify-center font-semibold flex-shrink-0',
-                                    'dark:bg-blue-900/50'
+                                    'dark:bg-emerald-950/20'
                                   )}
                                   style={{ backgroundColor: hexToRgba(team.TeamColor, theme === 'dark' ? 0.12 : 0.3) }}>
                                   {initials}
                                 </div>
                                 <div className="min-w-0">
-                                  <Link href={`/team/${team.TeamID}`} className={`${tableTextClasses} hover:text-blue-600 hover:underline transition-colors cursor-pointer block truncate`} title="View Team Details">
+                                  <Link href={`/team/${team.TeamID}`} className={`${tableTextClasses} hover:text-emerald-600 hover:underline transition-colors cursor-pointer block truncate`} title="View Team Details">
                                     {team?.TeamName || team.TeamID}
                                   </Link>
                                   {team?.TeamDescription && (
@@ -1883,8 +2016,8 @@ const ProjectDetailsPage = () => {
                                       setShowRevokeDialog(true);
                                     }}
                                     className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
-                                      ? getThemeClasses('bg-blue-100 text-blue-700 hover:bg-blue-200', 'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50')
-                                      : getThemeClasses('bg-green-100 text-green-700 hover:bg-green-200', 'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-800/50')}`}
+                                      ? getThemeClasses('bg-emerald-100 text-emerald-700 hover:bg-emerald-200', 'dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-800/50')
+                                      : getThemeClasses('bg-green-100 text-green-700 hover:bg-green-200', 'dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-800/50')}`}
                                     title={team.IsActive ? 'Revoke Access' : 'Grant Access'}
                                     disabled={toggling === team.TeamID}
                                   >
@@ -1917,14 +2050,14 @@ const ProjectDetailsPage = () => {
 
               {/* User Stories Table */}
               {showUserStories && (
-                <div className={`lg:col-span-2`}>
+                <div className="lg:col-span-2">
                   <div className="flex justify-between mb-2">
                     <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>User Stories</h2>
                     <button
                       onClick={() => { setAddTaskTypeMode('userStory'); setIsAddTaskOpen(true); }}
                       className={getThemeClasses(
-                        'flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-600 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                        'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
+                        'flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-600 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
+                        'dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white'
                       )}
                     >
                       <FaPlus size={14} />
@@ -1943,10 +2076,10 @@ const ProjectDetailsPage = () => {
                       <table className="w-full">
                         <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-[#1e1e24]' : 'bg-white'}`}>
                           <tr className={tableHeaderClasses}>
-                            <th className={`py-3 px-4 text-left w-[300px] ${tableHeaderTextClasses}`}>Name</th>
-                            <th className={`hidden md:table-cell py-3 px-4 text-left w-[200px] ${tableHeaderTextClasses}`}>Due Date</th>
-                            <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Status</th>
-                            <th className={`py-3 px-4 text-center w-[150px] ${tableHeaderTextClasses}`}>Actions</th>
+                            <th className={`py-3 px-4 text-left w-[340px] ${tableHeaderTextClasses}`}>Name</th>
+                            <th className={`hidden md:table-cell py-3 px-4 text-left w-[180px] ${tableHeaderTextClasses}`}>Due Date</th>
+                            <th className={`py-3 px-4 text-center w-[160px] ${tableHeaderTextClasses}`}>Status</th>
+                            <th className={`py-3 px-4 text-center w-[120px] ${tableHeaderTextClasses}`}>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1955,12 +2088,12 @@ const ProjectDetailsPage = () => {
                               <td className="py-1.5 px-4">
                                 <div className="flex items-center gap-3">
                                   <div className="flex flex-col">
-                                    <Link href={`/task/${story.TaskID}`} className={tableTextClasses + ' hover:text-blue-600 hover:underline transition-colors cursor-pointer'} title="View User Story Details">
+                                    <Link href={`/task/${story.TaskID}`} className={tableTextClasses + ' hover:text-emerald-600 hover:underline transition-colors cursor-pointer'} title="View User Story Details">
                                       {story.Name}
                                     </Link>
                                     <div className="flex items-center justify-start gap-1 min-w-0 w-full text-xs mt-0.5">
                                       {story.TicketNumber && (
-                                        <span className="font-semibold font-mono text-blue-600 dark:text-blue-400 shrink-0">
+                                        <span className="font-semibold font-mono text-emerald-600 dark:text-emerald-400 shrink-0">
                                           #{story.TicketNumber}
                                         </span>
                                       )}
@@ -1985,8 +2118,8 @@ const ProjectDetailsPage = () => {
                                   <button
                                     onClick={() => handleEditTask(story)}
                                     className={getThemeClasses(
-                                      'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
-                                      'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
+                                      'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-200',
+                                      'dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-800/50'
                                     )}
                                     title="Edit User Story"
                                   >
@@ -2023,15 +2156,15 @@ const ProjectDetailsPage = () => {
                     {selectedTasks.length > 0 ? (
                       <>
                         <div className={getThemeClasses(
-                          'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
-                          'dark:bg-blue-900/30 dark:text-blue-300'
+                          'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700',
+                          'dark:bg-emerald-900/30 dark:text-emerald-300'
                         )}>
                           <span className="text-sm font-medium">{selectedTasks.length} selected</span>
                           <button
                             onClick={() => setSelectedTasks([])}
                             className={getThemeClasses(
-                              'p-1 hover:bg-blue-100 rounded-full transition-colors',
-                              'dark:hover:bg-blue-900/50'
+                              'p-1 hover:bg-emerald-100 rounded-full transition-colors',
+                              'dark:hover:bg-emerald-900/50'
                             )}
                           >
                             <FaTimes size={14} />
@@ -2052,8 +2185,8 @@ const ProjectDetailsPage = () => {
                       <button
                         onClick={() => { setAddTaskTypeMode('task'); setIsAddTaskOpen(true); }}
                         className={getThemeClasses(
-                          'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                          'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
+                          'flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
+                          'dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white'
                         )}
                       >
                         <FaPlus size={14} />
@@ -2063,7 +2196,7 @@ const ProjectDetailsPage = () => {
                   </div>
                 </div>
               </div>
-              <div className={`overflow-x-auto overflow-y-auto max-h-[80vh] custom-scrollbar mb-2 rounded-xl border ${getThemeClasses('border-gray-200', 'dark:border-gray-700')}`}>
+              <div className={`overflow-x-auto overflow-y-auto max-h-[80vh] custom-scrollbar mb-2 ${tableContainerClasses}`}>
                 {taskList.length === 0 ? (
                   <div className={getThemeClasses(
                     'text-center py-8 text-gray-400',
@@ -2073,20 +2206,20 @@ const ProjectDetailsPage = () => {
                   </div>
                 ) : (
                   <table className="w-full table-fixed">
-                    <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#18181b] border-gray-500' : 'bg-gray-50 border-gray-200'}`}>
+                    <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#1e1e24] border-gray-800' : 'bg-gray-50 border-gray-200'}`}>
                       <tr className={tableHeaderClasses}>
-                        <th className="py-3 px-4 text-center w-[50px]">
+                        <th className={`hidden sm:table-cell py-3 px-4 text-center w-[50px] ${tableHeaderTextClasses}`}>
                           <input
                             type="checkbox"
                             checked={selectedTasks.length === taskList.length && taskList.length > 0}
                             onChange={handleSelectAllTasks}
                             className={getThemeClasses(
-                              'hidden sm:table-cell w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
+                              'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
                               'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
                             )}
                           />
                         </th>
-                        <th className={`py-3 px-4 text-left w-[41%] ${tableHeaderTextClasses}`}>
+                        <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
                           <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Name</span>
                             {getTasksSortIcon('name')}
@@ -2116,13 +2249,13 @@ const ProjectDetailsPage = () => {
                             {getTasksSortIcon('priority')}
                           </button>
                         </th>
-                        <th className={`py-3 px-4 text-center w-[8%] ${tableHeaderTextClasses}`}>
+                        <th className={`py-3 px-4 text-center w-[32%] sm:w-[12%] md:w-[10%] ${tableHeaderTextClasses}`}>
                           <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Status</span>
                             {getTasksSortIcon('status')}
                           </button>
                         </th>
-                        <th className={`py-3 px-4 text-center w-[8%] ${tableHeaderTextClasses}`}>Actions</th>
+                        <th className={`hidden sm:table-cell py-3 px-4 text-center w-[12%] md:w-[10%] ${tableHeaderTextClasses}`}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2142,14 +2275,14 @@ const ProjectDetailsPage = () => {
 
                         return (
                           <tr key={task._id} className={ticketRowClasses}>
-                            <td className="py-3 px-4 text-center">
+                            <td className="hidden sm:table-cell py-3 px-4 text-center">
                               <input
                                 type="checkbox"
                                 checked={selectedTasks.includes(task.TaskID)}
                                 onChange={() => handleSelectTask(task.TaskID)}
                                 className={getThemeClasses(
-                                  'hidden sm:table-cell w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                                  'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
+                                  'w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500',
+                                  'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-emerald-600'
                                 )}
                               />
                             </td>
@@ -2159,8 +2292,8 @@ const ProjectDetailsPage = () => {
                                   <button
                                     onClick={() => router.push(`/task/${task.TaskID}`)}
                                     className={getThemeClasses(
-                                      'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full',
-                                      'dark:hover:text-blue-400'
+                                      'text-left hover:text-emerald-600 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full',
+                                      'dark:hover:text-emerald-400'
                                     )}
                                     title={task.Name}
                                   >
@@ -2170,7 +2303,7 @@ const ProjectDetailsPage = () => {
                                 </div>
                                 <div className="flex items-center justify-start gap-1 min-w-0 w-full text-xs">
                                   {task.TicketNumber && (
-                                    <span className="font-semibold font-mono text-blue-600 dark:text-blue-400 shrink-0">
+                                    <span className="font-semibold font-mono text-emerald-600 dark:text-emerald-400 shrink-0">
                                       #{task.TicketNumber}
                                     </span>
                                   )}
@@ -2188,7 +2321,6 @@ const ProjectDetailsPage = () => {
                                     'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600',
                                     'dark:text-gray-300'
                                   )}>
-                                    <span className="font-medium">Assigned to:</span>
                                     <span>{task.AssignedToDetails.fullName}</span>
                                   </div>
                                 )}
@@ -2239,13 +2371,13 @@ const ProjectDetailsPage = () => {
                             <td className="py-3 px-4 text-center">
                               {getTaskStatusBadge(task.Status, theme === 'dark', getTaskStatusText(task.Status))}
                             </td>
-                            <td className="py-3 px-4 text-center">
+                            <td className="hidden sm:table-cell py-3 px-4 text-center">
                               <div className="flex items-center justify-center gap-2">
                                 <button
                                   onClick={() => handleEditTask(task)}
                                   className={getThemeClasses(
-                                    'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
-                                    'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'
+                                    'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-200',
+                                    'dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-800/50'
                                   )}
                                   title="Edit Task"
                                 >

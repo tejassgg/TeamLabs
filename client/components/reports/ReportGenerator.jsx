@@ -281,17 +281,17 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
   return (
     <div className={inline ? 'w-full h-full' : `fixed inset-0 ${theme === 'dark' ? 'bg-black/70 backdrop-blur-sm' : 'bg-gray-900/50 backdrop-blur-sm'} flex items-center justify-center z-50 transition-all duration-300`}>
       <div className={`${theme === 'dark'
-        ? (inline ? 'bg-transparent' : 'bg-[#18181b] border border-gray-600 shadow-2xl rounded-2xl')
+        ? (inline ? 'bg-transparent' : 'bg-[#1e1e24] border border-zinc-800 shadow-sm rounded-2xl')
         : (inline ? 'bg-transparent' : 'bg-white border border-gray-200 shadow-2xl rounded-2xl')
         } max-w-7xl w-full ${inline ? '' : 'mx-4 h-[90vh] overflow-hidden'} transition-all duration-300 flex flex-col`}>
         {/* Header */}
         <div className={`p-6 ${theme === 'dark'
-          ? (inline ? 'bg-transparent border-b border-gray-700' : 'bg-[#232323] border-b border-gray-600')
+          ? (inline ? 'bg-transparent border-b border-zinc-800' : 'bg-[#1e1e24] border-b border-zinc-800')
           : (inline ? 'bg-transparent border-b border-gray-200' : 'bg-white border-b border-gray-200')
           } transition-all duration-300`}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-start space-x-4">
-              <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'} transition-all duration-300`}>
+              <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-100 text-emerald-600'} transition-all duration-300`}>
                 <FaFileAlt className="text-xl" />
               </div>
               <div>
@@ -334,17 +334,17 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
 
           {/* Tabs */}
           <div className={`flex space-x-2 ${theme === 'dark'
-            ? 'bg-[#232323] p-1 border border-gray-600'
+            ? 'bg-[#18181b] p-1 border border-zinc-800'
             : 'bg-gray-100 p-1'
             } rounded-xl transition-all duration-300`}>
             <button
               onClick={() => setActiveTab('generate')}
               className={`flex-1 py-3 px-6 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === 'generate'
                 ? theme === 'dark'
-                  ? 'bg-[#323232] text-white shadow-lg'
-                  : 'bg-white text-blue-600 shadow-lg'
+                  ? 'bg-zinc-800 text-white shadow-sm border border-zinc-750'
+                  : 'bg-white text-emerald-600 shadow-lg'
                 : theme === 'dark'
-                  ? 'text-gray-400 hover:text-white hover:bg-[#323232]/50'
+                  ? 'text-zinc-400 hover:text-white hover:bg-zinc-850/50'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
                 }`}
             >
@@ -354,10 +354,10 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
               onClick={() => setActiveTab('view')}
               className={`flex-1 py-3 px-6 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === 'view'
                 ? theme === 'dark'
-                  ? 'bg-[#323232] text-white shadow-lg'
-                  : 'bg-white text-blue-600 shadow-lg'
+                  ? 'bg-zinc-800 text-white shadow-sm border border-zinc-750'
+                  : 'bg-white text-emerald-600 shadow-lg'
                 : theme === 'dark'
-                  ? 'text-gray-400 hover:text-white hover:bg-[#323232]/50'
+                  ? 'text-zinc-400 hover:text-white hover:bg-zinc-850/50'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
                 }`}
             >
@@ -368,7 +368,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
 
         {/* Content */}
         <div className={`p-8 ${theme === 'dark'
-          ? (inline ? 'bg-transparent' : 'bg-[#18181b]')
+          ? (inline ? 'bg-transparent' : 'bg-[#1e1e24]')
           : (inline ? 'bg-transparent' : 'bg-gray-50')
           } transition-all duration-300 overflow-y-auto flex-1`}>
           {activeTab === 'generate' ? (
@@ -389,10 +389,10 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                         key={type.value}
                         className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${reportType === type.value
                           ? theme === 'dark'
-                            ? 'bg-blue-500/20 border-2 border-blue-400 shadow-lg shadow-blue-500/20'
-                            : 'bg-blue-50 border-2 border-blue-500 shadow-lg shadow-blue-500/20'
+                            ? 'bg-emerald-500/10 border-2 border-emerald-400 shadow-lg shadow-emerald-500/20'
+                            : 'bg-emerald-50 border-2 border-emerald-500 shadow-lg shadow-emerald-500/20'
                           : theme === 'dark'
-                            ? 'bg-[#232323] border border-gray-600 hover:border-gray-500 hover:bg-[#2a2a2a]'
+                            ? 'bg-[#1e1e24] border border-zinc-800 hover:border-zinc-700 hover:bg-[#18181b]'
                             : 'bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                           }`}
                         onClick={() => setReportType(type.value)}
@@ -400,10 +400,10 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                         <div className="flex items-center space-x-4">
                           <div className={`w-6 h-6 rounded-full border-2 transition-all duration-300 ${reportType === type.value
                             ? theme === 'dark'
-                              ? 'border-blue-400 bg-blue-400'
-                              : 'border-blue-500 bg-blue-500'
+                              ? 'border-emerald-400 bg-emerald-400'
+                              : 'border-emerald-500 bg-emerald-500'
                             : theme === 'dark'
-                              ? 'border-gray-600'
+                              ? 'border-zinc-800'
                               : 'border-gray-300'
                             }`}>
                             {reportType === type.value && (
@@ -439,7 +439,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                     Report Period
                   </label>
                   <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl ${theme === 'dark'
-                    ? 'bg-[#232323] border border-gray-600'
+                    ? 'bg-[#1e1e24] border border-zinc-800'
                     : 'bg-white border border-gray-200'
                     } transition-all duration-300`}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -454,8 +454,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                           type="date"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
-                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
-                            ? 'bg-[#2a2a2a] border-gray-600 text-white placeholder-gray-400'
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
+                            ? 'bg-[#18181b] border-zinc-800 text-white placeholder-zinc-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
                             : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                             }`}
                         />
@@ -471,8 +471,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                           type="date"
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
-                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
-                            ? 'bg-[#2a2a2a] border-gray-600 text-white placeholder-gray-400'
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
+                            ? 'bg-[#18181b] border-zinc-800 text-white placeholder-zinc-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
                             : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                             }`}
                         />
@@ -504,7 +504,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
 
                   {showAdvanced && (
                     <div className={`mt-4 p-4 sm:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 ${theme === 'dark'
-                      ? 'bg-[#232323] border border-gray-600'
+                      ? 'bg-[#1e1e24] border border-zinc-800'
                       : 'bg-gray-100 border border-gray-200'
                       }`}>
                       {subscriptionInfo.isPremium ? (
@@ -528,10 +528,10 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                                   onClick={() => setAdvancedOptions(prev => ({ ...prev, reportDepth: depth.value }))}
                                   className={`p-2.5 sm:p-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 ${advancedOptions.reportDepth === depth.value
                                     ? theme === 'dark'
-                                      ? 'bg-blue-500/20 border-2 border-blue-400 text-blue-400'
-                                      : 'bg-blue-50 border-2 border-blue-500 text-blue-600'
+                                      ? 'bg-emerald-500/10 border-2 border-emerald-400 text-emerald-400'
+                                      : 'bg-emerald-50 border-2 border-emerald-500 text-emerald-600'
                                     : theme === 'dark'
-                                      ? 'bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600'
+                                      ? 'bg-gray-700 border border-zinc-800 text-gray-300 hover:bg-gray-600'
                                       : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
                                     }`}
                                 >
@@ -566,10 +566,10 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                                     }))}
                                     className={`w-4 h-4 rounded border-2 transition-all duration-300 ${advancedOptions[section.key]
                                       ? theme === 'dark'
-                                        ? 'bg-blue-500 border-blue-400'
-                                        : 'bg-blue-500 border-blue-500'
+                                        ? 'bg-emerald-500 border-emerald-400'
+                                        : 'bg-emerald-500 border-emerald-500'
                                       : theme === 'dark'
-                                        ? 'border-gray-600 bg-[#2a2a2a]'
+                                        ? 'border-zinc-800 bg-[#18181b]'
                                         : 'border-gray-300 bg-white'
                                       }`}
                                   />
@@ -611,10 +611,10 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                                   onClick={() => setAdvancedOptions(prev => ({ ...prev, format: format.value }))}
                                   className={`p-2.5 sm:p-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 ${advancedOptions.format === format.value
                                     ? theme === 'dark'
-                                      ? 'bg-blue-500/20 border-2 border-blue-400 text-blue-400'
-                                      : 'bg-blue-50 border-2 border-blue-500 text-blue-600'
+                                      ? 'bg-emerald-500/10 border-2 border-emerald-400 text-emerald-400'
+                                      : 'bg-emerald-50 border-2 border-emerald-500 text-emerald-600'
                                     : theme === 'dark'
-                                      ? 'bg-[#2a2a2a] border border-gray-600 text-gray-300 hover:bg-[#323232]'
+                                      ? 'bg-[#18181b] border border-zinc-800 text-zinc-300 hover:bg-zinc-800'
                                       : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
                                     }`}
                                 >
@@ -638,8 +638,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                               onChange={(e) => setAdvancedOptions(prev => ({ ...prev, customPrompt: e.target.value }))}
                               placeholder="Add specific instructions for the AI report generation..."
                               rows={3}
-                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${theme === 'dark'
-                                ? 'bg-[#2a2a2a] border-gray-600 text-white placeholder-gray-400'
+                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none ${theme === 'dark'
+                                ? 'bg-[#18181b] border-zinc-800 text-white placeholder-zinc-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
                                 : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                                 }`}
                             />
@@ -656,8 +656,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                             <select
                               value={advancedOptions.language}
                               onChange={(e) => setAdvancedOptions(prev => ({ ...prev, language: e.target.value }))}
-                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark'
-                                ? 'bg-[#2a2a2a] border-gray-600 text-white'
+                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${theme === 'dark'
+                                ? 'bg-[#18181b] border-zinc-800 text-white'
                                 : 'bg-gray-50 border-gray-300 text-gray-900'
                                 }`}
                             >
@@ -750,8 +750,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                               </div>
                             </div>
                             <div className={`mt-6 p-4 rounded-xl ${theme === 'dark'
-                              ? 'bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-800'
-                              : 'bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200'
+                              ? 'bg-gradient-to-r from-purple-900/30 to-emerald-900/30 border border-purple-800'
+                              : 'bg-gradient-to-r from-purple-50 to-emerald-50 border border-purple-200'
                               }`}>
                               <p className={`text-sm font-medium ${theme === 'dark'
                                 ? 'text-purple-300'
@@ -807,8 +807,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                         ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : theme === 'dark'
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/25'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/25'
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25'
                       }`}
                   >
                     {isGenerating ? (
@@ -907,7 +907,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                     <button
                       onClick={() => setGeneratedReport(null)}
                       className={`px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base ${theme === 'dark'
-                        ? 'bg-[#2a2a2a] hover:bg-[#323232] text-white'
+                        ? 'bg-[#18181b] hover:bg-zinc-800 text-white border border-zinc-800'
                         : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                         }`}
                     >
@@ -926,19 +926,19 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                   </h4>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col ${theme === 'dark'
-                      ? 'bg-blue-500/10 border-blue-500/20'
-                      : 'bg-blue-50 border-blue-200'
+                      ? 'bg-emerald-500/10 border-emerald-500/20'
+                      : 'bg-emerald-50 border-emerald-200'
                       }`}>
                       <div className="flex items-center justify-between mb-3 sm:mb-4">
                         <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${theme === 'dark'
-                          ? 'bg-blue-500/20 text-blue-400'
-                          : 'bg-blue-100 text-blue-600'
+                          ? 'bg-emerald-500/10 text-emerald-400'
+                          : 'bg-emerald-100 text-emerald-600'
                           }`}>
                           <FaTasks className="text-lg sm:text-xl" />
                         </div>
                         <div className={`text-right ${theme === 'dark'
-                          ? 'text-blue-400'
-                          : 'text-blue-600'
+                          ? 'text-emerald-400'
+                          : 'text-emerald-600'
                           } transition-colors duration-300`}>
                           <div className="text-2xl sm:text-3xl font-bold">
                             {generatedReport.content.metrics.totalTasks}
@@ -952,8 +952,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                         } transition-colors duration-300`}>
                         <span>All project tasks</span>
                         <div className="relative group">
-                          <FaInfoCircle className={`text-sm sm:text-base ${theme === 'dark' ? 'text-blue-300' : 'text-blue-500'} cursor-help`} />
-                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-gray-900 text-white border border-gray-600'}`}>
+                          <FaInfoCircle className={`text-sm sm:text-base ${theme === 'dark' ? 'text-emerald-300' : 'text-emerald-500'} cursor-help`} />
+                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-zinc-800' : 'bg-gray-900 text-white border border-zinc-800'}`}>
                             Total number of tasks created for this project
                             <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${theme === 'dark' ? 'border-t-gray-800' : 'border-t-gray-900'}`}></div>
                           </div>
@@ -989,7 +989,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                         <span>Finished tasks</span>
                         <div className="relative group">
                           <FaInfoCircle className={`text-sm sm:text-base ${theme === 'dark' ? 'text-green-300' : 'text-green-500'} cursor-help`} />
-                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-gray-900 text-white border border-gray-600'}`}>
+                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-zinc-800' : 'bg-gray-900 text-white border border-zinc-800'}`}>
                             Number of tasks that have been completed
                             <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${theme === 'dark' ? 'border-t-gray-800' : 'border-t-gray-900'}`}></div>
                           </div>
@@ -1025,7 +1025,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                         <span>Progress percentage</span>
                         <div className="relative group">
                           <FaInfoCircle className={`text-sm sm:text-base ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-500'} cursor-help`} />
-                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-gray-900 text-white border border-gray-600'}`}>
+                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-zinc-800' : 'bg-gray-900 text-white border border-zinc-800'}`}>
                             Percentage of tasks completed out of total tasks
                             <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${theme === 'dark' ? 'border-t-gray-800' : 'border-t-gray-900'}`}></div>
                           </div>
@@ -1058,7 +1058,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                         <span>Overall project health</span>
                         <div className="relative group">
                           <FaInfoCircle className={`text-sm sm:text-base ${theme === 'dark' ? 'text-purple-300' : 'text-purple-500'} cursor-help`} />
-                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-gray-900 text-white border border-gray-600'}`}>
+                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-zinc-800' : 'bg-gray-900 text-white border border-zinc-800'}`}>
                             Overall project health based on completion rate, deadlines, and team utilization
                             <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${theme === 'dark' ? 'border-t-gray-800' : 'border-t-gray-900'}`}></div>
                           </div>
@@ -1074,7 +1074,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                   <h4 className={`text-lg sm:text-xl font-bold mb-4 sm:mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>
                     Report Content
                   </h4>
-                  <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 ${theme === 'dark' ? 'bg-[#232323] border-gray-600' : 'bg-white border-gray-200'}`}>
+                  <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 ${theme === 'dark' ? 'bg-[#1e1e24] border-zinc-800' : 'bg-white border-gray-200'}`}>
                     <div className={`prose prose-sm sm:prose-lg max-w-none ${theme === 'dark' ? 'prose-invert' : 'prose-gray'}`}>
                       <div className={`text-sm sm:text-base leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} transition-colors duration-300`}>
                         {generatedReport.content.rawContent.split('\n').map((line, index) => {
@@ -1097,10 +1097,10 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                           if (trimmedLine.startsWith('PROJECT:') || trimmedLine.startsWith('REPORTING PERIOD:') || trimmedLine.startsWith('REPORT DATE:') || trimmedLine.startsWith('DATE GENERATED:')) {
                             return (
                               <div className='flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2'>
-                                <div key={index} className={`text-xs sm:text-sm font-semibold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
+                                <div key={index} className={`text-xs sm:text-sm font-semibold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
                                   {trimmedLine.split(':')[0].trim()}:
                                 </div>
-                                <div key={index} className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
+                                <div key={index} className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
                                   {trimmedLine.startsWith('REPORTING PERIOD:') ? (
                                     <div className='flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2'>
                                       <span>{trimmedLine.split(':')[1].trim()}</span>
@@ -1132,7 +1132,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                           if (trimmedLine.startsWith('- ')) {
                             return (
                               <div key={index} className="flex items-start space-x-2 mb-2 ml-2 sm:ml-4">
-                                <span className={`text-sm sm:text-lg font-bold flex-shrink-0 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>•</span>
+                                <span className={`text-sm sm:text-lg font-bold flex-shrink-0 ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>•</span>
                                 <span className="flex-1 text-sm sm:text-base leading-relaxed">{trimmedLine.substring(2)}</span>
                               </div>
                             );
@@ -1152,7 +1152,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
 
                 {/* Actions */}
                 <div className={`flex justify-end gap-3 sm:gap-4 sm:space-x-4 transition-all duration-300 pb-4 sm:pb-6 ${theme === 'dark'
-                  ? 'border-gray-700'
+                  ? 'border-zinc-800'
                   : 'border-gray-200'
                   }`}>
                   <button
@@ -1167,8 +1167,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                   <button
                     onClick={handleDownloadReport}
                     className={`px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 text-sm sm:text-base ${theme === 'dark'
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/25'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/25'
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25'
                       }`}
                   >
                     <FaDownload className="text-sm sm:text-base" />
@@ -1195,7 +1195,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                       ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                       : 'text-gray-500 cursor-not-allowed'
                     : theme === 'dark'
-                      ? 'bg-[#2a2a2a] hover:bg-[#323232] text-white'
+                      ? 'bg-[#18181b] hover:bg-zinc-800 text-white border border-zinc-800'
                       : 'hover:bg-gray-300 text-gray-700'
                     }`}
                 >
@@ -1209,8 +1209,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center">
                     <FaSpinner className={`animate-spin text-2xl mx-auto mb-4 ${theme === 'dark'
-                      ? 'text-blue-400'
-                      : 'text-blue-600'
+                      ? 'text-emerald-400'
+                      : 'text-emerald-600'
                       }`} />
                     <p className={`text-lg ${theme === 'dark'
                       ? 'text-gray-400'
@@ -1220,7 +1220,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                 </div>
               ) : existingReports.length === 0 ? (
                 <div className="text-center py-16">
-                  <div className={`p-8 rounded-3xl mx-auto max-w-md ${theme === 'dark' ? 'bg-[#232323] border border-gray-600' : 'bg-white border border-gray-200'} transition-all duration-300`}>
+                  <div className={`p-8 rounded-3xl mx-auto max-w-md ${theme === 'dark' ? 'bg-[#1e1e24] border border-zinc-800' : 'bg-white border border-gray-200'} transition-all duration-300`}>
                     <FaFileAlt className={`text-6xl mx-auto mb-6 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
                     <h4 className={`text-xl font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>
                       No Reports Found
@@ -1231,8 +1231,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                     <button
                       onClick={() => setActiveTab('generate')}
                       className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${theme === 'dark'
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/25'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/25'
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25'
                         }`}
                     >
                       Generate First Report
@@ -1245,7 +1245,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                     <div
                       key={report.reportId}
                       className={`p-4 sm:p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.01] ${theme === 'dark'
-                        ? 'bg-[#232323] border-gray-600 hover:border-gray-500 hover:bg-[#2a2a2a]'
+                        ? 'bg-[#1e1e24] border-zinc-800 hover:border-zinc-700 hover:bg-[#18181b]'
                         : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }`}
                     >
@@ -1253,8 +1253,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                         <div className="flex-1">
                           <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 mb-4">
                             <div className={`p-2 sm:p-3 lg:rounded-xl rounded-lg flex-shrink-0 ${theme === 'dark'
-                              ? 'bg-blue-500/20 text-blue-400'
-                              : 'bg-blue-100 text-blue-600'
+                              ? 'bg-emerald-500/10 text-emerald-400'
+                              : 'bg-emerald-100 text-emerald-600'
                               }`}>
                               <FaFileAlt className="text-sm sm:text-base" />
                             </div>
@@ -1306,8 +1306,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                           <button
                             onClick={() => handleViewReport(report.reportId)}
                             className={`p-2 sm:p-2 rounded-full font-semibold transition-all duration-300 flex items-center justify-center ${theme === 'dark'
-                              ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300'
-                              : 'bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-700'
+                              ? 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 hover:text-emerald-300'
+                              : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-600 hover:text-emerald-700'
                               }`}
                             title="View Report"
                           >
