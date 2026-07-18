@@ -10,7 +10,7 @@ class EmbeddingService {
       throw new Error('Gemini API key is required for embedding service');
     }
 
-    this.geminiAI = new GoogleGenAI({});
+    this.geminiAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     this.model = 'gemini-embedding-001'; // Gemini's latest embedding model
     this.outputDimensionality = 768; // Matches previous model dimension (768)
     this.maxChunkSize = 1000; // Maximum characters per chunk

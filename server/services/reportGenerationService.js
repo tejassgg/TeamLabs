@@ -24,7 +24,7 @@ class ReportGenerationService {
       throw new Error('GEMINI_API_KEY environment variable is not set');
     }
 
-    this.geminiAI = new GoogleGenAI({});
+    this.geminiAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     this.ragService = new RAGService();
     this.startTime = null;
   }

@@ -440,7 +440,7 @@ router.post('/:projectId/releases/generate', protect, async (req, res) => {
       return res.status(500).json({ error: 'Gemini API key is not configured' });
     }
 
-    const geminiAI = new GoogleGenAI({});
+    const geminiAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     
     // Construct prompt
     const prompt = `You are a professional project release manager. 
