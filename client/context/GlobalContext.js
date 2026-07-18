@@ -203,15 +203,15 @@ export const GlobalProvider = ({ children }) => {
   };
 
   // Google login
-  const googleLogin = async (credential, inviteToken = null, accessToken = null) => {
+  const googleLogin = async (credential, inviteToken = null) => {
     try {
-      const data = await authService.googleLogin(credential, inviteToken, accessToken);
+      const data = await authService.googleLogin(credential, inviteToken);
       setUserDetails(data);
       localStorage.setItem('isLoggedIn', 'true');
       setIsLoggedInState(true);
       return { 
-          success: true,
-          needsAdditionalDetails: data.needsAdditionalDetails || false
+        success: true,
+        needsAdditionalDetails: data.needsAdditionalDetails || false
       };
     } catch (error) {
       return {

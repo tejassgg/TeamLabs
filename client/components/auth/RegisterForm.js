@@ -7,7 +7,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
-import { GoogleLogin, useGoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
 import { commonTypeService } from '../../services/api';
 
 
@@ -112,63 +112,6 @@ const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
   };
 
   // Social login handlers (unchanged)
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    setIsMobile(/Mobi|Android|iPhone/i.test(navigator.userAgent));
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hash) {
-      const params = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = params.get('access_token');
-      if (accessToken) {
-        window.history.replaceState(null, '', window.location.pathname);
-        const storedInviteToken = sessionStorage.getItem('google_invite_token');
-        sessionStorage.removeItem('google_invite_token');
-        handleGoogleRedirectSuccess(accessToken, storedInviteToken);
-      }
-    }
-  }, []);
-
-  const handleGoogleRedirectSuccess = async (accessToken, inviteTokenOverride = null) => {
-    try {
-      setIsLoading(true);
-      setError('');
-      const response = await googleLogin(null, inviteTokenOverride || inviteToken, accessToken);
-      if (response.success) {
-        router.push('/dashboard');
-      } else {
-        setError(response.message || 'Failed to register with Google');
-      }
-    } catch (error) {
-      setError('Failed to register with Google');
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loginRedirect = useGoogleLogin({
-    flow: 'implicit',
-    uxMode: 'redirect',
-    redirectUri: typeof window !== 'undefined' ? `${window.location.origin}/register` : '',
-    onError: (err) => {
-      setError('Google registration redirect failed');
-      console.error(err);
-    }
-  });
-
-  const handleMobileGoogleLogin = () => {
-    if (typeof window !== 'undefined') {
-      const activeInviteToken = inviteToken;
-      if (activeInviteToken) {
-        sessionStorage.setItem('google_invite_token', activeInviteToken);
-      }
-    }
-    loginRedirect();
-  };
-
   const handleGoogleLoginSuccess = async (credentialResponse) => {
     try {
       const response = await googleLogin(credentialResponse.credential, inviteToken);
@@ -327,33 +270,13 @@ const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
             </div>
             <div className="mt-6 flex flex-col items-center gap-4">
               <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3">
-                {isMobile ? (
-                  <button
-                    type="button"
-                    onClick={handleMobileGoogleLogin}
-                    className={`flex items-center justify-center gap-3 py-2 px-4 border rounded-lg font-medium transition-colors shadow-sm text-sm w-full sm:w-auto ${
-                      theme === 'dark'
-                        ? 'border-gray-700 bg-gray-900 hover:bg-gray-800 text-white'
-                        : 'border-gray-300 bg-white hover:bg-gray-50 text-gray-700'
-                    }`}
-                  >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                    </svg>
-                    Sign up with Google
-                  </button>
-                ) : (
-                  <GoogleLogin
-                    onSuccess={handleGoogleLoginSuccess}
-                    onError={handleGoogleLoginError}
-                    theme="outline"
-                    text="signup_with"
-                    shape="rectangular"
-                  />
-                )}
+                <GoogleLogin
+                  onSuccess={handleGoogleLoginSuccess}
+                  onError={handleGoogleLoginError}
+                  theme="outline"
+                  text="signup_with"
+                  shape="rectangular"
+                />
                 <span className={`text-sm sm:mx-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>or</span>
                 <button
                   type="submit"

@@ -89,9 +89,9 @@ export const authService = {
   },
 
   // Google login
-  googleLogin: async (credential, inviteToken = null, accessToken = null) => {
+  googleLogin: async (credential, inviteToken = null) => {
     try {
-      const response = await api.post('/auth/google', { credential, inviteToken, accessToken });
+      const response = await api.post('/auth/google', { credential, inviteToken });
       return response.data;
     } catch (error) {
       if (env == 'DEV') console.log(error);

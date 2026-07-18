@@ -318,29 +318,15 @@ const logoutUser = async (req, res) => {
 const googleLogin = async (req, res) => {
   try {
 
-    const { credential, inviteToken, accessToken } = req.body;
+    const { credential, inviteToken } = req.body;
 
-    let payload;
-    if (credential) {
-      // Verify Google ID token
-      const ticket = await client.verifyIdToken({
-        idToken: credential,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-      payload = ticket.getPayload();
-    } else if (accessToken) {
-      // Verify via Google UserInfo API using Access Token (for mobile redirect flow)
-      const response = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-      payload = response.data;
-      // Google API returns email_verified as a boolean or string "true"
-      payload.email_verified = payload.email_verified === true || payload.email_verified === 'true';
-    } else {
-      return res.status(400).json({ message: 'Missing Google credentials or access token' });
-    }
+    // Verify Google token
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
 
-    const { email_verified, name, email, given_name, family_name, sub, picture } = payload;
+    const { email_verified, name, email, given_name, family_name, sub, picture } = ticket.getPayload();
 
     // If email is not verified by Google
     if (!email_verified) {
