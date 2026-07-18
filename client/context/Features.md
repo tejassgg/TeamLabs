@@ -84,3 +84,15 @@ To optimize frontend network requests, query performance, and overall responsive
 *   **Stale-While-Revalidate (SWR) Caching**: Utilizes the `swr` caching library to instant-render pages using cached states, while updating data silently in the background.
 *   **Query Deduping & Focus Revalidation**: Automatically groups concurrent requests to the same endpoints into a single HTTP payload and revalidates expired resources when tabs regain focus.
 *   **Integrated Views**: Integrated across all core pages, including the User Dashboard, Projects List, Teams Workspace, Personal Tasks, Timesheets Log, Dynamic Task Details, and Dynamic Project Boards.
+
+---
+
+## 📢 9. Release Notifications & Versioning Banners
+
+Platform-wide notifications system to keep users informed about platform updates, new features, and bug fixes:
+*   **Global Version Banners**: Renders a notification banner at the top of the main container layout (`ReleaseNotificationBanner.jsx`) to notify users of published release details.
+*   **Target Audience Filtering**: Support filtering banners by user type, showing specific releases to `all` users, `admin` only, `premium` only, or `beta` group users.
+*   **Dismissal State & Caching**: Dismissed releases are saved to browser `localStorage` to prevent showing the banner again. Network calls to fetch updates are optimized using `sessionStorage` caching (`releaseCheckedThisSession`) and prop delegation to prevent duplicate API requests on route changes.
+*   **Markdown Import & Live Preview**: Allows system admins to paste Markdown text (`.md` files) to automatically extract titles, versions, and lists of features, improvements, and bug fixes, while visualizing a live simulated banner preview in real-time.
+*   **Auto-Versioning**: Automatically calculates standard semantic version numbers (Major, Minor, Patch, Hotfix) relative to the latest release in the database.
+*   **Super-Admin Access Control**: Access to draft, publish, delete, and edit release notifications in settings is strictly locked to users with the `Admin` role and the username `tejassgg` at both the frontend and backend levels.

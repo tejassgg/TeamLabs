@@ -30,6 +30,3 @@ Thumbs.db
 
 # Vercel
 .vercel
-
-# MCP
-mcp-server.js

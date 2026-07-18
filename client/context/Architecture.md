@@ -99,3 +99,17 @@ To ease integration with external coding tools and LLMs, TeamLabs contains a bui
 *   **Input Handling**: Listens on standard input (`process.stdin`) using Node's `readline` library.
 *   **Database Bridge**: Exposes backend tools directly over standard JSON-RPC communications, allowing external LLM agents to query the database, find users, fetch tasks, edit entities, and generate reports.
 *   **Entity Resolvers**: Functions like `resolveUser` and `resolveOrganization` allow querying databases by fuzzy inputs (e.g. searching email, username, or name parts).
+
+---
+
+## 📢 Release Notifications Infrastructure
+
+System-wide release distribution pipeline:
+*   **Database Schema**: [ReleaseNotification.js](file:///server/models/ReleaseNotification.js) maps application releases, containing version strings, markdown-derived titles, priorities, target audience scopes, and parsed changelogs (features, improvements, bug fixes).
+*   **Controller Functions**: [releaseNotificationController.js](file:///server/controllers/releaseNotificationController.js) coordinates API endpoints:
+    *   `getLatestReleaseNotification`: Fetches the latest published release matching the user's target audience scope. Fully decoupled from `organizationID` check to act as a global system notification.
+    *   `isReleaseNotificationAdmin`: Authenticates that only the user with the `Admin` role and username `tejassgg` can write, update, draft, toggle publish state, or delete release notes.
+*   **Hook State Management**: [useReleaseNotifications.js](file:///client/hooks/useReleaseNotifications.js) orchestrates client-side state:
+    *   Uses `localStorage` to query dismissed release IDs (`dismissedReleases`) and last-seen release ID (`lastSeenReleaseId`).
+    *   Caches the fetched latest release and session state in `sessionStorage` (`releaseCheckedThisSession`) to bypass redundant API calls on subsequent layout mounts or route changes.
+*   **Prop-Delegated Component**: [ReleaseNotificationBanner.jsx](file:///client/components/shared/ReleaseNotificationBanner.jsx) accepts the pre-fetched `releaseData` directly as a prop from the global Layout component, completely avoiding sub-component duplicate fetch API calls.
