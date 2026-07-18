@@ -787,6 +787,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
           {latestRelease && (
             <div className="p-2" data-release-banner>
               <ReleaseNotificationBanner
+                releaseData={latestRelease}
                 onClose={() => {
                   dismissRelease(latestRelease._id);
                   markAsSeen(latestRelease._id);

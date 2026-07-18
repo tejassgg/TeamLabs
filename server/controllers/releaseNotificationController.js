@@ -15,12 +15,14 @@ const isOrgAdmin = async (organizationID, userId) => {
   }
 };
 
-// Helper function to check if user is admin of organizationID=1 (special permission for release notifications)
+// Helper function to check if user is admin and has username = tejassgg (special permission for release notifications)
 const isReleaseNotificationAdmin = async (userId) => {
   try {
-    const org = await Organization.findOne({ OrganizationID: 1 });
-    if (!org) return false;
-    return org.OwnerID.toString() === userId.toString();
+    const user = await User.findById(userId);
+    if (!user) return false;
+    
+    // Check if user is Admin and username is tejassgg
+    return user.role === 'Admin' && user.username === 'tejassgg';
   } catch (error) {
     console.error('Error checking release notification admin:', error);
     return false;
@@ -49,6 +51,12 @@ const createReleaseNotification = async (req, res) => {
     const userId = req.user._id;
     const organizationID = req.user.organizationID;
 
+    // Filter out empty array items
+    const filterEmptyArrayItems = (array) => {
+      if (!array || !Array.isArray(array)) return [];
+      return array.filter(item => item.title?.trim() || item.description?.trim());
+    };
+
     // Validate required fields
     if (!version || !title || !description) {
       return res.status(400).json({
@@ -57,9 +65,10 @@ const createReleaseNotification = async (req, res) => {
       });
     }
 
-    // Validate releaseNotes structure if provided
-    if (releaseNotes && Array.isArray(releaseNotes)) {
-      for (const note of releaseNotes) {
+    // Validate releaseNotes structure if provided (after filtering out empty entries)
+    const filteredNotes = filterEmptyArrayItems(releaseNotes);
+    if (filteredNotes.length > 0) {
+      for (const note of filteredNotes) {
         if (!note.title || !note.description) {
           return res.status(400).json({
             success: false,
@@ -95,11 +104,6 @@ const createReleaseNotification = async (req, res) => {
     const user = await User.findById(userId);
     const createdByName = user ? `${user.firstName} ${user.lastName}`.trim() : 'Unknown User';
 
-    // Filter out empty array items
-    const filterEmptyArrayItems = (array) => {
-      return array.filter(item => item.title?.trim() || item.description?.trim());
-    };
-
     // Create release notification
     const releaseNotification = new ReleaseNotification({
       version,
@@ -113,7 +117,7 @@ const createReleaseNotification = async (req, res) => {
       createdByName,
       priority,
       targetAudience,
-      releaseNotes: filterEmptyArrayItems(releaseNotes),
+      releaseNotes: filteredNotes,
       compatibility,
       metadata
     });
@@ -142,18 +146,16 @@ const createReleaseNotification = async (req, res) => {
 const getReleaseNotifications = async (req, res) => {
   try {
     const userId = req.user._id;
-    const organizationID = req.user.organizationID;
-    const { 
-      page = 1, 
-      limit = 10, 
+    const {
+      page = 1,
+      limit = 10,
       status = 'published', // published, draft, all
       priority,
-      targetAudience 
+      targetAudience
     } = req.query;
 
     // Build query
     const query = {
-      organizationID,
       isActive: true
     };
 
@@ -220,11 +222,9 @@ const getReleaseNotifications = async (req, res) => {
 // @access  Authenticated users
 const getLatestReleaseNotification = async (req, res) => {
   try {
-    const organizationID = req.user.organizationID;
     const { targetAudience = 'all' } = req.query;
 
     const query = {
-      organizationID,
       isActive: true,
       isPublished: true,
       $or: [
@@ -259,11 +259,9 @@ const getLatestReleaseNotification = async (req, res) => {
 const getReleaseNotificationById = async (req, res) => {
   try {
     const { id } = req.params;
-    const organizationID = req.user.organizationID;
 
     const releaseNotification = await ReleaseNotification.findOne({
       _id: id,
-      organizationID,
       isActive: true
     }).populate('createdBy', 'firstName lastName email');
 
@@ -296,7 +294,6 @@ const updateReleaseNotification = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user._id;
-    const organizationID = req.user.organizationID;
 
     // Check if user is admin of organizationID=1 (only org 1 admin can update release notifications)
     const isReleaseAdmin = await isReleaseNotificationAdmin(userId);
@@ -309,7 +306,6 @@ const updateReleaseNotification = async (req, res) => {
 
     const releaseNotification = await ReleaseNotification.findOne({
       _id: id,
-      organizationID,
       isActive: true
     });
 
@@ -353,7 +349,6 @@ const togglePublishStatus = async (req, res) => {
     const { id } = req.params;
     const { isPublished } = req.body;
     const userId = req.user._id;
-    const organizationID = req.user.organizationID;
 
     // Check if user is admin of organizationID=1 (only org 1 admin can publish/unpublish release notifications)
     const isReleaseAdmin = await isReleaseNotificationAdmin(userId);
@@ -366,7 +361,6 @@ const togglePublishStatus = async (req, res) => {
 
     const releaseNotification = await ReleaseNotification.findOne({
       _id: id,
-      organizationID,
       isActive: true
     });
 
@@ -381,7 +375,7 @@ const togglePublishStatus = async (req, res) => {
     if (isPublished && !releaseNotification.publishDate) {
       releaseNotification.publishDate = new Date();
     }
-    
+
     await releaseNotification.save();
 
     res.json({
@@ -407,7 +401,6 @@ const deleteReleaseNotification = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user._id;
-    const organizationID = req.user.organizationID;
 
     // Check if user is admin of organizationID=1 (only org 1 admin can delete release notifications)
     const isReleaseAdmin = await isReleaseNotificationAdmin(userId);
@@ -420,7 +413,6 @@ const deleteReleaseNotification = async (req, res) => {
 
     const releaseNotification = await ReleaseNotification.findOne({
       _id: id,
-      organizationID,
       isActive: true
     });
 

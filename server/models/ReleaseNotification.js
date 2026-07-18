@@ -18,13 +18,11 @@ const ReleaseNotificationSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    maxlength: 200
   },
   description: {
     type: String,
     required: true,
-    trim: true,
-    maxlength: 1000
+    trim: true
   },
   features: [{
     title: {
@@ -141,7 +139,7 @@ ReleaseNotificationSchema.index({ createdAt: -1 });
 ReleaseNotificationSchema.index({ version: 1, organizationID: 1 });
 
 // Pre-save operations: update updatedAt, generate releaseId, generate buildNumber
-ReleaseNotificationSchema.pre('save', async function() {
+ReleaseNotificationSchema.pre('save', async function () {
   this.updatedAt = new Date();
 
   if (this.isNew) {
@@ -157,7 +155,7 @@ ReleaseNotificationSchema.pre('save', async function() {
           organizationID: this.organizationID,
           isActive: true
         });
-        
+
         // Generate build number: timestamp + organization count for uniqueness
         const timestamp = Date.now().toString().slice(-8); // Last 8 digits of timestamp
         const buildNumber = `${timestamp}${String(orgReleaseCount + 1).padStart(3, '0')}`;

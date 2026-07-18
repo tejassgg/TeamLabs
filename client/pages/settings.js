@@ -28,8 +28,8 @@ const Settings = () => {
   // Check if user has Admin role
   const isAdmin = userDetails?.role === 'Admin';
 
-  // Check if user is admin of OrganizationID='1' (system admin)
-  const isSystemAdmin = isAdmin && userDetails?.organizationID === '1';
+  // Check if user has Admin role where username = tejassgg (system admin)
+  const isSystemAdmin = isAdmin && userDetails?.username === 'tejassgg';
   const [activeTab, setActiveTab] = useState('general');
 
   // Redirect non-admin users away from admin-only tabs

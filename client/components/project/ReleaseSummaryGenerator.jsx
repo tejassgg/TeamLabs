@@ -1,7 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaRobot, FaPaperPlane, FaCalendarAlt, FaEdit, FaEye, FaSpinner, FaFileAlt } from 'react-icons/fa';
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+
+const incrementVersion = (versionStr) => {
+  if (!versionStr) return '';
+  
+  // Match semantic versioning like v1.2.3 or 1.2.3
+  const semverMatch = versionStr.match(/^(v?)(\d+)\.(\d+)\.(\d+)$/i);
+  if (semverMatch) {
+    const prefix = semverMatch[1];
+    const major = parseInt(semverMatch[2], 10);
+    const minor = parseInt(semverMatch[3], 10);
+    const patch = parseInt(semverMatch[4], 10);
+    return `${prefix}${major}.${minor}.${patch + 1}`;
+  }
+
+  // Match minor versioning like v1.2 or 1.2
+  const minorMatch = versionStr.match(/^(v?)(\d+)\.(\d+)$/i);
+  if (minorMatch) {
+    const prefix = minorMatch[1];
+    const major = parseInt(minorMatch[2], 10);
+    const minor = parseInt(minorMatch[3], 10);
+    return `${prefix}${major}.${minor + 1}`;
+  }
+
+  // Match single number like v1 or 1
+  const singleMatch = versionStr.match(/^(v?)(\d+)$/i);
+  if (singleMatch) {
+    const prefix = singleMatch[1];
+    const num = parseInt(singleMatch[2], 10);
+    return `${prefix}${num + 1}`;
+  }
+
+  // Fallback: If it has some trailing digits, increment them
+  const trailingDigitsMatch = versionStr.match(/^(.*?)(\d+)$/);
+  if (trailingDigitsMatch) {
+    const prefix = trailingDigitsMatch[1];
+    const num = parseInt(trailingDigitsMatch[2], 10);
+    return `${prefix}${num + 1}`;
+  }
+
+  // If no digits found, default to append .1
+  return `${versionStr}.1`;
+};
 
 const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
   const { showToast } = useToast();
@@ -14,6 +56,24 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
   const [sending, setSending] = useState(false);
   const [releaseNotes, setReleaseNotes] = useState('');
   const [previewMode, setPreviewMode] = useState('edit'); // 'edit' or 'preview'
+
+  useEffect(() => {
+    const fetchLatestReleaseVersion = async () => {
+      try {
+        const response = await api.get(`/projects/${projectId}/releases/latest`);
+        if (response.data?.success && response.data.version) {
+          const nextVersion = incrementVersion(response.data.version);
+          setVersion(nextVersion);
+        }
+      } catch (err) {
+        console.error('Failed to fetch latest release version:', err);
+      }
+    };
+
+    if (projectId) {
+      fetchLatestReleaseVersion();
+    }
+  }, [projectId]);
 
   const handleGenerate = async () => {
     if (!startDate || !endDate) {
@@ -63,6 +123,10 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
 
       if (response.data?.success) {
         showToast(`Release summary emailed successfully!`, 'success');
+        const nextVersion = incrementVersion(version);
+        setVersion(nextVersion);
+        setTitle('');
+        setDescription('');
       } else {
         throw new Error(response.data?.error || 'Failed to send emails');
       }
@@ -271,7 +335,7 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
           <div className="pt-4 flex justify-end">
             <button
               onClick={handleEmailTeam}
-              disabled={sending || !releaseNotes || !version}
+              disabled={sending || !releaseNotes}
               className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {sending ? (

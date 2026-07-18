@@ -5,7 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
 import { useToast } from '../context/ToastContext';
 import ProjectStatusDropdown from '../components/dashboard/ProjectStatusDropdown';
-import { FaTrash, FaProjectDiagram, FaChartBar, FaRedo, FaPlus, FaGripHorizontal, FaExpandAlt, FaCompressAlt, FaCog, FaTimes, FaUndo, FaWrench, FaCheck, FaClock, FaUserFriends } from 'react-icons/fa';
+import { FaTrash, FaProjectDiagram, FaChartBar, FaRedo, FaPlus, FaGripHorizontal, FaExpandAlt, FaCompressAlt, FaCog, FaTimes, FaUndo, FaWrench, FaCheck, FaClock, FaUserFriends, FaBell, FaComments, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { getStatusConfig } from '../components/dashboard/StatusConfig';
 import api from '../services/api';
 import { projectService } from '../services/api';
@@ -37,13 +37,50 @@ const Dashboard = () => {
   const [removingUser, setRemovingUser] = useState(null);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const isAdmin = userDetails?.role === 'Admin';
-  const [activeTab, setActiveTab] = useState('metrics');
+  const [activeTab, setActiveTab] = useState('whats_up');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteStatus, setInviteStatus] = useState('');
   const [invitedEmails, setInvitedEmails] = useState([]);
   const [showOnboardingGuide, setShowOnboardingGuide] = useState(false);
+  const [showAllTodos, setShowAllTodos] = useState(false);
   const statsFetchedOrgIdRef = useRef(null);
+
+  // SWR-based whats-up query
+  const { data: whatsUpData, error: whatsUpError, mutate: mutateWhatsUp } = useSWR(
+    userDetails?.organizationID ? `/dashboard/${userDetails.organizationID}/whats-up` : null,
+    null,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 5000,
+    }
+  );
+
+  const whatsUpLoading = !whatsUpData && !whatsUpError && !!userDetails?.organizationID;
+
+  const handleMarkDone = async (taskId) => {
+    try {
+      await api.patch(`/task-details/${taskId}/status`, { Status: 5 });
+      showToast('Task marked as completed!', 'success');
+      mutateWhatsUp();
+    } catch (err) {
+      console.error('Failed to complete task:', err);
+      showToast('Failed to mark task as completed', 'error');
+    }
+  };
+
+  const formatDistanceToNow = (date) => {
+    const diffMs = new Date() - new Date(date);
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHr = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHr / 24);
+
+    if (diffDay > 0) return `${diffDay}d ago`;
+    if (diffHr > 0) return `${diffHr}h ago`;
+    if (diffMin > 0) return `${diffMin}m ago`;
+    return 'Just now';
+  };
 
   // SWR-based dashboard stats query
   const { data: dashboardData, error: dashboardFetchError } = useSWR(
@@ -128,7 +165,7 @@ const Dashboard = () => {
   const handleDragOver = (e, index) => {
     e.preventDefault();
     if (draggedIdx === null || draggedIdx === index) return;
-    
+
     const nextWidgets = [...widgets];
     const draggedItem = nextWidgets[draggedIdx];
     nextWidgets.splice(draggedIdx, 1);
@@ -519,17 +556,16 @@ const Dashboard = () => {
                   <>
                     <button
                       onClick={resetLayout}
-                      className={`px-2.5 py-1.5 sm:px-4 sm:py-2.5 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition-all duration-200 ${
-                        theme === 'dark'
-                          ? 'border-white/10 hover:bg-slate-800 text-slate-400 bg-slate-900/30'
-                          : 'border-slate-200 hover:bg-slate-100 text-slate-600 bg-white shadow-sm'
-                      }`}
+                      className={`px-2.5 py-1.5 sm:px-4 sm:py-2.5 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition-all duration-200 ${theme === 'dark'
+                        ? 'border-white/10 hover:bg-slate-800 text-slate-400 bg-slate-900/30'
+                        : 'border-slate-200 hover:bg-slate-100 text-slate-600 bg-white shadow-sm'
+                        }`}
                     >
                       <FaUndo size={11} /> Reset Defaults
                     </button>
                     <button
                       onClick={() => setIsEditMode(false)}
-                      className="px-2.5 py-1.5 sm:px-4 sm:py-2.5 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition-all duration-200 shadow-md shadow-emerald-600/10"
+                      className="px-2.5 py-1.5 sm:px-4 sm:py-2.5 text-xs font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white flex items-center gap-1.5 transition-all duration-200 shadow-md shadow-emerald-600/10"
                     >
                       <FaCheck size={11} /> Save & Exit
                     </button>
@@ -537,11 +573,10 @@ const Dashboard = () => {
                 ) : (
                   <button
                     onClick={() => setIsEditMode(true)}
-                    className={`px-2.5 py-1.5 sm:px-4 sm:py-2.5 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all duration-200 border ${
-                      theme === 'dark'
-                        ? 'border-white/10 hover:bg-slate-800 hover:text-white text-slate-400 bg-slate-900/50'
-                        : 'border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-600 bg-white shadow-sm'
-                    }`}
+                    className={`px-2.5 py-1.5 sm:px-4 sm:py-2.5 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all duration-200 border ${theme === 'dark'
+                      ? 'border-white/10 hover:bg-slate-800 hover:text-white text-slate-400 bg-slate-900/50'
+                      : 'border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-600 bg-white shadow-sm'
+                      }`}
                   >
                     <FaWrench size={11} /> Customize
                   </button>
@@ -551,6 +586,20 @@ const Dashboard = () => {
             <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
               <nav className="-mb-px flex items-center justify-between">
                 <div className="flex space-x-8">
+                  <button
+                    onClick={() => setActiveTab('whats_up')}
+                    className={`${activeTab === 'whats_up'
+                      ? theme === 'dark'
+                        ? 'border-blue-400 text-blue-400'
+                        : 'border-blue-600 text-blue-600'
+                      : theme === 'dark'
+                        ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
+                  >
+                    <FaBell size={16} />
+                    <span>What's Up</span>
+                  </button>
                   <button
                     onClick={() => setActiveTab('metrics')}
                     className={`${activeTab === 'metrics'
@@ -594,7 +643,7 @@ const Dashboard = () => {
                 onClick={() => setShowOnboardingGuide(true)}
                 className={`px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 ${theme === 'dark'
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
-                    : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white'
+                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
                   }`}
               >
                 <FaRocket size={16} />
@@ -606,15 +655,293 @@ const Dashboard = () => {
         )}
 
         {/* Tab Content */}
+        {!shouldShowWelcomeMessage && activeTab === 'whats_up' && (
+          <div className="space-y-6">
+            {/* What's Up Personalized Greeting Banner */}
+            <div className="py-2 transition-all duration-300 relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className={`text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+                    Hi {userDetails?.firstName || 'User'} 👋 You have{' '}
+                    <span className="text-blue-600 dark:text-blue-400 font-bold">{whatsUpData?.todosCount || 0} to-dos</span> and{' '}
+                    <span className="text-blue-600 dark:text-blue-400 font-bold">{whatsUpData?.topicsCount || 0} topics</span> to catch up on.
+                  </h1>
+                </div>
+                <div className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full ${theme === 'dark' ? 'bg-[#18181b] text-zinc-400 border border-zinc-800' : 'bg-gray-100 text-gray-500'
+                  }`}>
+                  <span>Updated just now</span>
+                  <button
+                    onClick={() => {
+                      mutateWhatsUp();
+                      showToast('Refreshed!', 'success');
+                    }}
+                    className="hover:text-blue-500 transition-colors"
+                    title="Refresh data"
+                  >
+                    <FaRedo className="animate-hover" size={10} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Suggested to-dos & Topics / Updates grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* To-dos block (col-span 2) */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Suggested to-dos Card */}
+                <div className={`py-2 ${theme === 'dark' ? 'bg-[#1e1e24] border-zinc-800' : 'bg-white'}`}>
+                  <h3 className={`text-xs font-bold uppercase tracking-wider mb-4 ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-500'}`}>
+                    Suggested to-dos
+                  </h3>
+
+                  {whatsUpLoading ? (
+                    <div className="space-y-3 animate-pulse">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="h-20 bg-gray-200 dark:bg-zinc-850 rounded-xl" />
+                      ))}
+                    </div>
+                  ) : !whatsUpData?.todos?.length ? (
+                    <div className="text-center py-8">
+                      <p className="text-zinc-500 dark:text-zinc-400 italic">No suggested to-dos. You are all caught up!</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {whatsUpData.todos.slice(0, showAllTodos ? undefined : 5).map((todo) => (
+                        <div
+                          key={todo.TaskID}
+                          className={`p-4 rounded-xl border flex items-center justify-between transition-all hover:translate-x-1 ${theme === 'dark'
+                            ? 'bg-[#18181b] border-zinc-800/80 hover:border-zinc-700'
+                            : 'bg-gray-50/50 border-gray-200/80 hover:bg-gray-50 hover:border-gray-300'
+                            }`}
+                        >
+                          <div className="flex-1 min-w-0 pr-4">
+                            <h4 className={`text-sm font-bold truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              {todo.Name}
+                              {todo.Description && (
+                                <span className={`font-normal text-xs ${theme === 'dark' ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                                  {' '}— {todo.Description.replace(/<[^>]*>/g, '').slice(0, 100)}
+                                </span>
+                              )}
+                            </h4>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                              <span>From: <strong className="text-blue-500">{todo.ProjectName}</strong></span>
+                              <span>•</span>
+                              <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${todo.Priority === 'High' ? 'bg-red-100 text-red-700 dark:bg-red-950/20 dark:text-red-400' :
+                                todo.Priority === 'Low' ? 'bg-green-100 text-green-700 dark:bg-green-950/20 dark:text-green-400' :
+                                  'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/20 dark:text-yellow-400'
+                                }`}>{todo.Priority}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => router.push(`/task/${todo.TaskID}`)}
+                              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1 ${theme === 'dark'
+                                ? 'bg-blue-900/20 text-blue-400 hover:bg-blue-900/40'
+                                : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                                }`}
+                            >
+                              View
+                            </button>
+                            <button
+                              onClick={() => handleMarkDone(todo.TaskID)}
+                              className="p-2 rounded-xl text-gray-400 hover:text-green-500 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                              title="Mark as completed"
+                            >
+                              <FaCheck size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+
+                      {whatsUpData.todos.length > 5 && (
+                        <div className="pt-2 flex justify-center">
+                          <button
+                            onClick={() => setShowAllTodos(!showAllTodos)}
+                            className={`flex items-center gap-1 text-xs font-semibold px-4 py-2 rounded-xl transition-all ${theme === 'dark'
+                              ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              }`}
+                          >
+                            {showAllTodos ? (
+                              <>
+                                <FaChevronUp size={10} />
+                                <span>Show less</span>
+                              </>
+                            ) : (
+                              <>
+                                <FaChevronDown size={10} />
+                                <span>Show more</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Timeline / What's Ahead */}
+                <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-[#1e1e24] border-zinc-800' : 'bg-white border-gray-200 shadow-sm'}`}>
+                  <h3 className={`text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-500'}`}>
+                    <FaClock className="text-blue-500" />
+                    <span>What's Ahead (Timeline)</span>
+                  </h3>
+
+                  {whatsUpLoading ? (
+                    <div className="space-y-4 animate-pulse">
+                      <div className="h-6 bg-gray-200 dark:bg-zinc-850 w-1/3 rounded" />
+                      <div className="h-12 bg-gray-200 dark:bg-zinc-850 rounded-xl" />
+                    </div>
+                  ) : !whatsUpData?.timeline?.length ? (
+                    <div className="text-center py-6">
+                      <p className="text-zinc-500 dark:text-zinc-400 italic text-sm">No upcoming deadlines.</p>
+                    </div>
+                  ) : (
+                    <div className="relative border-l border-zinc-200 dark:border-zinc-850 ml-3 pl-6 space-y-6">
+                      {whatsUpData.timeline.map((task) => {
+                        const daysRemaining = Math.ceil(
+                          (new Date(task.DueDate) - new Date()) / (1000 * 60 * 60 * 24)
+                        );
+                        return (
+                          <div key={task.TaskID} className="relative">
+                            <span className="absolute -left-[32px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 ring-4 ring-white dark:ring-[#1e1e24]" />
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                              <div>
+                                <h4 className={`text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {task.Name}
+                                </h4>
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                  Project: <strong className="text-blue-500">{task.ProjectName}</strong>
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${daysRemaining <= 1
+                                  ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-800'
+                                  : daysRemaining <= 3
+                                    ? 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-400 dark:border-yellow-800'
+                                    : 'bg-green-50 text-green-600 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-800'
+                                  }`}>
+                                  {daysRemaining <= 0 ? 'Due today' : `Due in ${daysRemaining} day${daysRemaining > 1 ? 's' : ''}`} ({new Date(task.DueDate).toLocaleDateString()})
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Comments & Updates (col-span 1) */}
+              <div className="space-y-6">
+                {/* Topics to Catch Up On (Comment Mentions) */}
+                <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-[#1e1e24] border-zinc-800' : 'bg-white border-gray-200 shadow-sm'}`}>
+                  <h3 className={`text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-500'}`}>
+                    <FaComments className="text-blue-500" />
+                    <span>Topics to catch up on</span>
+                  </h3>
+
+                  {whatsUpLoading ? (
+                    <div className="space-y-3 animate-pulse">
+                      {[1, 2].map(i => (
+                        <div key={i} className="h-16 bg-gray-200 dark:bg-zinc-850 rounded-xl" />
+                      ))}
+                    </div>
+                  ) : !whatsUpData?.taggedComments?.length ? (
+                    <div className="text-center py-6">
+                      <p className="text-zinc-500 dark:text-zinc-400 italic text-sm">No recent comment tags.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {whatsUpData.taggedComments.map((comment) => (
+                        <div
+                          key={comment.CommentID}
+                          onClick={() => router.push(`/task/${comment.TaskID}`)}
+                          className={`p-3 rounded-xl border cursor-pointer transition-all hover:border-blue-500 ${theme === 'dark'
+                            ? 'bg-[#18181b] border-zinc-800/80 hover:bg-zinc-850/50'
+                            : 'bg-gray-50/50 border-gray-200/80 hover:bg-white hover:shadow-sm'
+                            }`}
+                        >
+                          <div className="flex gap-2">
+                            <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-bold flex-shrink-0 font-mono">
+                              {comment.AuthorDetails?.initials || 'U'}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-1.5">
+                                <span className={`text-xs font-bold truncate ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+                                  {comment.AuthorDetails?.fullName || comment.Author}
+                                </span>
+                                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
+                                  {formatDistanceToNow(new Date(comment.CreatedAt))}
+                                </span>
+                              </div>
+                              <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'} line-clamp-2`}>
+                                {comment.Content}
+                              </p>
+                              <div className="text-[9px] mt-1 text-zinc-500 truncate">
+                                Task: <strong className="text-blue-500">{comment.TaskName}</strong>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Recent Updates to Assigned Tasks */}
+                <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-[#1e1e24] border-zinc-800' : 'bg-white border-gray-200 shadow-sm'}`}>
+                  <h3 className={`text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-500'}`}>
+                    <FaBell className="text-yellow-500" />
+                    <span>Recent Updates</span>
+                  </h3>
+
+                  {whatsUpLoading ? (
+                    <div className="space-y-3 animate-pulse">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="h-10 bg-gray-200 dark:bg-zinc-850 rounded" />
+                      ))}
+                    </div>
+                  ) : !whatsUpData?.taskUpdates?.length ? (
+                    <div className="text-center py-6">
+                      <p className="text-zinc-500 dark:text-zinc-400 italic text-sm">No recent task updates.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                      {whatsUpData.taskUpdates.map((update) => (
+                        <div key={update.id} className="text-xs border-b border-zinc-100 dark:border-zinc-800/60 pb-2 last:border-0 last:pb-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <span className={`font-semibold ${theme === 'dark' ? 'text-zinc-300' : 'text-gray-700'}`}>
+                              {update.actor}
+                            </span>
+                            <span className="text-[9px] text-zinc-500 whitespace-nowrap">
+                              {formatDistanceToNow(new Date(update.timestamp))}
+                            </span>
+                          </div>
+                          <p className="text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            {update.details} (on <strong className="text-zinc-700 dark:text-zinc-300">{update.taskName}</strong>)
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab Content */}
         {!shouldShowWelcomeMessage && activeTab === 'metrics' && (
           <div className="space-y-6">
             {/* Widget Catalog Panel in Edit Mode */}
             {isEditMode && (
-              <div className={`p-5 rounded-2xl border transition-all duration-300 backdrop-blur-md ${
-                theme === 'dark' 
-                  ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl text-[#F3F6FA]' 
-                  : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl text-gray-800'
-              }`}>
+              <div className={`p-5 rounded-2xl border transition-all duration-300 backdrop-blur-md ${theme === 'dark'
+                ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl text-[#F3F6FA]'
+                : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl text-gray-800'
+                }`}>
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
                   <FaCog className="animate-spin text-indigo-500 text-sm" style={{ animationDuration: '6s' }} />
                   <span>Dashboard Widget Catalog</span>
@@ -629,11 +956,10 @@ const Dashboard = () => {
                       <button
                         key={w.id}
                         onClick={() => toggleWidgetVisibility(w.id)}
-                        className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 ${
-                          theme === 'dark' 
-                            ? 'bg-slate-900 border border-white/5 hover:border-white/20 hover:bg-slate-800 text-slate-300' 
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm'
-                        }`}
+                        className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 ${theme === 'dark'
+                          ? 'bg-slate-900 border border-white/5 hover:border-white/20 hover:bg-slate-800 text-slate-300'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm'
+                          }`}
                       >
                         <FaPlus size={8} /> Add {w.title}
                       </button>
@@ -657,13 +983,11 @@ const Dashboard = () => {
                     onDragStart={(e) => handleDragStart(e, idx)}
                     onDragOver={(e) => handleDragOver(e, idx)}
                     onDragEnd={handleDragEnd}
-                    className={`transition-all duration-300 relative hover:z-30 focus-within:z-30 ${
-                      widget.colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'
-                    } ${
-                      isEditMode 
-                        ? 'border-2 border-dashed border-indigo-500/40 rounded-3xl p-1 cursor-grab active:cursor-grabbing hover:border-indigo-500/70 group' 
+                    className={`transition-all duration-300 relative hover:z-30 focus-within:z-30 ${widget.colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'
+                      } ${isEditMode
+                        ? 'border-2 border-dashed border-indigo-500/40 rounded-3xl p-1 cursor-grab active:cursor-grabbing hover:border-indigo-500/70 group'
                         : ''
-                    }`}
+                      }`}
                   >
                     {isEditMode && (
                       <div className="absolute top-3 right-3 z-30 flex items-center gap-1 bg-slate-900/90 text-white rounded-lg p-1.5 shadow-md border border-white/10 backdrop-blur-md opacity-80 group-hover:opacity-100 transition-opacity">

@@ -9,6 +9,7 @@ const TaskDetails = require('../models/TaskDetails');
 const Invite = require('../models/Invite');
 const Organization = require('../models/Organization');
 const Comment = require('../models/Comment');
+const { protect } = require('../middleware/auth');
 
 // Get recent comments across the organization's projects
 router.get('/:organizationId/recent-comments', async (req, res) => {
@@ -352,6 +353,134 @@ router.get('/:organizationId', async (req, res) => {
   } catch (error) {
     console.error('Error fetching dashboard details:', error);
     res.status(500).json({ error: 'Failed to fetch dashboard details' });
+  }
+});
+
+// GET /api/dashboard/:organizationId/whats-up - Personalized "What's Up" statistics for the logged-in user
+router.get('/:organizationId/whats-up', protect, async (req, res) => {
+  try {
+    const { organizationId } = req.params;
+    const userId = req.user._id.toString();
+    const username = req.user.username;
+
+    // 1. Get all projects in the organization
+    const projects = await Project.find({ OrganizationID: organizationId });
+    const projectMap = {};
+    projects.forEach(p => {
+      projectMap[p.ProjectID] = p.Name;
+    });
+    const projectIds = projects.map(p => p.ProjectID);
+
+    // 2. Query active, uncompleted tasks assigned to the user
+    const userTasks = await TaskDetails.find({
+      ProjectID_FK: { $in: projectIds },
+      AssignedTo: userId,
+      IsActive: true,
+      Status: { $lt: 5 }
+    });
+
+    const todos = userTasks.map(t => ({
+      TaskID: t.TaskID,
+      Name: t.Name,
+      Description: t.Description || '',
+      Status: t.Status,
+      Priority: t.Priority,
+      Type: t.Type,
+      DueDate: t.DueDate,
+      ProjectName: projectMap[t.ProjectID_FK] || 'Unknown Project'
+    }));
+
+    // 3. Timeline / What's Ahead (tasks sorted by DueDate)
+    const timeline = todos
+      .filter(t => t.DueDate)
+      .sort((a, b) => new Date(a.DueDate) - new Date(b.DueDate));
+
+    // 4. Query recent comments tagging the user (@username)
+    const allTasks = await TaskDetails.find({ ProjectID_FK: { $in: projectIds } });
+    const taskMap = {};
+    allTasks.forEach(t => {
+      taskMap[t.TaskID] = { name: t.Name, projectId: t.ProjectID_FK };
+    });
+    const allTaskIds = allTasks.map(t => t.TaskID);
+
+    const taggedComments = await Comment.find({
+      TaskID: { $in: allTaskIds },
+      Content: { $regex: `@${username}\\b`, $options: 'i' }
+    }).sort({ CreatedAt: -1 }).limit(10);
+
+    const authorIds = [...new Set(taggedComments.map(c => c.Author))];
+    const commentUsers = await User.find({
+      $or: [
+        { _id: { $in: authorIds.filter(id => id && id.match(/^[0-9a-fA-F]{24}$/)) } },
+        { username: { $in: authorIds } }
+      ]
+    }).select('firstName lastName username email');
+
+    const userMap = {};
+    commentUsers.forEach(u => {
+      userMap[u._id.toString()] = u;
+      userMap[u.username] = u;
+    });
+
+    const commentsWithDetails = taggedComments.map(c => {
+      const authorUser = userMap[c.Author];
+      const t = taskMap[c.TaskID];
+      return {
+        CommentID: c.CommentID,
+        TaskID: c.TaskID,
+        TaskName: t ? t.name : 'Unknown Task',
+        ProjectName: t ? (projectMap[t.projectId] || 'Unknown Project') : 'Unknown Project',
+        Author: c.Author,
+        AuthorDetails: authorUser ? {
+          fullName: `${authorUser.firstName} ${authorUser.lastName}`.trim(),
+          username: authorUser.username,
+          initials: `${authorUser.firstName[0] || ''}${authorUser.lastName[0] || ''}`.toUpperCase()
+        } : null,
+        Content: c.Content,
+        CreatedAt: c.CreatedAt
+      };
+    });
+
+    // 5. Recent updates/activities on user's assigned tasks
+    const userTaskIds = userTasks.map(t => t.TaskID);
+    const taskUpdates = await UserActivity.find({
+      'metadata.taskId': { $in: userTaskIds }
+    }).sort({ timestamp: -1 }).limit(15);
+
+    const actorIds = [...new Set(taskUpdates.map(a => a.user))];
+    const actors = await User.find({ _id: { $in: actorIds } }).select('firstName lastName username');
+    const actorMap = {};
+    actors.forEach(u => {
+      actorMap[u._id.toString()] = u;
+    });
+
+    const updatesWithDetails = taskUpdates.map(a => {
+      const actor = actorMap[a.user?.toString()];
+      const taskId = a.metadata instanceof Map ? a.metadata.get('taskId') : a.metadata?.taskId;
+      const taskObj = userTasks.find(t => t.TaskID === taskId);
+      return {
+        id: a._id,
+        type: a.type,
+        status: a.status,
+        details: a.details,
+        timestamp: a.timestamp,
+        taskName: taskObj ? taskObj.Name : 'Assigned Task',
+        actor: actor ? `${actor.firstName} ${actor.lastName}`.trim() : 'System'
+      };
+    });
+
+    res.json({
+      success: true,
+      todosCount: todos.length,
+      topicsCount: commentsWithDetails.length,
+      todos,
+      timeline,
+      taggedComments: commentsWithDetails,
+      taskUpdates: updatesWithDetails
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard whats-up details:', error);
+    res.status(500).json({ error: 'Failed to fetch whats-up details' });
   }
 });
 

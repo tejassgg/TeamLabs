@@ -482,6 +482,46 @@ Instructions:
   }
 });
 
+// Get latest release version
+router.get('/:projectId/releases/latest', protect, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const UserActivity = require('../models/UserActivity');
+
+    const latestRelease = await UserActivity.findOne({
+      type: 'release_notes_sent',
+      'metadata.projectId': projectId,
+      status: 'success'
+    }).sort({ timestamp: -1 });
+
+    if (!latestRelease) {
+      return res.json({ success: true, version: null });
+    }
+
+    const metadata = latestRelease.metadata;
+    let version = null;
+    let title = null;
+    if (metadata) {
+      if (typeof metadata.get === 'function') {
+        version = metadata.get('version');
+        title = metadata.get('title');
+      } else {
+        version = metadata.version;
+        title = metadata.title;
+      }
+    }
+
+    res.json({
+      success: true,
+      version,
+      title
+    });
+  } catch (error) {
+    console.error('Error fetching latest release version:', error);
+    res.status(500).json({ error: 'Failed to fetch latest release version' });
+  }
+});
+
 // Email release summary to team members
 router.post('/:projectId/releases/email', protect, async (req, res) => {
   try {

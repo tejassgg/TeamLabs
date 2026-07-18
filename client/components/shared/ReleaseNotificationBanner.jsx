@@ -19,24 +19,30 @@ import {
   FaBug
 } from 'react-icons/fa';
 
-const ReleaseNotificationBanner = ({ onClose }) => {
+const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
   const { userDetails } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
   
-  const [latestRelease, setLatestRelease] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [latestRelease, setLatestRelease] = useState(releaseData);
+  const [loading, setLoading] = useState(!releaseData);
   const [expanded, setExpanded] = useState(false);
   const [dismissedReleases, setDismissedReleases] = useState(new Set());
 
   useEffect(() => {
-    fetchLatestRelease();
+    if (releaseData) {
+      setLatestRelease(releaseData);
+      setLoading(false);
+    } else {
+      fetchLatestRelease();
+    }
+    
     // Load dismissed releases from localStorage
     const dismissed = localStorage.getItem('dismissedReleases');
     if (dismissed) {
       setDismissedReleases(new Set(JSON.parse(dismissed)));
     }
-  }, []);
+  }, [releaseData]);
 
   const fetchLatestRelease = async () => {
     try {

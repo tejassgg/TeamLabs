@@ -11,44 +11,73 @@ const useReleaseNotifications = () => {
   const [hasNewRelease, setHasNewRelease] = useState(false);
   const [versionUpdateAvailable, setVersionUpdateAvailable] = useState(false);
 
-  // useEffect(() => {
-  //   if (userDetails?.organizationID) {
-  //     fetchLatestRelease();
-  //   }
-  // }, [userDetails?.organizationID]);
+  useEffect(() => {
+    if (userDetails?.organizationID) {
+      fetchLatestRelease();
+    }
+  }, [userDetails?.organizationID]);
 
   const fetchLatestRelease = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
+      // Check if we have checked for updates this session to allow caching,
+      // but bypass it on new session/login so we always check the server once.
+      const sessionChecked = typeof window !== 'undefined' && sessionStorage.getItem('releaseCheckedThisSession');
+      const dismissedReleases = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('dismissedReleases') || '[]') : [];
+      const cachedReleaseStr = typeof window !== 'undefined' ? localStorage.getItem('latestRelease') : null;
+
+      if (sessionChecked && cachedReleaseStr) {
+        try {
+          const cachedRelease = JSON.parse(cachedReleaseStr);
+          const isDismissed = dismissedReleases.includes(cachedRelease._id);
+          const isExpired = cachedRelease.expiresAt && new Date(cachedRelease.expiresAt) < new Date();
+
+          if (isDismissed || isExpired) {
+            // Already dismissed or expired, do not make network call
+            setLatestRelease(null);
+            setHasNewRelease(false);
+            setLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.error('Error parsing cached release:', e);
+        }
+      }
+
       const response = await releaseNotificationService.getLatestReleaseNotification('all');
-      
+
       if (response.success && response.data) {
         const release = response.data;
-        
+
+        // Cache the release and the session check
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('latestRelease', JSON.stringify(release));
+          sessionStorage.setItem('releaseCheckedThisSession', 'true');
+        }
+
         // Check if release has expired
         const isExpired = release.expiresAt && new Date(release.expiresAt) < new Date();
-        
+
         // Check if user has dismissed this release
-        const dismissedReleases = JSON.parse(localStorage.getItem('dismissedReleases') || '[]');
         const isDismissed = dismissedReleases.includes(release._id);
-        
+
         // Check if this is a new release (not seen before)
-        const lastSeenRelease = localStorage.getItem('lastSeenReleaseId');
+        const lastSeenRelease = typeof window !== 'undefined' ? localStorage.getItem('lastSeenReleaseId') : null;
         const isNewRelease = lastSeenRelease !== release._id;
-        
+
         // Check for version update
         const isUpdateAvailable = isNewerVersion(release.version, CLIENT_VERSION);
         setVersionUpdateAvailable(isUpdateAvailable);
-        
+
         // Update version info
         checkVersionUpdate(release.version);
-        
+
         if (!isExpired && !isDismissed) {
           setLatestRelease(release);
           setHasNewRelease(isNewRelease);
-          
+
           // Add to version history if this is a new release
           if (isNewRelease) {
             addVersionToHistory(release.version, 'released');
@@ -73,7 +102,7 @@ const useReleaseNotifications = () => {
   const markAsSeen = (releaseId) => {
     localStorage.setItem('lastSeenReleaseId', releaseId);
     setHasNewRelease(false);
-    
+
     // Add to version history
     if (latestRelease) {
       addVersionToHistory(latestRelease.version, 'viewed');
