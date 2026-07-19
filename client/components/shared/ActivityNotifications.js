@@ -18,13 +18,13 @@ import {
   FaCheckCircle,
   FaExclamationTriangle,
   FaInfoCircle,
-  FaChevronRight,
   FaBell,
   FaTag,
   FaEnvelopeOpen,
   FaComment
 } from 'react-icons/fa';
-import Link from 'next/link';
+import useSWR from 'swr';
+import { sendBrowserNotification } from '../../utils/browserNotifications';
 
 const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
   const { theme } = useTheme();
@@ -32,83 +32,60 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
   const { userDetails } = useGlobal();
   const [activeTab, setActiveTab] = useState('inbox'); // 'inbox' or 'activities'
 
-  // Inbox notifications state
-  const [notifications, setNotifications] = useState([]);
-  const [notificationsLoading, setNotificationsLoading] = useState(true);
+  const {
+    data: notifications = [],
+    error: notificationsError,
+    mutate: mutateNotifications,
+    isValidating: notificationsLoading
+  } = useSWR(
+    userDetails ? 'notifications' : null,
+    () => notificationInboxService.getNotifications().then(res => res || [])
+  );
 
-  // Activities state
-  const [activities, setActivities] = useState([]);
-  const [activitiesLoading, setActivitiesLoading] = useState(true);
+  const {
+    data: activities = [],
+    error: activitiesError,
+    mutate: mutateActivities,
+    isValidating: activitiesLoading
+  } = useSWR(
+    userDetails && isOpen ? 'activities' : null,
+    () => authService.getUserActivities(1, 20).then(res => res.activities || [])
+  );
 
-  const [error, setError] = useState(null);
+  const error = notificationsError || activitiesError;
 
   // Load notifications and activities on mount/user change
   useEffect(() => {
     if (userDetails) {
-      fetchNotifications();
-      fetchActivities();
-
       // Subscribe to real-time notification socket events
       const unsubscribe = subscribe('notification:new', (payload) => {
         const newNoti = payload.data;
         if (newNoti) {
-          setNotifications(prev => {
+          mutateNotifications((prev = []) => {
             const updated = [newNoti, ...prev];
-            const unread = updated.filter(n => !n.IsRead).length;
-            if (onUnreadCountChange) onUnreadCountChange(unread);
             return updated;
-          });
+          }, false);
+
+          // Trigger browser notification for task assignment
+          if (newNoti.Type === 'assignment') {
+            sendBrowserNotification(newNoti.Title, {
+              body: newNoti.Body,
+              data: { link: newNoti.Link }
+            });
+          }
         }
       });
 
       return () => unsubscribe();
     }
-  }, [userDetails]);
+  }, [userDetails, mutateNotifications]);
 
   // Sync unread count whenever notifications state changes
   useEffect(() => {
     const unread = notifications.filter(n => !n.IsRead).length;
     if (onUnreadCountChange) onUnreadCountChange(unread);
-  }, [notifications]);
+  }, [notifications, onUnreadCountChange]);
 
-  // Fetch when tab changes or opens
-  useEffect(() => {
-    if (isOpen) {
-      if (activeTab === 'inbox') {
-        fetchNotifications();
-      } else {
-        fetchActivities();
-      }
-    }
-  }, [isOpen, activeTab]);
-
-  const fetchNotifications = async () => {
-    try {
-      setNotificationsLoading(true);
-      const list = await notificationInboxService.getNotifications();
-      setNotifications(list || []);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching inbox notifications:', err);
-      setError('Failed to fetch notifications');
-    } finally {
-      setNotificationsLoading(false);
-    }
-  };
-
-  const fetchActivities = async () => {
-    try {
-      setActivitiesLoading(true);
-      const response = await authService.getUserActivities(1, 20);
-      setActivities(response.activities || []);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching activities:', err);
-      setError('Failed to fetch activities');
-    } finally {
-      setActivitiesLoading(false);
-    }
-  };
 
   const handleMarkAllRead = async () => {
     try {
@@ -116,7 +93,7 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
       if (unreadIds.length === 0) return;
 
       await notificationInboxService.markAsRead(unreadIds);
-      setNotifications(prev => prev.map(n => ({ ...n, IsRead: true })));
+      mutateNotifications(prev => prev.map(n => ({ ...n, IsRead: true })), false);
     } catch (err) {
       console.error('Failed to mark all as read:', err);
     }
@@ -126,9 +103,9 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
     try {
       if (!noti.IsRead) {
         await notificationInboxService.markAsRead([noti.NotificationID]);
-        setNotifications(prev => prev.map(n =>
+        mutateNotifications(prev => prev.map(n =>
           n.NotificationID === noti.NotificationID ? { ...n, IsRead: true } : n
-        ));
+        ), false);
       }
       onClose();
       if (noti.Link) {
@@ -273,8 +250,8 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
 
   return (
     <div className={`fixed md:absolute top-16 md:top-auto left-4 md:left-auto right-4 md:right-0 mt-2 md:w-96 w-auto rounded-xl shadow-lg py-1 border z-50 transition-all duration-200 ${theme === 'dark'
-        ? 'bg-[#1e1e24]/95 text-white border-gray-700/80 backdrop-blur-md'
-        : 'bg-white/95 text-gray-900 border-gray-200 backdrop-blur-md'
+      ? 'bg-[#1e1e24]/95 text-white border-gray-700/80 backdrop-blur-md'
+      : 'bg-white/95 text-gray-900 border-gray-200 backdrop-blur-md'
       } focus:outline-none`}>
 
       {/* Header and Tabs */}
@@ -284,8 +261,8 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
             <button
               onClick={() => setActiveTab('inbox')}
               className={`text-sm font-semibold pb-1 border-b-2 transition-all duration-200 ${activeTab === 'inbox'
-                  ? 'border-blue-500 text-blue-500'
-                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                ? 'border-blue-500 text-blue-500'
+                : 'border-transparent text-gray-400 hover:text-gray-600'
                 }`}
             >
               Inbox
@@ -298,8 +275,8 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
             <button
               onClick={() => setActiveTab('activities')}
               className={`text-sm font-semibold pb-1 border-b-2 transition-all duration-200 ${activeTab === 'activities'
-                  ? 'border-blue-500 text-blue-500'
-                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                ? 'border-blue-500 text-blue-500'
+                : 'border-transparent text-gray-400 hover:text-gray-600'
                 }`}
             >
               Activities

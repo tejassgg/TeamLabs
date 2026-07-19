@@ -197,7 +197,7 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
                 data: { projectId: newTask.ProjectID_FK, task: newTask },
                 meta: { emittedAt: new Date().toISOString() }
             });
-        } catch (e) {}
+        } catch (e) { }
 
         // Send email notification if task is assigned during creation
         if (newTask.AssignedTo && newTask.AssignedToDetails) {
@@ -245,7 +245,7 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
             }
         }
 
-        try { await emitDashboardMetrics(taskData.OrganizationID || (await Project.findOne({ ProjectID: taskData.ProjectID_FK }))?.OrganizationID); } catch (e) {}
+        try { await emitDashboardMetrics(taskData.OrganizationID || (await Project.findOne({ ProjectID: taskData.ProjectID_FK }))?.OrganizationID); } catch (e) { }
         res.status(201).json(newTask);
     } catch (err) {
         console.error('Error creating task:', err);
@@ -295,7 +295,7 @@ router.get('/', async (req, res) => {
 router.get('/all', protect, async (req, res) => {
     try {
         const { organizationId } = req.query;
-        
+
         if (!organizationId) {
             return res.status(400).json({ error: 'Organization ID is required' });
         }
@@ -326,9 +326,9 @@ router.get('/all', protect, async (req, res) => {
         }
 
         // First, get all projects for the organization that are assigned to the user's teams
-        const projects = await Project.find({ 
+        const projects = await Project.find({
             ProjectID: { $in: assignedProjectIds },
-            OrganizationID: organizationId 
+            OrganizationID: organizationId
         }).select('ProjectID');
         const projectIds = projects.map(project => project.ProjectID);
 
@@ -337,8 +337,8 @@ router.get('/all', protect, async (req, res) => {
         }
 
         // Get tasks for projects in the organization
-        const tasks = await TaskDetails.find({ 
-            ProjectID_FK: { $in: projectIds }, 
+        const tasks = await TaskDetails.find({
+            ProjectID_FK: { $in: projectIds },
             IsActive: true,
             Type: { $ne: "User Story" }
         }).sort({ CreatedDate: -1 });
@@ -825,7 +825,7 @@ router.patch('/:taskId/status', async (req, res) => {
             }
         );
 
-        try { await emitDashboardMetrics((await Project.findOne({ ProjectID: task.ProjectID_FK }))?.OrganizationID); } catch (e) {}
+        try { await emitDashboardMetrics((await Project.findOne({ ProjectID: task.ProjectID_FK }))?.OrganizationID); } catch (e) { }
         try {
             emitToProject(task.ProjectID_FK, 'kanban.task.status.updated', {
                 event: 'kanban.task.status.updated',
@@ -833,7 +833,7 @@ router.patch('/:taskId/status', async (req, res) => {
                 data: { projectId: task.ProjectID_FK, taskId: task.TaskID, status: task.Status },
                 meta: { emittedAt: new Date().toISOString() }
             });
-        } catch (e) {}
+        } catch (e) { }
         // Emit to task room for task details viewers
         try {
             emitToTask(task.TaskID, 'task.updated', {
@@ -842,7 +842,7 @@ router.patch('/:taskId/status', async (req, res) => {
                 data: { taskId: task.TaskID, changes: { Status: task.Status } },
                 meta: { emittedAt: new Date().toISOString() }
             });
-        } catch (e) {}
+        } catch (e) { }
         res.json({
             success: true,
             TaskID: task.TaskID,
@@ -876,12 +876,11 @@ router.patch('/:taskId/status', async (req, res) => {
 router.patch('/:taskId/assign', protect, async (req, res) => {
     try {
         const taskId = req.params.taskId;
-        const { AssignedTo, AssignedDate  } = req.body;
+        const { AssignedTo, AssignedDate } = req.body;
         const assignedBy = req.user._id;
-        
+
         const task = await TaskDetails.findOne({ TaskID: taskId });
         if (!task) return res.status(404).json({ error: 'Task not found' });
-        const oldStatus = task.Status;
         const oldAssignedTo = task.AssignedTo;
 
         // Save task history before updating
@@ -925,7 +924,7 @@ router.patch('/:taskId/assign', protect, async (req, res) => {
                 const teamDetails = await TeamDetails.findOne({ MemberID: assignedTo._id });
                 let teamName = null;
                 if (teamDetails) {
-                const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
+                    const team = await Team.findOne({ TeamID: teamDetails.TeamID_FK }).select('TeamName');
                     teamName = team ? team.TeamName : null;
                 }
                 assignedToDetails = {
@@ -943,8 +942,8 @@ router.patch('/:taskId/assign', protect, async (req, res) => {
 
         // Log the activity
         const actionType = AssignedTo ? 'task_assign' : 'task_unassign';
-        const actionDescription = AssignedTo ? 
-            `Task "${task.Name}" assigned to user` : 
+        const actionDescription = AssignedTo ?
+            `Task "${task.Name}" assigned to user` :
             `Task "${task.Name}" unassigned`;
 
         await logActivity(
@@ -1049,23 +1048,23 @@ router.patch('/:taskId/assign', protect, async (req, res) => {
                 },
                 meta: { emittedAt: new Date().toISOString() }
             });
-        } catch (e) {}
+        } catch (e) { }
 
         try {
             emitToProject(task.ProjectID_FK, 'kanban.task.assigned', {
                 event: 'kanban.task.assigned',
                 version: 1,
-                data: { 
-                    projectId: task.ProjectID_FK, 
-                    taskId: task.TaskID, 
-                    assignedTo: AssignedTo, 
+                data: {
+                    projectId: task.ProjectID_FK,
+                    taskId: task.TaskID,
+                    assignedTo: AssignedTo,
                     assignedToDetails: assignedToDetails || null,
-                    status: task.Status 
+                    status: task.Status
                 },
                 meta: { emittedAt: new Date().toISOString() }
             });
-        } catch (e) {}
-        try { await emitDashboardMetrics((await Project.findOne({ ProjectID: task.ProjectID_FK }))?.OrganizationID); } catch (e) {}
+        } catch (e) { }
+        try { await emitDashboardMetrics((await Project.findOne({ ProjectID: task.ProjectID_FK }))?.OrganizationID); } catch (e) { }
         res.json({
             ...taskWithDetails,
             taskActivity
@@ -1176,8 +1175,8 @@ router.delete('/:taskId/delete', async (req, res) => {
                 data: { projectId: task.ProjectID_FK, taskId: task.TaskID },
                 meta: { emittedAt: new Date().toISOString() }
             });
-        } catch (e) {}
-        try { await emitDashboardMetrics((await Project.findOne({ ProjectID: task.ProjectID_FK }))?.OrganizationID); } catch (e) {}
+        } catch (e) { }
+        try { await emitDashboardMetrics((await Project.findOne({ ProjectID: task.ProjectID_FK }))?.OrganizationID); } catch (e) { }
         res.json({ success: true, message: 'Task Deleted Successfully' });
     } catch (error) {
         console.error('Error deleting task:', error);
@@ -1401,7 +1400,7 @@ router.patch('/:taskId', async (req, res) => {
                         data: { taskId: child.TaskID, changes: updatedChild },
                         meta: { emittedAt: new Date().toISOString() }
                     });
-                } catch (e) {}
+                } catch (e) { }
             }
         }
 
@@ -1471,7 +1470,7 @@ router.patch('/:taskId', async (req, res) => {
             }
         );
 
-        try { await emitDashboardMetrics((await Project.findOne({ ProjectID: task.ProjectID_FK }))?.OrganizationID); } catch (e) {}
+        try { await emitDashboardMetrics((await Project.findOne({ ProjectID: task.ProjectID_FK }))?.OrganizationID); } catch (e) { }
         // Emit task field updates to project and task rooms
         try {
             emitToProject(task.ProjectID_FK, 'kanban.task.updated', {
@@ -1486,7 +1485,7 @@ router.patch('/:taskId', async (req, res) => {
                 data: { taskId: task.TaskID, changes: updatedTask },
                 meta: { emittedAt: new Date().toISOString() }
             });
-        } catch (e) {}
+        } catch (e) { }
         res.json(updatedTask);
     } catch (error) {
         console.error('Error updating task:', error);
@@ -1685,16 +1684,16 @@ router.get('/:taskId/full', async (req, res) => {
         const comments = await Comment.find({ TaskID: taskId }).sort({ CreatedAt: 1 });
 
         // Fetch subtasks
-        const subtasks = await Subtask.find({ 
-            TaskID_FK: taskId, 
-            IsActive: true 
+        const subtasks = await Subtask.find({
+            TaskID_FK: taskId,
+            IsActive: true
         }).sort({ Order: 1, CreatedDate: 1 });
 
         // Populate user details for subtasks
         const populatedSubtasks = await Promise.all(
             subtasks.map(async (subtask) => {
                 const subtaskObj = subtask.toObject();
-                
+
                 if (subtask.CreatedBy) {
                     const createdByUser = await User.findById(subtask.CreatedBy).select('firstName lastName');
                     if (createdByUser) {
@@ -1704,7 +1703,7 @@ router.get('/:taskId/full', async (req, res) => {
                         };
                     }
                 }
-                
+
                 if (subtask.CompletedBy) {
                     const completedByUser = await User.findById(subtask.CompletedBy).select('firstName lastName');
                     if (completedByUser) {
@@ -1714,7 +1713,7 @@ router.get('/:taskId/full', async (req, res) => {
                         };
                     }
                 }
-                
+
                 return subtaskObj;
             })
         );

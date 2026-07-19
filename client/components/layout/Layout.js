@@ -1,7 +1,7 @@
 import Navbar from './Navbar.js';
 import { useTheme } from '../../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
-import { FaCog, FaChevronLeft, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaRegClipboard, FaProjectDiagram, FaCalendarAlt } from 'react-icons/fa';
+import { FaCog, FaChevronLeft, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaRegClipboard, FaProjectDiagram, FaCalendarAlt, FaFlask } from 'react-icons/fa';
 import { FaRegMessage } from "react-icons/fa6";
 import { useRouter } from 'next/router';
 import { projectService, taskService, authService } from '../../services/api';
@@ -235,6 +235,20 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
               theme={theme}
             />
           </div>
+          
+          {/* Playground for tejassgg */}
+          {userDetails?.username === 'tejassgg' && (
+            <div className={`border-b ${getThemeClasses('border-gray-200', 'border-gray-700')} pb-2`}>
+              <SidebarButton
+                icon={<FaFlask className={getThemeClasses('text-purple-600', 'text-purple-300')} />}
+                label="Playground"
+                active={router.pathname === '/playground'}
+                onClick={() => handleNavigation('/playground')}
+                theme={theme}
+              />
+            </div>
+          )}
+          
           {/* Teams Section */}
           <div>
             <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
@@ -486,6 +500,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
     if (path === '/query') return 'Query Board';
     if (path === '/teams') return 'Teams';
     if (path === '/projects') return 'Projects';
+    if (path === '/playground') return 'Playground';
 
     if (path === '/task/[taskId]') {
       const taskId = query.taskId;
