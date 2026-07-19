@@ -39,6 +39,7 @@ exports.createNotification = async ({ recipientId, senderId, type, title, body, 
     // Call Web Push helper
     try {
       const { sendPushNotification } = require('./webPushService');
+      console.log("I am here -  createNotification");
       await sendPushNotification(recipientId, {
         title,
         body,

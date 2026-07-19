@@ -985,6 +985,19 @@ router.patch('/:taskId/assign', protect, async (req, res) => {
                         projectId: task.ProjectID_FK
                     }
                 );
+                const notificationService = require('../services/notificationService');
+                try {
+                    await notificationService.createNotification({
+                        recipientId: AssignedTo,
+                        senderId: assignedBy ? assignedBy.toString() : '',
+                        type: 'assignment',
+                        title: 'Task Assigned',
+                        body: `${assignedByName} assigned the task "${task.Name}" to you.`,
+                        link: `/task/${task.TaskID}`
+                    });
+                } catch (notiError) {
+                    console.error('Error creating assignment notification inside assign:', notiError);
+                }
 
                 // Send email notification to the assigned user
                 try {
@@ -1243,9 +1256,9 @@ router.patch('/:taskId', async (req, res) => {
                     IsActive: true
                 });
                 if (incompleteDependencies.length > 0) {
-                    const names = incompleteDependencies.map(t => `"${t.Name}"`).join(', ');
+                    const taskNumbers = incompleteDependencies.map(t => `"${t.TaskNumber}"`).join(', ');
                     return res.status(400).json({
-                        error: `Cannot complete task. It depends on incomplete task(s): ${names}.`
+                        error: `Cannot complete task. It depends on incomplete task(s): ${taskNumbers}.`
                     });
                 }
             }

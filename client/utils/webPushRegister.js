@@ -17,26 +17,22 @@ function urlBase64ToUint8Array(base64String) {
 
 export async function registerPushNotifications() {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-    console.log('Push notifications are not supported in this browser.');
     return;
   }
 
   try {
     // 1. Register Service Worker
     const registration = await navigator.serviceWorker.register('/sw.js');
-    console.log('Service Worker registered successfully:', registration.scope);
 
     // 2. Request Notification Permission
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
-      console.log('Notification permission denied.');
       return;
     }
 
     // 3. Fetch VAPID Public Key from Backend
     const { publicKey } = await notificationInboxService.getVapidPublicKey();
     if (!publicKey) {
-      console.error('VAPID public key not found on backend.');
       return;
     }
 
@@ -48,7 +44,6 @@ export async function registerPushNotifications() {
 
     // 5. Send Subscription details to Backend
     await notificationInboxService.subscribeWebPush(subscription);
-    console.log('Web Push subscription stored on backend successfully.');
   } catch (error) {
     console.error('Failed to register push notifications:', error);
   }

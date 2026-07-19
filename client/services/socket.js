@@ -29,7 +29,7 @@ export function connectSocket() {
 
   socket = io(SOCKET_URL, {
     path: SOCKET_PATH,
-    transports: ['websocket', 'polling'],
+    transports: ['polling', 'websocket'],
     withCredentials: true,
     reconnection: true,
     reconnectionAttempts: Infinity,

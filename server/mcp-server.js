@@ -54,20 +54,20 @@ function escapeRegex(string) {
 async function resolveUser(userInput) {
   if (!userInput) return null;
   userInput = String(userInput).trim();
-  
+
   if (/^[0-9a-fA-F]{24}$/.test(userInput)) {
     const user = await User.findById(userInput);
     if (user) return user._id.toString();
   }
-  
+
   // Search by Email
   let user = await User.findOne({ email: userInput.toLowerCase() });
   if (user) return user._id.toString();
-  
+
   // Search by Username
   user = await User.findOne({ username: { $regex: new RegExp('^' + escapeRegex(userInput) + '$', 'i') } });
   if (user) return user._id.toString();
-  
+
   // Search by Full Name
   const parts = userInput.split(/\s+/);
   if (parts.length >= 2) {
@@ -88,20 +88,20 @@ async function resolveUser(userInput) {
     });
     if (user) return user._id.toString();
   }
-  
+
   return null;
 }
 
 async function resolveOrganization(orgInput) {
   if (!orgInput) return null;
   const strInput = String(orgInput).trim();
-  
+
   if (/^\d+$/.test(strInput)) {
     const num = parseInt(strInput, 10);
     const org = await Organization.findOne({ OrganizationID: num });
     if (org) return org.OrganizationID;
   }
-  
+
   const orgByName = await Organization.findOne({ Name: { $regex: new RegExp('^' + escapeRegex(strInput) + '$', 'i') } });
   if (orgByName) return orgByName.OrganizationID;
 
@@ -111,12 +111,12 @@ async function resolveOrganization(orgInput) {
 async function resolveProject(projectInput) {
   if (!projectInput) return null;
   const strInput = String(projectInput).trim();
-  
+
   if (/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(strInput)) {
     const project = await Project.findOne({ ProjectID: strInput });
     if (project) return project.ProjectID;
   }
-  
+
   // Search by Name (case-insensitive)
   const projectByName = await Project.findOne({ Name: { $regex: new RegExp('^' + escapeRegex(strInput) + '$', 'i') } });
   if (projectByName) return projectByName.ProjectID;
@@ -130,28 +130,28 @@ async function resolveProject(projectInput) {
 
 async function resolveTaskStatus(statusInput) {
   if (statusInput === undefined || statusInput === null) return undefined;
-  
+
   if (typeof statusInput === 'number') {
     return statusInput;
   }
   if (typeof statusInput === 'string' && /^\d+$/.test(statusInput.trim())) {
     return parseInt(statusInput.trim(), 10);
   }
-  
+
   const typeStr = String(statusInput).trim();
   const found = await CommonType.findOne({
     MasterType: 'ProjectStatus',
     Value: { $regex: new RegExp('^' + escapeRegex(typeStr) + '$', 'i') }
   });
   if (found) return found.Code;
-  
+
   const lower = typeStr.toLowerCase();
   if (lower === 'not assigned' || lower === 'backlog' || lower === 'todo' || lower === 'to do') return 1;
   if (lower === 'assigned') return 2;
   if (lower === 'in progress' || lower === 'inprogress' || lower === 'active') return 3;
   if (lower === 'under review' || lower === 'underreview' || lower === 'review') return 4;
   if (lower === 'completed' || lower === 'done' || lower === 'finished') return 6;
-  
+
   return undefined;
 }
 
@@ -263,7 +263,7 @@ async function getCreateProject(args) {
     console.error("Failed to log activity:", e);
   }
 
-  try { await emitDashboardMetrics(String(orgId)); } catch (e) {}
+  try { await emitDashboardMetrics(String(orgId)); } catch (e) { }
 
   return formatResponse(newProject);
 }
@@ -306,9 +306,9 @@ async function getUpdateProject(args) {
         }
       }
     );
-  } catch (e) {}
+  } catch (e) { }
 
-  try { await emitDashboardMetrics(project.OrganizationID); } catch (e) {}
+  try { await emitDashboardMetrics(project.OrganizationID); } catch (e) { }
 
   return formatResponse(project);
 }
@@ -330,16 +330,16 @@ async function getDeleteProject(args) {
       null,
       { projectId: project.ProjectID }
     );
-  } catch (e) {}
+  } catch (e) { }
 
-  try { await emitDashboardMetrics(project.OrganizationID); } catch (e) {}
+  try { await emitDashboardMetrics(project.OrganizationID); } catch (e) { }
 
   return formatResponse({ success: true, message: `Project deactivated successfully` });
 }
 
 async function getListTasks(args) {
   let query = { IsActive: true };
-  
+
   if (args.projectID || args.project) {
     const projIdentifier = args.projectID || args.project;
     const resolvedProjId = await resolveProject(projIdentifier);
@@ -348,7 +348,7 @@ async function getListTasks(args) {
     }
     query.ProjectID_FK = resolvedProjId;
   }
-  
+
   if (args.assignedTo) {
     const resolvedUserId = await resolveUser(args.assignedTo);
     if (!resolvedUserId) {
@@ -356,11 +356,11 @@ async function getListTasks(args) {
     }
     query.AssignedTo = resolvedUserId;
   }
-  
+
   if (args.type) {
     query.Type = resolveType(args.type);
   }
-  
+
   if (args.status !== undefined) {
     const resolvedStatus = await resolveTaskStatus(args.status);
     if (resolvedStatus !== undefined) {
@@ -369,15 +369,15 @@ async function getListTasks(args) {
   }
 
   const tasks = await TaskDetails.find(query).lean();
-  
+
   const userIds = [...new Set([
     ...tasks.map(t => t.AssignedTo),
     ...tasks.map(t => t.CreatedBy)
   ].filter(Boolean))];
-  
+
   const users = await User.find({ _id: { $in: userIds } }).select('firstName lastName username email');
   const userMap = new Map(users.map(u => [u._id.toString(), u]));
-  
+
   const enrichedTasks = tasks.map(t => {
     const assigned = userMap.get(t.AssignedTo);
     const creator = userMap.get(t.CreatedBy);
@@ -483,9 +483,9 @@ async function getCreateTask(args) {
         projectId: args.projectID
       }
     );
-  } catch (e) {}
+  } catch (e) { }
 
-  try { await emitDashboardMetrics(project.OrganizationID); } catch (e) {}
+  try { await emitDashboardMetrics(project.OrganizationID); } catch (e) { }
 
   return formatResponse(newTask);
 }
@@ -574,14 +574,14 @@ async function getUpdateTask(args) {
         projectId: task.ProjectID_FK
       }
     );
-  } catch (e) {}
+  } catch (e) { }
 
   try {
     const project = await Project.findOne({ ProjectID: task.ProjectID_FK });
     if (project) {
       await emitDashboardMetrics(project.OrganizationID);
     }
-  } catch (e) {}
+  } catch (e) { }
 
   return formatResponse(task);
 }
@@ -608,7 +608,7 @@ async function getDeleteTask(args) {
       HistoryDate: new Date()
     });
     await taskHistory.save();
-  } catch (e) {}
+  } catch (e) { }
 
   try {
     await logActivity(
@@ -624,14 +624,14 @@ async function getDeleteTask(args) {
         projectId: task.ProjectID_FK
       }
     );
-  } catch (e) {}
+  } catch (e) { }
 
   const orgId = (await Project.findOne({ ProjectID: task.ProjectID_FK }))?.OrganizationID;
 
   await task.deleteOne();
 
   if (orgId) {
-    try { await emitDashboardMetrics(orgId); } catch (e) {}
+    try { await emitDashboardMetrics(orgId); } catch (e) { }
   }
 
   return formatResponse({ success: true, message: "Task permanently deleted successfully" });
@@ -800,7 +800,7 @@ const TOOLS = [
 // JSON-RPC Request Router
 async function handleRequest(request) {
   const { method, id, params } = request;
-  
+
   if (method === 'initialize') {
     return {
       jsonrpc: "2.0",
@@ -815,7 +815,7 @@ async function handleRequest(request) {
       }
     };
   }
-  
+
   if (method === 'tools/list') {
     return {
       jsonrpc: "2.0",
@@ -825,7 +825,7 @@ async function handleRequest(request) {
       }
     };
   }
-  
+
   if (method === 'tools/call') {
     const { name, arguments: args } = params || {};
     try {
@@ -893,7 +893,7 @@ async function handleRequest(request) {
       };
     }
   }
-  
+
   return {
     jsonrpc: "2.0",
     id,
@@ -913,7 +913,6 @@ rl.on('line', async (line) => {
       return; // notification
     }
     const response = await handleRequest(request);
-    console.log(JSON.stringify(response));
   } catch (err) {
     console.error("Failed to parse standard input line:", err);
   }

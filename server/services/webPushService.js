@@ -57,6 +57,7 @@ exports.sendPushNotification = async (userId, payload) => {
       }
     });
 
+    console.log("user push subscription", user.pushSubscriptions);
     const sendPromises = user.pushSubscriptions.map(async (subscription) => {
       try {
         const sub = {
@@ -66,6 +67,7 @@ exports.sendPushNotification = async (userId, payload) => {
             auth: subscription.keys.auth
           }
         };
+        console.log("I am here - sendPushNotification - Inside");
         await webpush.sendNotification(sub, notificationPayload);
       } catch (err) {
         // If subscription has expired or is invalid (410 Gone / 404 Not Found), remove it

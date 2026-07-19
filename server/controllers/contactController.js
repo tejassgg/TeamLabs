@@ -6,7 +6,7 @@ const { emailService } = require('../services/emailService');
 const submitContactRequest = async (req, res) => {
   try {
     const { title, description, name, email, attachments } = req.body;
-    
+
     // Validate required fields
     if (!title || !description || !name || !email) {
       return res.status(400).json({
@@ -42,7 +42,7 @@ const submitContactRequest = async (req, res) => {
 
     // Generate ticket number in format T-MMDDYYY-Timestamp
     const now = new Date();
-    const month = String(now.getMonth() ).padStart(2, '0');
+    const month = String(now.getMonth()).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     const year = String(now.getFullYear()); // Last 3 digits of year
     const timestamp = String(now.getTime()).slice(-4); // Last 4 digits of timestamp
@@ -84,8 +84,6 @@ const submitContactRequest = async (req, res) => {
 
       const newTask = new TaskDetails(taskData);
       createdTask = await newTask.save();
-      
-      console.log(`Created support task: ${createdTask.TaskID} for contact request: ${contactRequest.ticketNumber}`);
 
       // Log activity for project detail page visibility
       try {
@@ -161,7 +159,7 @@ const submitContactRequest = async (req, res) => {
 
   } catch (error) {
     console.error('Error submitting contact request:', error);
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to submit contact request. Please try again.'

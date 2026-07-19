@@ -41,7 +41,6 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
     setError('');
     try {
       const result = await requestSignInCode(otpEmail);
-      console.log("request sign in code", result);
       if (result.success) {
         setOtpStep('verify');
         setCountdown(60);
