@@ -19,7 +19,7 @@ import {
   FaTimes
 } from 'react-icons/fa';
 import { authService, commonTypeService, organizationService, teamService, projectService } from '../../services/api';
-import { calculateOnboardingProgress } from '../../utils/onboardingUtils';
+import { calculateOnboardingProgress, getOnboardingStep } from '../../utils/onboardingUtils';
 import CompleteProfileForm from '../profile/CompleteProfileForm';
 import CustomModal from './CustomModal';
 import AddTeamModal from '../team/AddTeamModal';
@@ -90,6 +90,7 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
     projectCreated: false,
     onboardingComplete: false
   });
+  const [hasInitializedStep, setHasInitializedStep] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState(null);
   const [profileDraft, setProfileDraft] = useState(null);
@@ -165,6 +166,32 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
     }
   }, [userDetails, organization, teams, projects]);
 
+  // Initialize currentStep to the first incomplete step once on mount/load
+  useEffect(() => {
+    if (userDetails && !hasInitializedStep) {
+      const progress = {
+        profileComplete: isProfileComplete(userDetails),
+        organizationComplete: !!(userDetails?.organizationID),
+        teamCreated: teams ? teams.length > 0 : false,
+        projectCreated: projects ? projects.length > 0 : false,
+        onboardingComplete: false
+      };
+
+      const initialStepId = getOnboardingStep(userDetails, progress);
+      const stepIndex = setupSteps.findIndex(s => s.id === initialStepId);
+      if (stepIndex !== -1) {
+        setCurrentStep(stepIndex);
+      }
+      if (userDetails.organizationID) {
+        setSelectedOrganization(organization || {
+          id: userDetails.organizationID,
+          OrganizationID: userDetails.organizationID
+        });
+      }
+      setHasInitializedStep(true);
+    }
+  }, [userDetails, teams, projects, hasInitializedStep]);
+
   const checkSetupProgress = () => {
     const progress = {
       profileComplete: isProfileComplete(userDetails),
@@ -178,7 +205,7 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
 
   const isProfileComplete = (profile) => {
     if (!profile) return false;
-    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'country'];
+    const requiredFields = ['firstName', 'lastName', 'email'];
     return requiredFields.every(field => profile[field] && profile[field].toString().trim() !== '');
   };
 
@@ -245,13 +272,11 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
 
   const CurrentStepComponent = setupSteps[currentStep].component;
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className={`${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-xl shadow-2xl max-w-6xl w-full h-[90vh] sm:h-[85vh] flex flex-col`}>
+    <div className="w-full max-w-5xl mx-auto my-6">
+      <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'} w-full h-[75vh] flex flex-col`}>
         {/* Header */}
-        <div className={`p-6 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} flex-shrink-0`}>
+        <div className="py-6 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div>
@@ -262,7 +287,7 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className={`w-32 h-2 rounded-full ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
+              <div className={`w-32 h-2 rounded-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'}`}>
                 <div
                   className="h-2 bg-blue-500 rounded-full transition-all duration-300"
                   style={{ width: `${getProgressPercentage()}%` }}
@@ -274,7 +299,7 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
         </div>
 
         {/* Progress Steps */}
-        <div className={`p-6 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} flex-shrink-0`}>
+        <div className="py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             {setupSteps.map((step, index) => (
               <div key={step.id} className="flex items-center">
@@ -283,8 +308,8 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
                   : index === currentStep
                     ? 'bg-blue-500 text-white'
                     : theme === 'dark'
-                      ? 'bg-gray-600 text-gray-300'
-                      : 'bg-gray-200 text-gray-600'
+                      ? 'bg-gray-800 text-gray-400'
+                      : 'bg-gray-100 text-gray-500'
                   }`}>
                   {index + 1}
                 </div>
@@ -292,7 +317,7 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
                   <div className={`w-16 h-0.5 mx-2 ${index < currentStep
                     ? 'bg-green-500'
                     : theme === 'dark'
-                      ? 'bg-gray-600'
+                      ? 'bg-gray-850'
                       : 'bg-gray-200'
                     }`} />
                 )}
@@ -322,12 +347,12 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
         </div>
 
         {/* Sticky Footer Navigation */}
-        <div className={`flex-shrink-0 p-4 border-t rounded-b-xl ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+        <div className="flex-shrink-0 py-6">
           <div className="flex items-center justify-between">
             <button
               onClick={handlePrevious}
               disabled={currentStep === 0 || loading}
-              className={`px-6 py-2 rounded-lg transition-colors duration-200 ${currentStep === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
+              className={`px-6 py-2 rounded-lg transition-colors duration-200 ${currentStep === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-750 text-gray-300 border border-gray-700' : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200'}`}
             >
               Previous
             </button>
@@ -336,14 +361,16 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
                 <button
                   onClick={handleSkip}
                   disabled={loading}
-                  className={`px-6 py-2 rounded-lg transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-700 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
+                  className={`px-6 py-2 rounded-lg transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-750 text-gray-300 border border-gray-700' : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200'}`}
                 >
                   Skip
                 </button>
               )}
               {footerState.showContinue !== false && (
                 <button
-                  onClick={currentStep === setupSteps.length - 1 ? handleComplete : handleNext}
+                  type={setupSteps[currentStep].id === 'profile' ? 'submit' : 'button'}
+                  form={setupSteps[currentStep].id === 'profile' ? 'onboarding-profile-form' : undefined}
+                  onClick={setupSteps[currentStep].id === 'profile' ? undefined : (currentStep === setupSteps.length - 1 ? handleComplete : handleNext)}
                   disabled={!footerState.canContinue || loading}
                   className={`px-6 py-2 ${(!footerState.canContinue || loading) ? 'opacity-50 cursor-not-allowed' : ''} bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200`}
                 >
@@ -363,7 +390,7 @@ const WelcomeStep = ({ step, onNext, onPrevious, setFooterState }) => {
   const { theme } = useTheme();
 
   useEffect(() => {
-    setFooterState && setFooterState({ showSkip: false, showContinue: false, canContinue: false });
+    setFooterState && setFooterState({ showSkip: false, showContinue: true, canContinue: true, continueLabel: 'Get Started' });
   }, [setFooterState]);
 
   return (
@@ -377,21 +404,21 @@ const WelcomeStep = ({ step, onNext, onPrevious, setFooterState }) => {
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:gap-6 gap-2 lg:mb-8">
-        <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+        <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-gray-800/40 border-gray-700/60' : 'bg-gray-50/50 border-gray-200/60'}`}>
           <FaUser className="text-blue-500 mx-auto mb-2" size={24} />
           <h3 className="font-semibold mb-2">Complete Profile</h3>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
             Add your personal information
           </p>
         </div>
-        <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+        <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-gray-800/40 border-gray-700/60' : 'bg-gray-50/50 border-gray-200/60'}`}>
           <FaBuilding className="text-purple-500 mx-auto mb-2" size={24} />
           <h3 className="font-semibold mb-2">Organization</h3>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
             Set up your workspace
           </p>
         </div>
-        <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+        <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-gray-800/40 border-gray-700/60' : 'bg-gray-50/50 border-gray-200/60'}`}>
           <FaUsers className="text-orange-500 mx-auto mb-2" size={24} />
           <h3 className="font-semibold mb-2">Team & Projects</h3>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -399,14 +426,6 @@ const WelcomeStep = ({ step, onNext, onPrevious, setFooterState }) => {
           </p>
         </div>
       </div>
-
-      <button
-        onClick={onNext}
-        className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors duration-200 flex items-center gap-2 mx-auto"
-      >
-        Get Started
-        <FaArrowRight size={16} />
-      </button>
     </div>
   );
 };
@@ -416,9 +435,9 @@ const ProfileStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selected
   const { theme } = useTheme();
   const [profileCompleted, setProfileCompleted] = useState(setupProgress.profileComplete);
 
-  // Configure sticky footer for Profile step: hide Skip and Continue buttons (user must use the form buttons)
+  // Configure sticky footer for Profile step: show Continue to submit the profile form
   useEffect(() => {
-    setFooterState && setFooterState({ showSkip: false, showContinue: false, canContinue: false });
+    setFooterState && setFooterState({ showSkip: false, showContinue: true, canContinue: true, continueLabel: 'Complete Profile' });
   }, [setFooterState]);
 
   // When profile is completed, allow continue
@@ -443,7 +462,7 @@ const ProfileStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selected
         </div>
         <p className={`ml-10 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
       </div>
-      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
+      <div className="p-2 rounded-lg bg-transparent">
         <div className="flex items-center justify-between">
           {profileCompleted && (
             <span className="text-green-500 flex items-center gap-1">
@@ -452,7 +471,7 @@ const ProfileStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selected
             </span>
           )}
         </div>
-        <CompleteProfileForm onComplete={handleProfileComplete} onCancel={() => { }} />
+        <CompleteProfileForm onComplete={handleProfileComplete} onCancel={onPrevious} />
       </div>
     </div>
   );
@@ -462,7 +481,7 @@ const ProfileStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selected
 const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrganization, setSelectedOrganization, setFooterState }) => {
   const { theme } = useTheme();
   const { setUserDetails, userDetails, organization } = useGlobal();
-  const [showOrgModal, setShowOrgModal] = useState(false);
+
   const [newOrgName, setNewOrgName] = useState('');
   const [creatingOrg, setCreatingOrg] = useState(false);
   const [orgError, setOrgError] = useState('');
@@ -503,7 +522,6 @@ const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, sel
         id: org.OrganizationID?.toString(),
         name: org.Name
       });
-      setShowOrgModal(false);
       setNewOrgName('');
     } catch (err) {
       setOrgError(err.message || 'Failed to create organization');
@@ -553,7 +571,7 @@ const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, sel
         <p className={`ml-10 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
       </div>
 
-      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
+      <div className="p-2 rounded-lg bg-transparent">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Organization Details</h3>
           {setupProgress.organizationComplete && selectedOrganization && (
@@ -576,58 +594,35 @@ const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, sel
             </div>
           </div>
         ) : (
-          <div className={`text-center p-8 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-gray-600 bg-gray-800' : 'border-gray-300 bg-white'}`}>
+          <div className={`text-center p-8 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-gray-700 bg-gray-800/10' : 'border-gray-300 bg-gray-50/10'} max-w-2xl mx-auto`}>
             <FaBuilding className={`mx-auto mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={48} />
-            <h4 className="font-semibold mb-2">Create Your Organization</h4>
+            <h4 className="font-semibold mb-2 text-lg">Create Your Organization</h4>
             <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
               Set up your workspace by creating an organization
             </p>
-            <button
-              onClick={() => setShowOrgModal(true)}
-              disabled={creatingOrg}
-              className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors duration-200 flex items-center gap-2 mx-auto disabled:opacity-50"
-            >
-              {creatingOrg ? 'Creating...' : (<><FaBuilding size={16} /> Create Organization</>)}
-            </button>
+            <form onSubmit={(e) => { e.preventDefault(); handleCreateOrg(); }} className="max-w-md mx-auto">
+              <input
+                type="text"
+                className={`w-full px-4 py-2.5 rounded-lg border mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center ${theme === 'dark' ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}`}
+                placeholder="Enter Organization Name"
+                value={newOrgName}
+                onChange={e => { setOrgError(''); setNewOrgName(e.target.value); }}
+                disabled={creatingOrg}
+                autoFocus
+                maxLength={80}
+              />
+              {orgError && <div className="text-red-500 text-sm mb-3">{orgError}</div>}
+              <button
+                type="submit"
+                disabled={creatingOrg}
+                className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors duration-200 flex items-center gap-2 mx-auto disabled:opacity-50"
+              >
+                {creatingOrg ? 'Creating...' : (<><FaBuilding size={16} /> Create Organization</>)}
+              </button>
+            </form>
           </div>
         )}
       </div>
-
-      {/* Organization Creation Modal */}
-      <CustomModal isOpen={showOrgModal} title={"Create New Organization"} onClose={() => !creatingOrg && setShowOrgModal(false)}>
-        <div className="p-6">
-          <form onSubmit={(e) => { e.preventDefault(); handleCreateOrg(); }}>
-            <input
-              type="text"
-              className={`w-full px-4 py-2.5 rounded-lg border mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}`}
-              placeholder="Organization Name"
-              value={newOrgName}
-              onChange={e => { setOrgError(''); setNewOrgName(e.target.value); }}
-              disabled={creatingOrg}
-              autoFocus
-              maxLength={80}
-            />
-            {orgError && <div className="text-red-500 text-sm mb-3">{orgError}</div>}
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                className={`px-4 py-2 rounded-lg ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-200 hover:bg-gray-300'}`}
-                onClick={() => setShowOrgModal(false)}
-                disabled={creatingOrg}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className={`px-4 py-2 rounded-lg text-white ${creatingOrg ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'}`}
-                disabled={creatingOrg}
-              >
-                {creatingOrg ? 'Creating...' : 'Create'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </CustomModal>
     </div>
   );
 };
@@ -728,20 +723,39 @@ const TeamDropdown = ({ value, onChange, options, placeholder = 'Select Team', r
           )}
           {filteredOptions.map((team, idx) => {
             const alreadyRequested = requestedTeams.includes(team.TeamID);
+            const isSelected = team.TeamID?.toString() === value?.toString();
             return (
               <div
-                key={team._id}
-                className={`flex items-center justify-between p-4 border-b last:border-b-0 bg-white hover:bg-blue-50 rounded-lg transition-colors`}
+                key={team._id || idx}
+                onClick={() => {
+                  if (onChange) onChange(team.TeamID?.toString());
+                  setIsOpen(false);
+                }}
+                className={getThemeClasses(
+                  `flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 cursor-pointer transition-colors ${isSelected ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}`,
+                  `dark:border-gray-700 ${isSelected ? 'dark:bg-blue-900/20' : 'dark:bg-[#232323] dark:hover:bg-[#2a2a2a]'}`
+                )}
                 style={{ minWidth: 300 }}
               >
-                <div>
-                  <div className="font-bold text-lg">{team.TeamName}</div>
-                  <div className="text-gray-600 text-sm">{team.TeamDescription}</div>
-                  <div className="text-xs text-gray-400 mt-1">ID: {team.TeamID}</div>
+                <div className="flex flex-col">
+                  <div className={getThemeClasses(
+                    `font-bold text-lg ${isSelected ? 'text-blue-700' : 'text-gray-900'}`,
+                    `dark:text-gray-100 ${isSelected ? 'dark:text-blue-400' : ''}`
+                  )}>
+                    {team.TeamName}
+                  </div>
+                  <div className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>{team.TeamDescription}</div>
                 </div>
                 <button
-                  className={`ml-4 px-4 py-2 rounded-lg font-semibold transition ${alreadyRequested ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
-                  onClick={() => handleRequestToJoin(team)}
+                  type="button"
+                  className={getThemeClasses(
+                    `ml-4 px-4 py-2 rounded-lg text-sm font-semibold transition ${alreadyRequested ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'}`,
+                    `dark:text-white ${alreadyRequested ? 'dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed' : 'dark:bg-blue-600 dark:hover:bg-blue-500'}`
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRequestToJoin(team);
+                  }}
                   disabled={alreadyRequested}
                 >
                   {alreadyRequested ? 'Requested' : 'Request to Join'}
@@ -768,6 +782,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
   const [requestedTeams, setRequestedTeams] = useState([]); // <-- moved up
   const [userTeamMemberships, setUserTeamMemberships] = useState([]); // <-- new state for fetched memberships
   const [pendingRequests, setPendingRequests] = useState([]); // <-- new state for full request details
+  const [hasNoTeams, setHasNoTeams] = useState(false);
 
   // Fetch user's pending join requests
   const fetchUserPendingRequests = async () => {
@@ -792,6 +807,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
     if (!organizationId) {
       setTeamOptions([]);
       setUserTeamMemberships([]);
+      setHasNoTeams(false);
       return;
     }
 
@@ -823,10 +839,12 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
 
       setTeamOptions(availableTeams);
       setUserTeamMemberships(userTeams);
+      setHasNoTeams(teams.length === 0);
     } catch (error) {
       console.error('Error fetching teams by organization:', error);
       setTeamOptions([]);
       setUserTeamMemberships([]);
+      setHasNoTeams(false);
     } finally {
       setLoadingTeams(false);
     }
@@ -888,139 +906,164 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
   }, [setFooterState, isMemberOfAnyTeam, selectedTeamId, hasRequestedToJoinAnyTeam]);
 
   return (
-    <div className="p-8">
-      <div className="flex flex-col lg:mb-8 mb-2">
+    <div className="p-6">
+      <div className="flex flex-col mb-4">
         <div className="flex items-center gap-4 mb-2">
           {step.icon}
-          <h2 className="text-2xl font-bold">Join an Existing Team or Create Your Own</h2>
+          <h2 className="text-2xl font-bold">
+            {hasNoTeams ? 'Create Your First Team' : 'Join an Existing Team or Create Your Own'}
+          </h2>
         </div>
-        <p className={`ml-10 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
+        <p className={`ml-10 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+          {hasNoTeams
+            ? 'Create your first team to start collaborating and managing projects together.'
+            : step.description}
+        </p>
       </div>
-      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold">Team Selection</h3>
-          {setupProgress.teamCreated && (
-            <span className="text-green-500 flex items-center gap-1">
-              <FaCheck size={12} />
-              Complete
-            </span>
-          )}
-        </div>
+      <div className="p-2 rounded-lg bg-transparent">
+        {!hasNoTeams && (
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Team Selection</h3>
+            {setupProgress.teamCreated && (
+              <span className="text-green-500 flex items-center gap-1">
+                <FaCheck size={12} />
+                Complete
+              </span>
+            )}
+          </div>
+        )}
         <div className="">
-          {isMemberOfAnyTeam ? (
-            <>
-              <div className="mb-4">
-                <div className="font-medium mb-2">You are already a member of the following team(s):</div>
-                <ul className="space-y-2">
-                  {userTeamMemberships.map(team => (
-                    <li key={team.TeamID} className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                      <div className="font-bold text-lg">{team.TeamName}</div>
-                      <div className="text-gray-600 text-sm">{team.TeamDescription}</div>
-                      <div className="text-xs text-gray-400 mt-1">ID: {team.TeamID}</div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </>
+          {loadingTeams ? (
+            <div className={`w-full px-4 py-2.5 rounded-xl border ${theme === 'dark' ? 'bg-[#232323] border-gray-600 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-500'}`}>Loading teams...</div>
+          ) : hasNoTeams ? (
+            <div className={`text-center p-6 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-gray-700 bg-gray-800/10' : 'border-gray-300 bg-gray-50/10'} max-w-2xl mx-auto`}>
+              <FaUsers className={`mx-auto mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={48} />
+              <h4 className="font-semibold mb-2 text-lg">Start Your First Team</h4>
+              <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                Create your first team to start collaborating and managing projects together
+              </p>
+              <button
+                onClick={handleCreateTeam}
+                disabled={creatingTeam}
+                className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors duration-200 flex items-center gap-2 mx-auto disabled:opacity-50"
+              >
+                {creatingTeam ? 'Creating...' : (<><FaUsers size={16} /> Create Team</>)}
+              </button>
+            </div>
           ) : (
             <>
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Select Team</label>
-                {loadingTeams ? (
-                  <div className={`w-full px-4 py-2.5 rounded-xl border ${theme === 'dark' ? 'bg-[#232323] border-gray-600 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-500'}`}>Loading teams...</div>
-                ) : (
-                  <TeamDropdown
-                    value={selectedTeamId}
-                    onChange={handleTeamSelect}
-                    options={teamOptions}
-                    placeholder={selectedOrganization ? "Select Team" : "Please complete organization setup first"}
-                    required
-                    disabled={creatingTeam || !selectedOrganization}
-                    onCreateTeam={handleCreateTeam}
-                    setDropdownOpen={setDropdownOpen}
-                    requestedTeams={requestedTeams}
-                    setRequestedTeams={setRequestedTeams}
-                    onRequestSent={fetchUserPendingRequests}
-                  />
-                )}
-              </div>
-              {selectedTeamId && (
-                <div className="flex items-center gap-3">
-                  <FaUsers className="text-orange-500" size={16} />
-                  <span>Selected Team</span>
-                  <span className={`ml-2 px-3 py-1 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-orange-900 text-orange-200' : 'bg-orange-100 text-orange-700'}`}>{teamOptions.find(t => t.TeamID?.toString() === selectedTeamId)?.TeamName}</span>
-                </div>
-              )}
-
-              {/* Pending Requests Table */}
-              {pendingRequests.length > 0 && (
-                <div className="mt-6">
-                  <h4 className={`font-medium mb-3 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
-                    Pending Join Requests ({pendingRequests.length})
-                  </h4>
-                  <div className={`rounded-lg border overflow-hidden ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
-                    {/* Desktop Table Header */}
-                    <div className={`hidden md:block ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} px-4 py-3 border-b ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
-                      <div className="grid grid-cols-12 gap-4 text-sm font-medium">
-                        <div className="col-span-4">Team Name</div>
-                        <div className="col-span-4">Description</div>
-                        <div className="col-span-2">Requested</div>
-                        <div className="col-span-2">Status</div>
-                      </div>
+              {isMemberOfAnyTeam ? (
+                <>
+                  <div className="mb-4">
+                    <div className="font-medium mb-2">You are already a member of the following team(s):</div>
+                    <ul className="space-y-2">
+                      {userTeamMemberships.map(team => (
+                        <li key={team.TeamID} className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                          <div className="font-bold text-lg">{team.TeamName}</div>
+                          <div className="text-gray-600 text-sm">{team.TeamDescription}</div>
+                          <div className="text-xs text-gray-400 mt-1">ID: {team.TeamID}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Select Team</label>
+                    <TeamDropdown
+                      value={selectedTeamId}
+                      onChange={handleTeamSelect}
+                      options={teamOptions}
+                      placeholder={selectedOrganization ? "Select Team" : "Please complete organization setup first"}
+                      required
+                      disabled={creatingTeam || !selectedOrganization}
+                      onCreateTeam={handleCreateTeam}
+                      setDropdownOpen={setDropdownOpen}
+                      requestedTeams={requestedTeams}
+                      setRequestedTeams={setRequestedTeams}
+                      onRequestSent={fetchUserPendingRequests}
+                    />
+                  </div>
+                  {selectedTeamId && (
+                    <div className="flex items-center gap-3">
+                      <FaUsers className="text-orange-500" size={16} />
+                      <span>Selected Team</span>
+                      <span className={`ml-2 px-3 py-1 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-orange-900 text-orange-200' : 'bg-orange-100 text-orange-700'}`}>{teamOptions.find(t => t.TeamID?.toString() === selectedTeamId)?.TeamName}</span>
                     </div>
-                    <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-white'} divide-y ${theme === 'dark' ? 'divide-gray-600' : 'divide-gray-200'}`}>
-                      {pendingRequests.map((request, index) => (
-                        <div key={request._id || index} className="px-4 py-3">
-                          {/* Desktop Layout */}
-                          <div className="hidden md:grid grid-cols-12 gap-4 items-center">
-                            <div className="col-span-4">
-                              <div className="font-medium">
-                                {request.teamDetails?.TeamName || 'Unknown Team'}
-                              </div>
-                              <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                ID: {request.teamId}
-                              </div>
-                            </div>
-                            <div className="col-span-4">
-                              <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                                {request.teamDetails?.TeamDescription || 'No description available'}
-                              </div>
-                            </div>
-                            <div className="col-span-2">
-                              <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                                {new Date(request.requestedAt).toLocaleDateString()}
-                              </div>
-                            </div>
-                            <div className="col-span-2">
-                              {renderStatusBadge(request.status, theme)}
-                            </div>
-                          </div>
+                  )}
 
-                          {/* Mobile Layout */}
-                          <div className="md:hidden space-y-2">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <div className="font-medium">
-                                  {request.teamDetails?.TeamName || 'Unknown Team'}
-                                </div>
-                                <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                  ID: {request.teamId}
-                                </div>
-                              </div>
-                              {renderStatusBadge(request.status, theme)}
-                            </div>
-                            <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                              {request.teamDetails?.TeamDescription || 'No description available'}
-                            </div>
-                            <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                              Requested: {new Date(request.requestedAt).toLocaleDateString()}
-                            </div>
+                  {/* Pending Requests Table */}
+                  {pendingRequests.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className={`font-medium mb-3 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
+                        Pending Join Requests ({pendingRequests.length})
+                      </h4>
+                      <div className={`rounded-lg border overflow-hidden ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
+                        {/* Desktop Table Header */}
+                        <div className={`hidden md:block ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} px-4 py-3 border-b ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
+                          <div className="grid grid-cols-12 gap-4 text-sm font-medium">
+                            <div className="col-span-4">Team Name</div>
+                            <div className="col-span-4">Description</div>
+                            <div className="col-span-2">Requested</div>
+                            <div className="col-span-2">Status</div>
                           </div>
                         </div>
-                      ))}
+                        <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-white'} divide-y ${theme === 'dark' ? 'divide-gray-600' : 'divide-gray-200'}`}>
+                          {pendingRequests.map((request, index) => (
+                            <div key={request._id || index} className="px-4 py-3">
+                              {/* Desktop Layout */}
+                              <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                                <div className="col-span-4">
+                                  <div className="font-medium">
+                                    {request.teamDetails?.TeamName || 'Unknown Team'}
+                                  </div>
+                                  <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    ID: {request.teamId}
+                                  </div>
+                                </div>
+                                <div className="col-span-4">
+                                  <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    {request.teamDetails?.TeamDescription || 'No description available'}
+                                  </div>
+                                </div>
+                                <div className="col-span-2">
+                                  <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    {new Date(request.requestedAt).toLocaleDateString()}
+                                  </div>
+                                </div>
+                                <div className="col-span-2">
+                                  {renderStatusBadge(request.status, theme)}
+                                </div>
+                              </div>
+
+                              {/* Mobile Layout */}
+                              <div className="md:hidden space-y-2">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <div className="font-medium">
+                                      {request.teamDetails?.TeamName || 'Unknown Team'}
+                                    </div>
+                                    <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                      ID: {request.teamId}
+                                    </div>
+                                  </div>
+                                  {renderStatusBadge(request.status, theme)}
+                                </div>
+                                <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                  {request.teamDetails?.TeamDescription || 'No description available'}
+                                </div>
+                                <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                  Requested: {new Date(request.requestedAt).toLocaleDateString()}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  )}
+                </>
               )}
             </>
           )}
@@ -1085,7 +1128,7 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip, setFoote
         <p className={`ml-10 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
       </div>
 
-      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
+      <div className="p-2 rounded-lg bg-transparent">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-semibold">Create Your First Project</h3>
           {(setupProgress.projectCreated || projectCreated) && (

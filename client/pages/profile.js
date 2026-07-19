@@ -255,57 +255,15 @@ const Profile = () => {
                                     <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.email || '-'}</div>
                                   </div>
                                 </li>
-                                <li className="flex items-center gap-4">
-                                  <FaPhone className="text-blue-400 text-xl" />
-                                  <div>
-                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Phone</div>
-                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.phone || '-'}</div>
-                                  </div>
-                                </li>
                               </ul>
                             </div>
-                            {/* Location Details */}
+                            {/* Organization Details */}
                             <div>
                               <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
-                                <FaMapMarkerAlt className="text-blue-500" />
-                                Location Details
+                                <FaOrganization className="text-blue-500" />
+                                Organization Details
                               </h3>
                               <ul className="space-y-4">
-                                <li className="flex items-center gap-4">
-                                  <FaBuilding className="text-blue-400 text-xl" />
-                                  <div>
-                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Address</div>
-                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.address || '-'}</div>
-                                  </div>
-                                </li>
-                                <li className="flex items-center gap-4">
-                                  <FaCity className="text-blue-400 text-xl" />
-                                  <div>
-                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>City</div>
-                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.city || '-'}</div>
-                                  </div>
-                                </li>
-                                <li className="flex items-center gap-4">
-                                  <FaGlobe className="text-blue-400 text-xl" />
-                                  <div>
-                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>State</div>
-                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.state || '-'}</div>
-                                  </div>
-                                </li>
-                                <li className="flex items-center gap-4">
-                                  <FaGlobe className="text-blue-400 text-xl" />
-                                  <div>
-                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Zip Code</div>
-                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.zipCode || '-'}</div>
-                                  </div>
-                                </li>
-                                <li className="flex items-center gap-4">
-                                  <FaGlobe className="text-blue-400 text-xl" />
-                                  <div>
-                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Country</div>
-                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.country || '-'}</div>
-                                  </div>
-                                </li>
                                 <li className="flex items-center gap-4">
                                   <FaOrganization className="text-blue-400 text-xl" />
                                   <div>

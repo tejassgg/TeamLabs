@@ -36,6 +36,7 @@ const reportSchedulingService = require('./services/reportSchedulingService');
 const keepAliveService = require('./services/keepAliveService');
 const timesheetRoutes = require('./routes/timesheetRoutes');
 const searchRoutes = require('./routes/searchRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -115,6 +116,7 @@ app.use('/api/rag', ragRoutes);
 app.use('/api/release-notifications', releaseNotificationRoutes);
 app.use('/api/timesheet', timesheetRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Test route
 app.get('/', (req, res) => {

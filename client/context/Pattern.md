@@ -64,7 +64,7 @@ Routes defined in [server/routes/](file:///server/routes/) only direct endpoints
 *   **Authentication Middleware ([protect](file:///server/middleware/auth.js))**:
     1. Looks up the cookie container `req.cookies.token`.
     2. Validates signatures using `jwt.verify()`.
-    3. Fetches user data via `User.findById().select('-password')`.
+    3. Fetches user data via `User.findById()`.
     4. Attaches credentials to `req.user` or clears invalid cookies.
 *   **NoSQL Query Injection Prevention**: Enforced globally inside `app.js` using `express-mongo-sanitize`. Strips character sequences containing operator markers like `$` or `.` from client inputs.
 

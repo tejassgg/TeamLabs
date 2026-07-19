@@ -193,7 +193,7 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500/80 shrink-0"></span>
-                      Username and password (encrypted)
+                      Username
                     </li>
                   </ul>
                 </div>
@@ -433,10 +433,6 @@ const PrivacyPolicyModal = ({ isOpen, onClose }) => {
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500/80 shrink-0"></span>
                       SSL/TLS encryption for data transmission
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500/80 shrink-0"></span>
-                      Password hashing with bcrypt
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500/80 shrink-0"></span>

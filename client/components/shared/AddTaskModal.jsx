@@ -217,6 +217,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
     }
   }, [isOpen, editingTask, projectIdDefault, userDetails, addTaskTypeMode, userStories]);
 
+
+
   useEffect(() => {
     if (isOpen) {
       commonTypeService.getTaskTypes()
@@ -349,8 +351,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
 
   const modalTitle = isEditMode
     ? (mode === 'fromSideBar' || editingTask?.Type === 'User Story'
-      ? `Edit User Story ${editingTask?.TicketNumber ? `(#${editingTask.TicketNumber})` : ''}`
-      : `Edit Task ${editingTask?.TicketNumber ? `(#${editingTask.TicketNumber})` : ''}`)
+      ? `Edit User Story ${(editingTask?.TaskNumber || editingTask?.TicketNumber) ? `(#${editingTask.TaskNumber || editingTask.TicketNumber})` : ''}`
+      : `Edit Task ${(editingTask?.TaskNumber || editingTask?.TicketNumber) ? `(#${editingTask.TaskNumber || editingTask.TicketNumber})` : ''}`)
     : (mode === 'fromSideBar'
       ? `Add User Story ${nextTaskNumber ? `(#${nextTaskNumber})` : ''}`
       : (addTaskTypeMode === 'userStory'
@@ -623,6 +625,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
             'text-red-500 text-sm mt-4',
             'text-red-400 text-sm mt-4'
           )}>{error}</div>}
+
+
 
           <div className="flex justify-end gap-3 pt-6">
             <button

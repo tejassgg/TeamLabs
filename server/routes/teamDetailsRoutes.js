@@ -160,14 +160,18 @@ router.get('/:teamId', protect, ensureTeamMember, async (req, res) => {
           Assignee: task.Assignee,
           AssignedTo: task.AssignedTo,
           ProjectID_FK: task.ProjectID_FK,
+          TaskNumber: task.TaskNumber,
+          TicketNumber: task.TicketNumber,
           ProjectName: project ? project.Name : 'Unknown Project',
           AssigneeDetails: assigneeUser ? {
             fullName: `${assigneeUser.firstName} ${assigneeUser.lastName}`.trim(),
-            email: assigneeUser.email
+            email: assigneeUser.email,
+            username: assigneeUser.username
           } : null,
           AssignedToDetails: assignedToUser ? {
             fullName: `${assignedToUser.firstName} ${assignedToUser.lastName}`.trim(),
-            email: assignedToUser.email
+            email: assignedToUser.email,
+            username: assignedToUser.username
           } : null
         };
       }));
@@ -254,7 +258,7 @@ router.post('/:teamId/add-member', checkOwner, protect, async (req, res) => {
     // Emit real-time member added event
     try {
       const team = await Team.findOne({ TeamID: req.params.teamId });
-      const user = await User.findById(UserID).select('-password');
+      const user = await User.findById(UserID);
       emitToOrg(team?.organizationID, 'team.member.added', {
         event: 'team.member.added',
         version: 1,
@@ -291,7 +295,7 @@ router.patch('/:teamId/member/:memberId/toggle', checkOwner, protect, async (req
     // Emit real-time member status updated event
     try {
       const team = await Team.findOne({ TeamID: req.params.teamId });
-      const user = await User.findById(req.params.memberId).select('-password');
+      const user = await User.findById(req.params.memberId);
       emitToOrg(team?.organizationID, 'team.member.status.updated', {
         event: 'team.member.status.updated',
         version: 1,
@@ -452,7 +456,7 @@ router.delete('/:teamId/member/:memberId', checkOwner, protect, async (req, res)
     // Emit real-time member removed event
     try {
       const team = await Team.findOne({ TeamID: req.params.teamId });
-      const user = await User.findById(req.params.memberId).select('-password');
+      const user = await User.findById(req.params.memberId);
       emitToOrg(team?.organizationID, 'team.member.removed', {
         event: 'team.member.removed',
         version: 1,

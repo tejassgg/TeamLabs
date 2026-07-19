@@ -106,6 +106,7 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
         )}
       </div>
 
+
       <h4 className="font-medium mb-1 flex items-center justify-start gap-2 mt-1">
         {isSupport ? (
           <>
@@ -113,19 +114,19 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
               "inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-700 border border-amber-200",
               "dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700"
             )}>Support</span>
-            {task.TicketNumber && (
+            {(task.TicketNumber || task.TaskNumber) && (
               <span className={getThemeClasses(
                 "ml-auto text-xs font-medium px-2 py-0.5 rounded bg-amber-200 text-amber-800 border border-amber-300",
                 "dark:bg-amber-800 dark:text-amber-100 dark:border-amber-700"
-              )}>#{task.TicketNumber}</span>
+              )}>#{task.TicketNumber || task.TaskNumber}</span>
             )}
           </>
         ) : (
-          task.TicketNumber && (
+          (task.TaskNumber || task.TicketNumber) && (
             <span className={getThemeClasses(
               "ml-auto text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200",
               "dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800"
-            )}>#{task.TicketNumber}</span>
+            )}>#{task.TaskNumber || task.TicketNumber}</span>
           )
         )}
       </h4>

@@ -126,6 +126,10 @@ const TaskDetailsSchema = new mongoose.Schema({
       }
     }],
     default: []
+  },
+  TaskNumber: {
+    type: String,
+    default: null
   }
 });
 

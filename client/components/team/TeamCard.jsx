@@ -41,11 +41,12 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
   const getTeamTypeColor = (teamType) => {
     const colorMap = {
       1: 'bg-blue-100 text-blue-800 border-blue-200', // Development
-      2: 'bg-green-100 text-green-800 border-green-200', // Design
-      3: 'bg-purple-100 text-purple-800 border-purple-200', // Marketing
-      4: 'bg-yellow-100 text-yellow-800 border-yellow-200', // Sales
-      5: 'bg-red-100 text-red-800 border-red-200', // Support
-      6: 'bg-indigo-100 text-indigo-800 border-indigo-200' // Management
+      2: 'bg-green-100 text-green-800 border-green-200', // Quality Analysis
+      3: 'bg-purple-100 text-purple-800 border-purple-200', // Code Verification
+      4: 'bg-amber-100 text-amber-800 border-amber-200', // Deployment
+      5: 'bg-cyan-100 text-cyan-800 border-cyan-200', // Service Integration
+      6: 'bg-indigo-100 text-indigo-800 border-indigo-200', // InHouse
+      7: 'bg-red-100 text-red-800 border-red-200' // Support
     };
     return colorMap[teamType] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
@@ -53,11 +54,12 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
   const getTeamTypeColorDark = (teamType) => {
     const colorMap = {
       1: 'bg-blue-900/30 text-blue-300 border-blue-600', // Development
-      2: 'bg-green-900/30 text-green-300 border-green-600', // Design
-      3: 'bg-purple-900/30 text-purple-300 border-purple-600', // Marketing
-      4: 'bg-yellow-900/30 text-yellow-300 border-yellow-600', // Sales
-      5: 'bg-red-900/30 text-red-300 border-red-600', // Support
-      6: 'bg-indigo-900/30 text-indigo-300 border-indigo-600' // Management
+      2: 'bg-green-900/30 text-green-300 border-green-600', // Quality Analysis
+      3: 'bg-purple-900/30 text-purple-300 border-purple-600', // Code Verification
+      4: 'bg-amber-900/30 text-amber-300 border-amber-600', // Deployment
+      5: 'bg-cyan-900/30 text-cyan-300 border-cyan-600', // Service Integration
+      6: 'bg-indigo-900/30 text-indigo-300 border-indigo-600', // InHouse
+      7: 'bg-red-900/30 text-red-300 border-red-600' // Support
     };
     return colorMap[teamType] || 'bg-gray-900/30 text-gray-300 border-gray-600';
   };
@@ -66,11 +68,12 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
   const getTeamTypeText = (teamType) => {
     const typeMap = {
       1: 'Development',
-      2: 'Design',
-      3: 'Marketing',
-      4: 'Sales',
-      5: 'Support',
-      6: 'Management'
+      2: 'Quality Analysis',
+      3: 'Code Verification',
+      4: 'Deployment',
+      5: 'Service Integration',
+      6: 'InHouse',
+      7: 'Support'
     };
     return typeMap[teamType] || 'General';
   };
@@ -208,7 +211,7 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
       {/* Bottom Section: Created Date and Navigation */}
       <div className="mt-auto">
         {/* Team Members and Created Date */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           {team.members && team.members.length > 0 && (
             <div className="flex items-center">
               <div className="flex -space-x-2">

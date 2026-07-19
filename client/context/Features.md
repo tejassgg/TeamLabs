@@ -7,7 +7,7 @@ This document provides a comprehensive analysis of the system features and user 
 ## 🔐 1. Authentication & Security
 
 TeamLabs implements multi-layer authentication and session security:
-*   **Dual Sign-In Routes**: Supports standard username/email + password sign-in (utilizing `bcryptjs` password hashing) and secure Google OAuth integration via `@react-oauth/google` and `google-auth-library`.
+*   **Dual Sign-In Routes**: Supports standard username/email and secure Google OAuth integration via `@react-oauth/google` and `google-auth-library`.
 *   **Two-Factor Authentication (2FA)**: High-security authentication utilizing Speakeasy. Users can enable 2FA in their settings, which generates a TOTP secret and provides a QR code. Verification requires entering a valid 6-digit verification code.
 *   **Session Management**: Configurable JWT cookies containing user IDs, roles, and organization references, allowing automatic browser sign-in refreshes.
 *   **Email Verification**: Handles automatic signup verification tokens, triggering email dispatches using `nodemailer` template renderers.

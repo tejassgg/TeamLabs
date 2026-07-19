@@ -10,11 +10,11 @@ const userActivitySchema = new mongoose.Schema({
     required: true,
     enum: [
       // Authentication activities
-      'login', 'logout', 'login_failed', 'profile_update', 'password_change', 'email_verification',
+      'login', 'logout', 'login_failed', 'profile_update', 'email_verification', 'signin_code_requested',
       // Team activities
-      'team_create', 'team_update', 'team_delete', 'team_join', 'team_leave', 'team_status_toggle','team_status_update',
+      'team_create', 'team_update', 'team_delete', 'team_join', 'team_leave', 'team_status_toggle', 'team_status_update',
       // Project activities
-      'project_create', 'project_update', 'project_delete', 'project_settings_update', 'project_team_add', 'project_team_remove', 'project_team_toggle',
+      'project_create', 'project_update', 'project_delete', 'project_settings_update', 'project_team_add', 'project_team_remove', 'project_team_toggle', 'project_archive', 'project_unarchive',
       // Task activities
       'task_create', 'task_update', 'task_delete', 'task_complete', 'task_assign', 'task_git_link_added', 'task_git_link_removed',
       // User Story activities
@@ -26,7 +26,7 @@ const userActivitySchema = new mongoose.Schema({
       // Chatbot activities
       'chatbot_interaction',
       // Team Member activities
-      'team_members_remove','team_projects_remove',
+      'team_members_remove', 'team_projects_remove',
       // Repository activities
       'repository_linked', 'repository_unlinked',
       // Team Join Request activities
@@ -38,7 +38,7 @@ const userActivitySchema = new mongoose.Schema({
       // Meeting activities
       'team_meeting_create', 'team_meeting_update', 'team_meeting_delete',
       // Settings activities
-      'settings_update','github_connected', 'github_disconnected',
+      'settings_update', 'github_connected', 'github_disconnected',
       // Team Transfer Admin activities
       'team_transfer_admin',
       // Team Become Admin activities

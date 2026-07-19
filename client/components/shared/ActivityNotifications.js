@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { useTheme } from '../../context/ThemeContext';
-import { authService } from '../../services/api';
-import { 
-  FaSignInAlt, 
-  FaSignOutAlt, 
-  FaUserEdit, 
-  FaTimesCircle, 
-  FaGoogle, 
+import { authService, notificationInboxService } from '../../services/api';
+import { subscribe } from '../../services/socket';
+import { useGlobal } from '../../context/GlobalContext';
+import {
+  FaSignInAlt,
+  FaSignOutAlt,
+  FaUserEdit,
+  FaTimesCircle,
+  FaGoogle,
   FaHistory,
   FaUserPlus,
   FaUserMinus,
@@ -15,39 +18,145 @@ import {
   FaCheckCircle,
   FaExclamationTriangle,
   FaInfoCircle,
-  FaChevronRight
+  FaChevronRight,
+  FaBell,
+  FaTag,
+  FaEnvelopeOpen,
+  FaComment
 } from 'react-icons/fa';
 import Link from 'next/link';
 
-const ActivityNotifications = ({ isOpen, onClose }) => {
+const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
   const { theme } = useTheme();
+  const router = useRouter();
+  const { userDetails } = useGlobal();
+  const [activeTab, setActiveTab] = useState('inbox'); // 'inbox' or 'activities'
+
+  // Inbox notifications state
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+
+  // Activities state
   const [activities, setActivities] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
+
   const [error, setError] = useState(null);
 
+  // Load notifications and activities on mount/user change
+  useEffect(() => {
+    if (userDetails) {
+      fetchNotifications();
+      fetchActivities();
+
+      // Subscribe to real-time notification socket events
+      const unsubscribe = subscribe('notification:new', (payload) => {
+        const newNoti = payload.data;
+        if (newNoti) {
+          setNotifications(prev => {
+            const updated = [newNoti, ...prev];
+            const unread = updated.filter(n => !n.IsRead).length;
+            if (onUnreadCountChange) onUnreadCountChange(unread);
+            return updated;
+          });
+        }
+      });
+
+      return () => unsubscribe();
+    }
+  }, [userDetails]);
+
+  // Sync unread count whenever notifications state changes
+  useEffect(() => {
+    const unread = notifications.filter(n => !n.IsRead).length;
+    if (onUnreadCountChange) onUnreadCountChange(unread);
+  }, [notifications]);
+
+  // Fetch when tab changes or opens
   useEffect(() => {
     if (isOpen) {
-      fetchActivities();
+      if (activeTab === 'inbox') {
+        fetchNotifications();
+      } else {
+        fetchActivities();
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, activeTab]);
+
+  const fetchNotifications = async () => {
+    try {
+      setNotificationsLoading(true);
+      const list = await notificationInboxService.getNotifications();
+      setNotifications(list || []);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching inbox notifications:', err);
+      setError('Failed to fetch notifications');
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
 
   const fetchActivities = async () => {
     try {
-      setLoading(true);
-      const response = await authService.getUserActivities(1, 10);
-      setActivities(response.activities);
+      setActivitiesLoading(true);
+      const response = await authService.getUserActivities(1, 20);
+      setActivities(response.activities || []);
       setError(null);
     } catch (err) {
-      setError('Failed to fetch activities');
       console.error('Error fetching activities:', err);
+      setError('Failed to fetch activities');
     } finally {
-      setLoading(false);
+      setActivitiesLoading(false);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      const unreadIds = notifications.filter(n => !n.IsRead).map(n => n.NotificationID);
+      if (unreadIds.length === 0) return;
+
+      await notificationInboxService.markAsRead(unreadIds);
+      setNotifications(prev => prev.map(n => ({ ...n, IsRead: true })));
+    } catch (err) {
+      console.error('Failed to mark all as read:', err);
+    }
+  };
+
+  const handleNotificationClick = async (noti) => {
+    try {
+      if (!noti.IsRead) {
+        await notificationInboxService.markAsRead([noti.NotificationID]);
+        setNotifications(prev => prev.map(n =>
+          n.NotificationID === noti.NotificationID ? { ...n, IsRead: true } : n
+        ));
+      }
+      onClose();
+      if (noti.Link) {
+        router.push(noti.Link);
+      }
+    } catch (err) {
+      console.error('Failed processing notification click:', err);
+    }
+  };
+
+  const getNotiIcon = (type) => {
+    const iconProps = { size: 16 };
+    switch (type) {
+      case 'mention':
+        return <FaTag className="text-purple-500" {...iconProps} />;
+      case 'assignment':
+        return <FaTasks className="text-blue-500" {...iconProps} />;
+      case 'comment':
+        return <FaComment className="text-yellow-500" {...iconProps} />;
+      case 'status_change':
+        return <FaHistory className="text-green-500" {...iconProps} />;
+      default:
+        return <FaBell className="text-gray-500" {...iconProps} />;
     }
   };
 
   const getActivityIcon = (activity) => {
     const iconProps = { size: 16 };
-    
     switch (activity.type) {
       case 'login':
         return activity.loginMethod === 'google' ? (
@@ -81,14 +190,14 @@ const ActivityNotifications = ({ isOpen, onClose }) => {
   };
 
   const getActivityTitle = (activity) => {
-    const baseTitle = activity.type.split('_').map(word => 
+    const baseTitle = activity.type.split('_').map(word =>
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
 
     switch (activity.type) {
       case 'login':
-        return activity.loginMethod === 'google' 
-          ? 'Signed in with Google' 
+        return activity.loginMethod === 'google'
+          ? 'Signed in with Google'
           : 'Signed in with Email';
       case 'login_failed':
         return activity.loginMethod === 'google'
@@ -139,7 +248,7 @@ const ActivityNotifications = ({ isOpen, onClose }) => {
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     const diffInHours = Math.floor(diffInMinutes / 60);
     const diffInDays = Math.floor(diffInHours / 24);
-    
+
     if (diffInSeconds < 60) {
       return 'Just now';
     } else if (diffInMinutes < 60) {
@@ -160,96 +269,148 @@ const ActivityNotifications = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
+  const currentLoading = activeTab === 'inbox' ? notificationsLoading : activitiesLoading;
+
   return (
-    <div className={`fixed md:absolute top-16 md:top-auto left-4 md:left-auto right-4 md:right-0 mt-2 md:w-96 w-auto rounded-xl shadow-lg py-1 border z-50 ${
-      theme === 'dark' 
-        ? 'bg-gray-800 text-white border-gray-700' 
-        : 'bg-white text-gray-900 border-gray-200'
-    } focus:outline-none`}>
-      <div className={`px-4 py-2 border-b ${
-        theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-      }`}>
-        <div className="flex items-center justify-between">
-          <h3 className={`text-sm font-semibold ${
-            theme === 'dark' ? 'text-gray-100' : 'text-gray-900'
-          }`}>
-            Recent Activities
-          </h3>
-          <Link 
-            href="/profile?tab=activity"
-            className={`text-xs font-medium flex items-center ${
-              theme === 'dark' 
-                ? 'text-blue-400 hover:text-blue-300' 
-                : 'text-blue-600 hover:text-blue-500'
-            } transition-colors duration-200`}
-          >
-            View All
-            <FaChevronRight className="ml-1" size={12} />
-          </Link>
+    <div className={`fixed md:absolute top-16 md:top-auto left-4 md:left-auto right-4 md:right-0 mt-2 md:w-96 w-auto rounded-xl shadow-lg py-1 border z-50 transition-all duration-200 ${theme === 'dark'
+        ? 'bg-[#1e1e24]/95 text-white border-gray-700/80 backdrop-blur-md'
+        : 'bg-white/95 text-gray-900 border-gray-200 backdrop-blur-md'
+      } focus:outline-none`}>
+
+      {/* Header and Tabs */}
+      <div className={`px-4 py-2 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex space-x-4">
+            <button
+              onClick={() => setActiveTab('inbox')}
+              className={`text-sm font-semibold pb-1 border-b-2 transition-all duration-200 ${activeTab === 'inbox'
+                  ? 'border-blue-500 text-blue-500'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                }`}
+            >
+              Inbox
+              {notifications.filter(n => !n.IsRead).length > 0 && (
+                <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-xs bg-red-500 text-white font-bold">
+                  {notifications.filter(n => !n.IsRead).length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('activities')}
+              className={`text-sm font-semibold pb-1 border-b-2 transition-all duration-200 ${activeTab === 'activities'
+                  ? 'border-blue-500 text-blue-500'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                }`}
+            >
+              Activities
+            </button>
+          </div>
+          {activeTab === 'inbox' && notifications.some(n => !n.IsRead) && (
+            <button
+              onClick={handleMarkAllRead}
+              className={`text-xs font-semibold ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500'
+                } transition-colors duration-200`}
+            >
+              Mark all as read
+            </button>
+          )}
         </div>
       </div>
 
+      {/* Content List */}
       <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-        {loading ? (
-          <div className="flex items-center justify-center py-6">
+        {currentLoading ? (
+          <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : error ? (
-          <div className={`px-4 py-3 text-sm ${
-            theme === 'dark' ? 'text-red-400' : 'text-red-600'
-          } flex items-center justify-center`}>
+          <div className={`px-4 py-3 text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
+            } flex items-center justify-center`}>
             <FaExclamationTriangle className="mr-2" />
             {error}
           </div>
-        ) : activities.length === 0 ? (
-          <div className={`px-4 py-6 text-sm text-center ${
-            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-          }`}>
-            <FaHistory className="mx-auto mb-2 text-gray-400" size={20} />
-            <p>No recent activities</p>
+        ) : activeTab === 'inbox' && notifications.length === 0 ? (
+          <div className={`px-4 py-8 text-sm text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+            }`}>
+            <FaEnvelopeOpen className="mx-auto mb-2 text-gray-400" size={24} />
+            <p className="font-medium">Inbox is clean!</p>
+            <p className="text-xs text-gray-400 mt-1">We will alert you when you get mentioned or assigned tasks.</p>
+          </div>
+        ) : activeTab === 'activities' && activities.length === 0 ? (
+          <div className={`px-4 py-8 text-sm text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+            }`}>
+            <FaHistory className="mx-auto mb-2 text-gray-400" size={24} />
+            <p className="font-medium">No recent activities</p>
+          </div>
+        ) : activeTab === 'inbox' ? (
+          <div className="divide-y divide-gray-100 dark:divide-gray-700/40">
+            {notifications.map((noti) => (
+              <div
+                key={noti.NotificationID}
+                onClick={() => handleNotificationClick(noti)}
+                className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/20 transition-all duration-150 relative ${!noti.IsRead ? (theme === 'dark' ? 'bg-blue-500/5' : 'bg-blue-50/40') : ''
+                  }`}
+              >
+                {!noti.IsRead && (
+                  <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-blue-500 shadow" />
+                )}
+                <div className="flex items-start space-x-3 pl-2">
+                  <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                    }`}>
+                    {getNotiIcon(noti.Type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-semibold leading-tight ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'
+                      }`}>
+                      {noti.Title}
+                    </p>
+                    <p className={`text-xs mt-1 leading-normal ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                      } break-words`}>
+                      {noti.Body}
+                    </p>
+                    <p className={`text-xs mt-1.5 font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+                      }`}>
+                      {formatDate(noti.CreatedDate)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
-          <div>
+          <div className="divide-y divide-gray-100 dark:divide-gray-700/40">
             {activities.map((activity) => (
               <div
                 key={activity._id}
-                className={`px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-150 border-b ${
-                  theme === 'dark' ? 'border-gray-700/50 last:border-b-0' : 'border-gray-100 last:border-b-0'
-                }`}
+                className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/20 transition-colors duration-150`}
               >
                 <div className="flex items-start space-x-3">
-                  <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-md ${
-                    theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-50'
-                  }`}>
+                  <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                    }`}>
                     {getActivityIcon(activity)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className={`text-sm font-medium ${
-                        theme === 'dark' ? 'text-gray-100' : 'text-gray-900'
-                      }`}>
+                      <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'
+                        }`}>
                         {getActivityTitle(activity)}
                       </p>
-                      <span className={`text-xs ${getActivityStatus(activity)}`}>
+                      <span className={`text-xs font-medium ${getActivityStatus(activity)}`}>
                         {activity.status === 'success' && 'Success'}
                         {activity.status === 'error' && 'Error'}
                         {activity.status === 'warning' && 'Warning'}
                       </span>
                     </div>
                     {activity.details && (
-                      <p className={`text-xs mt-0.5 ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                      } line-clamp-1`}>
+                      <p className={`text-xs mt-1 leading-normal ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
                         {activity.details}
                       </p>
                     )}
-                    <div className="flex items-center mt-1">
-                      <p className={`text-xs ${
-                        theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+                    <p className={`text-xs mt-1.5 font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
                       }`}>
-                        {formatDate(activity.timestamp)}
-                      </p>
-                    </div>
+                      {formatDate(activity.timestamp)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -261,4 +422,4 @@ const ActivityNotifications = ({ isOpen, onClose }) => {
   );
 };
 
-export default ActivityNotifications; 
+export default ActivityNotifications;

@@ -71,7 +71,7 @@ const ProjectDetailsSkeleton = () => {
             </div>
 
             {/* Bottom Row: Members & Actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-gray-150 dark:border-zinc-800/60">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-gray-100 dark:border-zinc-800/60">
               {/* Avatars stacked */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center -space-x-2">
@@ -114,7 +114,7 @@ const ProjectDetailsSkeleton = () => {
               </div>
             </div>
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-150 dark:border-zinc-800/60">
+            <div className="grid grid-cols-2 gap-3 pt-2">
               <div className={`p-3 rounded-xl ${isDark ? 'bg-zinc-800/30' : 'bg-gray-50'}`}>
                 <div className={`h-3 w-12 mb-2 ${skeletonSubClass}`}></div>
                 <div className={`h-5 w-6 ${skeletonClass}`}></div>
@@ -147,7 +147,7 @@ const ProjectDetailsSkeleton = () => {
               </div>
             </div>
             {/* Add goal placeholder */}
-            <div className="pt-3 border-t border-gray-150 dark:border-zinc-800/60 flex gap-2">
+            <div className="pt-3 border-t border-gray-100 dark:border-zinc-800/60 flex gap-2">
               <div className={`h-8 flex-1 ${skeletonSubClass}`}></div>
               <div className={`h-8 w-12 ${skeletonClass}`}></div>
             </div>

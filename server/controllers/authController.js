@@ -1,5 +1,4 @@
 // Note: real-time emissions are handled in specific controllers/routes
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
@@ -12,14 +11,12 @@ const axios = require('axios');
 const qrcode = require('qrcode');
 const speakeasy = require('speakeasy');
 const { logActivity } = require('../services/activityService');
-const { sendResetEmail } = require('../services/emailService');
 const Invite = require('../models/Invite');
 const { randomUUID: uuidv4 } = require('crypto');
 require('dotenv').config();
 const { emitToOrg } = require('../socket');
-const ForgotPasswordHistory = require('../models/ForgotPasswordHistory');
 const EmailVerificationToken = require('../models/EmailVerificationToken');
-const { sendEmailVerification } = require('../services/emailService');
+const { sendEmailVerification, sendSignInCode } = require('../services/emailService');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // Generate JWT
@@ -57,13 +54,12 @@ const registerUser = async (req, res) => {
     const {
       username,
       email,
-      password,
       role,
       inviteToken
     } = req.body;
 
     // Basic required field validation
-    if (!email || !password) {
+    if (!email) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -136,7 +132,6 @@ const registerUser = async (req, res) => {
     const user = await User.create({
       username: finalUsername,
       email,
-      password,
       role: safeRole,
       organizationID: organizationID,
       lastLogin: null,
@@ -174,65 +169,6 @@ const registerUser = async (req, res) => {
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-// @desc    Authenticate user & get token
-// @route   POST /api/auth/login
-// @access  Public
-const loginUser = async (req, res) => {
-  try {
-    const { usernameOrEmail, password } = req.body;
-
-    // Find user by username or email
-    const user = await User.findOne({
-      $or: [
-        { email: usernameOrEmail },
-        { username: usernameOrEmail }
-      ]
-    });
-
-    // Check if user exists and password is correct
-    if (user && (await user.comparePassword(password))) {
-      if (!user.emailVerified) {
-        return res.status(403).json({ message: 'Please verify your email before logging in.' });
-      }
-      // Update last login and set status to Active
-      user.lastLogin = new Date();
-      user.status = 'Active';
-
-
-      await user.save();
-
-      // Log successful login
-      await logActivity(user._id, 'login', 'success', 'User logged in successfully', req, {}, 'email');
-
-      if (user.twoFactorEnabled) {
-        return res.status(200).json({
-          twoFactorEnabled: true,
-          userId: user._id
-        });
-      }
-      const userData = user.toObject();
-      delete userData.password;
-      const token = generateToken(user._id);
-      setTokenCookie(res, token);
-      userData.token = token;
-
-      return res.status(200).json(userData);
-    } else {
-      // Log failed login attempt
-      if (user) {
-        await logActivity(user._id, 'login_failed', 'error', 'Invalid password', req, {}, 'email');
-      } else {
-        // Log failed login attempt for non-existent user
-        await logActivity(null, 'login_failed', 'error', 'User not found', req, {}, 'email');
-      }
-      res.status(401).json({ message: 'Invalid username/email or password' });
     }
   } catch (error) {
     console.error(error);
@@ -349,7 +285,6 @@ const googleLogin = async (req, res) => {
       // Log successful Google login
       await logActivity(user._id, 'login', 'success', 'User logged in via Google', req, { provider: 'google' });
       const userData = user.toObject();
-      delete userData.password;
 
       userData.profileImage = picture;
       userData.needsAdditionalDetails = false;
@@ -371,9 +306,6 @@ const googleLogin = async (req, res) => {
         exists = await User.findOne({ username: candidate });
       }
       const username = candidate;
-
-      // Create random password for Google users
-      const password = Math.random().toString(36).slice(-8);
 
       let organizationID = null;
       let invite = null;
@@ -404,7 +336,6 @@ const googleLogin = async (req, res) => {
         firstName: given_name || name.split(' ')[0],
         lastName: family_name || name.split(' ').slice(1).join(' '),
         email,
-        password,
         googleId: sub,
         lastLogin: new Date(),
         emailVerified: true,
@@ -446,7 +377,6 @@ const googleLogin = async (req, res) => {
       await logActivity(user._id, 'login', 'success', 'New user registered and logged in via Google', req, { provider: 'google' });
 
       const userData = user.toObject();
-      delete userData.password;
       userData.profileImage = picture;
       userData.needsAdditionalDetails = !organizationID;
       userData.message = organizationID ? 'Welcome to the organization!' : 'Please complete your profile with additional details';
@@ -574,7 +504,7 @@ const completeUserProfile = async (req, res) => {
 // @access  Private
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password -googleId');
+    const user = await User.findById(req.user._id).select('-googleId');
 
     if (user) {
       // If user has an organization ID, fetch the organization details
@@ -923,127 +853,6 @@ const updateUserStatus = async (req, res) => {
   } catch (error) {
     console.error('Error updating user status:', error);
     res.status(500).json({ message: 'Error updating status' });
-  }
-};
-
-// @desc    Request password reset
-// @route   POST /api/auth/forgot-password
-// @access  Public
-const forgotPassword = async (req, res) => {
-  try {
-    const { usernameOrEmail } = req.body;
-    if (!usernameOrEmail) {
-      return res.status(400).json({ message: 'Username or email is required' });
-    }
-    const user = await User.findOne({
-      $or: [
-        { email: usernameOrEmail },
-        { username: usernameOrEmail }
-      ]
-    });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    if (user.password == null) {
-      return res.status(400).json({ message: 'User does not have a password' });
-    }
-    // Generate unique key and expiry
-    const token = uuidv4();
-    const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    const link = `${process.env.FRONTEND_URL}/auth?type=reset&token=${token}`;
-    // Create ForgotPasswordHistory record
-    await ForgotPasswordHistory.create({
-      UserId: user._id,
-      Username: user.username,
-      AttemptNo: 0,
-      MaxNoOfAttempts: 3,
-      Token: token,
-      ExpiryTime: expiry,
-      Link: link,
-      IsValid: true
-    });
-    // Send email with link
-    await sendResetEmail(user.email, user.username, link);
-    res.json({ message: 'If the user exists, a password reset link has been sent to the registered email.' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-// @desc    Reset password
-// @route   POST /api/auth/verify-reset-password
-// @access  Public
-const verifyResetPassword = async (req, res) => {
-  try {
-    const { token } = req.body;
-    const record = await ForgotPasswordHistory.findOne({ Token: token });
-    if (!record) {
-      return res.status(201).json({ message: 'Invalid or expired reset link' });
-    }
-    if (record.IsValid == false) {
-      return res.status(201).json({ message: 'Reset link has already been used' });
-    }
-    if (record.ExpiryTime < new Date()) {
-      return res.status(201).json({ message: 'Reset link has expired' });
-    }
-    return res.status(200).json({ message: 'Reset link is valid' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-// @desc    Reset password
-// @route   POST /api/auth/reset-password
-// @access  Public
-const resetPassword = async (req, res) => {
-  try {
-    const { token, newPassword } = req.body;
-    if (!token || !newPassword) {
-      return res.status(400).json({ message: 'Token and new password are required' });
-    }
-    const record = await ForgotPasswordHistory.findOne({ Token: token, IsValid: true });
-    if (!record) {
-      return res.status(400).json({ message: 'Invalid or expired reset link' });
-    }
-    if (record.ExpiryTime < new Date()) {
-      return res.status(400).json({ message: 'Reset link has expired' });
-    }
-    const user = await User.findOne({ username: record.Username });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    record.AttemptNo++;
-    if (record.AttemptNo >= record.MaxNoOfAttempts) {
-      await record.save();
-      return res.status(400).json({ message: 'Reset link has been used too many times' });
-    }
-    // Check if new password is same as old password
-    const isSame = await bcrypt.compare(newPassword, user.password);
-    if (isSame) {
-      await record.save();
-      return res.status(400).json({ message: 'New password cannot be the same as the old password' });
-    }
-    // Enforce strong password requirements
-    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
-    if (!strongPasswordRegex.test(newPassword)) {
-      await record.save();
-      return res.status(400).json({ message: 'Password must be at least 8 characters, include uppercase, lowercase, number, and special character.' });
-    }
-    // Update password
-    user.password = newPassword;
-    await user.save();
-
-    // Mark record as used
-    record.IsValid = false;
-    record.PasswordChangedDate = new Date();
-    await record.save();
-
-    res.status(200).json({ message: 'Password has been reset successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -1915,9 +1724,118 @@ const getProjectPullRequests = async (req, res) => {
   }
 };
 
+// @desc    Request verification code for sign in
+// @route   POST /api/auth/signin-code/request
+// @access  Public
+const requestSignInCode = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email address is required' });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      return res.status(404).json({ message: 'No account found with this email address' });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ message: 'This account has been deactivated' });
+    }
+
+    // Generate a 6-digit random code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Save code to user
+    user.signInCode = code;
+    user.signInCodeExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+    await user.save();
+
+    // Send email
+    const emailSent = await sendSignInCode(user.email, user.username || user.email.split('@')[0], code);
+
+    if (!emailSent) {
+      return res.status(500).json({ message: 'Failed to send verification email' });
+    }
+
+    // Log activity
+    await logActivity(user._id, 'signin_code_requested', 'success', 'Sign in code requested by user', req, {}, 'email');
+
+    res.status(200).json({ success: true, message: 'Verification code sent to your email' });
+  } catch (error) {
+    console.error('Request sign in code error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Verify sign in code and authenticate user
+// @route   POST /api/auth/signin-code/verify
+// @access  Public
+const verifySignInCode = async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ message: 'Email and verification code are required' });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail }).select('+signInCode');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.signInCode || user.signInCode !== code) {
+      await logActivity(user._id, 'login_failed', 'error', 'Invalid verification code', req, {}, 'email');
+      return res.status(400).json({ message: 'Invalid verification code' });
+    }
+
+    if (new Date() > user.signInCodeExpires) {
+      await logActivity(user._id, 'login_failed', 'error', 'Expired verification code', req, {}, 'email');
+      return res.status(400).json({ message: 'Verification code has expired' });
+    }
+
+    // Code is valid! Clear it
+    user.signInCode = null;
+    user.signInCodeExpires = null;
+
+    // Auto-verify email if not verified
+    if (!user.emailVerified) {
+      user.emailVerified = true;
+    }
+
+    user.lastLogin = new Date();
+    user.status = 'Active';
+    await user.save();
+
+    // Log successful login
+    await logActivity(user._id, 'login', 'success', 'User logged in successfully via verification code', req, {}, 'email');
+
+    // Handle 2FA if enabled
+    if (user.twoFactorEnabled) {
+      return res.status(200).json({
+        twoFactorEnabled: true,
+        userId: user._id
+      });
+    }
+
+    const userData = user.toObject();
+    delete userData.signInCode;
+    const token = generateToken(user._id);
+    setTokenCookie(res, token);
+    userData.token = token;
+
+    res.status(200).json(userData);
+  } catch (error) {
+    console.error('Verify sign in code error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   registerUser,
-  loginUser,
   googleLogin,
   verifyEmail,
   resendVerification,
@@ -1934,9 +1852,6 @@ module.exports = {
   updateSecuritySettings,
   updateUserSettings,
   updateUserStatus,
-  forgotPassword,
-  resetPassword,
-  verifyResetPassword,
   initiateGitHubAuth,
   handleGitHubCallback,
   disconnectGitHub,
@@ -1950,5 +1865,7 @@ module.exports = {
   getProjectBranches,
   getProjectPullRequests,
   getProjectIssues,
-  updateOnboardingStatus
+  updateOnboardingStatus,
+  requestSignInCode,
+  verifySignInCode
 }; 

@@ -5,7 +5,7 @@ import { useToast } from '../../context/ToastContext';
 
 const incrementVersion = (versionStr) => {
   if (!versionStr) return '';
-  
+
   // Match semantic versioning like v1.2.3 or 1.2.3
   const semverMatch = versionStr.match(/^(v?)(\d+)\.(\d+)\.(\d+)$/i);
   if (semverMatch) {
@@ -141,7 +141,7 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
   // Simple Markdown Renderer
   const renderMarkdown = (md) => {
     if (!md) return <span className="text-zinc-500 italic text-sm">No release notes content yet.</span>;
-    
+
     // Split by lines and convert basic markdown
     const lines = md.split('\n');
     return (
@@ -151,7 +151,7 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
             return <h4 key={idx} className="text-md font-bold text-emerald-500 mt-4 mb-2">{line.replace('### ', '')}</h4>;
           }
           if (line.startsWith('## ')) {
-            return <h3 key={idx} className="text-lg font-bold text-slate-800 dark:text-slate-100 mt-5 border-b border-gray-150 dark:border-zinc-800/60 pb-1">{line.replace('## ', '')}</h3>;
+            return <h3 key={idx} className="text-lg font-bold text-slate-800 dark:text-slate-100 mt-5 border-b border-gray-100 dark:border-zinc-800/60 pb-1">{line.replace('## ', '')}</h3>;
           }
           if (line.startsWith('# ')) {
             return <h2 key={idx} className="text-xl font-bold text-slate-800 dark:text-slate-100 mt-6">{line.replace('# ', '')}</h2>;
@@ -192,7 +192,7 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
         {/* Release Configuration Form */}
         <div className={`lg:col-span-1 p-6 rounded-2xl border flex flex-col justify-between ${cardClass}`}>
           <div className="space-y-4">
-            <h3 className="text-md font-bold mb-2 flex items-center gap-2 border-b border-gray-150 dark:border-zinc-800/80 pb-2">
+            <h3 className="text-md font-bold mb-2 flex items-center gap-2 border-b border-gray-100 dark:border-zinc-800/80 pb-2">
               <FaCalendarAlt className="text-emerald-500" />
               <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>Release Details</span>
             </h3>
@@ -281,30 +281,28 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
         <div className={`lg:col-span-2 p-6 rounded-2xl border flex flex-col justify-between ${cardClass}`}>
           <div className="flex-1 flex flex-col min-h-[300px]">
             {/* Header toolbar */}
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-gray-150 dark:border-zinc-800/80">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-gray-100 dark:border-zinc-800/80">
               <h3 className="text-md font-bold flex items-center gap-2">
                 <FaFileAlt className="text-emerald-500" />
                 <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>Draft Release Notes</span>
               </h3>
 
-              <div className="flex items-center border border-gray-150 dark:border-zinc-850 rounded-xl overflow-hidden shadow-sm p-0.5 bg-gray-50 dark:bg-zinc-900/60">
+              <div className="flex items-center border border-gray-100 dark:border-zinc-850 rounded-xl overflow-hidden shadow-sm p-0.5 bg-gray-50 dark:bg-zinc-900/60">
                 <button
                   onClick={() => setPreviewMode('edit')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
-                    previewMode === 'edit'
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${previewMode === 'edit'
                       ? theme === 'dark' ? 'bg-zinc-800 text-white' : 'bg-white text-slate-900 shadow-sm border border-gray-100'
                       : 'text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400'
-                  }`}
+                    }`}
                 >
                   <FaEdit size={11} /> Edit Draft
                 </button>
                 <button
                   onClick={() => setPreviewMode('preview')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
-                    previewMode === 'preview'
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${previewMode === 'preview'
                       ? theme === 'dark' ? 'bg-zinc-800 text-white' : 'bg-white text-slate-900 shadow-sm border border-gray-100'
                       : 'text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400'
-                  }`}
+                    }`}
                 >
                   <FaEye size={11} /> Live Preview
                 </button>
@@ -318,14 +316,12 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
                   value={releaseNotes}
                   onChange={e => setReleaseNotes(e.target.value)}
                   placeholder="The AI-generated changelog draft will appear here, or you can start typing your own notes manually..."
-                  className={`w-full flex-1 min-h-[250px] p-4 rounded-xl border text-sm font-mono outline-none resize-none ${
-                    theme === 'dark' ? 'bg-[#18181b] border-zinc-800 text-zinc-300 focus:border-emerald-500 focus:ring-1' : 'bg-gray-50 border-gray-200 text-slate-800 focus:border-emerald-500 focus:ring-1'
-                  }`}
+                  className={`w-full flex-1 min-h-[250px] p-4 rounded-xl border text-sm font-mono outline-none resize-none ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800 text-zinc-300 focus:border-emerald-500 focus:ring-1' : 'bg-gray-50 border-gray-200 text-slate-800 focus:border-emerald-500 focus:ring-1'
+                    }`}
                 />
               ) : (
-                <div className={`w-full flex-1 min-h-[250px] p-5 rounded-xl border overflow-y-auto max-h-[350px] ${
-                  theme === 'dark' ? 'bg-[#18181b] border-zinc-800' : 'bg-gray-50 border-gray-200'
-                }`}>
+                <div className={`w-full flex-1 min-h-[250px] p-5 rounded-xl border overflow-y-auto max-h-[350px] ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800' : 'bg-gray-50 border-gray-200'
+                  }`}>
                   {renderMarkdown(releaseNotes)}
                 </div>
               )}

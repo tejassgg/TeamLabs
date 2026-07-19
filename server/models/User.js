@@ -10,7 +10,6 @@ const bcrypt = require('bcryptjs');
  *       required:
  *         - username
  *         - email
- *         - password
  *       properties:
  *         username:
  *           type: string
@@ -34,25 +33,6 @@ const bcrypt = require('bcryptjs');
  *           type: string
  *           format: email
  *           description: User's email address
- *         password:
- *           type: string
- *           format: password
- *           description: User's password (hashed)
- *         address:
- *           type: string
- *           description: User's street address
- *         aptNumber:
- *           type: string
- *           description: Apartment or suite number
- *         zipCode:
- *           type: string
- *           description: ZIP or postal code
- *         city:
- *           type: string
- *           description: City name
- *         state:
- *           type: string
- *           description: State or province
  *         country:
  *           type: string
  *           description: Country name
@@ -118,41 +98,6 @@ const UserSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
-  password: {
-    type: String,
-    required: true
-  },
-  address: {
-    type: String,
-    default: '',
-    trim: true
-  },
-  aptNumber: {
-    type: String,
-    default: '',
-    trim: true
-  },
-  zipCode: {
-    type: String,
-    default: '',
-    trim: true
-  },
-  city: {
-    type: String,
-    default: '',
-    trim: true
-  },
-  state: {
-    type: String,
-    default: '',
-    trim: true
-  },
-  country: {
-    type: String,
-    default: '',
-    trim: true
-  },
-  // Email verification flag
   emailVerified: {
     type: Boolean,
     default: false
@@ -202,6 +147,15 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  signInCode: {
+    type: String,
+    default: null,
+    select: false
+  },
+  signInCodeExpires: {
+    type: Date,
+    default: null
+  },
   fontFamily: {
     type: String,
     default: 'Inter',
@@ -214,14 +168,14 @@ const UserSchema = new mongoose.Schema({
   tempTwoFactorSecretCreatedAt: {
     type: Date
   },
-  
+
   // Subscription Properties
   subscriptionStatus: {
     type: String,
     enum: ['free', 'premium'],
     default: 'free'
   },
-  
+
   // Onboarding Properties
   onboardingCompleted: {
     type: Boolean,
@@ -241,7 +195,7 @@ const UserSchema = new mongoose.Schema({
   },
   subscriptionPlan: {
     type: String,
-    enum: [null,'monthly', 'annual'],
+    enum: [null, 'monthly', 'annual'],
     default: null
   },
   subscriptionStartDate: {
@@ -256,7 +210,7 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  
+
   // Payment Method (encrypted)
   savedPaymentMethod: {
     type: {
@@ -278,7 +232,7 @@ const UserSchema = new mongoose.Schema({
       accountHolderName: String
     }
   },
-  
+
   // Usage Limits (for free plan)
   usageLimits: {
     projectsCreated: {
@@ -298,44 +252,40 @@ const UserSchema = new mongoose.Schema({
       default: 0
     }
   },
-
+  pushSubscriptions: [
+    {
+      endpoint: String,
+      keys: {
+        p256dh: String,
+        auth: String
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  ]
 });
-
-// Before saving, hash password
-UserSchema.pre('save', async function() {
-  // Only hash the password if it's new or modified
-  if (!this.isModified('password')) return;
-  
-  // Generate salt
-  const salt = await bcrypt.genSalt(10);
-  // Hash the password
-  this.password = await bcrypt.hash(this.password, salt);
-});
-
-// Method to compare password
-UserSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
-};
 
 // Method to check if 2FA is enabled
-UserSchema.methods.isTwoFactorEnabled = function() {
+UserSchema.methods.isTwoFactorEnabled = function () {
   return this.twoFactorEnabled;
 };
 
 // Method to get 2FA secret (only when explicitly selected)
-UserSchema.methods.getTwoFactorSecret = async function() {
+UserSchema.methods.getTwoFactorSecret = async function () {
   if (!this.twoFactorSecret) return null;
   return this.twoFactorSecret;
 };
 
 // Subscription Methods
-UserSchema.methods.isSubscriptionActive = function() {
+UserSchema.methods.isSubscriptionActive = function () {
   if (!this.isPremiumMember) return false;
   if (!this.subscriptionEndDate) return false;
   return new Date() <= this.subscriptionEndDate;
 };
 
-UserSchema.methods.getDaysUntilExpiry = function() {
+UserSchema.methods.getDaysUntilExpiry = function () {
   if (!this.subscriptionEndDate) return 0;
   const now = new Date();
   const end = new Date(this.subscriptionEndDate);
@@ -344,28 +294,28 @@ UserSchema.methods.getDaysUntilExpiry = function() {
   return Math.max(0, diffDays);
 };
 
-UserSchema.methods.canCreateProject = function() {
+UserSchema.methods.canCreateProject = function () {
   if (this.isPremiumMember && this.isSubscriptionActive()) {
     return true; // Unlimited for premium
   }
   return this.usageLimits.projectsCreated < 3; // Free plan limit
 };
 
-UserSchema.methods.canCreateUserStory = function() {
+UserSchema.methods.canCreateUserStory = function () {
   if (this.isPremiumMember && this.isSubscriptionActive()) {
     return true; // Unlimited for premium
   }
   return this.usageLimits.userStoriesCreated < 3; // Free plan limit
 };
 
-UserSchema.methods.canCreateTask = function() {
+UserSchema.methods.canCreateTask = function () {
   if (this.isPremiumMember && this.isSubscriptionActive()) {
     return true; // Unlimited for premium
   }
   return this.usageLimits.tasksCreated < 20; // Free plan limit per user story
 };
 
-UserSchema.methods.incrementUsage = function(type) {
+UserSchema.methods.incrementUsage = function (type) {
   if (type === 'project') {
     this.usageLimits.projectsCreated += 1;
   } else if (type === 'userStory') {
@@ -378,7 +328,7 @@ UserSchema.methods.incrementUsage = function(type) {
   return this.save();
 };
 
-UserSchema.methods.activatePremium = function(plan, startDate, endDate) {
+UserSchema.methods.activatePremium = function (plan, startDate, endDate) {
   this.isPremiumMember = true;
   this.subscriptionStatus = 'premium';
   this.subscriptionPlan = plan;
@@ -387,7 +337,7 @@ UserSchema.methods.activatePremium = function(plan, startDate, endDate) {
   return this.save();
 };
 
-UserSchema.methods.deactivatePremium = function() {
+UserSchema.methods.deactivatePremium = function () {
   this.isPremiumMember = false;
   this.subscriptionStatus = 'free';
   this.subscriptionPlan = null;
@@ -397,7 +347,7 @@ UserSchema.methods.deactivatePremium = function() {
 };
 
 // Static method to get all premium users in an organization
-UserSchema.statics.getPremiumUsers = function(organizationId) {
+UserSchema.statics.getPremiumUsers = function (organizationId) {
   return this.find({
     organizationID: organizationId,
     isPremiumMember: true,
@@ -406,7 +356,7 @@ UserSchema.statics.getPremiumUsers = function(organizationId) {
 };
 
 // Static method to check if organization has active premium subscription
-UserSchema.statics.hasActivePremiumSubscription = function(organizationId) {
+UserSchema.statics.hasActivePremiumSubscription = function (organizationId) {
   return this.findOne({
     organizationID: organizationId,
     isPremiumMember: true,

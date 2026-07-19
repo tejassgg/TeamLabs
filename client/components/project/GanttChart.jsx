@@ -465,7 +465,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                                         className={`font-semibold text-sm truncate cursor-pointer hover:underline hover:text-blue-600 dark:hover:text-blue-400 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}
                                                         onClick={() => onEditTask && onEditTask(item)}
                                                     >
-                                                        {item.TicketNumber ? `#${item.TicketNumber} ` : ''}{item.Name}
+                                                        {(item.TaskNumber || item.TicketNumber) ? `#${item.TaskNumber || item.TicketNumber} ` : ''}{item.Name}
                                                     </div>
 
                                                     {/* Type / Priority Badges */}
@@ -616,7 +616,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                         return (
                                             <div
                                                 key={depId}
-                                                className={`flex items-center justify-between p-3.5 rounded-2xl border transition-colors ${theme === 'dark' ? 'bg-zinc-900/40 border-zinc-800/80' : 'bg-gray-50/50 border-gray-150'
+                                                className={`flex items-center justify-between p-3.5 rounded-2xl border transition-colors ${theme === 'dark' ? 'bg-zinc-900/40 border-zinc-800/80' : 'bg-gray-50/50 border-gray-100'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-3 min-w-0">

@@ -12,7 +12,7 @@ const { protect } = require('../middleware/auth');
 const { linkRepositoryToProject, unlinkRepositoryFromProject, getProjectRepository, getProjectCommits, getProjectBranches, getProjectPullRequests, getProjectIssues } = require('../controllers/authController');
 const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
 const { GoogleGenAI } = require('@google/genai');
-const { sendReleaseSummaryEmail } = require('../services/emailService');
+const { sendReleaseSummaryEmail, sendProjectDeletionEmail } = require('../services/emailService');
 
 // GET /api/projects/overview - fetch projects with statistics for projects page
 router.get('/overview', protect, async (req, res) => {
@@ -27,7 +27,11 @@ router.get('/overview', protect, async (req, res) => {
     if (userRole === 'Admin') {
       projects = await Project.find({ 
         OrganizationID: organizationID,
-        IsActive: true 
+        IsActive: true,
+        $or: [
+          { isArchived: { $ne: true } },
+          { ProjectOwner: userId.toString() }
+        ]
       });
     } else {
       // For non-admin users, show only projects they're assigned to
@@ -40,7 +44,13 @@ router.get('/overview', protect, async (req, res) => {
       const projectDetails = await ProjectDetails.find({ TeamID: { $in: teamIds }, IsActive: true });
       const projectIds = projectDetails.map(pd => pd.ProjectID);
       // 3. Return only those projects
-      projects = await Project.find({ ProjectID: { $in: projectIds } });
+      projects = await Project.find({ 
+        ProjectID: { $in: projectIds },
+        $or: [
+          { isArchived: { $ne: true } },
+          { ProjectOwner: userId.toString() }
+        ]
+      });
     }
 
     const projectIds = projects.map(p => p.ProjectID);
@@ -190,7 +200,13 @@ router.get('/:userId', async (req, res) => {
     const projectDetails = await ProjectDetails.find({ TeamID: { $in: teamIds }, IsActive: true });
     const projectIds = projectDetails.map(pd => pd.ProjectID);
     // 3. Return only those projects
-    const projects = await Project.find({ ProjectID: { $in: projectIds } });
+    const projects = await Project.find({ 
+      ProjectID: { $in: projectIds },
+      $or: [
+        { isArchived: { $ne: true } },
+        { ProjectOwner: userId.toString() }
+      ]
+    });
 
     res.json(projects);
   } catch (err) {
@@ -574,6 +590,134 @@ router.post('/:projectId/releases/email', protect, async (req, res) => {
   } catch (error) {
     console.error('Error emailing release summary:', error);
     res.status(500).json({ error: 'Failed to email release summary' });
+  }
+});
+
+// DELETE /api/projects/:projectId - delete project if user is owner
+router.delete('/:projectId', protect, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const userId = req.user._id;
+
+    // Find the project and verify ownership
+    const project = await Project.findOne({ ProjectID: projectId });
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (project.ProjectOwner.toString() !== userId.toString()) {
+      return res.status(403).json({ error: 'Forbidden: You are not the project owner' });
+    }
+
+    // Start transaction session
+    const session = await Project.startSession();
+    session.startTransaction();
+
+    try {
+      // Clean up project details association (teams mapping)
+      await ProjectDetails.deleteMany({ ProjectID_FK: projectId }, { session });
+
+      // Clean up tasks/user stories in this project
+      await TaskDetails.deleteMany({ ProjectID_FK: projectId }, { session });
+
+      // Delete the project itself
+      await Project.deleteOne({ ProjectID: projectId }, { session });
+
+      // Log success activity
+      await logActivity(
+        userId,
+        'project_delete',
+        'success',
+        `Deleted project "${project.Name}"`,
+        req,
+        {
+          projectId: project.ProjectID,
+          projectName: project.Name
+        }
+      );
+
+      await session.commitTransaction();
+      session.endSession();
+
+      res.status(200).json({ success: true, message: 'Project deleted successfully', project: project });
+
+      // Emit metrics update
+      try {
+        emitDashboardMetrics(project.OrganizationID);
+      } catch (e) { /* ignore */ }
+
+      // Send deletion notification email to Project Owner
+      try {
+        const ownerUser = await User.findById(project.ProjectOwner);
+        if (ownerUser && ownerUser.email) {
+          const { reason } = req.body;
+          await sendProjectDeletionEmail(
+            ownerUser.email,
+            project.Name,
+            `${ownerUser.firstName || ''} ${ownerUser.lastName || ''}`.trim() || ownerUser.username,
+            reason
+          );
+        }
+      } catch (e) {
+        console.error('Error sending project deletion email:', e);
+      }
+
+    } catch (err) {
+      await session.abortTransaction();
+      session.endSession();
+      throw err;
+    }
+
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    res.status(500).json({ error: 'Failed to delete project' });
+  }
+});
+
+// PATCH /api/projects/:projectId/archive - archive project if user is owner
+router.patch('/:projectId/archive', protect, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { isArchived } = req.body;
+    const userId = req.user._id;
+
+    // Find the project and verify ownership
+    const project = await Project.findOne({ ProjectID: projectId });
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (project.ProjectOwner.toString() !== userId.toString()) {
+      return res.status(403).json({ error: 'Forbidden: You are not the project owner' });
+    }
+
+    project.isArchived = isArchived;
+    project.ModifiedDate = new Date();
+    await project.save();
+
+    // Log activity
+    await logActivity(
+      userId,
+      isArchived ? 'project_archive' : 'project_unarchive',
+      'success',
+      `${isArchived ? 'Archived' : 'Unarchived'} project "${project.Name}"`,
+      req,
+      {
+        projectId: project.ProjectID,
+        projectName: project.Name
+      }
+    );
+
+    res.status(200).json({ success: true, message: `Project ${isArchived ? 'archived' : 'unarchived'} successfully`, project });
+
+    // Emit metrics update
+    try {
+      emitDashboardMetrics(project.OrganizationID);
+    } catch (e) { /* ignore */ }
+
+  } catch (error) {
+    console.error('Error archiving project:', error);
+    res.status(500).json({ error: 'Failed to archive project' });
   }
 });
 

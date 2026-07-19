@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const protect = async (req, res, next) => {
-  let token;  
+  let token;
 
   if (req.cookies.token) {
     token = req.cookies.token;
@@ -13,12 +13,12 @@ const protect = async (req, res, next) => {
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
-      req.user = await User.findById(decoded.id).select('-password');
-      
+
+      req.user = await User.findById(decoded.id);
+
       if (!req.user) {
-         res.clearCookie('token');
-         return res.status(401).json({ message: 'Not authorized, user not found' });
+        res.clearCookie('token');
+        return res.status(401).json({ message: 'Not authorized, user not found' });
       }
 
       return next();
@@ -28,7 +28,7 @@ const protect = async (req, res, next) => {
       return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
-  
+
   if (!token) {
     return res.status(401).json({ message: 'Not authorized, no token' });
   }

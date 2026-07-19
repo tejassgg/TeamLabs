@@ -83,7 +83,7 @@ export const getPriorityStyle = (priority) => {
   const styles = {
     'High': {
       bgColor: 'bg-gradient-to-r from-red-50 to-red-100',
-      textColor: 'text-red-700',
+      textColor: 'text-red-600',
       borderColor: 'border-red-200',
       icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -91,7 +91,7 @@ export const getPriorityStyle = (priority) => {
     },
     'Medium': {
       bgColor: 'bg-gradient-to-r from-yellow-50 to-yellow-100',
-      textColor: 'text-yellow-700',
+      textColor: 'text-yellow-500',
       borderColor: 'border-yellow-200',
       icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -99,7 +99,7 @@ export const getPriorityStyle = (priority) => {
     },
     'Low': {
       bgColor: 'bg-gradient-to-r from-green-50 to-green-100',
-      textColor: 'text-green-700',
+      textColor: 'text-green-600',
       borderColor: 'border-green-200',
       icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

@@ -14,31 +14,31 @@ const transporter = nodemailer.createTransport({
 
 // ===== COMMON UTILITY FUNCTIONS =====
 
-  // Helper: get time ago string
-  const getTimeAgo = (date) => {
-    if (!date) return '';
-    const now = new Date();
-    const then = new Date(date);
-    const diff = Math.floor((now - then) / 1000);
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
-    return `${Math.floor(diff/86400)}d ago`;
-  };
+// Helper: get time ago string
+const getTimeAgo = (date) => {
+  if (!date) return '';
+  const now = new Date();
+  const then = new Date(date);
+  const diff = Math.floor((now - then) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+};
 
 // Helper: get file type icon by extension
 const getFileTypeIcon = (filename) => {
-    const ext = filename.split('.').pop().toLowerCase();
-  if (["jpg","jpeg","png","gif","bmp","svg","webp"].includes(ext)) return '📷';
-    if (["pdf"].includes(ext)) return '📄';
-  if (["doc","docx","odt","rtf"].includes(ext)) return '📝';
-    if (["xls","xlsx","csv"].includes(ext)) return '📊';
-  if (["ppt","pptx"].includes(ext)) return '📈';
-  if (["zip","rar","7z","tar","gz"].includes(ext)) return '📦';
-    if (["mp3","wav","ogg"].includes(ext)) return '🎵';
-    if (["mp4","mov","avi","wmv","mkv"].includes(ext)) return '🎬';
-    return '📎';
-  };
+  const ext = filename.split('.').pop().toLowerCase();
+  if (["jpg", "jpeg", "png", "gif", "bmp", "svg", "webp"].includes(ext)) return '📷';
+  if (["pdf"].includes(ext)) return '📄';
+  if (["doc", "docx", "odt", "rtf"].includes(ext)) return '📝';
+  if (["xls", "xlsx", "csv"].includes(ext)) return '📊';
+  if (["ppt", "pptx"].includes(ext)) return '📈';
+  if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) return '📦';
+  if (["mp3", "wav", "ogg"].includes(ext)) return '🎵';
+  if (["mp4", "mov", "avi", "wmv", "mkv"].includes(ext)) return '🎬';
+  return '📎';
+};
 
 // Helper: parse mentions from content
 const parseMentions = (content) => {
@@ -149,7 +149,7 @@ const generateAttachmentsSection = (attachments) => {
           <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:6px;padding:12px;min-width:160px;max-width:200px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
             <div style="font-size:16px;line-height:1.2;margin-bottom:8px;">${getFileTypeIcon(a.Filename)}</div>
             <a href="${a.FileURL}" style="color:#6B39E7;text-decoration:none;font-weight:600;display:block;word-break:break-all;font-size:12px;line-height:1.3;">${a.Filename}</a>
-            <div style="color:#6b7280;font-size:10px;margin-top:4px;">${(a.FileSize/1024).toFixed(1)} KB • ${getTimeAgo(a.UploadedAt)}</div>
+            <div style="color:#6b7280;font-size:10px;margin-top:4px;">${(a.FileSize / 1024).toFixed(1)} KB • ${getTimeAgo(a.UploadedAt)}</div>
           </div>
         `).join('')}
       </div>
@@ -169,7 +169,7 @@ const generateCommentsSection = (comments) => {
               <span style="font-weight:600;color:#1F1F1F;font-size:13px;">${c.Author}</span>
               <span style="color:#6b7280;font-size:11px;">${getTimeAgo(c.CreatedAt)}</span>
             </div>
-            <div style="color:#374151;font-size:13px;line-height:1.4;">${c.Content.length > 100 ? c.Content.slice(0,100)+'…' : c.Content}</div>
+            <div style="color:#374151;font-size:13px;line-height:1.4;">${c.Content.length > 100 ? c.Content.slice(0, 100) + '…' : c.Content}</div>
           </div>
         `).join('')}
       </div>
@@ -178,72 +178,6 @@ const generateCommentsSection = (comments) => {
 };
 
 // ===== PROFESSIONAL EMAIL FUNCTIONS =====
-
-// Helper to send reset password email
-async function sendResetEmail(to, username, link) {
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Reset Your Password - TeamLabs</title>
-    </head>
-    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc;">
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
-        <tr>
-          <td align="center" style="padding: 40px 20px;">
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 480px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-              <tr>
-                <td style="padding: 40px 32px;">
-                  <!-- Header -->
-                  <div style="text-align: center; margin-bottom: 32px;">
-                    <div style="font-size: 24px; font-weight: 700; color: #6B39E7; letter-spacing: -0.5px; margin-bottom: 8px;">TeamLabs</div>
-                    <div style="width: 40px; height: 2px; background: #6B39E7; margin: 0 auto;"></div>
-                  </div>
-                  
-                  <!-- Content -->
-                  <h1 style="color: #1F1F1F; font-size: 20px; font-weight: 600; margin: 0 0 16px 0; text-align: center;">Reset Your Password</h1>
-                  <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">Hello <strong style="color: #1F1F1F;">${username}</strong>,</p>
-                  <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 32px 0; text-align: center;">We received a request to reset your password. Click the button below to set a new password. This link is valid for 24 hours.</p>
-                  
-                  <!-- CTA Button -->
-                  <div style="text-align: center; margin-bottom: 32px;">
-                    <a href="${link}" style="display: inline-block; background: #6B39E7; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 15px; font-weight: 600;">Reset Password</a>
-                  </div>
-                  
-                  <!-- Security Notice -->
-                  <div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 32px;">
-                    <p style="color: #6b7280; font-size: 12px; line-height: 1.5; margin: 0; text-align: center;">If you did not request this, you can safely ignore this email. For security, this link will expire in 24 hours.</p>
-      </div>
-                  
-                  <!-- Footer -->
-                  <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-                    <p style="color: #9ca3af; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
-    </div>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-    </body>
-    </html>
-  `;
-
-  try {
-    await transporter.sendMail({
-      from: process.env.SMTP_USER,
-      to,
-      subject: 'Reset your TeamLabs password',
-      html
-    });
-    return true;
-  } catch (error) {
-    console.error('Error sending reset password email:', error);
-    return false;
-  }
-}
 
 // Helper to send email verification email
 async function sendEmailVerification(to, username, link) {
@@ -408,7 +342,7 @@ async function sendCommentMentionEmail(to, mentionTo, commentContent, taskName, 
 
   // Task type badge
   const typeBadge = `<span style="${badgeStyle}background:#fef3c7;color:#d97706;border-color:#fbbf24;">${taskType}</span>`;
-  
+
   // Priority badge
   let priorityBadge = '';
   if (priority) {
@@ -417,7 +351,7 @@ async function sendCommentMentionEmail(to, mentionTo, commentContent, taskName, 
     else if (priority === 'Low') { color = '#16a34a'; bg = '#dcfce7'; border = '#4ade80'; }
     priorityBadge = `<span style="${badgeStyle}background:${bg};color:${color};border-color:${border};">${priority}</span>`;
   }
-  
+
   // Status badge
   let statusBadge = '';
   if (status !== undefined && status !== null) {
@@ -521,14 +455,18 @@ async function sendCommentMentionEmail(to, mentionTo, commentContent, taskName, 
 }
 
 // Send invite email
-async function sendInviteEmail(to, inviteLink, inviterName) {
+async function sendInviteEmail(to, inviteLink, inviterName, orgName = 'their organization') {
+  const expiryDate = new Date();
+  expiryDate.setDate(expiryDate.getDate() + 7);
+  const expiryFormatted = expiryDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
   const html = `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>You're Invited to Join TeamLabs</title>
+      <title>You're Invited to Join ${orgName} on TeamLabs</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc;">
       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
@@ -546,17 +484,18 @@ async function sendInviteEmail(to, inviteLink, inviterName) {
                   <!-- Content -->
                   <h1 style="color: #1F1F1F; font-size: 20px; font-weight: 600; margin: 0 0 16px 0; text-align: center;">You're Invited to Join TeamLabs</h1>
                   <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">Hello,</p>
-                  <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 32px 0; text-align: center;"><strong style="color: #1F1F1F;">${inviterName}</strong> has invited you to join their organization on TeamLabs. Click the button below to register and join the team.</p>
+                  <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0; text-align: center;"><strong style="color: #1F1F1F;">${inviterName}</strong> has invited you to join <strong style="color: #6B39E7;">${orgName}</strong> on TeamLabs. Click the button below to register and join the team.</p>
+                  <p style="color: #dc2626; font-size: 13px; font-weight: 500; margin: 0 0 32px 0; text-align: center;">This invitation will expire on ${expiryFormatted}.</p>
                   
                   <!-- CTA Button -->
                   <div style="text-align: center; margin-bottom: 32px;">
-                    <a href="${inviteLink}" style="display: inline-block; background: #6B39E7; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 15px; font-weight: 600;">Accept Invite & Register</a>
+                    <a href="${inviteLink}" style="display: inline-block; background: #6B39E7; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 15px; font-weight: 600;">Accept Invite</a>
                   </div>
                   
                   <!-- Security Notice -->
                   <div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 32px;">
                     <p style="color: #6b7280; font-size: 12px; line-height: 1.5; margin: 0; text-align: center;">If you did not expect this invitation, you can safely ignore this email.</p>
-      </div>
+                  </div>
                   
                   <!-- Footer -->
                   <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">
@@ -571,14 +510,14 @@ async function sendInviteEmail(to, inviteLink, inviterName) {
     </body>
     </html>
   `;
-  
+
   try {
-  await transporter.sendMail({
-    from: process.env.SMTP_USER,
-    to,
-    subject: 'You are invited to join TeamLabs',
-    html
-  });
+    await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to,
+      subject: 'You are invited to join TeamLabs',
+      html
+    });
     return true;
   } catch (error) {
     console.error('Error sending invite email:', error);
@@ -673,8 +612,8 @@ async function sendContactConfirmation({ to, name, ticketNumber, title, descript
 
 // Send contact support notification email to support team
 async function sendContactNotification({ ticketNumber, title, description, name, email, attachments, taskId }) {
-  const attachmentsList = attachments && attachments.length > 0 ? 
-    attachments.map(att => `<li style="margin-bottom: 4px;">📎 ${att.originalName} (${(att.size / 1024 / 1024).toFixed(2)} MB)</li>`).join('') : 
+  const attachmentsList = attachments && attachments.length > 0 ?
+    attachments.map(att => `<li style="margin-bottom: 4px;">📎 ${att.originalName} (${(att.size / 1024 / 1024).toFixed(2)} MB)</li>`).join('') :
     '<li style="color: #9ca3af;">No attachments</li>';
 
   const html = `
@@ -868,8 +807,137 @@ const sendReleaseSummaryEmail = async (to, projectName, version, title, descript
   }
 };
 
+const sendProjectDeletionEmail = async (to, projectName, ownerName, reason) => {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Project Deleted: ${projectName}</title>
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; margin: 0; padding: 40px 0;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;">
+        <tr>
+          <!-- Header Banner -->
+          <td style="background: #ef4444; padding: 32px; text-align: center;">
+            <div style="font-size: 11px; font-weight: 700; color: #fee2e2; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Workspace Notification</div>
+            <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">Project Deleted</h1>
+            <div style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; margin-top: 10px; backdrop-filter: blur(4px);">${projectName}</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 32px;">
+            <p style="color: #334155; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+              Hello ${ownerName || 'Project Owner'},
+            </p>
+            <p style="color: #334155; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+              This is to confirm that the project <strong>${projectName}</strong> was deleted from your TeamLabs workspace. All task details, active sprint boards, and associated team resources have been cascadingly cleaned up.
+            </p>
+
+            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 24px;">
+              <h4 style="color: #1e293b; font-size: 13px; font-weight: 700; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">Reason for Deletion:</h4>
+              <p style="color: #64748b; font-size: 14px; line-height: 1.5; margin: 0; font-style: italic;">
+                "${reason || 'No deletion reason was specified.'}"
+              </p>
+            </div>
+
+            <p style="color: #334155; font-size: 14px; line-height: 1.6; margin: 0 0 32px 0;">
+              If this deletion was unintended or done by error, please contact your workspace administrator or reach out to our team by <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/?contact=true" style="color: #6B39E7; text-decoration: underline; font-weight: 600;">contacting support</a>.
+            </p>
+
+            <!-- Footer -->
+            <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f1f5f9; color: #94a3b8; font-size: 11px;">
+              <p style="margin: 0 0 6px 0;">This notification is sent to the Project Owner of the deleted project.</p>
+              <p style="margin: 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to,
+      subject: `[Notification] Project Deleted: ${projectName}`,
+      html
+    });
+    return true;
+  } catch (error) {
+    console.error('Error sending project deletion email:', error);
+    return false;
+  }
+};
+
+// Send passwordless sign-in verification code email
+async function sendSignInCode(to, username, code) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Sign in to TeamLabs</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 480px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+              <tr>
+                <td style="padding: 40px 32px;">
+                  <!-- Header -->
+                  <div style="text-align: center; margin-bottom: 32px;">
+                    <div style="font-size: 24px; font-weight: 700; color: #6B39E7; letter-spacing: -0.5px; margin-bottom: 8px;">TeamLabs</div>
+                    <div style="width: 40px; height: 2px; background: #6B39E7; margin: 0 auto;"></div>
+                  </div>
+                  
+                  <!-- Content -->
+                  <h1 style="color: #1F1F1F; font-size: 20px; font-weight: 600; margin: 0 0 16px 0; text-align: center;">Sign in with Verification Code</h1>
+                  <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">Hello <strong style="color: #1F1F1F;">${username}</strong>,</p>
+                  <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 32px 0; text-align: center;">Use the verification code below to sign in to your TeamLabs account. This code is valid for 10 minutes.</p>
+                  
+                  <!-- OTP Code Display -->
+                  <div style="text-align: center; margin-bottom: 32px;">
+                    <div style="display: inline-block; background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 32px; font-size: 32px; font-weight: 700; color: #1F1F1F; letter-spacing: 6px; font-family: monospace;">${code}</div>
+                  </div>
+                  
+                  <!-- Security Notice -->
+                  <div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 32px;">
+                    <p style="color: #6b7280; font-size: 12px; line-height: 1.5; margin: 0; text-align: center;">If you did not request this code, you can safely ignore this email. Someone may have entered your email address by mistake.</p>
+                  </div>
+                  
+                  <!-- Footer -->
+                  <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                    <p style="color: #9ca3af; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to,
+      subject: `Your TeamLabs Sign In code: ${code}`,
+      html
+    });
+    return true;
+  } catch (error) {
+    console.error('Error sending sign-in code email:', error);
+    return false;
+  }
+}
+
 module.exports = {
-  sendResetEmail,
   sendEmailVerification,
   sendTaskAssignmentEmail,
   sendCommentMentionEmail,
@@ -877,9 +945,13 @@ module.exports = {
   sendContactConfirmation,
   sendContactNotification,
   sendReleaseSummaryEmail,
+  sendProjectDeletionEmail,
+  sendSignInCode,
   emailService: {
     sendContactConfirmation,
     sendContactNotification,
-    sendReleaseSummaryEmail
+    sendReleaseSummaryEmail,
+    sendProjectDeletionEmail,
+    sendSignInCode
   }
-}; 
+};

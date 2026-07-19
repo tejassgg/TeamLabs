@@ -9,7 +9,7 @@ import { useGlobal } from '../../context/GlobalContext';
 import { useToast } from '../../context/ToastContext';
 import TooltipPortal from '../shared/TooltipPortal';
 import Link from 'next/link';
-import FirstTimeSetup from '../shared/FirstTimeSetup';
+
 import ChatBot from '../shared/ChatBot';
 import DynamicBreadcrumb from '../shared/DynamicBreadcrumb';
 import { useThemeClasses } from '../shared/hooks/useThemeClasses';
@@ -321,7 +321,14 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                             : (theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-gray-100')}`}
                           onClick={() => handleNavigation(`/project/${projectId}`)}
                         >
-                          {projectName}
+                          <span className="flex items-center justify-between">
+                            <span className="truncate">{projectName}</span>
+                            {project.isArchived && (
+                              <span className="text-[9px] opacity-60 ml-1.5 font-normal uppercase tracking-wider flex-shrink-0">
+                                (Archived)
+                              </span>
+                            )}
+                          </span>
                         </button>
                       </li>
                     );
@@ -394,7 +401,7 @@ const isProfileComplete = (userDetails) => {
   }
   // Adjust these fields as per your required profile fields
   const requiredFields = [
-    'phone', 'address', 'city', 'state', 'country', 'firstName', 'lastName', 'email'
+    'firstName', 'lastName', 'email'
   ];
   const result = requiredFields.every(field => {
     const hasField = userDetails[field] && userDetails[field].toString().trim() !== '';
@@ -415,7 +422,6 @@ const Layout = ({ children, pageProject, pageTitle }) => {
   const { showToast } = useToast();
   const router = useRouter();
   const { teams, projects, tasksDetails, userDetails, loading, setProjects, setTasksDetails } = useGlobal();
-  const [showFirstTimeSetup, setShowFirstTimeSetup] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
@@ -485,7 +491,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
       const taskId = query.taskId;
       const task = tasksDetails.find(t => t.TaskID === taskId || t._id === taskId);
       if (task) {
-        return task.TicketNumber ? `${task.TicketNumber} - ${task.Name}` : task.Name;
+        return (task.TaskNumber || task.TicketNumber) ? `${task.TaskNumber || task.TicketNumber} - ${task.Name}` : task.Name;
       }
       return 'Task Details';
     }
@@ -681,22 +687,15 @@ const Layout = ({ children, pageProject, pageTitle }) => {
 
   // Check if first time setup is needed
   useEffect(() => {
-    if (isRedirecting) return; // Prevent redirect loops
-    // Never redirect away from /profile or /welcome for onboarding
+    // Never redirect away from /dashboard, /profile, /logout or /welcome for onboarding
     if (
       userDetails &&
       !userDetails.onboardingCompleted &&
-      !['/', '/profile'].includes(router.pathname)
+      !['/dashboard', '/profile', '/logout'].includes(router.pathname)
     ) {
-      // console.log('Show onboarding modal due to incomplete onboarding:', {
-      //   onboardingCompleted: userDetails.onboardingCompleted,
-      //   onboardingStep: userDetails.onboardingStep,
-      //   currentPath: router.pathname
-      // });
-      setIsRedirecting(true);
-      setShowFirstTimeSetup(true);
+      router.push('/dashboard');
     }
-  }, [userDetails, router.pathname, router, isRedirecting]);
+  }, [userDetails, router.pathname, router]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -831,11 +830,6 @@ const Layout = ({ children, pageProject, pageTitle }) => {
         ></div>
       )}
 
-      {/* First Time Setup Modal */}
-      <FirstTimeSetup
-        isOpen={showFirstTimeSetup}
-        onComplete={() => setShowFirstTimeSetup(false)}
-      />
 
       {/* Organization Search Modal */}
       <SearchModal

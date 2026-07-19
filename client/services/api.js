@@ -39,25 +39,7 @@ const publicApi = axios.create({
 
 // Authentication services
 export const authService = {
-  // Login with username/email and password
-  login: async (usernameOrEmail, password) => {
-    try {
-      usernameOrEmail = usernameOrEmail.toLowerCase();
-      const response = await api.post('/auth/login', { usernameOrEmail, password });
-      // Don't set token or user data yet if 2FA is required
-      if (response.data.twoFactorEnabled) {
-        return {
-          twoFactorEnabled: response.data.twoFactorEnabled,
-          userId: response.data.userId
-        };
-      }
 
-      return response.data;
-    } catch (error) {
-      if (env == 'DEV') console.log(error);
-      throw error.response?.data || { message: 'An error occurred during login' };
-    }
-  },
 
   // Verify 2FA code during login - using publicApi to avoid token requirement
   verifyLogin2FA: async (code, userId) => {
@@ -112,6 +94,28 @@ export const authService = {
     } catch (error) {
       if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'An error occurred during Google login' };
+    }
+  },
+
+  // Request verification code for sign in
+  requestSignInCode: async (email) => {
+    try {
+      const response = await api.post('/auth/signin-code/request', { email });
+      return response.data;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to request sign-in code' };
+    }
+  },
+
+  // Verify sign in code
+  verifySignInCode: async (email, code) => {
+    try {
+      const response = await api.post('/auth/signin-code/verify', { email, code });
+      return response.data;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to verify sign-in code' };
     }
   },
 
@@ -249,36 +253,6 @@ export const authService = {
     } catch (error) {
       if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to update user status' };
-    }
-  },
-
-  forgotPassword: async (usernameOrEmail) => {
-    try {
-      const response = await api.post('/auth/forgot-password', { usernameOrEmail });
-      return response.data;
-    } catch (error) {
-      if (env == 'DEV') console.log(error);
-      throw error.response?.data || { message: 'Failed to send reset link' };
-    }
-  },
-
-  resetPassword: async (token, newPassword) => {
-    try {
-      const response = await api.post('/auth/reset-password', { token, newPassword });
-      return response;
-    } catch (error) {
-      if (env == 'DEV') console.log(error);
-      throw error.response?.data || { message: 'Failed to reset password' };
-    }
-  },
-
-  verifyResetPassword: async (token) => {
-    try {
-      const response = await api.post('/auth/verify-reset-password', { token });
-      return response;
-    } catch (error) {
-      if (env == 'DEV') console.log(error);
-      throw error.response?.data || { message: 'Failed to verify reset password' };
     }
   },
   getUserOverview: async () => {
@@ -694,6 +668,24 @@ export const projectService = {
       if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch project details' };
     }
+  },
+  deleteProject: async (projectId, reason) => {
+    try {
+      const response = await api.delete(`/projects/${projectId}`, { data: { reason } });
+      return response.data;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to delete project' };
+    }
+  },
+  archiveProject: async (projectId, isArchived) => {
+    try {
+      const response = await api.patch(`/projects/${projectId}/archive`, { isArchived });
+      return response.data;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to archive project' };
+    }
   }
 };
 
@@ -701,7 +693,7 @@ export const taskService = {
   getNextTaskNumber: async () => {
     try {
       const response = await api.get('/task-details/next-number');
-      return response.data.nextTicketNumber;
+      return response.data.nextTaskNumber || response.data.nextTicketNumber;
     } catch (error) {
       if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch next task number' };
@@ -1667,6 +1659,26 @@ export const searchService = {
       if (process.env.NODE_ENV === 'development') console.log(error);
       throw error.response?.data || { message: 'Failed to search data' };
     }
+  }
+};
+
+
+export const notificationInboxService = {
+  getNotifications: async () => {
+    const res = await api.get('/notifications');
+    return res.data;
+  },
+  markAsRead: async (notificationIds = null) => {
+    const res = await api.patch('/notifications/read', { notificationIds });
+    return res.data;
+  },
+  subscribeWebPush: async (subscription) => {
+    const res = await api.post('/notifications/subscribe', { subscription });
+    return res.data;
+  },
+  getVapidPublicKey: async () => {
+    const res = await api.get('/notifications/vapid-public-key');
+    return res.data;
   }
 };
 

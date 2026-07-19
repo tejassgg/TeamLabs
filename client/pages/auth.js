@@ -2,8 +2,6 @@ import { useTheme } from '../context/ThemeContext';
 import Head from 'next/head';
 import RegisterForm from '../components/auth/RegisterForm';
 import LoginForm from '../components/auth/LoginForm';
-import ResetPasswordForm from '../components/auth/ResetPasswordModal';
-import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
 import { useGlobal } from '../context/GlobalContext';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -16,9 +14,6 @@ const Auth = () => {
   const { loading, isAuthenticated } = useGlobal();
   const router = useRouter();
   const [showLogin, setShowLogin] = useState(false);
-  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
-  const [resetKey, setResetKey] = useState(null);
-  const [showResetPassword, setShowResetPassword] = useState(false);
   const [verifyToken, setVerifyToken] = useState(null);
   const [showVerify, setShowVerify] = useState(false);
   const [verifyError, setVerifyError] = useState('');
@@ -30,45 +25,33 @@ const Auth = () => {
     }
   }, [isAuthenticated, loading, router]);
 
-  // Check for reset, verify, or invite key in URL
+  // Check for verify or invite key in URL
   useEffect(() => {
     if (router.isReady) {
       const { invite, type, token } = router.query;
-      if (type === 'reset' && token) {
-        setResetKey(token);
-        setShowResetPassword(true);
-        setShowLogin(false);
-        setShowVerify(false);
-        setVerifyToken(null);
-      } else if (type === 'verify' && token) {
+      if (type === 'verify' && token) {
         setVerifyToken(token);
         setShowVerify(true);
-        setShowResetPassword(false);
         setShowLogin(false);
         setVerifyError('');
       } else if (invite) {
-        setResetKey(invite);
-        setShowForgotPasswordModal(true);
-        setShowLogin(true);
+        setShowLogin(false);
         setShowVerify(false);
         setVerifyToken(null);
       } else if (type === 'login') {
         setShowLogin(true);
         setShowVerify(false);
         setVerifyToken(null);
-        setShowResetPassword(false);
       } else {
         setShowLogin(false);
         setShowVerify(false);
         setVerifyToken(null);
-        setShowResetPassword(false);
       }
     }
   }, [router.isReady, router.query]);
 
   const openLogin = () => {
     setShowLogin(true);
-    setShowResetPassword(false);
     router.push('/auth?type=login');
   };
 
@@ -98,9 +81,7 @@ const Auth = () => {
         <div className={`relative w-full max-w-2xl px-4 sm:px-6 lg:px-8 z-10`}>
           <div className={`rounded-xl overflow-hidden shadow-lg p-4 sm:p-6 lg:p-8 transition-all duration-700 ease-in-out transform ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
             <div className="relative overflow-hidden">
-              {showResetPassword ? (
-                <ResetPasswordForm token={resetKey} />
-              ) : showVerify ? (
+              {showVerify ? (
                 <div className="space-y-6">
                   {/* Header Section */}
                   <div className="text-left mb-6 w-full">
@@ -138,11 +119,9 @@ const Auth = () => {
                               router.replace('/auth?type=login');
                             } else {
                               const data = res.data;
-                              // setVerifyError(data?.message || 'Verification failed');
                               showToast(data?.message || 'Verification failed', 'error');
                             }
                           } catch (e) {
-                            // setVerifyError(e?.message || 'Verification failed');
                             showToast(e?.message || 'Verification failed', 'error');
                           }
                         }}
@@ -200,7 +179,7 @@ const Auth = () => {
                     </button>
                   </div>
 
-                  <div className="relative">
+                  <div className="relative h-[440px] sm:h-[380px]">
                     <div className={`transition-all duration-500 ease-in-out transform absolute inset-0 ${
                       showLogin 
                         ? 'translate-x-0 opacity-100' 
@@ -209,10 +188,9 @@ const Auth = () => {
                       <LoginForm 
                         onSuccess={() => router.push('/dashboard')} 
                         onOpenRegister={openRegister}
-                        onOpenForgotPassword={() => setShowForgotPasswordModal(true)}
                       />
                     </div>
-                    <div className={`transition-all duration-500 ease-in-out transform ${
+                    <div className={`transition-all duration-500 ease-in-out transform absolute inset-0 ${
                       showLogin 
                         ? 'translate-x-full opacity-0 pointer-events-none' 
                         : 'translate-x-0 opacity-100'
@@ -226,17 +204,6 @@ const Auth = () => {
           </div>
         </div>
       </div>
-
-
-      {/* Forgot Password Modal */}
-      <ForgotPasswordModal 
-        isOpen={showForgotPasswordModal}
-        onClose={() => {
-          setShowForgotPasswordModal(false);
-          setResetKey(null);
-        }}
-        resetKey={resetKey}
-      />
 
       <style jsx global>{`
         @keyframes blob {
@@ -271,5 +238,3 @@ const Auth = () => {
 Auth.displayName = 'Auth';
 
 export default Auth;
-
-

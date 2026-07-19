@@ -36,6 +36,9 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
   const [selectedUserStory, setSelectedUserStory] = useState(selectedUserStoryProp ?? 'all');
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const getThemeClasses = useThemeClasses();
+  
+  const projectDetails = projects.find(p => (p.ProjectID || p._id) === selectedProject);
+  const isProjectArchived = projectDetails?.isArchived || false;
 
   // Initialize with first project when projects are loaded
   useEffect(() => {
@@ -379,7 +382,7 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
                 const statusStyle = statusColors[status];
                 const isLast = index === arr.length - 1;
                 // Only for Not Assigned column (status 1), pass the Add New Task button as a prop
-                const addTaskButton = status === 1 ? (
+                const addTaskButton = (status === 1 && !isProjectArchived) ? (
                   <div className="mt-2">
                     <button
                       className="w-full flex items-center justify-center gap-2 px-4 py-4 border border-gray-200 rounded-lg text-gray-500 font-semibold text-base transition hover:bg-gray-50/50 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"

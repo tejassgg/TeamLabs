@@ -27,6 +27,10 @@ const ProjectSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  isArchived: {
+    type: Boolean,
+    default: false
+  },
   ProjectStatusID: {
     type: Number,
     default: 1 // Default to 'Not Assigned'

@@ -60,6 +60,14 @@ const TaskDetailsHistorySchema = new mongoose.Schema({
   HistoryDate: {
     type: Date,
     default: Date.now
+  },
+  TaskNumber: {
+    type: String,
+    default: null
+  },
+  TicketNumber: {
+    type: String,
+    default: null
   }
 });
 

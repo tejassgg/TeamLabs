@@ -102,6 +102,9 @@ export function connectSocket() {
   socket.on('call.screen-share.stopped', (payload) => dispatch('call.screen-share.stopped', payload));
   socket.on('chat.messages.read', (payload) => dispatch('chat.messages.read', payload));
 
+  // Phase 9: notification inbox
+  socket.on('notification:new', (payload) => dispatch('notification:new', payload));
+
   // Call events
   socket.on('call.incoming', (payload) => dispatch('call.incoming', payload));
   socket.on('call.answered', (payload) => dispatch('call.answered', payload));

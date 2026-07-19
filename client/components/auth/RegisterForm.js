@@ -2,8 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { FcGoogle } from 'react-icons/fc';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
@@ -20,8 +18,6 @@ const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
   const router = useRouter();
   const inviteToken = (router?.query?.inviteToken || router?.query?.invite || null);
   const [step, setStep] = useState(1);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState(null);
   const [roleOptions, setRoleOptions] = useState([]);
@@ -52,16 +48,7 @@ const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
   }, [isVisible]);
 
   // Use a single form with real-time validation
-  const { register, handleSubmit, watch, trigger, formState: { errors } } = useForm({ mode: 'onChange' });
-  const password = watch('password');
-  const confirmPassword = watch('confirmPassword');
-
-  // Re-validate confirm password whenever password changes
-  useEffect(() => {
-    if (password) {
-      trigger('confirmPassword');
-    }
-  }, [password, confirmPassword, trigger]);
+  const { register, handleSubmit, formState: { errors } } = useForm({ mode: 'onChange' });
 
   const onSubmit = async (data) => {
     setIsLoading(true);
@@ -201,74 +188,7 @@ const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
             {/* Phone and address removed as per request */}
           </>
         )}
-        {true && (
-          <>
-            <div className="grid grid-cols-1 gap-3 sm:gap-4">
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>Password <span className="text-red-500">*</span></label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Create a password"
-                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
-                      ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
-                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
-                      }`}
-                    {...register("password", {
-                      required: "Password is required",
-                      minLength: {
-                        value: 6,
-                        message: "Password must be at least 6 characters"
-                      }
-                    })}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'
-                      }`}
-                  >
-                    {showPassword ? <FaEyeSlash className="text-sm sm:text-base" /> : <FaEye className="text-sm sm:text-base" />}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
-                    }`}>{errors.password.message}</p>
-                )}
-              </div>
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>Confirm Password <span className="text-red-500">*</span></label>
-                <div className="relative">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm your password"
-                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
-                      ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
-                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
-                      }`}
-                    {...register("confirmPassword", {
-                      required: "Please confirm your password",
-                      validate: value => value === password || "Passwords do not match"
-                    })}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'
-                      }`}
-                  >
-                    {showConfirmPassword ? <FaEyeSlash className="text-sm sm:text-base" /> : <FaEye className="text-sm sm:text-base" />}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
-                    }`}>{errors.confirmPassword.message}</p>
-                )}
-              </div>
-            </div>
-            <div className="mt-6 flex flex-col items-center gap-4">
+        <div className="mt-6 flex flex-col items-center gap-4">
               <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3">
                 <GoogleLogin
                   onSuccess={handleGoogleLoginSuccess}
@@ -300,9 +220,7 @@ const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
                 )}
               </div>
             </div>
-          </>
-        )}
-      </form>
+          </form>
       {/* Footer Google block removed; combined into button row above */}
     </div>
   );

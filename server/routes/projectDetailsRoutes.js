@@ -12,12 +12,17 @@ const { logActivity, getProjectActivities } = require('../services/activityServi
 const { protect } = require('../middleware/auth');
 
 // GET /api/project-details/:projectId - Get all teams for a project
-router.get('/:projectId', async (req, res) => {
+router.get('/:projectId', protect, async (req, res) => {
   try {
     const projectId = req.params.projectId;
     // Fetch project info
     const project = await Project.findOne({ ProjectID: projectId });
     if (!project) return res.status(404).json({ error: 'Project not found' });
+
+    // Check if archived and user is not owner
+    if (project.isArchived && project.ProjectOwner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Forbidden: This project is archived and can only be viewed by the owner.' });
+    }
     // Fetch teams assigned to project
     const projectDetails = await ProjectDetails.find({ ProjectID: projectId, IsActive: true });
 
@@ -220,9 +225,18 @@ router.get('/:projectId', async (req, res) => {
 });
 
 // GET /api/project-details/:projectId/activities - Get paginated activities for a project
-router.get('/:projectId/activities', async (req, res) => {
+router.get('/:projectId/activities', protect, async (req, res) => {
   try {
     const projectId = req.params.projectId;
+
+    // Fetch project info to verify archiving & ownership
+    const project = await Project.findOne({ ProjectID: projectId });
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+
+    if (project.isArchived && project.ProjectOwner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Forbidden: This project is archived and can only be viewed by the owner.' });
+    }
+
     const limit = parseInt(req.query.limit) || 20;
     const skip = parseInt(req.query.skip) || 0;
 

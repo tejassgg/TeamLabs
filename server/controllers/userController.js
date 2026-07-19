@@ -84,7 +84,7 @@ exports.updateUser = async (req, res) => {
 // New: Get all user overview data in one API
 exports.getUserOverview = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).lean().select('-password -googleId');
+    const user = await User.findById(req.user.id).lean().select('-googleId');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     // Teams: user is owner or member
@@ -110,16 +110,19 @@ exports.getUserOverview = async (req, res) => {
       OrganizationID: user.organizationID,
       $or: [
         { ProjectOwner: user._id },
-        { ProjectID: { $in: assignedProjectIds } }
+        {
+          ProjectID: { $in: assignedProjectIds },
+          isArchived: { $ne: true }
+        }
       ]
     }).lean();
 
     // Get unique member counts for each project
     const projectMemberCounts = await Promise.all(projects.map(async (project) => {
       // Get all teams associated with this project
-      const projectTeams = await ProjectDetails.find({ 
+      const projectTeams = await ProjectDetails.find({
         ProjectID: project.ProjectID || project._id,
-        IsActive: true 
+        IsActive: true
       }).distinct('TeamID');
 
       // Get unique members across all project teams
@@ -130,7 +133,7 @@ exports.getUserOverview = async (req, res) => {
 
       // Add project owner if not already included
       const projectOwner = project.ProjectOwner?.toString();
-      const uniqueMembers = projectOwner ? 
+      const uniqueMembers = projectOwner ?
         [...new Set([...uniqueTeamMembers.map(id => id.toString()), projectOwner])] :
         uniqueTeamMembers;
 
@@ -140,11 +143,11 @@ exports.getUserOverview = async (req, res) => {
       };
     }));
 
-    
+
 
     // Add unique member counts to projects
     projects.forEach(project => {
-      const memberData = projectMemberCounts.find(p => 
+      const memberData = projectMemberCounts.find(p =>
         p.projectId.toString() === (project.ProjectID || project._id).toString()
       );
       project.memberCount = memberData ? memberData.memberCount : 0;
@@ -302,7 +305,7 @@ exports.inviteUser = async (req, res) => {
     if (existingUser) {
       // Check if user is already in the same organization
       if (existingUser.organizationID === organizationID) {
-        return res.status(409).json({ 
+        return res.status(409).json({
           message: 'User already exists in this organization',
           user: {
             _id: existingUser._id,
@@ -312,7 +315,7 @@ exports.inviteUser = async (req, res) => {
           }
         });
       } else {
-        return res.status(409).json({ 
+        return res.status(409).json({
           message: 'User already exists in another organization',
           user: {
             _id: existingUser._id,
@@ -335,18 +338,30 @@ exports.inviteUser = async (req, res) => {
 
     // Generate token
     const token = crypto.randomBytes(32).toString('hex');
-    const invite = await Invite.create({ 
-      email: email.toLowerCase(), 
-      organizationID, 
-      inviter, 
-      token 
+    const invite = await Invite.create({
+      email: email.toLowerCase(),
+      organizationID,
+      inviter,
+      token
     });
 
     // Send invite email
     const inviteLink = `${process.env.FRONTEND_URL}/auth?invite=${token}`;
-    await emailService.sendInviteEmail(email, inviteLink, req.user.firstName || 'A TeamLabs Admin');
+    const organization = await Organization.findOne({ OrganizationID: organizationID });
+    await emailService.sendInviteEmail(email, inviteLink, req.user.firstName || 'A TeamLabs Admin', organization.Name);
 
-    res.status(201).json({ success: true, message: 'Invite sent', invite });
+    const safeInvite = {
+      _id: invite._id,
+      email: invite.email,
+      status: invite.status,
+      expiredAt: invite.expiredAt,
+      invitedAt: invite.invitedAt,
+      inviter: {
+        firstName: req.user.firstName,
+        lastName: req.user.lastName
+      }
+    };
+    res.status(201).json({ success: true, message: 'Invite sent', invite: safeInvite });
   } catch (err) {
     console.error('Invite error:', err);
     res.status(500).json({ success: false, message: 'Failed to send invite' });

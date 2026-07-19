@@ -1,32 +1,91 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { FaEye, FaEyeSlash, FaUndo } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
 import { useGlobal } from '../../context/GlobalContext';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GoogleLogin } from '@react-oauth/google';
 import { useToast } from '../../context/ToastContext';
 import { useTheme } from '../../context/ThemeContext';
-import ForgotPasswordModal from './ForgotPasswordModal';
+import { IoMdRefresh } from "react-icons/io";
 
-const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
+const LoginForm = ({ onSuccess, onOpenRegister }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [show2FA, setShow2FA] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
-  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
-  const { login, verifyLogin2FA, googleLogin, resendVerification } = useGlobal();
+  const { verifyLogin2FA, googleLogin, requestSignInCode, verifySignInCode } = useGlobal();
   const router = useRouter();
-  const { register, handleSubmit, formState: { errors } } = useForm();
   const { showToast } = useToast();
   const { theme } = useTheme();
 
-  const onSubmit = async (data) => {
+  // Code Login States
+  const [otpStep, setOtpStep] = useState('request'); // 'request' or 'verify'
+  const [otpEmail, setOtpEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [countdown, setCountdown] = useState(0);
+
+  // Countdown timer for resending verification code
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
+
+  const handleRequestCode = async (e) => {
+    e.preventDefault();
+    if (!otpEmail) {
+      setError('Email address is required');
+      return;
+    }
     setIsLoading(true);
     setError('');
     try {
-      const result = await login(data.usernameOrEmail, data.password);
+      const result = await requestSignInCode(otpEmail);
+      if (result.success) {
+        setOtpStep('verify');
+        setCountdown(60);
+        showToast('Verification code sent!', 'success');
+      } else {
+        setError(result.message);
+        showToast(result.message, 'error');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to send verification code');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (countdown > 0) return;
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await requestSignInCode(otpEmail);
+      if (result.success) {
+        setCountdown(60);
+        showToast('New verification code sent!', 'success');
+      } else {
+        setError(result.message);
+        showToast(result.message, 'error');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to send verification code');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    if (!otpCode || otpCode.length !== 6) {
+      setError('Please enter a valid 6-digit code');
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await verifySignInCode(otpEmail, otpCode);
       if (result.success) {
         if (result.twoFactorEnabled) {
           setShow2FA(true);
@@ -35,12 +94,11 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
           if (onSuccess) onSuccess();
         }
       } else {
-        showToast(result.message, 'error');
         setError(result.message);
+        showToast(result.message, 'error');
       }
-
     } catch (err) {
-      setError('An error occurred during login');
+      setError(err.message || 'Failed to verify verification code');
     } finally {
       setIsLoading(false);
     }
@@ -134,138 +192,140 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
   return (
     <div className="space-y-6">
       {error && (
-        <div className={`flex items-center justify-between border px-4 py-3 rounded-xl text-sm ${theme === 'dark' ? 'bg-red-900/20 border-red-700 text-red-300' : 'bg-red-50 border-red-200 text-red-600'}`}>
-          <div>{error}</div>
-          {error?.toLowerCase?.().includes('verify your email') && (
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  const identifier = document.querySelector('input[name="usernameOrEmail"]').value;
-                  const res = await resendVerification(identifier);
-                  showToast(res?.message || 'Verification email sent', 'success');
-                } catch (e) {
-                  showToast(e?.message || 'Failed to resend email', 'error');
-                }
-              }}
-              className={`flex items-center text-sm font-medium ${theme === 'dark' ? 'text-blue-100 hover:text-blue-700' : 'text-blue-500 hover:text-blue-800'}`}
-            >
-              Resend <FaUndo className="text-xs ml-1 rotate-45" />
-            </button>
-          )}
+        <div className={`border px-4 py-3 rounded-xl text-sm ${theme === 'dark' ? 'bg-red-900/20 border-red-700 text-red-300' : 'bg-red-50 border-red-200 text-red-600'}`}>
+          {error}
         </div>
       )}
 
-      {/* Header Section */}
-      <div className="mb-6 w-full">
-        <div className="text-left">
-          <h1 className={`text-3xl lg:text-5xl font-bold mb-2 sm:mb-4 w-full ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-            Welcome <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Back</span>
-          </h1>
-          <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-            Sign in to your account to continue
-          </p>
-          <div className="mt-3 sm:mt-4 flex flex-wrap gap-2 sm:gap-4 justify-start">
-            <div className={`flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg ${theme === 'dark'
-              ? 'bg-blue-900/30 text-blue-300 border border-blue-700'
-              : 'bg-blue-100 text-blue-800 border border-blue-200'
-              }`}>
-              <span className="text-xs sm:text-sm font-medium">✓ Secure Sign In</span>
-            </div>
-            <div className={`flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg ${theme === 'dark'
-              ? 'bg-green-900/30 text-green-300 border border-green-700'
-              : 'bg-green-100 text-green-800 border border-green-200'
-              }`}>
-              <span className="text-xs sm:text-sm font-medium">✓ Quick Access</span>
+      {otpStep === 'request' ? (
+        <>
+          {/* Header Section */}
+          <div className="mb-6 w-full">
+            <div className="text-left">
+              <h1 className={`text-3xl lg:text-5xl font-bold mb-2 sm:mb-4 w-full ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                Sign In with <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Code</span>
+              </h1>
+              <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                Enter your email address to receive a secure login code
+              </p>
             </div>
           </div>
-        </div>
-      </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Username or Email Address</label>
-          <input
-            type="text"
-            placeholder="Enter your username or email"
-            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base ${theme === 'dark' ? 'bg-transparent border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
-            {...register("usernameOrEmail", {
-              required: "Username or email is required"
-            })}
-          />
-          {errors.usernameOrEmail && (
-            <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>{errors.usernameOrEmail.message}</p>
-          )}
-        </div>
+          <form onSubmit={handleRequestCode} className="space-y-5">
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Email Address</label>
+              <input
+                type="email"
+                placeholder="name@company.com"
+                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base ${theme === 'dark' ? 'bg-transparent border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
+                value={otpEmail}
+                onChange={(e) => setOtpEmail(e.target.value)}
+                required
+              />
+            </div>
 
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Password</label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Enter your password"
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base ${theme === 'dark' ? 'bg-transparent border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
-              {...register("password", {
-                required: "Password is required",
-                minLength: {
-                  value: 6,
-                  message: "Password must be at least 6 characters"
-                }
-              })}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 ${theme === 'dark' ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
-            >
-              {showPassword ? <FaEyeSlash className="text-sm sm:text-base" /> : <FaEye className="text-sm sm:text-base" />}
-            </button>
+            <div className="mt-6 flex flex-col items-center gap-4">
+              <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3">
+                <GoogleLogin
+                  onSuccess={handleGoogleLoginSuccess}
+                  onError={handleGoogleLoginError}
+                  theme="outline"
+                  shape="rectangular"
+                />
+                <span className={`text-sm sm:mx-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>or</span>
+                <button
+                  type="submit"
+                  disabled={isLoading || !otpEmail}
+                  className={`w-auto py-1 sm:py-2 px-8 sm:px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 text-white hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {isLoading ? 'Sending...' : 'Send Code'}
+                </button>
+              </div>
+            </div>
+          </form>
+        </>
+      ) : (
+        <>
+          {/* Header Section */}
+          <div className="mb-6 w-full">
+            <div className="text-left">
+              <h1 className={`text-2xl lg:text-4xl font-bold mb-2 sm:mb-4 w-full ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                Verify <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Your Code</span>
+              </h1>
+              <p className={`text-sm sm:text-base md:text-md ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                We sent a 6-digit verification code to <span className="font-semibold text-blue-500">{otpEmail}</span>
+              </p>
+            </div>
           </div>
-          {errors.password && (
-            <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>{errors.password.message}</p>
-          )}
-        </div>
 
-        <div className="flex flex-row items-center justify-between gap-2">
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="remember"
-              className={`h-4 w-4 focus:ring-blue-500 border-gray-300 rounded ${theme === 'dark' ? 'bg-gray-900 text-blue-400 border-gray-700' : 'bg-white text-blue-500 border-gray-300'}`}
-              {...register("remember")}
-            />
-            <label htmlFor="remember" className={`ml-2 block text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-              Remember me
-            </label>
-          </div>
-          <button
-            type="button"
-            onClick={() => onOpenForgotPassword ? onOpenForgotPassword() : setShowForgotPasswordModal(true)}
-            className={`text-sm transition-colors duration-200 ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-600'}`}
-          >
-            Forgot password?
-          </button>
-        </div>
-        <div className="mt-2 flex flex-col items-center gap-4">
-          <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3">
-            <GoogleLogin
-              onSuccess={handleGoogleLoginSuccess}
-              onError={handleGoogleLoginError}
-              theme={theme === 'dark' ? 'filled_black' : 'outline'}
-            />
-            <span className={`text-sm sm:mx-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>or</span>
-            <button
-              type="submit"
-              className={`w-auto py-1 sm:py-2 px-8 sm:px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 text-white hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'}`}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </button>
-          </div>
-        </div>
-      </form>
+          <form onSubmit={handleVerifyCode} className="space-y-6">
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Verification Code</label>
+              <input
+                type="text"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="••••••"
+                className={`w-full px-2 py-1.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-center tracking-[0.5em] text-2xl font-mono font-bold ${theme === 'dark' ? 'bg-transparent border-gray-700 text-white placeholder-gray-600' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
+                maxLength={6}
+                required
+              />
+            </div>
 
-      <div className="text-center mt-4 sm:mt-6">
+            <div className="flex items-center justify-between text-sm">
+              <button
+                type="button"
+                onClick={() => {
+                  setOtpStep('request');
+                  setOtpCode('');
+                  setError('');
+                }}
+                className={`font-semibold hover:underline ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'}`}
+              >
+                Change Email
+              </button>
+
+              {countdown > 0 ? (
+                <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>
+                  Resend code in <strong className="text-blue-500">{countdown}s</strong>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  className={`font-semibold hover:underline flex items-center ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}
+                >
+                  Resend code <IoMdRefresh size={14} />
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setOtpStep('request');
+                  setOtpCode('');
+                  setError('');
+                }}
+                className={`w-1/2 py-2.5 px-3 rounded-lg sm:rounded-xl font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700 text-gray-200 focus:ring-gray-600' : 'bg-gray-100 hover:bg-gray-200 text-gray-800 focus:ring-gray-500'}`}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading || otpCode.length !== 6}
+                className={`w-1/2 py-2.5 px-3 rounded-lg sm:rounded-xl font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-white ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'} disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {isLoading ? 'Verifying...' : 'Verify & Sign In'}
+              </button>
+            </div>
+          </form>
+        </>
+      )}
+
+      {/* Navigation Switcher */}
+      <div className="text-center mt-4 sm:mt-6 border-t pt-4 border-gray-100 dark:border-gray-700/50">
         <span className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Don't have an account? </span>
         {onOpenRegister ? (
           <button
@@ -279,14 +339,8 @@ const LoginForm = ({ onSuccess, onOpenRegister, onOpenForgotPassword }) => {
           <Link href="/auth" className={`font-bold hover:underline text-sm sm:text-base ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}>Sign Up</Link>
         )}
       </div>
-
-      {/* Forgot Password Modal */}
-      <ForgotPasswordModal
-        isOpen={showForgotPasswordModal}
-        onClose={() => setShowForgotPasswordModal(false)}
-      />
     </div>
   );
 };
 
-export default LoginForm; 
+export default LoginForm;

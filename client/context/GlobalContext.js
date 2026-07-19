@@ -22,7 +22,7 @@ export const GlobalProvider = ({ children }) => {
   const router = useRouter();
   const [userDetails, setUserDetails] = useState(null);
   const [isLoggedInState, setIsLoggedInState] = useState(false);
-  
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setIsLoggedInState(localStorage.getItem('isLoggedIn') === 'true');
@@ -132,36 +132,6 @@ export const GlobalProvider = ({ children }) => {
     return calculateDeadlineText(dueDate);
   };
 
-  // Login with email and password
-  const login = async (email, password) => {
-    try {
-      const data = await authService.login(email, password);
-      if (data.twoFactorEnabled) {
-        // Store temporary auth data for 2FA verification
-        setTempAuthData({
-          userId: data.userId
-        });
-        
-        return { 
-          success: true, 
-          twoFactorEnabled: true 
-        };
-      }
-      setUserDetails(data);
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
-      localStorage.setItem('isLoggedIn', 'true');
-      setIsLoggedInState(true);
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message || 'Failed to login',
-      };
-    }
-  };
-
   // Verify 2FA during login
   const verifyLogin2FA = async (code) => {
     try {
@@ -218,7 +188,7 @@ export const GlobalProvider = ({ children }) => {
       }
       localStorage.setItem('isLoggedIn', 'true');
       setIsLoggedInState(true);
-      return { 
+      return {
         success: true,
         needsAdditionalDetails: data.needsAdditionalDetails || false
       };
@@ -226,6 +196,48 @@ export const GlobalProvider = ({ children }) => {
       return {
         success: false,
         message: error.message || 'Failed to login with Google',
+      };
+    }
+  };
+
+  // Request sign in code
+  const requestSignInCode = async (email) => {
+    try {
+      const data = await authService.requestSignInCode(email);
+      return { success: true, message: data?.message };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to send verification code',
+      };
+    }
+  };
+
+  // Verify sign in code
+  const verifySignInCode = async (email, code) => {
+    try {
+      const data = await authService.verifySignInCode(email, code);
+      if (data.twoFactorEnabled) {
+        // Store temporary auth data for 2FA verification
+        setTempAuthData({
+          userId: data.userId
+        });
+        return {
+          success: true,
+          twoFactorEnabled: true
+        };
+      }
+      setUserDetails(data);
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+      localStorage.setItem('isLoggedIn', 'true');
+      setIsLoggedInState(true);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to verify verification code',
       };
     }
   };
@@ -269,8 +281,15 @@ export const GlobalProvider = ({ children }) => {
 
     // Reset any fetch guard refs
     if (dataFetchedRef && typeof dataFetchedRef === 'object') dataFetchedRef.current = false;
+    
+    // Clear auth and sensitive data, but keep preferences (theme, dashboard layouts, etc.)
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('token');
+    localStorage.removeItem('projects');
+    localStorage.removeItem('tasksDetails');
+    localStorage.removeItem('github_userId');
+    localStorage.removeItem('github_state');
+    
     setIsLoggedInState(false);
     router.push('/');
   };
@@ -283,43 +302,6 @@ export const GlobalProvider = ({ children }) => {
   // Update user data
   const updateUser = (updatedUserData) => {
     setUserDetails(updatedUserData);
-  };
-
-  // Forgot password
-  const forgotPassword = async (usernameOrEmail) => {
-    try {
-      const data = await authService.forgotPassword(usernameOrEmail);
-      return { success: true, data: data };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message || 'Failed to send reset link',
-      };
-    }
-  };
-
-  // Reset password
-  const resetPassword = async (key, newPassword) => {
-    try {
-      const res = await authService.resetPassword(key, newPassword);
-      return { success: true, data: res };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message || 'Failed to reset password',
-      };
-    }
-  };
-
-  // Verify reset password
-  const verifyResetPassword = async (key) => {
-    try {
-      const res = await authService.verifyResetPassword(key);
-      return { success: true, data: res };
-    } catch (error) {
-      console.error(error);
-      return { success: false, message: error.message || 'Server error' };
-    }
   };
 
   // Combined Authentication & Initial Data Fetch
@@ -347,7 +329,7 @@ export const GlobalProvider = ({ children }) => {
       setLoading(true);
       try {
         const overview = await authService.getUserOverview();
-        if (overview) {          
+        if (overview) {
           setUserDetails(overview.user);
           setTeams(overview.teams);
           setProjects(overview.projects);
@@ -396,6 +378,10 @@ export const GlobalProvider = ({ children }) => {
   useEffect(() => {
     if (userDetails) {
       connectSocket();
+      // Register for Web Push notifications
+      import('../utils/webPushRegister').then(({ registerPushNotifications }) => {
+        registerPushNotifications();
+      }).catch(err => console.error('Failed to import push notifications registration:', err));
     }
   }, [userDetails]);
 
@@ -412,7 +398,7 @@ export const GlobalProvider = ({ children }) => {
     const unsubscribeTeamUpdated = subscribe('team.updated', (payload) => {
       const { data } = payload || {};
       if (!data || !data.team) return;
-      setTeams(prev => prev.map(t => 
+      setTeams(prev => prev.map(t =>
         t.TeamID === data.teamId ? data.team : t
       ));
     });
@@ -426,7 +412,7 @@ export const GlobalProvider = ({ children }) => {
     const unsubscribeTeamStatusUpdated = subscribe('team.status.updated', (payload) => {
       const { data } = payload || {};
       if (!data || !data.team) return;
-      setTeams(prev => prev.map(t => 
+      setTeams(prev => prev.map(t =>
         t.TeamID === data.teamId ? data.team : t
       ));
     });
@@ -453,7 +439,7 @@ export const GlobalProvider = ({ children }) => {
   };
 
   const getTableRowClasses = (lightClass, darkClass) => {
-    return theme === 'dark' ? (darkClass || 'border-b border-gray-700 dark:hover:bg-gray-700/30 transition-colors last:border-b-0') : (lightClass || 'border-b border-gray-100 hover:bg-gray-50/50 transition-colors last:border-b-0');
+    return theme === 'dark' ? (darkClass || 'border-b border-gray-700 hover:bg-gray-50/50 dark:hover:bg-[#232329]/40 transition-colors last:border-b-0') : (lightClass || 'border-b border-gray-100 hover:bg-gray-50/50 transition-colors last:border-b-0');
   };
 
   const getTableTextClasses = (lightClass, darkClass) => {
@@ -672,26 +658,6 @@ export const GlobalProvider = ({ children }) => {
     return emailRegex.test(email);
   };
 
-  // Helper function to validate password strength
-  const validatePassword = (password) => {
-    const minLength = 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    
-    return {
-      isValid: password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar,
-      errors: {
-        minLength: password.length < minLength,
-        hasUpperCase: !hasUpperCase,
-        hasLowerCase: !hasLowerCase,
-        hasNumbers: !hasNumbers,
-        hasSpecialChar: !hasSpecialChar
-      }
-    };
-  };
-
   // Helper function to get join request status style
   const getJoinRequestStatusStyle = (status) => {
     const isDark = theme === 'dark';
@@ -727,19 +693,19 @@ export const GlobalProvider = ({ children }) => {
 
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    
+
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) return `${diffInHours}h ago`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 7) return `${diffInDays}d ago`;
-    
+
     const diffInWeeks = Math.floor(diffInDays / 7);
     if (diffInWeeks < 4) return `${diffInWeeks}w ago`;
-    
+
     const diffInMonths = Math.floor(diffInDays / 30);
     if (diffInMonths < 12) return `${diffInMonths}mo ago`;
-    
+
     const diffInYears = Math.floor(diffInDays / 365);
     return `${diffInYears}y ago`;
   };
@@ -805,17 +771,15 @@ export const GlobalProvider = ({ children }) => {
     setTasksDetails,
     isAuthenticated: isLoggedInState || !!userDetails,
     loading,
-    login,
     verifyLogin2FA,
     register,
     googleLogin,
     completeProfile,
     logout,
     updateUser,
-    forgotPassword,
-    resetPassword,
-    verifyResetPassword,
     resendVerification,
+    requestSignInCode,
+    verifySignInCode,
     tempAuthData,
     setOrganization,
     getProjectStatus,
@@ -848,7 +812,6 @@ export const GlobalProvider = ({ children }) => {
     formatFileSize,
     getFileIconType,
     validateEmail,
-    validatePassword,
     getJoinRequestStatusStyle,
     formatTimeAgo,
     truncateText,
@@ -857,8 +820,6 @@ export const GlobalProvider = ({ children }) => {
     isEmpty,
     isNotEmpty,
     debounce,
-    searchData,
-    searchLoading,
     fetchSearchDataGlobal,
   };
 

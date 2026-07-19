@@ -67,6 +67,12 @@ const ProjectDetailsPage = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [deadline, setDeadline] = useState('');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showDeleteProjectConfirm, setShowDeleteProjectConfirm] = useState(false);
+  const [confirmProjectName, setConfirmProjectName] = useState('');
+  const [deleteReason, setDeleteReason] = useState('');
+  const [deletingProject, setDeletingProject] = useState(false);
+  const [archivingProject, setArchivingProject] = useState(false);
+  const [activeDeleteTab, setActiveDeleteTab] = useState('archive'); // 'archive' or 'delete'
   const [isModalClosing, setIsModalClosing] = useState(false);
   const [isModalOpening, setIsModalOpening] = useState(false);
   const [settingsForm, setSettingsForm] = useState({
@@ -946,6 +952,57 @@ const ProjectDetailsPage = () => {
     }
   };
 
+  const handleDeleteProject = async () => {
+    setDeletingProject(true);
+    try {
+      const { projectService } = await import('../../services/api');
+      await projectService.deleteProject(project.ProjectID, deleteReason);
+      setProjects(prev => prev.filter(p => p.ProjectID !== project.ProjectID));
+      showToast('Project deleted successfully', 'success');
+      router.push('/dashboard');
+    } catch (err) {
+      showToast(err?.error || 'Failed to delete project', 'error');
+    } finally {
+      setDeletingProject(false);
+      setShowDeleteProjectConfirm(false);
+      setDeleteReason('');
+      setActiveDeleteTab('archive');
+    }
+  };
+
+  const handleArchiveProject = async () => {
+    setArchivingProject(true);
+    try {
+      const { projectService } = await import('../../services/api');
+      const res = await projectService.archiveProject(project.ProjectID, true);
+      setProjects(prev => prev.map(p => p.ProjectID === project.ProjectID ? res.project : p));
+      showToast('Project archived successfully', 'success');
+      router.push('/dashboard');
+    } catch (err) {
+      showToast(err?.error || 'Failed to archive project', 'error');
+    } finally {
+      setArchivingProject(false);
+      setShowDeleteProjectConfirm(false);
+      setActiveDeleteTab('archive');
+    }
+  };
+
+  const handleUnarchiveProject = async () => {
+    setArchivingProject(true);
+    try {
+      const { projectService } = await import('../../services/api');
+      const res = await projectService.archiveProject(project.ProjectID, false);
+      setProject(res.project);
+      setProjects(prev => prev.map(p => p.ProjectID === project.ProjectID ? res.project : p));
+      showToast('Project unarchived successfully', 'success');
+      handleCloseModal();
+    } catch (err) {
+      showToast(err?.error || 'Failed to unarchive project', 'error');
+    } finally {
+      setArchivingProject(false);
+    }
+  };
+
   const handleToggleProjectStatus = async () => {
     setTogglingStatus(true);
     try {
@@ -1059,8 +1116,8 @@ const ProjectDetailsPage = () => {
 
   // Update the table container classes - transparent background with borders to blend with page
   const tableContainerClasses = getThemeClasses(
-    'rounded-xl border border-gray-200 bg-white',
-    'dark:border-gray-800 dark:bg-[#1e1e24] dark:shadow-none'
+    'rounded-xl border border-gray-200 bg-white overflow-hidden',
+    'dark:border-zinc-800/80 dark:bg-[#18181b] dark:shadow-none dark:overflow-hidden'
   );
 
   // Table styling classes from GlobalContext for consistency
@@ -1391,7 +1448,6 @@ const ProjectDetailsPage = () => {
                         onClick={handleOpenModal}
                       >
                         <FaCog size={18} />
-                        {/* Settings */}
                       </button>
                     </div>
                   </>
@@ -1405,14 +1461,14 @@ const ProjectDetailsPage = () => {
         {/* Tab Content */}
         {activeTab === 'manage' ? (
           <div>
-            {/* Split Top Layout: Details (Left) & KPI Progress Stats (Right) */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-              {/* Left Column: Project Details Card */}
-              <div className="lg:col-span-3">
-                <div className={getThemeClasses(
-                  "h-full bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between gap-4",
-                  "dark:bg-[#1e1e24] dark:border-gray-800 dark:shadow-none"
-                )}>
+            {/* Unified Top Layout Hero Banner (Details + KPI Progress + Goals) */}
+            <div className={getThemeClasses(
+              "mb-6 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm",
+              "dark:bg-[#18181b] dark:border-zinc-800/80 dark:shadow-none"
+            )}>
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
+                {/* Left Section: Details */}
+                <div className="lg:col-span-3 flex flex-col justify-between gap-4 min-w-0 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-zinc-800/85 pb-6 lg:pb-0 lg:pr-6">
                   <div>
                     {/* Top Row: Statuses */}
                     <div className="flex items-center justify-between mb-4">
@@ -1450,10 +1506,15 @@ const ProjectDetailsPage = () => {
                     {/* Middle Row: Name & Description */}
                     <div className="space-y-2">
                       <h1 className={getThemeClasses(
-                        "text-2xl font-bold tracking-tight text-gray-900",
-                        "dark:text-white"
+                        "text-2xl font-bold tracking-tight text-gray-900 flex items-center gap-3",
+                        "dark:text-white flex items-center gap-3"
                       )}>
-                        {project.Name}
+                        <span>{project.Name}</span>
+                        {project.isArchived && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-zinc-150 text-zinc-800 border border-zinc-200 dark:bg-zinc-800/80 dark:text-zinc-300 dark:border-zinc-700">
+                            Archived
+                          </span>
+                        )}
                       </h1>
                       {project.Description ? (
                         <p className={getThemeClasses(
@@ -1474,7 +1535,7 @@ const ProjectDetailsPage = () => {
                   </div>
 
                   {/* Bottom Row: Members & Actions */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 mt-6 border-t border-gray-200 dark:border-gray-800">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 mt-6 border-t border-gray-100 dark:border-zinc-800/80">
                     {/* Left: Project Members Avatars */}
                     {projectMembers.length > 0 ? (
                       <div className="flex items-center gap-2">
@@ -1484,7 +1545,7 @@ const ProjectDetailsPage = () => {
                               key={member._id}
                               className={getThemeClasses(
                                 "w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden bg-gradient-to-r from-purple-500 to-purple-700",
-                                "dark:border-[#1e1e24]"
+                                "dark:border-zinc-800"
                               )}
                               style={{ marginLeft: idx === 0 ? '0' : '-8px' }}
                               title={`${member.firstName} ${member.lastName}`}
@@ -1505,7 +1566,7 @@ const ProjectDetailsPage = () => {
                           {projectMembers.length > 4 && (
                             <div className={getThemeClasses(
                               "w-8 h-8 flex items-center justify-center px-2 py-1 rounded-full bg-gray-100 border border-gray-200 shadow-sm",
-                              "dark:bg-gray-700 dark:border-gray-600"
+                              "dark:bg-zinc-800 dark:border-zinc-700"
                             )}
                               style={{ marginLeft: '-8px' }}>
                               <span className={getThemeClasses(
@@ -1528,8 +1589,8 @@ const ProjectDetailsPage = () => {
                         <button
                           onClick={handleOpenModal}
                           className={getThemeClasses(
-                            "p-1.5 text-gray-700 bg-white border border-gray-200 hover:border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm",
-                            "dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600"
+                            "p-1.5 text-black hover:bg-blue-100/70 rounded-lg transition-all duration-200 hover:shadow-sm",
+                            "text-white hover:bg-zinc-700/80 rounded-lg p-1.5 transition-all duration-200 hover:shadow-sm"
                           )}
                           title="Edit Project"
                         >
@@ -1543,8 +1604,8 @@ const ProjectDetailsPage = () => {
                           showToast('Project link copied to clipboard!', 'success');
                         }}
                         className={getThemeClasses(
-                          "p-1.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 shadow-sm",
-                          "dark:bg-blue-600 dark:hover:bg-blue-700"
+                          "p-1.5 text-blue-600 hover:bg-blue-100/70 rounded-lg transition-all duration-200 hover:shadow-sm",
+                          "text-blue-400 hover:bg-zinc-700/80 rounded-lg p-1.5 transition-all duration-200 hover:shadow-sm"
                         )}
                         title="Share Project"
                       >
@@ -1553,145 +1614,130 @@ const ProjectDetailsPage = () => {
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Right Column: Project KPI & Progress Stats Card */}
-              <div >
-                <div className="h-full flex flex-col bg-transparent">
-                  <div className={getThemeClasses(
-                    "h-full border border-gray-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm",
-                    "dark:bg-[#1e1e24] dark:border-gray-800 dark:shadow-none"
-                  )}>
-                    {/* Progress Circle & Text */}
-                    {(() => {
-                      const totalTasksCount = taskList.length;
-                      const completedTasksCount = taskList.filter(t => t.Status === 6).length;
-                      const progressPercent = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
+                {/* Middle Section: Circular Progress */}
+                <div className="lg:col-span-1 flex flex-col justify-between gap-4 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-zinc-800/85 pb-6 lg:pb-0 lg:pr-6">
+                  {/* Progress Circle & Text */}
+                  {(() => {
+                    const totalTasksCount = taskList.length;
+                    const completedTasksCount = taskList.filter(t => t.Status === 6).length;
+                    const progressPercent = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
 
-                      const radius = 54;
-                      const strokeWidth = 10;
-                      const C = 2 * Math.PI * radius; // 339.29
-                      const gap = 12;
+                    const radius = 54;
+                    const strokeWidth = 10;
+                    const C = 2 * Math.PI * radius; // 339.29
+                    const gap = 12;
 
-                      let greenLength = 0;
-                      let grayLength = 0;
-                      let greenOffset = 0;
-                      let grayOffset = 0;
+                    let greenLength = 0;
+                    let grayLength = 0;
+                    let greenOffset = 0;
+                    let grayOffset = 0;
 
-                      if (progressPercent === 100) {
-                        greenLength = C;
-                        grayLength = 0;
-                      } else if (progressPercent === 0) {
-                        greenLength = 0;
-                        grayLength = C;
-                      } else {
-                        greenLength = (progressPercent / 100) * C - gap;
-                        grayLength = ((100 - progressPercent) / 100) * C - gap;
-                        greenOffset = -gap / 2;
-                        grayOffset = -(greenLength + 1.5 * gap);
-                      }
+                    if (progressPercent === 100) {
+                      greenLength = C;
+                      grayLength = 0;
+                    } else if (progressPercent === 0) {
+                      greenLength = 0;
+                      grayLength = C;
+                    } else {
+                      greenLength = (progressPercent / 100) * C - gap;
+                      grayLength = ((100 - progressPercent) / 100) * C - gap;
+                      greenOffset = -gap / 2;
+                      grayOffset = -(greenLength + 1.5 * gap);
+                    }
 
-                      let healthText = 'On Track';
-                      let healthColor = 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
-                      if (deadline === 'Deadline Passed' && progressPercent < 100) {
-                        healthText = 'Overdue';
-                        healthColor = 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
-                      } else if (deadline !== 'No Deadline' && progressPercent < 40 && !deadline.includes('Days Left')) {
-                        healthText = 'Needs Attention';
-                        healthColor = 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
-                      }
+                    let healthText = 'On Track';
+                    let healthColor = 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
+                    if (deadline === 'Deadline Passed' && progressPercent < 100) {
+                      healthText = 'Overdue';
+                      healthColor = 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
+                    } else if (deadline !== 'No Deadline' && progressPercent < 40 && !deadline.includes('Days Left')) {
+                      healthText = 'Needs Attention';
+                      healthColor = 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
+                    }
 
-                      return (
-                        <div className="flex flex-col items-center justify-center gap-2 py-2">
-                          <div className="relative w-32 h-32 flex items-center justify-center flex-shrink-0">
-                            <svg className="w-full h-full transform -rotate-90">
-                              {/* Gray remainder path */}
-                              {grayLength > 0 && (
-                                <circle
-                                  cx="64"
-                                  cy="64"
-                                  r={radius}
-                                  className="text-gray-100 dark:text-zinc-800"
-                                  strokeWidth={strokeWidth}
-                                  strokeDasharray={`${grayLength} ${C}`}
-                                  strokeDashoffset={grayOffset}
-                                  strokeLinecap="round"
-                                  stroke="currentColor"
-                                  fill="transparent"
-                                />
-                              )}
-                              {/* Emerald progress path */}
-                              {greenLength > 0 && (
-                                <circle
-                                  cx="64"
-                                  cy="64"
-                                  r={radius}
-                                  className="text-emerald-500 dark:text-emerald-400"
-                                  strokeWidth={strokeWidth}
-                                  strokeDasharray={`${greenLength} ${C}`}
-                                  strokeDashoffset={greenOffset}
-                                  strokeLinecap="round"
-                                  stroke="currentColor"
-                                  fill="transparent"
-                                />
-                              )}
-                            </svg>
-                            <div className="absolute flex flex-col items-center justify-center text-center">
-                              <span className={getThemeClasses(
-                                "text-2xl font-extrabold tracking-tight text-slate-800",
-                                "text-white"
-                              )}>
-                                {progressPercent}%
-                              </span>
-                              <span className={getThemeClasses(
-                                "text-xs font-bold uppercase tracking-widest text-slate-400 mt-1",
-                                "text-zinc-500 mt-1"
-                              )}>
-                                Progress
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-col items-center gap-1.5 text-center">
-                            <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold border ${healthColor}`}>
-                              {healthText}
+                    return (
+                      <div className="flex flex-col items-center justify-center gap-2 py-2">
+                        <div className="relative w-32 h-32 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-full h-full transform -rotate-90">
+                            {/* Gray remainder path */}
+                            {grayLength > 0 && (
+                              <circle
+                                cx="64"
+                                cy="64"
+                                r={radius}
+                                className="text-gray-100 dark:text-zinc-800"
+                                strokeWidth={strokeWidth}
+                                strokeDasharray={`${grayLength} ${C}`}
+                                strokeDashoffset={grayOffset}
+                                strokeLinecap="round"
+                                stroke="currentColor"
+                                fill="transparent"
+                              />
+                            )}
+                            {/* Emerald progress path */}
+                            {greenLength > 0 && (
+                              <circle
+                                cx="64"
+                                cy="64"
+                                r={radius}
+                                className="text-emerald-500 dark:text-emerald-400"
+                                strokeWidth={strokeWidth}
+                                strokeDasharray={`${greenLength} ${C}`}
+                                strokeDashoffset={greenOffset}
+                                strokeLinecap="round"
+                                stroke="currentColor"
+                                fill="transparent"
+                              />
+                            )}
+                          </svg>
+                          <div className="absolute flex flex-col items-center justify-center text-center">
+                            <span className={getThemeClasses(
+                              "text-2xl font-extrabold tracking-tight text-slate-800",
+                              "text-white"
+                            )}>
+                              {progressPercent}%
                             </span>
-                            <p className={getThemeClasses("text-xs text-gray-500", "dark:text-gray-400")}>
-                              {completedTasksCount} of {totalTasksCount} tasks completed
-                            </p>
+                            <span className={getThemeClasses(
+                              "text-xs font-bold uppercase tracking-widest text-slate-400 mt-1",
+                              "text-zinc-500 mt-1"
+                            )}>
+                              Progress
+                            </span>
                           </div>
                         </div>
-                      );
-                    })()}
 
-                    {/* Task counts details */}
-                    <div className="grid grid-cols-2 gap-3 pt-2">
-                      <div className={getThemeClasses("p-3 bg-gray-50 rounded-xl", "p-3 bg-zinc-800/40")}>
-                        <span className={getThemeClasses("text-xs text-gray-500 block", "text-xs text-gray-400 block")}>In Progress</span>
-                        <span className={getThemeClasses("text-lg font-bold text-gray-900", "text-lg font-bold text-white")}>
-                          {taskList.filter(t => t.Status === 3).length}
-                        </span>
+                        <div className="flex flex-col items-center gap-1.5 text-center">
+                          <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold border ${healthColor}`}>
+                            {healthText}
+                          </span>
+                          <p className={getThemeClasses("text-xs text-gray-500", "dark:text-gray-400")}>
+                            {completedTasksCount} of {totalTasksCount} tasks completed
+                          </p>
+                        </div>
                       </div>
-                      <div className={getThemeClasses("p-3 bg-gray-50 rounded-xl", "p-3 bg-zinc-800/40")}>
-                        <span className={getThemeClasses("text-xs text-gray-500 block", "text-xs text-gray-400 block")}>User Stories</span>
-                        <span className={getThemeClasses("text-lg font-bold text-gray-900", "text-lg font-bold text-white")}>
-                          {userStories.length}
-                        </span>
-                      </div>
+                    );
+                  })()}
+
+                  {/* Task counts details */}
+                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-zinc-800/80">
+                    <div className={getThemeClasses("p-2 bg-gray-50 rounded-xl", "p-2 bg-zinc-800/40")}>
+                      <span className={getThemeClasses("text-[10px] text-gray-500 block", "text-[10px] text-gray-450 block")}>In Progress</span>
+                      <span className={getThemeClasses("text-md font-bold text-gray-900", "text-md font-bold text-white")}>
+                        {taskList.filter(t => t.Status === 3).length}
+                      </span>
+                    </div>
+                    <div className={getThemeClasses("p-2 bg-gray-50 rounded-xl", "p-2 bg-zinc-800/40")}>
+                      <span className={getThemeClasses("text-[10px] text-gray-500 block", "text-[10px] text-gray-455 block")}>User Stories</span>
+                      <span className={getThemeClasses("text-md font-bold text-gray-900", "text-md font-bold text-white")}>
+                        {userStories.length}
+                      </span>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Widget 2: Goals Tracker */}
-              <div className={getThemeClasses(
-                "lg:col-span-1 flex flex-col bg-transparent",
-                "dark:border-gray-800 dark:shadow-none"
-              )}>
-                <div className={getThemeClasses(
-                  "h-full border border-gray-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm bg-white",
-                  "dark:bg-[#1e1e24] dark:border-gray-800 dark:shadow-none"
-                )}>
+                {/* Right Section: Goals Tracker */}
+                <div className="lg:col-span-1 flex flex-col justify-between gap-4">
                   <div>
                     {/* Inline Goals Title Badge */}
                     <div className="flex items-center gap-1.5 mb-4 border-b border-gray-100 dark:border-zinc-800/80 pb-3">
@@ -1700,7 +1746,7 @@ const ProjectDetailsPage = () => {
                     </div>
 
                     {/* Goals List */}
-                    <div className="space-y-3.5 overflow-y-auto pr-1">
+                    <div className="space-y-3.5 overflow-y-auto pr-1 max-h-[170px]">
                       {!project?.Goals || project.Goals.length === 0 ? (
                         <p className={getThemeClasses("text-xs text-gray-400 italic", "text-xs text-gray-500 italic")}>No goals defined for this project.</p>
                       ) : (
@@ -1762,7 +1808,7 @@ const ProjectDetailsPage = () => {
                                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0">
                                     <button
                                       onClick={() => handleDeleteGoal(goal._id)}
-                                      className="p-1 rounded-md text-gray-450 hover:text-red-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-zinc-800 transition-all duration-150"
+                                      className="p-1 rounded-md text-gray-455 hover:text-red-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-zinc-800 transition-all duration-150"
                                       title="Delete Goal"
                                     >
                                       <FaTrash size={10} />
@@ -1925,7 +1971,7 @@ const ProjectDetailsPage = () => {
                               type="button"
                               onClick={() => setShowAllTeams(true)}
                               className={getThemeClasses(
-                                'w-full mt-2 px-4 py-2.5 text-xs text-emerald-600 hover:text-emerald-700 font-semibold hover:bg-emerald-50 rounded-xl transition-colors duration-200 border border-gray-150 bg-white shadow-sm',
+                                'w-full mt-2 px-4 py-2.5 text-xs text-emerald-600 hover:text-emerald-700 font-semibold hover:bg-emerald-50 rounded-xl transition-colors duration-200 border border-gray-100 bg-white shadow-sm',
                                 'dark:text-emerald-400 dark:hover:text-emerald-300 dark:hover:bg-zinc-800/40 dark:bg-[#1e1e24] dark:border-[#232323]'
                               )}
                             >
@@ -1948,7 +1994,7 @@ const ProjectDetailsPage = () => {
                         const initials = team.TeamName.length > 0 ? team.TeamName.split(' ').map(n => n[0]).join('') : '';
                         return (
                           <div key={team.TeamID}
-                            className={getThemeClasses('relative rounded-xl border border-gray-200 p-4 bg-white hover:shadow-sm transition', 'dark:border-gray-800 dark:bg-[#1e1e24]')}>
+                            className={getThemeClasses('relative rounded-2xl border border-gray-200/80 p-4 bg-white hover:shadow-md hover:scale-[1.01] transition-all duration-300', 'dark:border-zinc-800/80 dark:bg-[#18181b] hover:bg-gray-50/50 dark:hover:bg-[#232329]/40')}>
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex items-start gap-3 min-w-0">
                                 <div
@@ -1960,7 +2006,7 @@ const ProjectDetailsPage = () => {
                                   {initials}
                                 </div>
                                 <div className="min-w-0">
-                                  <Link href={`/team/${team.TeamID}`} className={`${tableTextClasses} hover:text-emerald-600 hover:underline transition-colors cursor-pointer block truncate`} title="View Team Details">
+                                  <Link href={`/team/${team.TeamID}`} className={`${tableTextClasses} hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer block truncate`} title="View Team Details">
                                     {team?.TeamName || team.TeamID}
                                   </Link>
                                   {team?.TeamDescription && (
@@ -2053,18 +2099,20 @@ const ProjectDetailsPage = () => {
                 <div className="lg:col-span-2">
                   <div className="flex justify-between mb-2">
                     <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>User Stories</h2>
-                    <button
-                      onClick={() => { setAddTaskTypeMode('userStory'); setIsAddTaskOpen(true); }}
-                      className={getThemeClasses(
-                        'flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-600 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                        'dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white'
-                      )}
-                    >
-                      <FaPlus size={14} />
-                      Create
-                    </button>
+                    {!project?.isArchived && (
+                      <button
+                        onClick={() => { setAddTaskTypeMode('userStory'); setIsAddTaskOpen(true); }}
+                        className={getThemeClasses(
+                          'flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-600 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
+                          'dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white'
+                        )}
+                      >
+                        <FaPlus size={14} />
+                        Create
+                      </button>
+                    )}
                   </div>
-                  <div className={`overflow-x-auto overflow-y-auto max-h-[220px] ${tableContainerClasses}`}>
+                  <div className={`overflow-x-auto overflow-y-auto max-h-[220px] custom-scrollbar ${tableContainerClasses}`}>
                     {userStories.length === 0 ? (
                       <div className={getThemeClasses(
                         'text-center py-8 text-gray-400',
@@ -2074,7 +2122,7 @@ const ProjectDetailsPage = () => {
                       </div>
                     ) : (
                       <table className="w-full">
-                        <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-[#1e1e24]' : 'bg-white'}`}>
+                        <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#111113] border-zinc-800/80' : 'bg-gray-50 border-gray-200'}`}>
                           <tr className={tableHeaderClasses}>
                             <th className={`py-3 px-4 text-left w-[340px] ${tableHeaderTextClasses}`}>Name</th>
                             <th className={`hidden md:table-cell py-3 px-4 text-left w-[180px] ${tableHeaderTextClasses}`}>Due Date</th>
@@ -2088,16 +2136,16 @@ const ProjectDetailsPage = () => {
                               <td className="py-1.5 px-4">
                                 <div className="flex items-center gap-3">
                                   <div className="flex flex-col">
-                                    <Link href={`/task/${story.TaskID}`} className={tableTextClasses + ' hover:text-emerald-600 hover:underline transition-colors cursor-pointer'} title="View User Story Details">
+                                    <Link href={`/task/${story.TaskID}`} className={tableTextClasses + ' hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer'} title="View User Story Details">
                                       {story.Name}
                                     </Link>
                                     <div className="flex items-center justify-start gap-1 min-w-0 w-full text-xs mt-0.5">
-                                      {story.TicketNumber && (
-                                        <span className="font-semibold font-mono text-emerald-600 dark:text-emerald-400 shrink-0">
-                                          #{story.TicketNumber}
+                                      {(story.TaskNumber || story.TicketNumber) && (
+                                        <span className="font-semibold font-mono text-blue-600 dark:text-blue-400 shrink-0">
+                                          #{story.TaskNumber || story.TicketNumber}
                                         </span>
                                       )}
-                                      {story.TicketNumber && story.Description && (
+                                      {(story.TaskNumber || story.TicketNumber) && story.Description && (
                                         <span className="text-gray-300 dark:text-gray-600 shrink-0">•</span>
                                       )}
                                       {story.Description && (
@@ -2182,16 +2230,18 @@ const ProjectDetailsPage = () => {
                         </button>
                       </>
                     ) : (
-                      <button
-                        onClick={() => { setAddTaskTypeMode('task'); setIsAddTaskOpen(true); }}
-                        className={getThemeClasses(
-                          'flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                          'dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white'
-                        )}
-                      >
-                        <FaPlus size={14} />
-                        Create
-                      </button>
+                      !project?.isArchived && (
+                        <button
+                          onClick={() => { setAddTaskTypeMode('task'); setIsAddTaskOpen(true); }}
+                          className={getThemeClasses(
+                            'flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
+                            'dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white'
+                          )}
+                        >
+                          <FaPlus size={14} />
+                          Create
+                        </button>
+                      )
                     )}
                   </div>
                 </div>
@@ -2206,7 +2256,7 @@ const ProjectDetailsPage = () => {
                   </div>
                 ) : (
                   <table className="w-full table-fixed">
-                    <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#1e1e24] border-gray-800' : 'bg-gray-50 border-gray-200'}`}>
+                    <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#111113] border-zinc-800/80' : 'bg-gray-50 border-gray-200'}`}>
                       <tr className={tableHeaderClasses}>
                         <th className={`hidden sm:table-cell py-3 px-4 text-center w-[50px] ${tableHeaderTextClasses}`}>
                           <input
@@ -2292,8 +2342,8 @@ const ProjectDetailsPage = () => {
                                   <button
                                     onClick={() => router.push(`/task/${task.TaskID}`)}
                                     className={getThemeClasses(
-                                      'text-left hover:text-emerald-600 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full',
-                                      'dark:hover:text-emerald-400'
+                                      'text-left hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full',
+                                      'dark:hover:text-blue-400'
                                     )}
                                     title={task.Name}
                                   >
@@ -2302,12 +2352,12 @@ const ProjectDetailsPage = () => {
                                   {getTaskTypeBadgeComponent(task.Type)}
                                 </div>
                                 <div className="flex items-center justify-start gap-1 min-w-0 w-full text-xs">
-                                  {task.TicketNumber && (
-                                    <span className="font-semibold font-mono text-emerald-600 dark:text-emerald-400 shrink-0">
-                                      #{task.TicketNumber}
+                                  {(task.TaskNumber || task.TicketNumber) && (
+                                    <span className="font-semibold font-mono text-blue-600 dark:text-blue-400 shrink-0">
+                                      #{task.TaskNumber || task.TicketNumber}
                                     </span>
                                   )}
-                                  {task.TicketNumber && task.Description && (
+                                  {(task.TaskNumber || task.TicketNumber) && task.Description && (
                                     <span className="text-gray-300 dark:text-gray-600 shrink-0">•</span>
                                   )}
                                   <span className={getThemeClasses(
@@ -2504,7 +2554,7 @@ const ProjectDetailsPage = () => {
                             {flattenedItems.length > 0 && (
                               <table className="w-full table-fixed">
                                 <thead>
-                                  <tr className={getThemeClasses('text-left text-xs font-medium text-gray-400 uppercase', 'bg-[#18181b]')}>
+                                  <tr className={getThemeClasses('text-left text-xs font-medium text-gray-400 uppercase', 'dark:bg-[#111113]')}>
                                     <th className="py-3 px-4 tracking-wider w-8"></th>
                                     <th className={`py-3 px-4 tracking-wider w-1/3 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Task</th>
                                     <th className={`py-3 px-4 tracking-wider w-1/6 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assigned To</th>
@@ -2858,9 +2908,257 @@ const ProjectDetailsPage = () => {
                   </button>
                 </div>
               </form>
+
+              {/* Danger Zone */}
+              {project && userDetails && project.ProjectOwner === userDetails._id && (
+                <div className={`mt-8 pt-6 border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
+                  <h4 className="text-sm font-semibold text-red-500 mb-2">Danger Zone</h4>
+                  <p className={`text-xs mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Once you delete a project, there is no going back. All tasks, teams, and data associated with this project will be permanently deleted.
+                  </p>
+                  {project.isArchived ? (
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handleUnarchiveProject}
+                        disabled={archivingProject}
+                        className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer flex items-center gap-1.5"
+                      >
+                        {archivingProject ? (
+                          <>
+                            <FaSpinner className="animate-spin" size={12} />
+                            Unarchiving...
+                          </>
+                        ) : (
+                          'Unarchive Project'
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleCloseModal();
+                          setConfirmProjectName('');
+                          setDeleteReason('');
+                          setActiveDeleteTab('delete');
+                          setTimeout(() => {
+                            setShowDeleteProjectConfirm(true);
+                          }, 350);
+                        }}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer"
+                      >
+                        Delete Project
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleCloseModal();
+                        setConfirmProjectName('');
+                        setDeleteReason('');
+                        setActiveDeleteTab('archive');
+                        setTimeout(() => {
+                          setShowDeleteProjectConfirm(true);
+                        }, 350);
+                      }}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer"
+                    >
+                      Delete Project
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
+
+        <CustomModal
+          isOpen={showDeleteProjectConfirm}
+          onClose={() => {
+            setShowDeleteProjectConfirm(false);
+            setConfirmProjectName('');
+            setDeleteReason('');
+            setActiveDeleteTab(project?.isArchived ? 'delete' : 'archive');
+          }}
+          title={project?.isArchived ? "Delete Project" : "Archive or Delete Project"}
+          theme={theme}
+          maxWidthClass="max-w-md"
+        >
+          <div>
+            {/* Tabs */}
+            {!project?.isArchived && (
+              <div className={`flex space-x-1 mb-6 ${theme === 'dark'
+                ? 'bg-[#121214] p-1 border border-zinc-800'
+                : 'bg-gray-100 p-1'
+                } rounded-xl transition-all duration-300`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveDeleteTab('archive');
+                    setConfirmProjectName('');
+                  }}
+                  className={`flex-1 py-2 px-4 rounded-lg text-xs font-semibold transition-all duration-300 ${activeDeleteTab === 'archive'
+                    ? theme === 'dark'
+                      ? 'bg-zinc-800 text-white shadow-sm'
+                      : 'bg-white text-blue-600 shadow-md'
+                    : theme === 'dark'
+                      ? 'text-zinc-400 hover:text-white'
+                      : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  📦 Archive Project
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveDeleteTab('delete')}
+                  className={`flex-1 py-2 px-4 rounded-lg text-xs font-semibold transition-all duration-300 ${activeDeleteTab === 'delete'
+                    ? theme === 'dark'
+                      ? 'bg-zinc-800 text-white shadow-sm border border-zinc-750'
+                      : 'bg-white text-red-600 shadow-md'
+                    : theme === 'dark'
+                      ? 'text-zinc-400 hover:text-white'
+                      : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  ⚠️ Delete Permanently
+                </button>
+              </div>
+            )}
+
+            {/* Tab Contents */}
+            {activeDeleteTab === 'archive' ? (
+              <div className="h-[260px] flex flex-col justify-between">
+                <div className="space-y-3 text-xs">
+                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                    Marking this project as archived performs the following:
+                  </p>
+                  <ul className="space-y-2 pl-1">
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500">🔒</span>
+                      <span className={theme === 'dark' ? 'text-gray-450' : 'text-gray-600'}>Immediately hides the project from all team members.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500">👑</span>
+                      <span className={theme === 'dark' ? 'text-gray-450' : 'text-gray-600'}>Only you (the Project Owner) can view and access it.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500">💾</span>
+                      <span className={theme === 'dark' ? 'text-gray-450' : 'text-gray-600'}>All task history, files, and configurations are securely preserved.</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800/60">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDeleteProjectConfirm(false);
+                      setConfirmProjectName('');
+                      setDeleteReason('');
+                      setActiveDeleteTab('archive');
+                    }}
+                    className={getThemeClasses(
+                      "px-4 py-2 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 text-xs font-semibold transition-all",
+                      "px-4 py-2 border border-gray-700 text-gray-300 rounded-xl hover:bg-gray-800 text-xs font-semibold transition-all"
+                    )}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleArchiveProject}
+                    disabled={archivingProject}
+                    className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition-all shadow-md flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {archivingProject ? (
+                      <>
+                        <FaSpinner className="animate-spin" size={12} />
+                        Archiving...
+                      </>
+                    ) : (
+                      'Yes, Archive Project'
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="h-[260px] flex flex-col justify-between">
+                <div className="space-y-3">
+                  <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} leading-relaxed`}>
+                    Are you sure you want to permanently delete the project <strong className="text-red-500">{project?.Name}</strong>? All tasks, teams, and data associated with this project will be deleted. This is irreversible.
+                  </p>
+
+                  <div>
+                    <label className={`block text-xs font-semibold tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mb-1`}>
+                      Type <strong className="text-red-500">{project?.Name}</strong> to confirm
+                    </label>
+                    <input
+                      type="text"
+                      value={confirmProjectName}
+                      onChange={e => setConfirmProjectName(e.target.value)}
+                      className={getThemeClasses(
+                        "w-full px-3 py-1.5 rounded-xl border border-gray-200 focus:border-red-500 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 text-xs transition-all",
+                        "w-full px-3 py-1.5 rounded-xl border border-gray-700 focus:border-red-500 focus:outline-none bg-transparent text-white placeholder-gray-500 text-xs transition-all"
+                      )}
+                      placeholder="Enter project name"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className={`block text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Reason for deletion (will be emailed to the owner):
+                    </label>
+                    <textarea
+                      value={deleteReason}
+                      onChange={e => setDeleteReason(e.target.value)}
+                      className={getThemeClasses(
+                        "w-full px-3 py-1.5 rounded-xl border border-gray-200 focus:border-red-500 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 text-xs transition-all resize-none",
+                        "w-full px-3 py-1.5 rounded-xl border border-gray-700 focus:border-red-500 focus:outline-none bg-transparent text-white placeholder-gray-500 text-xs transition-all resize-none"
+                      )}
+                      rows={2}
+                      placeholder="e.g. Project completed, archiving old workspace..."
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800/60">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDeleteProjectConfirm(false);
+                      setConfirmProjectName('');
+                      setDeleteReason('');
+                      setActiveDeleteTab('archive');
+                    }}
+                    className={getThemeClasses(
+                      "px-4 py-2 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 text-xs font-semibold transition-all",
+                      "px-4 py-2 border border-gray-700 text-gray-300 rounded-xl hover:bg-gray-800 text-xs font-semibold transition-all"
+                    )}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteProject}
+                    disabled={deletingProject || confirmProjectName !== project?.Name}
+                    className={`px-5 py-2 rounded-xl text-xs font-semibold transition-all shadow-md flex items-center gap-1.5 ${confirmProjectName === project?.Name
+                      ? "bg-red-600 hover:bg-red-700 text-white cursor-pointer"
+                      : "bg-red-600/50 text-white/70 cursor-not-allowed"
+                      }`}
+                  >
+                    {deletingProject ? (
+                      <>
+                        <FaSpinner className="animate-spin" size={12} />
+                        Deleting...
+                      </>
+                    ) : (
+                      'Delete'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </CustomModal>
         {/* Remove Team Confirmation Dialog */}
         {showRemoveDialog && removingTeam && (
           <CustomModal

@@ -47,11 +47,12 @@ const ProjectCard = ({ project, theme }) => {
   const getTeamTypeText = (teamType) => {
     const typeMap = {
       1: 'Development',
-      2: 'Design',
-      3: 'Marketing',
-      4: 'Sales',
-      5: 'Support',
-      6: 'Management'
+      2: 'Quality Analysis',
+      3: 'Code Verification',
+      4: 'Deployment',
+      5: 'Service Integration',
+      6: 'InHouse',
+      7: 'Support'
     };
     return typeMap[teamType] || 'General';
   };
@@ -60,11 +61,12 @@ const ProjectCard = ({ project, theme }) => {
   const getTeamTypeColor = (teamType) => {
     const colorMap = {
       1: 'bg-blue-100 text-blue-800 border-blue-200', // Development
-      2: 'bg-green-100 text-green-800 border-green-200', // Design
-      3: 'bg-purple-100 text-purple-800 border-purple-200', // Marketing
-      4: 'bg-yellow-100 text-yellow-800 border-yellow-200', // Sales
-      5: 'bg-red-100 text-red-800 border-red-200', // Support
-      6: 'bg-indigo-100 text-indigo-800 border-indigo-200' // Management
+      2: 'bg-green-100 text-green-800 border-green-200', // Quality Analysis
+      3: 'bg-purple-100 text-purple-800 border-purple-200', // Code Verification
+      4: 'bg-amber-100 text-amber-800 border-amber-200', // Deployment
+      5: 'bg-cyan-100 text-cyan-800 border-cyan-200', // Service Integration
+      6: 'bg-indigo-100 text-indigo-800 border-indigo-200', // InHouse
+      7: 'bg-red-100 text-red-800 border-red-200' // Support
     };
     return colorMap[teamType] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
@@ -72,11 +74,12 @@ const ProjectCard = ({ project, theme }) => {
   const getTeamTypeColorDark = (teamType) => {
     const colorMap = {
       1: 'bg-blue-900/30 text-blue-300 border-blue-600', // Development
-      2: 'bg-green-900/30 text-green-300 border-green-600', // Design
-      3: 'bg-purple-900/30 text-purple-300 border-purple-600', // Marketing
-      4: 'bg-yellow-900/30 text-yellow-300 border-yellow-600', // Sales
-      5: 'bg-red-900/30 text-red-300 border-red-600', // Support
-      6: 'bg-indigo-900/30 text-indigo-300 border-indigo-600' // Management
+      2: 'bg-green-900/30 text-green-300 border-green-600', // Quality Analysis
+      3: 'bg-purple-900/30 text-purple-300 border-purple-600', // Code Verification
+      4: 'bg-amber-900/30 text-amber-300 border-amber-600', // Deployment
+      5: 'bg-cyan-900/30 text-cyan-300 border-cyan-600', // Service Integration
+      6: 'bg-indigo-900/30 text-indigo-300 border-indigo-600', // InHouse
+      7: 'bg-red-900/30 text-red-300 border-red-600' // Support
     };
     return colorMap[teamType] || 'bg-gray-900/30 text-gray-300 border-gray-600';
   };
@@ -94,10 +97,15 @@ const ProjectCard = ({ project, theme }) => {
         {/* Project Name and Description */}
         <div>
           <h3 className={getThemeClasses(
-            'text-lg font-semibold text-gray-900',
-            'text-lg font-semibold text-white'
+            'text-lg font-semibold text-gray-900 flex items-center gap-2',
+            'text-lg font-semibold text-white flex items-center gap-2'
           )}>
             {project.Name}
+            {project.isArchived && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-zinc-150 text-zinc-800 border border-zinc-200 dark:bg-zinc-800/80 dark:text-zinc-300 dark:border-zinc-700">
+                Archived
+              </span>
+            )}
           </h3>
           <p className={getThemeClasses(
             'text-sm text-gray-600',
@@ -141,7 +149,7 @@ const ProjectCard = ({ project, theme }) => {
 
           {/* Compact Team List */}
           <div className="space-y-1">
-            {project.teams.slice(0, 3).map((team) => (
+            {project.teams.slice(0, 2).map((team) => (
               <div key={team.TeamID} className={getThemeClasses(
                 'group flex items-center justify-between p-2 rounded-xl hover:bg-gray-100 transition-colors duration-150',
                 'group flex items-center justify-between p-2 rounded-xl hover:bg-gray-700/50 transition-colors duration-150'
@@ -179,7 +187,7 @@ const ProjectCard = ({ project, theme }) => {
             ))}
 
             {/* Additional Teams Indicator */}
-            {project.teams.length > 3 && (
+            {project.teams.length > 2 && (
               <div className={getThemeClasses(
                 'flex items-center justify-center gap-2 p-2 rounded-md bg-gray-50/50',
                 'flex items-center justify-center gap-2 p-2 rounded-md bg-gray-800/30'
@@ -188,7 +196,7 @@ const ProjectCard = ({ project, theme }) => {
                   'text-xs text-gray-500',
                   'text-xs text-gray-400'
                 )}>
-                  +{project.teams.length - 3} more teams
+                  +{project.teams.length - 2} more teams
                 </span>
               </div>
             )}

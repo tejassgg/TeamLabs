@@ -13,11 +13,11 @@ const responses = {
     ],
     help: {
         registration: {
-            text: "To register, click on the 'Register' button and fill out the form with your details. You'll need to provide your name, email, and create a password.",
+            text: "To register, click on the 'Register' button and fill out the form with your details. You'll need to provide your name, email.",
             links: [{ text: "Register Now", url: "/auth", type: "action" }]
         },
         login: {
-            text: "To log in, click the 'Login' button and enter your email/username and password. You can also use Google Sign-In if you prefer.",
+            text: "To log in, click the 'Login' button and enter your email/username. You can also use Google Sign-In if you prefer.",
             links: [{ text: "Login Now", url: "/", type: "action" }]
         },
         teams: {
@@ -189,13 +189,13 @@ const handleChatMessage = async (req, res) => {
         // If user is authenticated, store the conversation
         if (req.user) {
             const conversation = await getActiveConversation(req.user._id);
-            
+
             // Add messages to conversation
             conversation.messages.push(
                 { type: 'user', content: message },
                 { type: 'bot', content: response }
             );
-            
+
             conversation.lastInteraction = new Date();
             await conversation.save();
 

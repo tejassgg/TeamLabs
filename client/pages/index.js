@@ -321,6 +321,13 @@ function Home() {
   const [aiGeneratedTasks, setAiGeneratedTasks] = useState([]);
   const [aiGeneratingState, setAiGeneratingState] = useState('idle'); // idle, generating, complete
 
+  // Auto open Contact Support Modal if '?contact=true' query parameter is present
+  useEffect(() => {
+    if (router.isReady && router.query.contact === 'true') {
+      setShowContactSupport(true);
+    }
+  }, [router.isReady, router.query]);
+
   // Intersection Observer for Scroll Reveal
   useEffect(() => {
     const observerOptions = {

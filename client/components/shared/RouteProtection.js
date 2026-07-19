@@ -10,8 +10,8 @@ const RouteProtection = ({ children }) => {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Define public routes that don't require authentication
-  const publicRoutes = ['/', '/auth', '/forgot-password', '/github-callback', '/welcome'];
-  
+  const publicRoutes = ['/', '/auth', '/github-callback', '/welcome'];
+
   // Check if current route is public
   const isPublicRoute = publicRoutes.includes(router.pathname);
 

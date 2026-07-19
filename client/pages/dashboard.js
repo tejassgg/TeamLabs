@@ -13,8 +13,10 @@ import { userService } from '../services/api';
 import { connectSocket, subscribe } from '../services/socket';
 import OnboardingGuide from '../components/dashboard/OnboardingGuide';
 import AdminWelcomeMessage from '../components/dashboard/AdminWelcomeMessage';
+import FirstTimeSetup from '../components/shared/FirstTimeSetup';
 import { FcInvite, FcAcceptDatabase, FcExpired } from "react-icons/fc";
 import useSWR from 'swr';
+import { getPriorityBadge } from '../components/task/TaskTypeBadge';
 
 // Modular Dashboard Widgets
 import RecentCommentsWidget from '../components/dashboard/RecentCommentsWidget';
@@ -41,7 +43,7 @@ const Dashboard = () => {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteStatus, setInviteStatus] = useState('');
-  const [invitedEmails, setInvitedEmails] = useState([]);
+  const [isInviting, setIsInviting] = useState(false);
   const [showOnboardingGuide, setShowOnboardingGuide] = useState(false);
   const [showAllTodos, setShowAllTodos] = useState(false);
   const statsFetchedOrgIdRef = useRef(null);
@@ -179,8 +181,8 @@ const Dashboard = () => {
     localStorage.setItem('dashboard_widgets_layout', JSON.stringify(widgets));
   };
 
-  // Check if Admin has zero teams and projects
-  const shouldShowWelcomeMessage = isAdmin && teams.length === 0 && projects.length === 0;
+  // Check if user has zero teams or zero projects
+  const shouldShowWelcomeMessage = teams.length === 0 || projects.length === 0;
 
   useEffect(() => {
     if (userDetails?.organizationID) {
@@ -342,41 +344,43 @@ const Dashboard = () => {
 
   const handleInvite = async () => {
     setInviteStatus('');
+    setIsInviting(true);
     try {
       const res = await userService.inviteUser(inviteEmail);
-      if (res.data?.success) {
+      if (res.success) {
         showToast('Invite sent successfully!', 'success');
         setStats((prev) => ({
           ...prev,
-          invites: [...prev.invites, res.data?.invite]
+          invites: [res.invite, ...(prev?.invites || [])]
         }));
-        // Refresh dashboard data to get the new invite
-        const response = await api.get(`/dashboard/${userDetails.organizationID}`);
-        setStats(response.data);
-        setInviteStatus(res.data?.message || 'Invite sent!');
-        setInvitedEmails((prev) => [...prev, inviteEmail]);
+        setInviteStatus(res.message || 'Invite sent!');
+        setShowInviteModal(false);
+      } else {
+        showToast(res.message || 'Failed to send invite', 'error');
       }
 
       setInviteEmail('');
     } catch (err) {
       setInviteStatus(err.message || 'Failed to send invite');
       showToast(err.message || 'Failed to send invite', 'error');
+    } finally {
+      setIsInviting(false);
     }
   };
 
   const handleResendInvite = async (inviteId) => {
     try {
       const res = await userService.resendInvite(inviteId);
-      if (res.data?.success) {
+      if (res.success) {
         showToast('Invite resent successfully!', 'success');
         setStats((prev) => ({
           ...prev,
-          invites: prev.invites.map(invite =>
-            invite._id === inviteId ? res.data?.invite : invite
+          invites: (prev?.invites || []).map(invite =>
+            invite._id === inviteId ? res.invite : invite
           )
         }));
       } else {
-        showToast(res.data?.message || 'Failed to resend invite', 'error');
+        showToast(res.message || 'Failed to resend invite', 'error');
       }
     } catch (err) {
       showToast(err.message || 'Failed to resend invite', 'error');
@@ -386,14 +390,14 @@ const Dashboard = () => {
   const handleDeleteInvite = async (inviteId) => {
     try {
       const res = await userService.deleteInvite(inviteId);
-      if (res.data?.success) {
+      if (res.success) {
         showToast('Invite deleted successfully!', 'success');
         setStats((prev) => ({
           ...prev,
           invites: prev.invites.filter(invite => invite._id !== inviteId)
         }));
       } else {
-        showToast(res.data?.message || 'Failed to delete invite', 'error');
+        showToast(res.message || 'Failed to delete invite', 'error');
       }
     } catch (err) {
       showToast(err.message || 'Failed to delete invite', 'error');
@@ -473,6 +477,19 @@ const Dashboard = () => {
         return null;
     }
   };
+
+  if (userDetails && !userDetails.onboardingCompleted) {
+    return (
+      <>
+        <Head>
+          <title>First Time Setup | TeamLabs</title>
+        </Head>
+        <div className="mx-auto my-4">
+          <FirstTimeSetup onComplete={() => router.reload()} />
+        </div>
+      </>
+    );
+  }
 
   if (error) {
     return (
@@ -637,21 +654,7 @@ const Dashboard = () => {
         {/* Setup Guide Button - Now positioned prominently below tabs */}
         {/* Welcome Message for Admins with zero teams and projects */}
         {shouldShowWelcomeMessage && (
-          <>
-            {/* <div className="mb-6 flex justify-center">
-              <button
-                onClick={() => setShowOnboardingGuide(true)}
-                className={`px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 ${theme === 'dark'
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
-                  }`}
-              >
-                <FaRocket size={16} />
-                <span className="font-medium">Get Started with Setup Guide</span>
-              </button>
-            </div> */}
-            <AdminWelcomeMessage onOpenSetupGuide={() => setShowOnboardingGuide(true)} onOpenInvite={() => setShowInviteModal(true)} />
-          </>
+          <AdminWelcomeMessage onOpenSetupGuide={() => setShowOnboardingGuide(true)} onOpenInvite={() => setShowInviteModal(true)} />
         )}
 
         {/* Tab Content */}
@@ -689,7 +692,7 @@ const Dashboard = () => {
               {/* To-dos block (col-span 2) */}
               <div className="lg:col-span-2 space-y-6">
                 {/* Suggested to-dos Card */}
-                <div className={`py-2 ${theme === 'dark' ? 'bg-[#1e1e24] border-zinc-800' : 'bg-white'}`}>
+                <div className={`py-2 ${theme === 'dark' ? 'border-zinc-800' : 'bg-white'}`}>
                   <h3 className={`text-xs font-bold uppercase tracking-wider mb-4 ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-500'}`}>
                     Suggested to-dos
                   </h3>
@@ -710,7 +713,7 @@ const Dashboard = () => {
                         <div
                           key={todo.TaskID}
                           className={`p-4 rounded-xl border flex items-center justify-between transition-all hover:translate-x-1 ${theme === 'dark'
-                            ? 'bg-[#18181b] border-zinc-800/80 hover:border-zinc-700'
+                            ? 'bg-[#1e1e24] border-zinc-800/80 hover:border-zinc-700'
                             : 'bg-gray-50/50 border-gray-200/80 hover:bg-gray-50 hover:border-gray-300'
                             }`}
                         >
@@ -724,12 +727,9 @@ const Dashboard = () => {
                               )}
                             </h4>
                             <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                              <span>From: <strong className="text-blue-500">{todo.ProjectName}</strong></span>
+                              <span><strong className="text-blue-500">{todo.ProjectName}</strong></span>
                               <span>•</span>
-                              <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${todo.Priority === 'High' ? 'bg-red-100 text-red-700 dark:bg-red-950/20 dark:text-red-400' :
-                                todo.Priority === 'Low' ? 'bg-green-100 text-green-700 dark:bg-green-950/20 dark:text-green-400' :
-                                  'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/20 dark:text-yellow-400'
-                                }`}>{todo.Priority}</span>
+                              {todo.Priority && getPriorityBadge(todo.Priority)}
                             </div>
                           </div>
 
@@ -873,7 +873,7 @@ const Dashboard = () => {
                                 <span className={`text-xs font-bold truncate ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
                                   {comment.AuthorDetails?.fullName || comment.Author}
                                 </span>
-                                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
+                                <span className="text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
                                   {formatDistanceToNow(new Date(comment.CreatedAt))}
                                 </span>
                               </div>
@@ -1167,7 +1167,11 @@ const Dashboard = () => {
                   <button
                     className={`flex items-center gap-2 px-4 py-2 text-sm font-medium duration-300 rounded-lg transition-colors shadow-sm ${theme === 'dark'
                       ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white'}`}
-                    onClick={() => setShowInviteModal(true)}>
+                    onClick={() => {
+                      setInviteEmail('');
+                      setInviteStatus('');
+                      setShowInviteModal(true);
+                    }}>
                     <FaPlus /> Invite
                   </button>
                 </div>
@@ -1309,26 +1313,27 @@ const Dashboard = () => {
                   placeholder="Enter email address"
                   value={inviteEmail}
                   onChange={e => setInviteEmail(e.target.value)}
+                  disabled={isInviting}
                 />
               </div>
               <button
-                className={`w-full py-2 rounded-lg font-medium transition-all duration-200 mb-2 ${theme === 'dark' ? 'bg-blue-900 text-blue-200 hover:bg-blue-800' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                className={`w-full py-2 rounded-lg font-medium transition-all duration-200 mb-2 flex items-center justify-center gap-2 ${theme === 'dark' ? 'bg-blue-900 text-blue-200 hover:bg-blue-800' : 'bg-blue-500 text-white hover:bg-blue-600'} disabled:opacity-70 disabled:cursor-not-allowed`}
                 onClick={handleInvite}
-                disabled={!inviteEmail}
+                disabled={!inviteEmail || isInviting}
               >
-                Send Invite
+                {isInviting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  'Send Invite'
+                )}
               </button>
+              <div className={`text-xs text-center mb-2 ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
+                Invites automatically expire in 1 week.
+              </div>
               {inviteStatus && <div className="text-sm mt-2 mb-2 text-green-500">{inviteStatus}</div>}
-              {invitedEmails.length > 0 && (
-                <div className="mt-4">
-                  <div className="text-xs text-gray-400 mb-1">Invited Emails:</div>
-                  <ul className="text-sm">
-                    {invitedEmails.map((email, idx) => (
-                      <li key={idx} className="text-blue-500">{email}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
               <button
                 className={`mt-4 w-full py-2 rounded-lg font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-gray-700 text-gray-200 hover:bg-gray-800' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                 onClick={() => { setShowInviteModal(false); setInviteStatus(''); setInviteEmail(''); }}

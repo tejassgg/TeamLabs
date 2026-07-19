@@ -60,7 +60,7 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate, hasMore = fa
 
   return (
     <div className={getThemeClasses("relative px-2 py-6", "relative px-2 py-6")}>
-      <h2 className={getThemeClasses("text-2xl font-bold mb-8 text-gray-900", "dark:text-gray-100")}>Latest Activity</h2>
+      <h2 className={getThemeClasses("text-2xl font-bold mb-8 text-gray-900", "text-2xl font-bold mb-8 dark:text-gray-100")}>Latest Activity</h2>
       {loading ? (
         <div className="flex justify-center items-center py-12">
           <FaSpinner className={getThemeClasses("animate-spin text-blue-500", "animate-spin text-blue-400")} size={32} />
@@ -118,7 +118,7 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate, hasMore = fa
                   <div key={date} className="mb-4 flex w-full min-h-[120px] relative items-center">
                     {/* Centered day/date label */}
                     <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center w-48">
-                      <span className={getThemeClasses("text-sm bg-white px-4 py-1 rounded-full shadow text-gray-700 font-semibold text-base border border-gray-200", "dark:bg-[#23272F] dark:text-gray-100 dark:border-gray-700 dark:shadow-lg")}>{formatDay(date)}</span>
+                      <span className={"text-sm px-4 py-1 rounded-full shadow font-semibold text-base border " + getThemeClasses("bg-white text-gray-700 border-gray-200", "bg-[#23272F] text-gray-100 border-gray-700 shadow-none")}>{formatDay(date)}</span>
                     </div>
                     {/* Timeline sides */}
                     {i % 2 === 0 ? (
@@ -173,7 +173,7 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate, hasMore = fa
                 {projectCreatedDate && (
                   <div className="flex w-full justify-center items-center mt-8">
                     <div className="absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-96">
-                      <span className={getThemeClasses("bg-white px-4 py-1 rounded-full shadow text-gray-500 font-semibold text-base border border-gray-200", "dark:bg-[#23272F] dark:text-gray-400 dark:border-gray-700 dark:shadow-lg")}>Project Created: {new Date(projectCreatedDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                      <span className={"px-4 py-1 rounded-full shadow font-semibold text-base border " + getThemeClasses("bg-white text-gray-500 border-gray-200", "bg-[#23272F] text-gray-400 border-gray-700 shadow-none")}>Project Created: {new Date(projectCreatedDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                     </div>
                   </div>
                 )}
@@ -453,7 +453,7 @@ function MobileActivityRow({ act }) {
   }
 
   return (
-    <div className={getThemeClasses("p-3 rounded-xl border bg-white", "p-3 rounded-xl border bg-[#23272F]") + " flex items-start gap-3 " + getThemeClasses("border-gray-200", "border-gray-700")}>
+    <div className={"p-3 rounded-xl border flex items-start gap-3 " + getThemeClasses("bg-white border-gray-200", "bg-[#18181b] border-zinc-800/80")}>
       <div className="flex-shrink-0">
         {act.user?.profileImage ? (
           <img src={act.user.profileImage} alt="avatar" className={getThemeClasses("w-10 h-10 rounded-full object-cover border border-gray-200", "w-10 h-10 rounded-full object-cover border border-gray-700")} />

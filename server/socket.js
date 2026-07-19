@@ -51,7 +51,7 @@ async function authenticateSocket(socket) {
     throw new Error('No auth token');
   }
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  const user = await User.findById(decoded.id).select('-password');
+  const user = await User.findById(decoded.id);
   if (!user) {
     throw new Error('User not found');
   }
@@ -164,7 +164,7 @@ function initSocket(server) {
         if (!proj) return;
         if (String(proj.OrganizationID) !== String(socket.data.user.organizationID)) return;
         socket.join(`task:${taskId}`);
-      } catch (_) {}
+      } catch (_) { }
     });
 
     socket.on('task.leave', async (payload) => {
@@ -172,7 +172,7 @@ function initSocket(server) {
         const { taskId } = payload || {};
         if (!taskId) return;
         socket.leave(`task:${taskId}`);
-      } catch (_) {}
+      } catch (_) { }
     });
 
     // Handle subtask events
@@ -329,7 +329,7 @@ function initSocket(server) {
         const isParticipant = convo.participants.map(String).includes(String(socket.data.user.id));
         if (!isParticipant) return;
         socket.join(`chat:${conversationId}`);
-      } catch (_) {}
+      } catch (_) { }
     });
 
     socket.on('conversation.leave', async (payload) => {
@@ -337,7 +337,7 @@ function initSocket(server) {
         const { conversationId } = payload || {};
         if (!conversationId) return;
         socket.leave(`chat:${conversationId}`);
-      } catch (_) {}
+      } catch (_) { }
     });
 
     // Typing indicator relay
@@ -351,7 +351,7 @@ function initSocket(server) {
           data: { conversationId, userId: socket.data.user.id, isTyping: !!isTyping },
           meta: { emittedAt: new Date().toISOString() }
         });
-      } catch (_) {}
+      } catch (_) { }
     });
 
     // Call-related events
@@ -359,16 +359,16 @@ function initSocket(server) {
       try {
         const { recipientId, callerId, conversationId, type, callerName, offer } = payload || {};
         if (!recipientId || !callerId || !conversationId || !type) return;
-        
+
         // Verify the caller is the authenticated user
         if (String(callerId) !== String(socket.data.user.id)) return;
-        
+
         // Verify the conversation exists and caller is a participant
         const convo = await Conversation.findById(conversationId).select('participants');
         if (!convo) return;
         const isParticipant = convo.participants.map(String).includes(String(callerId));
         if (!isParticipant) return;
-        
+
         // Send incoming call notification to recipient with offer
         emitToUser(recipientId, 'call.incoming', {
           event: 'call.incoming',
@@ -383,7 +383,7 @@ function initSocket(server) {
           },
           meta: { emittedAt: new Date().toISOString() }
         });
-        
+
         // Also emit to conversation room for real-time updates
         emitToConversation(conversationId, 'call.initiated', {
           event: 'call.initiated',
@@ -406,13 +406,13 @@ function initSocket(server) {
       try {
         const { callerId, conversationId, answer } = payload || {};
         if (!callerId || !conversationId) return;
-        
+
         // Verify the user is a participant in the conversation
         const convo = await Conversation.findById(conversationId).select('participants');
         if (!convo) return;
         const isParticipant = convo.participants.map(String).includes(String(socket.data.user.id));
         if (!isParticipant) return;
-        
+
         emitToUser(callerId, 'call.answered', {
           event: 'call.answered',
           version: 1,
@@ -425,7 +425,7 @@ function initSocket(server) {
           },
           meta: { emittedAt: new Date().toISOString() }
         });
-        
+
         // Notify conversation room
         emitToConversation(conversationId, 'call.answered', {
           event: 'call.answered',
@@ -448,32 +448,32 @@ function initSocket(server) {
       try {
         const { callerId, conversationId } = payload || {};
         if (!callerId || !conversationId) return;
-        
+
         // Verify the user is a participant in the conversation
         const convo = await Conversation.findById(conversationId).select('participants');
         if (!convo) return;
         const isParticipant = convo.participants.map(String).includes(String(socket.data.user.id));
         if (!isParticipant) return;
-        
+
         // Save system message for missed call
         const Message = require('./models/Message');
         const caller = await User.findById(callerId).select('firstName lastName');
         const callerName = caller ? `${caller.firstName || ''} ${caller.lastName || ''}`.trim() : 'Unknown User';
-        
+
         // Format time only for missed call message
         const formattedTime = formatTime12Hour();
-        
+
         const systemMessage = await Message.create({
           conversation: conversationId,
           type: 'system',
           text: `Missed call at ${formattedTime}`
         });
-        
+
         // Update conversation with last message info
         convo.lastMessagePreview = systemMessage.text;
         convo.lastMessageAt = systemMessage.createdAt;
         await convo.save();
-        
+
         // Emit system message to conversation
         emitToConversation(conversationId, 'chat.message.created', {
           event: 'chat.message.created',
@@ -484,7 +484,7 @@ function initSocket(server) {
           },
           meta: { emittedAt: new Date().toISOString() }
         });
-        
+
         // Notify all participants via per-user rooms for inbox/unread updates
         try {
           const participants = (convo.participants || []).map(String);
@@ -499,8 +499,8 @@ function initSocket(server) {
             meta: { emittedAt: new Date().toISOString() }
           };
           participants.forEach((uid) => emitToUser(uid, 'chat.inbox.updated', payload));
-        } catch (_) {}
-        
+        } catch (_) { }
+
         // Notify caller that call was declined
         emitToUser(callerId, 'call.declined', {
           event: 'call.declined',
@@ -513,7 +513,7 @@ function initSocket(server) {
           },
           meta: { emittedAt: new Date().toISOString() }
         });
-        
+
         // Notify conversation room
         emitToConversation(conversationId, 'call.declined', {
           event: 'call.declined',
@@ -535,25 +535,25 @@ function initSocket(server) {
       try {
         const { conversationId, callStartTime, callDuration } = payload || {};
         if (!conversationId) return;
-        
+
         // Verify the user is a participant in the conversation
         const convo = await Conversation.findById(conversationId).select('participants');
         if (!convo) return;
         const isParticipant = convo.participants.map(String).includes(String(socket.data.user.id));
         if (!isParticipant) return;
-        
+
         // Save system message for call ended
         const Message = require('./models/Message');
-        
+
         // Format time for better readability (without date)
         const now = new Date();
-        const timeOptions = { 
+        const timeOptions = {
           hour: '2-digit',
           minute: '2-digit',
           second: '2-digit'
         };
         const formattedEndTime = now.toLocaleTimeString('en-US', timeOptions);
-        
+
         // Format start time if provided, otherwise use current time
         let formattedStartTime;
         if (callStartTime) {
@@ -562,18 +562,18 @@ function initSocket(server) {
         } else {
           formattedStartTime = formattedEndTime;
         }
-        
+
         const systemMessage = await Message.create({
           conversation: conversationId,
           type: 'system',
           text: `📞 Video call started by ${socket.data.user.firstName || ''} ${socket.data.lastName || ''} on ${formattedStartTime} and ended at ${formattedEndTime}. Duration: ${Math.floor(callDuration / 60)}m ${callDuration % 60}s`
         });
-        
+
         // Update conversation with last message info
         convo.lastMessagePreview = systemMessage.text;
         convo.lastMessageAt = systemMessage.createdAt;
         await convo.save();
-        
+
         // Emit system message to conversation
         emitToConversation(conversationId, 'chat.message.created', {
           event: 'chat.message.created',
@@ -584,7 +584,7 @@ function initSocket(server) {
           },
           meta: { emittedAt: new Date().toISOString() }
         });
-        
+
         // Notify all participants via per-user rooms for inbox/unread updates
         try {
           const participants = (convo.participants || []).map(String);
@@ -599,8 +599,8 @@ function initSocket(server) {
             meta: { emittedAt: new Date().toISOString() }
           };
           participants.forEach((uid) => emitToUser(uid, 'chat.inbox.updated', payload));
-        } catch (_) {}
-        
+        } catch (_) { }
+
         // Notify all participants that call ended
         emitToConversation(conversationId, 'call.ended', {
           event: 'call.ended',
@@ -623,32 +623,32 @@ function initSocket(server) {
       try {
         const { conversationId, callerId } = payload || {};
         if (!conversationId || !callerId) return;
-        
+
         // Verify the user is a participant in the conversation
         const convo = await Conversation.findById(conversationId).select('participants');
         if (!convo) return;
         const isParticipant = convo.participants.map(String).includes(String(socket.data.user.id));
         if (!isParticipant) return;
-        
+
         // Save system message for missed call
         const Message = require('./models/Message');
         const caller = await User.findById(callerId).select('firstName lastName');
         const callerName = caller ? `${caller.firstName || ''} ${caller.lastName || ''}`.trim() : 'Unknown User';
-        
+
         // Format time only for missed call message
         const formattedTime = formatTime12Hour();
-        
+
         const systemMessage = await Message.create({
           conversation: conversationId,
           type: 'system',
           text: `Missed call at ${formattedTime}`
         });
-        
+
         // Update conversation with last message info
         convo.lastMessagePreview = systemMessage.text;
         convo.lastMessageAt = systemMessage.createdAt;
         await convo.save();
-        
+
         // Emit system message to conversation
         emitToConversation(conversationId, 'chat.message.created', {
           event: 'chat.message.created',
@@ -659,7 +659,7 @@ function initSocket(server) {
           },
           meta: { emittedAt: new Date().toISOString() }
         });
-        
+
         // Notify all participants via per-user rooms for inbox/unread updates
         try {
           const participants = (convo.participants || []).map(String);
@@ -674,7 +674,7 @@ function initSocket(server) {
             meta: { emittedAt: new Date().toISOString() }
           };
           participants.forEach((uid) => emitToUser(uid, 'chat.inbox.updated', payload));
-        } catch (_) {}
+        } catch (_) { }
       } catch (error) {
         console.error('Call missed error:', error);
       }
@@ -685,13 +685,13 @@ function initSocket(server) {
       try {
         const { candidate, to, conversationId } = payload || {};
         if (!candidate || !to || !conversationId) return;
-        
+
         // Verify the user is a participant in the conversation
         const convo = await Conversation.findById(conversationId).select('participants');
         if (!convo) return;
         const isParticipant = convo.participants.map(String).includes(String(socket.data.user.id));
         if (!isParticipant) return;
-        
+
         // Forward ICE candidate to the target user
         emitToUser(to, 'call.ice-candidate', {
           event: 'call.ice-candidate',
@@ -713,13 +713,13 @@ function initSocket(server) {
       try {
         const { to, conversationId } = payload || {};
         if (!to || !conversationId) return;
-        
+
         // Verify the user is a participant in the conversation
         const convo = await Conversation.findById(conversationId).select('participants');
         if (!convo) return;
         const isParticipant = convo.participants.map(String).includes(String(socket.data.user.id));
         if (!isParticipant) return;
-        
+
         // Forward screen share started event to the target user
         emitToUser(to, 'call.screen-share.started', {
           event: 'call.screen-share.started',
@@ -740,13 +740,13 @@ function initSocket(server) {
       try {
         const { to, conversationId } = payload || {};
         if (!to || !conversationId) return;
-        
+
         // Verify the user is a participant in the conversation
         const convo = await Conversation.findById(conversationId).select('participants');
         if (!convo) return;
         const isParticipant = convo.participants.map(String).includes(String(socket.data.user.id));
         if (!isParticipant) return;
-        
+
         // Forward screen share stopped event to the target user
         emitToUser(to, 'call.screen-share.stopped', {
           event: 'call.screen-share.stopped',

@@ -7,6 +7,8 @@ const Project = require('../models/Project');
 const { logActivity } = require('../services/activityService');
 const { sendCommentMentionEmail } = require('../services/emailService');
 const { emitToTask, emitToProject } = require('../socket');
+const { protect } = require('../middleware/auth');
+const notificationService = require('../services/notificationService');
 
 // Get all comments for a task
 router.get('/tasks/:taskId/comments', async (req, res) => {
@@ -21,7 +23,7 @@ router.get('/tasks/:taskId/comments', async (req, res) => {
 });
 
 // Add a new comment to a task
-router.post('/tasks/:taskId/comments', async (req, res) => {
+router.post('/tasks/:taskId/comments', protect, async (req, res) => {
   try {
     const { taskId } = req.params;
     const { Author, Content } = req.body;
@@ -48,6 +50,19 @@ router.post('/tasks/:taskId/comments', async (req, res) => {
       Content: Content.trim() 
     });
     await comment.save();
+
+    // Trigger push and database notifications for mentions
+    try {
+      const senderId = req.user._id.toString();
+      await notificationService.parseAndTriggerMentions({
+        text: Content,
+        senderId,
+        title: `Mentioned in ${task.Type}`,
+        link: `/task/${taskId}`
+      });
+    } catch (mentionErr) {
+      console.error('Error triggering push/db notifications for comment:', mentionErr);
+    }
 
     // Parse mentions from comment content
     const parseMentions = (content) => {
@@ -144,7 +159,7 @@ router.post('/tasks/:taskId/comments', async (req, res) => {
 });
 
 // Update a comment
-router.patch('/comments/:commentId', async (req, res) => {
+router.patch('/comments/:commentId', protect, async (req, res) => {
   try {
     const { commentId } = req.params;
     const update = req.body;
@@ -179,6 +194,19 @@ router.patch('/comments/:commentId', async (req, res) => {
 
     // Send email notifications to newly mentioned users (only if content changed)
     if (update.Content && update.Content !== comment.Content) {
+      // Trigger push/db notifications for new mentions
+      try {
+        const senderId = req.user._id.toString();
+        await notificationService.parseAndTriggerMentions({
+          text: update.Content,
+          senderId,
+          title: `Mentioned in ${task.Type}`,
+          link: `/task/${task.TaskID}`
+        });
+      } catch (mentionErr) {
+        console.error('Error triggering notifications on comment update:', mentionErr);
+      }
+
       const oldMentions = parseMentions(comment.Content);
       const newMentions = parseMentions(update.Content);
       
@@ -269,7 +297,7 @@ router.patch('/comments/:commentId', async (req, res) => {
 });
 
 // Delete a comment
-router.delete('/comments/:commentId', async (req, res) => {
+router.delete('/comments/:commentId', protect, async (req, res) => {
   try {
     const { commentId } = req.params;
 

@@ -772,12 +772,12 @@ const MyTasksPage = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 min-w-0 w-full text-xs">
-                            {task.TicketNumber && (
+                            {(task.TaskNumber || task.TicketNumber) && (
                               <span className="font-semibold font-mono text-blue-600 dark:text-blue-400 shrink-0">
-                                #{task.TicketNumber}
+                                #{task.TaskNumber || task.TicketNumber}
                               </span>
                             )}
-                            {task.TicketNumber && task.Description && (
+                            {(task.TaskNumber || task.TicketNumber) && task.Description && (
                               <span className="text-gray-300 dark:text-gray-600 shrink-0">•</span>
                             )}
                             <span className={getThemeClasses(

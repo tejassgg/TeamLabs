@@ -19,12 +19,23 @@ const { emitDashboardMetrics } = require('../services/dashboardMetricsService');
 const Subtask = require('../models/Subtask');
 const { protect } = require('../middleware/auth');
 
-// Helper function to get the next ticket number sequentially
-async function getNextTicketNumber() {
+// Helper function to get the next task number sequentially
+async function getNextTaskNumber() {
     try {
-        const tasks = await TaskDetails.find({ TicketNumber: /^\d+$/ }).select('TicketNumber').lean();
+        const [tasksWithTaskNum, tasksWithTicketNum] = await Promise.all([
+            TaskDetails.find({ TaskNumber: /^\d+$/ }).select('TaskNumber').lean(),
+            TaskDetails.find({ TicketNumber: /^\d+$/ }).select('TicketNumber').lean()
+        ]);
         let maxNum = 2499;
-        for (const t of tasks) {
+        for (const t of tasksWithTaskNum) {
+            if (t.TaskNumber) {
+                const num = parseInt(t.TaskNumber, 10);
+                if (!isNaN(num) && num > maxNum && num < 100000) {
+                    maxNum = num;
+                }
+            }
+        }
+        for (const t of tasksWithTicketNum) {
             if (t.TicketNumber) {
                 const num = parseInt(t.TicketNumber, 10);
                 if (!isNaN(num) && num > maxNum && num < 100000) {
@@ -34,9 +45,13 @@ async function getNextTicketNumber() {
         }
         return String(maxNum + 1);
     } catch (err) {
-        console.error('Error in getNextTicketNumber:', err);
+        console.error('Error in getNextTaskNumber:', err);
         return String(2500 + Math.floor(Math.random() * 1000)); // fallback
     }
+}
+
+async function getNextTicketNumber() {
+    return getNextTaskNumber();
 }
 
 // Middleware to check limits based on task type
@@ -57,6 +72,14 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
     try {
         const taskData = req.body.taskDetail;
         const mode = req.body.mode;
+
+        // Block creation if the project is archived
+        if (taskData && taskData.ProjectID_FK) {
+            const project = await Project.findOne({ ProjectID: taskData.ProjectID_FK });
+            if (project && project.isArchived) {
+                return res.status(403).json({ error: 'Cannot create tasks or user stories in an archived project' });
+            }
+        }
 
         taskData.CreatedDate = new Date();
         if (taskData.Type == "User Story") {
@@ -89,8 +112,8 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
             taskData.DueDate = new Date(base.getTime() + 7 * 24 * 60 * 60 * 1000);
         }
 
-        if (!taskData.TicketNumber) {
-            taskData.TicketNumber = await getNextTicketNumber();
+        if (!taskData.TaskNumber) {
+            taskData.TaskNumber = await getNextTaskNumber();
         }
 
         const newTaskDetail = new TaskDetails(taskData);
@@ -206,6 +229,20 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
                 console.error('Error sending task assignment email:', emailError);
                 // Don't fail the request if email fails
             }
+
+            try {
+                const notificationService = require('../services/notificationService');
+                await notificationService.createNotification({
+                    recipientId: newTask.AssignedTo,
+                    senderId: taskData.CreatedBy || '',
+                    type: 'assignment',
+                    title: 'New Task Assigned',
+                    body: `${assignedBy} assigned the task "${newTask.Name}" to you.`,
+                    link: `/task/${newTask.TaskID}`
+                });
+            } catch (notiError) {
+                console.error('Error creating assignment notification:', notiError);
+            }
         }
 
         try { await emitDashboardMetrics(taskData.OrganizationID || (await Project.findOne({ ProjectID: taskData.ProjectID_FK }))?.OrganizationID); } catch (e) {}
@@ -236,11 +273,11 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
 // GET /api/task-details/next-number - Get the next sequential task number
 router.get('/next-number', async (req, res) => {
     try {
-        const nextNum = await getNextTicketNumber();
-        res.json({ nextTicketNumber: nextNum });
+        const nextNum = await getNextTaskNumber();
+        res.json({ nextTaskNumber: nextNum, nextTicketNumber: nextNum });
     } catch (err) {
-        console.error('Failed to get next ticket number:', err);
-        res.status(500).json({ error: 'Failed to retrieve next ticket number' });
+        console.error('Failed to get next task number:', err);
+        res.status(500).json({ error: 'Failed to retrieve next task number' });
     }
 });
 
@@ -741,7 +778,9 @@ router.patch('/:taskId/status', async (req, res) => {
             CreatedBy: task.CreatedBy,
             ModifiedDate: task.ModifiedDate,
             ModifiedBy: task.ModifiedBy,
-            HistoryDate: new Date()
+            HistoryDate: new Date(),
+            TaskNumber: task.TaskNumber,
+            TicketNumber: task.TicketNumber
         });
 
         await taskHistory.save();
@@ -804,7 +843,12 @@ router.patch('/:taskId/status', async (req, res) => {
                 meta: { emittedAt: new Date().toISOString() }
             });
         } catch (e) {}
-        res.json(task);
+        res.json({
+            success: true,
+            TaskID: task.TaskID,
+            Status: task.Status,
+            ModifiedDate: task.ModifiedDate
+        });
     } catch (error) {
         console.error('Error updating task status:', error);
         // Log the error activity
@@ -1183,7 +1227,9 @@ router.patch('/:taskId', async (req, res) => {
             CreatedDate: task.CreatedDate,
             AssignedDate: task.AssignedDate,
             CreatedBy: task.CreatedBy,
-            HistoryDate: new Date()
+            HistoryDate: new Date(),
+            TaskNumber: task.TaskNumber,
+            TicketNumber: task.TicketNumber
         });
 
         await taskHistory.save();
@@ -1246,6 +1292,24 @@ router.patch('/:taskId', async (req, res) => {
                         task.Status = 2;
                     } else if (!updateData.AssignedTo && task.Status === 2) {
                         task.Status = 1;
+                    }
+                }
+
+                if (updateData.AssignedTo) {
+                    try {
+                        const assignedByUser = req.user || (updateData.ModifiedBy ? await User.findById(updateData.ModifiedBy) : null);
+                        const assignedBy = assignedByUser ? `${assignedByUser.firstName} ${assignedByUser.lastName}` : 'Someone';
+                        const notificationService = require('../services/notificationService');
+                        await notificationService.createNotification({
+                            recipientId: updateData.AssignedTo,
+                            senderId: assignedByUser ? assignedByUser._id.toString() : '',
+                            type: 'assignment',
+                            title: 'Task Assigned',
+                            body: `${assignedBy} assigned the task "${task.Name}" to you.`,
+                            link: `/task/${task.TaskID}`
+                        });
+                    } catch (notiError) {
+                        console.error('Error creating assignment notification inside patch:', notiError);
                     }
                 }
             }
@@ -1719,7 +1783,7 @@ router.post('/:taskId/git-links', protect, async (req, res) => {
             req.user._id,
             'task_git_link_added',
             'success',
-            `Linked ${linkType} ${commitSha} to task ${task.TicketNumber || task.Name}`,
+            `Linked ${linkType} ${commitSha} to task ${task.TaskNumber || task.TicketNumber || task.Name}`,
             req,
             { taskId: task.TaskID, commitSha }
         );
@@ -1758,7 +1822,7 @@ router.delete('/:taskId/git-links/:linkId', protect, async (req, res) => {
             req.user._id,
             'task_git_link_removed',
             'success',
-            `Removed linked ${removedLink.linkType} ${removedLink.commitSha} from task ${task.TicketNumber || task.Name}`,
+            `Removed linked ${removedLink.linkType} ${removedLink.commitSha} from task ${task.TaskNumber || task.TicketNumber || task.Name}`,
             req,
             { taskId: task.TaskID }
         );

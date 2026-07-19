@@ -11,7 +11,7 @@ const TaskDetailsSkeleton = () => {
     <div className="mx-auto">
       {/* Desktop & Tablet Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-        
+
         {/* Left Column - Main Content (Takes 3 columns) */}
         <div className="lg:col-span-3 space-y-5">
           {/* Breadcrumb */}
@@ -32,7 +32,7 @@ const TaskDetailsSkeleton = () => {
               </div>
               <div className={`h-6 w-12 rounded-full ${lightSkeletonClass}`}></div>
             </div>
-            
+
             {/* Progress Bar steps */}
             <div className="relative flex items-center justify-between w-full pt-2">
               <div className={`absolute left-0 right-0 h-1 bg-gray-300 dark:bg-gray-700 -z-10`}></div>
@@ -111,7 +111,7 @@ const TaskDetailsSkeleton = () => {
             <div className="flex items-center gap-2">
               <div className={`h-5 w-24 ${skeletonClass}`}></div>
             </div>
-            
+
             {/* Comment Input */}
             <div className="space-y-3">
               <div className="flex items-start gap-3">
@@ -204,12 +204,12 @@ const TaskDetailsSkeleton = () => {
             </div>
             <div className={`p-4 rounded-xl border ${isDark ? 'border-zinc-800 bg-zinc-900/50' : 'border-gray-100 bg-gray-50'} space-y-3`}>
               {[1, 2, 3].map((i) => (
-                <div key={i} className="space-y-1 pb-2 border-b border-gray-150 dark:border-zinc-800 last:border-b-0 last:pb-0">
+                <div key={i} className="space-y-1 pb-2 border-b border-gray-100 dark:border-zinc-800 last:border-b-0 last:pb-0">
                   <div className={`h-4 w-full ${skeletonClass}`}></div>
                   <div className={`h-3 w-24 ${lightSkeletonClass}`}></div>
                 </div>
               ))}
-              <div className="flex items-center justify-between pt-2 border-t border-gray-150 dark:border-zinc-800">
+              <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-zinc-800">
                 <div className={`h-6 w-12 ${lightSkeletonClass}`}></div>
                 <div className={`h-4 w-20 ${lightSkeletonClass}`}></div>
                 <div className={`h-6 w-12 ${lightSkeletonClass}`}></div>

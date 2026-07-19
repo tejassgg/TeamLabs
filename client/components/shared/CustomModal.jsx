@@ -4,9 +4,9 @@ const CustomModal = ({ isOpen, onClose, title, children, actions, getThemeClasse
   if (!isOpen) return null;
   const containerClasses = getThemeClasses
     ? getThemeClasses(
-        `bg-white rounded-xl p-6 ${maxWidthClass} w-full mx-4 shadow-lg border border-gray-100`,
-        'dark:bg-[#18181b] dark:border-[#232323]'
-      )
+      `bg-white rounded-xl p-6 ${maxWidthClass} w-full mx-4 shadow-lg border border-gray-100`,
+      'dark:bg-[#18181b] dark:border-[#232323]'
+    )
     : `bg-white rounded-xl p-6 ${maxWidthClass} w-full mx-4 shadow-lg border border-gray-100`;
 
   const titleClasses = getThemeClasses
@@ -32,7 +32,7 @@ const CustomModal = ({ isOpen, onClose, title, children, actions, getThemeClasse
             )}
           </div>
         )}
-        <div className="mb-6">{children}</div>
+        <div className="mb-3">{children}</div>
         <div className="flex justify-end gap-3">
           {actions}
         </div>

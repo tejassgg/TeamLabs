@@ -110,6 +110,8 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
     }
   ];
 
+  const visibleCards = actionCards.filter(card => card.id !== 'invite-people' || userDetails?.role === 'Admin');
+
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
@@ -133,7 +135,7 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
             Welcome to TeamLabs!
           </h1>
           <p className={`text-2xl lg:mb-6 mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'} font-medium`}>
-            You're all set up as an Admin
+            {userDetails?.role === 'Admin' ? "You're all set up as an Admin" : "You're all set up"}
           </p>
           <p className={`text-lg lg:mb-8 mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto leading-relaxed`}>
             Let's get your workspace organized and start collaborating with your team. Choose an action below to get started, or explore our features to see what TeamLabs can do for you.
@@ -149,8 +151,8 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
       </div>
 
       {/* Action Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {actionCards.map((card, index) => (
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${visibleCards.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-8 max-w-7xl mx-auto`}>
+        {visibleCards.map((card, index) => (
           <div
             key={card.id}
             className={`group relative p-8 rounded-2xl border-2 transition-all duration-300 hover:shadow-2xl hover:scale-102 hover:-translate-y-2 ${theme === 'dark'

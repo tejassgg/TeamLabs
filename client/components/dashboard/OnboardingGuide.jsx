@@ -68,7 +68,6 @@ const OnboardingGuide = ({ isOpen, onClose }) => {
               <li>• First and Last Name</li>
               <li>• Email Address</li>
               <li>• Phone Number</li>
-              <li>• Address Information</li>
             </ul>
           </div>
           <div className="flex items-center gap-2 text-xs">

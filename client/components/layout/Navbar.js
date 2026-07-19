@@ -23,7 +23,7 @@ import StatusDropdown from '../shared/StatusDropdown';
 const isProfileComplete = (userDetails) => {
   if (!userDetails) return false;
   const requiredFields = [
-    'phone', 'address', 'city', 'state', 'country', 'firstName', 'lastName', 'email'
+    'firstName', 'lastName', 'email'
   ];
   return requiredFields.every(field => userDetails[field] && userDetails[field].toString().trim() !== '');
 };
@@ -159,6 +159,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
           <ActivityNotifications
             isOpen={isNotificationsOpen}
             onClose={() => setIsNotificationsOpen(false)}
+            onUnreadCountChange={setUnreadCount}
           />
         </div>
         {/* User Menu */}
@@ -308,6 +309,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
               <ActivityNotifications
                 isOpen={isNotificationsOpen}
                 onClose={() => setIsNotificationsOpen(false)}
+                onUnreadCountChange={setUnreadCount}
               />
             </div>
             {/* User Menu */}

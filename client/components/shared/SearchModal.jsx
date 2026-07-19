@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { searchService } from '../../services/api';
+import { useToast } from '../../context/ToastContext';
+import AddTaskModal from './AddTaskModal';
 import {
   FaSearch,
   FaTimes,
@@ -22,7 +24,8 @@ import {
   FaCog,
   FaCreditCard,
   FaPlug,
-  FaChevronDown
+  FaChevronDown,
+  FaMoon
 } from 'react-icons/fa';
 
 const escapeRegExp = (string) => {
@@ -53,13 +56,95 @@ const highlightText = (text, query) => {
 
 const SearchModal = ({ isOpen, onClose }) => {
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const { userDetails, searchData, searchLoading, fetchSearchDataGlobal, getTaskTypeStyleComponent } = useGlobal();
+  const { showToast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [error, setError] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+
+  const commands = [
+    {
+      type: 'command',
+      id: 'cmd-theme',
+      name: '/theme - Toggle Dark Mode',
+      desc: 'Switch between light and dark themes',
+      icon: <FaMoon className="text-indigo-400" />,
+      keepOpen: true,
+      action: () => {
+        toggleTheme();
+      }
+    },
+    {
+      type: 'command',
+      id: 'cmd-task',
+      name: '/task - Create Task',
+      desc: 'Open the task creator modal directly',
+      icon: <FaTasks className="text-green-400" />,
+      action: () => {
+        setIsAddTaskOpen(true);
+      }
+    },
+    {
+      type: 'command',
+      id: 'cmd-timesheet',
+      name: '/timesheet - Go to Timesheet',
+      desc: 'Navigate to your punch clock & timesheet report',
+      icon: <FaCalendarAlt className="text-amber-400" />,
+      url: '/timesheet'
+    },
+    {
+      type: 'command',
+      id: 'cmd-chat',
+      name: '/chat - Go to Messages',
+      desc: 'Open real-time team conversations & chats',
+      icon: <FaComment className="text-blue-400" />,
+      url: '/messages'
+    },
+    {
+      type: 'command',
+      id: 'cmd-profile',
+      name: '/profile - Edit Profile',
+      desc: 'Configure your profile details and settings',
+      icon: <FaUser className="text-purple-400" />,
+      url: '/profile'
+    },
+    {
+      type: 'command',
+      id: 'cmd-dashboard',
+      name: '/dashboard - Go to Dashboard',
+      desc: 'View metrics & statistics overview',
+      icon: <FaChartPie className="text-rose-400" />,
+      url: '/dashboard'
+    },
+    {
+      type: 'command',
+      id: 'cmd-tasks',
+      name: '/tasks - View My Tasks',
+      desc: 'View your assigned issues and tasks',
+      icon: <FaTasks className="text-green-500" />,
+      url: '/my-tasks'
+    },
+    {
+      type: 'command',
+      id: 'cmd-projects',
+      name: '/projects - View Projects',
+      desc: 'Manage and explore projects',
+      icon: <FaProjectDiagram className="text-purple-500" />,
+      url: '/projects'
+    },
+    {
+      type: 'command',
+      id: 'cmd-teams',
+      name: '/teams - View Teams',
+      desc: 'Browse organization teams',
+      icon: <FaUsers className="text-amber-500" />,
+      url: '/teams'
+    }
+  ];
 
   // Live search backend states
   const [backendData, setBackendData] = useState(null);
@@ -228,7 +313,7 @@ const SearchModal = ({ isOpen, onClose }) => {
           type: 'task',
           category: 'Tasks',
           id: t.TaskID,
-          name: `${t.Name} - #${t.TicketNumber} `,
+          name: `${t.Name} - #${t.TaskNumber || t.TicketNumber} `,
           desc: `${t.Type} • Priority: ${t.Priority} • Status: ${getTaskStatusLabel(t.Status)}`,
           url: `/task/${t.TaskID}`,
           icon: typeStyle?.icon ? (
@@ -341,6 +426,7 @@ const SearchModal = ({ isOpen, onClose }) => {
 
   // Define Category Order and Titles
   const categoryOrder = [
+    'command',
     'project',
     'team',
     'task',
@@ -353,6 +439,7 @@ const SearchModal = ({ isOpen, onClose }) => {
     'backend-search-trigger'
   ];
   const categoryTitles = {
+    command: 'Commands',
     project: 'Projects',
     team: 'Teams',
     task: 'Tasks',
@@ -369,47 +456,19 @@ const SearchModal = ({ isOpen, onClose }) => {
   const getGroupedAndLimitedResults = () => {
     const query = searchQuery.trim().toLowerCase();
 
-    // 1. If empty query and on 'All Results' tab, show Quick Actions, Main Actions & Contacts matching the image!
-    if (!query && activeTab === 'all') {
-      const mainActions = [
-        {
-          type: 'main-action',
-          id: 'dashboard-overview',
-          name: 'Dashboard Overview',
-          desc: 'View organization dashboard and statistics',
-          url: '/dashboard',
-          shortcut: 'D',
-          icon: <FaSyncAlt className="text-blue-500" />
-        },
-        {
-          type: 'main-action',
-          id: 'my-tasks',
-          name: 'View My Tasks',
-          desc: 'View your assigned issues and tasks',
-          url: '/my-tasks',
-          shortcut: 'T',
-          icon: <FaTasks className="text-green-500" />
-        },
-        {
-          type: 'main-action',
-          id: 'view-projects',
-          name: 'View Projects',
-          desc: 'Manage and explore projects',
-          url: '/projects',
-          shortcut: 'P',
-          icon: <FaProjectDiagram className="text-purple-500" />
-        },
-        {
-          type: 'main-action',
-          id: 'view-teams',
-          name: 'View Teams',
-          desc: 'Browse organization teams',
-          url: '/teams',
-          shortcut: 'M',
-          icon: <FaUsers className="text-amber-500" />
-        }
-      ];
+    // Slash command matching trigger
+    if (query.startsWith('/')) {
+      const filteredCmds = commands.filter(
+        c => c.name.toLowerCase().includes(query) || c.desc.toLowerCase().includes(query)
+      );
+      const grouped = {
+        'command': { items: filteredCmds, totalCount: filteredCmds.length }
+      };
+      return { grouped, displayedResults: filteredCmds };
+    }
 
+    // 1. If empty query and on 'All Results' tab, show Quick Actions, Commands & Contacts!
+    if (!query && activeTab === 'all') {
       const contacts = [];
       if (data && data.users) {
         data.users.forEach(u => {
@@ -427,12 +486,11 @@ const SearchModal = ({ isOpen, onClose }) => {
       }
 
       const grouped = {
-        'main-action': { items: mainActions, totalCount: mainActions.length },
         'contact': { items: contacts.slice(0, 10), totalCount: contacts.length }
       };
 
       const displayedResults = [
-        ...mainActions,
+        ...commands,
         ...grouped['contact'].items
       ];
 
@@ -513,9 +571,13 @@ const SearchModal = ({ isOpen, onClose }) => {
   // Navigate to item URL
   const handleItemSelect = (item) => {
     if (!item) return;
-    onClose();
+    if (!item.keepOpen) {
+      onClose();
+    }
 
-    if (item.isExternal && item.url) {
+    if (item.action) {
+      item.action();
+    } else if (item.isExternal && item.url) {
       window.open(item.url, '_blank');
     } else if (item.url) {
       router.push(item.url);
@@ -710,7 +772,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                     className="px-3 py-2 text-xs font-medium cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors flex items-center gap-2"
                   >
                     <FaTasks className="text-green-500 text-xs flex-shrink-0" />
-                    <span className="truncate">[{t.TicketNumber || 'Task'}] {t.Name}</span>
+                    <span className="truncate">[{t.TaskNumber || t.TicketNumber || 'Task'}] {t.Name}</span>
                   </div>
                 ))
               )}
@@ -843,22 +905,23 @@ const SearchModal = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
-                {/* Main Actions List */}
+                {/* Commands List */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-4 px-3 py-2 select-none">
                     <span className={`text-sm font-medium tracking-wider ${theme === 'dark' ? 'text-gray-300' : 'text-gray-400'}`}>
-                      Main Actions
+                      Commands
                     </span>
-                    <div className={`flex-1 border-t border-gray-200`}></div>
+                    <div className="flex-1 border-t border-gray-200 dark:border-zinc-800/80"></div>
                   </div>
                   <div className="space-y-1">
-                    {grouped['main-action']?.items.map((item, idx) => {
-                      const isSelected = idx === selectedIndex;
+                    {commands.map((cmd, idx) => {
+                      const absoluteIndex = idx;
+                      const isSelected = absoluteIndex === selectedIndex;
                       return (
                         <div
-                          key={item.id}
-                          ref={(el) => (resultsRefs.current[idx] = el)}
-                          onClick={() => handleItemSelect(item)}
+                          key={cmd.id}
+                          ref={(el) => (resultsRefs.current[absoluteIndex] = el)}
+                          onClick={() => handleItemSelect(cmd)}
                           className={`flex items-center justify-between p-1.5 rounded-xl cursor-pointer transition-all duration-150
                           ${isSelected
                               ? (theme === 'dark'
@@ -870,23 +933,20 @@ const SearchModal = ({ isOpen, onClose }) => {
                         >
                           <div className="flex items-center gap-3">
                             <div className={`p-2 rounded-lg flex-shrink-0 flex items-center justify-center text-base ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                              {item.icon}
+                              {cmd.icon}
                             </div>
-                            <span className="font-semibold text-sm">{item.name}</span>
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-sm leading-tight">{cmd.name}</span>
+                              <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{cmd.desc}</span>
+                            </div>
                           </div>
                           <div className="flex items-center gap-1.5">
                             {isSelected && (
                               <div className="flex items-center gap-1 text-xs text-blue-500 font-bold mr-2 animate-pulse">
-                                <span>OPEN</span>
+                                <span>RUN</span>
                                 <FaLevelUpAlt className="transform rotate-90 text-xs" />
                               </div>
                             )}
-                            <kbd className={`flex items-center justify-center gap-1 w-10 h-6 rounded border shadow-sm select-none text-xs font-sans
-                            ${theme === 'dark' ? 'bg-gray-900 border-gray-800 text-gray-500' : 'bg-white border-gray-200 text-gray-400'}
-                          `}>
-                              <span className="leading-none">⌘</span>
-                              <span className="leading-none text-md font-semibold">{item.shortcut}</span>
-                            </kbd>
                           </div>
                         </div>
                       );
@@ -907,7 +967,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                   ) : (
                     <div className="space-y-1">
                       {grouped['contact']?.items.map((item, idx) => {
-                        const absoluteIndex = 4 + idx; // mainActions has 4 items
+                        const absoluteIndex = commands.length + idx;
                         const isSelected = absoluteIndex === selectedIndex;
                         return (
                           <div
@@ -1120,6 +1180,17 @@ const SearchModal = ({ isOpen, onClose }) => {
           animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
+      <AddTaskModal
+        isOpen={isAddTaskOpen}
+        onClose={() => setIsAddTaskOpen(false)}
+        onAddTask={async (taskData) => {
+          const { taskService } = await import('../../services/api');
+          await taskService.addTaskDetails(taskData, 'fromSideBar');
+          if (showToast) showToast('Task created successfully', 'success');
+          setIsAddTaskOpen(false);
+        }}
+        mode="fromSideBar"
+      />
     </div>
   );
 };

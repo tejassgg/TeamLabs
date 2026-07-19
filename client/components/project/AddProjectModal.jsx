@@ -203,7 +203,7 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
                 Project Goals
               </label>
             </div>
-            
+
             <div className="flex gap-2">
               <input
                 type="text"
@@ -233,7 +233,7 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
               <div className="space-y-2 max-h-40 overflow-y-auto pt-2">
                 {goals.map((goal, idx) => (
                   <div key={idx} className={getThemeClasses(
-                    "flex items-center justify-between p-2.5 bg-gray-50 border border-gray-150 rounded-xl",
+                    "flex items-center justify-between p-2.5 bg-gray-50 border border-gray-100 rounded-xl",
                     "flex items-center justify-between p-2.5 bg-[#1f1f23] border border-[#2b2b30] rounded-xl"
                   )}>
                     <span className="text-xs font-medium truncate max-w-[85%]">{goal}</span>

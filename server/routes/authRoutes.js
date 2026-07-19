@@ -3,10 +3,10 @@ const router = express.Router();
 const {
   registerUser, loginUser, googleLogin, getUserProfile, completeUserProfile, getUserActivities, logoutUser,
   getUserOrganizations, generate2FA, verify2FA, disable2FA, verifyLogin2FA, getSecuritySettings, updateOnboardingStatus,
-  updateSecuritySettings, updateUserSettings, updateUserStatus, forgotPassword, resetPassword, verifyResetPassword,
-  verifyEmail, resendVerification
+  updateSecuritySettings, updateUserSettings, updateUserStatus,
+  verifyEmail, resendVerification, requestSignInCode, verifySignInCode
 } = require('../controllers/authController');
-const { initiateGitHubAuth, handleGitHubCallback, disconnectGitHub, getGitHubStatus, getIntegrationsStatus, getUserRepositories} = require('../controllers/integrationController');
+const { initiateGitHubAuth, handleGitHubCallback, disconnectGitHub, getGitHubStatus, getIntegrationsStatus, getUserRepositories } = require('../controllers/integrationController');
 const { protect } = require('../middleware/auth');
 const User = require('../models/User');
 const Project = require('../models/Project');
@@ -33,7 +33,6 @@ const CommonType = require('../models/CommonType');
  *               - firstName
  *               - lastName
  *               - email
- *               - password
  *             properties:
  *               username:
  *                 type: string
@@ -46,9 +45,6 @@ const CommonType = require('../models/CommonType');
  *               email:
  *                 type: string
  *                 format: email
- *               password:
- *                 type: string
- *                 format: password
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -56,36 +52,6 @@ const CommonType = require('../models/CommonType');
  *         description: Email or Username or phone number already exists
  */
 router.post('/register', registerUser);
-
-/**
- * @swagger
- * /auth/login:
- *   post:
- *     summary: Login user
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *               password:
- *                 type: string
- *                 format: password
- *     responses:
- *       200:
- *         description: Login successful
- *       401:
- *         description: Invalid credentials
- */
-router.post('/login', loginUser);
 
 /**
  * @swagger
@@ -249,9 +215,9 @@ router.get('/my-tasks-data', protect, async (req, res) => {
     });
 
     // 4. Filter tasks assigned to current user or created by current user
-    const userTasks = allTasks.filter(task => 
-      task.Assignee == userId || 
-      task.AssignedTo == userId || 
+    const userTasks = allTasks.filter(task =>
+      task.Assignee == userId ||
+      task.AssignedTo == userId ||
       task.CreatedBy == userId
     );
 
@@ -317,11 +283,11 @@ router.get('/my-tasks-data', protect, async (req, res) => {
 
     // 6. Fetch status options from CommonType
     const statusOptions = await CommonType.find({ MasterType: 'ProjectStatus' }).select('Value Code Description');
-    
+
     // 7. Calculate statistics
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
+
     const stats = {
       totalTasks: enhancedTasks.length,
       completedTasks: enhancedTasks.filter(task => task.Status === 'Completed' || task.Status === 6).length,
@@ -436,10 +402,9 @@ router.put('/user-settings', protect, updateUserSettings);
 // User status route
 router.put('/status', protect, updateUserStatus);
 
-//Password routes
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
-router.post('/verify-reset-password', verifyResetPassword);
+// Sign in with code routes
+router.post('/signin-code/request', requestSignInCode);
+router.post('/signin-code/verify', verifySignInCode);
 
 // GitHub OAuth routes
 router.post('/github/initiate', initiateGitHubAuth);

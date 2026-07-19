@@ -28,12 +28,7 @@ export const isProfileComplete = (profile) => {
   const requiredFields = [
     'firstName', 
     'lastName', 
-    'email', 
-    'phone', 
-    'address', 
-    'city', 
-    'state', 
-    'country'
+    'email'
   ];
   
   return requiredFields.every(field => 
