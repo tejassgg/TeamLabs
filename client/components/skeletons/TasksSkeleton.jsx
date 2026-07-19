@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
 
-const MyTasksSkeleton = () => {
+const TasksSkeleton = () => {
   const { theme } = useTheme();
   const getThemeClasses = (lightClass, darkClass) => (theme === 'dark' ? darkClass : lightClass);
 
@@ -162,6 +162,6 @@ const MyTasksSkeleton = () => {
   );
 };
 
-export default MyTasksSkeleton;
+export default TasksSkeleton;
 
 

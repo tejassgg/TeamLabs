@@ -145,9 +145,9 @@ router.put('/complete-profile', protect, completeUserProfile);
 
 /**
  * @swagger
- * /auth/my-tasks-data:
+ * /auth/tasks-data:
  *   get:
- *     summary: Get all user's tasks, projects, and teams data
+ *     summary: Get tasks for the logged in user
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
@@ -194,7 +194,7 @@ router.put('/complete-profile', protect, completeUserProfile);
  *       500:
  *         description: Server error
  */
-router.get('/my-tasks-data', protect, async (req, res) => {
+router.get('/tasks-data', protect, async (req, res) => {
   try {
     const userId = req.user._id;
     // 1. Get user's teams

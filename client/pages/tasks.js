@@ -10,9 +10,9 @@ import { useToast } from '../context/ToastContext';
 import { authService } from '../services/api';
 import { getPriorityBadge } from '../components/task/TaskTypeBadge';
 import CustomDropdown from '../components/shared/CustomDropdown';
-import MyTasksSkeleton from '../components/skeletons/MyTasksSkeleton';
+import TasksSkeleton from '../components/skeletons/TasksSkeleton';
 
-const MyTasksPage = () => {
+const TasksPage = () => {
   const router = useRouter();
   const { userDetails } = useGlobal();
   const { theme } = useTheme();
@@ -82,8 +82,8 @@ const MyTasksPage = () => {
 
   // SWR-based query for personal tasks and stats
   const { data: myTasksRes, error: fetchError } = useSWR(
-    userDetails?._id ? '/auth/my-tasks-data' : null,
-    () => authService.getMyTasksData(),
+    userDetails?._id ? '/auth/tasks-data' : null,
+    () => authService.getTasksData(),
     {
       revalidateOnFocus: false,
       dedupingInterval: 5000,
@@ -238,7 +238,7 @@ const MyTasksPage = () => {
   const currentTasks = filteredTasks.slice(indexOfFirstTask, indexOfLastTask);
 
   if (loading) {
-    return <MyTasksSkeleton />;
+    return <TasksSkeleton />;
   }
 
   return (
@@ -1010,4 +1010,4 @@ const MyTasksPage = () => {
   );
 };
 
-export default MyTasksPage;
+export default TasksPage;

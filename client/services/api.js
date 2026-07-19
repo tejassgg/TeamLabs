@@ -175,13 +175,13 @@ export const authService = {
     }
   },
 
-  getMyTasksData: async () => {
+  getTasksData: async () => {
     try {
-      const response = await api.get('/auth/my-tasks-data');
+      const response = await api.get('/auth/tasks-data');
       return response.data;
     } catch (error) {
       if (env == 'DEV') console.log(error);
-      console.error('Error fetching my tasks data:', error);
+      console.error('Error fetching tasks data:', error);
       throw error.response?.data || { message: 'Failed to fetch user tasks data' };
     }
   },

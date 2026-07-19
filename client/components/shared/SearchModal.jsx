@@ -756,7 +756,7 @@ const SearchModal = ({ isOpen, onClose }) => {
             }
           `}>
             <div className="px-3 py-1.5 text-xs font-bold tracking-wider uppercase text-gray-400 border-b border-gray-100 dark:border-zinc-800">
-              My Tasks
+              Tasks
             </div>
             <div className="max-h-48 overflow-y-auto scrollbar-thin">
               {taskList.length === 0 ? (

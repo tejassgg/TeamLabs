@@ -195,9 +195,9 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           />
           <SidebarButton
             icon={<FaTasks className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
-            label="My Tasks"
-            active={router.pathname === '/my-tasks'}
-            onClick={() => handleNavigation('/my-tasks')}
+            label="Tasks"
+            active={router.pathname === '/tasks'}
+            onClick={() => handleNavigation('/tasks')}
             theme={theme}
           />
           <SidebarButton
@@ -235,7 +235,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
               theme={theme}
             />
           </div>
-          
+
           {/* Playground for tejassgg */}
           {userDetails?.username === 'tejassgg' && (
             <div className={`border-b ${getThemeClasses('border-gray-200', 'border-gray-700')} pb-2`}>
@@ -248,7 +248,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
               />
             </div>
           )}
-          
+
           {/* Teams Section */}
           <div>
             <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
@@ -491,7 +491,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
     if (path === '/dashboard') return 'Dashboard';
     if (path === '/kanban') return 'Kanban Board';
     if (path === '/projects') return 'Projects';
-    if (path === '/my-tasks') return 'My Tasks';
+    if (path === '/tasks') return 'Tasks';
     if (path === '/timesheet') return 'Timesheet';
     if (path === '/profile') return 'Profile';
     if (path === '/settings') return 'Settings';
