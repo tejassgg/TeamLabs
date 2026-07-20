@@ -50,7 +50,8 @@ exports.sendPushNotification = async (userId, payload) => {
       notification: {
         title: payload.title,
         body: payload.body,
-        icon: '/logo.png', // or visual notification icon URL
+        icon: payload.icon || '/static/logo.png',
+        badge: '/static/logo.png',
         data: {
           url: payload.url || '/'
         }

@@ -43,6 +43,7 @@ exports.createNotification = async ({ recipientId, senderId, type, title, body, 
       await sendPushNotification(recipientId, {
         title,
         body,
+        icon: '/static/logo.png',
         url: link
       });
     } catch (pushError) {
