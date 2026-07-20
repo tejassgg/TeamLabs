@@ -826,7 +826,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
             </div>
           </div>
         )}
-        <main className={`overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#18181b] text-white' : ''}`}>
+        <main className={`overflow-y-auto min-h-[calc(100vh-80px)] p-2 ${theme === 'dark' ? 'bg-[#18181b] text-white' : ''}`}>
           {/* Release Notification Banner */}
           {latestRelease && (
             <div className="py-2" data-release-banner>

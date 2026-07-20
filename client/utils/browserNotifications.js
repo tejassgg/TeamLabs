@@ -11,7 +11,9 @@ export const sendBrowserNotification = async (title, options = {}) => {
   if (Notification.permission === 'granted') {
     try {
       const mergedOptions = {
-        icon: '/static/logo.png', // Default icon
+        icon: '/static/logo.png', // Correct logo icon path
+        badge: '/static/logo.png',
+        tag: options.tag || 'teamlabs-notification', // Deduplication tag
         ...options,
       };
 

@@ -70,6 +70,8 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
           if (newNoti.Type === 'assignment') {
             sendBrowserNotification(newNoti.Title, {
               body: newNoti.Body,
+              icon: '/static/logo.png',
+              tag: `noti-${newNoti.NotificationID || newNoti._id || 'assignment'}`,
               data: { link: newNoti.Link }
             });
           }

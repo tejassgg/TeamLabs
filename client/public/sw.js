@@ -6,8 +6,10 @@ self.addEventListener('push', (event) => {
     const title = notification.title || 'TeamLabs Notification';
     const options = {
       body: notification.body || '',
-      icon: notification.icon || '/logo.png',
-      badge: '/badge.png',
+      icon: notification.icon || '/static/logo.png',
+      badge: '/static/logo.png',
+      tag: notification.tag || data.id || 'teamlabs-notification',
+      renotify: false,
       data: {
         url: notification.data?.url || '/'
       }
