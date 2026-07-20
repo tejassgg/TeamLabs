@@ -72,7 +72,7 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
     <div ref={cardRef} key={task.TaskID}
       className={getThemeClasses(
         `${isSupport ? 'p-3 rounded-xl mb-2 border border-amber-300 bg-amber-50' : `p-3 rounded-xl mb-2 border ${canMove ? 'border-gray-200' : 'border-dashed border-gray-300'}`} ${canMove ? 'cursor-grab' : 'cursor-not-allowed opacity-70'}`,
-        `${isSupport ? 'dark:border-amber-600 dark:bg-amber-900/20' : (canMove ? 'dark:border-gray-700' : 'dark:border-dashed dark:border-gray-700/50')} ${canMove && !isSupport ? 'dark:hover:bg-gray-700/30' : ''}`
+        `${isSupport ? 'dark:border-amber-600 dark:bg-amber-900/20' : (canMove ? 'dark:border-gray-700' : 'dark:border-dashed dark:border-gray-700/50')} ${canMove && !isSupport ? 'dark:hover:bg-dark-hover' : ''}`
       )}
       draggable={canMove}
       onDragStart={onDragStart}

@@ -27,13 +27,13 @@ const ChatHeader = ({
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMobileSidebarOpen(true)}
-          className={`lg:hidden p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'} mr-3`}
+          className={`lg:hidden p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-dark-hover text-gray-400' : 'hover:bg-gray-100 text-gray-600'} mr-3`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        
+
         <button onClick={handleOpenDetails} className="flex-1 text-left min-w-0">
           <div className="flex items-center gap-3">
             {selectedConversation.isGroup && selectedConversation.avatarUrl ? (
@@ -69,7 +69,7 @@ const ChatHeader = ({
 
         <div className="flex items-center gap-2 lg:gap-4 relative">
           {/* Video Call button hidden for now */}
-          
+
           {selectedConversation.isGroup && (
             <div className="relative" ref={kebabMenuRef}>
               <button

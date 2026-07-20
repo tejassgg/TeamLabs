@@ -178,9 +178,9 @@ export const authService = {
     }
   },
 
-  getTasksData: async () => {
+  getTasksData: async (scope = 'includes-me') => {
     try {
-      const response = await api.get('/auth/tasks-data');
+      const response = await api.get(`/auth/tasks-data?scope=${scope}`);
       return response.data;
     } catch (error) {
       if (env == 'DEV') console.log(error);

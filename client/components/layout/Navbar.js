@@ -133,8 +133,8 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
         <button
           onClick={onSearchClick}
           className={`p-1.5 rounded-lg transition-all duration-200 ${theme === 'dark'
-              ? 'text-blue-200 hover:bg-dark-hover'
-              : 'text-blue-600 hover:bg-blue-100'
+            ? 'text-blue-200 hover:bg-dark-hover'
+            : 'text-blue-600 hover:bg-blue-100'
             }`}
           aria-label="Search organization"
         >
@@ -145,8 +145,8 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
           <button
             onClick={toggleNotifications}
             className={`p-1.5 rounded-lg transition-all duration-200 relative ${theme === 'dark'
-                ? 'text-blue-200 hover:bg-dark-hover'
-                : 'text-blue-600 hover:bg-blue-100'
+              ? 'text-blue-200 hover:bg-dark-hover'
+              : 'text-blue-600 hover:bg-blue-100'
               }`}
           >
             <FaBell size={18} />
@@ -168,8 +168,8 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
             <button
               onClick={toggleUserMenu}
               className={`flex items-center space-x-1 p-1.5 rounded-lg transition-all duration-200 ${theme === 'dark'
-                  ? 'text-blue-200 hover:bg-dark-hover'
-                  : 'text-blue-600 hover:bg-blue-100'
+                ? 'text-blue-200 hover:bg-dark-hover'
+                : 'text-blue-600 hover:bg-blue-100'
                 }`}
               aria-label="User profile menu"
             >
@@ -189,44 +189,40 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
             </button>
             {/* Dropdown Menu */}
             {isUserMenuOpen && (
-              <div className={`absolute right-0 top-full mt-1 w-48 rounded-xl shadow-lg py-1 border z-50 ${
-                theme === 'dark' 
-                  ? 'bg-gray-800 text-white border-gray-700' 
+              <div className={`absolute right-0 top-full mt-1 w-48 rounded-xl shadow-lg py-1 border z-50 ${theme === 'dark'
+                  ? 'bg-gray-800 text-white border-gray-700'
                   : 'bg-white text-gray-900 border-gray-200'
-              }`}>
+                }`}>
                 <div className={`px-4 py-2 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                   <p className="font-medium text-sm truncate">{userDetails.firstName} {userDetails.lastName}</p>
                   <p className="text-xs text-gray-400 truncate">{userDetails.email}</p>
                 </div>
                 <Link
                   href="/profile"
-                  className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${
-                    theme === 'dark' 
-                      ? 'hover:bg-gray-700 text-gray-300 hover:text-white' 
+                  className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${theme === 'dark'
+                      ? 'hover:bg-dark-hover text-gray-300 hover:text-white'
                       : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                  }`}
+                    }`}
                 >
                   <FaUser size={16} />
                   <span>Profile</span>
                 </Link>
                 <Link
                   href="/settings"
-                  className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${
-                    theme === 'dark' 
-                      ? 'hover:bg-gray-700 text-gray-300 hover:text-white' 
+                  className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${theme === 'dark'
+                      ? 'hover:bg-dark-hover text-gray-300 hover:text-white'
                       : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                  }`}
+                    }`}
                 >
                   <FaCog size={16} />
                   <span>Settings</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className={`w-full flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${
-                    theme === 'dark' 
-                      ? 'hover:bg-gray-700 text-red-400 hover:text-red-300' 
+                  className={`w-full flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${theme === 'dark'
+                      ? 'hover:bg-dark-hover text-red-400 hover:text-red-300'
                       : 'hover:bg-gray-100 text-red-600 hover:text-red-700'
-                  }`}
+                    }`}
                 >
                   <FaSignOutAlt size={16} />
                   <span>Logout</span>
@@ -262,11 +258,11 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
               onClick={onSearchClick}
               className={`hidden md:flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition-all duration-200 cursor-pointer shadow-sm
                 ${theme === 'dark'
-                  ? 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white'
+                  ? 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-dark-hover hover:text-white'
                   : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                 }
               `}
-              // title="What are you looking for?"
+            // title="What are you looking for?"
             >
               <FaSearch className="text-xs text-gray-400" />
               <span className="font-medium text-xs text-gray-400 dark:text-gray-500">What are you looking for?</span>
@@ -295,8 +291,8 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
               <button
                 onClick={toggleNotifications}
                 className={`p-2 rounded-full transition-all duration-200 relative ${theme === 'dark'
-                    ? 'text-blue-200 hover:bg-dark-hover'
-                    : 'text-blue-600 hover:bg-blue-100'
+                  ? 'text-blue-200 hover:bg-dark-hover'
+                  : 'text-blue-600 hover:bg-blue-100'
                   }`}
               >
                 <FaBell size={mobileScreen ? 18 : 20} />
@@ -318,8 +314,8 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
                 <button
                   onClick={toggleUserMenu}
                   className={`flex items-center space-x-2 px-2 lg:px-3 py-2 rounded-xl transition-all duration-200 ${theme === 'dark'
-                      ? 'text-blue-200 hover:bg-dark-hover'
-                      : 'text-blue-600 hover:bg-blue-100'
+                    ? 'text-blue-200 hover:bg-dark-hover'
+                    : 'text-blue-600 hover:bg-blue-100'
                     }`}
                 >
                   <div className={`w-8 h-8 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600'}`}>
@@ -340,44 +336,40 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
                 </button>
                 {/* Dropdown Menu */}
                 {isUserMenuOpen && (
-                  <div className={`absolute right-0 mt-2 w-48 rounded-xl shadow-lg py-1 border z-50 ${
-                    theme === 'dark' 
-                      ? 'bg-gray-800 text-white border-gray-700' 
+                  <div className={`absolute right-0 mt-2 w-48 rounded-xl shadow-lg py-1 border z-50 ${theme === 'dark'
+                      ? 'bg-gray-800 text-white border-gray-700'
                       : 'bg-white text-gray-900 border-gray-200'
-                  }`}>
+                    }`}>
                     <div className={`px-4 py-2 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                       <p className="font-medium text-sm truncate">{userDetails.firstName} {userDetails.lastName}</p>
                       <p className="text-xs text-gray-400 truncate">{userDetails.email}</p>
                     </div>
                     <Link
                       href="/profile"
-                      className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${
-                        theme === 'dark' 
-                          ? 'hover:bg-gray-700 text-gray-300 hover:text-white' 
+                      className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${theme === 'dark'
+                          ? 'hover:bg-dark-hover text-gray-300 hover:text-white'
                           : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                      }`}
+                        }`}
                     >
                       <FaUser size={16} />
                       <span>Profile</span>
                     </Link>
                     <Link
                       href="/settings"
-                      className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${
-                        theme === 'dark' 
-                          ? 'hover:bg-gray-700 text-gray-300 hover:text-white' 
+                      className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${theme === 'dark'
+                          ? 'hover:bg-dark-hover text-gray-300 hover:text-white'
                           : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                      }`}
+                        }`}
                     >
                       <FaCog size={16} />
                       <span>Settings</span>
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className={`w-full flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${
-                        theme === 'dark' 
-                          ? 'hover:bg-gray-700 text-red-400 hover:text-red-300' 
+                      className={`w-full flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${theme === 'dark'
+                          ? 'hover:bg-dark-hover text-red-400 hover:text-red-300'
                           : 'hover:bg-gray-100 text-red-600 hover:text-red-700'
-                      }`}
+                        }`}
                     >
                       <FaSignOutAlt size={16} />
                       <span>Logout</span>

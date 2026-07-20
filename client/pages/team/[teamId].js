@@ -18,13 +18,16 @@ import StatusPill from '../../components/shared/StatusPill';
 
 const TeamDetailsPage = () => {
   const router = useRouter();
-  const { userDetails } = useGlobal();
+  const { userDetails, getTableTextClasses, getTableSecondaryTextClasses } = useGlobal();
   const { teamId } = router.query;
-  const { teams, setTeams, getProjectStatusBadgeComponent, getProjectStatusStyle, getProjectStatus, getDaysBadgeColor, getUserInitials, getDeadlineStatusComponent } = useGlobal();
+  const { teams, setTeams, getProjectStatusBadgeComponent, getProjectStatusStyle, getProjectStatus, getDaysBadgeColor, getUserInitials, getDeadlineStatusComponent, isMe } = useGlobal();
   const { theme } = useTheme();
   const getThemeClasses = useThemeClasses();
   const { showToast } = useToast();
   const { formatDateWithTime, calculateMeetingDays } = require('../../utils/dateUtils');
+
+  const tableTextClasses = getTableTextClasses();
+  const tableSecondaryTextClasses = getTableSecondaryTextClasses();
 
 
   const formatForDatetimeLocal = (dateInput) => {
@@ -1057,7 +1060,7 @@ const TeamDetailsPage = () => {
                         onClick={handleOpenSettingsModal}
                         className={getThemeClasses(
                           'p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors',
-                          'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700'
+                          'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-dark-hover'
                         )}
                         title="Team Settings"
                       >
@@ -1067,7 +1070,7 @@ const TeamDetailsPage = () => {
                         onClick={() => setShowLeaveTeamDialog(true)}
                         className={getThemeClasses(
                           'p-1.5 text-gray-500 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors',
-                          'dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-gray-700'
+                          'dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-dark-hover'
                         )}
                         title={isOwner ? 'Transfer Admin & Leave' : 'Leave Team'}
                       >
@@ -1137,7 +1140,7 @@ const TeamDetailsPage = () => {
                         onClick={handleOpenSettingsModal}
                         className={getThemeClasses(
                           'p-2 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors',
-                          'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700'
+                          'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-dark-hover'
                         )}
                         title="Team Settings"
                       >
@@ -1147,7 +1150,7 @@ const TeamDetailsPage = () => {
                         onClick={() => setShowLeaveTeamDialog(true)}
                         className={getThemeClasses(
                           'p-2 text-gray-500 hover:text-orange-500 rounded-full hover:bg-gray-100 transition-colors',
-                          'dark:text-gray-400 dark:hover:text-orange-400 dark:hover:bg-gray-700'
+                          'dark:text-gray-400 dark:hover:text-orange-400 dark:hover:bg-dark-hover'
                         )}
                         title={isOwner ? 'Transfer Admin & Leave' : 'Leave Team'}
                       >
@@ -1161,7 +1164,7 @@ const TeamDetailsPage = () => {
               {showJoinRequests && (
                 <div className='rounded-xl sm:w-2/3 w-full'>
                   <h2 className={getThemeClasses('text-xl mb-2 font-semibold text-gray-900', 'dark:text-gray-100')}>Join Requests</h2>
-                  <div className={`overflow-x-auto custom-scrollbar rounded-xl border overflow-hidden ${getThemeClasses('border-gray-200 bg-white shadow-sm', 'dark:border-zinc-800/80 dark:bg-[#18181b] dark:shadow-none')}`}>
+                  <div className={`overflow-x-auto custom-scrollbar rounded-xl border overflow-hidden ${getThemeClasses('border-gray-200 bg-white shadow-sm', 'dark:border-zinc-800/80 dark:bg-dark-bg dark:shadow-none')}`}>
                     {loading ? (
                       <div className="p-4">Loading requests...</div>
                     ) : joinRequests.length === 0 ? (
@@ -1501,7 +1504,7 @@ const TeamDetailsPage = () => {
                     </div>
                   )}
                 </div>
-                <div className={`overflow-x-auto custom-scrollbar rounded-xl border overflow-hidden ${getThemeClasses('border-gray-200 bg-white shadow-sm', 'dark:border-zinc-800/80 dark:bg-[#18181b] dark:shadow-none')}`}>
+                <div className={`overflow-x-auto custom-scrollbar rounded-xl border overflow-hidden ${getThemeClasses('border-gray-200 bg-white shadow-sm', 'dark:border-zinc-800/80 dark:bg-dark-bg dark:shadow-none')}`}>
                   <table className="w-full">
                     <thead>
                       <tr className={"border-b " + getThemeClasses('border-gray-200 bg-gray-50', 'dark:border-zinc-800/80 dark:bg-[#111113]')}>
@@ -1703,7 +1706,7 @@ const TeamDetailsPage = () => {
                     </div>
                   )}
                 </div>
-                <div className={`overflow-x-auto custom-scrollbar mb-2 rounded-xl border overflow-hidden ${getThemeClasses('border-gray-200 bg-white shadow-sm', 'dark:border-zinc-800/80 dark:bg-[#18181b] dark:shadow-none')}`}>
+                <div className={`overflow-x-auto custom-scrollbar mb-2 rounded-xl border overflow-hidden ${getThemeClasses('border-gray-200 bg-white shadow-sm', 'dark:border-zinc-800/80 dark:bg-dark-bg dark:shadow-none')}`}>
                   {activeProjects.length > 0 ? (
                     <table className="w-full">
                       <thead>
@@ -1766,9 +1769,9 @@ const TeamDetailsPage = () => {
                                 'py-3 px-4 font-medium text-gray-900',
                                 'dark:text-gray-100'
                               )}>
-                                <Link 
+                                <Link
                                   href={`/project/${proj.ProjectID}`}
-                                  className="hover:text-blue-600 hover:underline transition-colors cursor-pointer block" 
+                                  className="hover:text-blue-600 hover:underline transition-colors cursor-pointer block"
                                   title="View Project Details"
                                 >
                                   {proj.Name}
@@ -1813,7 +1816,7 @@ const TeamDetailsPage = () => {
                   <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Team Tasks</h2>
                 </div>
               </div>
-              <div className={`overflow-x-auto overflow-y-auto max-h-[80vh] custom-scrollbar mb-2 rounded-xl border overflow-hidden ${getThemeClasses('border-gray-200 bg-white shadow-sm', 'dark:border-zinc-800/80 dark:bg-[#18181b] dark:shadow-none')}`}>
+              <div className={`overflow-x-auto overflow-y-auto max-h-[80vh] custom-scrollbar mb-2 rounded-xl border overflow-hidden ${getThemeClasses('border-gray-200 bg-white shadow-sm', 'dark:border-zinc-800/80 dark:bg-dark-bg dark:shadow-none')}`}>
                 {teamTasksSorted.length === 0 ? (
                   <div className={getThemeClasses(
                     'text-center py-8 text-gray-400',
@@ -1825,43 +1828,43 @@ const TeamDetailsPage = () => {
                   <table className="w-full table-fixed">
                     <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#111113] border-zinc-800/80' : 'bg-gray-50 border-gray-200'}`}>
                       <tr className={getThemeClasses('text-left text-md font-semibold text-gray-400 uppercase', 'dark:bg-[#111113]')}>
-                        <th className={`py-3 px-4 text-left w-[35%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                        <th className={`py-3 px-4 text-left w-[40%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
                           <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Name</span>
                             {getTasksSortIcon('name')}
                           </button>
                         </th>
-                        <th className={`py-3 px-4 text-left w-[12%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                        <th className={`py-3 px-4 text-left w-[11%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
                           <button type="button" onClick={() => handleTasksSort('projectName')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Project</span>
                             {getTasksSortIcon('projectName')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
-                          <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center justify-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[12%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                          <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assigned To</span>
                             {getTasksSortIcon('assignedTo')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[12%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
                           <button type="button" onClick={() => handleTasksSort('assignee')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assignee</span>
                             {getTasksSortIcon('assignee')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[9%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
-                          <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                        <th className={`hidden md:table-cell py-3 px-4 text-center w-[11%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                          <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assigned On</span>
                             {getTasksSortIcon('assignedDate')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-center w-[7%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                        <th className={`hidden md:table-cell py-3 px-4 text-center w-[6%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
                           <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Priority</span>
                             {getTasksSortIcon('priority')}
                           </button>
                         </th>
-                        <th className={`py-3 px-4 text-left w-[7%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                        <th className={`py-3 px-4 text-center w-[8%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
                           <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Status</span>
                             {getTasksSortIcon('status')}
@@ -1901,7 +1904,7 @@ const TeamDetailsPage = () => {
                                     )}
                                     title={task.Name}
                                   >
-                                    {task.Name}
+                                    {task.Name && task.Name.length > 100 ? `${task.Name.substring(0, 100)}...` : task.Name}
                                   </button>
                                   {getTaskTypeBadge(task.Type)}
                                 </div>
@@ -1939,7 +1942,7 @@ const TeamDetailsPage = () => {
                                     {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
                                   </div>
                                   <div className="flex flex-col min-w-0">
-                                    <span className={getThemeClasses('text-sm text-gray-900 truncate block', 'dark:text-gray-100')}>{task.AssignedToDetails.fullName}</span>
+                                    <span className={getThemeClasses('text-sm text-gray-900 truncate block font-medium', 'dark:text-gray-100')}>{task.AssignedToDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
                                     {task.AssignedToDetails.username && (
                                       <span className="text-xs text-gray-500 dark:text-[#B0B8C1] truncate block">
                                         @{task.AssignedToDetails.username}
@@ -1961,7 +1964,7 @@ const TeamDetailsPage = () => {
                                     {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
                                   </div>
                                   <div className="flex flex-col min-w-0">
-                                    <span className={getThemeClasses('text-sm text-gray-900 truncate block', 'dark:text-gray-100')}>{task.AssigneeDetails.fullName}</span>
+                                    <span className={getThemeClasses('text-sm text-gray-900 truncate block font-medium', 'dark:text-gray-100')}>{task.AssigneeDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(task.Assignee) ? ' (You)' : ''}</span></span>
                                     {task.AssigneeDetails.username && (
                                       <span className="text-xs text-gray-500 dark:text-[#B0B8C1] truncate block">
                                         @{task.AssigneeDetails.username}
@@ -1973,11 +1976,13 @@ const TeamDetailsPage = () => {
                                 <span className="text-sm text-gray-400">Not Assigned</span>
                               )}
                             </td>
-                            <td className={getThemeClasses(
-                              'hidden md:table-cell flex items-center justify-center py-3 px-4 text-sm text-gray-600',
-                              'dark:text-gray-400'
-                            )}>
-                              <span>{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                            <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
+                              <div className="flex flex-col items-center leading-tight text-sm">
+                                <span>{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                                <span className={getThemeClasses('text-xs text-gray-500', 'text-xs text-gray-400')}>
+                                  {new Date(task.AssignedDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                </span>
+                              </div>
                             </td>
                             <td className="hidden md:table-cell py-3 px-4">
                               <div className="flex items-center justify-center">
@@ -2015,7 +2020,7 @@ const TeamDetailsPage = () => {
                       }}
                       className={getThemeClasses(
                         'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                        'dark:text-gray-400 dark:hover:bg-dark-hover'
                       )}
                     >
                       Cancel
@@ -2063,7 +2068,7 @@ const TeamDetailsPage = () => {
                       }}
                       className={getThemeClasses(
                         'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                        'dark:text-gray-400 dark:hover:bg-dark-hover'
                       )}
                     >
                       Cancel
@@ -2097,7 +2102,7 @@ const TeamDetailsPage = () => {
                   className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isSettingsModalClosing ? 'opacity-0' : 'opacity-100'}`}
                   onClick={handleCloseSettingsModal}
                 />
-                <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-4 lg:p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isSettingsModalClosing ? 'translate-x-full' : isSettingsModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
+                <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-4 lg:p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isSettingsModalClosing ? 'translate-x-full' : isSettingsModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
                   <div className="flex items-center justify-between mb-4 lg:mb-6">
                     <h3 className={getThemeClasses(
                       'text-lg lg:text-xl font-semibold text-gray-900',
@@ -2233,7 +2238,7 @@ const TeamDetailsPage = () => {
                             onClick={handleCloseSettingsModal}
                             className={getThemeClasses(
                               'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                              'dark:text-gray-400 dark:hover:bg-gray-700'
+                              'dark:text-gray-400 dark:hover:bg-dark-hover'
                             )}
                           >
                             Cancel
@@ -2285,7 +2290,7 @@ const TeamDetailsPage = () => {
                       onClick={() => setShowConfirmDialog(false)}
                       className={getThemeClasses(
                         'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                        'dark:text-gray-400 dark:hover:bg-dark-hover'
                       )}
                     >
                       Cancel
@@ -2333,7 +2338,7 @@ const TeamDetailsPage = () => {
                       }}
                       className={getThemeClasses(
                         'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                        'dark:text-gray-400 dark:hover:bg-dark-hover'
                       )}
                     >
                       Cancel
@@ -2379,7 +2384,7 @@ const TeamDetailsPage = () => {
                       }}
                       className={getThemeClasses(
                         'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                        'dark:text-gray-400 dark:hover:bg-dark-hover'
                       )}
                     >
                       Close
@@ -2423,7 +2428,7 @@ const TeamDetailsPage = () => {
                       onClick={() => setShowDeleteDialog(false)}
                       className={getThemeClasses(
                         'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                        'dark:text-gray-400 dark:hover:bg-dark-hover'
                       )}
                     >
                       Cancel
@@ -2456,7 +2461,7 @@ const TeamDetailsPage = () => {
                   className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isMeetingModalClosing ? 'opacity-0' : 'opacity-100'}`}
                   onClick={handleCloseMeetingModal}
                 />
-                <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-3xl ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isMeetingModalClosing ? 'translate-x-full' : isMeetingModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
+                <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-3xl ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isMeetingModalClosing ? 'translate-x-full' : isMeetingModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
                   <div className="flex items-center justify-between mb-6">
                     <h3 className={getThemeClasses(
                       'text-xl font-semibold text-gray-900',
@@ -2652,7 +2657,7 @@ const TeamDetailsPage = () => {
                           <>
                             <div className={getThemeClasses(
                               'absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-auto max-h-64',
-                              'absolute z-50 w-full mt-1 bg-[#18181b] border border-gray-600 rounded-xl shadow-lg overflow-auto max-h-64'
+                              'absolute z-50 w-full mt-1 bg-dark-bg border border-gray-600 rounded-xl shadow-lg overflow-auto max-h-64'
                             )}>
                               {members.map((member) => (
                                 <button
@@ -2818,7 +2823,7 @@ const TeamDetailsPage = () => {
                       <button
                         type="button"
                         onClick={handleCloseMeetingModal}
-                        className={getThemeClasses('px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200', 'dark:text-gray-400 dark:hover:bg-gray-700')}
+                        className={getThemeClasses('px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200', 'dark:text-gray-400 dark:hover:bg-dark-hover')}
                       >
                         Cancel
                       </button>
@@ -2864,7 +2869,7 @@ const TeamDetailsPage = () => {
                             setShowMeetingDetailsModal(false);
                             handleOpenMeetingModal();
                           }}
-                          className={getThemeClasses('px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-200', 'dark:text-gray-300 dark:hover:bg-gray-700')}
+                          className={getThemeClasses('px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-200', 'dark:text-gray-300 dark:hover:bg-dark-hover')}
                         >
                           Edit
                         </button>
@@ -2875,7 +2880,7 @@ const TeamDetailsPage = () => {
                             navigator.clipboard?.writeText(meetingDetails.meeting.GoogleMeetLink);
                             showToast('Link copied to clipboard', 'success');
                           }}
-                          className={getThemeClasses('px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-200', 'dark:text-gray-300 dark:hover:bg-gray-700')}
+                          className={getThemeClasses('px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-200', 'dark:text-gray-300 dark:hover:bg-dark-hover')}
                         >
                           Copy Link
                         </button>
@@ -2960,7 +2965,7 @@ const TeamDetailsPage = () => {
             {/* Google Calendar Connection Prompt Modal */}
             {showGoogleCalendarPrompt && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className={getThemeClasses('bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100', 'bg-[#18181b] border-[#232323]')}>
+                <div className={getThemeClasses('bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100', 'bg-dark-bg border-[#232323]')}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className={getThemeClasses('text-lg font-semibold text-gray-900', 'dark:text-gray-100')}>Connect Google Calendar</h3>
                     <button
@@ -2991,7 +2996,7 @@ const TeamDetailsPage = () => {
                       onClick={() => setShowGoogleCalendarPrompt(false)}
                       className={getThemeClasses(
                         'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                        'dark:text-gray-400 dark:hover:bg-dark-hover'
                       )}
                     >
                       Cancel
@@ -3023,7 +3028,7 @@ const TeamDetailsPage = () => {
                       onClick={() => setShowBulkRemoveProjectsDialog(false)}
                       className={getThemeClasses(
                         'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                        'dark:text-gray-400 dark:hover:bg-dark-hover'
                       )}
                     >
                       Cancel
@@ -3063,7 +3068,7 @@ const TeamDetailsPage = () => {
                       onClick={() => setShowLeaveTeamDialog(false)}
                       className={getThemeClasses(
                         'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                        'dark:text-gray-400 dark:hover:bg-dark-hover'
                       )}
                     >
                       Cancel
@@ -3112,7 +3117,7 @@ const TeamDetailsPage = () => {
                       }}
                       className={getThemeClasses(
                         'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                        'dark:text-gray-400 dark:hover:bg-dark-hover'
                       )}
                     >
                       Cancel

@@ -310,12 +310,11 @@ const RAGManagement = ({ organizationId }) => {
       )}
 
       {/* Tabs */}
-      <div className={`flex space-x-2 mb-6 ${
-        getThemeClasses(
-          'bg-gray-100 p-1',
-          'dark:bg-dark-bg dark:border dark:border-zinc-800'
-        )
-      } rounded-xl transition-all duration-300`}>
+      <div className={`flex space-x-2 mb-6 ${getThemeClasses(
+        'bg-gray-100 p-1',
+        'dark:bg-dark-bg dark:border dark:border-zinc-800'
+      )
+        } rounded-xl transition-all duration-300`}>
         {[
           { id: 'overview', label: 'Overview' },
           { id: 'search', label: 'Search' },
@@ -325,17 +324,16 @@ const RAGManagement = ({ organizationId }) => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-3 px-6 rounded-lg text-sm font-semibold transition-all duration-300 ${
-              activeTab === tab.id
+            className={`flex-1 py-3 px-6 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === tab.id
                 ? getThemeClasses(
-                    'bg-white text-emerald-600 shadow-md border border-gray-100',
-                    'dark:bg-zinc-800 dark:text-white dark:shadow-sm dark:border dark:border-zinc-750'
-                  )
+                  'bg-white text-emerald-600 shadow-md border border-gray-100',
+                  'dark:bg-zinc-800 dark:text-white dark:shadow-sm dark:border dark:border-zinc-750'
+                )
                 : getThemeClasses(
-                    'text-gray-600 hover:text-gray-900 hover:bg-gray-200/60',
-                    'dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-850/50'
-                  )
-            }`}
+                  'text-gray-600 hover:text-gray-900 hover:bg-gray-200/60',
+                  'dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-850/50'
+                )
+              }`}
           >
             {tab.label}
           </button>
@@ -481,7 +479,7 @@ const RAGManagement = ({ organizationId }) => {
                   onClick={loadSyncStatus}
                   className={getThemeClasses(
                     "px-4 py-2 rounded-md text-sm font-medium bg-gray-200 hover:bg-gray-300 text-gray-800",
-                    "dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-white"
+                    "dark:bg-gray-600 dark:hover:bg-dark-hover dark:text-white"
                   )}
                 >
                   Refresh Status

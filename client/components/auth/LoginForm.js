@@ -172,7 +172,7 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
             <button
               type="button"
               onClick={() => setShow2FA(false)}
-              className={`w-1/2 px-4 py-2.5 text-sm font-medium rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 ${theme === 'dark' ? 'text-gray-200 bg-gray-800 hover:bg-gray-700 focus:ring-gray-600' : 'text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-gray-500'}`}
+              className={`w-1/2 px-4 py-2.5 text-sm font-medium rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 ${theme === 'dark' ? 'text-gray-200 bg-gray-800 hover:bg-dark-hover focus:ring-gray-600' : 'text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-gray-500'}`}
             >
               Back
             </button>
@@ -308,7 +308,7 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
                   setOtpCode('');
                   setError('');
                 }}
-                className={`w-1/2 py-2.5 px-3 rounded-lg sm:rounded-xl font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700 text-gray-200 focus:ring-gray-600' : 'bg-gray-100 hover:bg-gray-200 text-gray-800 focus:ring-gray-500'}`}
+                className={`w-1/2 py-2.5 px-3 rounded-lg sm:rounded-xl font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${theme === 'dark' ? 'bg-gray-800 hover:bg-dark-hover text-gray-200 focus:ring-gray-600' : 'bg-gray-100 hover:bg-gray-200 text-gray-800 focus:ring-gray-500'}`}
               >
                 Cancel
               </button>

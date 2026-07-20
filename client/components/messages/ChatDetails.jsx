@@ -75,7 +75,7 @@ const ChatDetails = ({
                         <button
                           onClick={handleSaveGroupName}
                           disabled={isSavingGroupName}
-                          className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700 text-green-400' : 'hover:bg-gray-100 text-green-600'} disabled:opacity-50`}
+                          className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-dark-hover text-green-400' : 'hover:bg-gray-100 text-green-600'} disabled:opacity-50`}
                           title="Save"
                         >
                           <FaSave size={14} />
@@ -87,7 +87,7 @@ const ChatDetails = ({
                         {convDetails.isGroup && (
                           <button
                             onClick={handleEditGroupName}
-                            className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'}`}
+                            className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-dark-hover text-gray-400' : 'hover:bg-gray-100 text-gray-600'}`}
                             title="Edit group name"
                           >
                             <FaEdit size={14} />
@@ -142,8 +142,8 @@ const ChatDetails = ({
                             <div className="flex flex-col">
                               <div className="flex items-center gap-2">
                                 <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>{fullName}</span>
-                                {isCurrentUser && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">You</span>}
-                                {isAdminUser && <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">Admin</span>}
+                                {isCurrentUser && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">You</span>}
+                                {isAdminUser && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">Admin</span>}
                               </div>
                               <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{p.email}</span>
                             </div>

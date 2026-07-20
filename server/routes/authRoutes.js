@@ -214,15 +214,19 @@ router.get('/tasks-data', protect, async (req, res) => {
       Type: { $ne: "User Story" }
     });
 
-    // 4. Filter tasks assigned to current user or created by current user
-    const userTasks = allTasks.filter(task =>
-      task.Assignee == userId ||
-      task.AssignedTo == userId ||
-      task.CreatedBy == userId
-    );
+    const scope = req.query.scope || 'includes-me';
+
+    // 4. Filter tasks assigned to current user or created by current user if scope is 'includes-me'
+    const targetTasks = scope === 'all'
+      ? allTasks
+      : allTasks.filter(task =>
+          task.Assignee == userId ||
+          task.AssignedTo == userId ||
+          task.CreatedBy == userId
+        );
 
     // 5. Enhance tasks with project information and user details
-    const enhancedTasks = await Promise.all(userTasks.map(async (task) => {
+    const enhancedTasks = await Promise.all(targetTasks.map(async (task) => {
       const project = projects.find(p => p.ProjectID === task.ProjectID_FK);
       const enhancedTask = {
         ...task.toObject(),

@@ -15,7 +15,7 @@ const ProjectPriorityBadge = ({ priority = 2, size = 'sm', showLabel = false, cl
           ? 'bg-amber-500 dark:bg-amber-400'
           : 'bg-emerald-500 dark:bg-emerald-400';
 
-  const inactiveColor = 'bg-gray-300 dark:bg-zinc-700/80';
+  const inactiveColor = 'bg-gray-300 dark:bg-dark-border';
 
   const textColor =
     code === 0
@@ -27,8 +27,8 @@ const ProjectPriorityBadge = ({ priority = 2, size = 'sm', showLabel = false, cl
           : 'text-emerald-700';
 
   return (
-    <div className={`inline-flex items-center gap-1.5 ${className}`} title={`Project Priority: ${label}`}>
-      <div className={`w-5 h-5 rounded-md bg-gray-100 dark:bg-[#232326] border flex items-end justify-center gap-[2px] p-[3px] flex-shrink-0 shadow-2xs ${code === 0 ? 'border-rose-300 dark:border-rose-800' : 'border-gray-200/80 dark:border-zinc-750'}`}>
+    <div className={`inline-flex items-center gap-1.5 ${className}`} title={`Priority: ${label}`}>
+      <div className={`w-5 h-5 rounded-md bg-gray-100 dark:bg-dark-card border flex items-end justify-center gap-[2px] p-[3px] flex-shrink-0 shadow-2xs ${code === 0 ? 'border-rose-300 dark:border-rose-800' : 'border-gray-200/80 dark:border-dark-border'}`}>
         {/* Bar 1 (Short - 35%) */}
         <span className={`w-[3px] h-[35%] rounded-2xs transition-colors ${activeColor}`} />
         {/* Bar 2 (Medium - 65%) */}

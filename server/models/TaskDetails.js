@@ -16,7 +16,7 @@ const TaskDetailsSchema = new mongoose.Schema({
   Name: {
     type: String,
     required: true,
-    maxlength: 150
+    maxlength: 100
   },
   Description: {
     type: String

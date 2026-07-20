@@ -197,7 +197,7 @@ const TaskComments = ({ taskId, userId, userName, initialComments, projectMember
                         onClick={() => handleMentionSelect(member)}
                         className={getThemeClasses(
                           "w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 rounded-md",
-                          "dark:hover:bg-gray-700"
+                          "dark:hover:bg-dark-hover"
                         )}
                       >
                         <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">

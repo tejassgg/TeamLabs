@@ -1039,7 +1039,7 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                         <button
                           type="button"
                           onClick={() => setPreviewExpanded(!previewExpanded)}
-                          className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600'
+                          className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-dark-hover transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600'
                             }`}
                         >
                           {previewExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}

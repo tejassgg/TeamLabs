@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { FaTasks, FaCalendarAlt, FaClock, FaCheckCircle, FaExclamationTriangle, FaSearch, FaSpinner, FaFlag, FaEdit, FaTrash, FaTimes, FaShieldAlt, FaRocket, FaSort, FaSortUp, FaSortDown, FaFilter, FaChevronLeft, FaChevronRight, FaChartBar } from 'react-icons/fa';
+import { FaTasks, FaCalendarAlt, FaClock, FaCheckCircle, FaExclamationTriangle, FaSearch, FaSpinner, FaFlag, FaEdit, FaTrash, FaTimes, FaShieldAlt, FaRocket, FaSort, FaSortUp, FaSortDown, FaFilter, FaChevronLeft, FaChevronRight, FaChartBar, FaDownload } from 'react-icons/fa';
 import useSWR from 'swr';
 
 import { useTheme } from '../context/ThemeContext';
 import { useGlobal } from '../context/GlobalContext';
 import { useToast } from '../context/ToastContext';
 import { authService } from '../services/api';
-import { getPriorityBadge } from '../components/task/TaskTypeBadge';
+import { getPriorityBadge, getPriorityStyle } from '../components/task/TaskTypeBadge';
 import CustomDropdown from '../components/shared/CustomDropdown';
+import SearchableDropdown from '../components/shared/SearchableDropdown';
 import TasksSkeleton from '../components/skeletons/TasksSkeleton';
 
 const TasksPage = () => {
@@ -51,11 +52,24 @@ const TasksPage = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [projectFilter, setProjectFilter] = useState('');
+  const [taskTypeFilter, setTaskTypeFilter] = useState('');
+  const [assignedToFilter, setAssignedToFilter] = useState('');
+  const [assignedByFilter, setAssignedByFilter] = useState('');
   const [sortBy, setSortBy] = useState('assignedDate');
   const [sortOrder, setSortOrder] = useState('desc');
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const [filterAnim, setFilterAnim] = useState(false);
+
+  // Animate in
+  useEffect(() => {
+    if (isFilterModalOpen) {
+      const id = requestAnimationFrame(() => setFilterAnim(true));
+      return () => cancelAnimationFrame(id);
+    } else {
+      setFilterAnim(false);
+    }
+  }, [isFilterModalOpen]);
 
   const filterDropdownRef = useRef(null);
 
@@ -80,10 +94,13 @@ const TasksPage = () => {
     highPriorityTasks: 0
   });
 
+  const [scope, setScope] = useState('includes-me');
+
   // SWR-based query for personal tasks and stats
+  // SWR-based query for personal tasks and stats (always fetch 'all' scope from server)
   const { data: myTasksRes, error: fetchError } = useSWR(
-    userDetails?._id ? '/auth/tasks-data' : null,
-    () => authService.getTasksData(),
+    userDetails?._id ? ['/auth/tasks-data', 'all'] : null,
+    ([url, s]) => authService.getTasksData('all'),
     {
       revalidateOnFocus: false,
       dedupingInterval: 5000,
@@ -92,15 +109,57 @@ const TasksPage = () => {
 
   const loading = !myTasksRes && !fetchError;
 
+  // Helper to calculate statistics based on active scope
+  const calculateStats = (scopeTasks) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const completed = scopeTasks.filter(task => task.Status === 'Completed' || task.Status === 6 || task.Status === '6');
+
+    const overdue = scopeTasks.filter(task => {
+      if (!task.Deadline || task.Status === 'Completed' || task.Status === 6 || task.Status === '6') return false;
+      const deadline = new Date(task.Deadline);
+      return deadline < today;
+    });
+
+    const dueToday = scopeTasks.filter(task => {
+      if (!task.Deadline || task.Status === 'Completed' || task.Status === 6 || task.Status === '6') return false;
+      const deadline = new Date(task.Deadline);
+      const taskDate = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
+      return taskDate.getTime() === today.getTime();
+    });
+
+    const highPriority = scopeTasks.filter(task => task.Priority === 'High' || task.Priority === 'Critical' || task.Priority === 0 || task.Priority === '0');
+
+    setStats({
+      totalTasks: scopeTasks.length,
+      completedTasks: completed.length,
+      overdueTasks: overdue.length,
+      dueTodayTasks: dueToday.length,
+      highPriorityTasks: highPriority.length
+    });
+  };
+
   // Synchronize query response with page state hooks
   useEffect(() => {
     if (myTasksRes && myTasksRes.success) {
-      const { tasks, projects, stats } = myTasksRes.data;
+      const { tasks, projects } = myTasksRes.data;
       setTasks(tasks);
       setProjects(projects);
-      setStats(stats);
     }
   }, [myTasksRes]);
+
+  // Recalculate statistics when scope or tasks change
+  useEffect(() => {
+    const scopeTasks = scope === 'includes-me'
+      ? tasks.filter(task =>
+        task.Assignee === userDetails?._id ||
+        task.AssignedTo === userDetails?._id ||
+        task.CreatedBy === userDetails?._id
+      )
+      : tasks;
+    calculateStats(scopeTasks);
+  }, [tasks, scope, userDetails]);
 
   // Sync request errors
   useEffect(() => {
@@ -113,11 +172,19 @@ const TasksPage = () => {
   useEffect(() => {
     applyFilters();
     setCurrentPage(1);
-  }, [tasks, searchTerm, statusFilter, priorityFilter, projectFilter, sortBy, sortOrder]);
+  }, [tasks, scope, searchTerm, statusFilter, priorityFilter, projectFilter, taskTypeFilter, assignedToFilter, assignedByFilter, sortBy, sortOrder]);
 
 
   const applyFilters = () => {
-    let filtered = [...tasks];
+    const scopeTasks = scope === 'includes-me'
+      ? tasks.filter(task =>
+        task.Assignee === userDetails?._id ||
+        task.AssignedTo === userDetails?._id ||
+        task.CreatedBy === userDetails?._id
+      )
+      : tasks;
+
+    let filtered = [...scopeTasks];
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(task =>
@@ -142,6 +209,21 @@ const TasksPage = () => {
       filtered = filtered.filter(task => task.ProjectID === projectFilter);
     }
 
+    // Task Type filter
+    if (taskTypeFilter) {
+      filtered = filtered.filter(task => task.Type === taskTypeFilter);
+    }
+
+    // Assigned To filter
+    if (assignedToFilter) {
+      filtered = filtered.filter(task => task.AssignedTo === assignedToFilter);
+    }
+
+    // Assigned By filter
+    if (assignedByFilter) {
+      filtered = filtered.filter(task => task.Assignee === assignedByFilter);
+    }
+
     // Sort
     filtered.sort((a, b) => {
       let aValue, bValue;
@@ -156,7 +238,7 @@ const TasksPage = () => {
           bValue = b.AssignedDate ? new Date(b.AssignedDate) : new Date('1970-01-01');
           break;
         case 'priority':
-          const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+          const priorityOrder = { 'Critical': 4, 0: 4, '0': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
           aValue = priorityOrder[a.Priority] || 0;
           bValue = priorityOrder[b.Priority] || 0;
           break;
@@ -212,6 +294,46 @@ const TasksPage = () => {
     router.push(`/project/${projectId}?taskId=${taskId}`);
   };
 
+  const exportToCSV = () => {
+    const headers = ['Task Name', 'Assignee', 'Creator', 'Assigned On', 'Priority', 'Status'];
+    const csvData = filteredTasks.map(task => {
+      const assigneeName = task.AssignedToDetails?.fullName
+        ? `${task.AssignedToDetails.fullName} (@${task.AssignedToDetails.username})`
+        : 'Not Assigned';
+      const creatorName = task.AssigneeDetails?.fullName
+        ? `${task.AssigneeDetails.fullName} (@${task.AssigneeDetails.username})`
+        : 'Not Assigned';
+      const assignedOn = task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString() : '';
+      const priorityLabel = task.Priority === 0 || task.Priority === '0' ? 'Critical' : task.Priority || 'None';
+
+      const statusObj = projectStatuses.find(s => s.Code === Number(task.Status) || s.Code === task.Status);
+      const statusLabel = statusObj ? statusObj.Value : 'Unknown';
+
+      return [
+        task.Name || '',
+        assigneeName,
+        creatorName,
+        assignedOn,
+        priorityLabel,
+        statusLabel
+      ];
+    });
+
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `tasks_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Sort handler for table headers
   const handleHeaderSort = (field) => {
     if (sortBy === field) {
@@ -242,277 +364,401 @@ const TasksPage = () => {
   }
 
   return (
-    <div className={getThemeClasses('bg-white', 'bg-dark-bg')}>
+    <div className={`${getThemeClasses('bg-white', 'bg-dark-bg')}`}>
       <Head>
-        <title>My Tasks - TeamLabs</title>
+        <title>Tasks - TeamLabs</title>
         <meta name="description" content="View and manage all your assigned tasks, projects, and teams" />
       </Head>
 
       <div>
-        {/* Filters and Search */}
-        <div className='bg-transparent mb-2'>
-          <div className="flex flex-col lg:flex-row gap-4 w-full justify-between mt-3">
-            {/* Search */}
-            <div className="flex-1 lg:w-1/2">
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search tasks..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className={getThemeClasses(
-                    'w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                    'w-full pl-10 pr-4 py-2 rounded-lg border border-gray-600 bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                  )}
-                />
-              </div>
-            </div>
 
-            {/* Filters */}
-            <div className="flex flex-row gap-2 w-full lg:w-auto lg:justify-end relative" ref={filterDropdownRef}>
-              {/* Show Stats button for mobile only */}
-              <button
-                onClick={() => setIsStatsModalOpen(true)}
-                className={getThemeClasses(
-                  'md:hidden flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition-colors flex-1',
-                  'md:hidden flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-700 hover:bg-gray-600 text-white transition-colors flex-1'
-                )}
-              >
-                <FaChartBar className="w-4 h-4 text-blue-500" />
-                <span>Stats</span>
-              </button>
 
-              <button
-                onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
-                className={getThemeClasses(
-                  'flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition-colors flex-1 lg:flex-none',
-                  'flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-700 hover:bg-gray-600 text-white transition-colors flex-1 lg:flex-none'
-                )}
-              >
-                <FaFilter className="w-4 h-4" />
-                <span>Filters</span>
-                {((statusFilter ? 1 : 0) + (priorityFilter ? 1 : 0) + (projectFilter ? 1 : 0)) > 0 && (
-                  <span className="bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {(statusFilter ? 1 : 0) + (priorityFilter ? 1 : 0) + (projectFilter ? 1 : 0)}
-                  </span>
-                )}
-              </button>
+        {/* Stats Card - Unified Layout matching Project details page hero */}
+        <div className="w-full mb-6">
+          <div className={`border rounded-2xl p-6 max-w-5xl ${getThemeClasses(
+            "bg-white border-gray-200 shadow-sm",
+            "dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none"
+          )}`}>
+            {(() => {
+              const totalTasksCount = stats.totalTasks;
+              const completedTasksCount = stats.completedTasks;
+              const progressPercent = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
 
-              {/* Filter Dropdown */}
-              {isFilterModalOpen && (
-                <div className={getThemeClasses(
-                  'absolute right-0 top-full mt-2 z-50 w-[300px] sm:w-[500px] lg:w-[700px] bg-white border border-gray-200 rounded-xl shadow-lg flex flex-col',
-                  'absolute right-0 top-full mt-2 z-50 w-[300px] sm:w-[500px] lg:w-[700px] bg-dark-card border border-gray-600 rounded-xl shadow-lg flex flex-col'
-                )}>
-                  <div className={getThemeClasses(
-                    'p-4 border-b border-gray-200 flex items-center justify-between',
-                    'p-4 border-b border-gray-600 flex items-center justify-between'
-                  )}>
-                    <h3 className={getThemeClasses('text-base font-bold text-gray-900', 'text-base font-bold text-white')}>
-                      Filter Tasks
-                    </h3>
-                    <button
-                      onClick={() => setIsFilterModalOpen(false)}
-                      className={getThemeClasses('text-gray-400 hover:text-gray-600', 'text-gray-500 hover:text-gray-300')}
-                    >
-                      <FaTimes size={16} />
-                    </button>
-                  </div>
+              const radius = 44;
+              const strokeWidth = 8;
+              const C = 2 * Math.PI * radius; // 276.46
+              const gap = 10;
 
-                  <div className="p-4 overflow-visible relative z-20">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                      {/* Status Column */}
-                      <div>
-                        <h4 className={getThemeClasses('text-sm font-semibold mb-2 text-gray-900', 'text-sm font-semibold mb-2 text-white')}>Status</h4>
-                        <CustomDropdown
-                          value={statusFilter}
-                          onChange={(val) => setStatusFilter(val)}
-                          options={[
-                            { value: '', label: 'All Statuses' },
-                            ...projectStatuses.map(status => ({ value: status.Code, label: status.Value }))
-                          ]}
-                          placeholder="All Statuses"
-                          size="sm"
-                        />
+              let greenLength = 0;
+              let grayLength = 0;
+              let greenOffset = 0;
+              let grayOffset = 0;
+
+              if (progressPercent === 100) {
+                greenLength = C;
+                grayLength = 0;
+              } else if (progressPercent === 0) {
+                greenLength = 0;
+                grayLength = C;
+              } else {
+                greenLength = (progressPercent / 100) * C - gap;
+                grayLength = ((100 - progressPercent) / 100) * C - gap;
+                greenOffset = -gap / 2;
+                grayOffset = -(greenLength + 1.5 * gap);
+              }
+
+              let healthText = 'On Track';
+              let healthColor = 'text-green-600 bg-green-50 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-800';
+              if (stats.overdueTasks > 0) {
+                healthText = 'Needs Attention';
+                healthColor = 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-400 dark:border-yellow-800';
+              }
+
+              return (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center w-full">
+                  {/* Left Column: Cards (lg:col-span-6) */}
+                  <div className="lg:col-span-4 grid grid-cols-2 gap-3 w-full lg:border-r border-gray-100 dark:border-zinc-800/85 pb-6 lg:pb-0 lg:pr-6">
+                    {/* Total Tasks */}
+                    <div className={`p-4 rounded-xl border flex flex-col justify-between hover:shadow-md transition-all duration-300 ${getThemeClasses(
+                      'border-gray-100 bg-gray-50/50',
+                      'border-zinc-800/80 bg-zinc-900/30 hover:bg-zinc-800/20'
+                    )}`}>
+                      <div className="flex items-center justify-between">
+                        <span className={getThemeClasses('text-[10px] font-semibold text-gray-500 uppercase tracking-wider', 'text-[10px] font-semibold text-gray-400 uppercase tracking-wider')}>Total Tasks</span>
+                        <div className="p-1 rounded-lg bg-blue-100 dark:bg-blue-900/20 text-blue-600">
+                          <FaTasks className="w-3 h-3" />
+                        </div>
                       </div>
+                      <span className={getThemeClasses('text-xl font-bold text-gray-900 mt-2', 'text-xl font-bold text-white mt-2')}>
+                        {stats.totalTasks}
+                      </span>
+                    </div>
 
-                      {/* Priority Column */}
-                      <div>
-                        <h4 className={getThemeClasses('text-sm font-semibold mb-2 text-gray-900', 'text-sm font-semibold mb-2 text-white')}>Priority</h4>
-                        <CustomDropdown
-                          value={priorityFilter}
-                          onChange={(val) => setPriorityFilter(val)}
-                          options={[
-                            { value: '', label: 'All Priorities' },
-                            { value: 'High', label: 'High' },
-                            { value: 'Medium', label: 'Medium' },
-                            { value: 'Low', label: 'Low' }
-                          ]}
-                          placeholder="All Priorities"
-                          size="sm"
-                        />
+                    {/* Completed */}
+                    <div className={`p-4 rounded-xl border flex flex-col justify-between hover:shadow-md transition-all duration-300 ${getThemeClasses(
+                      'border-gray-100 bg-gray-50/50',
+                      'border-zinc-800/80 bg-zinc-900/30 hover:bg-zinc-800/20'
+                    )}`}>
+                      <div className="flex items-center justify-between">
+                        <span className={getThemeClasses('text-[10px] font-semibold text-gray-500 uppercase tracking-wider', 'text-[10px] font-semibold text-gray-400 uppercase tracking-wider')}>Completed</span>
+                        <div className="p-1 rounded-lg bg-green-100 dark:bg-green-900/20 text-green-600">
+                          <FaCheckCircle className="w-3 h-3" />
+                        </div>
                       </div>
+                      <span className={getThemeClasses('text-xl font-bold text-green-650 mt-2', 'text-xl font-bold text-green-400 mt-2')}>
+                        {stats.completedTasks}
+                      </span>
+                    </div>
 
-                      {/* Projects Column */}
-                      <div>
-                        <h4 className={getThemeClasses('text-sm font-semibold mb-2 text-gray-900', 'text-sm font-semibold mb-2 text-white')}>Projects</h4>
-                        <CustomDropdown
-                          value={projectFilter}
-                          onChange={(val) => setProjectFilter(val)}
-                          options={[
-                            { value: '', label: 'All Projects' },
-                            ...projects.map(project => ({ value: project.ProjectID, label: project.Name }))
-                          ]}
-                          placeholder="All Projects"
-                          size="sm"
-                        />
+                    {/* Overdue Card */}
+                    <div className={`p-4 rounded-xl border flex flex-col justify-between hover:shadow-md transition-all duration-300 ${getThemeClasses(
+                      'border-gray-100 bg-gray-50/50',
+                      'border-zinc-800/80 bg-zinc-900/30 hover:bg-zinc-800/20'
+                    )}`}>
+                      <div className="flex items-center justify-between">
+                        <span className={getThemeClasses('text-[10px] font-semibold text-gray-500 uppercase tracking-wider', 'text-[10px] font-semibold text-gray-400 uppercase tracking-wider')}>Overdue</span>
+                        <div className="p-1.5 rounded-lg bg-red-100 dark:bg-red-955/40 dark:bg-red-950/40">
+                          <FaExclamationTriangle className="w-3 h-3 text-red-655" />
+                        </div>
                       </div>
+                      <span className={`text-xl font-bold mt-2 ${stats.overdueTasks > 0 ? 'text-red-600' : getThemeClasses('text-gray-900', 'text-white')}`}>
+                        {stats.overdueTasks}
+                      </span>
+                    </div>
+
+                    {/* High Priority Card */}
+                    <div className={`p-4 rounded-xl border flex flex-col justify-between hover:shadow-md transition-all duration-300 ${getThemeClasses(
+                      'border-gray-100 bg-gray-50/50',
+                      'border-zinc-800/80 bg-zinc-900/30 hover:bg-zinc-800/20'
+                    )}`}>
+                      <div className="flex items-center justify-between">
+                        <span className={getThemeClasses('text-[10px] font-semibold text-gray-500 uppercase tracking-wider', 'text-[10px] font-semibold text-gray-400 uppercase tracking-wider')}>High Priority</span>
+                        <div className="p-1.5 rounded-lg bg-[#FFF2E5] dark:bg-[#FFA500]/10">
+                          <FaFlag className="w-3 h-3 text-orange-655" />
+                        </div>
+                      </div>
+                      <span className={`text-xl font-bold mt-2 ${stats.highPriorityTasks > 0 ? 'text-orange-600' : getThemeClasses('text-gray-900', 'text-white')}`}>
+                        {stats.highPriorityTasks}
+                      </span>
                     </div>
                   </div>
 
-                  <div className={getThemeClasses(
-                    'p-4 border-t border-gray-200 flex justify-between gap-3 relative z-10',
-                    'p-4 border-t border-gray-600 flex justify-between gap-3 relative z-10'
-                  )}>
-                    <button
-                      onClick={() => {
-                        setStatusFilter('');
-                        setPriorityFilter('');
-                        setProjectFilter('');
-                      }}
-                      className={getThemeClasses(
-                        'px-4 py-2 text-sm rounded-lg text-gray-700 hover:text-red-600 transition-colors',
-                        'px-4 py-2 text-sm rounded-lg text-gray-300 hover:text-red-400 transition-colors'
-                      )}
-                    >
-                      Clear Filters
-                    </button>
-                    <button
-                      onClick={() => setIsFilterModalOpen(false)}
-                      className="px-4 py-2 text-sm rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-                    >
-                      Close
-                    </button>
+                  {/* Middle Column: Progress Bar (lg:col-span-2) */}
+                  <div className="lg:col-span-2 flex flex-col items-center justify-center gap-2 lg:border-r border-gray-100 dark:border-zinc-800/85 pb-6 lg:pb-0 lg:pr-6">
+                    <div className="relative w-32 h-32 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-full h-full transform -rotate-90">
+                        {/* Gray remainder path */}
+                        {grayLength > 0 && (
+                          <circle
+                            cx="64"
+                            cy="64"
+                            r={radius}
+                            className="text-gray-100 dark:text-zinc-850 dark:text-zinc-800"
+                            strokeWidth={strokeWidth}
+                            strokeDasharray={`${grayLength} ${C}`}
+                            strokeDashoffset={grayOffset}
+                            strokeLinecap="round"
+                            stroke="currentColor"
+                            fill="transparent"
+                          />
+                        )}
+                        {/* Emerald progress path */}
+                        {greenLength > 0 && (
+                          <circle
+                            cx="64"
+                            cy="64"
+                            r={radius}
+                            className="text-emerald-500 dark:text-emerald-400"
+                            strokeWidth={strokeWidth}
+                            strokeDasharray={`${greenLength} ${C}`}
+                            strokeDashoffset={greenOffset}
+                            strokeLinecap="round"
+                            stroke="currentColor"
+                            fill="transparent"
+                          />
+                        )}
+                      </svg>
+                      <div className="absolute flex flex-col items-center justify-center text-center">
+                        <span className={getThemeClasses(
+                          "text-xl font-extrabold tracking-tight text-slate-800",
+                          "text-white"
+                        )}>
+                          {progressPercent}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Health Status Badge */}
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${healthColor}`}>
+                      {healthText}
+                    </span>
+
+                    {/* Completion stats text */}
+                    <p className={getThemeClasses('text-xs font-semibold text-gray-500 mt-0.5', 'text-xs font-semibold text-gray-400 mt-0.5')}>
+                      {stats.completedTasks} of {stats.totalTasks} completed
+                    </p>
+                  </div>
+
+                  {/* Right Column: Search & Filter Controls (lg:col-span-4) */}
+                  <div className="lg:col-span-6 flex flex-col gap-3 w-full h-full justify-end">
+                    {/* Top: Search bar */}
+                    <div className="relative w-full">
+                      <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <input
+                        type="text"
+                        placeholder="Search tasks..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className={getThemeClasses(
+                          'w-full pl-10 pr-4 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500',
+                          'w-full pl-10 pr-4 py-2 text-sm rounded-lg border border-dark-border bg-dark-card text-white focus:outline-none focus:ring-1 focus:ring-blue-500'
+                        )}
+                      />
+                    </div>
+
+                    {/* Bottom: Scope Toggle, Filter and Export CSV */}
+                    <div className="flex flex-wrap items-center gap-2 w-full justify-between sm:justify-end">
+                      {/* Scope Toggles */}
+                      <div className={`flex rounded-lg p-0.5 border text-sm font-medium ${getThemeClasses(
+                        'border-gray-300 bg-gray-50',
+                        'dark:border-dark-border dark:bg-dark-card'
+                      )}`}>
+                        <button
+                          onClick={() => setScope('includes-me')}
+                          className={`px-3 py-1.5 rounded-md text-xs transition-all duration-200 ${scope === 'includes-me'
+                            ? 'bg-blue-600 text-white shadow-sm font-semibold'
+                            : theme === 'dark' ? 'text-gray-400 hover:text-gray-250 hover:text-gray-205 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                        >
+                          Includes Me
+                        </button>
+                        <button
+                          onClick={() => setScope('all')}
+                          className={`px-3 py-1.5 rounded-md text-xs transition-all duration-200 ${scope === 'all'
+                            ? 'bg-blue-600 text-white shadow-sm font-semibold'
+                            : theme === 'dark' ? 'text-gray-400 hover:text-gray-250 hover:text-gray-205 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                        >
+                          All Tasks
+                        </button>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2 relative" ref={filterDropdownRef}>
+                        <button
+                          onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
+                          className={getThemeClasses(
+                            'flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-blue-100 hover:bg-blue-200/80 text-blue-600 text-sm font-medium transition-all duration-200 border-0 cursor-pointer',
+                            'flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-blue-950/50 hover:bg-blue-900/60 text-blue-400 text-sm font-medium transition-all duration-200 border border-blue-900/50 cursor-pointer'
+                          )}
+                        >
+                          <FaFilter className="w-3.5 h-3.5" />
+                          <span>Filter</span>
+                          {((statusFilter ? 1 : 0) + (priorityFilter ? 1 : 0) + (projectFilter ? 1 : 0) + (taskTypeFilter ? 1 : 0) + (assignedToFilter ? 1 : 0) + (assignedByFilter ? 1 : 0)) > 0 && (
+                            <span className="bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                              {(statusFilter ? 1 : 0) + (priorityFilter ? 1 : 0) + (projectFilter ? 1 : 0) + (taskTypeFilter ? 1 : 0) + (assignedToFilter ? 1 : 0) + (assignedByFilter ? 1 : 0)}
+                            </span>
+                          )}
+                        </button>
+
+                        <button
+                          onClick={exportToCSV}
+                          className={getThemeClasses(
+                            'flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[#00AA4F] hover:bg-[#009042] text-white text-sm font-medium transition-all duration-200 border-0 cursor-pointer',
+                            'flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-green-700 hover:bg-green-600 text-white text-sm font-medium transition-all duration-200 border-0 cursor-pointer'
+                          )}
+                        >
+                          <FaDownload className="w-3.5 h-3.5 text-white" />
+                          <span>Export CSV</span>
+                        </button>
+
+                        {/* Filter Dropdown */}
+                        {isFilterModalOpen && (
+                          <div
+                            className={getThemeClasses(
+                              `absolute right-0 top-full mt-2 w-80 z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-white border-gray-200`,
+                              `absolute right-0 top-full mt-2 w-80 z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-dark-card border-gray-600`
+                            )}
+                            role="dialog"
+                            aria-label="Filters"
+                          >
+                            <div className="grid grid-cols-1 gap-4">
+                              {/* Status */}
+                              <div>
+                                <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'text-gray-300')}>Status</label>
+                                <SearchableDropdown
+                                  value={statusFilter}
+                                  onChange={(val) => setStatusFilter(val)}
+                                  options={[
+                                    { value: '', label: 'All Statuses' },
+                                    ...projectStatuses.map(status => ({ value: status.Code, label: status.Value }))
+                                  ]}
+                                  placeholder="All Statuses"
+                                  renderSelected={(opt) => opt.value === '' ? 'All Statuses' : getProjectStatusBadgeComponent(opt.value, true)}
+                                  renderOption={(opt) => opt.value === '' ? 'All Statuses' : getProjectStatusBadgeComponent(opt.value, true)}
+                                />
+                              </div>
+
+                              {/* Priority */}
+                              <div>
+                                <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'text-gray-300')}>Priority</label>
+                                <SearchableDropdown
+                                  value={priorityFilter}
+                                  onChange={(val) => setPriorityFilter(val)}
+                                  options={[
+                                    { value: '', label: 'All Priorities' },
+                                    { value: 'Critical', label: 'Critical' },
+                                    { value: 'High', label: 'High' },
+                                    { value: 'Medium', label: 'Medium' },
+                                    { value: 'Low', label: 'Low' }
+                                  ]}
+                                  placeholder="All Priorities"
+                                  renderSelected={(opt) => opt.value === '' ? 'All Priorities' : getPriorityBadge(opt.value)}
+                                  renderOption={(opt) => opt.value === '' ? 'All Priorities' : getPriorityBadge(opt.value)}
+                                />
+                              </div>
+
+                              {/* Project */}
+                              <div>
+                                <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'text-gray-300')}>Project</label>
+                                <SearchableDropdown
+                                  value={projectFilter}
+                                  onChange={(val) => setProjectFilter(val)}
+                                  options={[
+                                    { value: '', label: 'All Projects' },
+                                    ...projects.map(project => ({ value: project.ProjectID, label: project.Name }))
+                                  ]}
+                                  placeholder="All Projects"
+                                />
+                              </div>
+
+                              {/* Task Type */}
+                              <div>
+                                <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'text-gray-300')}>Task Type</label>
+                                <SearchableDropdown
+                                  value={taskTypeFilter}
+                                  onChange={(val) => setTaskTypeFilter(val)}
+                                  options={[
+                                    { value: '', label: 'All Types' },
+                                    ...Array.from(new Set(tasks.map(t => t.Type).filter(Boolean))).map(type => ({ value: type, label: type }))
+                                  ]}
+                                  placeholder="All Types"
+                                  renderSelected={(opt) => opt.value === '' ? 'All Types' : getTaskTypeBadgeComponent(opt.value)}
+                                  renderOption={(opt) => opt.value === '' ? 'All Types' : getTaskTypeBadgeComponent(opt.value)}
+                                />
+                              </div>
+
+                              {/* Assigned To */}
+                              <div>
+                                <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'text-gray-300')}>Assigned To</label>
+                                <SearchableDropdown
+                                  value={assignedToFilter}
+                                  onChange={(val) => setAssignedToFilter(val)}
+                                  options={[
+                                    { value: '', label: 'All Assignees' },
+                                    ...Array.from(new Set(tasks.map(t => t.AssignedTo).filter(Boolean))).map(userId => {
+                                      const t = tasks.find(tt => tt.AssignedTo === userId);
+                                      return { value: userId, label: t?.AssignedToDetails?.fullName || userId };
+                                    })
+                                  ]}
+                                  placeholder="All Assignees"
+                                />
+                              </div>
+
+                              {/* Assigned By */}
+                              <div>
+                                <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'text-gray-300')}>Assigned By</label>
+                                <SearchableDropdown
+                                  value={assignedByFilter}
+                                  onChange={(val) => setAssignedByFilter(val)}
+                                  options={[
+                                    { value: '', label: 'All Creators' },
+                                    ...Array.from(new Set(tasks.map(t => t.Assignee).filter(Boolean))).map(userId => {
+                                      const t = tasks.find(tt => tt.Assignee === userId);
+                                      return { value: userId, label: t?.AssigneeDetails?.fullName || userId };
+                                    })
+                                  ]}
+                                  placeholder="All Creators"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                              <button
+                                onClick={() => {
+                                  setStatusFilter('');
+                                  setPriorityFilter('');
+                                  setProjectFilter('');
+                                  setTaskTypeFilter('');
+                                  setAssignedToFilter('');
+                                  setAssignedByFilter('');
+                                }}
+                                className={getThemeClasses(
+                                  'px-3 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50',
+                                  'px-3 py-2 text-sm rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800'
+                                )}
+                              >
+                                Reset
+                              </button>
+                              <button
+                                onClick={() => setIsFilterModalOpen(false)}
+                                className={getThemeClasses(
+                                  'px-3 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700',
+                                  'px-3 py-2 text-sm rounded-lg bg-blue-500 text-white hover:bg-blue-600'
+                                )}
+                              >
+                                Close
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
+              );
+            })()}
           </div>
-        </div>
-
-        {/* Stats Cards - Hidden on Mobile, shown on Desktop */}
-        <div className="hidden md:block w-full lg:w-1/2 mb-2">
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <div className={getThemeClasses(
-              'bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300',
-              'bg-transparent border border-gray-700 hover:bg-gray-800/30 rounded-xl p-4 hover:shadow-lg transition-all duration-300'
-            )}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={getThemeClasses(
-                    'text-sm font-medium text-gray-600',
-                    'text-sm font-medium text-gray-400'
-                  )}>Total Tasks</p>
-                  <p className={getThemeClasses(
-                    'text-2xl font-bold text-gray-900',
-                    'text-2xl font-bold text-white'
-                  )}>{stats.totalTasks}</p>
-                </div>
-                <div className="p-2 rounded-xl bg-blue-100 bg-blue-900/20">
-                  <FaTasks className="w-4 h-4 text-blue-600 text-blue-400" />
-                </div>
-              </div>
-            </div>
-
-            <div className={getThemeClasses(
-              'bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300',
-              'bg-transparent border border-gray-700 hover:bg-gray-800/30 rounded-xl p-4 hover:shadow-lg transition-all duration-300'
-            )}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={getThemeClasses(
-                    'text-sm font-medium text-gray-600',
-                    'text-sm font-medium text-gray-400'
-                  )}>Completed</p>
-                  <p className={getThemeClasses(
-                    'text-2xl font-bold text-green-600',
-                    'text-2xl font-bold text-green-400'
-                  )}>{stats.completedTasks}</p>
-                </div>
-                <div className="p-2 rounded-xl bg-green-100 bg-green-900/20">
-                  <FaCheckCircle className="w-4 h-4 text-green-600 text-green-400" />
-                </div>
-              </div>
-            </div>
-
-            <div className={getThemeClasses(
-              'bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300',
-              'bg-transparent border border-gray-700 hover:bg-gray-800/30 rounded-xl p-4 hover:shadow-lg transition-all duration-300'
-            )}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={getThemeClasses(
-                    'text-sm font-medium text-gray-600',
-                    'text-sm font-medium text-gray-400'
-                  )}>Overdue</p>
-                  <p className={getThemeClasses(
-                    'text-2xl font-bold text-red-600',
-                    'text-2xl font-bold text-red-400'
-                  )}>{stats.overdueTasks}</p>
-                </div>
-                <div className="p-2 rounded-xl bg-red-100 bg-red-900/20">
-                  <FaExclamationTriangle className="w-4 h-4 text-red-600 text-red-400" />
-                </div>
-              </div>
-            </div>
-
-            <div className={getThemeClasses(
-              'bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300',
-              'bg-transparent border border-gray-700 hover:bg-gray-800/30 rounded-xl p-4 hover:shadow-lg transition-all duration-300'
-            )}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={getThemeClasses(
-                    'text-sm font-medium text-gray-600',
-                    'text-sm font-medium text-gray-400'
-                  )}>Due Today</p>
-                  <p className={getThemeClasses(
-                    'text-2xl font-bold text-yellow-600',
-                    'text-2xl font-bold text-yellow-400'
-                  )}>{stats.dueTodayTasks}</p>
-                </div>
-                <div className="p-2 rounded-xl bg-yellow-100 bg-yellow-900/20">
-                  <FaCalendarAlt className="w-4 h-4 text-yellow-600 text-yellow-400" />
-                </div>
-              </div>
-            </div>
-
-            <div className={getThemeClasses(
-              'bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300 col-span-2 sm:col-span-1',
-              'bg-transparent border border-gray-700 hover:bg-gray-800/30 rounded-xl p-4 hover:shadow-lg transition-all duration-300 col-span-2 sm:col-span-1'
-            )}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={getThemeClasses(
-                    'text-sm font-medium text-gray-600',
-                    'text-sm font-medium text-gray-400'
-                  )}>High Priority</p>
-                  <p className={getThemeClasses(
-                    'text-2xl font-bold text-red-600',
-                    'text-2xl font-bold text-red-400'
-                  )}>{stats.highPriorityTasks}</p>
-                </div>
-                <div className="p-2 rounded-xl bg-red-100 bg-red-900/20">
-                  <FaFlag className="w-4 h-4 text-red-600 text-red-400" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tasks List */}
-        <div className={getThemeClasses('bg-white flex-1', 'bg-transparent flex-1')}>
           <div className=" py-1 flex items-center justify-between">
             <h2 className={getThemeClasses(
               'text-xl font-bold text-gray-900',
@@ -571,10 +817,7 @@ const TasksPage = () => {
 
           {/* Pagination Controls */}
           {filteredTasks.length > 0 && (
-            <div className={getThemeClasses(
-              'flex flex-col sm:flex-row items-center justify-between gap-2 p-1 bg-white shadow-sm',
-              'flex flex-col sm:flex-row items-center justify-between gap-2 p-1 shadow-sm'
-            )}>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-1">
               <div className={getThemeClasses('text-sm text-gray-650 text-gray-500', 'text-sm text-gray-400')}>
                 Showing <span className="font-semibold text-blue-500">{indexOfFirstTask + 1}</span> to{' '}
                 <span className="font-semibold text-blue-500">
@@ -669,7 +912,7 @@ const TasksPage = () => {
               <table className="w-full table-fixed">
                 <thead>
                   <tr className={getTableHeaderClasses('bg-gray-50 border-b border-gray-200', 'bg-zinc-800/40 border-b border-zinc-700')}>
-                    <th className="py-3 px-4 text-center w-[50px]">
+                    <th className="py-3 pl-4 text-center w-[50px]">
                       <input
                         type="checkbox"
                         checked={selectedTasks.length === filteredTasks.length && filteredTasks.length > 0}
@@ -680,7 +923,7 @@ const TasksPage = () => {
                         )}
                       />
                     </th>
-                    <th className={`py-3 px-4 text-left w-[30%] ${tableHeaderTextClasses}`}>
+                    <th className={`py-3 px-4 text-left w-[42%] ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('name')}
                         className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors w-full text-left ${tableHeaderTextClasses}`}
@@ -689,16 +932,16 @@ const TasksPage = () => {
                         {getSortIcon('name')}
                       </button>
                     </th>
-                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>
+                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[12%] ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('assignedTo')}
-                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors w-full text-left ${tableHeaderTextClasses}`}
+                        className={`flex items-center gap-2 whitespace-nowrap hover:text-blue-600 hover:text-blue-400 transition-colors w-full text-left ${tableHeaderTextClasses}`}
                       >
                         Assigned To
                         {getSortIcon('assignedTo')}
                       </button>
                     </th>
-                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>
+                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[12%] ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('assignee')}
                         className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors w-full text-left ${tableHeaderTextClasses}`}
@@ -707,16 +950,16 @@ const TasksPage = () => {
                         {getSortIcon('assignee')}
                       </button>
                     </th>
-                    <th className={`hidden md:table-cell py-3 px-4 text-center w-[12%] ${tableHeaderTextClasses}`}>
+                    <th className={`hidden md:table-cell py-3 px-4 text-center w-[11%] ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('assignedDate')}
-                        className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors mx-auto w-full text-center ${tableHeaderTextClasses}`}
+                        className={`flex items-center justify-center gap-2 whitespace-nowrap hover:text-blue-600 hover:text-blue-400 transition-colors mx-auto w-full text-center ${tableHeaderTextClasses}`}
                       >
                         Assigned On
                         {getSortIcon('assignedDate')}
                       </button>
                     </th>
-                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[10%] ${tableHeaderTextClasses}`}>
+                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[8%] ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('priority')}
                         className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors w-full text-left ${tableHeaderTextClasses}`}
@@ -725,7 +968,7 @@ const TasksPage = () => {
                         {getSortIcon('priority')}
                       </button>
                     </th>
-                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[10%] ${tableHeaderTextClasses}`}>
+                    <th className={`hidden md:table-cell py-3 px-4 text-left w-[9%] ${tableHeaderTextClasses}`}>
                       <button
                         onClick={() => handleHeaderSort('status')}
                         className={`flex items-center gap-2 hover:text-blue-600 hover:text-blue-400 transition-colors w-full text-left ${tableHeaderTextClasses}`}
@@ -734,13 +977,13 @@ const TasksPage = () => {
                         {getSortIcon('status')}
                       </button>
                     </th>
-                    <th className={`py-3 px-4 text-left w-[8%] ${tableHeaderTextClasses}`}>Actions</th>
+                    <th className={`py-3 px-4 text-left w-[6%] ${tableHeaderTextClasses}`}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentTasks.map((task) => (
                     <tr key={task.TaskID || task._id} className={`${tableRowClasses} transition-colors duration-150 ${getThemeClasses('hover:bg-gray-50/70', 'hover:bg-[#2A2A2A]/40')}`}>
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-3 pl-4 text-center">
                         <input
                           type="checkbox"
                           checked={selectedTasks.includes(task.TaskID || task._id)}
@@ -762,7 +1005,7 @@ const TasksPage = () => {
                               )}
                               title={task.Name}
                             >
-                              {task.Name}
+                              {task.Name && task.Name.length > 100 ? `${task.Name.substring(0, 100)}...` : task.Name}
                             </button>
                             <div className="flex items-center gap-1.5">
                               {getTaskTypeBadgeComponent(task.Type)}
@@ -792,7 +1035,7 @@ const TasksPage = () => {
                               'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-300'
                             )}>
                               <span className="font-medium">Assigned to:</span>
-                              <span>{task.AssignedToDetails.fullName}</span>
+                              <span>{task.AssignedToDetails.username}</span>
                             </div>
                           )}
                         </div>
@@ -807,9 +1050,9 @@ const TasksPage = () => {
                               {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
                             </div>
                             <div className="flex flex-col">
-                              <span className={tableTextClasses}>{task.AssignedToDetails.fullName} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
+                              <span className={tableTextClasses}>{task.AssignedToDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
                               {task.AssignedToDetails.teamName && (
-                                <span className={tableSecondaryTextClasses}>{task.AssignedToDetails.teamName}</span>
+                                <span className={`text-xs ${tableSecondaryTextClasses}`}>{task.AssignedToDetails.teamName}</span>
                               )}
                             </div>
                           </div>
@@ -829,9 +1072,9 @@ const TasksPage = () => {
                               {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
                             </div>
                             <div className="flex flex-col">
-                              <span className={tableTextClasses}>{task.AssigneeDetails.fullName} <span className={'text-xs'}>{isMe(task.Assignee) ? ' (You)' : ''}</span></span>
+                              <span className={tableTextClasses}>{task.AssigneeDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(task.Assignee) ? ' (You)' : ''}</span></span>
                               {task.AssigneeDetails.teamName && (
-                                <span className={tableSecondaryTextClasses}>{task.AssigneeDetails.teamName}</span>
+                                <span className={`text-xs ${tableSecondaryTextClasses}`}>{task.AssigneeDetails.teamName}</span>
                               )}
                             </div>
                           </div>
@@ -849,8 +1092,8 @@ const TasksPage = () => {
                       </td>
                       <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
                         {task.AssignedDate ? (
-                          <div className="flex flex-col leading-tight">
-                            <span>{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                          <div className="flex flex-col items-center leading-tight text-sm">
+                            <span >{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                             <span className={getThemeClasses('text-xs text-gray-500', 'text-xs text-gray-400')}>
                               {new Date(task.AssignedDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                             </span>
@@ -872,22 +1115,22 @@ const TasksPage = () => {
                           <button
                             onClick={() => handleTaskClick(task.TaskID || task._id, task.ProjectID)}
                             className={getThemeClasses(
-                              'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
+                              'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
                               'bg-blue-900/50 text-blue-300 hover:bg-blue-800/50'
                             )}
                             title="Edit Task"
                           >
-                            <FaEdit size={14} />
+                            <FaEdit size={12} />
                           </button>
                           <button
                             onClick={() => handleTaskClick(task.TaskID || task._id, task.ProjectID)}
                             className={getThemeClasses(
-                              'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
+                              'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
                               'text-red-400 bg-red-900/50 hover:bg-red-800/50'
                             )}
                             title="Delete Task"
                           >
-                            <FaTrash size={14} />
+                            <FaTrash size={12} />
                           </button>
                         </div>
                       </td>
@@ -899,114 +1142,7 @@ const TasksPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Stats Modal for Mobile View */}
-      {isStatsModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="absolute inset-0" onClick={() => setIsStatsModalOpen(false)} />
-          <div className={getThemeClasses(
-            'relative w-full max-w-md mx-4 bg-white border border-gray-100 rounded-xl shadow-lg p-6 transform transition-all',
-            'relative w-full max-w-md mx-4 bg-dark-bg border border-dark-card rounded-xl shadow-lg p-6 text-white transform transition-all'
-          )}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className={getThemeClasses('text-lg font-semibold text-gray-900', 'text-lg font-semibold text-white')}>
-                Task Analytics
-              </h3>
-              <button
-                onClick={() => setIsStatsModalOpen(false)}
-                className={getThemeClasses(
-                  'text-gray-400 hover:text-gray-600 text-xl font-bold transition-colors',
-                  'text-gray-400 hover:text-gray-300 text-xl font-bold transition-colors'
-                )}
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="space-y-3 mb-6">
-              {/* Total Tasks */}
-              <div className={getThemeClasses(
-                'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
-                'bg-dark-card/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
-              )}>
-                <div>
-                  <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>Total Tasks</p>
-                  <p className={getThemeClasses('text-xl font-bold mt-0.5 text-gray-900', 'text-xl font-bold mt-0.5 text-white')}>{stats.totalTasks}</p>
-                </div>
-                <div className="p-2 rounded-xl bg-blue-100 bg-blue-900/20 text-blue-600 text-blue-400">
-                  <FaTasks className="w-4 h-4" />
-                </div>
-              </div>
-
-              {/* Completed */}
-              <div className={getThemeClasses(
-                'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
-                'bg-dark-card/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
-              )}>
-                <div>
-                  <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>Completed</p>
-                  <p className={getThemeClasses('text-xl font-bold mt-0.5 text-green-600', 'text-xl font-bold mt-0.5 text-green-400')}>{stats.completedTasks}</p>
-                </div>
-                <div className="p-2 rounded-xl bg-green-100 bg-green-900/20 text-green-600 text-green-400">
-                  <FaCheckCircle className="w-4 h-4" />
-                </div>
-              </div>
-
-              {/* Overdue */}
-              <div className={getThemeClasses(
-                'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
-                'bg-dark-card/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
-              )}>
-                <div>
-                  <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>Overdue</p>
-                  <p className={getThemeClasses('text-xl font-bold mt-0.5 text-red-650 text-red-500', 'text-xl font-bold mt-0.5 text-red-400')}>{stats.overdueTasks}</p>
-                </div>
-                <div className="p-2 rounded-xl bg-red-100 bg-red-900/20 text-red-600 text-red-400">
-                  <FaExclamationTriangle className="w-4 h-4" />
-                </div>
-              </div>
-
-              {/* Due Today */}
-              <div className={getThemeClasses(
-                'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
-                'bg-dark-card/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
-              )}>
-                <div>
-                  <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>Due Today</p>
-                  <p className={getThemeClasses('text-xl font-bold mt-0.5 text-yellow-650 text-yellow-500', 'text-xl font-bold mt-0.5 text-yellow-400')}>{stats.dueTodayTasks}</p>
-                </div>
-                <div className="p-2 rounded-xl bg-yellow-100 bg-yellow-900/20 text-yellow-600 text-yellow-400">
-                  <FaCalendarAlt className="w-4 h-4" />
-                </div>
-              </div>
-
-              {/* High Priority */}
-              <div className={getThemeClasses(
-                'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
-                'bg-dark-card/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
-              )}>
-                <div>
-                  <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>High Priority</p>
-                  <p className={getThemeClasses('text-xl font-bold mt-0.5 text-red-650 text-red-500', 'text-xl font-bold mt-0.5 text-red-455 text-red-400')}>{stats.highPriorityTasks}</p>
-                </div>
-                <div className="p-2 rounded-xl bg-red-100 bg-red-900/20 text-red-600 text-red-400">
-                  <FaFlag className="w-4 h-4" />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                onClick={() => setIsStatsModalOpen(false)}
-                className="px-4 py-2 text-sm rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </div >
   );
 };
 

@@ -375,7 +375,7 @@ const BillingTab = ({
               <button
                 onClick={onRefreshSubscription}
                 disabled={loadingSubscription}
-                className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'}`}
+                className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-dark-hover text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'}`}
                 title="Refresh subscription data" >
                 <svg className={`w-5 h-5 ${loadingSubscription ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -597,7 +597,7 @@ const BillingTab = ({
                   onClick={fetchStripeInvoices}
                   disabled={loadingStripeInvoices}
                   className={`p-2 rounded-lg transition-colors ${theme === 'dark'
-                    ? 'hover:bg-gray-700 text-gray-400 hover:text-white'
+                    ? 'hover:bg-dark-hover text-gray-400 hover:text-white'
                     : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'
                     }`}
                   title="Refresh transaction data"
@@ -632,7 +632,7 @@ const BillingTab = ({
                   </thead>
                   <tbody>
                     {stripeInvoices.map((inv) => (
-                      <tr key={inv.id} className={getThemeClasses('border-b border-gray-100 hover:bg-gray-50/50 transition-colors last:border-b-0', 'dark:border-gray-700 dark:hover:bg-gray-700/30')}>
+                      <tr key={inv.id} className={getThemeClasses('border-b border-gray-100 hover:bg-gray-50/50 transition-colors last:border-b-0', 'dark:border-gray-700 dark:hover:bg-dark-hover')}>
                         <td className={`py-3 px-4 text-sm ${getThemeClasses('text-gray-900', 'dark:text-gray-100')}`}>
                           {inv.userDetails ? (
                             <div className="flex items-center gap-3">
@@ -927,7 +927,7 @@ const BillingTab = ({
               <button onClick={() => { if (downgradeInfo.toPlan === 'free') { handleDowngradeToFree(); } else if (downgradeInfo.toPlan === 'monthly') { handleDowngradeToMonthly(); } }} className={`w-full py-3 px-4 rounded-xl font-semibold text-white shadow transition-all duration-200 ${'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'}`}>
                 Confirm Downgrade
               </button>
-              <button onClick={() => setShowDowngradeModal(false)} className={`w-full py-3 px-4 border rounded-lg font-semibold transition-colors duration-200 ${theme === 'dark' ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
+              <button onClick={() => setShowDowngradeModal(false)} className={`w-full py-3 px-4 border rounded-lg font-semibold transition-colors duration-200 ${theme === 'dark' ? 'border-gray-600 text-gray-300 hover:bg-dark-hover' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
                 Cancel
               </button>
             </div>
@@ -959,7 +959,7 @@ const BillingTab = ({
                 className={`group p-4 rounded-xl border cursor-pointer transition-all duration-200 text-left ${cancelOption === 'immediate'
                   ? 'border-indigo-600 bg-indigo-600/5 ring-1 ring-indigo-600/10'
                   : theme === 'dark'
-                    ? 'border-gray-700 hover:border-gray-600 hover:bg-gray-700/20'
+                    ? 'border-gray-700 hover:border-gray-600 hover:bg-dark-hover/20'
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50/50'
                   }`}
               >
@@ -995,7 +995,7 @@ const BillingTab = ({
                 className={`group p-4 rounded-xl border cursor-pointer transition-all duration-200 text-left ${cancelOption === 'expiry'
                   ? 'border-indigo-600 bg-indigo-600/5 ring-1 ring-indigo-600/10'
                   : theme === 'dark'
-                    ? 'border-gray-700 hover:border-gray-600 hover:bg-gray-700/20'
+                    ? 'border-gray-700 hover:border-gray-600 hover:bg-dark-hover/20'
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50/50'
                   }`}
               >
@@ -1030,7 +1030,7 @@ const BillingTab = ({
               <button
                 onClick={() => setShowCancelModal(false)}
                 className={`px-5 py-2.5 rounded-xl font-semibold border transition-all duration-200 text-sm ${theme === 'dark'
-                  ? 'border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  ? 'border-gray-600 bg-gray-800 text-gray-300 hover:bg-dark-hover'
                   : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                   }`}
               >
@@ -1087,7 +1087,7 @@ const BillingTab = ({
               <button onClick={async () => { setShowUpgradeModal(false); await handleUpgradeToAnnual(); }} className={`w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-200 shadow ${'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'}`}>
                 Confirm Upgrade
               </button>
-              <button onClick={() => setShowUpgradeModal(false)} className={`w-full py-3 px-4 rounded-xl font-semibold transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 hover:bg-gray-700' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}>
+              <button onClick={() => setShowUpgradeModal(false)} className={`w-full py-3 px-4 rounded-xl font-semibold transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 hover:bg-dark-hover' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}>
                 Cancel
               </button>
             </div>

@@ -2,6 +2,8 @@
 trigger: always_on
 ---
 
+Always use the colors from the tailwind.config.js when defining style for background color, borders & everything.
+Never use custom text size, use the ones that are available from Tailwind.
 Udpate the playground page when:
 
   1. Anytime a new commonType data is added to the DB,

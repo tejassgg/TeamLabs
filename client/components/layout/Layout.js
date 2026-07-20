@@ -227,16 +227,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             theme={theme}
           />
 
-          <div className={`border-b ${getThemeClasses('border-gray-200', 'border-gray-700')} pb-2`}>
-            <SidebarButton
-              icon={<FaBookOpen className={getThemeClasses('text-blue-600', 'text-blue-300')} />}
-              label="Query Board"
-              active={router.pathname === '/query'}
-              onClick={() => handleNavigation('/query')}
-              theme={theme}
-            />
-          </div>
-
           {/* Playground for tejassgg */}
           {userDetails?.username === 'tejassgg' && (
             <div className={`border-b ${getThemeClasses('border-gray-200', 'border-gray-700')} pb-2`}>
@@ -535,7 +525,6 @@ const Layout = ({ children, pageProject, pageTitle }) => {
     if (path === '/settings') return 'Settings';
     if (path === '/messages') return 'Messages';
     if (path === '/payment') return 'Payment';
-    if (path === '/query') return 'Query Board';
     if (path === '/teams') return 'Teams';
     if (path === '/projects') return 'Projects';
     if (path === '/playground') return 'Playground';

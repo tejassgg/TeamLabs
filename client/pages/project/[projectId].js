@@ -1147,7 +1147,7 @@ const ProjectDetailsPage = () => {
   // Update the table container classes - transparent background with borders to blend with page
   const tableContainerClasses = getThemeClasses(
     'rounded-xl border border-gray-200 bg-white overflow-hidden',
-    'dark:border-zinc-800/80 dark:bg-[#18181b] dark:shadow-none dark:overflow-hidden'
+    'dark:border-zinc-800/80 dark:bg-dark-bg dark:shadow-none dark:overflow-hidden'
   );
 
   // Table styling classes from GlobalContext for consistency
@@ -1494,7 +1494,7 @@ const ProjectDetailsPage = () => {
             {/* Unified Top Layout Hero Banner (Details + KPI Progress + Goals) */}
             <div className={getThemeClasses(
               "mb-6 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm",
-              "dark:bg-[#18181b] dark:border-zinc-800/80 dark:shadow-none"
+              "dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none"
             )}>
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
                 {/* Left Section: Details */}
@@ -1753,13 +1753,13 @@ const ProjectDetailsPage = () => {
                   {/* Task counts details */}
                   <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-zinc-800/80">
                     <div className={getThemeClasses("p-2 bg-gray-50 rounded-xl", "p-2 bg-zinc-800/40")}>
-                      <span className={getThemeClasses("text-[10px] text-gray-500 block", "text-[10px] text-gray-450 block")}>In Progress</span>
+                      <span className={getThemeClasses("text-xs text-gray-500 block", "text-xs text-gray-450 block")}>In Progress</span>
                       <span className={getThemeClasses("text-md font-bold text-gray-900", "text-md font-bold text-white")}>
                         {taskList.filter(t => t.Status === 3).length}
                       </span>
                     </div>
                     <div className={getThemeClasses("p-2 bg-gray-50 rounded-xl", "p-2 bg-zinc-800/40")}>
-                      <span className={getThemeClasses("text-[10px] text-gray-500 block", "text-[10px] text-gray-455 block")}>User Stories</span>
+                      <span className={getThemeClasses("text-xs text-gray-500 block", "text-xs text-gray-455 block")}>User Stories</span>
                       <span className={getThemeClasses("text-md font-bold text-gray-900", "text-md font-bold text-white")}>
                         {userStories.length}
                       </span>
@@ -1895,7 +1895,7 @@ const ProjectDetailsPage = () => {
                           type="text"
                           className={getThemeClasses(
                             'border rounded-xl px-3 py-1.5 w-64 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white border-gray-300 text-gray-900',
-                            'dark:bg-[#18181b] dark:border-[#232323] dark:text-gray-100 dark:focus:outline-none dark:focus:ring-blue-500 dark:focus:border-blue-500'
+                            'dark:bg-dark-bg dark:border-[#232323] dark:text-gray-100 dark:focus:outline-none dark:focus:ring-blue-500 dark:focus:border-blue-500'
                           )}
                           value={teamSearch}
                           onChange={e => {
@@ -1937,7 +1937,7 @@ const ProjectDetailsPage = () => {
                         <div className="absolute top-full right-0 z-50 mt-2 w-96 animate-fadeIn">
                           <ul className={getThemeClasses(
                             'border border-gray-200 rounded-xl bg-white max-h-80 overflow-y-auto shadow-2xl py-1.5 scrollbar-thin',
-                            'dark:bg-[#18181b] dark:border-[#232323]'
+                            'dark:bg-dark-bg dark:border-[#232323]'
                           )}>
                             {filteredAvailableTeams.map((team, index) => (
                               <li key={`${team.TeamID}-${index}`} className={getThemeClasses('px-3 py-1.5 border-b border-gray-100 last:border-b-0 transition-colors duration-150', 'dark:border-zinc-800/60')}>
@@ -2025,7 +2025,7 @@ const ProjectDetailsPage = () => {
                         const initials = team.TeamName.length > 0 ? team.TeamName.split(' ').map(n => n[0]).join('') : '';
                         return (
                           <div key={team.TeamID}
-                            className={getThemeClasses('relative rounded-2xl border border-gray-200/80 p-4 bg-white hover:shadow-md hover:scale-[1.01] transition-all duration-300', 'dark:border-zinc-800/80 dark:bg-[#18181b] hover:bg-gray-50/50 dark:hover:bg-[#232329]/40')}>
+                            className={getThemeClasses('relative rounded-2xl border border-gray-200/80 p-4 bg-white hover:shadow-md hover:scale-[1.01] transition-all duration-300', 'dark:border-zinc-800/80 dark:bg-dark-bg hover:bg-gray-50/50 dark:hover:bg-[#232329]/40')}>
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex items-start gap-3 min-w-0">
                                 <div
@@ -2300,26 +2300,26 @@ const ProjectDetailsPage = () => {
                             )}
                           />
                         </th>
-                        <th className={`py-3 px-4 text-left ${tableHeaderTextClasses}`}>
+                        <th className={`py-3 px-4 text-left w-[42%] ${tableHeaderTextClasses}`}>
                           <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Name</span>
                             {getTasksSortIcon('name')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[15%] ${tableHeaderTextClasses}`}>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[12%] ${tableHeaderTextClasses}`}>
                           <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assigned To</span>
                             {getTasksSortIcon('assignedTo')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 w-[9%] ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center justify-center w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                        <th className={`hidden md:table-cell py-3 px-4 text-center w-[11%] ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assigned On</span>
                             {getTasksSortIcon('assignedDate')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 w-[9%] ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('dueDate')} className="inline-flex items-center justify-center w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                        <th className={`hidden md:table-cell py-3 px-4 text-center w-[11%] ${tableHeaderTextClasses}`}>
+                          <button type="button" onClick={() => handleTasksSort('dueDate')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Due Date</span>
                             {getTasksSortIcon('dueDate')}
                           </button>
@@ -2330,13 +2330,13 @@ const ProjectDetailsPage = () => {
                             {getTasksSortIcon('priority')}
                           </button>
                         </th>
-                        <th className={`py-3 px-4 text-center w-[32%] sm:w-[12%] md:w-[10%] ${tableHeaderTextClasses}`}>
+                        <th className={`py-3 px-4 text-center w-[9%] ${tableHeaderTextClasses}`}>
                           <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Status</span>
                             {getTasksSortIcon('status')}
                           </button>
                         </th>
-                        <th className={`hidden sm:table-cell py-3 px-4 text-center w-[12%] md:w-[10%] ${tableHeaderTextClasses}`}>Actions</th>
+                        <th className={`hidden sm:table-cell py-3 px-4 text-center w-[7%] ${tableHeaderTextClasses}`}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2378,7 +2378,7 @@ const ProjectDetailsPage = () => {
                                     )}
                                     title={task.Name}
                                   >
-                                    {task.Name}
+                                    {task.Name && task.Name.length > 100 ? `${task.Name.substring(0, 100)}...` : task.Name}
                                   </button>
                                   {getTaskTypeBadgeComponent(task.Type)}
                                 </div>
@@ -2402,7 +2402,7 @@ const ProjectDetailsPage = () => {
                                     'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600',
                                     'dark:text-gray-300'
                                   )}>
-                                    <span>{task.AssignedToDetails.fullName}</span>
+                                    <span>{task.AssignedToDetails.fullName.split(' ')[0]}</span>
                                   </div>
                                 )}
                               </div>
@@ -2417,9 +2417,9 @@ const ProjectDetailsPage = () => {
                                     {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
                                   </div>
                                   <div className="flex flex-col">
-                                    <span className={tableTextClasses}>{task.AssignedToDetails.fullName} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
+                                    <span className={tableTextClasses}>{task.AssignedToDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
                                     {task.AssignedToDetails.teamName && (
-                                      <span className={tableSecondaryTextClasses}>{task.AssignedToDetails.teamName}</span>
+                                      <span className={`text-xs ${tableSecondaryTextClasses}`}>{task.AssignedToDetails.teamName}</span>
                                     )}
                                   </div>
                                 </div>
@@ -2431,7 +2431,7 @@ const ProjectDetailsPage = () => {
                             </td>
                             <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
                               {task.AssignedDate ? (
-                                <div className="flex flex-col leading-tight">
+                                <div className="flex flex-col items-center leading-tight text-sm">
                                   <span>{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                                   <span className={getThemeClasses('text-xs text-gray-500', 'text-xs text-gray-400')}>
                                     {new Date(task.AssignedDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
@@ -2511,7 +2511,7 @@ const ProjectDetailsPage = () => {
         ) : activeTab === 'list' ? (
           <div className="overflow-x-auto">
             <table className="w-full cursor-pointer">
-              <tbody className={getThemeClasses('', 'bg-[#18181b]')}>
+              <tbody className={getThemeClasses('', 'bg-dark-bg')}>
                 {[
                   { code: 1, label: 'Not Assigned' },
                   { code: 2, label: 'Assigned' },
@@ -2586,13 +2586,13 @@ const ProjectDetailsPage = () => {
                               <table className="w-full table-fixed">
                                 <thead>
                                   <tr className={getThemeClasses('text-left text-xs font-medium text-gray-400 uppercase', 'dark:bg-[#111113]')}>
-                                    <th className="py-3 px-4 tracking-wider w-8"></th>
-                                    <th className={`py-3 px-4 tracking-wider w-1/3 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Task</th>
-                                    <th className={`py-3 px-4 tracking-wider w-1/6 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assigned To</th>
-                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell w-24 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assigned On</th>
-                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell w-20 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Priority</th>
-                                    <th className={`py-3 px-4 tracking-wider hidden sm:table-cell w-20 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Task Type</th>
-                                    <th className={`py-3 px-4 tracking-wider text-center hidden sm:table-cell w-24 ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Actions</th>
+                                    <th className="py-3 px-4 tracking-wider w-[4%]"></th>
+                                    <th className={`py-3 px-4 tracking-wider w-[43%] ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Task</th>
+                                    <th className={`py-3 px-4 tracking-wider w-[15%] ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assigned To</th>
+                                    <th className={`py-3 px-4 tracking-wider text-center hidden sm:table-cell w-[11%] ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Assigned On</th>
+                                    <th className={`py-3 px-4 tracking-wider text-center hidden sm:table-cell w-[8%] ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Priority</th>
+                                    <th className={`py-3 px-4 tracking-wider text-center hidden sm:table-cell w-[11%] ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Task Type</th>
+                                    <th className={`py-3 px-4 tracking-wider text-center hidden sm:table-cell w-[8%] ${getThemeClasses('border-b border-gray-200', 'border-gray-700')}`}>Actions</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -2600,8 +2600,8 @@ const ProjectDetailsPage = () => {
                                     return (
                                       <tr key={item.isSubtask ? `subtask-${item.SubtaskID}` : `task-${item.TaskID}`}
                                         className={item.isSubtask ? `bg-opacity-10 ${statusStyle.bgColor.replace('bg-gradient-to-r', '').trim()}` : ''} >
-                                        <td className={`w-8 ${item.isSubtask ? 'py-2' : 'py-3'} px-4`}></td>
-                                        <td className={`px-4 ${item.isSubtask ? 'py-2' : 'py-1'} w-1/3`}>
+                                        <td className={`w-[4%] ${item.isSubtask ? 'py-2' : 'py-3'} px-4`}></td>
+                                        <td className={`px-4 ${item.isSubtask ? 'py-2' : 'py-1'} w-[43%]`}>
                                           <div className={`flex flex-col ${item.isSubtask ? 'ml-4' : ''}`}>
                                             <div className="flex items-center gap-2 mb-1">
                                               {item.isSubtask ? (
@@ -2626,7 +2626,7 @@ const ProjectDetailsPage = () => {
                                                     `text-sm font-medium ${item.IsCompleted ? 'line-through text-gray-500' : 'text-gray-700'}`,
                                                     `text-sm font-medium ${item.IsCompleted ? 'line-through text-gray-500' : 'text-gray-300'}`
                                                   )}>
-                                                    {item.Name}
+                                                    {item.Name && item.Name.length > 100 ? `${item.Name.substring(0, 100)}...` : item.Name}
                                                   </span>
                                                 </div>
                                               ) : (
@@ -2639,7 +2639,7 @@ const ProjectDetailsPage = () => {
                                                     )}
                                                     title="Click to view task details"
                                                   >
-                                                    {item.Name}
+                                                    {item.Name && item.Name.length > 100 ? `${item.Name.substring(0, 100)}...` : item.Name}
                                                   </button>
                                                   <span className={getThemeClasses(
                                                     'text-xs text-gray-500',
@@ -2651,7 +2651,7 @@ const ProjectDetailsPage = () => {
 
                                           </div>
                                         </td>
-                                        <td className={`px-4 ${item.isSubtask ? 'py-2' : 'py-3'} w-1/6`}>
+                                        <td className={`px-4 ${item.isSubtask ? 'py-2' : 'py-3'} w-[15%]`}>
                                           {item.AssignedTo && item.AssignedToDetails ? (
                                             <div className={`flex items-center ${item.isSubtask ? '' : 'gap-3'}`}>
                                               {!item.isSubtask && (
@@ -2664,10 +2664,10 @@ const ProjectDetailsPage = () => {
                                               )}
                                               <div className="flex flex-col">
                                                 <span className={getThemeClasses('text-sm font-medium text-gray-900', 'dark:text-gray-100')}>
-                                                  {item.AssignedToDetails.fullName} <span className={'text-xs'}>{isMe(item.AssignedTo) ? ' (You)' : ''}</span>
+                                                  {item.AssignedToDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(item.AssignedTo) ? ' (You)' : ''}</span>
                                                 </span>
                                                 {item.AssignedToDetails.teamName && (
-                                                  <span className={getThemeClasses('text-xs text-gray-500', 'dark:text-gray-400')}>{item.AssignedToDetails.teamName}</span>
+                                                  <span className={`text-xs ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}>{item.AssignedToDetails.teamName}</span>
                                                 )}
                                               </div>
                                             </div>
@@ -2677,7 +2677,7 @@ const ProjectDetailsPage = () => {
                                             </div>
                                           )}
                                         </td>
-                                        <td className={`px-4 hidden sm:table-cell ${item.isSubtask ? 'py-2' : 'py-3'} w-24`}>
+                                        <td className={`px-4 hidden sm:table-cell text-center ${item.isSubtask ? 'py-2' : 'py-3'} w-[11%]`}>
                                           {!item.isSubtask ? (
                                             <span className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
                                               {item.AssignedDate ? formatDate(item.AssignedDate) : '-'}
@@ -2686,13 +2686,13 @@ const ProjectDetailsPage = () => {
                                             <span className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>{item.CreatedDate ? formatDate(item.CreatedDate) : '-'}</span>
                                           )}
                                         </td>
-                                        <td className={`px-4 hidden sm:table-cell ${item.isSubtask ? 'py-2' : 'py-3'} w-20`}>
+                                        <td className={`px-4 hidden sm:table-cell text-center ${item.isSubtask ? 'py-2' : 'py-3'} w-[8%]`}>
                                           {!item.isSubtask && item.Priority && getPriorityBadge(item.Priority)}
                                         </td>
-                                        <td className={`px-4 hidden sm:table-cell ${item.isSubtask ? 'py-2' : 'py-3'} w-20`}>
+                                        <td className={`px-4 hidden sm:table-cell text-center ${item.isSubtask ? 'py-2' : 'py-3'} w-[11%]`}>
                                           {!item.isSubtask && getTaskTypeBadgeComponent(item.Type)}
                                         </td>
-                                        <td className={`px-4 hidden sm:table-cell ${item.isSubtask ? 'py-2' : 'py-3'} w-24`}>
+                                        <td className={`px-4 hidden sm:table-cell text-center ${item.isSubtask ? 'py-2' : 'py-3'} w-[8%]`}>
                                           {!item.isSubtask && (
                                             <div className="flex items-center justify-center gap-2">
                                               <button
@@ -2768,7 +2768,7 @@ const ProjectDetailsPage = () => {
               className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isModalClosing ? 'opacity-0' : isModalOpening ? 'opacity-0' : 'opacity-100'}`}
               onClick={handleCloseModal}
             />
-            <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-xl ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isModalClosing ? 'translate-x-full' : isModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
+            <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-xl ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isModalClosing ? 'translate-x-full' : isModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
               <div className="flex items-center justify-between mb-2">
                 <h3 className={getThemeClasses("text-xl font-semibold text-gray-900", "text-xl font-semibold text-white")}>{settingsForm.Name}</h3>
                 <button
@@ -2880,7 +2880,7 @@ const ProjectDetailsPage = () => {
                     </button>
                     {showStatusDropdown && (
                       <div className={`absolute z-50 w-full mt-1 border rounded-xl shadow-lg ${theme === 'dark'
-                        ? 'bg-[#18181b] border-gray-600'
+                        ? 'bg-dark-bg border-gray-600'
                         : 'bg-white border-gray-200'
                         }`}>
                         {[1, 2, 3, 4, 5, 6].map(statusCode => {
@@ -3253,7 +3253,7 @@ const ProjectDetailsPage = () => {
                   }}
                   className={getThemeClasses(
                     'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                    'dark:text-gray-400 dark:hover:bg-gray-700'
+                    'dark:text-gray-400 dark:hover:bg-dark-hover'
                   )}
                 >
                   Cancel
@@ -3298,7 +3298,7 @@ const ProjectDetailsPage = () => {
                   }}
                   className={getThemeClasses(
                     'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                    'dark:text-gray-400 dark:hover:bg-gray-700'
+                    'dark:text-gray-400 dark:hover:bg-dark-hover'
                   )}
                 >
                   Cancel
@@ -3388,7 +3388,7 @@ const ProjectDetailsPage = () => {
                   }}
                   className={getThemeClasses(
                     "px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200",
-                    "dark:text-gray-300 dark:hover:bg-gray-700 dark:border-gray-600"
+                    "dark:text-gray-300 dark:hover:bg-dark-hover dark:border-gray-600"
                   )}
                 >
                   Cancel
@@ -3458,7 +3458,7 @@ const ProjectDetailsPage = () => {
                   }}
                   className={getThemeClasses(
                     "px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200",
-                    "dark:text-gray-300 dark:hover:bg-gray-700 dark:border-gray-600"
+                    "dark:text-gray-300 dark:hover:bg-dark-hover dark:border-gray-600"
                   )}
                 >
                   Cancel
@@ -3502,7 +3502,7 @@ const ProjectDetailsPage = () => {
                 }}
                 className={getThemeClasses(
                   'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                  'dark:text-gray-300 dark:hover:bg-gray-700 dark:border-gray-600'
+                  'dark:text-gray-300 dark:hover:bg-dark-hover dark:border-gray-600'
                 )}
               >
                 Cancel

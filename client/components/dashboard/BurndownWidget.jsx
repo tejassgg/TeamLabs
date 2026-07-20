@@ -142,11 +142,10 @@ const BurndownWidget = ({ organizationId, theme, tasks: propTasks, tasksLoading 
   };
 
   return (
-    <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${
-      theme === 'dark' 
-        ? 'bg-[#18181b] border-zinc-800/80' 
+    <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${theme === 'dark'
+        ? 'bg-dark-bg border-zinc-800/80'
         : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
-    }`}>
+      }`}>
       <div className="flex items-center justify-between pb-4 mb-4 border-b border-dark-border/40">
         <div>
           <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
@@ -157,12 +156,11 @@ const BurndownWidget = ({ organizationId, theme, tasks: propTasks, tasksLoading 
             Task velocity over the last 7 days
           </p>
         </div>
-        <button 
-          onClick={fetchTasks} 
+        <button
+          onClick={fetchTasks}
           disabled={loading}
-          className={`p-2 rounded-lg transition-all ${
-            theme === 'dark' ? 'hover:bg-dark-hover text-slate-400' : 'hover:bg-slate-100 text-slate-600'
-          }`}
+          className={`p-2 rounded-lg transition-all ${theme === 'dark' ? 'hover:bg-dark-hover text-slate-400' : 'hover:bg-slate-100 text-slate-600'
+            }`}
           title="Refresh chart"
         >
           <FaSync size={12} className={loading ? 'animate-spin' : ''} />

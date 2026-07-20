@@ -246,12 +246,12 @@ const DashboardCharts = ({ stats, theme }) => {
     <div className="space-y-6 mb-8">
       {/* 1. Statistics Cards and Task Completion Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-8 gap-6">
-        
+
         {/* Statistics Cards - 2x2 Grid (2 Cols Width) */}
         <div className="lg:col-span-2 flex flex-col gap-4 justify-between">
           <div className="grid grid-cols-2 gap-4 h-full">
             {/* Projects Card */}
-            <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
+            <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
               <div className="flex items-center justify-between">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-indigo-500/10' : 'bg-indigo-50'}`}>
                   <FaProjectDiagram className={theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'} size={15} />
@@ -262,7 +262,7 @@ const DashboardCharts = ({ stats, theme }) => {
             </div>
 
             {/* Teams Card */}
-            <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
+            <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
               <div className="flex items-center justify-between">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
                   <FaUsers className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} size={15} />
@@ -273,7 +273,7 @@ const DashboardCharts = ({ stats, theme }) => {
             </div>
 
             {/* Deadlines Card */}
-            <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
+            <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
               <div className="flex items-center justify-between">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50'}`}>
                   <FaClock className={theme === 'dark' ? 'text-amber-400' : 'text-amber-600'} size={15} />
@@ -284,7 +284,7 @@ const DashboardCharts = ({ stats, theme }) => {
             </div>
 
             {/* People Card */}
-            <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
+            <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
               <div className="flex items-center justify-between">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-purple-500/10' : 'bg-purple-50'}`}>
                   <FaUserFriends className={theme === 'dark' ? 'text-purple-400' : 'text-purple-600'} size={15} />
@@ -298,12 +298,12 @@ const DashboardCharts = ({ stats, theme }) => {
 
         {/* Task Completion Summary Card (6 Cols Width) */}
         <div className="lg:col-span-6">
-          <div className={`rounded-2xl border p-6 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+          <div className={`rounded-2xl border p-6 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
             <div>
               <h2 className="text-xl font-bold tracking-tight">Task Completion Summary</h2>
               <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Overview of active organization workflows and completion ratios</p>
             </div>
-            
+
             <div className="grid grid-cols-3 gap-4 my-6">
               <div className={`text-center p-4 rounded-xl border ${theme === 'dark' ? 'bg-dark-bg/40 border-dark-border/40' : 'bg-slate-50 border-slate-200/50'}`}>
                 <div className={`text-2xl sm:text-3xl font-extrabold ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}`}>{stats.charts.totalTasks}</div>
@@ -337,9 +337,9 @@ const DashboardCharts = ({ stats, theme }) => {
 
       {/* 2. Project Status and Task Type Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* Project Status Distribution */}
-        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
           <div className="pb-4 mb-4 border-b border-dark-border/40">
             <h2 className="text-lg font-bold tracking-tight">Project Status Distribution</h2>
             <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Overview of project statuses across the entire organization</p>
@@ -352,7 +352,7 @@ const DashboardCharts = ({ stats, theme }) => {
         </div>
 
         {/* Task Type Distribution */}
-        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
           <div className="pb-4 mb-4 border-b border-dark-border/40">
             <h2 className="text-lg font-bold tracking-tight">Task Type Distribution</h2>
             <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Breakdown of different category and epic types</p>
@@ -366,7 +366,7 @@ const DashboardCharts = ({ stats, theme }) => {
       </div>
 
       {/* 3. Monthly Activity Timeline */}
-      <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+      <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
         <div className="pb-4 mb-4 border-b border-dark-border/40">
           <h2 className="text-lg font-bold tracking-tight">Monthly Activity Timeline</h2>
           <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Track and cross-compare project creations and task completion trends</p>
@@ -380,9 +380,9 @@ const DashboardCharts = ({ stats, theme }) => {
 
       {/* 4. Team Performance and Activity Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* Team Performance */}
-        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
           <div className="pb-4 mb-4 border-b border-dark-border/40">
             <h2 className="text-lg font-bold tracking-tight">Team Performance Overview</h2>
             <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Breakdown of member counts and active sprint pipelines per team</p>
@@ -395,7 +395,7 @@ const DashboardCharts = ({ stats, theme }) => {
         </div>
 
         {/* Activity Overview */}
-        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
           <div className="pb-4 mb-4 border-b border-dark-border/40">
             <h2 className="text-lg font-bold tracking-tight">Recent Activity Overview</h2>
             <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>User activity breakdown over the last 30 operational days</p>

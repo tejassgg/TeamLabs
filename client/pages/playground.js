@@ -551,7 +551,7 @@ const Playground = () => {
           {activeTab === 'toast' && (
             <div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-[#18181b]' : 'border-gray-200 bg-gray-50'}`}>
+                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-dark-bg' : 'border-gray-200 bg-gray-50'}`}>
                   <h3 className={`font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
                     <FaCheckCircle /> Success Toast
                   </h3>
@@ -563,7 +563,7 @@ const Playground = () => {
                   </button>
                 </div>
 
-                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-[#18181b]' : 'border-gray-200 bg-gray-50'}`}>
+                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-dark-bg' : 'border-gray-200 bg-gray-50'}`}>
                   <h3 className={`font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
                     <FaTimesCircle /> Error Toast
                   </h3>
@@ -575,7 +575,7 @@ const Playground = () => {
                   </button>
                 </div>
 
-                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-[#18181b]' : 'border-gray-200 bg-gray-50'}`}>
+                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-dark-bg' : 'border-gray-200 bg-gray-50'}`}>
                   <h3 className={`font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>
                     <FaExclamationTriangle /> Warning Toast
                   </h3>
@@ -587,7 +587,7 @@ const Playground = () => {
                   </button>
                 </div>
 
-                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-[#18181b]' : 'border-gray-200 bg-gray-50'}`}>
+                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-dark-bg' : 'border-gray-200 bg-gray-50'}`}>
                   <h3 className={`font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
                     <FaInfoCircle /> Info Toast
                   </h3>
@@ -605,7 +605,7 @@ const Playground = () => {
           {activeTab === 'browser' && (
             <div>
               <div className="max-w-md mt-2">
-                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-[#18181b]' : 'border-gray-200 bg-gray-50'}`}>
+                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-dark-bg' : 'border-gray-200 bg-gray-50'}`}>
                   <div className="flex justify-between items-center mb-6">
                     <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>Current Permission:</span>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${notificationPermission === 'granted'

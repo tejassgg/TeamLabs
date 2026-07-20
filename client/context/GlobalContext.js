@@ -287,7 +287,7 @@ export const GlobalProvider = ({ children }) => {
 
     // Reset any fetch guard refs
     if (dataFetchedRef && typeof dataFetchedRef === 'object') dataFetchedRef.current = false;
-    
+
     // Clear auth and sensitive data, but keep preferences (theme, dashboard layouts, etc.)
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('token');
@@ -295,7 +295,7 @@ export const GlobalProvider = ({ children }) => {
     localStorage.removeItem('tasksDetails');
     localStorage.removeItem('github_userId');
     localStorage.removeItem('github_state');
-    
+
     setIsLoggedInState(false);
     router.push('/');
   };
@@ -449,7 +449,7 @@ export const GlobalProvider = ({ children }) => {
   };
 
   const getTableTextClasses = (lightClass, darkClass) => {
-    return theme === 'dark' ? (darkClass || 'text-gray-100') : (lightClass || 'text-gray-900');
+    return theme === 'dark' ? (darkClass || 'text-gray-100 whitespace-nowrap') : (lightClass || 'text-gray-900 whitespace-nowrap');
   };
 
   const getTableSecondaryTextClasses = (lightClass, darkClass) => {

@@ -336,7 +336,7 @@ const InviteModal = ({
                     onClick={() => removeChip(idx)}
                     className="hover:text-red-500 transition-colors"
                   >
-                    <FaTimes className="text-[10px]" />
+                    <FaTimes className="text-xs" />
                   </button>
                 </span>
               ))}

@@ -43,8 +43,8 @@ const GitStreamWidget = ({ organizationId, theme }) => {
 
   return (
     <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${theme === 'dark'
-        ? 'bg-[#18181b] border-zinc-800/80'
-        : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
+      ? 'bg-dark-bg border-zinc-800/80'
+      : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
       }`}>
       <div className="flex items-center justify-between pb-4 mb-4 border-b border-dark-border/40">
         <div>
@@ -91,8 +91,8 @@ const GitStreamWidget = ({ organizationId, theme }) => {
           <div
             key={`${commit.sha}-${index}`}
             className={`p-3 rounded-xl mb-3 border transition-all duration-200 ${theme === 'dark'
-                ? 'bg-dark-bg/40 border-dark-border/40 hover:border-dark-border'
-                : 'bg-slate-50 border-slate-200/50 hover:border-slate-200'
+              ? 'bg-dark-bg/40 border-dark-border/40 hover:border-dark-border'
+              : 'bg-slate-50 border-slate-200/50 hover:border-slate-200'
               }`}
           >
             <div className="flex items-start gap-3">

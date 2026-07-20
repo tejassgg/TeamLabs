@@ -446,7 +446,7 @@ function MobileActivityRow({ act }) {
           {act.metadata.fileName}
         </a>
         {typeof act.metadata.fileSize === 'number' && (
-          <span className={getThemeClasses("text-[11px] text-gray-400", "text-[11px] text-gray-500")}>{formatFileSize(act.metadata.fileSize)}</span>
+          <span className={getThemeClasses("text-xs text-gray-400", "text-xs text-gray-500")}>{formatFileSize(act.metadata.fileSize)}</span>
         )}
       </div>
     );

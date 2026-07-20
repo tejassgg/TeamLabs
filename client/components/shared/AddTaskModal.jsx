@@ -419,7 +419,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                   'w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
                   'w-full px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
                 )}
-                maxLength={150}
+                maxLength={100}
                 required
                 placeholder="Enter task name"
               />
@@ -427,7 +427,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 'text-xs text-gray-400 text-right mt-1',
                 'text-xs text-gray-500 text-right mt-1'
               )}>
-                {(name || '').length} / 150
+                {(name || '').length} / 100
               </span>
             </div>
           </div>

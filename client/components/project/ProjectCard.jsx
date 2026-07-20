@@ -103,7 +103,7 @@ const ProjectCard = ({ project, theme }) => {
           )}>
             {project.Name}
             {project.isArchived && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-zinc-150 text-zinc-800 border border-zinc-200 dark:bg-zinc-800/80 dark:text-zinc-300 dark:border-zinc-700">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-zinc-150 text-zinc-800 border border-zinc-200 dark:bg-zinc-800/80 dark:text-zinc-300 dark:border-zinc-700">
                 Archived
               </span>
             )}
@@ -154,7 +154,7 @@ const ProjectCard = ({ project, theme }) => {
             {project.teams.slice(0, 2).map((team) => (
               <div key={team.TeamID} className={getThemeClasses(
                 'group flex items-center justify-between p-2 rounded-xl hover:bg-gray-100 transition-colors duration-150',
-                'group flex items-center justify-between p-2 rounded-xl hover:bg-gray-700/50 transition-colors duration-150'
+                'group flex items-center justify-between p-2 rounded-xl hover:bg-dark-hover/50 transition-colors duration-150'
               )}>
                 <div className="flex items-start gap-2 flex-1 min-w-0">
                   <div className={getThemeClasses(

@@ -35,12 +35,12 @@ function SingleUserList({ theme, users, selected, onChange }) {
               key={u._id}
               onClick={() => onChange(u)}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all mb-1 ${isSel
-                  ? isDark
-                    ? 'bg-blue-600/30 text-white border border-blue-500/50 font-medium'
-                    : 'bg-blue-50 text-blue-700 border border-blue-200 font-medium'
-                  : isDark
-                    ? 'hover:bg-[#27272a] text-gray-200 border border-transparent'
-                    : 'hover:bg-white text-gray-800 border border-transparent hover:border-gray-200'
+                ? isDark
+                  ? 'bg-blue-600/30 text-white border border-blue-500/50 font-medium'
+                  : 'bg-blue-50 text-blue-700 border border-blue-200 font-medium'
+                : isDark
+                  ? 'hover:bg-[#27272a] text-gray-200 border border-transparent'
+                  : 'hover:bg-white text-gray-800 border border-transparent hover:border-gray-200'
                 }`}
             >
               <span className="flex items-center gap-3">
@@ -134,8 +134,8 @@ const NewConversationModal = ({
             type="button"
             onClick={() => setConversationType('dm')}
             className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 ${conversationType === 'dm'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/20'
-                : isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/20'
+              : isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
               }`}
           >
             <FaUser size={13} /> Direct Message
@@ -144,8 +144,8 @@ const NewConversationModal = ({
             type="button"
             onClick={() => setConversationType('group')}
             className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 ${conversationType === 'group'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/20'
-                : isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/20'
+              : isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
               }`}
           >
             <FaUsers size={14} /> Group Chat
@@ -221,7 +221,7 @@ const NewConversationModal = ({
                       {groupMembers.length === 0 && <span className="opacity-60">Select team members...</span>}
                       {groupMembers.map((u) => (
                         <span key={u._id} className={`px-2.5 py-1 rounded-lg text-xs font-medium border flex items-center gap-1.5 ${isDark ? 'bg-[#3f3f46]/40 border-[#52525b] text-gray-200' : 'bg-blue-50 border-blue-200 text-blue-800'}`}>
-                          <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">
+                          <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
                             {u.initials}
                           </span>
                           {u.name}
@@ -272,8 +272,8 @@ const NewConversationModal = ({
                                   }
                                 }}
                                 className={`w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors ${selected
-                                    ? isDark ? 'bg-blue-600/20 text-blue-300' : 'bg-blue-50 text-blue-700'
-                                    : isDark ? 'hover:bg-[#27272a] text-gray-200' : 'hover:bg-gray-50 text-gray-800'
+                                  ? isDark ? 'bg-blue-600/20 text-blue-300' : 'bg-blue-50 text-blue-700'
+                                  : isDark ? 'hover:bg-[#27272a] text-gray-200' : 'hover:bg-gray-50 text-gray-800'
                                   } ${isCurrentUser ? 'cursor-not-allowed opacity-60' : ''}`}
                               >
                                 <span className="flex items-center gap-3">
@@ -284,7 +284,7 @@ const NewConversationModal = ({
                                     <span className="font-medium text-sm">{u.name}</span>
                                     <span className="opacity-60 text-xs">{u.email}</span>
                                   </div>
-                                  {isCurrentUser && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300">You</span>}
+                                  {isCurrentUser && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300">You</span>}
                                 </span>
                                 {selected && <FaCheck className={isDark ? 'text-blue-400' : 'text-blue-600'} size={14} />}
                               </button>
@@ -304,8 +304,8 @@ const NewConversationModal = ({
           <button
             type="button"
             className={`px-5 py-2.5 text-sm font-medium rounded-xl border transition-colors ${isDark
-                ? 'border-[#3f3f46] text-gray-300 hover:bg-[#27272a]'
-                : 'border-gray-200 text-gray-700 hover:bg-gray-100'
+              ? 'border-[#3f3f46] text-gray-300 hover:bg-[#27272a]'
+              : 'border-gray-200 text-gray-700 hover:bg-gray-100'
               }`}
             onClick={resetState}
           >

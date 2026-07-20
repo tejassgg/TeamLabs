@@ -155,7 +155,7 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
               return (
                 <div key={project.ProjectID} className={getThemeClasses(
                   'group flex items-center justify-between p-2 rounded-xl hover:bg-gray-100 transition-colors duration-150',
-                  'group flex items-center justify-between p-2 rounded-xl hover:bg-gray-700/50 transition-colors duration-150'
+                  'group flex items-center justify-between p-2 rounded-xl hover:bg-dark-hover/50 transition-colors duration-150'
                 )}>
                   <div className="flex items-start gap-2 flex-1 min-w-0">
                     <div className={getThemeClasses(

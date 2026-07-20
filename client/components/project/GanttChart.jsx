@@ -374,7 +374,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                             <div className="flex items-center gap-2 ml-4">
                                 <button
                                     onClick={goToPreviousWeek}
-                                    className={`p-2 rounded-md transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'}`}
+                                    className={`p-2 rounded-md transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300 hover:bg-dark-hover' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'}`}
                                     title="Previous Week"
                                 >
                                     <FaChevronLeft className="w-4 h-4" />
@@ -388,7 +388,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                 </button>
                                 <button
                                     onClick={goToNextWeek}
-                                    className={`p-2 rounded-md transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'}`}
+                                    className={`p-2 rounded-md transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300 hover:bg-dark-hover' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'}`}
                                     title="Next Week"
                                 >
                                     <FaChevronRight className="w-4 h-4" />
@@ -484,7 +484,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                                                 : item.Dependencies?.length > 0
                                                                     ? 'bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20'
                                                                     : theme === 'dark'
-                                                                        ? 'bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700'
+                                                                        ? 'bg-gray-800 text-gray-400 border-gray-700 hover:bg-dark-hover'
                                                                         : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
                                                                 }`}
                                                         >

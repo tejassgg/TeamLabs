@@ -655,9 +655,9 @@ const Dashboard = () => {
 
         {/* Tab Content */}
         {!shouldShowWelcomeMessage && activeTab === 'whats_up' && (
-          <div className="space-y-6">
+          <div className="space-y-6 mx-auto max-w-3/4">
             {/* What's Up Personalized Greeting Banner */}
-            <div className="py-2 transition-all duration-300 relative overflow-hidden">
+            <div className="py-2 transition-all duration-300 relative overflow-hidden ">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <h1 className={`text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
@@ -969,7 +969,7 @@ const Dashboard = () => {
             )}
 
             {/* Custom Grid Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mx-auto max-w-3/4">
               {widgets.map((widget, idx) => {
                 if (!widget.visible) return null;
                 return (
@@ -1017,7 +1017,7 @@ const Dashboard = () => {
         )}
 
         {!shouldShowWelcomeMessage && activeTab === 'manage' && (
-          <div className="space-y-6">
+          <div className="space-y-6 ">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-visible">
               {/* Recent Projects */}
               <div className={`${theme === 'dark' ? 'text-[#F3F6FA]' : 'bg-white text-gray-900'} overflow-visible lg:col-span-2`}>
@@ -1026,7 +1026,7 @@ const Dashboard = () => {
                   <div className="max-h-80 overflow-y-auto overflow-x-visible rounded-xl">
                     <table className="w-full">
                       <thead className="sticky top-0 z-10">
-                        <tr className={`${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'bg-gray-50 border-gray-200'} border-b`}>
+                        <tr className={`${theme === 'dark' ? 'border-gray-700 bg-dark-table-header' : 'bg-gray-50 border-gray-200'} border-b`}>
                           <th className="py-3 px-4 text-left ">Project</th>
                           <th className="py-3 px-4 text-left ">Deadline</th>
                           <th className="py-3 px-4 text-left ">Status</th>
@@ -1036,7 +1036,7 @@ const Dashboard = () => {
                         {stats?.recentProjects?.map(project => {
                           const currentStatus = getProjectStatus(project.projectStatusId || 1);
                           return (
-                            <tr key={project.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b cursor-pointer`} >
+                            <tr key={project.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-dark-hover' : 'border-gray-100 hover:bg-gray-50'} border-b cursor-pointer`} >
                               <td className="py-2 px-4">
                                 <div className="flex flex-col">
                                   <span className={`font-medium cursor-pointer hover:text-blue-500 transition-all duration-200 hover:underline ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`} onClick={() => router.push(`/project/${project.id}`)}> {project.name} </span>
@@ -1081,7 +1081,7 @@ const Dashboard = () => {
                   <div className="max-h-80 overflow-y-auto rounded-xl">
                     <table className="w-full">
                       <thead className="sticky top-0 z-10">
-                        <tr className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'} border-b`}>
+                        <tr className={`${theme === 'dark' ? 'bg-dark-table-header border-gray-700' : 'bg-gray-50 border-gray-200'} border-b`}>
                           <th className="py-3 px-4 text-left">Member</th>
                           <th className="py-3 px-4 text-left">Status</th>
                           <th className="py-3 px-4 text-left ">Role</th>
@@ -1091,7 +1091,7 @@ const Dashboard = () => {
                       <tbody>
                         {stats?.members?.map(member => {
                           return (
-                            <tr key={member.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
+                            <tr key={member.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-dark-hover' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
                               <td className="py-3 px-4">
                                 <div className="flex items-center gap-3">
                                   <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-600'}`}> {member.name.split(' ').map(n => n[0]).join('')} </div>
@@ -1168,7 +1168,7 @@ const Dashboard = () => {
                     <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                       <div className="overflow-x-auto overflow-y-auto max-h-[400px] rounded-xl">
                         <table className="w-full ">
-                          <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-dark-bg' : 'bg-gray-50'}`}>
+                          <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-dark-table-header' : 'bg-gray-50'}`}>
                             <tr className={`${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} border-b`}>
                               <th className="py-3 px-4 text-left">Email</th>
                               <th className="py-3 px-4 text-left">Invited On</th>
@@ -1182,7 +1182,7 @@ const Dashboard = () => {
                             {stats?.invites?.map(invite => {
                               const statusBadge = getInviteStatusBadge(invite);
                               return (
-                                <tr key={invite._id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
+                                <tr key={invite._id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-dark-hover' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
                                   <td className="py-3 px-4">
                                     <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{invite.email}</span>
                                   </td>

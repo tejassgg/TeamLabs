@@ -4,9 +4,9 @@ import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import { releaseNotificationService } from '../../services/api';
-import { 
-  FaRocket, 
-  FaTimes, 
+import {
+  FaRocket,
+  FaTimes,
   FaChevronDown,
   FaChevronUp,
   FaCalendar,
@@ -23,7 +23,7 @@ const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
   const { userDetails } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
-  
+
   const [latestRelease, setLatestRelease] = useState(releaseData);
   const [loading, setLoading] = useState(!releaseData);
   const [expanded, setExpanded] = useState(false);
@@ -36,7 +36,7 @@ const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
     } else {
       fetchLatestRelease();
     }
-    
+
     // Load dismissed releases from localStorage
     const dismissed = localStorage.getItem('dismissedReleases');
     if (dismissed) {
@@ -122,9 +122,8 @@ const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
   }
 
   return (
-    <div className={`relative border-l-4 ${getPriorityColor(latestRelease.priority)} ${
-      theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-    } shadow-lg`}>
+    <div className={`relative border-l-4 ${getPriorityColor(latestRelease.priority)} ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+      } shadow-lg`}>
       {/* Header */}
       <div className="p-4">
         <div className="flex items-start justify-between">
@@ -134,25 +133,21 @@ const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className={`text-lg font-semibold ${
-                  theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>
+                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
                   New Release Available
                 </h3>
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                  theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-800'
-                }`}>
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-800'
+                  }`}>
                   v{latestRelease.version}
                 </span>
               </div>
-              <h4 className={`text-base font-medium mb-2 ${
-                theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
-              }`}>
+              <h4 className={`text-base font-medium mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                }`}>
                 {latestRelease.title}
               </h4>
-              <p className={`text-sm ${
-                theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-              }`}>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                }`}>
                 {latestRelease.description}
               </p>
             </div>
@@ -160,17 +155,15 @@ const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setExpanded(!expanded)}
-              className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600'
-              }`}
+              className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-dark-hover transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600'
+                }`}
             >
               {expanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
             </button>
             <button
               onClick={handleDismiss}
-              className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600'
-              }`}
+              className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-dark-hover transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600'
+                }`}
             >
               <FaTimes size={14} />
             </button>
@@ -197,11 +190,10 @@ const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
         <div className="flex items-center gap-3 mt-4">
           <button
             onClick={() => setExpanded(!expanded)}
-            className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors ${
-              theme === 'dark'
-                ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+            className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors ${theme === 'dark'
+                ? 'border-gray-600 text-gray-300 hover:bg-dark-hover'
                 : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
+              }`}
           >
             {expanded ? 'Show Less' : 'View Details'}
           </button>
@@ -210,24 +202,20 @@ const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
 
       {/* Expanded content */}
       {expanded && (
-        <div className={`border-t ${
-          theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-        }`}>
+        <div className={`border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+          }`}>
           <div className="p-4 space-y-6">
             {/* Release Notes */}
             {latestRelease.releaseNotes && (
               <div>
-                <h5 className={`font-medium mb-2 ${
-                  theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>
+                <h5 className={`font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
                   Release Notes
                 </h5>
-                <div className={`p-3 rounded-lg ${
-                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-                }`}>
-                  <p className={`text-sm whitespace-pre-wrap ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
                   }`}>
+                  <p className={`text-sm whitespace-pre-wrap ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     {latestRelease.releaseNotes}
                   </p>
                 </div>
@@ -237,27 +225,23 @@ const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
             {/* Features */}
             {latestRelease.features && latestRelease.features.length > 0 && (
               <div>
-                <h5 className={`font-medium mb-3 ${
-                  theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>
+                <h5 className={`font-medium mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
                   New Features
                 </h5>
                 <div className="space-y-3">
                   {latestRelease.features.map((feature, index) => (
-                    <div key={index} className={`p-3 rounded-lg ${
-                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-                    }`}>
+                    <div key={index} className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+                      }`}>
                       <div className="flex items-start gap-3">
                         {getFeatureIcon('feature')}
                         <div>
-                          <h6 className={`font-medium ${
-                            theme === 'dark' ? 'text-white' : 'text-gray-900'
-                          }`}>
+                          <h6 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}>
                             {feature.title}
                           </h6>
-                          <p className={`text-sm mt-1 ${
-                            theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                          }`}>
+                          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
                             {feature.description}
                           </p>
                         </div>
@@ -271,27 +255,23 @@ const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
             {/* Improvements */}
             {latestRelease.improvements && latestRelease.improvements.length > 0 && (
               <div>
-                <h5 className={`font-medium mb-3 ${
-                  theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>
+                <h5 className={`font-medium mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
                   Improvements
                 </h5>
                 <div className="space-y-3">
                   {latestRelease.improvements.map((improvement, index) => (
-                    <div key={index} className={`p-3 rounded-lg ${
-                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-                    }`}>
+                    <div key={index} className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+                      }`}>
                       <div className="flex items-start gap-3">
                         {getFeatureIcon('improvement')}
                         <div>
-                          <h6 className={`font-medium ${
-                            theme === 'dark' ? 'text-white' : 'text-gray-900'
-                          }`}>
+                          <h6 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}>
                             {improvement.title}
                           </h6>
-                          <p className={`text-sm mt-1 ${
-                            theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                          }`}>
+                          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
                             {improvement.description}
                           </p>
                         </div>
@@ -305,27 +285,23 @@ const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
             {/* Bug Fixes */}
             {latestRelease.bugFixes && latestRelease.bugFixes.length > 0 && (
               <div>
-                <h5 className={`font-medium mb-3 ${
-                  theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>
+                <h5 className={`font-medium mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
                   Bug Fixes
                 </h5>
                 <div className="space-y-3">
                   {latestRelease.bugFixes.map((bugFix, index) => (
-                    <div key={index} className={`p-3 rounded-lg ${
-                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-                    }`}>
+                    <div key={index} className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+                      }`}>
                       <div className="flex items-start gap-3">
                         {getFeatureIcon('bugfix')}
                         <div>
-                          <h6 className={`font-medium ${
-                            theme === 'dark' ? 'text-white' : 'text-gray-900'
-                          }`}>
+                          <h6 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}>
                             {bugFix.title}
                           </h6>
-                          <p className={`text-sm mt-1 ${
-                            theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                          }`}>
+                          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
                             {bugFix.description}
                           </p>
                         </div>
@@ -336,37 +312,32 @@ const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
               </div>
             )}
 
-            
+
 
             {/* Compatibility */}
             {latestRelease.compatibility && (
               <div>
-                <h5 className={`font-medium mb-2 ${
-                  theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>
+                <h5 className={`font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
                   Compatibility
                 </h5>
-                <div className={`p-3 rounded-lg ${
-                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-                }`}>
+                <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+                  }`}>
                   {latestRelease.compatibility.minVersion && (
-                    <p className={`text-sm mb-1 ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                    <p className={`text-sm mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                       <strong>Minimum Version:</strong> {latestRelease.compatibility.minVersion}
                     </p>
                   )}
                   {latestRelease.compatibility.maxVersion && (
-                    <p className={`text-sm mb-1 ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                    <p className={`text-sm mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                       <strong>Maximum Version:</strong> {latestRelease.compatibility.maxVersion}
                     </p>
                   )}
                   {latestRelease.compatibility.supportedBrowsers && latestRelease.compatibility.supportedBrowsers.length > 0 && (
-                    <p className={`text-sm mb-1 ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                    <p className={`text-sm mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                       <strong>Supported Browsers:</strong> {latestRelease.compatibility.supportedBrowsers.join(', ')}
                     </p>
                   )}

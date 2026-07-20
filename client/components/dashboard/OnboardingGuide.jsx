@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
-import { 
-  FaUser, 
-  FaBuilding, 
-  FaUsers, 
-  FaFolder, 
-  FaCheck, 
+import {
+  FaUser,
+  FaBuilding,
+  FaUsers,
+  FaFolder,
+  FaCheck,
   FaArrowRight,
   FaTimes,
   FaLightbulb,
@@ -200,7 +200,7 @@ const OnboardingGuide = ({ isOpen, onClose }) => {
             </div>
             <button
               onClick={onClose}
-              className={`p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+              className={`p-2 rounded-full ${theme === 'dark' ? 'hover:bg-dark-hover' : 'hover:bg-gray-100'}`}
             >
               <FaTimes size={18} />
             </button>
@@ -216,7 +216,7 @@ const OnboardingGuide = ({ isOpen, onClose }) => {
               {guideSteps[currentStep].description}
             </p>
           </div>
-          
+
           <div className="max-w-2xl mx-auto flex-1 flex items-center">
             {guideSteps[currentStep].content}
           </div>
@@ -228,17 +228,16 @@ const OnboardingGuide = ({ isOpen, onClose }) => {
             <button
               onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
               disabled={currentStep === 0}
-              className={`px-4 py-2 rounded-lg transition-colors duration-200 text-sm ${
-                currentStep === 0
+              className={`px-4 py-2 rounded-lg transition-colors duration-200 text-sm ${currentStep === 0
                   ? 'opacity-50 cursor-not-allowed'
                   : theme === 'dark'
                     ? 'bg-gray-700 hover:bg-gray-600 text-white'
                     : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-              }`}
+                }`}
             >
               Previous
             </button>
-            
+
             <div className="flex gap-3">
               {currentStep < guideSteps.length - 1 ? (
                 <button

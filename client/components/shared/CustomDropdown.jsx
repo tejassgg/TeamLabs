@@ -38,8 +38,8 @@ const CustomDropdown = ({
 
   // Variant classes
   const variantClasses = {
-    default: theme === 'dark' 
-      ? 'bg-dark-card border-gray-600 text-gray-100 hover:bg-[#2A2A2A]' 
+    default: theme === 'dark'
+      ? 'bg-dark-card border-gray-600 text-gray-100 hover:bg-[#2A2A2A]'
       : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50',
     outlined: theme === 'dark'
       ? 'bg-transparent border-gray-600 text-gray-100 hover:bg-[#2A2A2A]'
@@ -55,11 +55,11 @@ const CustomDropdown = ({
   };
 
   // Filter options based on search query
-  const filteredOptions = showSearch 
+  const filteredOptions = showSearch
     ? options.filter(option => {
-        const label = typeof option === 'object' ? option.label || option.name || option.text : String(option);
-        return label.toLowerCase().includes(searchQuery.toLowerCase());
-      })
+      const label = typeof option === 'object' ? option.label || option.name || option.text : String(option);
+      return label.toLowerCase().includes(searchQuery.toLowerCase());
+    })
     : options;
 
   // Get option value safely (handling 0 as valid value)
@@ -116,7 +116,7 @@ const CustomDropdown = ({
     if (renderOption) {
       return renderOption(option);
     }
-    
+
     if (typeof option === 'object') {
       return (
         <div className="flex items-center gap-3">
@@ -134,7 +134,7 @@ const CustomDropdown = ({
         </div>
       );
     }
-    
+
     return String(option);
   };
 
@@ -143,7 +143,7 @@ const CustomDropdown = ({
     if (renderSelected) {
       return renderSelected(selectedOption);
     }
-    
+
     if (selectedOption) {
       if (typeof selectedOption === 'object') {
         return (
@@ -159,7 +159,7 @@ const CustomDropdown = ({
       }
       return String(selectedOption);
     }
-    
+
     return (
       <span className={getThemeClasses('text-gray-500', 'dark:text-gray-400')}>
         {placeholder}
@@ -202,16 +202,15 @@ const CustomDropdown = ({
           {icon && <span className="flex-shrink-0">{icon}</span>}
           <span className="truncate">{renderSelectedValue()}</span>
         </div>
-        
+
         {rightIcon ? (
           <span className="flex-shrink-0">{rightIcon}</span>
         ) : (
-          <svg 
-            className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${
-              isOpen ? 'rotate-180' : ''
-            } ${getThemeClasses('text-gray-400', 'dark:text-gray-500')}`}
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''
+              } ${getThemeClasses('text-gray-400', 'dark:text-gray-500')}`}
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -224,9 +223,9 @@ const CustomDropdown = ({
         <div className={`
           absolute z-[9999] w-full mt-2 rounded-xl shadow-lg overflow-hidden
           ${getThemeClasses(
-            'bg-white border border-gray-200',
-            'dark:bg-dark-card dark:border-gray-600'
-          )}
+          'bg-white border border-gray-200',
+          'dark:bg-dark-card dark:border-gray-600'
+        )}
         `}>
           {/* Search Input */}
           {showSearch && (
@@ -242,9 +241,9 @@ const CustomDropdown = ({
                 className={`
                   w-full px-3 py-2 rounded-lg border transition-colors
                   ${getThemeClasses(
-                    'bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                    'dark:bg-[#2A2A2A] dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400'
-                  )}
+                  'bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+                  'dark:bg-[#2A2A2A] dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400'
+                )}
                 `}
                 autoFocus
               />
@@ -264,7 +263,7 @@ const CustomDropdown = ({
               filteredOptions.map((option, index) => {
                 const optionValue = getOptionValue(option);
                 const isSelected = optionValue === value;
-                
+
                 return (
                   <button
                     key={index}
@@ -273,13 +272,13 @@ const CustomDropdown = ({
                     className={`
                       w-full px-4 py-3 text-left transition-colors duration-150
                       ${getThemeClasses(
-                        'hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl',
-                        'dark:hover:bg-gray-700'
-                      )}
+                      'hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl',
+                      'dark:hover:bg-dark-hover'
+                    )}
                       ${isSelected ? getThemeClasses(
-                        'bg-blue-50 text-blue-700',
-                        'dark:bg-blue-900/30 dark:text-blue-300'
-                      ) : ''}
+                      'bg-blue-50 text-blue-700',
+                      'dark:bg-blue-900/30 dark:text-blue-300'
+                    ) : ''}
                     `}
                   >
                     {renderOptionContent(option)}

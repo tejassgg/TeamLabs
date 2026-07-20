@@ -45,7 +45,7 @@ const AuthNavbar = ({ openLogin, openRegister, showLogin }) => {
             {/* Theme toggle and Auth buttons */}
             <button
               onClick={toggleTheme}
-              className={`p-1.5 sm:p-2 rounded-lg transition-colors ${theme === 'dark' ? 'text-yellow-300 hover:text-yellow-400 bg-gray-800 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 bg-gray-105 bg-gray-100 hover:bg-gray-200'}`}
+              className={`p-1.5 sm:p-2 rounded-lg transition-colors ${theme === 'dark' ? 'text-yellow-300 hover:text-yellow-400 bg-gray-800 hover:bg-dark-hover' : 'text-gray-600 hover:text-gray-900 bg-gray-105 bg-gray-100 hover:bg-gray-200'}`}
               title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {theme === 'dark' ? <FaSun className="text-sm sm:text-base" /> : <FaMoon className="text-sm sm:text-base" />}

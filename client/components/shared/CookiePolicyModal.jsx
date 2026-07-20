@@ -165,7 +165,7 @@ const CookiePolicyModal = ({ isOpen, onClose }) => {
                   <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
                     Essential Cookies
                   </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                     These cookies are necessary for the website to function properly and cannot be disabled.
                   </p>
                   <ul className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
@@ -196,7 +196,7 @@ const CookiePolicyModal = ({ isOpen, onClose }) => {
                   <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
                     Analytics Cookies
                   </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                     These cookies help us understand how visitors interact with our website.
                   </p>
                   <ul className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
@@ -227,7 +227,7 @@ const CookiePolicyModal = ({ isOpen, onClose }) => {
                   <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
                     Functional Cookies
                   </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                     These cookies enable enhanced functionality and personalization.
                   </p>
                   <ul className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
@@ -258,7 +258,7 @@ const CookiePolicyModal = ({ isOpen, onClose }) => {
                   <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
                     Marketing Cookies
                   </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                     These cookies deliver relevant advertisements and track campaign effectiveness.
                   </p>
                   <ul className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">

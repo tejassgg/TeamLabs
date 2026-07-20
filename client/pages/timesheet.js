@@ -91,7 +91,7 @@ const TimeSheet = () => {
 
     function createDateFromTimeString(timeString, baseDate = new Date()) {
         // ... (existing function, no changes needed)
-         if (!timeString) {
+        if (!timeString) {
             return null; // Or throw an error
         }
         const [hours, minutes] = timeString.split(':');
@@ -102,7 +102,7 @@ const TimeSheet = () => {
 
     const handleAddTime = async () => {
         // ... (existing function, no changes needed)
-         try {
+        try {
             const formData = {
                 Description: description,
                 StartTime: createDateFromTimeString(startTime, new Date(currentDate)),
@@ -132,7 +132,7 @@ const TimeSheet = () => {
 
     const handleConfirmDelete = async () => {
         // ... (existing function, no changes needed)
-         if (!timeToDelete) return;
+        if (!timeToDelete) return;
 
         try {
             const res = await timesheetService.delTimeSheet(timeToDelete.timeId, timeToDelete.punchID);
@@ -166,7 +166,7 @@ const TimeSheet = () => {
 
     const handlePunchOut = async () => {
         // ... (existing function, no changes needed)
-         const data = await timesheetService.punchOut(punchID);
+        const data = await timesheetService.punchOut(punchID);
         setPunchedOutTime(data.punchOut.OutTime)
         showToast(data.message);
     };
@@ -202,7 +202,7 @@ const TimeSheet = () => {
         const grandTotalStyle = { font: { bold: true, size: 12 }, fill: grandTotalFill };
 
         // --- Add User Details and Titles ---
-        worksheet.addRow([`User Timesheet Report - ${criteria}` ]).getCell(1).style = titleStyle;
+        worksheet.addRow([`User Timesheet Report - ${criteria}`]).getCell(1).style = titleStyle;
         worksheet.mergeCells('A1:E1');
         worksheet.addRow([]); // Blank row
 
@@ -290,8 +290,8 @@ const TimeSheet = () => {
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             saveAs(blob, `TimeSheet_Report_${criteria.replace(/ /g, '_')}.xlsx`);
         } catch (error) {
-             console.error("Error writing excel buffer", error);
-             showToast('Error generating Excel file.', 'error');
+            console.error("Error writing excel buffer", error);
+            showToast('Error generating Excel file.', 'error');
         }
     };
 
@@ -332,7 +332,7 @@ const TimeSheet = () => {
             );
 
             if (data.message && (!data.timeSheets || data.timeSheets.length === 0)) {
-                 showToast(data.message, 'warning'); // Show message if no data
+                showToast(data.message, 'warning'); // Show message if no data
             }
 
             if (!data.timeSheets || data.timeSheets.length === 0) {
@@ -354,7 +354,7 @@ const TimeSheet = () => {
             setReportLoading(false);
         }
     };
-    
+
     // --- START NEW DATE CHANGE HANDLER ---
     /**
      * Handles changing the current date by one day, forward or backward
@@ -377,13 +377,13 @@ const TimeSheet = () => {
 
     useEffect(() => {
         // ... (calculateTotalTime, no changes needed)
-         const calculateTotalTime = () => {
+        const calculateTotalTime = () => {
             if (userTimeSheet && userTimeSheet.length > 0) {
                 const totalMilliseconds = userTimeSheet.reduce((acc, time) => {
                     const startTime = new Date(time.StartTime);
                     const endTime = new Date(time.EndTime);
-                     // Make sure endTime is after startTime
-                     const diff = endTime > startTime ? endTime - startTime : 0;
+                    // Make sure endTime is after startTime
+                    const diff = endTime > startTime ? endTime - startTime : 0;
                     return acc + diff;
                 }, 0);
 
@@ -401,7 +401,7 @@ const TimeSheet = () => {
 
     useEffect(() => {
         // ... (elapsedTime timer, no changes needed)
-         let timerInterval;
+        let timerInterval;
 
         if (punchedInTime && !punchedOutTime) {
             timerInterval = setInterval(() => {
@@ -416,8 +416,8 @@ const TimeSheet = () => {
                 setElapsedTime({ hours, minutes, seconds });
             }, 1000);
         } else {
-             // Clear interval if not punched in or already punched out
-             setElapsedTime({ hours: 0, minutes: 0, seconds: 0 }); // Reset timer display
+            // Clear interval if not punched in or already punched out
+            setElapsedTime({ hours: 0, minutes: 0, seconds: 0 }); // Reset timer display
         }
 
         return () => {
@@ -427,7 +427,7 @@ const TimeSheet = () => {
 
     useEffect(() => {
         // ... (isToday check, no changes needed)
-          const today = new Date();
+        const today = new Date();
         const selectedDate = new Date(currentDate);
 
         // Set time to 0 to compare dates only, ignoring time
@@ -439,18 +439,18 @@ const TimeSheet = () => {
 
     useEffect(() => {
         // ... (punchDuration calculation, no changes needed)
-          if (punchedInTime && punchedOutTime) {
+        if (punchedInTime && punchedOutTime) {
             const start = new Date(punchedInTime);
             const end = new Date(punchedOutTime);
             const diff = end - start; // Difference in milliseconds
 
-             if (diff > 0) { // Only calculate if end is after start
-                 const hours = Math.floor(diff / (1000 * 60 * 60));
-                 const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                 setPunchDuration({ hours, minutes });
-             } else {
-                  setPunchDuration({ hours: 0, minutes: 0 });
-             }
+            if (diff > 0) { // Only calculate if end is after start
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                setPunchDuration({ hours, minutes });
+            } else {
+                setPunchDuration({ hours: 0, minutes: 0 });
+            }
         } else {
             // Reset if not punched out or not punched in yet
             setPunchDuration({ hours: 0, minutes: 0 });
@@ -471,31 +471,31 @@ const TimeSheet = () => {
                     {/* --- MODIFIED SECTION --- */}
                     <div className="flex items-center justify-end mb-4 gap-4">
                         <div className="flex-col text-right">
-                           <button
+                            <button
                                 onClick={() => setIsReportModalOpen(true)}
                                 className={getThemeClasses(
                                     'flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50',
                                     'dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600'
                                 )}
-                           >
+                            >
                                 <FaDownload size={14} />
                                 Download Report
-                           </button>
+                            </button>
                         </div>
-                        
+
                         {/* --- Date Navigation --- */}
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => handleDateChange('prev')}
                                 className={getThemeClasses(
                                     'p-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50',
-                                    'dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700'
+                                    'dark:border-gray-600 dark:text-gray-200 dark:hover:bg-dark-hover'
                                 )}
                                 title="Previous day"
                             >
                                 <FaArrowLeft size={14} />
                             </button>
-                            
+
                             <input
                                 type="date"
                                 value={new Date(currentDate).toISOString().split('T')[0]}
@@ -515,7 +515,7 @@ const TimeSheet = () => {
                                 onClick={() => handleDateChange('next')}
                                 className={getThemeClasses(
                                     'p-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50',
-                                    'dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700'
+                                    'dark:border-gray-600 dark:text-gray-200 dark:hover:bg-dark-hover'
                                 )}
                                 title="Next day"
                             >
@@ -527,7 +527,7 @@ const TimeSheet = () => {
                     </div>
                     {/* --- END MODIFIED SECTION --- */}
 
-                     <div className={`overflow-x-auto ${tableContainerClasses}`}>
+                    <div className={`overflow-x-auto ${tableContainerClasses}`}>
                         <table className="w-full">
                             <thead>
                                 <tr className={tableHeaderClasses}>
@@ -626,22 +626,22 @@ const TimeSheet = () => {
                                         </td>
                                     </tr>
                                 ))}
-                                 {/* Show message if no timesheet entries */}
-                                 {userTimeSheet.length === 0 && !loading && (
-                                     <tr className={tableRowClasses}>
-                                         <td colSpan="4" className={`py-4 px-4 text-center ${tableSecondaryTextClasses}`}>
-                                             {punchedInTime ? "No time logged yet for this day." : "Clock in to start logging time."}
-                                         </td>
-                                     </tr>
-                                 )}
-                                 {/* Show loading indicator */}
-                                 {loading && (
-                                      <tr className={tableRowClasses}>
-                                         <td colSpan="4" className={`py-4 px-4 text-center ${tableSecondaryTextClasses}`}>
+                                {/* Show message if no timesheet entries */}
+                                {userTimeSheet.length === 0 && !loading && (
+                                    <tr className={tableRowClasses}>
+                                        <td colSpan="4" className={`py-4 px-4 text-center ${tableSecondaryTextClasses}`}>
+                                            {punchedInTime ? "No time logged yet for this day." : "Clock in to start logging time."}
+                                        </td>
+                                    </tr>
+                                )}
+                                {/* Show loading indicator */}
+                                {loading && (
+                                    <tr className={tableRowClasses}>
+                                        <td colSpan="4" className={`py-4 px-4 text-center ${tableSecondaryTextClasses}`}>
                                             Loading timesheet...
-                                         </td>
-                                      </tr>
-                                 )}
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -680,7 +680,7 @@ const TimeSheet = () => {
 
                     <div className="grid grid-cols-2 gap-4 text-center mb-6">
                         <div>
-                             <p className="text-3xl font-bold">
+                            <p className="text-3xl font-bold">
                                 {punchedInTime && !punchedOutTime && isToday ? ( // Live timer only if punched in today and not out
                                     <span className='text-green-500'>
                                         {String(elapsedTime.hours).padStart(2, '0')}:
@@ -713,7 +713,7 @@ const TimeSheet = () => {
                         </div>
                     </div>
 
-                     <div className="grid grid-cols-1 gap-4"> {/* Changed to grid-cols-1 for better stacking */}
+                    <div className="grid grid-cols-1 gap-4"> {/* Changed to grid-cols-1 for better stacking */}
                         {!punchedInTime && isToday ? ( // Show Clock In only if it's today and not punched in
                             <button
                                 onClick={handlePunchIn}
@@ -731,14 +731,14 @@ const TimeSheet = () => {
                                 <FaArrowRight size={14} />
                             </button>
                         ) : punchedOutTime ? ( // Show Shift Completed if punched out
-                             <div className={`text-center px-4 py-3 text-sm font-medium rounded-lg ${getThemeClasses("bg-gray-100 text-gray-500", "dark:bg-zinc-800 dark:text-gray-400")}`}>
+                            <div className={`text-center px-4 py-3 text-sm font-medium rounded-lg ${getThemeClasses("bg-gray-100 text-gray-500", "dark:bg-zinc-800 dark:text-gray-400")}`}>
                                 Shift Completed for this day
-                             </div>
-                         ) : !isToday ? ( // Message if viewing a past/future date
-                             <div className={`text-center px-4 py-3 text-sm font-medium rounded-lg ${getThemeClasses("bg-gray-100 text-gray-500", "dark:bg-zinc-800 dark:text-gray-400")}`}>
-                                 Cannot Clock In/Out on past/future dates
-                             </div>
-                         ) : null /* Should not happen, but prevents rendering nothing */
+                            </div>
+                        ) : !isToday ? ( // Message if viewing a past/future date
+                            <div className={`text-center px-4 py-3 text-sm font-medium rounded-lg ${getThemeClasses("bg-gray-100 text-gray-500", "dark:bg-zinc-800 dark:text-gray-400")}`}>
+                                Cannot Clock In/Out on past/future dates
+                            </div>
+                        ) : null /* Should not happen, but prevents rendering nothing */
                         }
                     </div>
                 </div>
@@ -755,7 +755,7 @@ const TimeSheet = () => {
                                 onClick={() => setIsDeleteModalOpen(false)}
                                 className={getThemeClasses(
                                     'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                                    'dark:text-gray-400 dark:hover:bg-gray-700'
+                                    'dark:text-gray-400 dark:hover:bg-dark-hover'
                                 )}
                             >
                                 Cancel
@@ -793,7 +793,7 @@ const TimeSheet = () => {
                                 onClick={() => setIsReportModalOpen(false)}
                                 className={getThemeClasses(
                                     'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                                    'dark:text-gray-400 dark:hover:bg-gray-700'
+                                    'dark:text-gray-400 dark:hover:bg-dark-hover'
                                 )}
                             >
                                 Cancel
@@ -815,13 +815,13 @@ const TimeSheet = () => {
                         <div className="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 p-1 gap-1">
                             <button
                                 onClick={() => setReportType('dateRange')}
-                                className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors ${reportType === 'dateRange' ? 'bg-blue-500 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                                className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors ${reportType === 'dateRange' ? 'bg-blue-500 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-hover'}`}
                             >
                                 By Date Range
                             </button>
                             <button
                                 onClick={() => setReportType('month')}
-                                className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors ${reportType === 'month' ? 'bg-blue-500 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                                className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors ${reportType === 'month' ? 'bg-blue-500 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-hover'}`}
                             >
                                 By Month
                             </button>

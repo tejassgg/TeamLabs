@@ -7,7 +7,7 @@ import { authService } from '../../services/api';
 const RepositoryTab = ({ projectId, projectRepository }) => {
   const { theme } = useTheme();
   const { showToast } = useToast();
-  
+
   // Repository data state
   const [repositoryCommits, setRepositoryCommits] = useState([]);
   const [repositoryIssues, setRepositoryIssues] = useState([]);
@@ -75,7 +75,7 @@ const RepositoryTab = ({ projectId, projectRepository }) => {
   );
   const tableRowClasses = getThemeClasses(
     'border-b border-gray-200 hover:bg-gray-50 transition-colors',
-    'dark:border-gray-700 dark:hover:bg-gray-700'
+    'dark:border-gray-700 dark:hover:bg-dark-hover'
   );
   const tableTextClasses = getThemeClasses(
     'text-sm font-medium text-gray-900',
@@ -301,20 +301,18 @@ const RepositoryTab = ({ projectId, projectRepository }) => {
                         </div>
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                          issue.state === 'open'
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${issue.state === 'open'
                             ? theme === 'dark'
                               ? 'bg-green-600/20 text-green-400'
                               : 'bg-green-100 text-green-700'
                             : theme === 'dark'
                               ? 'bg-red-600/20 text-red-400'
                               : 'bg-red-100 text-red-700'
-                        }`}>
-                          <span className={`w-2 h-2 rounded-full ${
-                            issue.state === 'open'
+                          }`}>
+                          <span className={`w-2 h-2 rounded-full ${issue.state === 'open'
                               ? theme === 'dark' ? 'bg-green-400' : 'bg-green-500'
                               : theme === 'dark' ? 'bg-red-400' : 'bg-red-500'
-                          }`}></span>
+                            }`}></span>
                           {issue.state === 'open' ? 'Open' : 'Closed'}
                         </span>
                       </td>

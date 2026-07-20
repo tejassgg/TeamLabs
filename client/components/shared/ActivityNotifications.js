@@ -327,7 +327,7 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
               <div
                 key={noti.NotificationID}
                 onClick={() => handleNotificationClick(noti)}
-                className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/20 transition-all duration-150 relative ${!noti.IsRead ? (theme === 'dark' ? 'bg-blue-500/5' : 'bg-blue-50/40') : ''
+                className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-hover/20 transition-all duration-150 relative ${!noti.IsRead ? (theme === 'dark' ? 'bg-blue-500/5' : 'bg-blue-50/40') : ''
                   }`}
               >
                 {!noti.IsRead && (
@@ -361,7 +361,7 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
             {activities.map((activity) => (
               <div
                 key={activity._id}
-                className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/20 transition-colors duration-150`}
+                className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-hover/20 transition-colors duration-150`}
               >
                 <div className="flex items-start space-x-3">
                   <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'

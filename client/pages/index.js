@@ -309,7 +309,7 @@ function Home() {
       })
     );
   };
-  
+
   // LIVE CHAT DEMO STATES
   const [chatMessages, setChatMessages] = useState([
     { sender: 'Sarah', content: 'Hey team, did we optimize the database response time?', time: '10:02 AM' },
@@ -597,7 +597,7 @@ function Home() {
         <div className={`absolute top-0 right-0 w-[500px] h-[500px] rounded-full mix-blend-screen filter blur-[120px] opacity-[0.15] animate-blob ${theme === 'dark' ? 'bg-indigo-600' : 'bg-indigo-400'}`}></div>
         <div className={`absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full mix-blend-screen filter blur-[120px] opacity-[0.15] animate-blob animation-delay-2000 ${theme === 'dark' ? 'bg-purple-600' : 'bg-purple-400'}`}></div>
         <div className={`absolute top-1/2 left-1/3 w-[350px] h-[350px] rounded-full mix-blend-screen filter blur-[100px] opacity-[0.1] animate-blob animation-delay-4000 ${theme === 'dark' ? 'bg-cyan-500' : 'bg-cyan-400'}`}></div>
-        
+
         {/* SVG Custom Dot Matrix */}
         <div className="absolute inset-0 opacity-[0.4] dark:opacity-[0.8]" style={{
           backgroundImage: theme === 'dark'
@@ -614,7 +614,7 @@ function Home() {
         {/* Hero Section */}
         <section className="relative min-h-[92vh] flex items-center justify-center pt-24 pb-12 w-full px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center w-full">
-            
+
             {/* Hero Left: Pitch & CTA */}
             <div className="lg:col-span-6 flex flex-col justify-center text-left reveal reveal-fade-up">
               <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-6 tracking-wide max-w-max border ${theme === 'dark' ? 'bg-indigo-950/40 text-indigo-300 border-indigo-500/30' : 'bg-indigo-50 text-indigo-800 border-indigo-200'}`}>
@@ -633,7 +633,7 @@ function Home() {
               </h1>
 
               <p className={`text-lg md:text-xl leading-relaxed mb-8 max-w-2xl ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
-                Transform absolute chaos into streamlined sprint progress. Deploy Kanban boards, native team group chat, instant analytics summaries, and live-punch timesheets instantly. 
+                Transform absolute chaos into streamlined sprint progress. Deploy Kanban boards, native team group chat, instant analytics summaries, and live-punch timesheets instantly.
                 <span className="font-semibold text-indigo-500"> Built for modern high-performance organizations.</span>
               </p>
 
@@ -677,7 +677,7 @@ function Home() {
             {/* Hero Right: Interactive AI Terminal Mockup */}
             <div className="lg:col-span-6 w-full reveal reveal-fade-left">
               <div className={`relative rounded-2xl border transition-all duration-300 shadow-2xl p-0.5 ${theme === 'dark' ? 'border-white/10 bg-slate-950/70 shadow-slate-950/80' : 'border-slate-200/80 bg-white/70 shadow-slate-200/50'} backdrop-blur-md`}>
-                
+
                 {/* Gloss header */}
                 <div className={`flex items-center justify-between px-4 py-3 rounded-t-2xl border-b ${theme === 'dark' ? 'bg-slate-950/80 border-white/5' : 'bg-slate-100 border-slate-200'}`}>
                   <div className="flex items-center gap-2">
@@ -693,7 +693,7 @@ function Home() {
 
                 {/* Terminal Workspace */}
                 <div className={`p-5 min-h-[300px] max-h-[380px] overflow-y-auto font-mono text-xs sm:text-sm leading-relaxed text-left flex flex-col justify-start rounded-b-2xl ${theme === 'dark' ? 'bg-slate-950/40 text-slate-300' : 'bg-slate-50/50 text-slate-800'}`} ref={terminalScrollRef}>
-                  
+
                   {/* Console prompt */}
                   <div className="flex items-start gap-2 mb-2">
                     <span className="text-indigo-400 font-bold select-none">&gt;</span>
@@ -789,15 +789,14 @@ function Home() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`p-4 rounded-xl text-left border transition-all duration-300 flex flex-col gap-1 ${
-                    activeTab === tab.id
+                  className={`p-4 rounded-xl text-left border transition-all duration-300 flex flex-col gap-1 ${activeTab === tab.id
                       ? theme === 'dark'
                         ? 'bg-gradient-to-r from-indigo-950/60 to-purple-950/60 border-indigo-500/50 shadow-lg shadow-indigo-950/20'
                         : 'bg-white border-indigo-500/40 shadow-xl shadow-slate-200'
                       : theme === 'dark'
                         ? 'bg-slate-900/20 hover:bg-slate-900/40 border-white/5'
                         : 'bg-white/40 hover:bg-white/80 border-slate-200'
-                  }`}
+                    }`}
                 >
                   <span className={`font-bold text-sm sm:text-base ${activeTab === tab.id ? 'text-indigo-500' : theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
                     {tab.label}
@@ -812,7 +811,7 @@ function Home() {
             {/* Showcase Visualizer Terminal - Right Column */}
             <div className="lg:col-span-8 w-full">
               <div className={`rounded-2xl border transition-all duration-300 shadow-2xl p-6 min-h-[380px] flex flex-col ${theme === 'dark' ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40'} backdrop-blur-md`}>
-                
+
                 {/* 1. Analytics Showcase */}
                 {activeTab === 'analytics' && (
                   <div className="flex flex-col gap-6 animate-fade-in text-left">
@@ -824,7 +823,7 @@ function Home() {
                     </p>
 
                     <div className="grid sm:grid-cols-3 gap-6">
-                      
+
                       {/* Metric Card 1 */}
                       <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-slate-900/30 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
                         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Sprint Velocity</span>
@@ -872,7 +871,7 @@ function Home() {
                         <span>Sprint 3 Daily Burndown Forecast</span>
                         <span className="flex items-center gap-1 font-semibold text-indigo-500"><span className="w-2 h-2 rounded-full bg-indigo-500"></span> Live</span>
                       </div>
-                      
+
                       {/* SVG Bar Chart with animate transitions */}
                       <svg className="w-full h-24 overflow-visible" viewBox="0 0 400 100">
                         {/* Grid lines */}
@@ -889,7 +888,7 @@ function Home() {
                           strokeLinecap="round"
                           className="chart-stroke-anim"
                         />
-                        
+
                         <defs>
                           <linearGradient id="chart-grad" x1="0%" y1="0%" x2="100%" y2="0%">
                             <stop offset="0%" stopColor="#6366f1" />
@@ -930,7 +929,7 @@ function Home() {
 
                         return (
                           <div key={col.id} className={`p-3.5 rounded-xl border flex flex-col gap-3.5 flex-shrink-0 w-[290px] min-h-[460px] ${theme === 'dark' ? 'bg-slate-900/20 border-white/5' : 'bg-slate-50 border-slate-200'}`} style={{ scrollSnapAlign: 'start' }}>
-                            
+
                             {/* Column Header */}
                             <div className="flex items-center justify-between pb-2 border-b border-indigo-500/10">
                               <div className="flex items-center gap-2">
@@ -1018,7 +1017,7 @@ function Home() {
                                           {task.title}
                                         </h4>
                                         {task.description && (
-                                          <p className={`text-[11px] leading-relaxed mt-1 line-clamp-2 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-500'}`}>
+                                          <p className={`text-xs leading-relaxed mt-1 line-clamp-2 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-500'}`}>
                                             {task.description}
                                           </p>
                                         )}
@@ -1031,7 +1030,7 @@ function Home() {
                                             <div
                                               key={sub.id}
                                               onClick={(e) => { e.stopPropagation(); handleToggleSubtask(task.id, sub.id); }}
-                                              className="flex items-start gap-2 cursor-pointer select-none text-[11px] group"
+                                              className="flex items-start gap-2 cursor-pointer select-none text-xs group"
                                             >
                                               <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${sub.completed ? 'bg-amber-400 border-amber-400 text-white' : 'border-slate-300 dark:border-slate-700 hover:border-amber-400'}`}>
                                                 {sub.completed && <FaCheck size={7} />}
@@ -1103,7 +1102,7 @@ function Home() {
 
                     {/* Chat Terminal Frame */}
                     <div className={`p-4 rounded-xl border flex flex-col gap-4 justify-between h-[220px] ${theme === 'dark' ? 'bg-slate-900/30 border-white/5' : 'bg-slate-50 border-slate-200/50'}`}>
-                      
+
                       {/* Active header */}
                       <div className="flex items-center gap-2 border-b border-indigo-500/10 pb-2 text-xs">
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 block"></span>
@@ -1131,11 +1130,10 @@ function Home() {
                           value={chatInput}
                           onChange={(e) => setChatInput(e.target.value)}
                           placeholder="Type simulated message (e.g. Optimize login flow)..."
-                          className={`flex-grow px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 ${
-                            theme === 'dark'
+                          className={`flex-grow px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 ${theme === 'dark'
                               ? 'bg-slate-950 border-white/10 text-white placeholder-slate-500'
                               : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
-                          }`}
+                            }`}
                         />
                         <button type="submit" className="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shrink-0">
                           <FaPaperPlane size={11} />
@@ -1207,16 +1205,15 @@ function Home() {
                     </p>
 
                     <div className="grid sm:grid-cols-12 gap-6 items-center">
-                      
+
                       {/* Punch Clock Left */}
                       <div className="sm:col-span-5 flex flex-col items-center justify-center text-center">
                         <button
                           onClick={handlePunchClick}
-                          className={`w-28 h-28 rounded-full flex flex-col items-center justify-center gap-2 transition-all duration-300 font-extrabold shadow-xl text-base shrink-0 select-none transform hover:scale-105 ${
-                            isPunchedIn
+                          className={`w-28 h-28 rounded-full flex flex-col items-center justify-center gap-2 transition-all duration-300 font-extrabold shadow-xl text-base shrink-0 select-none transform hover:scale-105 ${isPunchedIn
                               ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-red-600/35 border-4 border-red-500/30'
                               : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-indigo-600/35 border-4 border-indigo-500/30'
-                          }`}
+                            }`}
                         >
                           <FaHourglassHalf className={isPunchedIn ? 'animate-pulse' : ''} />
                           <span>{isPunchedIn ? 'PUNCH OUT' : 'PUNCH IN'}</span>
@@ -1342,7 +1339,7 @@ function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-            
+
             {/* Card 1: Free */}
             <div className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between text-left reveal reveal-fade-up ${theme === 'dark' ? 'bg-slate-950/30 border-white/5 hover:border-slate-800' : 'bg-white border-slate-200 hover:shadow-xl'}`}>
               <div className="flex flex-col gap-4">
@@ -1436,10 +1433,10 @@ function Home() {
         {/* CTA Footer Wrapper */}
         <section className="py-24 text-center px-4 sm:px-6 lg:px-8 border-t border-indigo-500/10 max-w-7xl mx-auto">
           <div className={`p-12 rounded-3xl relative overflow-hidden flex flex-col items-center justify-center border ${theme === 'dark' ? 'bg-gradient-to-r from-indigo-950/40 to-purple-950/40 border-indigo-500/20' : 'bg-gradient-to-r from-indigo-500 to-purple-600 border-indigo-600'}`}>
-            
+
             {/* Background mesh glow inside card */}
             <div className="absolute inset-0 opacity-[0.1] pointer-events-none select-none bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.4),transparent)]"></div>
-            
+
             <div className="relative z-10 max-w-3xl flex flex-col items-center reveal reveal-fade-up">
               <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">
                 Ready to accelerate your team sprint velocity?
@@ -1472,7 +1469,7 @@ function Home() {
         {/* Footer Redesign */}
         <footer className="relative w-full border-t border-indigo-500/10 py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 text-left mb-12">
-            
+
             {/* Brand column */}
             <div className="md:col-span-2 flex flex-col gap-4">
               <div className="flex items-center gap-3">
@@ -1484,7 +1481,7 @@ function Home() {
               <p className={`text-sm leading-relaxed max-w-sm ${theme === 'dark' ? 'text-slate-500' : 'text-slate-600'}`}>
                 Transform operational backlog into structured sprint momentum. Deliver Next.js client tools, secure authentication, timesheet managers, and AI assistants.
               </p>
-              
+
               <div className="flex gap-3 mt-2">
                 <a href="https://github.com/tejassgg" target="_blank" className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors border ${theme === 'dark' ? 'bg-slate-900 border-white/10 hover:bg-slate-800 text-slate-400' : 'bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-600'}`}>
                   <FaGithub size={16} />
@@ -1542,11 +1539,10 @@ function Home() {
 
         {/* Cookie Consent Banner */}
         {showCookieBanner && (
-          <div className={`fixed bottom-6 left-6 right-6 md:left-auto md:right-8 md:max-w-md z-50 p-5 rounded-2xl border shadow-2xl transition-all duration-500 ease-in-out transform translate-y-0 scale-100 flex flex-col gap-4 animate-fade-in-up ${
-            theme === 'dark'
+          <div className={`fixed bottom-6 left-6 right-6 md:left-auto md:right-8 md:max-w-md z-50 p-5 rounded-2xl border shadow-2xl transition-all duration-500 ease-in-out transform translate-y-0 scale-100 flex flex-col gap-4 animate-fade-in-up ${theme === 'dark'
               ? 'bg-slate-900 border-slate-800 text-slate-100 shadow-slate-950/80'
               : 'bg-white border-slate-200 text-slate-800 shadow-slate-200/50'
-          }`}>
+            }`}>
             <div className="flex items-start gap-3.5">
               <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center bg-indigo-600 text-white shadow-md shadow-indigo-600/10">
                 <FaCookieBite className="w-5 h-5" />
@@ -1558,15 +1554,14 @@ function Home() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2.5 ml-auto">
               <button
                 onClick={() => setShowCookiePolicy(true)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                  theme === 'dark'
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${theme === 'dark'
                     ? 'border-slate-800 text-slate-300 hover:bg-slate-800'
                     : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 Preferences
               </button>

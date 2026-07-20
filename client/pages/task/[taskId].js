@@ -768,7 +768,7 @@ const TaskDetailsPage = () => {
                                 <div className="w-5 h-5 rounded-full border border-green-200 bg-green-50 text-green-600 flex items-center justify-center flex-shrink-0 dark:bg-green-950/20 dark:border-green-800 dark:text-green-400">
                                     <FaClock size={10} />
                                 </div>
-                                <span className="text-[11px] whitespace-nowrap">{getMobileDueDateText(task.DueDate)}</span>
+                                <span className="text-xs whitespace-nowrap">{getMobileDueDateText(task.DueDate)}</span>
                             </div>
                         </div>
                     </div>
@@ -886,7 +886,7 @@ const TaskDetailsPage = () => {
                                                             </button>
                                                             <button
                                                                 onClick={() => setEditingCommentId(null)}
-                                                                className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-semibold hover:bg-gray-200 flex items-center gap-1 transition-colors dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                                                                className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-semibold hover:bg-gray-200 flex items-center gap-1 transition-colors dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-dark-hover"
                                                             >
                                                                 <FaTimes size={8} /> Cancel
                                                             </button>
@@ -1111,7 +1111,7 @@ const TaskDetailsPage = () => {
                                         <button
                                             className={getThemeClasses(
                                                 "px-2.5 py-1 text-xs rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50 transition-colors",
-                                                "dark:bg-gray-800 dark:hover:bg-gray-700"
+                                                "dark:bg-gray-800 dark:hover:bg-dark-hover"
                                             )}
                                             disabled={activityPage === 1}
                                             onClick={() => setActivityPage(p => Math.max(1, p - 1))}
@@ -1127,7 +1127,7 @@ const TaskDetailsPage = () => {
                                         <button
                                             className={getThemeClasses(
                                                 "px-2.5 py-1 text-xs rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50 transition-colors",
-                                                "dark:bg-gray-800 dark:hover:bg-gray-700"
+                                                "dark:bg-gray-800 dark:hover:bg-dark-hover"
                                             )}
                                             disabled={activityPage === activityTotalPages}
                                             onClick={() => setActivityPage(p => Math.min(activityTotalPages, p + 1))}
@@ -1150,7 +1150,7 @@ const TaskDetailsPage = () => {
                     {/* Sticky Comment Box Bar */}
                     <div className={getThemeClasses(
                         "fixed bottom-0 left-0 right-0 z-45 bg-white border-t border-gray-200 px-4 py-3 shadow-xl flex flex-col gap-2 pb-safe",
-                        "dark:bg-[#18181b] dark:border-gray-800"
+                        "dark:bg-dark-bg dark:border-gray-800"
                     )}>
                         <div className="flex items-center gap-3">
                             {/* Input container */}
@@ -1362,7 +1362,7 @@ const TaskDetailsPage = () => {
                                                                             disabled={updatingStatus || isCurrentStatus}
                                                                             className={getThemeClasses(
                                                                                 `w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 ${isCurrentStatus ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`,
-                                                                                `dark:hover:bg-gray-700 ${isCurrentStatus ? 'dark:bg-blue-900/30 dark:text-blue-300' : 'dark:text-gray-300'}`
+                                                                                `dark:hover:bg-dark-hover ${isCurrentStatus ? 'dark:bg-blue-900/30 dark:text-blue-300' : 'dark:text-gray-300'}`
                                                                             )}
                                                                         >
                                                                             {currentStatusInfo.statusIcon}
@@ -1427,7 +1427,7 @@ const TaskDetailsPage = () => {
                                                                         disabled={updatingStatus || isCurrentStatus}
                                                                         className={getThemeClasses(
                                                                             `w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 ${isCurrentStatus ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`,
-                                                                            `dark:hover:bg-gray-700 ${isCurrentStatus ? 'dark:bg-blue-900/30 dark:text-blue-300' : 'dark:text-gray-300'}`
+                                                                            `dark:hover:bg-dark-hover ${isCurrentStatus ? 'dark:bg-blue-900/30 dark:text-blue-300' : 'dark:text-gray-300'}`
                                                                         )}
                                                                     >
                                                                         {currentStatusInfo.statusIcon}
@@ -1526,7 +1526,7 @@ const TaskDetailsPage = () => {
                                                                     disabled={updatingStatus || isCurrentStatus}
                                                                     className={getThemeClasses(
                                                                         `w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 ${isCurrentStatus ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`,
-                                                                        `dark:hover:bg-gray-700 ${isCurrentStatus ? 'dark:bg-blue-900/30 dark:text-blue-300' : 'dark:text-gray-300'}`
+                                                                        `dark:hover:bg-dark-hover ${isCurrentStatus ? 'dark:bg-blue-900/30 dark:text-blue-300' : 'dark:text-gray-300'}`
                                                                     )}
                                                                 >
                                                                     {currentStatusInfo.statusIcon}
@@ -1605,7 +1605,7 @@ const TaskDetailsPage = () => {
                                                     disabled={assigningMember}
                                                     className={getThemeClasses(
                                                         "w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2",
-                                                        "dark:hover:bg-gray-700 dark:text-gray-300"
+                                                        "dark:hover:bg-dark-hover dark:text-gray-300"
                                                     )}
                                                 >
                                                     <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-medium">
@@ -1621,7 +1621,7 @@ const TaskDetailsPage = () => {
                                                         disabled={assigningMember}
                                                         className={getThemeClasses(
                                                             `w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 ${task.AssignedTo === member._id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`,
-                                                            `dark:hover:bg-gray-700 ${task.AssignedTo === member._id ? 'dark:bg-blue-900/30 dark:text-blue-300' : 'dark:text-gray-300'}`
+                                                            `dark:hover:bg-dark-hover ${task.AssignedTo === member._id ? 'dark:bg-blue-900/30 dark:text-blue-300' : 'dark:text-gray-300'}`
                                                         )}
                                                     >
                                                         <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${task.AssignedTo === member._id
@@ -1690,7 +1690,7 @@ const TaskDetailsPage = () => {
                                 {/* Created Date */}
                                 <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
                                     <span className={getThemeClasses("text-xs font-semibold text-gray-500 flex items-center gap-2", "dark:text-gray-400")}>
-                                        <FaCalendarAlt className="text-blue-550 text-[11px]" /> Created
+                                        <FaCalendarAlt className="text-blue-550 text-xs" /> Created
                                     </span>
                                     <span className={getThemeClasses("text-xs font-semibold text-gray-900", "dark:text-gray-100")}>
                                         {task.CreatedDate ? new Date(task.CreatedDate).toLocaleDateString('en-US', {
@@ -1704,7 +1704,7 @@ const TaskDetailsPage = () => {
                                 {/* Assigned Date */}
                                 <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
                                     <span className={getThemeClasses("text-xs font-semibold text-gray-500 flex items-center gap-2", "dark:text-gray-400")}>
-                                        <FaClock className="text-purple-550 text-[11px]" /> Assigned
+                                        <FaClock className="text-purple-550 text-xs" /> Assigned
                                     </span>
                                     <span className={getThemeClasses("text-xs font-semibold text-gray-900", "dark:text-gray-100")}>
                                         {task.AssignedDate ? new Date(task.AssignedDate).toLocaleDateString('en-US', {
@@ -1718,7 +1718,7 @@ const TaskDetailsPage = () => {
                                 {/* Due Date */}
                                 <div className="flex items-center justify-between">
                                     <span className={getThemeClasses("text-xs font-semibold text-gray-500 flex items-center gap-2", "dark:text-gray-400")}>
-                                        <FaClock className="text-orange-555 text-[11px]" /> Due Date
+                                        <FaClock className="text-orange-555 text-xs" /> Due Date
                                     </span>
                                     <span className={getThemeClasses("text-xs font-semibold text-gray-900", "dark:text-gray-100")}>
                                         {task.DueDate ? new Date(task.DueDate).toLocaleDateString('en-US', {
@@ -2048,7 +2048,7 @@ const TaskDetailsPage = () => {
                                 onClick={() => setShowDeleteModal(false)}
                                 className={getThemeClasses(
                                     'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                                    'dark:text-gray-400 dark:hover:bg-gray-700'
+                                    'dark:text-gray-400 dark:hover:bg-dark-hover'
                                 )}
                             >
                                 Cancel
@@ -2088,7 +2088,7 @@ const TaskDetailsPage = () => {
                                 onClick={() => setIsGitLinkModalOpen(false)}
                                 className={getThemeClasses(
                                     'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 text-sm font-semibold',
-                                    'dark:text-gray-400 dark:hover:bg-gray-700 dark:border-zinc-800'
+                                    'dark:text-gray-400 dark:hover:bg-dark-hover dark:border-zinc-800'
                                 )}
                             >
                                 Cancel
@@ -2132,7 +2132,7 @@ const TaskDetailsPage = () => {
                                     <p className={getThemeClasses("text-sm font-semibold text-gray-900 truncate", "dark:text-white")}>
                                         {task?.TicketNumber ? `#${task.TicketNumber} ` : ''}{task?.Name}
                                     </p>
-                                    <p className="text-[11px] text-gray-405 dark:text-gray-500 mt-0.5">
+                                    <p className="text-xs text-gray-405 dark:text-gray-500 mt-0.5">
                                         Updated {new Date(task?.ModifiedDate || task?.CreatedDate || new Date()).toLocaleDateString()} • {statusMap[task?.Status] || 'To Do'}
                                     </p>
                                 </div>
@@ -2299,7 +2299,7 @@ const TaskDetailsPage = () => {
                                                         )}>
                                                             {c.title}
                                                         </p>
-                                                        <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                                                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
                                                             branch: {c.branch} • by {c.user}
                                                         </p>
                                                     </div>
@@ -2369,7 +2369,7 @@ const TaskDetailsPage = () => {
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                                                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
                                                             Last commit: {c.commitSha?.substring(0, 7)}
                                                         </p>
                                                     </div>
@@ -2448,7 +2448,7 @@ const TaskDetailsPage = () => {
                                                             ? `${c.message.substring(0, 60)}...`
                                                             : c.message}
                                                     </p>
-                                                    <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                                                    <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
                                                         by {committerName}
                                                     </p>
                                                 </div>

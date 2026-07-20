@@ -16,7 +16,7 @@ const Sidebar = ({ collapsed, setCollapsed, sidebarTeam, setSidebarTeam }) => {
             {!collapsed && (
               <button
                 onClick={() => router.push('/teams?addTeam=1')}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover text-gray-600 dark:text-gray-300"
                 title="Add Team"
                 aria-label="Add Team"
               >
@@ -25,7 +25,7 @@ const Sidebar = ({ collapsed, setCollapsed, sidebarTeam, setSidebarTeam }) => {
             )}
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover text-gray-600 dark:text-gray-300"
             >
               {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
             </button>
@@ -35,9 +35,8 @@ const Sidebar = ({ collapsed, setCollapsed, sidebarTeam, setSidebarTeam }) => {
           {teams.map(team => (
             <div
               key={team._id}
-              className={`flex items-center p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                sidebarTeam?._id === team._id ? 'bg-gray-100 dark:bg-gray-700' : ''
-              }`}
+              className={`flex items-center p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-dark-hover ${sidebarTeam?._id === team._id ? 'bg-gray-100 dark:bg-gray-700' : ''
+                }`}
               onClick={() => setSidebarTeam(team)}
             >
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: team.TeamColor }}>

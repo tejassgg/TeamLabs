@@ -49,7 +49,7 @@ const DeleteConversationModal = ({
             onClick={() => setShowDeleteDialog(false)}
             className={getThemeClasses(
               'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-colors',
-              'dark:text-gray-400 dark:hover:bg-gray-700 dark:border-gray-600'
+              'dark:text-gray-400 dark:hover:bg-dark-hover dark:border-gray-600'
             )}
             disabled={isDeleting}
           >
