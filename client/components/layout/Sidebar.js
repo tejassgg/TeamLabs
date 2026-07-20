@@ -1,8 +1,10 @@
 import { useGlobal } from '../../context/GlobalContext';
-import { FaChevronRight, FaChevronLeft } from 'react-icons/fa';
+import { FaChevronRight, FaChevronLeft, FaPlus } from 'react-icons/fa';
+import { useRouter } from 'next/router';
 
 const Sidebar = ({ collapsed, setCollapsed, sidebarTeam, setSidebarTeam }) => {
   const { teams } = useGlobal();
+  const router = useRouter();
 
   return (
     <div className={`h-screen ${theme === 'dark' ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'} border-r shadow-sm ${collapsed ? 'w-16' : 'w-64'} transition-all duration-300`}>
@@ -10,12 +12,24 @@ const Sidebar = ({ collapsed, setCollapsed, sidebarTeam, setSidebarTeam }) => {
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className={`text-lg font-semibold text-gray-800 dark:text-white ${collapsed ? 'hidden' : ''}`}>Teams</h2>
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
-          </button>
+          <div className="flex items-center gap-1">
+            {!collapsed && (
+              <button
+                onClick={() => router.push('/teams?addTeam=1')}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+                title="Add Team"
+                aria-label="Add Team"
+              >
+                <FaPlus size={12} />
+              </button>
+            )}
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+            >
+              {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
+            </button>
+          </div>
         </div>
         <div className="space-y-2">
           {teams.map(team => (

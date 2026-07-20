@@ -1052,9 +1052,18 @@ export const userService = {
       throw error.response?.data || { message: 'Failed to fetch user usage limits' };
     }
   },
-  inviteUser: async (email) => {
+  generateInviteToken: async (role = 'User', linkAccess = 'anyone') => {
     try {
-      const response = await api.post('/users/invite', { email });
+      const response = await api.post('/users/generate-invite-token', { role, linkAccess });
+      return response.data;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to generate invite token' };
+    }
+  },
+  inviteUser: async (email, inviteToken = null, role = 'User', linkAccess = 'invited') => {
+    try {
+      const response = await api.post('/users/invite', { email, inviteToken, role, linkAccess });
       return response.data;
     } catch (error) {
       if (env == 'DEV') console.log(error);

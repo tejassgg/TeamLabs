@@ -14,6 +14,7 @@ import { connectSocket, subscribe } from '../services/socket';
 import OnboardingGuide from '../components/dashboard/OnboardingGuide';
 import AdminWelcomeMessage from '../components/dashboard/AdminWelcomeMessage';
 import FirstTimeSetup from '../components/shared/FirstTimeSetup';
+import InviteModal from '../components/shared/InviteModal';
 import { FcInvite, FcAcceptDatabase, FcExpired } from "react-icons/fc";
 import useSWR from 'swr';
 import { getPriorityBadge } from '../components/task/TaskTypeBadge';
@@ -31,7 +32,7 @@ DashboardCharts = require('../components/dashboard/DashboardCharts').default
 
 const Dashboard = () => {
   const { theme } = useTheme();
-  const { projectStatuses, getProjectStatus, teams, projects, userDetails, formatDateWithTime, loading, tasksDetails, setTasksDetails } = useGlobal();
+  const { projectStatuses, getProjectStatus, teams, projects, userDetails, formatDateWithTime, loading, tasksDetails, setTasksDetails, organization } = useGlobal();
   const { showToast } = useToast();
   const router = useRouter();
   const [stats, setStats] = useState(null);
@@ -1299,50 +1300,23 @@ const Dashboard = () => {
         )}
 
         {/* Invite Modal */}
-        {showInviteModal && (
-          <div className={`fixed inset-0 flex items-center justify-center z-50 ${theme === 'dark' ? 'bg-black/70' : 'bg-black/50'}`}>
-            <div className={`rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border ${theme === 'dark' ? 'bg-[#232323] border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-100'}`}>
-              <div className="flex items-center gap-3 mb-4">
-                <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : ''}`}>Invite User to Organization</h3>
-              </div>
-              <div className="mb-4">
-                <input
-                  type="email"
-                  className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-[#232323] border-[#424242] text-[#F3F6FA]' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
-                  placeholder="Enter email address"
-                  value={inviteEmail}
-                  onChange={e => setInviteEmail(e.target.value)}
-                  disabled={isInviting}
-                />
-              </div>
-              <button
-                className={`w-full py-2 rounded-lg font-medium transition-all duration-200 mb-2 flex items-center justify-center gap-2 ${theme === 'dark' ? 'bg-blue-900 text-blue-200 hover:bg-blue-800' : 'bg-blue-500 text-white hover:bg-blue-600'} disabled:opacity-70 disabled:cursor-not-allowed`}
-                onClick={handleInvite}
-                disabled={!inviteEmail || isInviting}
-              >
-                {isInviting ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  'Send Invite'
-                )}
-              </button>
-              <div className={`text-xs text-center mb-2 ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
-                Invites automatically expire in 1 week.
-              </div>
-              {inviteStatus && <div className="text-sm mt-2 mb-2 text-green-500">{inviteStatus}</div>}
-              <button
-                className={`mt-4 w-full py-2 rounded-lg font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-gray-700 text-gray-200 hover:bg-gray-800' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                onClick={() => { setShowInviteModal(false); setInviteStatus(''); setInviteEmail(''); }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
+        <InviteModal
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          organizationName={organization?.Name}
+          members={(stats?.members || stats?.users || []).map(m => ({
+            id: m.id || m._id,
+            name: m.name || (m.firstName ? `${m.firstName} ${m.lastName || ''}`.trim() : m.username || m.email),
+            email: m.email,
+            role: (m.role === 'Admin' || m.role === 1) ? 'Owner' : (m.role || 'Can View'),
+            avatar: m.avatar || m.profileImage || null
+          }))}
+          onInviteSent={() => {
+            if (userDetails?.organizationID) {
+              api.get(`/dashboard/${userDetails.organizationID}`).then(res => setStats(res.data)).catch(() => {});
+            }
+          }}
+        />
       </div>
     </>
   );

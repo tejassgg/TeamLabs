@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const TeamDetails = require('../models/TeamDetails');
 const { protect } = require('../middleware/auth');
-const { inviteUser, getInvites, resendInvite, deleteInvite, getUserOverview } = require('../controllers/userController');
+const { inviteUser, getInvites, resendInvite, deleteInvite, getUserOverview, generateInviteToken } = require('../controllers/userController');
 const { emitToOrg } = require('../socket');
 
 // GET /api/users/:userId/usage-limits - Get user's usage limits and premium status
@@ -120,6 +120,7 @@ router.patch('/:userId/remove-from-org', protect, async (req, res) => {
 
 // GET /api/users/overview - Get all user-related overview data at once
 router.get('/overview', protect, getUserOverview);
+router.post('/generate-invite-token', protect, generateInviteToken);
 router.post('/invite', protect, inviteUser);
 router.get('/invites', protect, getInvites);
 router.post('/invites/:inviteId/resend', protect, resendInvite);

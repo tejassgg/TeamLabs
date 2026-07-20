@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
 
 const inviteSchema = new mongoose.Schema({
-  email: { type: String, required: true, lowercase: true, trim: true },
+  email: { type: String, lowercase: true, trim: true },
   organizationID: { type: String, required: true },
   inviter: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   status: { type: String, enum: ['Pending', 'Accepted', 'Expired'], default: 'Pending' },
   token: { type: String, required: true },
+  role: { type: String, default: 'User' },
+  accessType: { type: String, enum: ['anyone', 'invited'], default: 'anyone' },
   invitedAt: { type: Date, default: Date.now },
   acceptedAt: { type: Date },
   expiredAt: { type: Date, default: function() { 
@@ -28,4 +30,4 @@ inviteSchema.pre('save', function() {
   }
 });
 
-module.exports = mongoose.model('Invite', inviteSchema); 
+module.exports = mongoose.model('Invite', inviteSchema);

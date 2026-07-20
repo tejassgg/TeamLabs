@@ -292,13 +292,67 @@ exports.deleteInvite = async (req, res) => {
   }
 };
 
+// Pre-generate invite token
+exports.generateInviteToken = async (req, res) => {
+  try {
+    const organizationID = req.user.organizationID;
+    const { role = 'User', linkAccess = 'anyone' } = req.body;
+    if (!organizationID) {
+      return res.status(400).json({ success: false, message: 'User does not belong to an organization' });
+    }
+    const randomHex = crypto.randomBytes(16).toString('hex');
+    const timestamp = Date.now();
+    const secret = process.env.JWT_SECRET || 'teamlabs_secret_key';
+    const signature = crypto.createHmac('sha256', secret)
+      .update(`${organizationID}:${randomHex}:${timestamp}`)
+      .digest('hex').substring(0, 16);
+
+    const inviteToken = `inv_${randomHex}_${timestamp}_${signature}`;
+
+    // Save/upsert an Invite record for this pre-generated link with specified role & accessType
+    const invite = await Invite.create({
+      organizationID,
+      inviter: req.user._id,
+      token: inviteToken,
+      role: role || 'User',
+      accessType: linkAccess || 'anyone',
+      status: 'Pending'
+    });
+
+    res.status(200).json({ success: true, token: inviteToken, invite });
+  } catch (err) {
+    console.error('Error generating invite token:', err);
+    res.status(500).json({ success: false, message: 'Failed to generate invite token' });
+  }
+};
+
 // Invite user to organization
 exports.inviteUser = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, inviteToken, role = 'User', linkAccess = 'invited' } = req.body;
     const inviter = req.user._id;
     const organizationID = req.user.organizationID;
     if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    // Verify pre-generated token if supplied
+    let token = inviteToken;
+    if (token) {
+      const parts = token.split('_');
+      if (parts.length < 5 || parts[0] !== 'inv' || parts[1] !== String(organizationID)) {
+        return res.status(400).json({ success: false, message: 'Invalid or tampered invite token' });
+      }
+      const [prefix, orgId, randomHex, timestampStr, providedSig] = parts;
+      const secret = process.env.JWT_SECRET || 'teamlabs_secret_key';
+      const expectedSig = crypto.createHmac('sha256', secret)
+        .update(`${orgId}:${randomHex}:${timestampStr}`)
+        .digest('hex').substring(0, 16);
+
+      if (providedSig !== expectedSig) {
+        return res.status(400).json({ success: false, message: 'Token verification failed: Invalid signature' });
+      }
+    } else {
+      token = crypto.randomBytes(32).toString('hex');
+    }
 
     // Check if user already exists in the system
     const existingUser = await User.findOne({ email: email.toLowerCase() });
@@ -334,25 +388,33 @@ exports.inviteUser = async (req, res) => {
       status: 'Pending',
       expiredAt: { $gt: new Date() }
     });
-    if (existingInvite) return res.status(409).json({ message: 'User already invited', invite: existingInvite });
+    if (existingInvite) {
+      existingInvite.role = role || existingInvite.role;
+      existingInvite.accessType = linkAccess || 'invited';
+      existingInvite.token = token;
+      await existingInvite.save();
+      return res.status(200).json({ success: true, message: 'User invite updated', invite: existingInvite, token });
+    }
 
-    // Generate token
-    const token = crypto.randomBytes(32).toString('hex');
     const invite = await Invite.create({
       email: email.toLowerCase(),
       organizationID,
       inviter,
-      token
+      token,
+      role: role || 'User',
+      accessType: linkAccess || 'invited'
     });
 
     // Send invite email
-    const inviteLink = `${process.env.FRONTEND_URL}/auth?invite=${token}`;
+    const inviteLink = `${process.env.FRONTEND_URL}/auth?inviteToken=${token}`;
     const organization = await Organization.findOne({ OrganizationID: organizationID });
-    await emailService.sendInviteEmail(email, inviteLink, req.user.firstName || 'A TeamLabs Admin', organization.Name);
+    await emailService.sendInviteEmail(email, inviteLink, req.user.firstName || 'A TeamLabs Admin', organization ? organization.Name : 'their organization');
 
     const safeInvite = {
       _id: invite._id,
       email: invite.email,
+      role: invite.role,
+      accessType: invite.accessType,
       status: invite.status,
       expiredAt: invite.expiredAt,
       invitedAt: invite.invitedAt,
@@ -361,7 +423,7 @@ exports.inviteUser = async (req, res) => {
         lastName: req.user.lastName
       }
     };
-    res.status(201).json({ success: true, message: 'Invite sent', invite: safeInvite });
+    res.status(201).json({ success: true, message: 'Invite sent', invite: safeInvite, token });
   } catch (err) {
     console.error('Invite error:', err);
     res.status(500).json({ success: false, message: 'Failed to send invite' });

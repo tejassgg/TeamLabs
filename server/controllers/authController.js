@@ -87,31 +87,56 @@ const registerUser = async (req, res) => {
 
     let organizationID = null;
     let invite = null;
+    let assignedRole = role || 'User';
 
     // Handle invite token if provided
     if (inviteToken) {
       invite = await Invite.findOne({
         token: inviteToken,
-        status: 'Pending',
-        email: email
+        status: 'Pending'
       });
 
-      if (!invite) {
+      if (invite) {
+        // Check accessType restriction
+        if (invite.accessType === 'invited' && invite.email && invite.email.toLowerCase() !== email.toLowerCase()) {
+          return res.status(400).json({ message: `This invite link is restricted to ${invite.email}` });
+        }
+
+        organizationID = invite.organizationID;
+        assignedRole = invite.role || assignedRole;
+
+        if (invite.accessType === 'invited') {
+          invite.status = 'Accepted';
+          invite.acceptedAt = new Date();
+          await invite.save();
+        }
+      } else if (inviteToken.startsWith('inv_')) {
+        // Pre-generated HMAC signature fallback verification
+        const parts = inviteToken.split('_');
+        if (parts.length >= 5) {
+          const [prefix, orgId, randomHex, timestampStr, providedSig] = parts;
+          const crypto = require('crypto');
+          const secret = process.env.JWT_SECRET || 'teamlabs_secret_key';
+          const expectedSig = crypto.createHmac('sha256', secret)
+            .update(`${orgId}:${randomHex}:${timestampStr}`)
+            .digest('hex').substring(0, 16);
+
+          if (providedSig === expectedSig) {
+            organizationID = orgId;
+          } else {
+            return res.status(400).json({ message: 'Invalid or expired invite token' });
+          }
+        } else {
+          return res.status(400).json({ message: 'Invalid or expired invite token' });
+        }
+      } else {
         return res.status(400).json({ message: 'Invalid or expired invite token' });
       }
-
-      // Set organization from invite
-      organizationID = invite.organizationID;
-
-      // Mark invite as accepted
-      invite.status = 'Accepted';
-      invite.acceptedAt = new Date();
-      await invite.save();
     }
 
-    // Validate and set role
-    let safeRole = 'User';
-    if (role) {
+    // Validate role
+    let safeRole = assignedRole;
+    if (role && !invite) {
       try {
         const CommonType = require('../models/CommonType');
         const roleExists = await CommonType.findOne({ MasterType: 'UserRole', Value: role });
@@ -123,7 +148,6 @@ const registerUser = async (req, res) => {
         }
         safeRole = role;
       } catch (e) {
-        // If roles table lookup fails, default to 'User'
         safeRole = 'User';
       }
     }
@@ -309,26 +333,49 @@ const googleLogin = async (req, res) => {
 
       let organizationID = null;
       let invite = null;
+      let assignedRole = 'User';
 
       // Handle invite token if provided
       if (inviteToken) {
         invite = await Invite.findOne({
           token: inviteToken,
-          status: 'Pending',
-          email: email
+          status: 'Pending'
         });
 
-        if (!invite) {
+        if (invite) {
+          if (invite.accessType === 'invited' && invite.email && invite.email.toLowerCase() !== email.toLowerCase()) {
+            return res.status(400).json({ message: `This invite link is restricted to ${invite.email}` });
+          }
+
+          organizationID = invite.organizationID;
+          assignedRole = invite.role || assignedRole;
+
+          if (invite.accessType === 'invited') {
+            invite.status = 'Accepted';
+            invite.acceptedAt = new Date();
+            await invite.save();
+          }
+        } else if (inviteToken.startsWith('inv_')) {
+          const parts = inviteToken.split('_');
+          if (parts.length >= 5) {
+            const [prefix, orgId, randomHex, timestampStr, providedSig] = parts;
+            const crypto = require('crypto');
+            const secret = process.env.JWT_SECRET || 'teamlabs_secret_key';
+            const expectedSig = crypto.createHmac('sha256', secret)
+              .update(`${orgId}:${randomHex}:${timestampStr}`)
+              .digest('hex').substring(0, 16);
+
+            if (providedSig === expectedSig) {
+              organizationID = orgId;
+            } else {
+              return res.status(400).json({ message: 'Invalid or expired invite token' });
+            }
+          } else {
+            return res.status(400).json({ message: 'Invalid or expired invite token' });
+          }
+        } else {
           return res.status(400).json({ message: 'Invalid or expired invite token' });
         }
-
-        // Set organization from invite
-        organizationID = invite.organizationID;
-
-        // Mark invite as accepted
-        invite.status = 'Accepted';
-        invite.acceptedAt = new Date();
-        await invite.save();
       }
 
       user = await User.create({
@@ -339,7 +386,6 @@ const googleLogin = async (req, res) => {
         googleId: sub,
         lastLogin: new Date(),
         emailVerified: true,
-        // Set these fields as null to indicate they need to be filled
         phone: null,
         middleName: null,
         address: null,
@@ -348,7 +394,7 @@ const googleLogin = async (req, res) => {
         city: null,
         state: null,
         country: null,
-        role: 'User',
+        role: assignedRole,
         organizationID: organizationID,
         // Set default security settings
         twoFactorEnabled: false,

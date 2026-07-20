@@ -1,7 +1,7 @@
 import Navbar from './Navbar.js';
 import { useTheme } from '../../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
-import { FaCog, FaChevronLeft, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaRegClipboard, FaProjectDiagram, FaCalendarAlt, FaFlask } from 'react-icons/fa';
+import { FaCog, FaChevronLeft, FaBookOpen, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaRegClipboard, FaProjectDiagram, FaCalendarAlt, FaFlask, FaPlus } from 'react-icons/fa';
 import { FaRegMessage } from "react-icons/fa6";
 import { useRouter } from 'next/router';
 import { projectService, taskService, authService } from '../../services/api';
@@ -252,21 +252,36 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           {/* Teams Section */}
           <div>
             <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
-              <SidebarButton
-                icon={<FaUsers className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
-                label="Teams"
-                active={router.pathname === '/teams'}
-                onClick={() => handleNavigation('/teams')}
-                theme={theme}
-              />
+              <div className="flex-1 min-w-0">
+                <SidebarButton
+                  icon={<FaUsers className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+                  label="Teams"
+                  active={router.pathname === '/teams'}
+                  onClick={() => handleNavigation('/teams')}
+                  theme={theme}
+                />
+              </div>
               {(!isMobile && collapsed) ? null : (
-                <button
-                  className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
-                  aria-label={`${isTeamsOpen ? 'Collapse' : 'Expand'} Teams`}
-                  onClick={() => setIsTeamsOpen((prev) => !prev)}
-                >
-                  {isTeamsOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
-                </button>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button
+                    className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                    aria-label="Add new team"
+                    title="Add Team"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNavigation('/teams?addTeam=1');
+                    }}
+                  >
+                    <FaPlus size={12} />
+                  </button>
+                  <button
+                    className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                    aria-label={`${isTeamsOpen ? 'Collapse' : 'Expand'} Teams`}
+                    onClick={() => setIsTeamsOpen((prev) => !prev)}
+                  >
+                    {isTeamsOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+                  </button>
+                </div>
               )}
             </div>
             {isTeamsOpen && (!isMobile && collapsed ? false : true) && (
@@ -300,21 +315,36 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           {/* Projects Section */}
           <div>
             <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
-              <SidebarButton
-                icon={<FaProjectDiagram className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
-                label="Projects"
-                active={router.pathname === '/projects'}
-                onClick={() => handleNavigation('/projects')}
-                theme={theme}
-              />
+              <div className="flex-1 min-w-0">
+                <SidebarButton
+                  icon={<FaProjectDiagram className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+                  label="Projects"
+                  active={router.pathname === '/projects'}
+                  onClick={() => handleNavigation('/projects')}
+                  theme={theme}
+                />
+              </div>
               {(!isMobile && collapsed) ? null : (
-                <button
-                  className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
-                  aria-label={`${isProjectsOpen ? 'Collapse' : 'Expand'} Projects`}
-                  onClick={() => setIsProjectsOpen((prev) => !prev)}
-                >
-                  {isProjectsOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
-                </button>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button
+                    className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                    aria-label="Add new project"
+                    title="Add Project"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNavigation('/projects?addProject=1');
+                    }}
+                  >
+                    <FaPlus size={12} />
+                  </button>
+                  <button
+                    className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                    aria-label={`${isProjectsOpen ? 'Collapse' : 'Expand'} Projects`}
+                    onClick={() => setIsProjectsOpen((prev) => !prev)}
+                  >
+                    {isProjectsOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+                  </button>
+                </div>
               )}
             </div>
             {isProjectsOpen && (!isMobile && collapsed ? false : true) && (
