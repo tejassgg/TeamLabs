@@ -7,7 +7,7 @@ const Sidebar = ({ collapsed, setCollapsed, sidebarTeam, setSidebarTeam }) => {
   const router = useRouter();
 
   return (
-    <div className={`h-screen ${theme === 'dark' ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'} border-r shadow-sm ${collapsed ? 'w-16' : 'w-64'} transition-all duration-300`}>
+    <div className={`h-screen ${theme === 'dark' ? 'bg-dark-bg border-gray-700' : 'bg-white border-gray-200'} border-r shadow-sm ${collapsed ? 'w-16' : 'w-64'} transition-all duration-300`}>
       {/* Teams Section */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">

@@ -1,5 +1,8 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import commonTypes from '../data/commonTypes.json';
+
+export const USE_LOCAL_JSON = process.env.NEXT_PUBLIC_USE_LOCAL_JSON === 'true';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const env = process.env.ENVIRONMENT;
@@ -537,6 +540,7 @@ export const teamService = {
 
 export const commonTypeService = {
   getTeamTypes: async () => {
+    if (USE_LOCAL_JSON) return commonTypes.filter(t => t.MasterType === 'TeamType');
     try {
       const response = await api.get('/common-types/team-types');
       return response.data;
@@ -573,6 +577,7 @@ export const commonTypeService = {
     }
   },
   getTaskTypes: async () => {
+    if (USE_LOCAL_JSON) return commonTypes.filter(t => t.MasterType === 'TaskType');
     try {
       const response = await api.get('/common-types/task-types');
       return response.data;
@@ -581,13 +586,34 @@ export const commonTypeService = {
       throw error.response?.data || { message: 'Failed to fetch task types' };
     }
   },
+  getPriorityTypes: async () => {
+    if (USE_LOCAL_JSON) return commonTypes.filter(t => t.MasterType === 'PriorityType');
+    try {
+      const response = await api.get('/common-types/priority-types');
+      return response.data;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to fetch priority types' };
+    }
+  },
   getProjectStatuses: async () => {
+    if (USE_LOCAL_JSON) return commonTypes.filter(t => t.MasterType === 'ProjectStatus');
     try {
       const response = await api.get('/common-types/project-statuses');
       return response.data;
     } catch (error) {
       if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to fetch project statuses' };
+    }
+  },
+  getTaskStatuses: async () => {
+    if (USE_LOCAL_JSON) return commonTypes.filter(t => t.MasterType === 'TaskStatus');
+    try {
+      const response = await api.get('/common-types/task-statuses');
+      return response.data;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to fetch task statuses' };
     }
   },
   getDropdownData: async () => {
@@ -1095,6 +1121,15 @@ export const userService = {
     } catch (error) {
       if (env == 'DEV') console.log(error);
       throw error.response?.data || { message: 'Failed to delete invite' };
+    }
+  },
+  updateUserRole: async (userId, role) => {
+    try {
+      const response = await api.patch(`/users/${userId}/role`, { role });
+      return response.data;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to update user role' };
     }
   }
 };

@@ -424,3 +424,48 @@ export const releaseSummaryEmailHtml = `
   </body>
   </html>
 `;
+
+export const roleChangeEmailHtml = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Role Has Been Updated</title>
+  </head>
+  <body style="margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
+      <tr>
+        <td align="center" style="padding: 40px 20px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 480px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+            <tr>
+              <td style="padding: 40px 32px;">
+                <!-- Header -->
+                <div style="text-align: center; margin-bottom: 32px;">
+                  <div style="font-size: 24px; font-weight: 700; color: #6B39E7; letter-spacing: -0.5px; margin-bottom: 8px;">TeamLabs</div>
+                  <div style="width: 40px; height: 2px; background: #6B39E7; margin: 0 auto;"></div>
+                </div>
+                
+                <!-- Content -->
+                <h1 style="color: #1F1F1F; font-size: 20px; font-weight: 600; margin: 0 0 16px 0; text-align: center;">Role Updated</h1>
+                <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 0 0 16px 0; text-align: center;">Hello John Doe,</p>
+                <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 32px 0; text-align: center;">The Organization Administrator has changed your role in <strong style="color: #6B39E7;">Acme Corp</strong> to <strong style="color: #1F1F1F;">Project Manager</strong>.</p>
+                
+                <!-- Info box -->
+                <div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 32px;">
+                  <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0; text-align: center;">This change is active immediately. You may need to refresh your page or log in again to see your updated permissions.</p>
+                </div>
+                
+                <!-- Footer -->
+                <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                  <p style="color: #9ca3af; font-size: 11px; margin: 0;">&copy; ${currentYear} TeamLabs. All rights reserved.</p>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+  </html>
+`;

@@ -98,7 +98,7 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate, hasMore = fa
                   disabled={loadingMore}
                   className={getThemeClasses(
                     "px-2 py-1 text-xs font-medium border border-gray-200 hover:border-blue-500 bg-white hover:bg-gray-50 text-gray-600 hover:text-blue-600 rounded-lg shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
-                    "dark:bg-[#18181b] dark:border-gray-700 dark:hover:border-blue-400 dark:hover:bg-gray-800 dark:text-gray-300 dark:hover:text-blue-400"
+                    "dark:bg-dark-bg dark:border-gray-700 dark:hover:border-blue-400 dark:hover:bg-gray-800 dark:text-gray-300 dark:hover:text-blue-400"
                   )}
                 >
                   {loadingMore && <FaSpinner className="animate-spin text-blue-500" />}
@@ -161,7 +161,7 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate, hasMore = fa
                       disabled={loadingMore}
                       className={getThemeClasses(
                         "px-2 py-1 text-xs font-medium border border-gray-200 hover:border-blue-500 bg-white hover:bg-gray-50 text-gray-600 hover:text-blue-600 rounded-lg shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
-                        "dark:bg-[#18181b] dark:border-gray-700 dark:hover:border-blue-400 dark:hover:bg-gray-800 dark:text-gray-300 dark:hover:text-blue-400"
+                        "dark:bg-dark-bg dark:border-gray-700 dark:hover:border-blue-400 dark:hover:bg-gray-800 dark:text-gray-300 dark:hover:text-blue-400"
                       )}
                     >
                       {loadingMore && <FaSpinner className="animate-spin text-blue-500" />}
@@ -453,7 +453,7 @@ function MobileActivityRow({ act }) {
   }
 
   return (
-    <div className={"p-3 rounded-xl border flex items-start gap-3 " + getThemeClasses("bg-white border-gray-200", "bg-[#18181b] border-zinc-800/80")}>
+    <div className={"p-3 rounded-xl border flex items-start gap-3 " + getThemeClasses("bg-white border-gray-200", "bg-dark-bg border-zinc-800/80")}>
       <div className="flex-shrink-0">
         {act.user?.profileImage ? (
           <img src={act.user.profileImage} alt="avatar" className={getThemeClasses("w-10 h-10 rounded-full object-cover border border-gray-200", "w-10 h-10 rounded-full object-cover border border-gray-700")} />

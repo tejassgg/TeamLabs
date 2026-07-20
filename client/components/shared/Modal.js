@@ -19,7 +19,7 @@ const Modal = ({ isOpen, onClose, children, title, maxWidth = 'max-w-md' }) => {
 
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 bg-black/40`}>
-      <div className={`rounded-xl shadow-lg p-6 relative w-full ${maxWidth} mx-4 animate-fadeIn transition-colors duration-300 ${theme === 'dark' ? 'bg-[#18181b] text-white border border-[#232323]' : 'bg-white text-gray-900'}`}>
+      <div className={`rounded-xl shadow-lg p-6 relative w-full ${maxWidth} mx-4 animate-fadeIn transition-colors duration-300 ${theme === 'dark' ? 'bg-dark-bg text-white border border-dark-card' : 'bg-white text-gray-900'}`}>
         {/* Header with centered title and close button */}
         <div className="mb-4">
           {title ? (

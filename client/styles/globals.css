@@ -15,6 +15,14 @@
   --color-dark: #1F1F1F;
   --color-light: #93A8AC;
   --font-sans: 'Source Sans Pro', sans-serif;
+  --color-dark-bg: #18181b;
+  --color-dark-hover: #424242;
+  --color-dark-card: #232323;
+  --color-dark-border: #424242;
+  --color-darkbg: #18181b;
+  --color-darkhover: #424242;
+  --color-darkcard: #232323;
+  --color-darkborder: #424242;
 }
 
 @variant dark (&:where(.dark, .dark *));
@@ -129,7 +137,7 @@ body {
 }
 
 html.dark body {
-  @apply bg-[#18181b] text-white;
+  @apply bg-dark-bg text-white;
 }
 
 .input-field {

@@ -4,8 +4,8 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import StatusPill from '../../components/shared/StatusPill';
-import api, { authService, taskService, githubService } from '../../services/api';
-import { FaCheck, FaExternalLinkAlt, FaEdit, FaTimes, FaSpinner, FaCode, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList, FaPaperPlane, FaTrash, FaCog, FaClock, FaShare, FaFlag } from 'react-icons/fa';
+import api, { authService, taskService, githubService, commonTypeService } from '../../services/api';
+import { FaCheck, FaExternalLinkAlt, FaEdit, FaTimes, FaSpinner, FaCode, FaInfoCircle, FaProjectDiagram, FaChartBar, FaToggleOn, FaPlus, FaGithub, FaLink, FaUnlink, FaStar, FaCodeBranch, FaFile, FaAlignLeft, FaCalendarAlt, FaTag, FaFileAlt, FaRobot, FaSort, FaSortUp, FaSortDown, FaList, FaPaperPlane, FaTrash, FaCog, FaClock, FaShare, FaFlag, FaSignal } from 'react-icons/fa';
 import { FiCornerDownRight, FiShare2 } from "react-icons/fi";
 import { MdDelete } from 'react-icons/md';
 import { FaTimeline } from "react-icons/fa6";
@@ -18,6 +18,7 @@ import { useTheme } from '../../context/ThemeContext';
 import KanbanBoard from '../kanban';
 import { getProjectStatusBadge, getProjectStatusStyle } from '../../components/project/ProjectStatusBadge';
 import { getPriorityBadge, getTaskStatusBadge, getTaskStatusStyle } from '../../components/task/TaskTypeBadge';
+import ProjectPriorityBadge from '../../components/shared/ProjectPriorityBadge';
 import ProjectDetailsSkeleton from '../../components/skeletons/ProjectDetailsSkeleton';
 import ProjectFilesTab from '../../components/project/ProjectFilesTab';
 import ProjectActivity from '../../components/project/ProjectActivity';
@@ -842,18 +843,46 @@ const ProjectDetailsPage = () => {
     }
   }, [project, calculateDeadlineTextComponent]);
 
+  const [projectPriorityOptions, setProjectPriorityOptions] = useState([
+    { value: 0, label: 'Critical' },
+    { value: 1, label: 'High' },
+    { value: 2, label: 'Medium' },
+    { value: 3, label: 'Low' }
+  ]);
+
+  useEffect(() => {
+    const fetchPriorities = async () => {
+      try {
+        const types = await commonTypeService.getPriorityTypes();
+        if (Array.isArray(types) && types.length > 0) {
+          const formatted = types
+            .sort((a, b) => Number(a.Code) - Number(b.Code))
+            .map(t => ({
+              value: Number(t.Code),
+              label: t.Value
+            }));
+          setProjectPriorityOptions(formatted);
+        }
+      } catch (err) {
+        console.error('Failed to fetch priority types from DB:', err);
+      }
+    };
+    fetchPriorities();
+  }, []);
+
   useEffect(() => {
     if (project) {
       setSettingsForm({
         Name: project.Name || '',
         Description: project.Description || '',
         DueDate: project.DueDate ? new Date(project.DueDate).toISOString().slice(0, 10) : '',
-        ProjectStatusID: project.ProjectStatusID || 1
+        ProjectStatusID: project.ProjectStatusID || 1,
+        Priority: (project.Priority !== undefined && project.Priority !== null) ? Number(project.Priority) : 2
       });
     }
   }, [project]);
 
-  const isOwner = userDetails && project && userDetails._id === project.ProjectOwner;
+  const isOwner = userDetails && project && (String(userDetails._id) === String(project.ProjectOwner) || String(userDetails.id) === String(project.ProjectOwner) || userDetails.role === 'Admin');
 
   const handleAddTeam = async (teamId) => {
     if (!teamId) return;
@@ -939,7 +968,8 @@ const ProjectDetailsPage = () => {
         DueDate: settingsForm.DueDate,
         ProjectStatusID: settingsForm.ProjectStatusID,
         ModifiedBy: userDetails._id,
-        ModifiedDate: new Date()
+        ModifiedDate: new Date(),
+        Priority: settingsForm.Priority
       });
       setProjects(prev => prev.map(p => p.ProjectID === project.ProjectID ? res.data : p));
       setProject(res.data);
@@ -1472,8 +1502,8 @@ const ProjectDetailsPage = () => {
                   <div>
                     {/* Top Row: Statuses */}
                     <div className="flex items-center justify-between mb-4">
-                      {/* Left: Project Status */}
-                      <div>
+                      {/* Left: Project Status & Priority */}
+                      <div className="flex items-center gap-2">
                         {project && (() => {
                           const statusStyle = getProjectStatusStyle(project.ProjectStatusID);
                           const statusDetails = getProjectStatus(project.ProjectStatusID) || { Value: 'NOT ASSIGNED' };
@@ -1485,6 +1515,7 @@ const ProjectDetailsPage = () => {
                             </span>
                           );
                         })()}
+                        {project && <ProjectPriorityBadge priority={project.Priority} showLabel={true} />}
                       </div>
 
                       {/* Right: Deadline Status */}
@@ -2875,6 +2906,50 @@ const ProjectDetailsPage = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Priority Custom Dropdown */}
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 min-w-[120px]">
+                    <FaSignal className={getThemeClasses(
+                      "text-gray-500",
+                      "text-gray-400"
+                    )} size={16} />
+                    <label className={getThemeClasses(
+                      "text-sm font-medium text-gray-700",
+                      "text-sm font-medium text-gray-300"
+                    )}>
+                      Priority
+                    </label>
+                  </div>
+                  <div className="flex-1">
+                    <CustomDropdown
+                      value={settingsForm.Priority}
+                      onChange={(val) => setSettingsForm(f => ({ ...f, Priority: Number(val) }))}
+                      disabled={!isOwner}
+                      options={projectPriorityOptions}
+                      placeholder="Select Priority"
+                      variant="outlined"
+                      renderOption={(option) => (
+                        <div className="flex items-center gap-2 py-0.5">
+                          <ProjectPriorityBadge priority={option.value} />
+                          <span className="font-medium text-sm">{option.label}</span>
+                        </div>
+                      )}
+                      renderSelected={(option) => (
+                        <div className="flex items-center gap-2">
+                          <ProjectPriorityBadge priority={option ? option.value : settingsForm.Priority} showLabel={true} />
+                        </div>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {!isOwner && (
+                  <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-200 text-xs font-medium flex items-center gap-2">
+                    <FaInfoCircle size={14} className="text-amber-500 flex-shrink-0" />
+                    <span>Only the project owner can edit project properties and settings.</span>
+                  </div>
+                )}
 
 
 

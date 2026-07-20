@@ -90,7 +90,7 @@ const StatusDropdown = ({ isMobile, currentStatus, onStatusChange, theme, isRead
         onClick={() => setIsOpen(!isOpen)}
         className={`group flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all duration-200
           ${theme === 'dark'
-            ? 'hover:bg-[#424242] text-blue-200'
+            ? 'hover:bg-dark-hover text-blue-200'
             : 'hover:bg-blue-100 text-blue-600'}
           ${isChanging ? 'scale-95' : 'scale-100'}
           relative overflow-hidden`}
@@ -113,7 +113,7 @@ const StatusDropdown = ({ isMobile, currentStatus, onStatusChange, theme, isRead
 
       {isOpen && (
         <div className={`absolute right-0 mt-2 w-56 rounded-xl shadow-lg z-50 transform transition-all duration-200 origin-top-right
-          ${theme === 'dark' ? 'bg-[#424242] border border-[#2d2d2d]' : 'bg-white border border-gray-200'}`}
+          ${theme === 'dark' ? 'bg-dark-hover border border-[#2d2d2d]' : 'bg-white border border-gray-200'}`}
         >
           <div className="py-1.5">
             {statusOptions.map((status) => {

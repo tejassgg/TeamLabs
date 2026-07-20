@@ -5,7 +5,7 @@ const CustomModal = ({ isOpen, onClose, title, children, actions, getThemeClasse
   const containerClasses = getThemeClasses
     ? getThemeClasses(
       `bg-white rounded-xl p-6 ${maxWidthClass} w-full mx-4 shadow-lg border border-gray-100`,
-      'dark:bg-[#18181b] dark:border-[#232323]'
+      'dark:bg-dark-bg dark:border-dark-card'
     )
     : `bg-white rounded-xl p-6 ${maxWidthClass} w-full mx-4 shadow-lg border border-gray-100`;
 

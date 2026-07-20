@@ -69,7 +69,7 @@ const ProjectStatusDropdown = ({
       ref={dropdownRef}
       className={`fixed z-[99999] rounded-lg border shadow-lg ${
         theme === 'dark' 
-          ? 'bg-[#232323] border-[#424242]' 
+          ? 'bg-dark-card border-dark-border' 
           : 'bg-white border-gray-200'
       }`}
       style={{
@@ -141,7 +141,7 @@ const ProjectStatusDropdown = ({
 
       {isUpdating && (
         <div className={`absolute inset-0 flex items-center justify-center rounded-lg ${
-          theme === 'dark' ? 'bg-[#232323]/80' : 'bg-white/80'
+          theme === 'dark' ? 'bg-dark-card/80' : 'bg-white/80'
         }`}>
           <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-500"></div>
         </div>

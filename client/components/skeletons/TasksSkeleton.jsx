@@ -56,7 +56,7 @@ const TasksSkeleton = () => {
   );
 
   return (
-    <div className={getThemeClasses('bg-white', 'bg-[#18181b]')}>
+    <div className={getThemeClasses('bg-white', 'bg-dark-bg')}>
       {/* Top Bar - Search and Filters */}
       <div className="mb-6">
         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">

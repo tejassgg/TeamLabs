@@ -22,7 +22,7 @@ const ChatHeader = ({
   }
 
   return (
-    <header className={`p-3 border-b ${theme === 'dark' ? 'bg-transparent border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-200 text-gray-900'} flex-shrink-0 z-20`}>
+    <header className={`p-3 border-b ${theme === 'dark' ? 'bg-transparent border-dark-border text-[#F3F6FA]' : 'bg-white border-gray-200 text-gray-900'} flex-shrink-0 z-20`}>
       <div className="flex items-center justify-between">
         {/* Mobile Menu Button */}
         <button
@@ -79,7 +79,7 @@ const ChatHeader = ({
                 <FaEllipsisV size={16} />
               </button>
               {showKebabMenu && (
-                <div className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg border z-50 overflow-hidden ${theme === 'dark' ? 'bg-[#232323] border-[#424242]' : 'bg-white border-gray-200'}`}>
+                <div className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg border z-50 overflow-hidden ${theme === 'dark' ? 'bg-dark-card border-dark-border' : 'bg-white border-gray-200'}`}>
                   {(selectedConversation?.participants || []).some(p => String(p._id || p) === String(userDetails?._id)) && (
                     <button
                       className={`w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition-colors ${theme === 'dark' ? 'hover:bg-[#2A2A2A] text-red-400' : 'hover:bg-red-50 text-red-600'}`}
@@ -90,7 +90,7 @@ const ChatHeader = ({
                   )}
                   {selectedConversation.createdBy === userDetails?._id && (
                     <button
-                      className={`w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition-colors border-t ${theme === 'dark' ? 'hover:bg-[#2A2A2A] text-red-500 border-[#424242]' : 'hover:bg-red-50 text-red-600 border-gray-100'}`}
+                      className={`w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition-colors border-t ${theme === 'dark' ? 'hover:bg-[#2A2A2A] text-red-500 border-dark-border' : 'hover:bg-red-50 text-red-600 border-gray-100'}`}
                       onClick={() => {
                         setShowKebabMenu(false);
                         setShowDeleteDialog(true);

@@ -1361,7 +1361,7 @@ export default function MessagesPage() {
     }
   };
 
-  const bg = theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900';
+  const bg = theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900';
 
   const handleMentionSelect = (member) => {
     const beforeMention = input.substring(0, mentionPosition);

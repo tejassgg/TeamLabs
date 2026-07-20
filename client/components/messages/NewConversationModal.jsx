@@ -94,7 +94,7 @@ const NewConversationModal = ({
   if (!showNewConversation) return null;
 
   const isDark = theme === 'dark';
-  const modalBg = isDark ? 'bg-[#18181b] border-[#27272a] text-white' : 'bg-white border-gray-100 text-gray-900';
+  const modalBg = isDark ? 'bg-dark-bg border-[#27272a] text-white' : 'bg-white border-gray-100 text-gray-900';
   const inputBg = isDark ? 'bg-[#27272a] border-[#3f3f46] text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:bg-white';
 
   const resetState = () => {
@@ -244,7 +244,7 @@ const NewConversationModal = ({
                   </button>
 
                   {isMembersOpen && (
-                    <div className={`absolute bottom-full left-0 right-0 mb-2 z-50 rounded-xl border shadow-xl overflow-hidden animate-in fade-in duration-150 ${isDark ? 'bg-[#18181b] border-[#3f3f46]' : 'bg-white border-gray-200'}`}>
+                    <div className={`absolute bottom-full left-0 right-0 mb-2 z-50 rounded-xl border shadow-xl overflow-hidden animate-in fade-in duration-150 ${isDark ? 'bg-dark-bg border-[#3f3f46]' : 'bg-white border-gray-200'}`}>
                       <div className={`p-2 border-b ${isDark ? 'border-[#27272a]' : 'border-gray-100'}`}>
                         <input
                           className={`w-full px-3 py-2 text-sm rounded-lg border focus:outline-none focus:border-blue-500 ${inputBg}`}

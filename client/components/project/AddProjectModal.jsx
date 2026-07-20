@@ -1,17 +1,49 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { FaProjectDiagram, FaAlignLeft, FaCalendarAlt, FaCheck } from 'react-icons/fa';
+import { FaProjectDiagram, FaAlignLeft, FaCalendarAlt, FaCheck, FaSignal } from 'react-icons/fa';
+import ProjectPriorityBadge from '../shared/ProjectPriorityBadge';
+import CustomDropdown from '../shared/CustomDropdown';
+import { commonTypeService } from '../../services/api';
 
 const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projectOwner }) => {
   const { theme } = useTheme();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [priority, setPriority] = useState(2); // Default to Medium
+  const [priorityOptions, setPriorityOptions] = useState([
+    { value: 0, label: 'Critical' },
+    { value: 1, label: 'High' },
+    { value: 2, label: 'Medium' },
+    { value: 3, label: 'Low' }
+  ]);
   const [goals, setGoals] = useState([]);
   const [goalInput, setGoalInput] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  useEffect(() => {
+    const fetchPriorities = async () => {
+      try {
+        const types = await commonTypeService.getPriorityTypes();
+        if (Array.isArray(types) && types.length > 0) {
+          const formatted = types
+            .sort((a, b) => Number(a.Code) - Number(b.Code))
+            .map(t => ({
+              value: Number(t.Code),
+              label: t.Value
+            }));
+          setPriorityOptions(formatted);
+        }
+      } catch (err) {
+        console.error('Failed to fetch priority types from DB:', err);
+      }
+    };
+    if (isOpen) {
+      fetchPriorities();
+    }
+  }, [isOpen]);
 
   const getThemeClasses = (lightClass, darkClass) => {
     return theme === 'dark' ? darkClass : lightClass;
@@ -61,11 +93,13 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
         ProjectOwner: projectOwner,
         OrganizationID: organizationId,
         IsActive: false,
+        Priority: Number(priority),
         Goals: goals
       });
       setName('');
       setDescription('');
       setDueDate('');
+      setPriority(2);
       setGoals([]);
       setGoalInput('');
       setError('');
@@ -96,7 +130,7 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}
         onClick={handleClose}
       />
-      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
+      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-dark-card' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
         <div className="flex items-center justify-between mb-6">
           <h3 className={getThemeClasses(
             'text-xl font-semibold text-gray-900',
@@ -192,6 +226,42 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
             />
           </div>
 
+          {/* Priority Custom Dropdown */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 min-w-[120px]">
+              <FaSignal className={getThemeClasses(
+                'text-gray-500',
+                'text-gray-400'
+              )} size={16} />
+              <label className={getThemeClasses(
+                'text-sm font-medium text-gray-700',
+                'text-sm font-medium text-gray-300'
+              )}>
+                Priority
+              </label>
+            </div>
+            <div className="flex-1">
+              <CustomDropdown
+                value={priority}
+                onChange={(val) => setPriority(Number(val))}
+                options={priorityOptions}
+                placeholder="Select Priority"
+                variant="outlined"
+                renderOption={(option) => (
+                  <div className="flex items-center gap-2 py-0.5">
+                    <ProjectPriorityBadge priority={option.value} />
+                    <span className="font-medium text-sm">{option.label}</span>
+                  </div>
+                )}
+                renderSelected={(option) => (
+                  <div className="flex items-center gap-2">
+                    <ProjectPriorityBadge priority={option ? option.value : priority} showLabel={true} />
+                  </div>
+                )}
+              />
+            </div>
+          </div>
+
           {/* Goals Input Section */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
@@ -257,7 +327,7 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
               onClick={handleClose}
               className={getThemeClasses(
                 'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                'px-6 py-2.5 text-gray-300 hover:bg-[#424242] rounded-xl border border-gray-600 transition-all duration-200'
+                'px-6 py-2.5 text-gray-300 hover:bg-dark-hover rounded-xl border border-gray-600 transition-all duration-200'
               )}
             >
               Cancel

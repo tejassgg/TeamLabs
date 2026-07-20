@@ -5,7 +5,7 @@ import { useGlobal } from '../context/GlobalContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 
-import { verifyEmailHtml, inviteEmailHtml, taskAssignmentEmailHtml, commentMentionEmailHtml, contactConfirmationEmailHtml, contactNotificationEmailHtml, releaseSummaryEmailHtml } from '../utils/mockEmailTemplates';
+import { verifyEmailHtml, inviteEmailHtml, taskAssignmentEmailHtml, commentMentionEmailHtml, contactConfirmationEmailHtml, contactNotificationEmailHtml, releaseSummaryEmailHtml, roleChangeEmailHtml } from '../utils/mockEmailTemplates';
 import { sendBrowserNotification } from '../utils/browserNotifications';
 
 import { FaLaptopCode, FaEnvelope, FaBell, FaDesktop, FaCheckCircle, FaExclamationTriangle, FaInfoCircle, FaTimesCircle } from 'react-icons/fa';
@@ -264,6 +264,14 @@ const Playground = () => {
                   <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Contact Notification (To Admin)</h3>
                   <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200">
                     <iframe className="w-full border-none" srcDoc={contactNotificationEmailHtml} title="Contact Notification Email" onLoad={handleIframeLoad} />
+                  </div>
+                </div>
+
+                {/* Role Change Email */}
+                <div className="flex flex-col">
+                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Role Change Notification</h3>
+                  <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200">
+                    <iframe className="w-full border-none" srcDoc={roleChangeEmailHtml} title="Role Change Email" onLoad={handleIframeLoad} />
                   </div>
                 </div>
 

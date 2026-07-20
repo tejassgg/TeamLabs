@@ -215,12 +215,14 @@ router.get('/:userId', async (req, res) => {
 });
 
 // POST /api/projects - add a new project
-router.post('/', checkProjectLimit, async (req, res) => {
+router.post('/', protect, checkProjectLimit, async (req, res) => {
   try {
-    const { Name, Description, ProjectOwner, OrganizationID, DueDate, Goals } = req.body;
+    const { Name, Description, ProjectOwner, OrganizationID, DueDate, Goals, Priority } = req.body;
     if (!Name) return res.status(400).json({ error: 'Project Name is required' });
-    if (!OrganizationID) return res.status(400).json({ error: 'OrganisationID is required' });
-    if (!ProjectOwner) return res.status(401).json({ error: 'Unauthorized: ProjectOwner not found' });
+    const orgId = OrganizationID || req.user?.organizationID;
+    if (!orgId) return res.status(400).json({ error: 'OrganisationID is required' });
+    const ownerId = ProjectOwner || req.user?._id?.toString();
+    if (!ownerId) return res.status(401).json({ error: 'Unauthorized: ProjectOwner not found' });
 
     const parsedGoals = Array.isArray(Goals)
       ? Goals.map(g => typeof g === 'string' ? { text: g, completed: false } : g)
@@ -229,11 +231,12 @@ router.post('/', checkProjectLimit, async (req, res) => {
     const newProject = new Project({
       Name,
       Description,
-      ProjectOwner,
-      OrganizationID,
+      ProjectOwner: ownerId,
+      OrganizationID: orgId,
       DueDate: DueDate ? new Date(DueDate) : null,
       IsActive: true,
       ProjectStatusID: 1,
+      Priority: (Priority !== undefined && Priority !== null) ? Number(Priority) : 2,
       Goals: parsedGoals
     });
     await newProject.save();
@@ -243,7 +246,7 @@ router.post('/', checkProjectLimit, async (req, res) => {
 
     // Log the activity
     await logActivity(
-      ProjectOwner,
+      ownerId,
       'project_create',
       'success',
       `Created new project "${Name}"`,
@@ -251,19 +254,19 @@ router.post('/', checkProjectLimit, async (req, res) => {
       {
         projectId: newProject.ProjectID,
         projectName: Name,
-        organizationId: OrganizationID,
+        organizationId: orgId,
         dueDate: DueDate
       }
     );
 
-    try { await emitDashboardMetrics(OrganizationID); } catch (e) { }
+    try { await emitDashboardMetrics(orgId); } catch (e) { }
     res.status(201).json(newProject);
   } catch (err) {
     console.error('Error creating project:', err);
     // Log the error activity
     try {
       await logActivity(
-        req.body.ProjectOwner,
+        req.body.ProjectOwner || req.user?._id,
         'project_create',
         'error',
         `Failed to create project: ${err.message}`,
@@ -280,26 +283,35 @@ router.post('/', checkProjectLimit, async (req, res) => {
   }
 });
 
-// PATCH /api/projects/:projectId - update project info
-router.patch('/:projectId', async (req, res) => {
+// PATCH /api/projects/:projectId - update project info (Only Project Owner can edit properties)
+router.patch('/:projectId', protect, async (req, res) => {
   try {
-    const { Name, Description, DueDate, ProjectStatusID, Goals } = req.body;
+    const { Name, Description, DueDate, ProjectStatusID, Goals, Priority } = req.body;
 
     // Try to find project by _id first, then by ProjectID
     let project = await Project.findOne({ ProjectID: req.params.projectId });
     if (!project) return res.status(404).json({ error: 'Project not found' });
 
+    // Enforce authorization: Only project owner or Admin can edit project properties
+    const userId = req.user._id.toString();
+    const isOwner = project.ProjectOwner === userId || req.user.role === 'Admin';
+    if (!isOwner) {
+      return res.status(403).json({ error: 'Only the project owner can edit project properties' });
+    }
+
     const oldValues = {
       name: project.Name,
       description: project.Description,
       dueDate: project.DueDate,
-      statusId: project.ProjectStatusID
+      statusId: project.ProjectStatusID,
+      priority: project.Priority
     };
 
     if (Name) project.Name = Name;
     if (Description !== undefined) project.Description = Description;
     if (DueDate !== undefined) project.DueDate = DueDate ? new Date(DueDate) : null;
     if (ProjectStatusID !== undefined) project.ProjectStatusID = ProjectStatusID;
+    if (Priority !== undefined) project.Priority = Number(Priority);
     if (Goals !== undefined) project.Goals = Goals;
     project.ModifiedDate = new Date();
     await project.save();

@@ -3,6 +3,7 @@ import { FaFolder, FaCalendarAlt, FaChevronRight, FaGithub, FaClock, FaUsers, Fa
 import { getProjectStatusStyle } from './ProjectStatusBadge';
 import { getDeadlineStatus, calculateDeadlineText } from '../shared/DeadlineStatusBadge';
 import { useGlobal } from '../../context/GlobalContext';
+import ProjectPriorityBadge from '../shared/ProjectPriorityBadge';
 
 const ProjectCard = ({ project, theme }) => {
   const router = useRouter();
@@ -132,6 +133,7 @@ const ProjectCard = ({ project, theme }) => {
                 </span>
               );
             })()}
+            <ProjectPriorityBadge priority={project.Priority} showLabel={true} />
           </div>
           <FaChevronRight className={getThemeClasses('text-gray-400', 'text-gray-500')} size={14} />
         </div>

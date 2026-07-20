@@ -21,7 +21,7 @@ export const MessageSkeleton = ({ isMine, theme }) => (
         <div className={`w-16 h-3 rounded animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
         <div className={`w-12 h-3 rounded animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
       </div>
-      <div className={`relative border rounded-2xl ${isMine ? 'rounded-br-none' : 'rounded-bl-none'} ${theme === 'dark' ? 'bg-[#221E1E] border-[#424242]' : 'bg-white border-gray-200'}`}>
+      <div className={`relative border rounded-2xl ${isMine ? 'rounded-br-none' : 'rounded-bl-none'} ${theme === 'dark' ? 'bg-[#221E1E] border-dark-border' : 'bg-white border-gray-200'}`}>
         <div className="px-3 py-2">
           <div className={`h-4 rounded animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} style={{ width: isMine ? '120px' : '180px' }} />
         </div>
@@ -55,7 +55,7 @@ export const ConversationsListSkeleton = ({ theme }) => (
 );
 
 export const ChatHeaderSkeleton = ({ theme }) => (
-  <div className={`p-3 border-b ${theme === 'dark' ? 'bg-transparent border-[#424242]' : 'bg-white border-gray-200'} flex-shrink-0`}>
+  <div className={`p-3 border-b ${theme === 'dark' ? 'bg-transparent border-dark-border' : 'bg-white border-gray-200'} flex-shrink-0`}>
     <div className="flex items-center gap-3">
       <div className={`w-8 h-8 rounded-full animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />
       <div className={`h-5 w-32 rounded animate-pulse ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`} />

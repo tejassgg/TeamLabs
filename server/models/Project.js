@@ -35,6 +35,10 @@ const ProjectSchema = new mongoose.Schema({
     type: Number,
     default: 1 // Default to 'Not Assigned'
   },
+  Priority: {
+    type: Number,
+    default: 2 // 1: High, 2: Medium, 3: Low
+  },
   DueDate: {
     type: Date
   },

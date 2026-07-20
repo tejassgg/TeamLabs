@@ -242,7 +242,7 @@ const TasksPage = () => {
   }
 
   return (
-    <div className={getThemeClasses('bg-white', 'bg-[#18181b]')}>
+    <div className={getThemeClasses('bg-white', 'bg-dark-bg')}>
       <Head>
         <title>My Tasks - TeamLabs</title>
         <meta name="description" content="View and manage all your assigned tasks, projects, and teams" />
@@ -303,7 +303,7 @@ const TasksPage = () => {
               {isFilterModalOpen && (
                 <div className={getThemeClasses(
                   'absolute right-0 top-full mt-2 z-50 w-[300px] sm:w-[500px] lg:w-[700px] bg-white border border-gray-200 rounded-xl shadow-lg flex flex-col',
-                  'absolute right-0 top-full mt-2 z-50 w-[300px] sm:w-[500px] lg:w-[700px] bg-[#232323] border border-gray-600 rounded-xl shadow-lg flex flex-col'
+                  'absolute right-0 top-full mt-2 z-50 w-[300px] sm:w-[500px] lg:w-[700px] bg-dark-card border border-gray-600 rounded-xl shadow-lg flex flex-col'
                 )}>
                   <div className={getThemeClasses(
                     'p-4 border-b border-gray-200 flex items-center justify-between',
@@ -906,7 +906,7 @@ const TasksPage = () => {
           <div className="absolute inset-0" onClick={() => setIsStatsModalOpen(false)} />
           <div className={getThemeClasses(
             'relative w-full max-w-md mx-4 bg-white border border-gray-100 rounded-xl shadow-lg p-6 transform transition-all',
-            'relative w-full max-w-md mx-4 bg-[#18181b] border border-[#232323] rounded-xl shadow-lg p-6 text-white transform transition-all'
+            'relative w-full max-w-md mx-4 bg-dark-bg border border-dark-card rounded-xl shadow-lg p-6 text-white transform transition-all'
           )}>
             <div className="flex items-center justify-between mb-4">
               <h3 className={getThemeClasses('text-lg font-semibold text-gray-900', 'text-lg font-semibold text-white')}>
@@ -927,7 +927,7 @@ const TasksPage = () => {
               {/* Total Tasks */}
               <div className={getThemeClasses(
                 'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
-                'bg-[#232323]/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
+                'bg-dark-card/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
               )}>
                 <div>
                   <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>Total Tasks</p>
@@ -941,7 +941,7 @@ const TasksPage = () => {
               {/* Completed */}
               <div className={getThemeClasses(
                 'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
-                'bg-[#232323]/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
+                'bg-dark-card/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
               )}>
                 <div>
                   <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>Completed</p>
@@ -955,7 +955,7 @@ const TasksPage = () => {
               {/* Overdue */}
               <div className={getThemeClasses(
                 'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
-                'bg-[#232323]/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
+                'bg-dark-card/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
               )}>
                 <div>
                   <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>Overdue</p>
@@ -969,7 +969,7 @@ const TasksPage = () => {
               {/* Due Today */}
               <div className={getThemeClasses(
                 'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
-                'bg-[#232323]/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
+                'bg-dark-card/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
               )}>
                 <div>
                   <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>Due Today</p>
@@ -983,7 +983,7 @@ const TasksPage = () => {
               {/* High Priority */}
               <div className={getThemeClasses(
                 'bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between',
-                'bg-[#232323]/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
+                'bg-dark-card/50 border border-gray-700/50 p-4 rounded-xl flex items-center justify-between'
               )}>
                 <div>
                   <p className={getThemeClasses('text-xs font-semibold text-gray-505 text-gray-500', 'text-xs font-semibold text-gray-400')}>High Priority</p>

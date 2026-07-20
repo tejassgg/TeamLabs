@@ -313,7 +313,7 @@ const RAGManagement = ({ organizationId }) => {
       <div className={`flex space-x-2 mb-6 ${
         getThemeClasses(
           'bg-gray-100 p-1',
-          'dark:bg-[#18181b] dark:border dark:border-zinc-800'
+          'dark:bg-dark-bg dark:border dark:border-zinc-800'
         )
       } rounded-xl transition-all duration-300`}>
         {[
@@ -510,7 +510,7 @@ const RAGManagement = ({ organizationId }) => {
                   placeholder="Enter your search query..."
                   className={getThemeClasses(
                     "flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500",
-                    "dark:border-zinc-800 dark:bg-[#18181b] dark:text-white focus:border-emerald-500"
+                    "dark:border-zinc-800 dark:bg-dark-bg dark:text-white focus:border-emerald-500"
                   )}
                   onKeyPress={(e) => e.key === 'Enter' && searchKnowledgeBase()}
                 />
@@ -706,7 +706,7 @@ const RAGManagement = ({ organizationId }) => {
                     onChange={(e) => setConfig({ ...config, syncInterval: parseInt(e.target.value) })}
                     className={getThemeClasses(
                       "px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500",
-                      "dark:border-zinc-800 dark:bg-[#18181b] dark:text-white focus:border-emerald-500"
+                      "dark:border-zinc-800 dark:bg-dark-bg dark:text-white focus:border-emerald-500"
                     )}
                   >
                     <option value={900000}>15 minutes</option>
@@ -772,7 +772,7 @@ const RAGManagement = ({ organizationId }) => {
                     onChange={(e) => setConfig({ ...config, maxResults: parseInt(e.target.value) })}
                     className={getThemeClasses(
                       "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500",
-                      "dark:border-zinc-800 dark:bg-[#18181b] dark:text-white focus:border-emerald-500"
+                      "dark:border-zinc-800 dark:bg-dark-bg dark:text-white focus:border-emerald-500"
                     )}
                   />
                 </div>

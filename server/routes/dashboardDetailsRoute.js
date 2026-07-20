@@ -161,7 +161,7 @@ router.get('/:organizationId', async (req, res) => {
     const users = await User.find({ organizationID: organizationId });
 
     // Get all invites for the organization
-    const invites = await Invite.find({ organizationID: organizationId })
+    const invites = await Invite.find({ organizationID: organizationId, email: { $nin: [null, ''] } })
       .populate('inviter', 'firstName lastName email')
       .sort({ createdAt: -1 });
 

@@ -138,7 +138,7 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
       {/* Chat Window */}
       {isOpen && (
         <div className={`absolute bottom-0 right-0 w-96 h-[520px] ${
-          theme === 'dark' ? 'bg-[#18181b]' : 'bg-white'
+          theme === 'dark' ? 'bg-dark-bg' : 'bg-white'
         } rounded-2xl shadow-2xl flex flex-col transition-all duration-300`}>
           
           {/* Chat Header */}

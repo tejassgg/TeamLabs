@@ -12,7 +12,7 @@ const Message = ({
   handleReaction,
 }) => {
   const panel = theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900';
-  const border = theme === 'dark' ? 'border border-[#424242]' : 'border border-gray-200';
+  const border = theme === 'dark' ? 'border border-dark-border' : 'border border-gray-200';
 
   const renderMessageText = (text) => {
     if (!text) return '';

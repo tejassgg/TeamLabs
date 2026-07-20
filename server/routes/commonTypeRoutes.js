@@ -72,13 +72,13 @@ router.get('/task-statuses', async (req, res) => {
   }
 });
 
-// GET /api/common-types/task-priorities - Get all Task Priority
-router.get('/task-priorities', async (req, res) => {
+// GET /api/common-types/priority-types - Get all Priority Types from DB
+router.get('/priority-types', async (req, res) => {
   try {
-    const taskPriorities = await CommonType.find({ MasterType: 'TaskPriority' }).sort({ Code: 1 });
-    res.json(taskPriorities);
+    const priorityTypes = await CommonType.find({ MasterType: { $in: ['PriorityType', 'TaskPriority'] } }).sort({ Code: 1 });
+    res.json(priorityTypes);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch task priorities' });
+    res.status(500).json({ error: 'Failed to fetch priority types' });
   }
 });
 

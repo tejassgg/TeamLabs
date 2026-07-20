@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 
 import { useTheme } from '../../context/ThemeContext';
 import { useGlobal } from '../../context/GlobalContext';
-import api, { authService, teamService, meetingService } from '../../services/api';
+import api, { authService, teamService, meetingService, commonTypeService } from '../../services/api';
 import CustomModal from '../../components/shared/CustomModal';
 import StatusDropdown from '../../components/shared/StatusDropdown';
 import { FaCog, FaTrash, FaTimes, FaPlus, FaExternalLinkAlt, FaClock, FaArrowRight, FaToggleOn, FaUsers, FaAlignLeft, FaTag, FaCalendarAlt, FaUserFriends, FaSignOutAlt, FaCheck, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
@@ -366,9 +366,9 @@ const TeamDetailsPage = () => {
 
   useEffect(() => {
     // Fetch team types from CommonTypes
-    api.get('/common-types/team-types')
-      .then(res => {
-        setTeamTypes(res.data);
+    commonTypeService.getTeamTypes()
+      .then(data => {
+        setTeamTypes(data);
       })
       .catch(err => {
         console.error('Failed to fetch team types:', err);

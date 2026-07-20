@@ -4,6 +4,7 @@ import { teamService, projectService, authService, taskService, commonTypeServic
 import { getProjectStatusStyle, getProjectStatusBadge } from '../components/project/ProjectStatusBadge';
 import { getTaskTypeStyle, getTaskTypeBadge, getTaskStatusBadge } from '../components/task/TaskTypeBadge';
 import { getDeadlineStatus, calculateDeadlineText } from '../components/shared/DeadlineStatusBadge';
+import StatusPill from '../components/shared/StatusPill';
 import { useRouter } from 'next/router';
 import { subscribe, connectSocket } from '../services/socket';
 
@@ -107,6 +108,11 @@ export const GlobalProvider = ({ children }) => {
   // Get task status badge component (reusable globally)
   const getStatus = (statusCode) => {
     return getTaskStatusBadge(statusCode, theme === 'dark');
+  };
+
+  // Get member status badge component (reusable globally)
+  const getMemberStatusBadgeComponent = (status) => {
+    return <StatusPill status={status} theme={theme} />;
   };
 
   // Get task status text
@@ -512,6 +518,11 @@ export const GlobalProvider = ({ children }) => {
   const getPriorityStyle = (priority) => {
     const isDark = theme === 'dark';
     const styles = {
+      'Critical': {
+        bgColor: isDark ? 'bg-rose-900/30' : 'bg-rose-50',
+        textColor: isDark ? 'text-rose-400' : 'text-rose-700',
+        borderColor: isDark ? 'border-rose-700' : 'border-rose-200',
+      },
       'High': {
         bgColor: isDark ? 'bg-red-900/20' : 'bg-red-50',
         textColor: isDark ? 'text-red-400' : 'text-red-700',
@@ -528,7 +539,8 @@ export const GlobalProvider = ({ children }) => {
         borderColor: isDark ? 'border-green-700' : 'border-green-200',
       },
     };
-    return styles[priority] || styles['Medium'];
+    const norm = priority === 0 || priority === '0' ? 'Critical' : priority;
+    return styles[norm] || styles['Medium'];
   };
 
   // Helper function to format display name with user indication
@@ -785,6 +797,7 @@ export const GlobalProvider = ({ children }) => {
     getProjectStatus,
     getProjectStatusStyle,
     getProjectStatusBadgeComponent,
+    getMemberStatusBadgeComponent,
     getTaskTypeStyleComponent,
     getTaskTypeBadgeComponent,
     getTaskStatusText,

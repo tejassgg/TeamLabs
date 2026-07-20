@@ -196,8 +196,8 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50 p-3">
-      <div className={`relative w-full sm:max-w-3xl max-h-[95vh] overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl border ${getThemeClasses('bg-white border-gray-200', 'bg-[#18181b] border-[#232323]')}`}>
-        <div className={`sticky top-0 z-10 ${getThemeClasses('bg-white border-b border-gray-100', 'bg-[#18181b] border-b border-[#232323]')}`}>
+      <div className={`relative w-full sm:max-w-3xl max-h-[95vh] overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl border ${getThemeClasses('bg-white border-gray-200', 'bg-dark-bg border-dark-card')}`}>
+        <div className={`sticky top-0 z-10 ${getThemeClasses('bg-white border-b border-gray-100', 'bg-dark-bg border-b border-dark-card')}`}>
           <div className="flex items-start sm:items-center justify-between p-4 sm:p-6 gap-3">
             <div className="flex items-start sm:items-center">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-3 sm:mr-4 ${getThemeClasses('bg-blue-50 text-blue-600', 'bg-blue-900/30 text-blue-400')}`}>
@@ -410,7 +410,7 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        <div className={`sticky bottom-0 ${getThemeClasses('bg-white border-t border-gray-100', 'bg-[#18181b] border-t border-[#232323]')}`}>
+        <div className={`sticky bottom-0 ${getThemeClasses('bg-white border-t border-gray-100', 'bg-dark-bg border-t border-dark-card')}`}>
           <div className="p-4">
             <p className={`text-xs text-center ${getThemeClasses('text-gray-500', 'text-gray-400')}`}>
               We typically respond within 24 hours. For urgent issues, please call our support line.

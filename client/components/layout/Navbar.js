@@ -133,7 +133,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
         <button
           onClick={onSearchClick}
           className={`p-1.5 rounded-lg transition-all duration-200 ${theme === 'dark'
-              ? 'text-blue-200 hover:bg-[#424242]'
+              ? 'text-blue-200 hover:bg-dark-hover'
               : 'text-blue-600 hover:bg-blue-100'
             }`}
           aria-label="Search organization"
@@ -145,7 +145,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
           <button
             onClick={toggleNotifications}
             className={`p-1.5 rounded-lg transition-all duration-200 relative ${theme === 'dark'
-                ? 'text-blue-200 hover:bg-[#424242]'
+                ? 'text-blue-200 hover:bg-dark-hover'
                 : 'text-blue-600 hover:bg-blue-100'
               }`}
           >
@@ -168,7 +168,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
             <button
               onClick={toggleUserMenu}
               className={`flex items-center space-x-1 p-1.5 rounded-lg transition-all duration-200 ${theme === 'dark'
-                  ? 'text-blue-200 hover:bg-[#424242]'
+                  ? 'text-blue-200 hover:bg-dark-hover'
                   : 'text-blue-600 hover:bg-blue-100'
                 }`}
               aria-label="User profile menu"
@@ -239,7 +239,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
     );
   }
   return (
-    <nav className={`${theme === 'dark' ? 'bg-[#18181b] text-white border-gray-700' : 'bg-white text-gray-900 border-gray-200'} border-b`}>
+    <nav className={`${theme === 'dark' ? 'bg-dark-bg text-white border-gray-700' : 'bg-white text-gray-900 border-gray-200'} border-b`}>
       <div className="mx-auto">
         <div className="flex justify-between items-center h-16 ml-2">
           {/* Left side - Logo */}
@@ -295,7 +295,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
               <button
                 onClick={toggleNotifications}
                 className={`p-2 rounded-full transition-all duration-200 relative ${theme === 'dark'
-                    ? 'text-blue-200 hover:bg-[#424242]'
+                    ? 'text-blue-200 hover:bg-dark-hover'
                     : 'text-blue-600 hover:bg-blue-100'
                   }`}
               >
@@ -318,7 +318,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
                 <button
                   onClick={toggleUserMenu}
                   className={`flex items-center space-x-2 px-2 lg:px-3 py-2 rounded-xl transition-all duration-200 ${theme === 'dark'
-                      ? 'text-blue-200 hover:bg-[#424242]'
+                      ? 'text-blue-200 hover:bg-dark-hover'
                       : 'text-blue-600 hover:bg-blue-100'
                     }`}
                 >

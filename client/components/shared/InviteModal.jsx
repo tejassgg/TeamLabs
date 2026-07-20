@@ -29,12 +29,13 @@ const InviteModal = ({
   const { showToast } = useToast();
 
   const [emailInput, setEmailInput] = useState('');
-  const [emailChips, setEmailChips] = useState(['Johndoe@gmail.com']);
+  const [emailChips, setEmailChips] = useState([]);
   const [inviteRole, setInviteRole] = useState('User');
   const [linkAccess, setLinkAccess] = useState('anyone'); // 'anyone' | 'invited'
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+  const [isStatusError, setIsStatusError] = useState(false);
   const [preGeneratedToken, setPreGeneratedToken] = useState('');
   const [isGeneratingToken, setIsGeneratingToken] = useState(false);
   const [rolesList, setRolesList] = useState(DEFAULT_DB_ROLES);
@@ -84,6 +85,11 @@ const InviteModal = ({
       };
       fetchRoles();
     }
+  }, [isOpen]);
+
+  useEffect(() => {
+    setStatusMessage('');
+    setIsStatusError(false);
   }, [isOpen]);
 
   // Dynamic share link using pre-generated token
@@ -159,6 +165,7 @@ const InviteModal = ({
 
     setIsSubmitting(true);
     setStatusMessage('');
+    setIsStatusError(false);
 
     try {
       // Send invite for each email passing verified preGeneratedToken, selected role, and linkAccess
@@ -168,6 +175,7 @@ const InviteModal = ({
 
       showToast(`Invitation sent to ${emailsToSend.length} recipient${emailsToSend.length > 1 ? 's' : ''}!`, 'success');
       setStatusMessage('Invite sent successfully!');
+      setIsStatusError(false);
       setEmailChips([]);
 
       if (onInviteSent) {
@@ -181,15 +189,25 @@ const InviteModal = ({
       console.error('Failed to send invite:', err);
       showToast(err.message || 'Failed to send invite', 'error');
       setStatusMessage(err.message || 'Failed to send invite');
+      setIsStatusError(true);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // Role change handler for members
-  const handleRoleChange = (memberId, newRole) => {
-    setMembersList(prev => prev.map(m => m.id === memberId ? { ...m, role: newRole } : m));
-    showToast(`Member role updated to ${newRole}`, 'info');
+  const handleRoleChange = async (memberId, newRole) => {
+    try {
+      await userService.updateUserRole(memberId, newRole);
+      setMembersList(prev => prev.map(m => m.id === memberId ? { ...m, role: newRole } : m));
+      showToast(`Member role updated to ${newRole}`, 'success');
+      if (onInviteSent) {
+        onInviteSent();
+      }
+    } catch (err) {
+      console.error('Failed to update member role:', err);
+      showToast(err.message || 'Failed to update member role', 'error');
+    }
   };
 
   const linkAccessOptions = [
@@ -201,7 +219,7 @@ const InviteModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-xs animate-in fade-in duration-200">
       <div
         className={`w-full max-w-2xl min-h-[580px] max-h-[90vh] flex flex-col justify-between rounded-3xl p-6 sm:p-8 shadow-2xl transition-all relative transform animate-in zoom-in-95 duration-200 overflow-y-auto ${theme === 'dark'
-          ? 'bg-[#18181b] border border-[#27272a] text-[#F3F6FA]'
+          ? 'bg-dark-bg border border-[#27272a] text-[#F3F6FA]'
           : 'bg-white border border-gray-100 text-gray-900'
           }`}
         onClick={(e) => e.stopPropagation()}
@@ -243,7 +261,7 @@ const InviteModal = ({
 
         {/* Link to Share Section */}
         <div className={`p-4 sm:p-4.5 rounded-2xl mb-5 border ${theme === 'dark'
-          ? 'bg-[#232323] border-[#2e2e2e]'
+          ? 'bg-dark-card border-[#2e2e2e]'
           : 'bg-gray-50/90 border-gray-100'
           }`}>
           <div className="flex items-center justify-between mb-3">
@@ -273,7 +291,7 @@ const InviteModal = ({
               readOnly
               value={isGeneratingToken ? 'Generating token...' : shareableLink}
               className={`flex-1 px-3.5 py-2 rounded-xl text-xs sm:text-sm border truncate outline-none select-all ${theme === 'dark'
-                ? 'bg-[#18181b] border-[#3f3f46] text-gray-300'
+                ? 'bg-dark-bg border-[#3f3f46] text-gray-300'
                 : 'bg-white border-gray-200 text-gray-600'
                 }`}
             />
@@ -283,7 +301,7 @@ const InviteModal = ({
               className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer ${copied
                 ? 'bg-emerald-600 text-white border-emerald-600'
                 : theme === 'dark'
-                  ? 'bg-[#18181b] hover:bg-[#27272a] border-[#3f3f46] text-gray-200'
+                  ? 'bg-dark-bg hover:bg-[#27272a] border-[#3f3f46] text-gray-200'
                   : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-800'
                 }`}
             >
@@ -301,7 +319,7 @@ const InviteModal = ({
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             {/* Input field with email pills */}
             <div className={`flex-1 min-w-0 flex flex-wrap items-center gap-1.5 px-3 py-1.5 rounded-xl border shadow-xs transition-all ${theme === 'dark'
-              ? 'bg-[#18181b] border-[#3f3f46] focus-within:border-blue-500'
+              ? 'bg-dark-bg border-[#3f3f46] focus-within:border-blue-500'
               : 'bg-white border-gray-200 focus-within:border-blue-500'
               }`}>
               {emailChips.map((email, idx) => (
@@ -350,7 +368,7 @@ const InviteModal = ({
               disabled={isSubmitting || (emailChips.length === 0 && !emailInput.trim())}
               className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 flex-shrink-0 cursor-pointer ${theme === 'dark'
                 ? 'bg-white hover:bg-gray-100 text-gray-900'
-                : 'bg-[#18181b] hover:bg-black text-white'
+                : 'bg-dark-bg hover:bg-black text-white'
                 }`}
             >
               {isSubmitting ? (
@@ -364,7 +382,7 @@ const InviteModal = ({
             </button>
           </div>
           {statusMessage && (
-            <p className="text-xs mt-1.5 text-emerald-500 font-medium">
+            <p className={`text-xs mt-1.5 font-medium ${isStatusError ? 'text-red-500' : 'text-emerald-500'}`}>
               {statusMessage}
             </p>
           )}
@@ -407,7 +425,7 @@ const InviteModal = ({
                 </div>
 
                 {/* Role CustomDropdown for each member */}
-                <div className="w-36 flex-shrink-0">
+                <div className="w-48 flex-shrink-0">
                   <CustomDropdown
                     value={member.role || rolesList[0]}
                     onChange={(newRole) => handleRoleChange(member.id, newRole)}

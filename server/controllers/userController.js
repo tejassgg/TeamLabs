@@ -215,7 +215,7 @@ exports.getUserOverview = async (req, res) => {
 exports.getInvites = async (req, res) => {
   try {
     const organizationID = req.user.organizationID;
-    const invites = await Invite.find({ organizationID })
+    const invites = await Invite.find({ organizationID, email: { $nin: [null, ''] } })
       .populate('inviter', 'firstName lastName email')
       .sort({ createdAt: -1 });
 
@@ -300,14 +300,29 @@ exports.generateInviteToken = async (req, res) => {
     if (!organizationID) {
       return res.status(400).json({ success: false, message: 'User does not belong to an organization' });
     }
+
+    // Check if there is an existing active generic link invite for this role/access type
+    const existingInvite = await Invite.findOne({
+      organizationID,
+      role: role || 'User',
+      accessType: linkAccess || 'anyone',
+      email: { $in: [null, ''] },
+      status: 'Pending',
+      expiredAt: { $gt: new Date() }
+    });
+
+    if (existingInvite) {
+      return res.status(200).json({ success: true, token: existingInvite.token, invite: existingInvite });
+    }
+
     const randomHex = crypto.randomBytes(16).toString('hex');
     const timestamp = Date.now();
-    const secret = process.env.JWT_SECRET || 'teamlabs_secret_key';
+    const secret = process.env.JWT_SECRET;
     const signature = crypto.createHmac('sha256', secret)
       .update(`${organizationID}:${randomHex}:${timestamp}`)
       .digest('hex').substring(0, 16);
 
-    const inviteToken = `inv_${randomHex}_${timestamp}_${signature}`;
+    const inviteToken = `inv_${organizationID}_${randomHex}_${timestamp}_${signature}`;
 
     // Save/upsert an Invite record for this pre-generated link with specified role & accessType
     const invite = await Invite.create({
@@ -342,7 +357,7 @@ exports.inviteUser = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Invalid or tampered invite token' });
       }
       const [prefix, orgId, randomHex, timestampStr, providedSig] = parts;
-      const secret = process.env.JWT_SECRET || 'teamlabs_secret_key';
+      const secret = process.env.JWT_SECRET;
       const expectedSig = crypto.createHmac('sha256', secret)
         .update(`${orgId}:${randomHex}:${timestampStr}`)
         .digest('hex').substring(0, 16);
@@ -427,5 +442,63 @@ exports.inviteUser = async (req, res) => {
   } catch (err) {
     console.error('Invite error:', err);
     res.status(500).json({ success: false, message: 'Failed to send invite' });
+  }
+};
+
+// Update user's role in the organization
+exports.updateUserRole = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+
+    if (!role) {
+      return res.status(400).json({ success: false, message: 'Role is required' });
+    }
+
+    // Verify requesting user is Admin
+    if (req.user.role !== 'Admin') {
+      return res.status(403).json({ success: false, message: 'Unauthorized: Only Admins can change user roles' });
+    }
+
+    // Find target user
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Verify they belong to the same organization
+    if (String(targetUser.organizationID) !== String(req.user.organizationID)) {
+      return res.status(403).json({ success: false, message: 'Unauthorized: User is not in your organization' });
+    }
+
+    targetUser.role = role;
+    targetUser.ModifiedBy = req.user._id;
+    targetUser.ModifiedDate = new Date();
+    await targetUser.save();
+
+    // Send email notification
+    try {
+      const organization = await Organization.findOne({ OrganizationID: req.user.organizationID });
+      const orgName = organization ? organization.Name : 'your organization';
+      const userName = `${targetUser.firstName} ${targetUser.lastName || ''}`.trim() || targetUser.username;
+      await emailService.sendRoleChangeEmail(targetUser.email, userName, role, orgName);
+    } catch (emailErr) {
+      console.error('Error sending role change email:', emailErr);
+    }
+
+    // Emit real-time member update event to org room
+    try {
+      emitToOrg(req.user.organizationID, 'org.member.updated', {
+        event: 'org.member.updated',
+        version: 1,
+        data: { userId, role },
+        meta: { emittedAt: new Date().toISOString() }
+      });
+    } catch (e) { /* ignore */ }
+
+    res.status(200).json({ success: true, message: 'User role updated successfully', user: targetUser });
+  } catch (err) {
+    console.error('Error updating user role:', err);
+    res.status(500).json({ success: false, message: 'Failed to update user role' });
   }
 }; 

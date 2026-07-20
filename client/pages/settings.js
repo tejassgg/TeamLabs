@@ -442,7 +442,7 @@ const Settings = () => {
                       type="button"
                       onClick={() => setShowFontDropdown(v => !v)}
                       className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
-                        ? 'border-gray-700 bg-transparent text-white hover:bg-[#232323]'
+                        ? 'border-gray-700 bg-transparent text-white hover:bg-dark-card'
                         : 'border-gray-200 bg-white text-gray-900 hover:bg-gray-50'
                         }`}
                       style={{ fontFamily: fontOptions.find(f => f.value === userSettings.fontFamily)?.fontFamily || 'JetBrains Mono, monospace' }}
@@ -455,7 +455,7 @@ const Settings = () => {
                       </svg>
                     </button>
                     {showFontDropdown && (
-                      <div className={`absolute right-0 mt-2 lg:w-1/4 w-1/2 z-20 rounded-xl shadow-lg border ${theme === 'dark' ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
+                      <div className={`absolute right-0 mt-2 lg:w-1/4 w-1/2 z-20 rounded-xl shadow-lg border ${theme === 'dark' ? 'bg-dark-bg border-gray-700' : 'bg-white border-gray-200'}`}>
                         <ul className="max-h-60 overflow-auto py-1">
                           {fontOptions.map(font => (
                             <li key={font.value}>
@@ -467,7 +467,7 @@ const Settings = () => {
                                 }}
                                 className={`w-full text-left px-4 py-2 text-sm transition-colors ${font.value === userSettings.fontFamily
                                   ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700')
-                                  : (theme === 'dark' ? 'hover:bg-[#232323] text-gray-200' : 'hover:bg-gray-50 text-gray-700')
+                                  : (theme === 'dark' ? 'hover:bg-dark-card text-gray-200' : 'hover:bg-gray-50 text-gray-700')
                                   }`}
                                 style={{ fontFamily: font.fontFamily }}
                               >
@@ -549,7 +549,7 @@ const Settings = () => {
                         type="button"
                         onClick={() => setShowSessionTimeoutDropdown(v => !v)}
                         className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
-                          ? 'border-gray-700 bg-transparent text-white hover:bg-[#232323]'
+                          ? 'border-gray-700 bg-transparent text-white hover:bg-dark-card'
                           : 'border-gray-200 bg-white text-gray-900 hover:bg-gray-50'
                           }`}
                       >
@@ -561,7 +561,7 @@ const Settings = () => {
                         </svg>
                       </button>
                       {showSessionTimeoutDropdown && (
-                        <div className={`absolute right-0 mt-2 lg:w-1/4 w-1/2 z-20 rounded-xl shadow-lg border ${theme === 'dark' ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
+                        <div className={`absolute right-0 mt-2 lg:w-1/4 w-1/2 z-20 rounded-xl shadow-lg border ${theme === 'dark' ? 'bg-dark-bg border-gray-700' : 'bg-white border-gray-200'}`}>
                           <ul className="max-h-60 overflow-auto py-1">
                             {sessionTimeoutOptions.map(opt => (
                               <li key={opt.value}>
@@ -573,7 +573,7 @@ const Settings = () => {
                                   }}
                                   className={`w-full text-left px-4 py-2 text-sm transition-colors ${opt.value === securitySettings.sessionTimeout
                                     ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700')
-                                    : (theme === 'dark' ? 'hover:bg-[#232323] text-gray-200' : 'hover:bg-gray-50 text-gray-700')
+                                    : (theme === 'dark' ? 'hover:bg-dark-card text-gray-200' : 'hover:bg-gray-50 text-gray-700')
                                     }`}
                                 >
                                   {opt.label}

@@ -39,7 +39,7 @@ const CustomDropdown = ({
   // Variant classes
   const variantClasses = {
     default: theme === 'dark' 
-      ? 'bg-[#232323] border-gray-600 text-gray-100 hover:bg-[#2A2A2A]' 
+      ? 'bg-dark-card border-gray-600 text-gray-100 hover:bg-[#2A2A2A]' 
       : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50',
     outlined: theme === 'dark'
       ? 'bg-transparent border-gray-600 text-gray-100 hover:bg-[#2A2A2A]'
@@ -62,15 +62,26 @@ const CustomDropdown = ({
       })
     : options;
 
+  // Get option value safely (handling 0 as valid value)
+  const getOptionValue = (option) => {
+    if (typeof option === 'object' && option !== null) {
+      if (option.value !== undefined) return option.value;
+      if (option.id !== undefined) return option.id;
+      if (option.code !== undefined) return option.code;
+      if (option.Value !== undefined) return option.Value;
+    }
+    return option;
+  };
+
   // Get selected option
   const selectedOption = options.find(option => {
-    const optionValue = typeof option === 'object' ? option.value || option.id : option;
+    const optionValue = getOptionValue(option);
     return optionValue === value;
   });
 
   // Handle option selection
   const handleSelect = (option) => {
-    const optionValue = typeof option === 'object' ? option.value || option.id : option;
+    const optionValue = getOptionValue(option);
     onChange(optionValue);
     setIsOpen(false);
     setSearchQuery('');
@@ -214,7 +225,7 @@ const CustomDropdown = ({
           absolute z-[9999] w-full mt-2 rounded-xl shadow-lg overflow-hidden
           ${getThemeClasses(
             'bg-white border border-gray-200',
-            'dark:bg-[#232323] dark:border-gray-600'
+            'dark:bg-dark-card dark:border-gray-600'
           )}
         `}>
           {/* Search Input */}
@@ -251,7 +262,7 @@ const CustomDropdown = ({
               </div>
             ) : (
               filteredOptions.map((option, index) => {
-                const optionValue = typeof option === 'object' ? option.value || option.id : option;
+                const optionValue = getOptionValue(option);
                 const isSelected = optionValue === value;
                 
                 return (

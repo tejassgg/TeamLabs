@@ -80,7 +80,17 @@ export const getTaskTypeBadge = (type) => {
 
 // Priority styles and utilities
 export const getPriorityStyle = (priority) => {
+  const norm = priority === 0 || priority === '0' || priority === 'Critical' ? 'Critical' : priority;
+
   const styles = {
+    'Critical': {
+      bgColor: 'bg-gradient-to-r from-purple-50 to-rose-100 dark:from-rose-950/40 dark:to-purple-900/40',
+      textColor: 'text-purple-600 dark:text-purple-400 font-bold',
+      borderColor: 'border-purple-200 dark:border-purple-800',
+      icon: <svg className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 animate-pulse" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+      </svg>
+    },
     'High': {
       bgColor: 'bg-gradient-to-r from-red-50 to-red-100',
       textColor: 'text-red-600',
@@ -107,18 +117,18 @@ export const getPriorityStyle = (priority) => {
     }
   };
 
-  return styles[priority] || styles['Medium'];
+  return styles[norm] || styles['Medium'];
 };
 
 export const getPriorityBadge = (priority) => {
-  if (!priority) return null;
-
+  if (priority === undefined || priority === null || priority === '') return null;
+  const label = priority === 0 || priority === '0' ? 'Critical' : priority;
   const style = getPriorityStyle(priority);
 
   return (
     <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${style.textColor}`}>
       {style.icon}
-      {priority}
+      {label}
     </span>
   );
 };

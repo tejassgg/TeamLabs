@@ -61,7 +61,7 @@ const BadgeDropdown = ({
         disabled={disabled}
         className={
           `w-full px-0 py-2 border-0 border-b-2 
-          ${theme === 'dark' ? 'bg-[#232323]' : 'bg-white'} 
+          ${theme === 'dark' ? 'bg-dark-card' : 'bg-white'} 
           ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'} 
           ${theme === 'dark' ? 'focus:border-gray-600' : 'focus:border-gray-200'} focus:outline-none bg-transparent 
           ${theme === 'dark' ? 'text-white' : 'text-gray-900'} flex items-center justify-between`
@@ -90,7 +90,7 @@ const BadgeDropdown = ({
       </button>
 
       {isOpen && (
-        <div className={`absolute z-50 w-full mt-1 ${theme === 'dark' ? 'bg-[#18181b] border-gray-600' : 'bg-white border-gray-200'} border rounded-xl shadow-lg overflow-auto`}>
+        <div className={`absolute z-50 w-full mt-1 ${theme === 'dark' ? 'bg-dark-bg border-gray-600' : 'bg-white border-gray-200'} border rounded-xl shadow-lg overflow-auto`}>
           {options.map((option, index) => {
             const optionKey = badgeType === 'taskType' ? index : badgeType === 'userStory' ? option.TaskID : index;
             return (
@@ -100,7 +100,7 @@ const BadgeDropdown = ({
                 onClick={() => handleSelect(option)}
                 className={getThemeClasses(
                   'w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2',
-                  'w-full px-4 py-3 text-left hover:bg-[#424242] transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2'
+                  'w-full px-4 py-3 text-left hover:bg-dark-hover transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2'
                 )}
               >
                 {renderBadge(option)}
@@ -135,6 +135,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
   const [type, setType] = useState('');
   const [typeOptions, setTypeOptions] = useState([]);
   const [priority, setPriority] = useState('Medium');
+  const [priorityOptions, setPriorityOptions] = useState(['Critical', 'High', 'Medium', 'Low']);
   const [assignee, setAssignee] = useState(userDetails?._id || '');
   const [assignedTo, setAssignedTo] = useState('');
   const [projectId, setProjectId] = useState(projectIdDefault || '');
@@ -237,6 +238,18 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
           }
         })
         .catch(() => setTypeOptions([]));
+
+      commonTypeService.getPriorityTypes()
+        .then((types) => {
+          if (Array.isArray(types) && types.length > 0) {
+            const sorted = types
+              .sort((a, b) => Number(a.Code) - Number(b.Code))
+              .map(t => t.Value);
+            setPriorityOptions(sorted);
+          }
+        })
+        .catch((err) => console.error('Failed to fetch priority types from DB:', err));
+
       if (projectIdDefault && !isEditMode) setProjectId(projectIdDefault);
     }
   }, [isOpen, mode, projectIdDefault, isEditMode, addTaskTypeMode]);
@@ -365,7 +378,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}
         onClick={handleClose}
       />
-      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-2xl ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
+      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-2xl ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-dark-card' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
 
         <div className="flex items-center justify-between mb-6">
           <h3 className={getThemeClasses(
@@ -489,7 +502,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 <BadgeDropdown
                   value={priority}
                   onChange={setPriority}
-                  options={['High', 'Medium', 'Low']}
+                  options={priorityOptions}
                   placeholder="Select Priority"
                   required
                   badgeType="priority"
@@ -634,7 +647,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
               onClick={handleClose}
               className={getThemeClasses(
                 'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                'px-6 py-2.5 text-gray-300 hover:bg-[#424242] rounded-xl border border-gray-600 transition-all duration-200'
+                'px-6 py-2.5 text-gray-300 hover:bg-dark-hover rounded-xl border border-gray-600 transition-all duration-200'
               )}
             >
               Cancel

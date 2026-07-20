@@ -570,7 +570,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
             {/* Dependency Management Modal */}
             {showDependencyModal && dependencyTask && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className={`w-full max-w-lg rounded-3xl shadow-2xl p-6 border transition-all duration-300 ${theme === 'dark' ? 'bg-[#18181b] border-[#232323] text-zinc-100' : 'bg-white border-gray-100 text-gray-900'
+                    <div className={`w-full max-w-lg rounded-3xl shadow-2xl p-6 border transition-all duration-300 ${theme === 'dark' ? 'bg-dark-bg border-dark-card text-zinc-100' : 'bg-white border-gray-100 text-gray-900'
                         }`}>
                         <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-4 mb-5">
                             <div className="flex items-center gap-3">
@@ -652,7 +652,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                         <div
                                             key={item.TaskID || item._id}
                                             className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${theme === 'dark'
-                                                ? 'border-[#232323] hover:bg-zinc-800/40'
+                                                ? 'border-dark-card hover:bg-zinc-800/40'
                                                 : 'border-gray-100 hover:bg-gray-50/50'
                                                 }`}
                                         >

@@ -3,7 +3,7 @@ import React from 'react';
 const Reactions = ({ reactions, theme, isOwnMessage, userDetails, onSelectReaction }) => {
   if (!reactions || reactions.length === 0) return null;
 
-  const panel = theme === 'dark' ? 'bg-[#232323] text-[#F3F6FA]' : 'bg-white text-gray-900';
+  const panel = theme === 'dark' ? 'bg-dark-card text-[#F3F6FA]' : 'bg-white text-gray-900';
   const currentUserId = String(userDetails?._id || '');
 
   // Group reactions by emoji, count them, and check if current user reacted to it
@@ -32,7 +32,7 @@ const Reactions = ({ reactions, theme, isOwnMessage, userDetails, onSelectReacti
           className={`px-2 py-0.5 rounded-md border text-xs flex items-center gap-1 transition-colors ${
             hasReacted
               ? (theme === 'dark' ? 'bg-blue-900/60 border-blue-500 text-blue-200 font-semibold' : 'bg-blue-100 border-blue-400 text-blue-800 font-semibold')
-              : `${panel} ${theme === 'dark' ? 'border-[#424242] hover:bg-[#333]' : 'border-gray-200 hover:bg-gray-100'}`
+              : `${panel} ${theme === 'dark' ? 'border-dark-border hover:bg-[#333]' : 'border-gray-200 hover:bg-gray-100'}`
           }`}
         >
           <span>{emoji}</span>

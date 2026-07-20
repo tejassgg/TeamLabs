@@ -149,7 +149,7 @@ const ProjectsSkeleton = () => {
   return (
     <div className={getThemeClasses(
       'mx-auto bg-white text-gray-900',
-      'mx-auto bg-[#18181b] text-white'
+      'mx-auto bg-dark-bg text-white'
     )}>
       {/* Page Header Skeleton */}
       <div className="mb-8">

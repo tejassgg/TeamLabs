@@ -677,7 +677,7 @@ const TeamDropdown = ({ value, onChange, options, placeholder = 'Select Team', r
         disabled={disabled}
         className={getThemeClasses(
           'w-full px-4 py-2.5 rounded-xl bg-white text-left flex items-center justify-between border border-gray-200',
-          'dark:bg-[#232323] dark:text-gray-100 dark:border-gray-600'
+          'dark:bg-dark-card dark:text-gray-100 dark:border-gray-600'
         )}
       >
         <div className="flex items-center gap-2">
@@ -694,7 +694,7 @@ const TeamDropdown = ({ value, onChange, options, placeholder = 'Select Team', r
       {isOpen && (
         <div className={getThemeClasses(
           'absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-auto',
-          'dark:bg-[#232323] dark:border-gray-600'
+          'dark:bg-dark-card dark:border-gray-600'
         )}>
           <div className="p-2">
             <input
@@ -704,7 +704,7 @@ const TeamDropdown = ({ value, onChange, options, placeholder = 'Select Team', r
               placeholder="Search teams..."
               className={getThemeClasses(
                 'w-full px-3 py-2 mb-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                'dark:bg-[#232323] dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
+                'dark:bg-dark-card dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
               )}
             />
           </div>
@@ -733,7 +733,7 @@ const TeamDropdown = ({ value, onChange, options, placeholder = 'Select Team', r
                 }}
                 className={getThemeClasses(
                   `flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 cursor-pointer transition-colors ${isSelected ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}`,
-                  `dark:border-gray-700 ${isSelected ? 'dark:bg-blue-900/20' : 'dark:bg-[#232323] dark:hover:bg-[#2a2a2a]'}`
+                  `dark:border-gray-700 ${isSelected ? 'dark:bg-blue-900/20' : 'dark:bg-dark-card dark:hover:bg-[#2a2a2a]'}`
                 )}
                 style={{ minWidth: 300 }}
               >
@@ -934,7 +934,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
         )}
         <div className="">
           {loadingTeams ? (
-            <div className={`w-full px-4 py-2.5 rounded-xl border ${theme === 'dark' ? 'bg-[#232323] border-gray-600 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-500'}`}>Loading teams...</div>
+            <div className={`w-full px-4 py-2.5 rounded-xl border ${theme === 'dark' ? 'bg-dark-card border-gray-600 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-500'}`}>Loading teams...</div>
           ) : hasNoTeams ? (
             <div className={`text-center p-6 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-gray-700 bg-gray-800/10' : 'border-gray-300 bg-gray-50/10'} max-w-2xl mx-auto`}>
               <FaUsers className={`mx-auto mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={48} />

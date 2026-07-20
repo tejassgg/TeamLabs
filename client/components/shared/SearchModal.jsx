@@ -1045,7 +1045,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                           <span>{categoryTitles[cat]}</span>
                           <span className="text-xs font-normal font-mono">({group.totalCount})</span>
                         </span>
-                        <div className={`flex-1 border-t ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-100'}`}></div>
+                        <div className={`flex-1 border-t ${theme === 'dark' ? 'border-dark-card' : 'border-gray-100'}`}></div>
                       </div>
 
                       {/* Section Items */}

@@ -22,7 +22,7 @@ const MessageInput = ({
   userDetails
 }) => {
   const panel = theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900';
-  const border = theme === 'dark' ? 'border border-[#424242]' : 'border border-gray-200';
+  const border = theme === 'dark' ? 'border border-dark-border' : 'border border-gray-200';
   const isParticipant = (selectedConversation?.participants || []).some(p => String(p._id || p) === String(userDetails?._id));
 
   return (
@@ -36,8 +36,8 @@ const MessageInput = ({
           
           {/* Mention Dropdown */}
           {showMentions && selectedConversation?.isGroup && (
-            <div ref={mentionDropdownRef} className={`absolute bottom-full left-0 right-0 mb-2 z-50 rounded-lg border shadow-lg ${theme === 'dark' ? 'bg-[#232323] border-[#424242]' : 'bg-white border-gray-200'}`}>
-              <div className="p-2 border-b border-gray-200 dark:border-[#424242]">
+            <div ref={mentionDropdownRef} className={`absolute bottom-full left-0 right-0 mb-2 z-50 rounded-lg border shadow-lg ${theme === 'dark' ? 'bg-dark-card border-dark-border' : 'bg-white border-gray-200'}`}>
+              <div className="p-2 border-b border-gray-200 dark:border-dark-border">
                 <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
                   Mention a member
                 </div>
@@ -70,11 +70,11 @@ const MessageInput = ({
           )}
 
           <div className="flex items-center gap-1 lg:gap-2">
-            <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`}>
+            <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-dark-hover' : 'hover:bg-gray-100'}`}>
               <FaImage />
               <input type="file" accept="image/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} disabled={!isParticipant} />
             </label>
-            <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'}`}>
+            <label className={`p-2 rounded-lg cursor-pointer ${theme === 'dark' ? 'hover:bg-dark-hover' : 'hover:bg-gray-100'}`}>
               <FaVideo />
               <input type="file" accept="video/*" hidden onChange={(e) => handleUpload(e.target.files?.[0])} disabled={!isParticipant} />
             </label>
@@ -95,7 +95,7 @@ const MessageInput = ({
             />
             <button
               disabled={isSending || !isParticipant}
-              className={`px-2 lg:px-4 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-blue-50 text-blue-600'} flex items-center gap-1 lg:gap-2 touch-manipulation`}
+              className={`px-2 lg:px-4 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-dark-hover' : 'hover:bg-blue-50 text-blue-600'} flex items-center gap-1 lg:gap-2 touch-manipulation`}
               onClick={handleSend}
             >
               <FaPaperPlane className="text-sm" />

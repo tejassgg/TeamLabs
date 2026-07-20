@@ -464,7 +464,7 @@ const TimeSheet = () => {
         <div>
             <div className={getThemeClasses(
                 'w-full text-gray-900 lg:grid lg:grid-cols-5 lg:gap-4 flex flex-col-reverse mt-4',
-                'bg-[#18181b] text-white'
+                'bg-dark-bg text-white'
             )}>
                 {/* TimeSheet Table */}
                 <div className={`col-span-4`}>

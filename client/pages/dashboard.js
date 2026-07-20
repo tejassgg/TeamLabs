@@ -6,7 +6,6 @@ import { useGlobal } from '../context/GlobalContext';
 import { useToast } from '../context/ToastContext';
 import ProjectStatusDropdown from '../components/dashboard/ProjectStatusDropdown';
 import { FaTrash, FaProjectDiagram, FaChartBar, FaRedo, FaPlus, FaGripHorizontal, FaExpandAlt, FaCompressAlt, FaCog, FaTimes, FaUndo, FaWrench, FaCheck, FaClock, FaUserFriends, FaBell, FaComments, FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { getStatusConfig } from '../components/dashboard/StatusConfig';
 import api from '../services/api';
 import { projectService } from '../services/api';
 import { userService } from '../services/api';
@@ -32,7 +31,7 @@ DashboardCharts = require('../components/dashboard/DashboardCharts').default
 
 const Dashboard = () => {
   const { theme } = useTheme();
-  const { projectStatuses, getProjectStatus, teams, projects, userDetails, formatDateWithTime, loading, tasksDetails, setTasksDetails, organization } = useGlobal();
+  const { projectStatuses, getProjectStatus, teams, projects, userDetails, formatDateWithTime, loading, tasksDetails, setTasksDetails, organization, getMemberStatusBadgeComponent } = useGlobal();
   const { showToast } = useToast();
   const router = useRouter();
   const [stats, setStats] = useState(null);
@@ -671,7 +670,7 @@ const Dashboard = () => {
                     <span className="text-blue-600 dark:text-blue-400 font-bold">{whatsUpData?.topicsCount || 0} topics</span> to catch up on.
                   </h1>
                 </div>
-                <div className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full ${theme === 'dark' ? 'bg-[#18181b] text-zinc-400 border border-zinc-800' : 'bg-gray-100 text-gray-500'
+                <div className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full ${theme === 'dark' ? 'bg-dark-bg text-zinc-400 border border-zinc-800' : 'bg-gray-100 text-gray-500'
                   }`}>
                   <span>Updated just now</span>
                   <button
@@ -861,7 +860,7 @@ const Dashboard = () => {
                           key={comment.CommentID}
                           onClick={() => router.push(`/task/${comment.TaskID}`)}
                           className={`p-3 rounded-xl border cursor-pointer transition-all hover:border-blue-500 ${theme === 'dark'
-                            ? 'bg-[#18181b] border-zinc-800/80 hover:bg-zinc-850/50'
+                            ? 'bg-dark-bg border-zinc-800/80 hover:bg-zinc-850/50'
                             : 'bg-gray-50/50 border-gray-200/80 hover:bg-white hover:shadow-sm'
                             }`}
                         >
@@ -1023,9 +1022,9 @@ const Dashboard = () => {
 
         {!shouldShowWelcomeMessage && activeTab === 'manage' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-visible">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-visible">
               {/* Recent Projects */}
-              <div className={`${theme === 'dark' ? 'text-[#F3F6FA]' : 'bg-white text-gray-900'} overflow-visible`}>
+              <div className={`${theme === 'dark' ? 'text-[#F3F6FA]' : 'bg-white text-gray-900'} overflow-visible lg:col-span-2`}>
                 <h2 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Recent Projects</h2>
                 <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                   <div className="max-h-80 overflow-y-auto overflow-x-visible rounded-xl">
@@ -1050,7 +1049,7 @@ const Dashboard = () => {
                                   )}
                                 </div>
                               </td>
-                              <td className="py-2 px-4">
+                              <td className="py-2 px-4 whitespace-nowrap">
                                 <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}> {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'} </span>
                               </td>
                               <td className="py-2 px-4">
@@ -1089,15 +1088,12 @@ const Dashboard = () => {
                         <tr className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'} border-b`}>
                           <th className="py-3 px-4 text-left">Member</th>
                           <th className="py-3 px-4 text-left">Status</th>
-                          <th className="py-3 px-4 text-left">Role</th>
+                          <th className="py-3 px-4 text-left ">Role</th>
                           {isAdmin && <th className="py-3 px-4 text-center">Actions</th>}
                         </tr>
                       </thead>
                       <tbody>
                         {stats?.members?.map(member => {
-                          const statusConfig = getStatusConfig(member.status);
-                          const StatusIcon = statusConfig.icon;
-
                           return (
                             <tr key={member.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
                               <td className="py-3 px-4">
@@ -1112,19 +1108,9 @@ const Dashboard = () => {
                                 </div>
                               </td>
                               <td className="py-3 px-4">
-                                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium
-                              ${theme === 'dark'
-                                    ? 'bg-transparent border border-gray-700'
-                                    : 'bg-white border border-gray-200'}`}
-                                >
-                                  <StatusIcon className={`${statusConfig.color} text-sm`} />
-                                  <span className={theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-700'}> {statusConfig.label} </span>
-                                  {member.status === 'Active' && (
-                                    <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.color.replace('text', 'bg')} animate-pulse`}></span>
-                                  )}
-                                </div>
+                                {getMemberStatusBadgeComponent(member.status)}
                               </td>
-                              <td className="py-3 px-4">
+                              <td className="py-3 px-4 whitespace-nowrap">
                                 <span className={`text-sm ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}> {member.role} </span>
                               </td>
                               {isAdmin && userDetails.organizationID && (
@@ -1135,10 +1121,10 @@ const Dashboard = () => {
                                         setRemovingUser(member);
                                         setShowRemoveDialog(true);
                                       }}
-                                      className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-red-300 bg-[#232323] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
+                                      className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-red-300 bg-dark-card hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
                                       title="Remove Member"
                                     >
-                                      <FaTrash size={14} />
+                                      <FaTimes size={14} />
                                     </button>
                                   </div>
                                 </td>
@@ -1160,7 +1146,7 @@ const Dashboard = () => {
 
             {/* Invites Section - Only for Admins */}
             {isAdmin && userDetails.organizationID && (
-              <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA]' : 'bg-white text-gray-900'}`}>
+              <div className={`max-w-7xl ${theme === 'dark' ? 'bg-transparent text-[#F3F6FA]' : 'bg-white text-gray-900'}`}>
                 <div className={`flex items-center justify-between mb-2`}>
                   <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'} flex items-center gap-2`}>
                     Pending Invites
@@ -1186,13 +1172,13 @@ const Dashboard = () => {
                     <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                       <div className="overflow-x-auto overflow-y-auto max-h-[400px] rounded-xl">
                         <table className="w-full ">
-                          <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-[#18181b]' : 'bg-gray-50'}`}>
+                          <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-dark-bg' : 'bg-gray-50'}`}>
                             <tr className={`${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} border-b`}>
                               <th className="py-3 px-4 text-left">Email</th>
-                              <th className="py-3 px-4 text-left">Status</th>
-                              <th className="py-3 px-4 text-left">Invited By</th>
                               <th className="py-3 px-4 text-left">Invited On</th>
+                              <th className="py-3 px-4 text-left">Invited By</th>
                               <th className="py-3 px-4 text-left">Expires</th>
+                              <th className="py-3 px-4 text-left">Status</th>
                               <th className="py-3 px-4 text-center">Actions</th>
                             </tr>
                           </thead>
@@ -1205,9 +1191,8 @@ const Dashboard = () => {
                                     <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{invite.email}</span>
                                   </td>
                                   <td className="py-3 px-4">
-                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${statusBadge.bgColor} ${statusBadge.textColor} border ${statusBadge.borderColor}`}>
-                                      {statusBadge.icon && <statusBadge.icon className={statusBadge.iconColor} size={14} />}
-                                      {statusBadge.text}
+                                    <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
+                                      {formatDateWithTime(invite.invitedAt)}
                                     </span>
                                   </td>
                                   <td className="py-3 px-4">
@@ -1217,12 +1202,13 @@ const Dashboard = () => {
                                   </td>
                                   <td className="py-3 px-4">
                                     <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
-                                      {formatDateWithTime(invite.invitedAt)}
+                                      {getTimeUntilExpiry(invite.expiredAt)}
                                     </span>
                                   </td>
                                   <td className="py-3 px-4">
-                                    <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
-                                      {getTimeUntilExpiry(invite.expiredAt)}
+                                    <span className={`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${statusBadge.bgColor} ${statusBadge.textColor} border ${statusBadge.borderColor}`}>
+                                      {statusBadge.icon && <statusBadge.icon className={statusBadge.iconColor} size={14} />}
+                                      {statusBadge.text}
                                     </span>
                                   </td>
                                   <td className="py-3 px-4 text-center">
@@ -1230,7 +1216,7 @@ const Dashboard = () => {
                                       {invite.status === 'Pending' && (
                                         <button
                                           onClick={() => handleResendInvite(invite._id)}
-                                          className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-blue-300 bg-[#232323] hover:bg-blue-900' : 'text-blue-700 bg-blue-100 hover:bg-blue-200'}`}
+                                          className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-blue-300 bg-dark-card hover:bg-blue-900' : 'text-blue-700 bg-blue-100 hover:bg-blue-200'}`}
                                           title="Resend Invite"
                                         >
                                           <FaRedo size={14} />
@@ -1239,7 +1225,7 @@ const Dashboard = () => {
                                       {invite.status !== 'Accepted' && (
                                         <button
                                           onClick={() => handleDeleteInvite(invite._id)}
-                                          className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-red-300 bg-[#232323] hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
+                                          className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-red-300 bg-dark-card hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
                                           title="Delete Invite"
                                         >
                                           <FaTrash size={14} />
@@ -1271,7 +1257,7 @@ const Dashboard = () => {
         {/* Remove Member Confirmation Dialog */}
         {showRemoveDialog && removingUser && (
           <div className={`fixed inset-0 flex items-center justify-center z-50 ${theme === 'dark' ? 'bg-black/70' : 'bg-black/50'}`}>
-            <div className={`rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border ${theme === 'dark' ? 'bg-[#232323] border-[#424242] text-[#F3F6FA]' : 'bg-white border-gray-100'}`}>
+            <div className={`rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border ${theme === 'dark' ? 'bg-dark-card border-dark-border text-[#F3F6FA]' : 'bg-white border-gray-100'}`}>
               <div className="flex items-center gap-3 mb-4">
                 <span className="w-3 h-3 rounded-full bg-red-500"></span>
                 <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : ''}`}>Remove Member</h3>
@@ -1283,7 +1269,7 @@ const Dashboard = () => {
                     setShowRemoveDialog(false);
                     setRemovingUser(null);
                   }}
-                  className={`px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark' ? 'text-[#B0B8C1] border-[#424242] hover:bg-[#232323]' : 'text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                  className={`px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark' ? 'text-[#B0B8C1] border-dark-border hover:bg-dark-card' : 'text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                 >
                   Cancel
                 </button>
@@ -1313,7 +1299,7 @@ const Dashboard = () => {
           }))}
           onInviteSent={() => {
             if (userDetails?.organizationID) {
-              api.get(`/dashboard/${userDetails.organizationID}`).then(res => setStats(res.data)).catch(() => {});
+              api.get(`/dashboard/${userDetails.organizationID}`).then(res => setStats(res.data)).catch(() => { });
             }
           }}
         />

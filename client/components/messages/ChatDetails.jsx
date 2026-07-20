@@ -34,7 +34,7 @@ const ChatDetails = ({
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isDetailsAnimating ? 'opacity-0' : 'opacity-100'}`}
         onClick={handleCloseDetails}
       />
-      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isDetailsAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
+      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-dark-card' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isDetailsAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
 
         {convDetails && (
           <>
@@ -99,9 +99,9 @@ const ChatDetails = ({
                   <div className="text-xs opacity-75">Created {convDetails.createdAt ? new Date(convDetails.createdAt).toLocaleString() : ''}</div>
                 </div>
               </div>
-              <button className={`${theme === 'dark' ? 'hover:bg-[#424242]' : 'hover:bg-gray-100'} rounded-lg px-3 py-1 touch-manipulation`} onClick={handleCloseDetails}><FaTimes /></button>
+              <button className={`${theme === 'dark' ? 'hover:bg-dark-hover' : 'hover:bg-gray-100'} rounded-lg px-3 py-1 touch-manipulation`} onClick={handleCloseDetails}><FaTimes /></button>
             </div>
-            <div className={`border-b mb-4 ${theme === 'dark' ? 'border-[#424242]' : 'border-gray-200'}`}>
+            <div className={`border-b mb-4 ${theme === 'dark' ? 'border-dark-border' : 'border-gray-200'}`}>
               <nav className="-mb-px flex items-center justify-between">
                 <div className="flex space-x-8">
                   {(convDetails.isGroup ? ['details', 'files', 'links'] : ['files', 'links']).map(tab => (
@@ -233,8 +233,8 @@ export function AddMembersDropdown({ theme, panel, orgUsers, onAdd }) {
         {selected.length === 0 ? 'Select members to add' : `${selected.length} selected`}
       </button>
       {open && (
-        <div className={`absolute bottom-full left-0 right-0 mb-1 z-50 rounded-lg border shadow-lg ${theme === 'dark' ? 'bg-[#232323] border-[#424242]' : 'bg-white border-gray-200'} flex flex-col max-h-64`}>
-          <div className="p-2 border-b border-gray-200 dark:border-[#424242]">
+        <div className={`absolute bottom-full left-0 right-0 mb-1 z-50 rounded-lg border shadow-lg ${theme === 'dark' ? 'bg-dark-card border-dark-border' : 'bg-white border-gray-200'} flex flex-col max-h-64`}>
+          <div className="p-2 border-b border-gray-200 dark:border-dark-border">
             <div className="relative">
               <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={12} />
               <input
@@ -265,7 +265,7 @@ export function AddMembersDropdown({ theme, panel, orgUsers, onAdd }) {
             })}
           </div>
           {selected.length > 0 && (
-            <div className="p-2 border-t border-gray-200 dark:border-[#424242]">
+            <div className="p-2 border-t border-gray-200 dark:border-dark-border">
               <button
                 type="button"
                 onClick={() => {

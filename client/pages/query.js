@@ -291,7 +291,7 @@ const QueryBoard = () => {
                   ref={filterPopoverRef}
                   className={getThemeClasses(
                     `absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-white border-gray-200`,
-                    `absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-[#232323] border-gray-600`
+                    `absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-dark-card border-gray-600`
                   )}
                   role="dialog"
                   aria-label="Filters"
@@ -465,7 +465,7 @@ const QueryBoard = () => {
             {/* Desktop Table View */}
             <div className={`overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)] custom-scrollbar mb-2 rounded-xl border ${getThemeClasses('bg-white border-gray-200 shadow', 'dark:bg-transparent dark:border-gray-700')} hidden lg:block`}>
               <table className="w-full table-fixed">
-                <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#18181b] border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+                <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-dark-bg border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
                   <tr className={getTableHeaderClasses()}>
                     <th
                       className={`text-left py-3 px-4 font-semibold text-sm cursor-pointer select-none w-[30%] hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 ${getTableHeaderTextClasses()}`}

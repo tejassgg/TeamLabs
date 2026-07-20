@@ -32,7 +32,7 @@ const TaskDetailsSchema = new mongoose.Schema({
   },
   Priority: {
     type: String,
-    enum: ['High', 'Medium', 'Low'],
+    enum: ['Critical', 'High', 'Medium', 'Low'],
     default: 'Medium',
     required: function() {
       return this.Type !== 'User Story';

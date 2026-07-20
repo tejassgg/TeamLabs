@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const TeamDetails = require('../models/TeamDetails');
 const { protect } = require('../middleware/auth');
-const { inviteUser, getInvites, resendInvite, deleteInvite, getUserOverview, generateInviteToken } = require('../controllers/userController');
+const { inviteUser, getInvites, resendInvite, deleteInvite, getUserOverview, generateInviteToken, updateUserRole } = require('../controllers/userController');
 const { emitToOrg } = require('../socket');
 
 // GET /api/users/:userId/usage-limits - Get user's usage limits and premium status
@@ -125,5 +125,6 @@ router.post('/invite', protect, inviteUser);
 router.get('/invites', protect, getInvites);
 router.post('/invites/:inviteId/resend', protect, resendInvite);
 router.delete('/invites/:inviteId', protect, deleteInvite);
+router.patch('/:userId/role', protect, updateUserRole);
 
 module.exports = router; 

@@ -1,0 +1,35 @@
+[
+  { "Value": "Critical", "Code": 0, "MasterType": "PriorityType" },
+  { "Value": "High", "Code": 1, "MasterType": "PriorityType" },
+  { "Value": "Medium", "Code": 2, "MasterType": "PriorityType" },
+  { "Value": "Low", "Code": 3, "MasterType": "PriorityType" },
+
+  { "Value": "Not Assigned", "Code": 1, "MasterType": "TaskStatus" },
+  { "Value": "Assigned", "Code": 2, "MasterType": "TaskStatus" },
+  { "Value": "In Progress", "Code": 3, "MasterType": "TaskStatus" },
+  { "Value": "QA", "Code": 4, "MasterType": "TaskStatus" },
+  { "Value": "Deployment", "Code": 5, "MasterType": "TaskStatus" },
+  { "Value": "Completed", "Code": 6, "MasterType": "TaskStatus" },
+
+  { "Value": "Not Assigned", "Code": 1, "MasterType": "ProjectStatus" },
+  { "Value": "Assigned", "Code": 2, "MasterType": "ProjectStatus" },
+  { "Value": "In Progress", "Code": 3, "MasterType": "ProjectStatus" },
+  { "Value": "QA", "Code": 4, "MasterType": "ProjectStatus" },
+  { "Value": "Deployment", "Code": 5, "MasterType": "ProjectStatus" },
+  { "Value": "Completed", "Code": 6, "MasterType": "ProjectStatus" },
+
+  { "Value": "Task", "Code": 1, "MasterType": "TaskType" },
+  { "Value": "Bug", "Code": 2, "MasterType": "TaskType" },
+  { "Value": "Feature", "Code": 3, "MasterType": "TaskType" },
+  { "Value": "Improvement", "Code": 4, "MasterType": "TaskType" },
+  { "Value": "User Story", "Code": 5, "MasterType": "TaskType" },
+  { "Value": "Documentation", "Code": 6, "MasterType": "TaskType" },
+  { "Value": "Maintenance", "Code": 7, "MasterType": "TaskType" },
+
+  { "Value": "Development", "Code": 1, "MasterType": "TeamType" },
+  { "Value": "Quality Analysis", "Code": 2, "MasterType": "TeamType" },
+  { "Value": "Code Verification", "Code": 3, "MasterType": "TeamType" },
+  { "Value": "Deployment", "Code": 4, "MasterType": "TeamType" },
+  { "Value": "Service Integration", "Code": 5, "MasterType": "TeamType" },
+  { "Value": "InHouse", "Code": 6, "MasterType": "TeamType" }
+]

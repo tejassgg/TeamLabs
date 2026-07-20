@@ -176,7 +176,7 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
 
   const borderClass = theme === 'dark' ? 'border-zinc-800' : 'border-gray-200';
   const cardClass = theme === 'dark' ? 'bg-[#1e1e24] border-zinc-800 dark:shadow-none' : 'bg-white border-gray-200 shadow-sm';
-  const inputClass = theme === 'dark' ? 'bg-[#18181b] border-zinc-800 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500' : 'bg-gray-50 border-gray-200 text-slate-950 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500';
+  const inputClass = theme === 'dark' ? 'bg-dark-bg border-zinc-800 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500' : 'bg-gray-50 border-gray-200 text-slate-950 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500';
 
   return (
     <div className="space-y-6">
@@ -316,11 +316,11 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
                   value={releaseNotes}
                   onChange={e => setReleaseNotes(e.target.value)}
                   placeholder="The AI-generated changelog draft will appear here, or you can start typing your own notes manually..."
-                  className={`w-full flex-1 min-h-[250px] p-4 rounded-xl border text-sm font-mono outline-none resize-none ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800 text-zinc-300 focus:border-emerald-500 focus:ring-1' : 'bg-gray-50 border-gray-200 text-slate-800 focus:border-emerald-500 focus:ring-1'
+                  className={`w-full flex-1 min-h-[250px] p-4 rounded-xl border text-sm font-mono outline-none resize-none ${theme === 'dark' ? 'bg-dark-bg border-zinc-800 text-zinc-300 focus:border-emerald-500 focus:ring-1' : 'bg-gray-50 border-gray-200 text-slate-800 focus:border-emerald-500 focus:ring-1'
                     }`}
                 />
               ) : (
-                <div className={`w-full flex-1 min-h-[250px] p-5 rounded-xl border overflow-y-auto max-h-[350px] ${theme === 'dark' ? 'bg-[#18181b] border-zinc-800' : 'bg-gray-50 border-gray-200'
+                <div className={`w-full flex-1 min-h-[250px] p-5 rounded-xl border overflow-y-auto max-h-[350px] ${theme === 'dark' ? 'bg-dark-bg border-zinc-800' : 'bg-gray-50 border-gray-200'
                   }`}>
                   {renderMarkdown(releaseNotes)}
                 </div>

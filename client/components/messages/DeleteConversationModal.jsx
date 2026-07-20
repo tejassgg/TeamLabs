@@ -16,7 +16,7 @@ const DeleteConversationModal = ({
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/40" onClick={() => setShowDeleteDialog(false)} />
-      <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md rounded-xl border ${theme === 'dark' ? 'bg-[#18181b] text-white border-[#424242]' : 'bg-white text-gray-900 border-gray-200'} p-6 shadow-xl`}>
+      <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md rounded-xl border ${theme === 'dark' ? 'bg-dark-bg text-white border-dark-border' : 'bg-white text-gray-900 border-gray-200'} p-6 shadow-xl`}>
         <div className="flex items-center gap-3 mb-4">
           <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold ${theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-600'}`}>
             <FaTimes />
@@ -29,7 +29,7 @@ const DeleteConversationModal = ({
           </div>
         </div>
 
-        <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-[#232323] border border-[#424242]' : 'bg-gray-50 border border-gray-200'}`}>
+        <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-dark-card border border-dark-border' : 'bg-gray-50 border border-gray-200'}`}>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
             This action will:
           </p>

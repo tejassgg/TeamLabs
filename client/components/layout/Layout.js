@@ -16,6 +16,7 @@ import { useThemeClasses } from '../shared/hooks/useThemeClasses';
 import ReleaseNotificationBanner from '../shared/ReleaseNotificationBanner';
 import useReleaseNotifications from '../../hooks/useReleaseNotifications';
 import SearchModal from '../shared/SearchModal';
+import ProjectPriorityBadge from '../shared/ProjectPriorityBadge';
 
 const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const { theme, toggleTheme } = useTheme();
@@ -112,7 +113,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                 ? 'bg-blue-800 text-white font-bold'
                 : 'bg-blue-100 text-blue-700 font-bold'} shadow-sm`
               : theme === 'dark'
-                ? 'hover:bg-[#424242] text-blue-200'
+                ? 'hover:bg-dark-hover text-blue-200'
                 : 'hover:bg-blue-100 text-blue-600'}
             ${!isMobile && collapsed ? 'px-0 justify-center' : 'px-3 justify-start'}
           `}
@@ -130,7 +131,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
         {!isMobile && collapsed && showTooltip && (
           <TooltipPortal position={tooltipPos}>
             <div className={`px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-50 text-sm font-semibold
-              ${theme === 'dark' ? 'bg-[#424242] text-[#F3F6FA]' : 'bg-white text-gray-900 border border-gray-200'}`}
+              ${theme === 'dark' ? 'bg-dark-hover text-[#F3F6FA]' : 'bg-white text-gray-900 border border-gray-200'}`}
             >
               {label}
             </div>
@@ -143,7 +144,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   return (
     <>
       <aside className={`fixed top-0 left-0 h-[111.2vh] z-40 transition-all duration-500 ease-in-out
-          ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'}
+          ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'}
           flex flex-col justify-between shadow-2xl
           ${isMobile ?
           `w-64 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}` :
@@ -157,7 +158,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
         }}
       >
         {/* Top: Logo & Collapse Button */}
-        <div className={`flex items-center justify-between p-3 border-b ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
+        <div className={`flex items-center justify-between p-3 border-b ${theme === 'dark' ? 'border-dark-card' : 'border-gray-200'} bg-transparent`}>
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {/* Dynamic Org Initials */}
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg flex-shrink-0 ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
@@ -175,7 +176,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           </div>
           {!isMobile && (
             <button
-              className={`p-1.5 rounded-full transition-all duration-300 ease-in-out transform hover:scale-110 flex-shrink-0 ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+              className={`p-1.5 rounded-full transition-all duration-300 ease-in-out transform hover:scale-110 flex-shrink-0 ${theme === 'dark' ? 'hover:bg-dark-hover text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
               onClick={handleCollapseToggle}
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
@@ -264,7 +265,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
               {(!isMobile && collapsed) ? null : (
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
-                    className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                    className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-dark-hover text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
                     aria-label="Add new team"
                     title="Add Team"
                     onClick={(e) => {
@@ -275,7 +276,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                     <FaPlus size={12} />
                   </button>
                   <button
-                    className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                    className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-dark-hover text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
                     aria-label={`${isTeamsOpen ? 'Collapse' : 'Expand'} Teams`}
                     onClick={() => setIsTeamsOpen((prev) => !prev)}
                   >
@@ -297,12 +298,15 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                     return (
                       <li key={teamId}>
                         <button
-                          className={`w-full text-left px-2 py-1 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeTeamId === teamId
-                            ? (theme === 'dark' ? 'bg-blue-900 text-blue-200 font-medium' : 'bg-blue-50 text-blue-600 font-medium')
-                            : (theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-gray-100')}`}
+                          className={`w-full text-left px-2 py-1.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeTeamId === teamId
+                            ? (theme === 'dark' ? 'bg-blue-900/60 text-blue-200 font-medium' : 'bg-blue-50 text-blue-600 font-medium')
+                            : (theme === 'dark' ? 'hover:bg-dark-hover text-blue-200' : 'hover:bg-gray-100')}`}
                           onClick={() => handleNavigation(`/team/${teamId}`)}
+                          title={teamName}
                         >
-                          {teamName}
+                          <span className="flex items-center justify-between gap-1.5 w-full">
+                            <span className="truncate text-sm font-medium">{teamName}</span>
+                          </span>
                         </button>
                       </li>
                     );
@@ -327,7 +331,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
               {(!isMobile && collapsed) ? null : (
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
-                    className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                    className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-dark-hover text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
                     aria-label="Add new project"
                     title="Add Project"
                     onClick={(e) => {
@@ -338,7 +342,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                     <FaPlus size={12} />
                   </button>
                   <button
-                    className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
+                    className={`p-1.5 rounded-full transition ${theme === 'dark' ? 'hover:bg-dark-hover text-blue-200' : 'hover:bg-blue-100 text-blue-600'}`}
                     aria-label={`${isProjectsOpen ? 'Collapse' : 'Expand'} Projects`}
                     onClick={() => setIsProjectsOpen((prev) => !prev)}
                   >
@@ -355,23 +359,28 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                   projects.map((project) => {
                     if (!project || !project.ProjectID) return null;
                     const projectId = project.ProjectID || project._id;
-                    const projectName = project.Name || 'Unnamed Project';
+                    const rawName = project.Name || 'Unnamed Project';
+                    const displayName = rawName.length > 18 ? `${rawName.slice(0, 18)}...` : rawName;
 
                     return (
                       <li key={projectId}>
                         <button
-                          className={`w-full text-left px-2 py-1 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeProjectId === projectId
-                            ? (theme === 'dark' ? 'bg-blue-900 text-blue-200 font-medium' : 'bg-blue-50 text-blue-600 font-medium')
-                            : (theme === 'dark' ? 'hover:bg-[#424242] text-blue-200' : 'hover:bg-gray-100')}`}
+                          className={`w-full text-left px-2 py-1.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeProjectId === projectId
+                            ? (theme === 'dark' ? 'bg-blue-900/60 text-blue-200 font-medium' : 'bg-blue-50 text-blue-600 font-medium')
+                            : (theme === 'dark' ? 'hover:bg-dark-hover text-blue-200' : 'hover:bg-gray-100')}`}
                           onClick={() => handleNavigation(`/project/${projectId}`)}
+                          title={rawName}
                         >
-                          <span className="flex items-center justify-between">
-                            <span className="truncate">{projectName}</span>
-                            {project.isArchived && (
-                              <span className="text-[9px] opacity-60 ml-1.5 font-normal uppercase tracking-wider flex-shrink-0">
-                                (Archived)
-                              </span>
-                            )}
+                          <span className="flex items-center justify-between gap-1.5 w-full">
+                            <span className="truncate text-sm font-medium">{displayName}</span>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              {project.isArchived && (
+                                <span className="text-[9px] opacity-60 font-normal uppercase tracking-wider">
+                                  (Archived)
+                                </span>
+                              )}
+                              <ProjectPriorityBadge priority={project.Priority} />
+                            </div>
                           </span>
                         </button>
                       </li>
@@ -385,12 +394,11 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
         </nav>
 
         {/* Bottom: Logout & Theme Switch */}
-        <div className={`flex flex-col gap-1.5 p-4 border-t ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} bg-transparent`}>
+        <div className={`flex flex-col gap-1.5 p-4 border-t ${theme === 'dark' ? 'border-dark-border' : 'border-gray-200'} bg-transparent`}>
           {/* Upgrade to Premium Button - Only show for admin users without premium */}
           {userDetails?.role === 'Admin' && !userDetails?.isPremiumMember && (!isMobile && !collapsed) && (
             <button onClick={() => handleNavigation('/settings?tab=billing')}
-              className={`w-full flex items-center ${(!isMobile && collapsed) ? 'justify-center gap-2' : 'justify-between gap-3'} px-3 py-2 rounded-xl font-medium transition-all duration-200 border ${theme === 'dark' ? 'bg-[#232323] border-[#424242] text-[#F3F6FA] hover:bg-[#2a2a2a]' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                }`} >
+              className={`w-full flex items-center ${(!isMobile && collapsed) ? 'justify-center gap-2' : 'justify-between gap-3'} px-3 py-2 rounded-xl font-medium transition-all duration-200 border ${theme === 'dark' ? 'bg-dark-bg border-dark-border text-white hover:bg-dark-hover' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'}`} >
               <div className="flex items-center gap-2">
                 <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Upgrade to</span>
                 <span className="px-2 py-1 rounded-md bg-black text-white text-xs font-semibold tracking-wide">PRO</span>
@@ -773,12 +781,12 @@ const Layout = ({ children, pageProject, pageTitle }) => {
   }, [userDetails, loading, router.pathname, isRedirecting]);
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#18181b] text-white' : 'bg-white text-gray-900'}`}>
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'}`}>
       <div id="mobile-sidebar">
         <Sidebar isMobile={isMobile} isOpen={isMobileSidebarOpen} setIsOpen={setIsMobileSidebarOpen} setSidebarCollapsed={setSidebarCollapsed} />
       </div>
       {/* Mobile Navbar with Hamburger */}
-      <div className={`lg:hidden fixed top-0 left-0 right-0 z-30 ${theme === 'dark' ? 'bg-[#232323]/95 backdrop-blur-sm border-b border-gray-800' : 'bg-white/95 backdrop-blur-sm border-b border-gray-200'} shadow-md`}>
+      <div className={`lg:hidden fixed top-0 left-0 right-0 z-30 ${theme === 'dark' ? 'bg-dark-card/95 backdrop-blur-sm border-b border-gray-800' : 'bg-white/95 backdrop-blur-sm border-b border-gray-200'} shadow-md`}>
         <div className="px-4 flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <button
@@ -826,7 +834,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
             </div>
           </div>
         )}
-        <main className={`overflow-y-auto min-h-[calc(100vh-80px)] p-2 ${theme === 'dark' ? 'bg-[#18181b] text-white' : ''}`}>
+        <main className={`overflow-y-auto min-h-[calc(100vh-80px)] p-2 ${theme === 'dark' ? 'bg-dark-bg text-white' : ''}`}>
           {/* Release Notification Banner */}
           {latestRelease && (
             <div className="py-2" data-release-banner>

@@ -334,7 +334,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
 
           {/* Tabs */}
           <div className={`flex space-x-2 ${theme === 'dark'
-            ? 'bg-[#18181b] p-1 border border-zinc-800'
+            ? 'bg-dark-bg p-1 border border-zinc-800'
             : 'bg-gray-100 p-1'
             } rounded-xl transition-all duration-300`}>
             <button
@@ -392,7 +392,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                             ? 'bg-emerald-500/10 border-2 border-emerald-400 shadow-lg shadow-emerald-500/20'
                             : 'bg-emerald-50 border-2 border-emerald-500 shadow-lg shadow-emerald-500/20'
                           : theme === 'dark'
-                            ? 'bg-[#1e1e24] border border-zinc-800 hover:border-zinc-700 hover:bg-[#18181b]'
+                            ? 'bg-[#1e1e24] border border-zinc-800 hover:border-zinc-700 hover:bg-dark-bg'
                             : 'bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                           }`}
                         onClick={() => setReportType(type.value)}
@@ -455,7 +455,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
                           className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
-                            ? 'bg-[#18181b] border-zinc-800 text-white placeholder-zinc-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
+                            ? 'bg-dark-bg border-zinc-800 text-white placeholder-zinc-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
                             : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                             }`}
                         />
@@ -472,7 +472,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
                           className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
-                            ? 'bg-[#18181b] border-zinc-800 text-white placeholder-zinc-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
+                            ? 'bg-dark-bg border-zinc-800 text-white placeholder-zinc-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
                             : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                             }`}
                         />
@@ -569,7 +569,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                                         ? 'bg-emerald-500 border-emerald-400'
                                         : 'bg-emerald-500 border-emerald-500'
                                       : theme === 'dark'
-                                        ? 'border-zinc-800 bg-[#18181b]'
+                                        ? 'border-zinc-800 bg-dark-bg'
                                         : 'border-gray-300 bg-white'
                                       }`}
                                   />
@@ -614,7 +614,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                                       ? 'bg-emerald-500/10 border-2 border-emerald-400 text-emerald-400'
                                       : 'bg-emerald-50 border-2 border-emerald-500 text-emerald-600'
                                     : theme === 'dark'
-                                      ? 'bg-[#18181b] border border-zinc-800 text-zinc-300 hover:bg-zinc-800'
+                                      ? 'bg-dark-bg border border-zinc-800 text-zinc-300 hover:bg-zinc-800'
                                       : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
                                     }`}
                                 >
@@ -639,7 +639,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                               placeholder="Add specific instructions for the AI report generation..."
                               rows={3}
                               className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none ${theme === 'dark'
-                                ? 'bg-[#18181b] border-zinc-800 text-white placeholder-zinc-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
+                                ? 'bg-dark-bg border-zinc-800 text-white placeholder-zinc-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
                                 : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                                 }`}
                             />
@@ -657,7 +657,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                               value={advancedOptions.language}
                               onChange={(e) => setAdvancedOptions(prev => ({ ...prev, language: e.target.value }))}
                               className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${theme === 'dark'
-                                ? 'bg-[#18181b] border-zinc-800 text-white'
+                                ? 'bg-dark-bg border-zinc-800 text-white'
                                 : 'bg-gray-50 border-gray-300 text-gray-900'
                                 }`}
                             >
@@ -907,7 +907,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                     <button
                       onClick={() => setGeneratedReport(null)}
                       className={`px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base ${theme === 'dark'
-                        ? 'bg-[#18181b] hover:bg-zinc-800 text-white border border-zinc-800'
+                        ? 'bg-dark-bg hover:bg-zinc-800 text-white border border-zinc-800'
                         : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                         }`}
                     >
@@ -1195,7 +1195,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                       ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                       : 'text-gray-500 cursor-not-allowed'
                     : theme === 'dark'
-                      ? 'bg-[#18181b] hover:bg-zinc-800 text-white border border-zinc-800'
+                      ? 'bg-dark-bg hover:bg-zinc-800 text-white border border-zinc-800'
                       : 'hover:bg-gray-300 text-gray-700'
                     }`}
                 >
@@ -1245,7 +1245,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                     <div
                       key={report.reportId}
                       className={`p-4 sm:p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.01] ${theme === 'dark'
-                        ? 'bg-[#1e1e24] border-zinc-800 hover:border-zinc-700 hover:bg-[#18181b]'
+                        ? 'bg-[#1e1e24] border-zinc-800 hover:border-zinc-700 hover:bg-dark-bg'
                         : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }`}
                     >
