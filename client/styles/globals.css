@@ -189,3 +189,15 @@ select[disabled],
 [disabled] {
   cursor: not-allowed !important;
 }
+
+/* Hide scrollbars globally across the entire application */
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+* {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}

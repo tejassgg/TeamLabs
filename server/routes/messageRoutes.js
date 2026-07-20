@@ -705,7 +705,7 @@ router.post('/messages/:messageId/reactions', protect, async (req, res) => {
     // - If the same emoji is already set by the user, remove it (toggle off)
     // - If a different emoji exists by the user, replace it with the new one
     const userIdStr = String(req.user._id);
-    const existingByUserIdx = message.reactions.findIndex(r => String(r.user) === userIdStr);
+    const existingByUserIdx = message.reactions.findIndex(r => String(r.user?._id || r.user) === userIdStr);
     if (existingByUserIdx >= 0) {
       const existing = message.reactions[existingByUserIdx];
       if (existing.emoji === emoji) {

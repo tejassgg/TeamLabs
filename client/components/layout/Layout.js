@@ -109,12 +109,12 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           className={`flex items-center gap-3 w-full py-1 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-sm
             ${active
               ? `${theme === 'dark'
-                ? 'bg-blue-800 text-white font-bold border-l-4 border-blue-400'
-                : 'bg-blue-100 text-blue-700 font-bold border-l-4 border-blue-500'} shadow-sm`
+                ? 'bg-blue-800 text-white font-bold'
+                : 'bg-blue-100 text-blue-700 font-bold'} shadow-sm`
               : theme === 'dark'
-                ? 'hover:bg-[#424242] text-blue-200 border-l-4 border-transparent'
-                : 'hover:bg-blue-100 text-blue-600 border-l-4 border-transparent'}
-            ${!isMobile && collapsed ? 'px-0 justify-center border-r-4 border-r-transparent' : 'px-3 justify-start'}
+                ? 'hover:bg-[#424242] text-blue-200'
+                : 'hover:bg-blue-100 text-blue-600'}
+            ${!isMobile && collapsed ? 'px-0 justify-center' : 'px-3 justify-start'}
           `}
           onClick={onClick}
           tabIndex={0}
@@ -799,7 +799,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
         <main className={`overflow-y-auto min-h-[calc(100vh-80px)] ${theme === 'dark' ? 'bg-[#18181b] text-white' : ''}`}>
           {/* Release Notification Banner */}
           {latestRelease && (
-            <div className="p-2" data-release-banner>
+            <div className="py-2" data-release-banner>
               <ReleaseNotificationBanner
                 releaseData={latestRelease}
                 onClose={() => {
@@ -810,8 +810,8 @@ const Layout = ({ children, pageProject, pageTitle }) => {
             </div>
           )}
 
-          <div className="p-2">
-            {!hideBreadcrumbOnMobile && (
+          {!hideBreadcrumbOnMobile && router.pathname !== '/messages' && (
+            <div className="px-2">
               <DynamicBreadcrumb
                 teams={teams}
                 projects={projects}
@@ -829,9 +829,9 @@ const Layout = ({ children, pageProject, pageTitle }) => {
                 setEditingProjectName={setEditingProjectName}
                 setEditingTaskName={setEditingTaskName}
               />
-            )}
-            {children}
-          </div>
+            </div>
+          )}
+          {children}
         </main>
       </div>
       {/* Overlay for mobile when sidebar is open */}
