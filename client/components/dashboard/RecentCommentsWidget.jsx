@@ -43,10 +43,10 @@ const RecentCommentsWidget = ({ organizationId, theme }) => {
 
   return (
     <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${theme === 'dark'
-        ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl'
+        ? 'bg-[#18181b] border-zinc-800/80'
         : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
       }`}>
-      <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200/10">
+      <div className="flex items-center justify-between pb-4 mb-4 border-b border-dark-border/40">
         <div>
           <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
             <FaComments className="text-blue-500 animate-pulse" />
@@ -59,7 +59,7 @@ const RecentCommentsWidget = ({ organizationId, theme }) => {
         <button
           onClick={fetchComments}
           disabled={loading}
-          className={`p-2 rounded-lg transition-all ${theme === 'dark' ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'
+          className={`p-2 rounded-lg transition-all ${theme === 'dark' ? 'hover:bg-dark-hover text-slate-400' : 'hover:bg-slate-100 text-slate-600'
             }`}
           title="Refresh comments"
         >
@@ -91,7 +91,7 @@ const RecentCommentsWidget = ({ organizationId, theme }) => {
           <div
             key={comment.CommentID}
             className={`p-3 rounded-xl mb-3 border transition-all duration-200 ${theme === 'dark'
-                ? 'bg-slate-900/40 border-white/5 hover:border-white/10'
+                ? 'bg-dark-bg/40 border-dark-border/40 hover:border-dark-border'
                 : 'bg-slate-50 border-slate-200/50 hover:border-slate-200'
               }`}
           >

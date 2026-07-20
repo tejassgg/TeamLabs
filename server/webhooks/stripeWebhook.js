@@ -54,6 +54,16 @@ exports.handle = async (req, res) => {
         }
         const users = await User.find({ organizationID: String(organizationID) });
         await Promise.all(users.map(u => u.activatePremium(plan, currentPeriodStart, currentPeriodEnd)));
+
+        // Send premium upgrade notification email to all organization members
+        try {
+          const { notifyPremiumUpgrade } = require('../services/emailService');
+          notifyPremiumUpgrade(organizationID, userId).catch(err => {
+            console.error('Error sending premium upgrade notification email from webhook:', err);
+          });
+        } catch (e) {
+          console.error('Non-blocking premium upgrade notification email from webhook error:', e);
+        }
         break;
       }
       case 'customer.subscription.deleted': {

@@ -144,6 +144,16 @@ exports.confirmCheckoutSession = async (req, res) => {
         await Promise.all(users.map(u => u.activatePremium(plan, currentPeriodStart, currentPeriodEnd)));
 
         dbSuccess = true;
+
+        // Send premium upgrade notification email to all organization members
+        try {
+          const { notifyPremiumUpgrade } = require('../services/emailService');
+          notifyPremiumUpgrade(organizationID, userId).catch(err => {
+            console.error('Error sending premium upgrade notification email:', err);
+          });
+        } catch (e) {
+          console.error('Non-blocking premium upgrade notification email error:', e);
+        }
       } catch (err) {
         lastError = err;
         console.error(`Database subscription activation attempt ${attempt} failed:`, err);

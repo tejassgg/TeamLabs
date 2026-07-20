@@ -1000,6 +1000,225 @@ async function sendRoleChangeEmail(to, userName, newRole, orgName = 'Workspace')
   }
 }
 
+// Helper to send a beautiful welcome email
+async function sendWelcomeEmail(to, username) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Welcome to TeamLabs!</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 520px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 1px solid #e2e8f0;">
+              <tr>
+                <td style="padding: 40px 32px;">
+                  <!-- Logo Header -->
+                  <div style="text-align: center; margin-bottom: 32px;">
+                    <div style="font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #6B39E7 0%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: #6B39E7; letter-spacing: -0.5px; margin-bottom: 8px;">TeamLabs</div>
+                    <div style="width: 50px; height: 3px; background: linear-gradient(135deg, #6B39E7 0%, #a855f7 100%); margin: 0 auto; border-radius: 2px;"></div>
+                  </div>
+                  
+                  <!-- Main Header -->
+                  <h1 style="color: #1F1F1F; font-size: 22px; font-weight: 700; margin: 0 0 16px 0; text-align: center; tracking: -0.5px;">Welcome to Your New Workspace! 🎉</h1>
+                  
+                  <p style="color: #4a5568; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
+                    Hello <strong style="color: #1F1F1F;">${username}</strong>, we are thrilled to have you here! Your email verification was successful, and your TeamLabs account is now fully active.
+                  </p>
+                  
+                  <!-- Get Started Grid/List -->
+                  <div style="background: #f7fafc; border: 1px solid #edf2f7; border-radius: 8px; padding: 24px; margin-bottom: 32px;">
+                    <h3 style="color: #2d3748; font-size: 14px; font-weight: 700; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.5px;">Quick Setup Guide</h3>
+                    <ul style="margin: 0; padding: 0; list-style-type: none;">
+                      <li style="margin-bottom: 12px; font-size: 14px; color: #4a5568; display: flex; align-items: start;">
+                        <span style="color: #6B39E7; margin-right: 8px; font-weight: bold;">⚡</span>
+                        <span><strong>Set up your profile:</strong> Personalize your role, avatar, and settings.</span>
+                      </li>
+                      <li style="margin-bottom: 12px; font-size: 14px; color: #4a5568; display: flex; align-items: start;">
+                        <span style="color: #6B39E7; margin-right: 8px; font-weight: bold;">⚡</span>
+                        <span><strong>Build your projects:</strong> Create a project space and define core milestones.</span>
+                      </li>
+                      <li style="margin-bottom: 12px; font-size: 14px; color: #4a5568; display: flex; align-items: start;">
+                        <span style="color: #6B39E7; margin-right: 8px; font-weight: bold;">⚡</span>
+                        <span><strong>Invite your team:</strong> Bring collaborators on board via email or link.</span>
+                      </li>
+                      <li style="font-size: 14px; color: #4a5568; display: flex; align-items: start;">
+                        <span style="color: #6B39E7; margin-right: 8px; font-weight: bold;">⚡</span>
+                        <span><strong>Track & report:</strong> Log your work with the time tracker widget.</span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <!-- Action Button -->
+                  <div style="text-align: center; margin-bottom: 32px;">
+                    <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard" style="display: inline-block; background: linear-gradient(135deg, #6B39E7 0%, #a855f7 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 15px; font-weight: 700; box-shadow: 0 4px 6px rgba(107, 57, 231, 0.25);">Go to Dashboard</a>
+                  </div>
+                  
+                  <!-- Footer note -->
+                  <p style="color: #718096; font-size: 13px; line-height: 1.5; margin: 0; text-align: center;">
+                    If you have any questions, simply reply to this email or visit our help center. Let's build something awesome together!
+                  </p>
+                  
+                  <!-- Footer -->
+                  <div style="text-align: center; padding-top: 24px; border-top: 1px solid #edf2f7; margin-top: 32px;">
+                    <p style="color: #a0aec0; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to,
+      subject: 'Welcome to TeamLabs! 🚀',
+      html
+    });
+    return true;
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+    return false;
+  }
+}
+
+// Helper to send a premium features announcement email with CC optimization
+async function sendPremiumFeaturesEmail(to, ccEmails, orgName) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Unlock Unlimited Potential - TeamLabs Premium</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc; color: #1f2937;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 540px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 1px solid #e2e8f0;">
+              <tr>
+                <td style="padding: 40px 32px;">
+                  <!-- Logo Header -->
+                  <div style="text-align: center; margin-bottom: 32px;">
+                    <div style="font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: #f59e0b; letter-spacing: -0.5px; margin-bottom: 8px;">TeamLabs Premium</div>
+                    <div style="width: 60px; height: 3px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); margin: 0 auto; border-radius: 2px;"></div>
+                  </div>
+                  
+                  <!-- Main Header -->
+                  <h1 style="color: #1f2937; font-size: 22px; font-weight: 700; margin: 0 0 16px 0; text-align: center; tracking: -0.5px;">Your Workspace Just Upgraded! 🌟</h1>
+                  
+                  <p style="color: #4b5563; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
+                    We are excited to announce that your organization <strong style="color: #1f2937;">${orgName}</strong> is now on a <strong style="color: #d97706;">Premium subscription</strong>! Here are the powerful features now unlocked for all members:
+                  </p>
+                  
+                  <!-- Features Grid -->
+                  <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 32px;">
+                    <h3 style="color: #d97706; font-size: 13px; font-weight: 700; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.5px;">Premium Features List</h3>
+                    
+                    <div style="margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+                      <div style="font-weight: 700; color: #1f2937; font-size: 14px; margin-bottom: 4px;">🚀 Unlimited Projects & Teams</div>
+                      <div style="color: #4b5563; font-size: 13px; line-height: 1.4;">Scale your work without limits or caps on project size.</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+                      <div style="font-weight: 700; color: #1f2937; font-size: 14px; margin-bottom: 4px;">🤖 RAG AI Assistant & ChatBot</div>
+                      <div style="color: #4b5563; font-size: 13px; line-height: 1.4;">Query documents and extract insights instantly inside tasks.</div>
+                    </div>
+
+                    <div style="margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+                      <div style="font-weight: 700; color: #1f2937; font-size: 14px; margin-bottom: 4px;">📊 Comprehensive Reports & Analytics</div>
+                      <div style="color: #4b5563; font-size: 13px; line-height: 1.4;">Generate detailed PDF performance reports and burndown metrics.</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+                      <div style="font-weight: 700; color: #1f2937; font-size: 14px; margin-bottom: 4px;">⏰ Advanced Timesheets & Timelines</div>
+                      <div style="color: #4b5563; font-size: 13px; line-height: 1.4;">Seamless sprint planning and resource utilization metrics.</div>
+                    </div>
+                    
+                    <div>
+                      <div style="font-weight: 700; color: #1f2937; font-size: 14px; margin-bottom: 4px;">🎨 Custom Roles & Indicators</div>
+                      <div style="color: #4b5563; font-size: 13px; line-height: 1.4;">Customize your statuses and user roles for a fully bespoke workspace.</div>
+                    </div>
+                  </div>
+                  
+                  <!-- Action Button -->
+                  <div style="text-align: center; margin-bottom: 32px;">
+                    <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 15px; font-weight: 700; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.25);">Explore Premium Features</a>
+                  </div>
+                  
+                  <!-- Footer note -->
+                  <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0; text-align: center;">
+                    This is a group announcement sent to all active members of the workspace.
+                  </p>
+                  
+                  <!-- Footer -->
+                  <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e2e8f0; margin-top: 32px;">
+                    <p style="color: #9ca3af; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} TeamLabs. All rights reserved.</p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  try {
+    const cc = ccEmails && ccEmails.length > 0 ? ccEmails.join(', ') : undefined;
+    await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to,
+      cc,
+      subject: `Your organization "${orgName}" upgraded to TeamLabs Premium! 🌟`,
+      html
+    });
+    return true;
+  } catch (error) {
+    console.error('Error sending premium upgrade email:', error);
+    return false;
+  }
+}
+
+// Shared helper to coordinate premium upgrade notification to all organization users
+async function notifyPremiumUpgrade(organizationID, subscriberUserId) {
+  try {
+    const Organization = require('../models/Organization');
+    const User = require('../models/User');
+
+    const org = await Organization.findOne({ OrganizationID: Number(organizationID) });
+    const users = await User.find({ organizationID: String(organizationID) });
+    if (!users || users.length === 0) return;
+
+    let primaryUser = null;
+    if (subscriberUserId) {
+      primaryUser = users.find(u => String(u._id) === String(subscriberUserId));
+    }
+    if (!primaryUser) {
+      primaryUser = users[0];
+    }
+
+    const toEmail = primaryUser.email;
+    const ccEmails = users.filter(u => u.email !== toEmail).map(u => u.email);
+    const orgName = org ? org.Name : 'your organization';
+
+    await sendPremiumFeaturesEmail(toEmail, ccEmails, orgName);
+  } catch (error) {
+    console.error('Error in notifyPremiumUpgrade helper:', error);
+  }
+}
+
 module.exports = {
   sendEmailVerification,
   sendTaskAssignmentEmail,
@@ -1011,12 +1230,18 @@ module.exports = {
   sendProjectDeletionEmail,
   sendSignInCode,
   sendRoleChangeEmail,
+  sendWelcomeEmail,
+  sendPremiumFeaturesEmail,
+  notifyPremiumUpgrade,
   emailService: {
     sendContactConfirmation,
     sendContactNotification,
     sendReleaseSummaryEmail,
     sendProjectDeletionEmail,
     sendSignInCode,
-    sendRoleChangeEmail
+    sendRoleChangeEmail,
+    sendWelcomeEmail,
+    sendPremiumFeaturesEmail,
+    notifyPremiumUpgrade
   }
 };

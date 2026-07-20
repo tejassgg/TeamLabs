@@ -694,6 +694,16 @@ const activateOrganizationPremium = async (organizationID, plan) => {
     org.isPremium = true;
     org.subscription = { plan, startDate, endDate };
     await org.save();
+
+    // Send premium upgrade notification email to all organization members
+    try {
+      const { notifyPremiumUpgrade } = require('../services/emailService');
+      notifyPremiumUpgrade(organizationID, null).catch(err => {
+        console.error('Error sending premium upgrade notification email from activateOrganizationPremium:', err);
+      });
+    } catch (e) {
+      console.error('Non-blocking premium upgrade notification email error:', e);
+    }
   } catch (error) {
     console.error('Error activating organization premium:', error);
     throw error;

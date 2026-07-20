@@ -19,10 +19,8 @@ import useSWR from 'swr';
 import { getPriorityBadge } from '../components/task/TaskTypeBadge';
 
 // Modular Dashboard Widgets
-import RecentCommentsWidget from '../components/dashboard/RecentCommentsWidget';
 import BurndownWidget from '../components/dashboard/BurndownWidget';
 import TimeTrackerWidget from '../components/dashboard/TimeTrackerWidget';
-import GitStreamWidget from '../components/dashboard/GitStreamWidget';
 
 // Dynamic import for charts
 let DashboardCharts = null;
@@ -115,9 +113,7 @@ const Dashboard = () => {
   const DEFAULT_WIDGETS = useMemo(() => [
     { id: 'analytics', title: 'Metrics & Analytics', visible: true, colSpan: 2 },
     { id: 'timeTracker', title: 'Personal Time Tracker', visible: true, colSpan: 1 },
-    { id: 'recentComments', title: 'Recent Comments', visible: true, colSpan: 1 },
     { id: 'burndown', title: 'Task Burndown', visible: true, colSpan: 1 },
-    { id: 'gitStream', title: 'GitHub Commit Stream', visible: true, colSpan: 1 },
   ], []);
 
   const [widgets, setWidgets] = useState([]);
@@ -129,7 +125,12 @@ const Dashboard = () => {
     const stored = localStorage.getItem('dashboard_widgets_layout');
     if (stored) {
       try {
-        setWidgets(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        const validIds = DEFAULT_WIDGETS.map(w => w.id);
+        const filtered = parsed.filter(w => validIds.includes(w.id));
+        const filteredIds = filtered.map(w => w.id);
+        const missing = DEFAULT_WIDGETS.filter(w => !filteredIds.includes(w.id));
+        setWidgets([...filtered, ...missing]);
       } catch (e) {
         setWidgets(DEFAULT_WIDGETS);
       }
@@ -459,8 +460,6 @@ const Dashboard = () => {
             setTasks={setTasksDetails}
           />
         );
-      case 'recentComments':
-        return <RecentCommentsWidget organizationId={userDetails?.organizationID} theme={theme} />;
       case 'burndown':
         return (
           <BurndownWidget
@@ -469,9 +468,6 @@ const Dashboard = () => {
             tasks={tasksDetails || []}
           />
         );
-      case 'gitStream':
-        return <GitStreamWidget organizationId={userDetails?.organizationID} theme={theme} />;
-
 
       default:
         return null;
@@ -939,7 +935,7 @@ const Dashboard = () => {
             {/* Widget Catalog Panel in Edit Mode */}
             {isEditMode && (
               <div className={`p-5 rounded-2xl border transition-all duration-300 backdrop-blur-md ${theme === 'dark'
-                ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl text-[#F3F6FA]'
+                ? 'bg-dark-card border-dark-border text-[#F3F6FA]'
                 : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl text-gray-800'
                 }`}>
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
@@ -957,7 +953,7 @@ const Dashboard = () => {
                         key={w.id}
                         onClick={() => toggleWidgetVisibility(w.id)}
                         className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 ${theme === 'dark'
-                          ? 'bg-slate-900 border border-white/5 hover:border-white/20 hover:bg-slate-800 text-slate-300'
+                          ? 'bg-dark-bg border border-dark-border hover:border-zinc-500 hover:bg-dark-hover text-slate-300'
                           : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm'
                           }`}
                       >

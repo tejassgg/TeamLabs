@@ -43,10 +43,10 @@ const GitStreamWidget = ({ organizationId, theme }) => {
 
   return (
     <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${theme === 'dark'
-        ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl'
+        ? 'bg-[#18181b] border-zinc-800/80'
         : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
       }`}>
-      <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200/10">
+      <div className="flex items-center justify-between pb-4 mb-4 border-b border-dark-border/40">
         <div>
           <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
             <FaGithub className={theme === 'dark' ? 'text-white' : 'text-slate-900'} />
@@ -59,7 +59,7 @@ const GitStreamWidget = ({ organizationId, theme }) => {
         <button
           onClick={fetchCommits}
           disabled={loading}
-          className={`p-2 rounded-lg transition-all ${theme === 'dark' ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'
+          className={`p-2 rounded-lg transition-all ${theme === 'dark' ? 'hover:bg-dark-hover text-slate-400' : 'hover:bg-slate-100 text-slate-600'
             }`}
           title="Refresh commit stream"
         >
@@ -91,12 +91,12 @@ const GitStreamWidget = ({ organizationId, theme }) => {
           <div
             key={`${commit.sha}-${index}`}
             className={`p-3 rounded-xl mb-3 border transition-all duration-200 ${theme === 'dark'
-                ? 'bg-slate-900/40 border-white/5 hover:border-white/10'
+                ? 'bg-dark-bg/40 border-dark-border/40 hover:border-dark-border'
                 : 'bg-slate-50 border-slate-200/50 hover:border-slate-200'
               }`}
           >
             <div className="flex items-start gap-3">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${theme === 'dark' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-900'
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${theme === 'dark' ? 'bg-dark-hover text-white' : 'bg-slate-100 text-slate-900'
                 }`}>
                 <FaGithub size={14} />
               </div>
@@ -117,7 +117,7 @@ const GitStreamWidget = ({ organizationId, theme }) => {
                   {commit.message}
                 </p>
 
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200/10">
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-dark-border/40">
                   <span className="font-mono text-xs text-slate-500">
                     {commit.sha.substring(0, 7)}
                   </span>

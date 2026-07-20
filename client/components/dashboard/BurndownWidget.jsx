@@ -121,10 +121,10 @@ const BurndownWidget = ({ organizationId, theme, tasks: propTasks, tasksLoading 
         }
       },
       tooltip: {
-        backgroundColor: theme === 'dark' ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: theme === 'dark' ? 'rgba(35, 35, 35, 0.95)' : 'rgba(255, 255, 255, 0.95)',
         titleColor: theme === 'dark' ? '#f8fafc' : '#0f172a',
         bodyColor: theme === 'dark' ? '#cbd5e1' : '#334155',
-        borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+        borderColor: theme === 'dark' ? '#424242' : 'rgba(0, 0, 0, 0.06)',
         borderWidth: 1,
         cornerRadius: 8,
       }
@@ -135,7 +135,7 @@ const BurndownWidget = ({ organizationId, theme, tasks: propTasks, tasksLoading 
         ticks: { color: '#64748b', font: { size: 9 } }
       },
       y: {
-        grid: { color: theme === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)' },
+        grid: { color: theme === 'dark' ? 'rgba(66, 66, 66, 0.2)' : 'rgba(0, 0, 0, 0.03)' },
         ticks: { color: '#64748b', font: { size: 9 }, stepSize: 1 }
       }
     }
@@ -144,10 +144,10 @@ const BurndownWidget = ({ organizationId, theme, tasks: propTasks, tasksLoading 
   return (
     <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${
       theme === 'dark' 
-        ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl' 
+        ? 'bg-[#18181b] border-zinc-800/80' 
         : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
     }`}>
-      <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200/10">
+      <div className="flex items-center justify-between pb-4 mb-4 border-b border-dark-border/40">
         <div>
           <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
             <FaFire className="text-rose-500 animate-bounce" />
@@ -161,7 +161,7 @@ const BurndownWidget = ({ organizationId, theme, tasks: propTasks, tasksLoading 
           onClick={fetchTasks} 
           disabled={loading}
           className={`p-2 rounded-lg transition-all ${
-            theme === 'dark' ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'
+            theme === 'dark' ? 'hover:bg-dark-hover text-slate-400' : 'hover:bg-slate-100 text-slate-600'
           }`}
           title="Refresh chart"
         >

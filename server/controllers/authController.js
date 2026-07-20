@@ -216,6 +216,19 @@ const verifyEmail = async (req, res) => {
     record.used = true;
     await record.save();
 
+    // Send beautiful welcome email in the background
+    try {
+      const userObj = await User.findById(record.userId);
+      if (userObj) {
+        const { sendWelcomeEmail } = require('../services/emailService');
+        sendWelcomeEmail(userObj.email, userObj.username || userObj.email.split('@')[0]).catch(err => {
+          console.error('Error sending welcome email in background:', err);
+        });
+      }
+    } catch (e) {
+      console.error('Non-blocking welcome email fetch error:', e);
+    }
+
     return res.status(200).json({ success: true });
 
   } catch (error) {
@@ -417,6 +430,16 @@ const googleLogin = async (req, res) => {
       } catch (e) {
         // Non-fatal: log and continue
         console.error('Auto-activate premium for invited user (Google) failed:', e?.message || e);
+      }
+
+      // Send welcome email for new Google signup
+      try {
+        const { sendWelcomeEmail } = require('../services/emailService');
+        sendWelcomeEmail(user.email, user.username || user.email.split('@')[0]).catch(err => {
+          console.error('Error sending welcome email for Google register:', err);
+        });
+      } catch (e) {
+        console.error('Non-blocking Google register welcome email error:', e);
       }
 
       // Log successful Google login for new user

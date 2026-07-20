@@ -161,10 +161,10 @@ const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: set
 
   return (
     <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${theme === 'dark'
-      ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65 shadow-2xl'
+      ? 'bg-[#18181b] border-zinc-800/80'
       : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
       }`}>
-      <div className="pb-4 mb-4 border-b border-slate-200/10 flex items-start justify-between">
+      <div className="pb-4 mb-4 border-b border-dark-border/40 flex items-start justify-between">
         <div>
           <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
             <FaClock className="text-indigo-500 animate-spin-slow" style={{ animationDuration: '8s' }} />
@@ -234,7 +234,7 @@ const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: set
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className={`w-full text-xs px-3 py-2 rounded-xl border outline-none ${theme === 'dark'
-              ? 'bg-slate-900 border-white/10 text-white'
+              ? 'bg-dark-bg border-dark-border text-white'
               : 'bg-slate-50 border-slate-200 text-slate-900'
               }`}
           />
@@ -264,7 +264,7 @@ const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: set
             <button
               onClick={handleReset}
               className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${theme === 'dark'
-                ? 'border-white/10 hover:bg-slate-800 text-slate-400'
+                ? 'border-dark-border hover:bg-dark-hover text-slate-400'
                 : 'border-slate-200 hover:bg-slate-100 text-slate-600'
                 }`}
               title="Reset Timer"
