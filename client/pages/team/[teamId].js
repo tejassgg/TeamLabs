@@ -96,6 +96,7 @@ const TeamDetailsPage = () => {
   const [isMeetingModalClosing, setIsMeetingModalClosing] = useState(false);
   const [isMeetingModalOpening, setIsMeetingModalOpening] = useState(false);
   const [showMemberDropdown, setShowMemberDropdown] = useState(false);
+  const [memberSearchQuery, setMemberSearchQuery] = useState('');
   const [createMeetingForm, setCreateMeetingForm] = useState({
     title: '',
     description: '',
@@ -2656,53 +2657,74 @@ const TeamDetailsPage = () => {
                         {showMemberDropdown && (
                           <>
                             <div className={getThemeClasses(
-                              'absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-auto max-h-64',
-                              'absolute z-50 w-full mt-1 bg-dark-bg border border-gray-600 rounded-xl shadow-lg overflow-auto max-h-64'
+                              'absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden flex flex-col max-h-64',
+                              'absolute z-50 w-full mt-1 bg-dark-bg border border-gray-600 rounded-xl shadow-lg overflow-hidden flex flex-col max-h-64'
                             )}>
-                              {members.map((member) => (
-                                <button
-                                  key={member.MemberID}
-                                  type="button"
-                                  onClick={() => handleMemberSelect(member.MemberID)}
+                              {/* Search input field */}
+                              <div className={`p-2 border-b ${getThemeClasses('border-gray-100', 'border-zinc-800')}`}>
+                                <input
+                                  type="text"
+                                  placeholder="Search members..."
+                                  value={memberSearchQuery}
+                                  onChange={(e) => setMemberSearchQuery(e.target.value)}
                                   className={getThemeClasses(
-                                    'w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-3',
-                                    'w-full px-4 py-3 text-left hover:bg-[#424242] transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-3'
+                                    'w-full px-3 py-1.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500',
+                                    'w-full px-3 py-1.5 text-sm rounded-lg border border-zinc-700 bg-zinc-800 text-white focus:outline-none focus:ring-1 focus:ring-blue-500'
                                   )}
-                                >
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${createMeetingForm.attendeeIds.includes(member.MemberID)
-                                    ? 'bg-blue-500 text-white'
-                                    : getThemeClasses('bg-gray-100 text-gray-700', 'bg-gray-700 text-gray-300')
-                                    }`}>
-                                    {member.name.split(' ').map(n => n[0]).join('')}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className={getThemeClasses(
-                                      'font-medium text-gray-900 text-sm truncate',
-                                      'font-medium text-white text-sm truncate'
-                                    )}>
-                                      {member.name}
+                                />
+                              </div>
+                              <div className="overflow-y-auto max-h-48 divide-y divide-gray-100 dark:divide-zinc-800/80">
+                                {members.filter(member => 
+                                  member.name.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+                                  member.email.toLowerCase().includes(memberSearchQuery.toLowerCase())
+                                ).map((member) => (
+                                  <button
+                                    key={member.MemberID}
+                                    type="button"
+                                    onClick={() => handleMemberSelect(member.MemberID)}
+                                    className={getThemeClasses(
+                                      'w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-3',
+                                      'w-full px-4 py-3 text-left hover:bg-[#424242] transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-3'
+                                    )}
+                                  >
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${createMeetingForm.attendeeIds.includes(member.MemberID)
+                                      ? 'bg-blue-500 text-white'
+                                      : getThemeClasses('bg-gray-100 text-gray-700', 'bg-gray-700 text-gray-300')
+                                      }`}>
+                                      {member.name.split(' ').map(n => n[0]).join('')}
                                     </div>
-                                    <div className={getThemeClasses(
-                                      'text-xs text-gray-500 truncate',
-                                      'text-xs text-gray-400 truncate'
-                                    )}>
-                                      {member.email}
+                                    <div className="flex-1 min-w-0">
+                                      <div className={getThemeClasses(
+                                        'font-medium text-gray-900 text-sm truncate',
+                                        'font-medium text-white text-sm truncate'
+                                      )}>
+                                        {member.name}
+                                      </div>
+                                      <div className={getThemeClasses(
+                                        'text-xs text-gray-500 truncate',
+                                        'text-xs text-gray-400 truncate'
+                                      )}>
+                                        {member.email}
+                                      </div>
                                     </div>
-                                  </div>
-                                  {createMeetingForm.attendeeIds.includes(member.MemberID) && (
-                                    <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
-                                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                      </svg>
-                                    </div>
-                                  )}
-                                </button>
-                              ))}
+                                    {createMeetingForm.attendeeIds.includes(member.MemberID) && (
+                                      <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                      </div>
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
                             {/* Click outside to close */}
                             <div
                               className="fixed inset-0 z-40"
-                              onClick={() => setShowMemberDropdown(false)}
+                              onClick={() => {
+                                setShowMemberDropdown(false);
+                                setMemberSearchQuery('');
+                              }}
                             />
                           </>
                         )}

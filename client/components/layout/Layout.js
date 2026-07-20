@@ -209,15 +209,13 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             theme={theme}
           />
           {/* Messages Section */}
-          <div className={`border-b ${getThemeClasses('border-gray-200', 'border-gray-700')} pb-2`}>
-            <SidebarButton
-              icon={<FaRegMessage className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
-              label="Messages"
-              active={router.pathname === '/messages'}
-              onClick={() => handleNavigation('/messages')}
-              theme={theme}
-            />
-          </div>
+          <SidebarButton
+            icon={<FaRegMessage className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}
+            label="Messages"
+            active={router.pathname === '/messages'}
+            onClick={() => handleNavigation('/messages')}
+            theme={theme}
+          />
 
           <SidebarButton
             icon={<FaRegClipboard className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} />}

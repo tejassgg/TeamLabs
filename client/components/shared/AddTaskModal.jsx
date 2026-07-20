@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import CustomModal from './CustomModal';
-import CustomDropdown from './CustomDropdown';
+import SearchableDropdown from './SearchableDropdown';
 import { commonTypeService, taskService } from '../../services/api';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -512,31 +512,31 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
           )}
           {type && (
             <div className="flex items-center gap-4">
-               <div className="flex items-center gap-2 min-w-[120px]">
-                 <FaCalendarAlt className={getThemeClasses(
-                   'text-gray-500',
-                   'text-gray-400'
-                 )} size={16} />
-                 <label className={getThemeClasses(
-                   'text-sm font-medium text-gray-700',
-                   'text-sm font-medium text-white'
-                 )}>
-                   Due Date{type === 'User Story' && <span className="text-red-500 ml-1">*</span>}
-                 </label>
-               </div>
-               <input
-                 type="date"
-                 value={dueDate}
-                 onChange={(e) => setDueDate(e.target.value)}
-                 min={new Date().toLocaleDateString('en-CA')}
-                 className={getThemeClasses(
-                   'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                   'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-                 )}
-                 required={type === 'User Story'}
-               />
-             </div>
-           )}
+              <div className="flex items-center gap-2 min-w-[120px]">
+                <FaCalendarAlt className={getThemeClasses(
+                  'text-gray-500',
+                  'text-gray-400'
+                )} size={16} />
+                <label className={getThemeClasses(
+                  'text-sm font-medium text-gray-700',
+                  'text-sm font-medium text-white'
+                )}>
+                  Due Date{type === 'User Story' && <span className="text-red-500 ml-1">*</span>}
+                </label>
+              </div>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                min={new Date().toLocaleDateString('en-CA')}
+                className={getThemeClasses(
+                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
+                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
+                )}
+                required={type === 'User Story'}
+              />
+            </div>
+          )}
 
           {mode === 'fromSideBar' && (
             <div className="flex items-center gap-4">
@@ -608,27 +608,34 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 </label>
               </div>
               <div className="flex-1">
-                <CustomDropdown
+                <SearchableDropdown
                   value={assignedTo}
                   onChange={setAssignedTo}
                   options={projectMembers.map((m) => {
                     const id = m._id || m.id;
                     const fullName = [m.firstName, m.lastName].filter(Boolean).join(' ') || m.fullName || m.email || 'Member';
                     const initials = fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-                    const icon = (
+                    const initialsBadge = (
                       <span className={getThemeClasses(
                         'inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-medium border border-blue-200',
                         'inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-900/40 text-blue-300 text-xs font-medium border border-blue-800/40'
                       )}>{initials}</span>
                     );
-                    return { value: id, label: fullName, icon };
+                    return { value: id, label: fullName, initialsBadge };
                   })}
                   placeholder="Select member"
-                  variant="outline"
-                  size="md"
-                  width="w-full"
-                  showSearch={true}
-                  className="border-b-2"
+                  renderSelected={(opt) => (
+                    <div className="flex items-center gap-2">
+                      {opt.initialsBadge}
+                      <span className="truncate">{opt.label}</span>
+                    </div>
+                  )}
+                  renderOption={(opt) => (
+                    <div className="flex items-center gap-2">
+                      {opt.initialsBadge}
+                      <span className="truncate">{opt.label}</span>
+                    </div>
+                  )}
                 />
               </div>
             </div>

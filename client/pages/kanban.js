@@ -8,7 +8,7 @@ import { connectSocket, subscribe, getSocket } from '../services/socket';
 import AssignTaskModal from '../components/shared/AssignTaskModal';
 import AddTaskModal from '../components/shared/AddTaskModal';
 import KanbanColumn from '../components/kanban/KanbanColumn';
-import CustomDropdown from '../components/shared/CustomDropdown';
+import SearchableDropdown from '../components/shared/SearchableDropdown';
 import {
   statusMap,
   statusIcons,
@@ -334,19 +334,28 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
                 )}>Drag and drop tasks to update their status</p>
               </div>
             </div>
-            <CustomDropdown
+            <SearchableDropdown
               value={selectedProject || ''}
               onChange={handleProjectChange}
-              options={projects.length === 0 ? [] : projects.map(project => ({
+              options={projects.map(project => ({
                 value: project.ProjectID || project._id,
-                label: project.Name,
-                icon: <FaProjectDiagram className="w-4 h-4" />
+                label: project.Name
               }))}
               placeholder={projects.length === 0 ? "No projects available" : "Select a project"}
               disabled={projects.length === 0}
-              variant="filled"
-              size="md"
               className="w-full sm:w-96"
+              renderSelected={(opt) => (
+                <div className="flex items-center gap-2">
+                  <FaProjectDiagram className="w-4 h-4 text-blue-500" />
+                  <span className="truncate">{opt.label}</span>
+                </div>
+              )}
+              renderOption={(opt) => (
+                <div className="flex items-center gap-2">
+                  <FaProjectDiagram className="w-4 h-4 text-blue-500" />
+                  <span className="truncate">{opt.label}</span>
+                </div>
+              )}
             />
           </div>
         )}
