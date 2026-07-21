@@ -737,7 +737,7 @@ const Dashboard = () => {
             <div className="w-full flex flex-row gap-6">
 
               {/* Left Column: My Tasks */}
-              <div className={`w-[20%] p-6 rounded-2xl border ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-white border-gray-200 shadow-sm'} flex flex-col`}>
+              <div className={`w-[20%] p-6 rounded-3xl border ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-white border-gray-200 shadow-sm'} flex flex-col`}>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className={`text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                     My Tasks
@@ -966,7 +966,7 @@ const Dashboard = () => {
               <div className="w-[58%] space-y-6">
 
                 {/* Suggested to-dos Card */}
-                <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-white border-gray-200 shadow-sm'}`}>
+                <div className={`p-6 rounded-3xl border ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-white border-gray-200 shadow-sm'}`}>
                   <div className="flex items-center justify-between mb-6">
                     <h2 className={`text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                       Suggested to-dos
@@ -1171,7 +1171,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Timeline / What's Ahead */}
-                <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-white border-gray-200 shadow-sm'}`}>
+                <div className={`p-6 rounded-3xl border ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-white border-gray-200 shadow-sm'}`}>
                   <h3 className={`text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-500'}`}>
                     <FaClock className="text-blue-500" />
                     <span>What's Ahead (Timeline)</span>
@@ -1224,282 +1224,279 @@ const Dashboard = () => {
               </div>
 
               {/* Right Column: Meetings & Support Tickets */}
-              <div className="w-[22%]">
-                {/* Unified Card Container */}
-                <div className={`p-6 rounded-2xl border space-y-4 ${theme === 'dark' ? 'bg-dark-bg border-dark-border text-white' : 'bg-white border-gray-200 shadow-sm'}`}>
+              <div className={`w-[22%] p-6 rounded-3xl border space-y-4 ${theme === 'dark' ? 'bg-dark-bg border-dark-border text-white' : 'bg-white border-gray-200 shadow-sm'}`}>
 
-                  {/* My Meetings Card Content */}
-                  <div>
-                    <div className="flex items-center justify-between mb-5">
-                      <h2 className={`text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        My Meetings
-                      </h2>
-                      <button className={`h-9 w-9 rounded-full flex items-center justify-center border transition-all ${theme === 'dark'
-                        ? 'border-zinc-700 hover:bg-zinc-800 text-white'
-                        : 'border-gray-200 hover:bg-gray-50 text-gray-700'
-                        }`}>
-                        <FaCalendarAlt size={12} />
-                      </button>
-                    </div>
-
-                    {whatsUpLoading ? (
-                      <div className="space-y-3 animate-pulse">
-                        {[1, 2].map(i => (
-                          <div key={i} className="h-16 bg-gray-200 dark:bg-dark-hover rounded-2xl" />
-                        ))}
-                      </div>
-                    ) : !whatsUpData?.myMeetings?.length ? (
-                      <div className="text-center py-6 border border-dashed border-gray-200 dark:border-dark-border rounded-2xl">
-                        <p className="text-zinc-500 dark:text-zinc-400 italic text-xs">No meetings scheduled.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4 max-h-[340px] overflow-y-auto pr-1">
-                        {whatsUpData.myMeetings.map((meeting) => {
-                          const isGoogleMeet = !!meeting.googleMeetLink;
-                          const meetingDays = calculateMeetingDays(meeting.startTime);
-                          const isPast = meetingDays.status === 'past' || meetingDays.status === 'yesterday';
-                          const status = getDeadlineStatusComponent(isPast ? 'Overdue' : meetingDays.text);
-                          return (
-                            <div
-                              key={meeting.id || meeting.meetingId}
-                              className={`p-4 rounded-2xl border flex flex-col gap-3.5 transition-all duration-200 hover:shadow-md bg-indigo-50/20 dark:bg-indigo-950/5 border-indigo-100/60 dark:border-indigo-950/20 hover:border-indigo-200/80 dark:hover:border-indigo-900/40`}
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex items-start gap-4">
-                                  {/* Left time/date badge */}
-                                  <div className={`px-2.5 py-1.5 rounded-xl border text-center shrink-0 min-w-[54px] bg-indigo-100/40 text-indigo-700 border-indigo-200/60 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-900/30 shadow-sm`}>
-                                    <span className="block text-xs font-bold text-indigo-600/70 dark:text-indigo-400/70 uppercase tracking-wider">
-                                      {formatMeetingDate(meeting.startTime)}
-                                    </span>
-                                    <span className={`block text-xs font-black mt-0.5 ${theme === 'dark' ? 'text-white' : 'text-indigo-900'}`}>
-                                      {formatTime(meeting.startTime)}
-                                    </span>
-                                  </div>
-
-                                  {/* Title & Badge */}
-                                  <div className="flex flex-col min-w-0 pr-1">
-                                    <h4
-                                      onClick={() => router.push(`/timesheet`)}
-                                      className={`text-sm font-bold tracking-tight cursor-pointer hover:underline truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}
-                                    >
-                                      {meeting.title}
-                                    </h4>
-                                    <div className="flex items-center gap-2 mt-1.5 text-xs">
-                                      {isGoogleMeet ? (
-                                        <div className="flex items-center gap-1">
-                                          <GoogleMeetLogo />
-                                          <span className="font-bold text-slate-600 dark:text-zinc-400">Meet</span>
-                                        </div>
-                                      ) : (
-                                        <div className="flex items-center gap-1">
-                                          <ZoomLogo />
-                                          <span className="font-bold text-slate-600 dark:text-zinc-400">Zoom</span>
-                                        </div>
-                                      )}
-                                      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
-                                        <span className={`w-1.5 h-1.5 rounded-full ${status.dotColor} ${!isPast ? 'animate-pulse' : ''}`}></span>
-                                        {status.text}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Diagonal Arrow link */}
-                                {meeting.googleMeetLink ? (
-                                  <a
-                                    href={meeting.googleMeetLink}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="pt-0.5 transform hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform shrink-0"
-                                  >
-                                    <DiagonalArrow />
-                                  </a>
-                                ) : (
-                                  <button
-                                    onClick={() => router.push(`/timesheet`)}
-                                    className="pt-0.5 transform hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform shrink-0"
-                                  >
-                                    <DiagonalArrow />
-                                  </button>
-                                )}
-                              </div>
-
-                              {/* Description Snippet & Host Details */}
-                              <div className="space-y-3.5">
-                                {meeting.description && (
-                                  <p className={`text-xs leading-relaxed line-clamp-2 pl-0.5 ${theme === 'dark' ? 'text-zinc-400' : 'text-zinc-550'}`}>
-                                    {meeting.description}
-                                  </p>
-                                )}
-
-                                {/* Extra Info Row */}
-                                <div className="flex items-center justify-between gap-x-3 gap-y-1.5 pt-2.5 mt-1 border-t border-dashed border-zinc-200/60 dark:border-zinc-800/40 text-xs text-zinc-500 dark:text-zinc-400 w-full">
-                                  {meeting.organizer && (
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-xs font-bold text-zinc-400 dark:text-zinc-500 tracking-wider">Host:</span>
-                                      <span className={`text-xs font-bold ${theme === 'dark' ? 'text-zinc-300' : 'text-slate-700'}`}>
-                                        {meeting.organizer.name || meeting.organizer.username}
-                                      </span>
-                                    </div>
-                                  )}
-
-                                  {/* Attendees bubbles */}
-                                  {meeting.attendees && meeting.attendees.length > 0 && (
-                                    <div className="flex items-center gap-1.5 ml-auto">
-                                      <div className="flex -space-x-1.5 overflow-hidden">
-                                        {meeting.attendees.slice(0, 3).map((att, i) => {
-                                          const initials = `${att.name?.[0] || att.username?.[0] || ''}`.toUpperCase();
-                                          const colors = [
-                                            'bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-rose-500', 'bg-amber-500'
-                                          ];
-                                          const color = colors[att.username?.charCodeAt(0) % colors.length || 0];
-                                          return (
-                                            <div
-                                              key={i}
-                                              title={att.name || att.username}
-                                              className={`w-5 h-5 rounded-full ${color} text-white flex items-center justify-center text-[9px] font-black border border-white dark:border-zinc-800`}
-                                            >
-                                              {initials}
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                      {meeting.attendees.length > 3 && (
-                                        <span className="text-[9px] font-bold text-slate-400 dark:text-zinc-500">
-                                          +{meeting.attendees.length - 3}
-                                        </span>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    <div className="pt-4 flex justify-start">
-                      <button
-                        onClick={() => router.push('/timesheet')}
-                        className={`text-xs font-bold transition-colors flex items-center gap-1.5 hover:text-blue-500 ${theme === 'dark' ? 'text-zinc-300 hover:text-white' : 'text-slate-800'
-                          }`}
-                      >
-                        <span>See All Meetings</span>
-                        <span className="text-xs font-black">&gt;</span>
-                      </button>
-                    </div>
+                {/* My Meetings Card Content */}
+                <div>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className={`text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      My Meetings
+                    </h2>
+                    <button className={`h-9 w-9 rounded-full flex items-center justify-center border transition-all ${theme === 'dark'
+                      ? 'border-zinc-700 hover:bg-zinc-800 text-white'
+                      : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                      }`}>
+                      <FaCalendarAlt size={12} />
+                    </button>
                   </div>
 
-                  {/* Open Tickets Card Content */}
-                  <div>
-                    <div className="flex items-center justify-between mb-5">
-                      <h2 className={`text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        Open Tickets
-                      </h2>
-                      <button className={`h-9 w-9 rounded-full flex items-center justify-center border transition-all ${theme === 'dark'
-                        ? 'border-zinc-700 hover:bg-zinc-800 text-white'
-                        : 'border-gray-200 hover:bg-gray-50 text-gray-700'
-                        }`}>
-                        <FaSlidersH size={12} />
-                      </button>
+                  {whatsUpLoading ? (
+                    <div className="space-y-3 animate-pulse">
+                      {[1, 2].map(i => (
+                        <div key={i} className="h-16 bg-gray-200 dark:bg-dark-hover rounded-2xl" />
+                      ))}
                     </div>
+                  ) : !whatsUpData?.myMeetings?.length ? (
+                    <div className="text-center py-6 border border-dashed border-gray-200 dark:border-dark-border rounded-2xl">
+                      <p className="text-zinc-500 dark:text-zinc-400 italic text-xs">No meetings scheduled.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 max-h-[340px] overflow-y-auto pr-1">
+                      {whatsUpData.myMeetings.map((meeting) => {
+                        const isGoogleMeet = !!meeting.googleMeetLink;
+                        const meetingDays = calculateMeetingDays(meeting.startTime);
+                        const isPast = meetingDays.status === 'past' || meetingDays.status === 'yesterday';
+                        const status = getDeadlineStatusComponent(isPast ? 'Overdue' : meetingDays.text);
+                        return (
+                          <div
+                            key={meeting.id || meeting.meetingId}
+                            className={`p-4 rounded-2xl border flex flex-col gap-3.5 transition-all duration-200 hover:shadow-md bg-indigo-50/20 dark:bg-indigo-950/5 border-indigo-100/60 dark:border-indigo-950/20 hover:border-indigo-200/80 dark:hover:border-indigo-900/40`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-start gap-4">
+                                {/* Left time/date badge */}
+                                <div className={`px-2.5 py-1.5 rounded-xl border text-center shrink-0 min-w-[54px] bg-indigo-100/40 text-indigo-700 border-indigo-200/60 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-900/30 shadow-sm`}>
+                                  <span className="block text-xs font-bold text-indigo-600/70 dark:text-indigo-400/70 uppercase tracking-wider">
+                                    {formatMeetingDate(meeting.startTime)}
+                                  </span>
+                                  <span className={`block text-xs font-black mt-0.5 ${theme === 'dark' ? 'text-white' : 'text-indigo-900'}`}>
+                                    {formatTime(meeting.startTime)}
+                                  </span>
+                                </div>
 
-                    {whatsUpLoading ? (
-                      <div className="space-y-3 animate-pulse">
-                        {[1, 2].map(i => (
-                          <div key={i} className="h-24 bg-gray-200 dark:bg-dark-hover rounded-2xl" />
-                        ))}
-                      </div>
-                    ) : !whatsUpData?.supportTickets?.length ? (
-                      <div className="text-center py-6 border border-dashed border-gray-200 dark:border-dark-border rounded-2xl">
-                        <p className="text-zinc-500 dark:text-zinc-400 italic text-xs">No open support tickets.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4 max-h-[575px] overflow-y-auto pr-1">
-                        {[...whatsUpData.supportTickets].sort((a, b) => {
-                          const pA = a.priority !== undefined ? Number(a.priority) : 99;
-                          const pB = b.priority !== undefined ? Number(b.priority) : 99;
-                          return pA - pB;
-                        }).map((ticket) => {
-                          const initials = `${ticket.name[0] || ''}${ticket.name.split(' ')[1]?.[0] || ''}`.toUpperCase() || 'ST';
-
-                          const gradients = [
-                            'from-blue-400 to-indigo-500',
-                            'from-purple-400 to-pink-500',
-                            'from-green-400 to-teal-500',
-                            'from-orange-400 to-red-500',
-                            'from-indigo-400 to-cyan-500'
-                          ];
-                          const gradientIndex = ticket.name.charCodeAt(0) % gradients.length;
-                          const selectedGradient = gradients[gradientIndex];
-
-                          return (
-                            <div
-                              key={ticket.id}
-                              className={`p-4 rounded-2xl border flex items-start gap-4 transition-all duration-200 hover:shadow-md ${theme === 'dark' ? 'bg-dark-bg/60 border-dark-border hover:border-orange-900/40' : 'bg-orange-50/20 border-orange-100/60 hover:border-orange-200/80'}`}
-                            >
-                              {/* Avatar placeholder circle matching Jacob/Luke/Connor style */}
-                              <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-orange-600 bg-orange-100/40 dark:text-orange-400 dark:bg-orange-950/40 border border-orange-200/60 dark:border-orange-900/30 shrink-0 shadow-sm">
-                                {initials}
-                              </div>
-
-                              {/* Main content block */}
-                              <div className="flex-1 flex flex-col items-start min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap w-full">
+                                {/* Title & Badge */}
+                                <div className="flex flex-col min-w-0 pr-1">
                                   <h4
-                                    onClick={() => {
-                                      if (ticket.taskId) {
-                                        router.push(`/task/${ticket.taskId}`);
-                                      } else {
-                                        router.push(`/tasks?search=${ticket.ticketNumber}`);
-                                      }
-                                    }}
+                                    onClick={() => router.push(`/timesheet`)}
                                     className={`text-sm font-bold tracking-tight cursor-pointer hover:underline truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}
                                   >
-                                    {ticket.name}
+                                    {meeting.title}
                                   </h4>
-                                  {ticket.ticketNumber && (
-                                    <span className="text-xs text-orange-500 font-bold shrink-0">
-                                      - #{ticket.ticketNumber}
+                                  <div className="flex items-center gap-2 mt-1.5 text-xs">
+                                    {isGoogleMeet ? (
+                                      <div className="flex items-center gap-1">
+                                        <GoogleMeetLogo />
+                                        <span className="font-bold text-slate-600 dark:text-zinc-400">Meet</span>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center gap-1">
+                                        <ZoomLogo />
+                                        <span className="font-bold text-slate-600 dark:text-zinc-400">Zoom</span>
+                                      </div>
+                                    )}
+                                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
+                                      <span className={`w-1.5 h-1.5 rounded-full ${status.dotColor} ${!isPast ? 'animate-pulse' : ''}`}></span>
+                                      {status.text}
                                     </span>
-                                  )}
-                                </div>
-                                <p className={`text-xs mt-1 leading-relaxed line-clamp-2 ${theme === 'dark' ? 'text-zinc-300' : 'text-zinc-600'}`}>
-                                  {ticket.description.length < 30 ? ticket.description : ticket.description.substring(0, 30) + '...'}
-                                </p>
-
-                                {/* Extra Info Divider & Action */}
-                                <div className="flex items-center justify-between gap-x-3 gap-y-1.5 pt-2.5 mt-2.5 border-t border-dashed border-zinc-200/60 dark:border-zinc-800/40 text-xs text-zinc-500 dark:text-zinc-400 w-full">
-                                  {getPriorityBadge(ticket.priority) && (
-                                    <span className="shrink-0 scale-90 origin-left">
-                                      {getPriorityBadge(ticket.priority)}
-                                    </span>
-                                  )}
-                                  <button
-                                    onClick={() => {
-                                      if (ticket.taskId) {
-                                        router.push(`/task/${ticket.taskId}`);
-                                      } else {
-                                        router.push(`/tasks?search=${ticket.ticketNumber}`);
-                                      }
-                                    }}
-                                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all border flex items-center gap-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] ${theme === 'dark'
-                                      ? 'border-orange-900/40 bg-orange-950/45 text-orange-300 hover:bg-orange-900/60 hover:text-white'
-                                      : 'border-orange-200 bg-orange-50/50 text-orange-700 hover:bg-orange-100 hover:text-orange-900'
-                                      }`}
-                                  >
-                                    <span>Check</span>
-                                    <span className="text-xs font-black">&gt;</span>
-                                  </button>
+                                  </div>
                                 </div>
                               </div>
+
+                              {/* Diagonal Arrow link */}
+                              {meeting.googleMeetLink ? (
+                                <a
+                                  href={meeting.googleMeetLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="pt-0.5 transform hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform shrink-0"
+                                >
+                                  <DiagonalArrow />
+                                </a>
+                              ) : (
+                                <button
+                                  onClick={() => router.push(`/timesheet`)}
+                                  className="pt-0.5 transform hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform shrink-0"
+                                >
+                                  <DiagonalArrow />
+                                </button>
+                              )}
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
+
+                            {/* Description Snippet & Host Details */}
+                            <div className="space-y-3.5">
+                              {meeting.description && (
+                                <p className={`text-xs leading-relaxed line-clamp-2 pl-0.5 ${theme === 'dark' ? 'text-zinc-400' : 'text-zinc-550'}`}>
+                                  {meeting.description}
+                                </p>
+                              )}
+
+                              {/* Extra Info Row */}
+                              <div className="flex items-center justify-between gap-x-3 gap-y-1.5 pt-2.5 mt-1 border-t border-dashed border-zinc-200/60 dark:border-zinc-800/40 text-xs text-zinc-500 dark:text-zinc-400 w-full">
+                                {meeting.organizer && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-xs font-bold text-zinc-400 dark:text-zinc-500 tracking-wider">Host:</span>
+                                    <span className={`text-xs font-bold ${theme === 'dark' ? 'text-zinc-300' : 'text-slate-700'}`}>
+                                      {meeting.organizer.name || meeting.organizer.username}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* Attendees bubbles */}
+                                {meeting.attendees && meeting.attendees.length > 0 && (
+                                  <div className="flex items-center gap-1.5 ml-auto">
+                                    <div className="flex -space-x-1.5 overflow-hidden">
+                                      {meeting.attendees.slice(0, 3).map((att, i) => {
+                                        const initials = `${att.name?.[0] || att.username?.[0] || ''}`.toUpperCase();
+                                        const colors = [
+                                          'bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-rose-500', 'bg-amber-500'
+                                        ];
+                                        const color = colors[att.username?.charCodeAt(0) % colors.length || 0];
+                                        return (
+                                          <div
+                                            key={i}
+                                            title={att.name || att.username}
+                                            className={`w-5 h-5 rounded-full ${color} text-white flex items-center justify-center text-[9px] font-black border border-white dark:border-zinc-800`}
+                                          >
+                                            {initials}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                    {meeting.attendees.length > 3 && (
+                                      <span className="text-[9px] font-bold text-slate-400 dark:text-zinc-500">
+                                        +{meeting.attendees.length - 3}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <div className="pt-4 flex justify-start">
+                    <button
+                      onClick={() => router.push('/timesheet')}
+                      className={`text-xs font-bold transition-colors flex items-center gap-1.5 hover:text-blue-500 ${theme === 'dark' ? 'text-zinc-300 hover:text-white' : 'text-slate-800'
+                        }`}
+                    >
+                      <span>See All Meetings</span>
+                      <span className="text-xs font-black">&gt;</span>
+                    </button>
                   </div>
+                </div>
+
+                {/* Open Tickets Card Content */}
+                <div>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className={`text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      Open Tickets
+                    </h2>
+                    <button className={`h-9 w-9 rounded-full flex items-center justify-center border transition-all ${theme === 'dark'
+                      ? 'border-zinc-700 hover:bg-zinc-800 text-white'
+                      : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                      }`}>
+                      <FaSlidersH size={12} />
+                    </button>
+                  </div>
+
+                  {whatsUpLoading ? (
+                    <div className="space-y-3 animate-pulse">
+                      {[1, 2].map(i => (
+                        <div key={i} className="h-24 bg-gray-200 dark:bg-dark-hover rounded-2xl" />
+                      ))}
+                    </div>
+                  ) : !whatsUpData?.supportTickets?.length ? (
+                    <div className="text-center py-6 border border-dashed border-gray-200 dark:border-dark-border rounded-2xl">
+                      <p className="text-zinc-500 dark:text-zinc-400 italic text-xs">No open support tickets.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 max-h-[575px] overflow-y-auto pr-1">
+                      {[...whatsUpData.supportTickets].sort((a, b) => {
+                        const pA = a.priority !== undefined ? Number(a.priority) : 99;
+                        const pB = b.priority !== undefined ? Number(b.priority) : 99;
+                        return pA - pB;
+                      }).map((ticket) => {
+                        const initials = `${ticket.name[0] || ''}${ticket.name.split(' ')[1]?.[0] || ''}`.toUpperCase() || 'ST';
+
+                        const gradients = [
+                          'from-blue-400 to-indigo-500',
+                          'from-purple-400 to-pink-500',
+                          'from-green-400 to-teal-500',
+                          'from-orange-400 to-red-500',
+                          'from-indigo-400 to-cyan-500'
+                        ];
+                        const gradientIndex = ticket.name.charCodeAt(0) % gradients.length;
+                        const selectedGradient = gradients[gradientIndex];
+
+                        return (
+                          <div
+                            key={ticket.id}
+                            className={`p-4 rounded-2xl border flex items-start gap-4 transition-all duration-200 hover:shadow-md ${theme === 'dark' ? 'bg-dark-bg/60 border-dark-border hover:border-orange-900/40' : 'bg-orange-50/20 border-orange-100/60 hover:border-orange-200/80'}`}
+                          >
+                            {/* Avatar placeholder circle matching Jacob/Luke/Connor style */}
+                            <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-orange-600 bg-orange-100/40 dark:text-orange-400 dark:bg-orange-950/40 border border-orange-200/60 dark:border-orange-900/30 shrink-0 shadow-sm">
+                              {initials}
+                            </div>
+
+                            {/* Main content block */}
+                            <div className="flex-1 flex flex-col items-start min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap w-full">
+                                <h4
+                                  onClick={() => {
+                                    if (ticket.taskId) {
+                                      router.push(`/task/${ticket.taskId}`);
+                                    } else {
+                                      router.push(`/tasks?search=${ticket.ticketNumber}`);
+                                    }
+                                  }}
+                                  className={`text-sm font-bold tracking-tight cursor-pointer hover:underline truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}
+                                >
+                                  {ticket.name}
+                                </h4>
+                                {ticket.ticketNumber && (
+                                  <span className="text-xs text-orange-500 font-bold shrink-0">
+                                    - #{ticket.ticketNumber}
+                                  </span>
+                                )}
+                              </div>
+                              <p className={`text-xs mt-1 leading-relaxed line-clamp-2 ${theme === 'dark' ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                                {ticket.description.length < 30 ? ticket.description : ticket.description.substring(0, 30) + '...'}
+                              </p>
+
+                              {/* Extra Info Divider & Action */}
+                              <div className="flex items-center justify-between gap-x-3 gap-y-1.5 pt-2.5 mt-2.5 border-t border-dashed border-zinc-200/60 dark:border-zinc-800/40 text-xs text-zinc-500 dark:text-zinc-400 w-full">
+                                {getPriorityBadge(ticket.priority) && (
+                                  <span className="shrink-0 scale-90 origin-left">
+                                    {getPriorityBadge(ticket.priority)}
+                                  </span>
+                                )}
+                                <button
+                                  onClick={() => {
+                                    if (ticket.taskId) {
+                                      router.push(`/task/${ticket.taskId}`);
+                                    } else {
+                                      router.push(`/tasks?search=${ticket.ticketNumber}`);
+                                    }
+                                  }}
+                                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all border flex items-center gap-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] ${theme === 'dark'
+                                    ? 'border-orange-900/40 bg-orange-950/45 text-orange-300 hover:bg-orange-900/60 hover:text-white'
+                                    : 'border-orange-200 bg-orange-50/50 text-orange-700 hover:bg-orange-100 hover:text-orange-900'
+                                    }`}
+                                >
+                                  <span>Check</span>
+                                  <span className="text-xs font-black">&gt;</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
