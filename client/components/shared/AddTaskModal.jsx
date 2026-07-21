@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import CustomModal from './CustomModal';
 import SearchableDropdown from './SearchableDropdown';
 import { commonTypeService, taskService } from '../../services/api';
@@ -121,7 +121,7 @@ const BadgeDropdown = ({
   );
 };
 
-const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSideBar', projectIdDefault, userStories, editingTask = null, addTaskTypeMode = 'task', projectMembers = [] }) => {
+const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSideBar', projectIdDefault, parentIdDefault = '', userStories, editingTask = null, addTaskTypeMode = 'task', projectMembers = [] }) => {
   const { projects, userDetails } = useGlobal();
   const { theme } = useTheme();
 
@@ -244,7 +244,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       } else {
         setProjectId('');
       }
-      setParentId('');
+      setParentId(parentIdDefault || '');
       setIsActive(true);
       if (addTaskTypeMode === 'userStory') {
         setType('User Story');
@@ -261,13 +261,20 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
     }
   }, [isOpen, isEditMode, userStoriesToUse]);
 
+  const prevProjectIdRef = useRef(projectId);
+
   // Reset user story selection and assignment when project changes
   useEffect(() => {
-    if (isOpen && !isEditMode) {
-      setParentId('');
-      setAssignedTo('');
+    if (isOpen) {
+      if (!isEditMode && prevProjectIdRef.current && prevProjectIdRef.current !== projectId) {
+        setParentId('');
+        setAssignedTo('');
+      }
+      prevProjectIdRef.current = projectId;
+    } else {
+      prevProjectIdRef.current = '';
     }
-  }, [projectId]);
+  }, [projectId, isOpen, isEditMode]);
 
 
   useEffect(() => {

@@ -2140,7 +2140,8 @@ const ProjectDetailsPage = () => {
                           projectIdDefault: projectId,
                           userStories: userStories,
                           addTaskTypeMode: 'userStory',
-                          projectMembers: projectMembers
+                          projectMembers: projectMembers,
+                          onAddTask: handleAddTask
                         })}
                         className={getThemeClasses(
                           'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
@@ -2275,9 +2276,11 @@ const ProjectDetailsPage = () => {
                           onClick={() => openAddTaskModal({
                             mode: 'fromProject',
                             projectIdDefault: projectId,
+                            parentIdDefault: selectedUserStory !== 'all' ? selectedUserStory : '',
                             userStories: userStories,
                             addTaskTypeMode: 'task',
-                            projectMembers: projectMembers
+                            projectMembers: projectMembers,
+                            onAddTask: handleAddTask
                           })}
                           className={getThemeClasses(
                             'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',

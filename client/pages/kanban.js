@@ -402,6 +402,7 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
                       onClick={() => openAddTaskModal({
                         mode: 'fromProject',
                         projectIdDefault: selectedProject,
+                        parentIdDefault: selectedUserStory !== 'all' ? selectedUserStory : '',
                         userStories: userStories,
                         projectMembers: projectMembers
                       })}

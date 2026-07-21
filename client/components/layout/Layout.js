@@ -935,7 +935,6 @@ const Layout = ({ children, pageProject, pageTitle }) => {
         onClose={() => setIsSearchModalOpen(false)}
       />
 
-      {/* Global Add Task Modal */}
       <AddTaskModal
         isOpen={addTaskModalConfig.isOpen}
         onClose={closeAddTaskModal}
@@ -943,6 +942,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
         onUpdateTask={handleGlobalUpdateTask}
         mode={addTaskModalConfig.mode}
         projectIdDefault={addTaskModalConfig.projectIdDefault}
+        parentIdDefault={addTaskModalConfig.parentIdDefault}
         userStories={addTaskModalConfig.userStories}
         editingTask={addTaskModalConfig.editingTask}
         addTaskTypeMode={addTaskModalConfig.addTaskTypeMode}
