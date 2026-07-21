@@ -251,20 +251,24 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
   const currentLoading = activeTab === 'inbox' ? notificationsLoading : activitiesLoading;
 
   return (
-    <div className={`fixed md:absolute top-16 md:top-auto left-4 md:left-auto right-4 md:right-0 mt-2 md:w-96 w-auto rounded-xl shadow-lg py-1 border z-50 transition-all duration-200 ${theme === 'dark'
-      ? 'bg-[#1e1e24]/95 text-white border-gray-700/80 backdrop-blur-md'
-      : 'bg-white/95 text-gray-900 border-gray-200 backdrop-blur-md'
+    <div className={`absolute top-12 right-[-60px] sm:right-0 w-[100vw] sm:w-96 rounded-2xl shadow-xl py-1 border z-50 transition-all duration-200 ${theme === 'dark'
+      ? 'bg-dark-bg/100 text-white border-dark-border backdrop-blur-md'
+      : 'bg-white/100 text-gray-900 border-slate-200/80 shadow-slate-200/40 backdrop-blur-md'
       } focus:outline-none`}>
 
       {/* Header and Tabs */}
-      <div className={`px-4 py-2 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+      <div className={`px-4 py-2 border-b ${theme === 'dark' ? 'border-dark-border' : 'border-slate-100'}`}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex space-x-4">
             <button
               onClick={() => setActiveTab('inbox')}
               className={`text-sm font-semibold pb-1 border-b-2 transition-all duration-200 ${activeTab === 'inbox'
-                ? 'border-blue-500 text-blue-500'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
+                ? theme === 'dark'
+                  ? 'border-blue-400 text-blue-400'
+                  : 'border-primary text-primary'
+                : theme === 'dark'
+                  ? 'border-transparent text-zinc-400 hover:text-zinc-300'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
             >
               Inbox
@@ -277,8 +281,12 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
             <button
               onClick={() => setActiveTab('activities')}
               className={`text-sm font-semibold pb-1 border-b-2 transition-all duration-200 ${activeTab === 'activities'
-                ? 'border-blue-500 text-blue-500'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
+                ? theme === 'dark'
+                  ? 'border-blue-400 text-blue-400'
+                  : 'border-primary text-primary'
+                : theme === 'dark'
+                  ? 'border-transparent text-zinc-400 hover:text-zinc-300'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
             >
               Activities
@@ -287,7 +295,7 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
           {activeTab === 'inbox' && notifications.some(n => !n.IsRead) && (
             <button
               onClick={handleMarkAllRead}
-              className={`text-xs font-semibold ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500'
+              className={`text-xs font-semibold ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-primary hover:text-primary/80'
                 } transition-colors duration-200`}
             >
               Mark all as read
@@ -322,32 +330,32 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
             <p className="font-medium">No recent activities</p>
           </div>
         ) : activeTab === 'inbox' ? (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700/40">
+          <div className="divide-y divide-gray-100 dark:divide-dark-border/40">
             {notifications.map((noti) => (
               <div
                 key={noti.NotificationID}
                 onClick={() => handleNotificationClick(noti)}
-                className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-hover/20 transition-all duration-150 relative ${!noti.IsRead ? (theme === 'dark' ? 'bg-blue-500/5' : 'bg-blue-50/40') : ''
+                className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-hover/20 transition-all duration-150 relative ${!noti.IsRead ? (theme === 'dark' ? 'bg-primary/5' : 'bg-primary/5') : ''
                   }`}
               >
                 {!noti.IsRead && (
-                  <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-blue-500 shadow" />
+                  <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow" />
                 )}
                 <div className="flex items-start space-x-3 pl-2">
-                  <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                  <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-lg ${theme === 'dark' ? 'bg-dark-card' : 'bg-slate-50'
                     }`}>
                     {getNotiIcon(noti.Type)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-semibold leading-tight ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'
+                    <p className={`text-sm font-semibold leading-tight ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'
                       }`}>
                       {noti.Title}
                     </p>
-                    <p className={`text-xs mt-1 leading-normal ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    <p className={`text-xs mt-1 leading-normal ${theme === 'dark' ? 'text-zinc-300' : 'text-gray-600'
                       } break-words`}>
                       {noti.Body}
                     </p>
-                    <p className={`text-xs mt-1.5 font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+                    <p className={`text-xs mt-1.5 font-medium ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-400'
                       }`}>
                       {formatDate(noti.CreatedDate)}
                     </p>
@@ -357,20 +365,20 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
             ))}
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700/40">
+          <div className="divide-y divide-gray-100 dark:divide-dark-border/40">
             {activities.map((activity) => (
               <div
                 key={activity._id}
                 className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-hover/20 transition-colors duration-150`}
               >
                 <div className="flex items-start space-x-3">
-                  <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                  <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-lg ${theme === 'dark' ? 'bg-dark-card' : 'bg-slate-50'
                     }`}>
                     {getActivityIcon(activity)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'
+                      <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'
                         }`}>
                         {getActivityTitle(activity)}
                       </p>
@@ -381,12 +389,12 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
                       </span>
                     </div>
                     {activity.details && (
-                      <p className={`text-xs mt-1 leading-normal ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                      <p className={`text-xs mt-1 leading-normal ${theme === 'dark' ? 'text-zinc-300' : 'text-gray-600'
                         }`}>
                         {activity.details}
                       </p>
                     )}
-                    <p className={`text-xs mt-1.5 font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+                    <p className={`text-xs mt-1.5 font-medium ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-400'
                       }`}>
                       {formatDate(activity.timestamp)}
                     </p>
