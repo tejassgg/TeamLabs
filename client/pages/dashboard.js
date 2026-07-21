@@ -577,8 +577,8 @@ const Dashboard = () => {
         {/* Tab Navigation */}
         {!shouldShowWelcomeMessage && (
           <div className="mb-6">
-            <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-              <nav className="-mb-px flex items-center justify-between w-full">
+            <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} overflow-x-auto scrollbar-none`}>
+              <nav className="-mb-px flex items-center justify-between min-w-max w-full">
                 <div className="flex space-x-8">
                   <button
                     onClick={() => setActiveTab('whats_up')}
@@ -625,7 +625,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Customize Button at the right end of the tabs row */}
-                <div className="flex items-center gap-2 flex-shrink-0 pb-2">
+                <div className="hidden sm:flex items-center gap-2 flex-shrink-0 pb-2">
                   {isEditMode ? (
                     <>
                       <button
@@ -734,10 +734,10 @@ const Dashboard = () => {
             </div>
 
             {/* Suggested to-dos & Topics / Updates grid */}
-            <div className="w-full flex flex-row gap-6">
+            <div className="w-full flex flex-col lg:flex-row gap-6">
 
               {/* Left Column: My Tasks */}
-              <div className={`w-[20%] p-6 rounded-3xl border ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-white border-gray-200 shadow-sm'} flex flex-col`}>
+              <div className={`w-full lg:w-[20%] p-6 rounded-3xl border ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-white border-gray-200 shadow-sm'} flex flex-col`}>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className={`text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                     My Tasks
@@ -963,7 +963,7 @@ const Dashboard = () => {
               </div>
 
               {/* Middle Column: Suggested to-dos & Timeline */}
-              <div className="w-[58%] space-y-6">
+              <div className="w-full lg:w-[58%] space-y-6">
 
                 {/* Suggested to-dos Card */}
                 <div className={`p-6 rounded-3xl border ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-white border-gray-200 shadow-sm'}`}>
@@ -1224,7 +1224,7 @@ const Dashboard = () => {
               </div>
 
               {/* Right Column: Meetings & Support Tickets */}
-              <div className={`w-[22%] p-6 rounded-3xl border space-y-4 ${theme === 'dark' ? 'bg-dark-bg border-dark-border text-white' : 'bg-white border-gray-200 shadow-sm'}`}>
+              <div className={`w-full lg:w-[22%] p-6 rounded-3xl border space-y-4 ${theme === 'dark' ? 'bg-dark-bg border-dark-border text-white' : 'bg-white border-gray-200 shadow-sm'}`}>
 
                 {/* My Meetings Card Content */}
                 <div>
