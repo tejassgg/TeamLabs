@@ -222,7 +222,7 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
       <div className="flex items-center gap-2 mb-4">
         <FaTasks className={getThemeClasses("text-gray-500", "dark:text-gray-400")} />
         <h3 className={getThemeClasses("text-base font-bold text-gray-900 flex items-center gap-2", "dark:text-white")}>Subtasks</h3>
-        <span className={getThemeClasses("bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full", "dark:bg-blue-900/30 dark:text-blue-300")}>{subtasks.length}</span>
+        <span className={getThemeClasses("bg-blue-100 text-primary text-xs font-medium px-2 py-1 rounded-full", "dark:bg-blue-900/30 dark:text-blue-300")}>{subtasks.length}</span>
       </div>
 
       {/* Subtasks List */}

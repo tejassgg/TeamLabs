@@ -29,11 +29,10 @@ const Reactions = ({ reactions, theme, isOwnMessage, userDetails, onSelectReacti
             e.stopPropagation();
             if (onSelectReaction) onSelectReaction(emoji);
           }}
-          className={`px-2 py-0.5 rounded-md border text-xs flex items-center gap-1 transition-colors ${
-            hasReacted
-              ? (theme === 'dark' ? 'bg-blue-900/60 border-blue-500 text-blue-200 font-semibold' : 'bg-blue-100 border-blue-400 text-blue-800 font-semibold')
+          className={`px-2 py-0.5 rounded-md border text-xs flex items-center gap-1 transition-colors ${hasReacted
+              ? (theme === 'dark' ? 'bg-blue-900/60 border-blue-500 text-blue-200 font-semibold' : 'bg-blue-100 border-blue-400 text-primary font-semibold')
               : `${panel} ${theme === 'dark' ? 'border-dark-border hover:bg-[#333]' : 'border-gray-200 hover:bg-gray-100'}`
-          }`}
+            }`}
         >
           <span>{emoji}</span>
           <span>{count}</span>

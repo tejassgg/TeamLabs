@@ -9,7 +9,6 @@ import { FaCheck, FaExternalLinkAlt, FaEdit, FaTimes, FaSpinner, FaCode, FaInfoC
 import { FiCornerDownRight, FiShare2 } from "react-icons/fi";
 import { MdDelete } from 'react-icons/md';
 import { FaTimeline } from "react-icons/fa6";
-import AddTaskModal from '../../components/shared/AddTaskModal';
 import CustomModal from '../../components/shared/CustomModal';
 import CustomDropdown from '../../components/shared/CustomDropdown';
 import { useToast } from '../../context/ToastContext';
@@ -52,7 +51,8 @@ const ProjectDetailsPage = () => {
     getUserInitials,
     formatTimeAgo,
     userDetails,
-    setProjects
+    setProjects,
+    openAddTaskModal
   } = useGlobal();
   const { showToast } = useToast();
   const [project, setProject] = useState(null);
@@ -92,14 +92,11 @@ const ProjectDetailsPage = () => {
 
   const [showRevokeDialog, setShowRevokeDialog] = useState(false);
   const [revokingTeam, setRevokingTeam] = useState(null);
-  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
-  const [addTaskTypeMode, setAddTaskTypeMode] = useState('task'); // 'userStory' or 'task'
   const [taskList, setTaskList] = useState([]);
   const [userStories, setUserStories] = useState([]);
   const [deletingTask, setDeletingTask] = useState(false);
   const [showDeleteTaskDialog, setShowDeleteTaskDialog] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
-  const [editingTask, setEditingTask] = useState(null);
   const [selectedTasks, setSelectedTasks] = useState([]);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
@@ -1182,9 +1179,15 @@ const ProjectDetailsPage = () => {
 
   // Function to open edit task modal
   const handleEditTask = (task) => {
-    setEditingTask(task);
-    setAddTaskTypeMode(task?.Type === 'User Story' ? 'userStory' : 'task');
-    setIsAddTaskOpen(true);
+    openAddTaskModal({
+      mode: 'fromProject',
+      projectIdDefault: projectId,
+      userStories: userStories,
+      editingTask: task,
+      addTaskTypeMode: task?.Type === 'User Story' ? 'userStory' : 'task',
+      projectMembers: projectMembers,
+      onUpdateTask: handleUpdateTask
+    });
   };
 
   // Function to handle task selection
@@ -2132,10 +2135,16 @@ const ProjectDetailsPage = () => {
                     <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>User Stories</h2>
                     {!project?.isArchived && (
                       <button
-                        onClick={() => { setAddTaskTypeMode('userStory'); setIsAddTaskOpen(true); }}
+                        onClick={() => openAddTaskModal({
+                          mode: 'fromProject',
+                          projectIdDefault: projectId,
+                          userStories: userStories,
+                          addTaskTypeMode: 'userStory',
+                          projectMembers: projectMembers
+                        })}
                         className={getThemeClasses(
-                          'flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-600 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                          'dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white'
+                          'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
+                          'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
                         )}
                       >
                         <FaPlus size={14} />
@@ -2263,10 +2272,16 @@ const ProjectDetailsPage = () => {
                     ) : (
                       !project?.isArchived && (
                         <button
-                          onClick={() => { setAddTaskTypeMode('task'); setIsAddTaskOpen(true); }}
+                          onClick={() => openAddTaskModal({
+                            mode: 'fromProject',
+                            projectIdDefault: projectId,
+                            userStories: userStories,
+                            addTaskTypeMode: 'task',
+                            projectMembers: projectMembers
+                          })}
                           className={getThemeClasses(
-                            'flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                            'dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white'
+                            'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
+                            'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
                           )}
                         >
                           <FaPlus size={14} />
@@ -2289,7 +2304,7 @@ const ProjectDetailsPage = () => {
                   <table className="w-full table-fixed">
                     <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#111113] border-zinc-800/80' : 'bg-gray-50 border-gray-200'}`}>
                       <tr className={tableHeaderClasses}>
-                        <th className={`hidden sm:table-cell py-3 px-4 text-center w-[50px] ${tableHeaderTextClasses}`}>
+                        <th className={`hidden sm:table-cell py-3 pl-4 text-center w-[50px] ${tableHeaderTextClasses}`}>
                           <input
                             type="checkbox"
                             checked={selectedTasks.length === taskList.length && taskList.length > 0}
@@ -2341,22 +2356,13 @@ const ProjectDetailsPage = () => {
                     </thead>
                     <tbody>
                       {tasksSorted.map(task => {
-                        const getPriorityBackgroundColor = (priority) => {
-                          const styles = {
-                            'High': 'bg-red-50 dark:bg-red-900/10',
-                            'Medium': 'bg-yellow-50 dark:bg-yellow-900/10',
-                            'Low': 'bg-green-50 dark:bg-green-900/10'
-                          };
-                          return styles[priority] || '';
-                        };
-
                         const ticketRowClasses = task.Type === 'Support'
-                          ? `${tableRowClasses} ${getPriorityBackgroundColor(task.Priority)}`
+                          ? `${tableRowClasses} bg-red-50 dark:bg-red-900/10`
                           : tableRowClasses;
 
                         return (
                           <tr key={task._id} className={ticketRowClasses}>
-                            <td className="hidden sm:table-cell py-3 px-4 text-center">
+                            <td className="hidden sm:table-cell py-3 pl-4 text-center">
                               <input
                                 type="checkbox"
                                 checked={selectedTasks.includes(task.TaskID)}
@@ -2446,7 +2452,7 @@ const ProjectDetailsPage = () => {
                             </td>
                             <td className="hidden md:table-cell py-3 px-4">
                               <div className="flex items-center justify-center gap-1.5">
-                                {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
+                                {task.Type !== 'User Story' && getPriorityBadge(task.Priority)}
                               </div>
                             </td>
                             <td className="py-3 px-4 text-center">
@@ -2687,7 +2693,7 @@ const ProjectDetailsPage = () => {
                                           )}
                                         </td>
                                         <td className={`px-4 hidden sm:table-cell text-center ${item.isSubtask ? 'py-2' : 'py-3'} w-[8%]`}>
-                                          {!item.isSubtask && item.Priority && getPriorityBadge(item.Priority)}
+                                          {!item.isSubtask && getPriorityBadge(item.Priority)}
                                         </td>
                                         <td className={`px-4 hidden sm:table-cell text-center ${item.isSubtask ? 'py-2' : 'py-3'} w-[11%]`}>
                                           {!item.isSubtask && getTaskTypeBadgeComponent(item.Type)}
@@ -3333,21 +3339,6 @@ const ProjectDetailsPage = () => {
             </p>
           </CustomModal>
         )}
-        <AddTaskModal
-          isOpen={isAddTaskOpen}
-          onClose={() => {
-            setIsAddTaskOpen(false);
-            setEditingTask(null);
-          }}
-          onAddTask={handleAddTask}
-          onUpdateTask={handleUpdateTask}
-          mode="fromProject"
-          projectIdDefault={projectId}
-          userStories={userStories}
-          editingTask={editingTask}
-          addTaskTypeMode={addTaskTypeMode}
-          projectMembers={projectMembers}
-        />
 
         {/* Delete Task Confirmation Dialog */}
         {showDeleteTaskDialog && taskToDelete && (

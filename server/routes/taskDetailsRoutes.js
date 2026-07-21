@@ -201,10 +201,17 @@ router.post('/', checkTaskTypeLimit, async (req, res) => {
 
         // Send email notification if task is assigned during creation
         if (newTask.AssignedTo && newTask.AssignedToDetails) {
+            let assignedBy = 'Unknown User';
             try {
                 const createdByUser = await User.findById(taskData.CreatedBy);
-                const assignedBy = createdByUser ? `${createdByUser.firstName} ${createdByUser.lastName}` : 'Unknown User';
+                if (createdByUser) {
+                    assignedBy = `${createdByUser.firstName} ${createdByUser.lastName}`.trim() || 'Unknown User';
+                }
+            } catch (err) {
+                console.error('Error fetching creator user details:', err);
+            }
 
+            try {
                 const taskDetails = `
                     <strong>Task Name:</strong> ${newTask.Name}<br>
                     <strong>Description:</strong> ${newTask.Description || 'No description provided'}<br>
@@ -735,7 +742,14 @@ router.get('/project/:projectId/kanban', async (req, res) => {
             .sort({ CreatedDate: 1 })
             .lean();
 
-        return res.json({ tasks: shapedTasks, userStories: userStoriesDocs });
+        // Fetch unique project members (unique users who are members of any assigned team)
+        const projectDetails = await ProjectDetails.find({ ProjectID: projectId, IsActive: true });
+        const assignedTeamIds = projectDetails.map(pd => pd.TeamID);
+        const allTeamDetails = await TeamDetails.find({ TeamID_FK: { $in: assignedTeamIds }, IsMemberActive: true });
+        const memberIds = [...new Set(allTeamDetails.map(td => td.MemberID))];
+        const projectMembers = await User.find({ _id: { $in: memberIds } }).select('_id firstName lastName email profileImage');
+
+        return res.json({ tasks: shapedTasks, userStories: userStoriesDocs, projectMembers });
     } catch (error) {
         console.error('Error fetching kanban data:', error);
         return res.status(500).json({ error: 'Failed to fetch kanban data' });
@@ -1336,6 +1350,19 @@ router.patch('/:taskId', async (req, res) => {
 
         await task.save();
 
+        // Synchronize priority update with ContactSupport table for Support tasks
+        if (updateData.Priority !== undefined && task.Type === 'Support' && task.TicketNumber) {
+            try {
+                const ContactSupport = require('../models/ContactSupport');
+                await ContactSupport.updateOne(
+                    { ticketNumber: task.TicketNumber },
+                    { $set: { priority: updateData.Priority } }
+                );
+            } catch (err) {
+                console.error('Failed to sync priority with ContactSupport ticket:', err);
+            }
+        }
+
         // If this is a User Story and DueDate was updated, update all tasks under this User Story
         if (task.Type === 'User Story' && updateData.DueDate !== undefined) {
             const childTasks = await TaskDetails.find({
@@ -1849,4 +1876,5 @@ router.delete('/:taskId/git-links/:linkId', protect, async (req, res) => {
     }
 });
 
+router.getNextTaskNumber = getNextTaskNumber;
 module.exports = router; 

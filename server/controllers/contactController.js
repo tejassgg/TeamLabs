@@ -2,6 +2,8 @@ const ContactSupport = require('../models/ContactSupport');
 const TaskDetails = require('../models/TaskDetails');
 const { emailService } = require('../services/emailService');
 
+const { getNextTaskNumber } = require('../routes/taskDetailsRoutes');
+
 // Submit contact support request
 const submitContactRequest = async (req, res) => {
   try {
@@ -40,13 +42,9 @@ const submitContactRequest = async (req, res) => {
       });
     }
 
-    // Generate ticket number in format T-MMDDYYY-Timestamp
-    const now = new Date();
-    const month = String(now.getMonth()).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const year = String(now.getFullYear()); // Last 3 digits of year
-    const timestamp = String(now.getTime()).slice(-4); // Last 4 digits of timestamp
-    const ticketNumber = `T${month}${day}${year}${timestamp}`;
+    // Generate separate task number and ticket number sequentially
+    const taskNumber = await getNextTaskNumber();
+    const ticketNumber = generateTicketNumber();
 
     // Create contact support request
     const contactRequest = new ContactSupport({
@@ -56,7 +54,8 @@ const submitContactRequest = async (req, res) => {
       email: email.toLowerCase().trim(),
       attachments: processedAttachments,
       tags: ['general'], // Default tag
-      ticketNumber: ticketNumber // Set the generated ticket number
+      ticketNumber: ticketNumber, // Set the generated ticket number
+      priority: 0
     });
 
     await contactRequest.save();
@@ -68,15 +67,16 @@ const submitContactRequest = async (req, res) => {
         Name: `Support Request: ${title}`,
         Description: `Support request from ${name} (${email})\n\nDescription: ${description}`,
         Type: 'Support',
-        Priority: 'High',
+        Priority: 'Critical',
         ProjectID_FK: '3c807b27-ce80-4ae7-9f72-9aeb1fe8c27c',
-        ParentID: '97285d540-a692-416a-ac8d-a554fb261751', // UserStory ID for customer support
+        ParentID: '7285d540-a692-416a-ac8d-a554fb261751', // UserStory ID for customer support
         Status: 2, // Assigned
         AssignedDate: new Date(),
         CreatedBy: '6a4aaeb1c8c1c41d326c769e', // System user for support requests
         IsActive: true,
         CreatedDate: new Date(),
-        TicketNumber: contactRequest.ticketNumber,
+        TaskNumber: taskNumber,
+        TicketNumber: ticketNumber,
         Assignee: '6a4aaeb1c8c1c41d326c769e',
         AssignedTo: '681d488bb30030619cf0053d',
         DueDate: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000)
@@ -339,6 +339,16 @@ const deleteContactRequest = async (req, res) => {
     });
   }
 };
+
+const generateTicketNumber = () => {
+  // Generate ticket number in format T-MMDDYYY-Timestamp
+  const now = new Date();
+  const month = String(now.getMonth()).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const year = String(now.getFullYear()); // Last 3 digits of year
+  const timestamp = String(now.getTime()).slice(-4); // Last 4 digits of timestamp
+  return `T${month}${day}${year}${timestamp}`;
+}
 
 module.exports = {
   submitContactRequest,

@@ -156,12 +156,13 @@ async function resolveTaskStatus(statusInput) {
 }
 
 function resolvePriority(priority) {
-  if (!priority) return 'Medium';
+  if (!priority) return 3;
   const p = String(priority).trim().toLowerCase();
-  if (p === 'high') return 'High';
-  if (p === 'medium') return 'Medium';
-  if (p === 'low') return 'Low';
-  return 'Medium';
+  if (p === 'critical' || p === '1' || priority === 1) return 1;
+  if (p === 'high' || p === '2' || priority === 2) return 2;
+  if (p === 'medium' || p === '3' || priority === 3) return 3;
+  if (p === 'low' || p === '4' || priority === 4) return 4;
+  return 3;
 }
 
 function resolveType(type) {

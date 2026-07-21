@@ -105,6 +105,60 @@ export const GlobalProvider = ({ children }) => {
     return getTaskTypeBadge(type);
   };
 
+  const getTaskTypeScheme = (type) => {
+    const schemes = {
+      'Bug': {
+        bg: 'bg-red-50/40 dark:bg-red-950/10',
+        border: 'border-red-100 dark:border-red-950/30',
+        accent: 'text-red-600 bg-red-100/40 dark:text-red-400 dark:bg-red-950/40',
+        textColor: 'text-red-800 dark:text-red-300'
+      },
+      'Feature': {
+        bg: 'bg-blue-50/40 dark:bg-blue-950/10',
+        border: 'border-blue-100 dark:border-blue-950/30',
+        accent: 'text-blue-600 bg-blue-100/40 dark:text-blue-400 dark:bg-blue-950/40',
+        textColor: 'text-primary dark:text-blue-300'
+      },
+      'Improvement': {
+        bg: 'bg-green-50/40 dark:bg-green-950/10',
+        border: 'border-green-100 dark:border-green-950/30',
+        accent: 'text-green-600 bg-green-100/40 dark:text-green-400 dark:bg-green-950/40',
+        textColor: 'text-green-800 dark:text-green-300'
+      },
+      'Documentation': {
+        bg: 'bg-indigo-50/40 dark:bg-indigo-950/10',
+        border: 'border-indigo-100 dark:border-indigo-950/30',
+        accent: 'text-indigo-600 bg-indigo-100/40 dark:text-indigo-400 dark:bg-indigo-950/40',
+        textColor: 'text-indigo-800 dark:text-indigo-300'
+      },
+      'Maintenance': {
+        bg: 'bg-amber-50/40 dark:bg-amber-950/10',
+        border: 'border-amber-100 dark:border-amber-950/30',
+        accent: 'text-amber-600 bg-amber-100/40 dark:text-amber-400 dark:bg-amber-950/40',
+        textColor: 'text-amber-800 dark:text-amber-300'
+      },
+      'User Story': {
+        bg: 'bg-purple-50/40 dark:bg-purple-950/10',
+        border: 'border-purple-100 dark:border-purple-950/30',
+        accent: 'text-purple-600 bg-purple-100/40 dark:text-purple-400 dark:bg-purple-950/40',
+        textColor: 'text-purple-800 dark:text-purple-300'
+      },
+      'Support': {
+        bg: 'bg-orange-50/40 dark:bg-orange-950/10',
+        border: 'border-orange-100 dark:border-orange-950/30',
+        accent: 'text-orange-600 bg-orange-100/40 dark:text-orange-400 dark:bg-orange-950/40',
+        textColor: 'text-orange-800 dark:text-orange-300'
+      }
+    };
+
+    return schemes[type] || {
+      bg: 'bg-gray-50/40 dark:bg-zinc-900/40',
+      border: 'border-gray-200/80 dark:border-zinc-800/80',
+      accent: 'text-zinc-600 bg-gray-150/40 dark:text-zinc-400 dark:bg-zinc-800/40',
+      textColor: 'text-zinc-800 dark:text-zinc-300'
+    };
+  };
+
   // Get task status badge component (reusable globally)
   const getStatus = (statusCode) => {
     return getTaskStatusBadge(statusCode, theme === 'dark');
@@ -767,7 +821,43 @@ export const GlobalProvider = ({ children }) => {
     };
   };
 
+  // Add Task Modal Global State
+  const [addTaskModalConfig, setAddTaskModalConfig] = useState({
+    isOpen: false,
+    mode: 'fromSideBar',
+    projectIdDefault: '',
+    userStories: [],
+    editingTask: null,
+    addTaskTypeMode: 'task',
+    projectMembers: [],
+    onAddTask: null,
+    onUpdateTask: null,
+    onSuccess: null,
+  });
+
+  const openAddTaskModal = (config = {}) => {
+    setAddTaskModalConfig({
+      isOpen: true,
+      mode: config.mode || 'fromSideBar',
+      projectIdDefault: config.projectIdDefault || '',
+      userStories: config.userStories || [],
+      editingTask: config.editingTask || null,
+      addTaskTypeMode: config.addTaskTypeMode || 'task',
+      projectMembers: config.projectMembers || [],
+      onAddTask: config.onAddTask || null,
+      onUpdateTask: config.onUpdateTask || null,
+      onSuccess: config.onSuccess || null,
+    });
+  };
+
+  const closeAddTaskModal = () => {
+    setAddTaskModalConfig(prev => ({ ...prev, isOpen: false }));
+  };
+
   const value = {
+    addTaskModalConfig,
+    openAddTaskModal,
+    closeAddTaskModal,
     userDetails,
     teams,
     projects,
@@ -800,6 +890,7 @@ export const GlobalProvider = ({ children }) => {
     getMemberStatusBadgeComponent,
     getTaskTypeStyleComponent,
     getTaskTypeBadgeComponent,
+    getTaskTypeScheme,
     getTaskStatusText,
     getStatus,
     getDeadlineStatusComponent,

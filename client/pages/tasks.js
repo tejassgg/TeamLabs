@@ -129,7 +129,7 @@ const TasksPage = () => {
       return taskDate.getTime() === today.getTime();
     });
 
-    const highPriority = scopeTasks.filter(task => task.Priority === 'High' || task.Priority === 'Critical' || task.Priority === 0 || task.Priority === '0');
+    const highPriority = scopeTasks.filter(task => task.Priority === 1 || task.Priority === 2 || task.Priority === '1' || task.Priority === '2' || task.Priority === 'High' || task.Priority === 'Critical' || task.Priority === 0 || task.Priority === '0');
 
     setStats({
       totalTasks: scopeTasks.length,
@@ -201,7 +201,7 @@ const TasksPage = () => {
 
     // Priority filter
     if (priorityFilter) {
-      filtered = filtered.filter(task => task.Priority === priorityFilter);
+      filtered = filtered.filter(task => String(task.Priority) === String(priorityFilter));
     }
 
     // Project filter
@@ -238,7 +238,12 @@ const TasksPage = () => {
           bValue = b.AssignedDate ? new Date(b.AssignedDate) : new Date('1970-01-01');
           break;
         case 'priority':
-          const priorityOrder = { 'Critical': 4, 0: 4, '0': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
+          const priorityOrder = {
+            'Critical': 4, 1: 4, '1': 4, 0: 4, '0': 4,
+            'High': 3, 2: 3, '2': 3,
+            'Medium': 2, 3: 2, '3': 2,
+            'Low': 1, 4: 1, '4': 1
+          };
           aValue = priorityOrder[a.Priority] || 0;
           bValue = priorityOrder[b.Priority] || 0;
           break;
@@ -424,7 +429,7 @@ const TasksPage = () => {
                       'border-zinc-800/80 bg-zinc-900/30 hover:bg-zinc-800/20'
                     )}`}>
                       <div className="flex items-center justify-between">
-                        <span className={getThemeClasses('text-[10px] font-semibold text-gray-500 uppercase tracking-wider', 'text-[10px] font-semibold text-gray-400 uppercase tracking-wider')}>Total Tasks</span>
+                        <span className={getThemeClasses('text-xs font-semibold text-gray-500 uppercase tracking-wider', 'text-xs font-semibold text-gray-400 uppercase tracking-wider')}>Total Tasks</span>
                         <div className="p-1 rounded-lg bg-blue-100 dark:bg-blue-900/20 text-blue-600">
                           <FaTasks className="w-3 h-3" />
                         </div>
@@ -440,7 +445,7 @@ const TasksPage = () => {
                       'border-zinc-800/80 bg-zinc-900/30 hover:bg-zinc-800/20'
                     )}`}>
                       <div className="flex items-center justify-between">
-                        <span className={getThemeClasses('text-[10px] font-semibold text-gray-500 uppercase tracking-wider', 'text-[10px] font-semibold text-gray-400 uppercase tracking-wider')}>Completed</span>
+                        <span className={getThemeClasses('text-xs font-semibold text-gray-500 uppercase tracking-wider', 'text-xs font-semibold text-gray-400 uppercase tracking-wider')}>Completed</span>
                         <div className="p-1 rounded-lg bg-green-100 dark:bg-green-900/20 text-green-600">
                           <FaCheckCircle className="w-3 h-3" />
                         </div>
@@ -456,7 +461,7 @@ const TasksPage = () => {
                       'border-zinc-800/80 bg-zinc-900/30 hover:bg-zinc-800/20'
                     )}`}>
                       <div className="flex items-center justify-between">
-                        <span className={getThemeClasses('text-[10px] font-semibold text-gray-500 uppercase tracking-wider', 'text-[10px] font-semibold text-gray-400 uppercase tracking-wider')}>Overdue</span>
+                        <span className={getThemeClasses('text-xs font-semibold text-gray-500 uppercase tracking-wider', 'text-xs font-semibold text-gray-400 uppercase tracking-wider')}>Overdue</span>
                         <div className="p-1.5 rounded-lg bg-red-100 dark:bg-red-955/40 dark:bg-red-950/40">
                           <FaExclamationTriangle className="w-3 h-3 text-red-655" />
                         </div>
@@ -472,7 +477,7 @@ const TasksPage = () => {
                       'border-zinc-800/80 bg-zinc-900/30 hover:bg-zinc-800/20'
                     )}`}>
                       <div className="flex items-center justify-between">
-                        <span className={getThemeClasses('text-[10px] font-semibold text-gray-500 uppercase tracking-wider', 'text-[10px] font-semibold text-gray-400 uppercase tracking-wider')}>High Priority</span>
+                        <span className={getThemeClasses('text-xs font-semibold text-gray-500 uppercase tracking-wider', 'text-xs font-semibold text-gray-400 uppercase tracking-wider')}>High Priority</span>
                         <div className="p-1.5 rounded-lg bg-[#FFF2E5] dark:bg-[#FFA500]/10">
                           <FaFlag className="w-3 h-3 text-orange-655" />
                         </div>
@@ -647,10 +652,10 @@ const TasksPage = () => {
                                   onChange={(val) => setPriorityFilter(val)}
                                   options={[
                                     { value: '', label: 'All Priorities' },
-                                    { value: 'Critical', label: 'Critical' },
-                                    { value: 'High', label: 'High' },
-                                    { value: 'Medium', label: 'Medium' },
-                                    { value: 'Low', label: 'Low' }
+                                    { value: 1, label: 'Critical' },
+                                    { value: 2, label: 'High' },
+                                    { value: 3, label: 'Medium' },
+                                    { value: 4, label: 'Low' }
                                   ]}
                                   placeholder="All Priorities"
                                   renderSelected={(opt) => opt.value === '' ? 'All Priorities' : getPriorityBadge(opt.value)}
@@ -1005,7 +1010,7 @@ const TasksPage = () => {
                               )}
                               title={task.Name}
                             >
-                              {task.Name && task.Name.length > 100 ? `${task.Name.substring(0, 100)}...` : task.Name}
+                              {task.Name && task.Name.length > 70 ? `${task.Name.substring(0, 70)}...` : task.Name}
                             </button>
                             <div className="flex items-center gap-1.5">
                               {getTaskTypeBadgeComponent(task.Type)}
@@ -1104,7 +1109,7 @@ const TasksPage = () => {
                       </td>
                       <td className="hidden md:table-cell py-3 px-4">
                         <div className="flex items-center gap-1.5">
-                          {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
+                          {task.Type !== 'User Story' && getPriorityBadge(task.Priority)}
                         </div>
                       </td>
                       <td className="hidden md:table-cell py-3 px-4 text-left">

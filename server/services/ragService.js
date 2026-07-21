@@ -163,7 +163,14 @@ class RAGService {
           Task Name: ${document.Name}
           Description: ${document.Description || 'No description provided'}
           Type: ${document.Type}
-          Priority: ${document.Priority || 'Medium'}
+          Priority: ${(() => {
+            const p = document.Priority;
+            if (p === 1 || p === '1') return 'Critical';
+            if (p === 2 || p === '2') return 'High';
+            if (p === 3 || p === '3') return 'Medium';
+            if (p === 4 || p === '4') return 'Low';
+            return p || 'Medium';
+          })()}
           Status: ${document.Status}
           Assignee: ${document.AssignedTo || 'Unassigned'}
           Project ID: ${document.ProjectID_FK}

@@ -40,7 +40,7 @@ const SearchableDropdown = ({
 
   // Find selected option
   const selectedOption = options.find(opt => getOptionValue(opt) === value);
-  const displayLabel = selectedOption ? getOptionLabel(selectedOption) : placeholder;
+  const displayLabel = (selectedOption !== undefined && selectedOption !== null) ? getOptionLabel(selectedOption) : placeholder;
 
   // Filter options based on search query
   const filteredOptions = options.filter(option => {
@@ -96,7 +96,7 @@ const SearchableDropdown = ({
             />
           ) : (
             <span className="truncate block">
-              {renderSelected && selectedOption ? renderSelected(selectedOption) : displayLabel}
+              {renderSelected && (selectedOption !== undefined && selectedOption !== null) ? renderSelected(selectedOption) : displayLabel}
             </span>
           )}
         </div>

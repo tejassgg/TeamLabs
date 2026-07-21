@@ -112,7 +112,7 @@ const DynamicBreadcrumb = ({
           project: project
         },
         {
-          label: task ? ((task.TaskNumber || task.TicketNumber) ? `${task.TaskNumber || task.TicketNumber} - ${task.Name}` : task.Name) : 'Task Details',
+          label: task ? ((task.TicketNumber || task.TaskNumber) ? `${task.TicketNumber || task.TaskNumber} - ${task.Name}` : task.Name) : 'Task Details',
           href: router.asPath,
           isCurrent: true,
           isTask: true,

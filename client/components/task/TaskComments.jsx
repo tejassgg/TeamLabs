@@ -153,7 +153,7 @@ const TaskComments = ({ taskId, userId, userName, initialComments, projectMember
         <h3 className={getThemeClasses("text-lg font-semibold text-gray-900 flex items-center gap-2", "dark:text-gray-100")}>
           <FaReply className={getThemeClasses("text-gray-500", "dark:text-gray-400")} />
           Comments
-          <span className={getThemeClasses("bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full", "dark:bg-blue-900/30 dark:text-blue-300")}>{comments.length}</span>
+          <span className={getThemeClasses("bg-blue-100 text-primary text-xs font-medium px-2 py-1 rounded-full", "dark:bg-blue-900/30 dark:text-blue-300")}>{comments.length}</span>
         </h3>
       </div>
 

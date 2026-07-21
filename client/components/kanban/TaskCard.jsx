@@ -88,7 +88,7 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
         {getTaskTypeBadge(task.Type)}
 
         {/* Task Priority Badge */}
-        {task.Type !== 'User Story' && task.Priority && getPriorityBadge(task.Priority)}
+        {task.Type !== 'User Story' && getPriorityBadge(task.Priority)}
 
       </div>
 
@@ -124,7 +124,7 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
         ) : (
           (task.TaskNumber || task.TicketNumber) && (
             <span className={getThemeClasses(
-              "ml-auto text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200",
+              "ml-auto text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-primary border border-blue-200",
               "dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800"
             )}>#{task.TaskNumber || task.TicketNumber}</span>
           )

@@ -143,7 +143,7 @@ const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
                 <div className="mt-3 sm:mt-4 flex flex-row gap-2 sm:gap-4 justify-start">
                   <div className={`flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg ${theme === 'dark'
                     ? 'bg-blue-900/30 text-blue-300 border border-blue-700'
-                    : 'bg-blue-100 text-blue-800 border border-blue-200'
+                    : 'bg-blue-100 text-primary border border-blue-200'
                     }`}>
                     <span className="text-xs sm:text-sm font-medium">✓ Free Trial</span>
                   </div>
@@ -189,38 +189,38 @@ const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
           </>
         )}
         <div className="mt-6 flex flex-col items-center gap-4">
-              <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3">
-                <GoogleLogin
-                  onSuccess={handleGoogleLoginSuccess}
-                  onError={handleGoogleLoginError}
-                  theme="outline"
-                  text="signup_with"
-                  shape="rectangular"
-                />
-                <span className={`text-sm sm:mx-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>or</span>
-                <button
-                  type="submit"
-                  className={`w-auto py-1 sm:py-2 px-8 sm:px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 text-white hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'}`}
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Creating Account...' : 'Create Account'}
-                </button>
-              </div>
-              <div className="text-center">
-                <span className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Already have an account?  </span>
-                {onOpenLogin ? (
-                  <button
-                    type="button"
-                    onClick={onOpenLogin}
-                    className={`font-bold hover:underline text-sm sm:text-base ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}
-                  >Sign In
-                  </button>
-                ) : (
-                  <Link href="/auth?type=login" className={`font-bold hover:underline text-sm sm:text-base ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}>Sign In</Link>
-                )}
-              </div>
-            </div>
-          </form>
+          <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3">
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onError={handleGoogleLoginError}
+              theme="outline"
+              text="signup_with"
+              shape="rectangular"
+            />
+            <span className={`text-sm sm:mx-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>or</span>
+            <button
+              type="submit"
+              className={`w-auto py-1 sm:py-2 px-8 sm:px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 text-white hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'}`}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Creating Account...' : 'Create Account'}
+            </button>
+          </div>
+          <div className="text-center">
+            <span className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Already have an account?  </span>
+            {onOpenLogin ? (
+              <button
+                type="button"
+                onClick={onOpenLogin}
+                className={`font-bold hover:underline text-sm sm:text-base ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}
+              >Sign In
+              </button>
+            ) : (
+              <Link href="/auth?type=login" className={`font-bold hover:underline text-sm sm:text-base ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}>Sign In</Link>
+            )}
+          </div>
+        </div>
+      </form>
       {/* Footer Google block removed; combined into button row above */}
     </div>
   );

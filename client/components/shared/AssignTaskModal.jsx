@@ -48,7 +48,7 @@ const AssignTaskModal = ({ isOpen, onClose, task, projectId, onAssignTask }) => 
     try {
       setLoading(true);
       const updatedTask = await taskService.assignTask(task.TaskID, selectedMember);
-      showToast('Task assigned successfully', 'success'); 
+      showToast('Task assigned successfully', 'success');
       onAssignTask(updatedTask);
       onClose();
     } catch (err) {
@@ -63,13 +63,13 @@ const AssignTaskModal = ({ isOpen, onClose, task, projectId, onAssignTask }) => 
     <Modal isOpen={isOpen} onClose={onClose} title="Assign Task">
       <div className={getThemeClasses('', 'text-white')}>
         <p className={getThemeClasses("text-gray-600 mb-4", "text-gray-50 mb-4")}>
-          You're moving a task from "Not Assigned" to another status. 
+          You're moving a task from "Not Assigned" to another status.
           Please select a team member to assign this task to.
         </p>
 
         <div className="mb-6">
-          <div className={getThemeClasses("bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4", "bg-dark-bg border border-dark-card rounded-lg p-4 mb-4")}>  
-            <h4 className={getThemeClasses("font-medium text-blue-800 mb-1", "font-medium text-white mb-1")}>Task Details</h4>
+          <div className={getThemeClasses("bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4", "bg-dark-bg border border-dark-card rounded-lg p-4 mb-4")}>
+            <h4 className={getThemeClasses("font-medium text-primary mb-1", "font-medium text-white mb-1")}>Task Details</h4>
             <p className={getThemeClasses("text-blue-700 font-medium", "text-gray-200 font-medium")}>{task?.Name}</p>
             <p className={getThemeClasses("text-sm text-blue-600 mt-1", "text-sm text-gray-400 mt-1")}>{task?.Description}</p>
           </div>
@@ -82,7 +82,7 @@ const AssignTaskModal = ({ isOpen, onClose, task, projectId, onAssignTask }) => 
         ) : error ? (
           <div className={getThemeClasses("text-red-600 mb-4", "text-red-400 mb-4")}>{error}</div>
         ) : teamMembers.length === 0 ? (
-          <div className={getThemeClasses("text-yellow-700 bg-yellow-50 p-4 rounded-lg mb-4", "text-yellow-300 bg-[#3a2f1d] border border-yellow-700/40 p-4 rounded-lg mb-4") }>
+          <div className={getThemeClasses("text-yellow-700 bg-yellow-50 p-4 rounded-lg mb-4", "text-yellow-300 bg-[#3a2f1d] border border-yellow-700/40 p-4 rounded-lg mb-4")}>
             No team members found for this project. Please add team members first.
           </div>
         ) : (

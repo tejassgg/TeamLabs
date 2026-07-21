@@ -9,7 +9,7 @@ const TaskDetailsSchema = new mongoose.Schema({
   },
   ParentID: {
     type: String,
-    required: function() {
+    required: function () {
       return this.Type != "User Story";
     }
   },
@@ -31,10 +31,10 @@ const TaskDetailsSchema = new mongoose.Schema({
     required: true
   },
   Priority: {
-    type: String,
-    enum: ['Critical', 'High', 'Medium', 'Low'],
-    default: 'Medium',
-    required: function() {
+    type: Number,
+    enum: [0, 1, 2, 3],
+    default: 2,
+    required: function () {
       return this.Type !== 'User Story';
     }
   },
@@ -65,7 +65,7 @@ const TaskDetailsSchema = new mongoose.Schema({
   DueDate: {
     type: Date,
     default: null,
-    required: function() {
+    required: function () {
       return this.Type === 'User Story';
     }
   },

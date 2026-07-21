@@ -40,7 +40,7 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
   // Get team type color based on TeamType
   const getTeamTypeColor = (teamType) => {
     const colorMap = {
-      1: 'bg-blue-100 text-blue-800 border-blue-200', // Development
+      1: 'bg-blue-100 text-primary border-blue-200', // Development
       2: 'bg-green-100 text-green-800 border-green-200', // Quality Analysis
       3: 'bg-purple-100 text-purple-800 border-purple-200', // Code Verification
       4: 'bg-amber-100 text-amber-800 border-amber-200', // Deployment

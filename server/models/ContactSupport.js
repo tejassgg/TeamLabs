@@ -53,11 +53,7 @@ const contactSupportSchema = new mongoose.Schema({
     enum: ['open', 'in_progress', 'resolved', 'closed'],
     default: 'open'
   },
-  priority: {
-    type: String,
-    enum: ['low', 'medium', 'high', 'urgent'],
-    default: 'medium'
-  },
+
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -107,13 +103,18 @@ const contactSupportSchema = new mongoose.Schema({
     type: String,
     unique: true,
     required: true
+  },
+  priority: {
+    type: Number,
+    enum: [0, 1, 2, 3],
+    default: 2
   }
 }, {
   timestamps: true
 });
 
 // Update updatedAt field on save
-contactSupportSchema.pre('save', function() {
+contactSupportSchema.pre('save', function () {
   this.updatedAt = new Date();
 });
 

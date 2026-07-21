@@ -137,7 +137,7 @@ const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
                   }`}>
                   New Release Available
                 </h3>
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-800'
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-primary'
                   }`}>
                   v{latestRelease.version}
                 </span>
@@ -191,8 +191,8 @@ const ReleaseNotificationBanner = ({ onClose, releaseData = null }) => {
           <button
             onClick={() => setExpanded(!expanded)}
             className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors ${theme === 'dark'
-                ? 'border-gray-600 text-gray-300 hover:bg-dark-hover'
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              ? 'border-gray-600 text-gray-300 hover:bg-dark-hover'
+              : 'border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
           >
             {expanded ? 'Show Less' : 'View Details'}

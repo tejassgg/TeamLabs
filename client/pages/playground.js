@@ -24,7 +24,6 @@ import TermsOfServiceModal from '../components/shared/TermsOfServiceModal';
 import InviteModal from '../components/shared/InviteModal';
 import SearchModal from '../components/shared/SearchModal';
 import AddReleaseModal from '../components/shared/AddReleaseModal';
-import AddTaskModal from '../components/shared/AddTaskModal';
 import AssignTaskModal from '../components/shared/AssignTaskModal';
 import FirstTimeSetup from '../components/shared/FirstTimeSetup';
 import ReleaseNotificationBanner from '../components/shared/ReleaseNotificationBanner';
@@ -39,7 +38,7 @@ import { getTaskTypeBadge, getPriorityBadge, getTaskStatusBadge } from '../compo
 import SubtaskDisplay from '../components/task/SubtaskDisplay';
 
 const Playground = () => {
-  const { userDetails, loading } = useGlobal();
+  const { userDetails, loading, openAddTaskModal } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
   const router = useRouter();
@@ -58,7 +57,6 @@ const Playground = () => {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [addReleaseOpen, setAddReleaseOpen] = useState(false);
-  const [addTaskOpen, setAddTaskOpen] = useState(false);
   const [assignTaskOpen, setAssignTaskOpen] = useState(false);
   const [firstTimeSetupOpen, setFirstTimeSetupOpen] = useState(false);
   const [activityNotificationsOpen, setActivityNotificationsOpen] = useState(false);
@@ -283,7 +281,7 @@ const Playground = () => {
                       Add Release Modal
                     </button>
                     <button
-                      onClick={() => setAddTaskOpen(true)}
+                      onClick={() => openAddTaskModal({ mode: 'fromSideBar' })}
                       className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors font-medium text-sm shadow-sm"
                     >
                       Add Task Modal
@@ -655,7 +653,6 @@ const Playground = () => {
       <InviteModal isOpen={inviteOpen} onClose={() => setInviteOpen(false)} />
       <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
       <AddReleaseModal isOpen={addReleaseOpen} onClose={() => setAddReleaseOpen(false)} onAddRelease={() => { }} />
-      <AddTaskModal isOpen={addTaskOpen} onClose={() => setAddTaskOpen(false)} onAddTask={() => { }} onUpdateTask={() => { }} userStories={[]} projectMembers={[]} />
       <AssignTaskModal isOpen={assignTaskOpen} onClose={() => setAssignTaskOpen(false)} projectMembers={[]} />
       <FirstTimeSetup isOpen={firstTimeSetupOpen} onComplete={() => setFirstTimeSetupOpen(false)} />
       <ActivityNotifications isOpen={activityNotificationsOpen} onClose={() => setActivityNotificationsOpen(false)} />

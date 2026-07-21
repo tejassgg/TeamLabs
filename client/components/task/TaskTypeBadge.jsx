@@ -52,6 +52,16 @@ export const getTaskTypeStyle = (type) => {
       icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.74" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
+    },
+    'Support': {
+      bgColor: 'bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-950/40 dark:to-orange-900/40',
+      textColor: 'text-orange-700 dark:text-orange-300',
+      borderColor: 'border-orange-200 dark:border-orange-800/60',
+      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     }
   };
 
@@ -80,7 +90,15 @@ export const getTaskTypeBadge = (type) => {
 
 // Priority styles and utilities
 export const getPriorityStyle = (priority) => {
-  const norm = priority === 0 || priority === '0' || priority === 'Critical' ? 'Critical' : priority;
+  let norm = priority;
+  if (priority === 0 || priority === '0') norm = 'Critical';
+  else if (priority === 1 || priority === '1') norm = 'High';
+  else if (priority === 2 || priority === '2') norm = 'Medium';
+  else if (priority === 3 || priority === '3') norm = 'Low';
+  else if (priority === 'Critical') norm = 'Critical';
+  else if (priority === 'High') norm = 'High';
+  else if (priority === 'Medium') norm = 'Medium';
+  else if (priority === 'Low') norm = 'Low';
 
   const styles = {
     'Critical': {
@@ -122,7 +140,13 @@ export const getPriorityStyle = (priority) => {
 
 export const getPriorityBadge = (priority) => {
   if (priority === undefined || priority === null || priority === '') return null;
-  const label = priority === 0 || priority === '0' ? 'Critical' : priority;
+
+  let label = priority;
+  if (priority === 0) label = 'Critical';
+  else if (priority === 1) label = 'High';
+  else if (priority === 2) label = 'Medium';
+  else if (priority === 3) label = 'Low';
+
   const style = getPriorityStyle(priority);
 
   return (

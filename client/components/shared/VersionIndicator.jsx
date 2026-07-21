@@ -13,11 +13,10 @@ const VersionIndicator = ({ versionUpdateAvailable, latestVersion, onClick }) =>
   return (
     <button
       onClick={onClick}
-      className={`relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
-        theme === 'dark'
+      className={`relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${theme === 'dark'
           ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg'
           : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg'
-      }`}
+        }`}
       title={`Update available: v${latestVersion}`}
     >
       <FaRocket size={12} />
@@ -32,11 +31,10 @@ export const VersionBadge = ({ version, isLatest = false }) => {
   const { theme } = useTheme();
 
   return (
-    <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-      isLatest 
+    <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${isLatest
         ? (theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800')
-        : (theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-800')
-    }`}>
+        : (theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-primary')
+      }`}>
       <FaInfo size={8} />
       <span>v{version}</span>
       {isLatest && (
@@ -50,9 +48,8 @@ export const CurrentVersionInfo = () => {
   const { theme } = useTheme();
 
   return (
-    <div className={`flex items-center gap-2 px-2 py-1 rounded text-xs ${
-      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-    }`}>
+    <div className={`flex items-center gap-2 px-2 py-1 rounded text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+      }`}>
       <span>Current: v{CLIENT_VERSION}</span>
     </div>
   );

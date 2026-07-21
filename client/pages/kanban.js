@@ -6,9 +6,9 @@ import { taskService, projectService } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { connectSocket, subscribe, getSocket } from '../services/socket';
 import AssignTaskModal from '../components/shared/AssignTaskModal';
-import AddTaskModal from '../components/shared/AddTaskModal';
 import KanbanColumn from '../components/kanban/KanbanColumn';
 import SearchableDropdown from '../components/shared/SearchableDropdown';
+import KanbanSkeleton from '../components/skeletons/KanbanSkeleton';
 import {
   statusMap,
   statusIcons,
@@ -18,7 +18,7 @@ import {
 
 
 const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp = undefined, projectMembersProp = undefined, taskListProp = undefined }) => {
-  const { projects, userDetails } = useGlobal();
+  const { projects, userDetails, openAddTaskModal } = useGlobal();
   const { showToast } = useToast();
   const [selectedProject, setSelectedProject] = useState(forcedProjectId || null);
   const [tasks, setTasks] = useState([]);
@@ -34,7 +34,6 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
   const [userStories, setUserStories] = useState([]);
   const [projectMembers, setProjectMembers] = useState(projectMembersProp || []);
   const [selectedUserStory, setSelectedUserStory] = useState(selectedUserStoryProp ?? 'all');
-  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const getThemeClasses = useThemeClasses();
   
   const projectDetails = projects.find(p => (p.ProjectID || p._id) === selectedProject);
@@ -303,6 +302,10 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
     return project ? project.Name : 'Unknown Project';
   };
 
+  if (loading && tasks.length === 0) {
+    return <KanbanSkeleton embedded={!!forcedProjectId} />;
+  }
+
   return (
     <>
       <Head>
@@ -396,7 +399,12 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
                     <button
                       className="w-full flex items-center justify-center gap-2 px-4 py-4 border border-gray-200 rounded-lg text-gray-500 font-semibold text-base transition hover:bg-gray-50/50 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
                       style={{ minHeight: '64px' }}
-                      onClick={() => setShowAddTaskModal(true)}
+                      onClick={() => openAddTaskModal({
+                        mode: 'fromProject',
+                        projectIdDefault: selectedProject,
+                        userStories: userStories,
+                        projectMembers: projectMembers
+                      })}
                     >
                       <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -614,34 +622,6 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
           task={draggingTask}
           projectId={selectedProject}
           onAssignTask={handleAssignTask}
-        />
-
-        {/* AddTaskModal for Not Assigned column */}
-        <AddTaskModal
-          isOpen={showAddTaskModal}
-          onClose={() => setShowAddTaskModal(false)}
-          onAddTask={async (taskData) => {
-            try {
-              const newTask = await taskService.addTaskDetails(taskData, 'fromProject');
-              // setTasks(prev => [...prev, newTask]);
-              setShowAddTaskModal(false);
-              
-              const typeLabel = newTask.Type === 'User Story' ? 'User Story' : 'Task';
-              showToast(`${typeLabel} added successfully`, 'success', 5000, {
-                description: `${typeLabel} "${newTask?.Name || taskData?.Name || ''}" has been created.`,
-                action: {
-                  label: 'View',
-                  onClick: () => router.push(`/task/${newTask.TaskID}`)
-                }
-              });
-            } catch (err) {
-              showToast('Failed to add task', 'error');
-            }
-          }}
-          mode="fromProject"
-          projectIdDefault={selectedProject}
-          userStories={userStories}
-          projectMembers={projectMembers}
         />
 
         {/* Instructions */}

@@ -1022,7 +1022,7 @@ const TeamDetailsPage = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className={getThemeClasses(
-                      'text-sm font-semibold text-blue-800 mb-1',
+                      'text-sm font-semibold text-primary mb-1',
                       'dark:text-blue-300'
                     )}>
                       Team Description
@@ -1099,7 +1099,7 @@ const TeamDetailsPage = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className={getThemeClasses(
-                      'text-sm font-semibold text-blue-800 mb-2',
+                      'text-sm font-semibold text-primary mb-2',
                       'dark:text-blue-300'
                     )}>
                       Team Description
@@ -1335,10 +1335,11 @@ const TeamDetailsPage = () => {
                             )}
                             <div className="flex items-center gap-2">
                               {(() => {
-                                const status = getDeadlineStatusComponent(meetingDays.text);
+                                const isPast = meetingDays.status === 'past' || meetingDays.status === 'yesterday';
+                                const status = getDeadlineStatusComponent(isPast ? 'Overdue' : meetingDays.text);
                                 return (
                                   <span className={`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
-                                    <span className={`w-2 h-2 rounded-full ${status.dotColor} ${meetingDays.status !== 'past' && meetingDays.status !== 'yesterday' ? 'animate-pulse' : ''}`}></span>
+                                    <span className={`w-2 h-2 rounded-full ${status.dotColor} ${!isPast ? 'animate-pulse' : ''}`}></span>
                                     {status.text}
                                   </span>
                                 );
@@ -2674,7 +2675,7 @@ const TeamDetailsPage = () => {
                                 />
                               </div>
                               <div className="overflow-y-auto max-h-48 divide-y divide-gray-100 dark:divide-zinc-800/80">
-                                {members.filter(member => 
+                                {members.filter(member =>
                                   member.name.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
                                   member.email.toLowerCase().includes(memberSearchQuery.toLowerCase())
                                 ).map((member) => (
@@ -2933,8 +2934,8 @@ const TeamDetailsPage = () => {
                       <div className={getThemeClasses('text-sm text-gray-700', 'dark:text-gray-300')}>
                         {meetingDetails.meeting?.Description || 'No description'}
                       </div>
-                      <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm border ${getDaysBadgeColor(modalMeetingDays.status)}`}>
-                        {modalMeetingDays.text}
+                      <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm border ${getDaysBadgeColor(isExpired ? 'past' : modalMeetingDays.status)}`}>
+                        {isExpired ? 'Overdue' : modalMeetingDays.text}
                       </div>
                     </div>
 
@@ -3007,7 +3008,7 @@ const TeamDetailsPage = () => {
                           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                         </svg>
                       </div>
-                      <div className="text-sm text-blue-800">
+                      <div className="text-sm text-primary">
                         <div className="font-medium">Google Meet Integration</div>
                         <div className="text-blue-600">Create meetings with automatic Google Meet links</div>
                       </div>

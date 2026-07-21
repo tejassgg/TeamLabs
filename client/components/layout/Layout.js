@@ -17,6 +17,7 @@ import ReleaseNotificationBanner from '../shared/ReleaseNotificationBanner';
 import useReleaseNotifications from '../../hooks/useReleaseNotifications';
 import SearchModal from '../shared/SearchModal';
 import ProjectPriorityBadge from '../shared/ProjectPriorityBadge';
+import AddTaskModal from '../shared/AddTaskModal';
 
 const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const { theme, toggleTheme } = useTheme();
@@ -461,9 +462,66 @@ const Layout = ({ children, pageProject, pageTitle }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { showToast } = useToast();
   const router = useRouter();
-  const { teams, projects, tasksDetails, userDetails, loading, setProjects, setTasksDetails } = useGlobal();
+  const {
+    teams,
+    projects,
+    tasksDetails,
+    userDetails,
+    loading,
+    setProjects,
+    setTasksDetails,
+    addTaskModalConfig,
+    closeAddTaskModal
+  } = useGlobal();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
+  // Global Add/Update Task Handlers for Global AddTaskModal
+  const handleGlobalAddTask = async (taskData) => {
+    if (addTaskModalConfig.onAddTask) {
+      return await addTaskModalConfig.onAddTask(taskData);
+    }
+    try {
+      const newTask = await taskService.addTaskDetails(taskData, addTaskModalConfig.mode);
+      const typeLabel = newTask.Type === 'User Story' ? 'User Story' : 'Task';
+      showToast(`${typeLabel} added successfully!`, 'success', 5000, {
+        description: `${typeLabel} "${newTask?.Name || taskData?.Name || ''}" has been created.`,
+        action: {
+          label: 'View',
+          onClick: () => router.push(`/task/${newTask.TaskID}`)
+        }
+      });
+      if (addTaskModalConfig.onSuccess) {
+        await addTaskModalConfig.onSuccess(newTask);
+      }
+      return newTask;
+    } catch (err) {
+      console.error('Failed to create task globally:', err);
+      if (err?.response?.status === 403) {
+        throw err;
+      }
+      showToast(err.message || 'Failed to create task', 'error');
+      throw err;
+    }
+  };
+
+  const handleGlobalUpdateTask = async (taskId, taskData) => {
+    if (addTaskModalConfig.onUpdateTask) {
+      return await addTaskModalConfig.onUpdateTask(taskId, taskData);
+    }
+    try {
+      const updatedTask = await taskService.updateTask(taskId, taskData);
+      showToast('Task updated successfully!', 'success');
+      if (addTaskModalConfig.onSuccess) {
+        await addTaskModalConfig.onSuccess(updatedTask);
+      }
+      return updatedTask;
+    } catch (err) {
+      console.error('Failed to update task globally:', err);
+      showToast(err.message || 'Failed to update task', 'error');
+      throw err;
+    }
+  };
 
   // Keyboard listener for search modal (Ctrl + / or Cmd + /)
   useEffect(() => {
@@ -531,7 +589,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
       const taskId = query.taskId;
       const task = tasksDetails.find(t => t.TaskID === taskId || t._id === taskId);
       if (task) {
-        return (task.TaskNumber || task.TicketNumber) ? `${task.TaskNumber || task.TicketNumber} - ${task.Name}` : task.Name;
+        return (task.TicketNumber || task.TaskNumber) ? `${task.TicketNumber || task.TaskNumber} - ${task.Name}` : task.Name;
       }
       return 'Task Details';
     }
@@ -875,6 +933,20 @@ const Layout = ({ children, pageProject, pageTitle }) => {
       <SearchModal
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
+      />
+
+      {/* Global Add Task Modal */}
+      <AddTaskModal
+        isOpen={addTaskModalConfig.isOpen}
+        onClose={closeAddTaskModal}
+        onAddTask={handleGlobalAddTask}
+        onUpdateTask={handleGlobalUpdateTask}
+        mode={addTaskModalConfig.mode}
+        projectIdDefault={addTaskModalConfig.projectIdDefault}
+        userStories={addTaskModalConfig.userStories}
+        editingTask={addTaskModalConfig.editingTask}
+        addTaskTypeMode={addTaskModalConfig.addTaskTypeMode}
+        projectMembers={addTaskModalConfig.projectMembers}
       />
     </div>
   );

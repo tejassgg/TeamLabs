@@ -283,7 +283,7 @@ const TaskAttachments = ({ taskId, userId, initialAttachments }) => {
         <div className="flex items-center gap-2 mb-4">
           <FaPaperclip className={getThemeClasses("text-gray-500", "dark:text-gray-400")} />
           <span className={getThemeClasses("text-lg font-semibold text-gray-900", "dark:text-gray-100")}>Attachments</span>
-          <span className={getThemeClasses("bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full", "dark:bg-blue-900/30 dark:text-blue-300")}>{attachments.length}</span>
+          <span className={getThemeClasses("bg-blue-100 text-primary text-xs font-medium px-2 py-1 rounded-full", "dark:bg-blue-900/30 dark:text-blue-300")}>{attachments.length}</span>
         </div>
 
         {/* Drag-and-drop upload zone */}

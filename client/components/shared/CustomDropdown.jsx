@@ -144,7 +144,7 @@ const CustomDropdown = ({
       return renderSelected(selectedOption);
     }
 
-    if (selectedOption) {
+    if (selectedOption !== undefined && selectedOption !== null) {
       if (typeof selectedOption === 'object') {
         return (
           <div className="flex items-center gap-2">

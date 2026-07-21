@@ -471,7 +471,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                                     {/* Type / Priority Badges */}
                                                     <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                                                         {getTaskTypeBadge(item.Type)}
-                                                        {item.Priority && getPriorityBadge(item.Priority)}
+                                                        {getPriorityBadge(item.Priority)}
 
                                                         {/* Dependencies Edit Trigger */}
                                                         <button

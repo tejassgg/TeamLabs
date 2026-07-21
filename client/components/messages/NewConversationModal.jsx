@@ -220,7 +220,7 @@ const NewConversationModal = ({
                     <div className="flex flex-wrap gap-1.5 items-center min-h-[24px]">
                       {groupMembers.length === 0 && <span className="opacity-60">Select team members...</span>}
                       {groupMembers.map((u) => (
-                        <span key={u._id} className={`px-2.5 py-1 rounded-lg text-xs font-medium border flex items-center gap-1.5 ${isDark ? 'bg-[#3f3f46]/40 border-[#52525b] text-gray-200' : 'bg-blue-50 border-blue-200 text-blue-800'}`}>
+                        <span key={u._id} className={`px-2.5 py-1 rounded-lg text-xs font-medium border flex items-center gap-1.5 ${isDark ? 'bg-[#3f3f46]/40 border-[#52525b] text-gray-200' : 'bg-blue-50 border-blue-200 text-primary'}`}>
                           <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
                             {u.initials}
                           </span>

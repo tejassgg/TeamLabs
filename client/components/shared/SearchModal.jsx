@@ -4,7 +4,6 @@ import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import { searchService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
-import AddTaskModal from './AddTaskModal';
 import {
   FaSearch,
   FaTimes,
@@ -57,14 +56,13 @@ const highlightText = (text, query) => {
 const SearchModal = ({ isOpen, onClose }) => {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
-  const { userDetails, searchData, searchLoading, fetchSearchDataGlobal, getTaskTypeStyleComponent } = useGlobal();
+  const { userDetails, searchData, searchLoading, fetchSearchDataGlobal, getTaskTypeStyleComponent, openAddTaskModal } = useGlobal();
   const { showToast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [error, setError] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
 
   const commands = [
     {
@@ -85,7 +83,7 @@ const SearchModal = ({ isOpen, onClose }) => {
       desc: 'Open the task creator modal directly',
       icon: <FaTasks className="text-green-400" />,
       action: () => {
-        setIsAddTaskOpen(true);
+        openAddTaskModal({ mode: 'fromSideBar' });
       }
     },
     {
@@ -1180,17 +1178,6 @@ const SearchModal = ({ isOpen, onClose }) => {
           animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
-      <AddTaskModal
-        isOpen={isAddTaskOpen}
-        onClose={() => setIsAddTaskOpen(false)}
-        onAddTask={async (taskData) => {
-          const { taskService } = await import('../../services/api');
-          await taskService.addTaskDetails(taskData, 'fromSideBar');
-          if (showToast) showToast('Task created successfully', 'success');
-          setIsAddTaskOpen(false);
-        }}
-        mode="fromSideBar"
-      />
     </div>
   );
 };

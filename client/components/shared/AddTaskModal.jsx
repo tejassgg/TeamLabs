@@ -68,7 +68,7 @@ const BadgeDropdown = ({
         }
       >
         <div className="flex items-center gap-2">
-          {selectedOption ? (
+          {selectedOption !== undefined && selectedOption !== null ? (
             renderBadge(selectedOption)
           ) : (
             <span className={getThemeClasses(
@@ -134,8 +134,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
   const [description, setDescription] = useState('');
   const [type, setType] = useState('');
   const [typeOptions, setTypeOptions] = useState([]);
-  const [priority, setPriority] = useState('Medium');
-  const [priorityOptions, setPriorityOptions] = useState(['Critical', 'High', 'Medium', 'Low']);
+  const [priority, setPriority] = useState(2);
+  const [priorityOptions, setPriorityOptions] = useState([0, 1, 2, 3]);
   const [assignee, setAssignee] = useState(userDetails?._id || '');
   const [assignedTo, setAssignedTo] = useState('');
   const [projectId, setProjectId] = useState(projectIdDefault || '');
@@ -149,6 +149,35 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [nextTaskNumber, setNextTaskNumber] = useState('');
+  const [fetchedMembers, setFetchedMembers] = useState([]);
+  const [fetchedUserStories, setFetchedUserStories] = useState([]);
+
+  const userStoriesToUse = (userStories && userStories.length > 0) ? userStories : fetchedUserStories;
+  const projectMembersToUse = (projectMembers && projectMembers.length > 0) ? projectMembers : fetchedMembers;
+
+  useEffect(() => {
+    const needsFetch = isOpen && projectId && (
+      mode === 'fromSideBar' ||
+      (!projectMembers || projectMembers.length === 0) ||
+      (!userStories || userStories.length === 0)
+    );
+
+    if (needsFetch) {
+      taskService.getKanbanData(projectId)
+        .then(res => {
+          setFetchedMembers(res?.projectMembers || []);
+          setFetchedUserStories(res?.userStories || []);
+        })
+        .catch(err => {
+          console.error('Failed to load project kanban data:', err);
+          setFetchedMembers([]);
+          setFetchedUserStories([]);
+        });
+    } else {
+      setFetchedMembers([]);
+      setFetchedUserStories([]);
+    }
+  }, [projectId, projectMembers, userStories, mode, isOpen]);
 
   // Check if we're in edit mode
   const isEditMode = !!editingTask;
@@ -188,7 +217,14 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       setName(editingTask.Name || '');
       setDescription(editingTask.Description || '');
       setType(editingTask.Type || '');
-      setPriority(editingTask.Priority || 'Medium');
+
+      let pVal = editingTask.Priority;
+      if (pVal === 'Critical') pVal = 0;
+      else if (pVal === 'High') pVal = 1;
+      else if (pVal === 'Medium') pVal = 2;
+      else if (pVal === 'Low') pVal = 3;
+      setPriority(pVal !== undefined && pVal !== null ? pVal : 2);
+
       setAssignee(editingTask.Assignee || userDetails?._id || '');
       setAssignedTo(editingTask.AssignedTo || '');
       setProjectId(editingTask.ProjectID_FK || projectIdDefault || '');
@@ -198,16 +234,17 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
     } else if (isOpen && !editingTask) {
       setName('');
       setDescription('');
-      setPriority('Medium');
+      setPriority(2);
       setAssignee(userDetails?._id || '');
       setAssignedTo('');
-      setProjectId(projectIdDefault || '');
-      // If only one user story, preselect it
-      if (userStories && userStories.length === 1) {
-        setParentId(userStories[0].TaskID);
+      if (projectIdDefault) {
+        setProjectId(projectIdDefault);
+      } else if (projects && projects.length > 0) {
+        setProjectId(projects[0].ProjectID || projects[0]._id);
       } else {
-        setParentId('');
+        setProjectId('');
       }
+      setParentId('');
       setIsActive(true);
       if (addTaskTypeMode === 'userStory') {
         setType('User Story');
@@ -216,8 +253,21 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       }
       setDueDate('');
     }
-  }, [isOpen, editingTask, projectIdDefault, userDetails, addTaskTypeMode, userStories]);
+  }, [isOpen, editingTask, projectIdDefault, userDetails, addTaskTypeMode, projects]);
 
+  useEffect(() => {
+    if (isOpen && !isEditMode && userStoriesToUse && userStoriesToUse.length === 1) {
+      setParentId(userStoriesToUse[0].TaskID || userStoriesToUse[0]._id);
+    }
+  }, [isOpen, isEditMode, userStoriesToUse]);
+
+  // Reset user story selection and assignment when project changes
+  useEffect(() => {
+    if (isOpen && !isEditMode) {
+      setParentId('');
+      setAssignedTo('');
+    }
+  }, [projectId]);
 
 
   useEffect(() => {
@@ -227,6 +277,12 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
           let filteredTypes = types;
           if (addTaskTypeMode === 'task') {
             filteredTypes = types.filter(t => t.Value !== 'User Story');
+          }
+          if (isEditMode && editingTask?.Type === 'Support') {
+            const hasSupport = filteredTypes.some(t => t.Value === 'Support');
+            if (!hasSupport) {
+              filteredTypes = [...filteredTypes, { Value: 'Support', Code: 8, MasterType: 'TaskType' }];
+            }
           }
           setTypeOptions(filteredTypes);
           if (!isEditMode) {
@@ -244,7 +300,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
           if (Array.isArray(types) && types.length > 0) {
             const sorted = types
               .sort((a, b) => Number(a.Code) - Number(b.Code))
-              .map(t => t.Value);
+              .map(t => Number(t.Code));
             setPriorityOptions(sorted);
           }
         })
@@ -256,13 +312,13 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
 
   // Set default due date for All Task Type except User Story as Selected user Story's due date
   useEffect(() => {
-    if (isOpen && !isEditMode && type && type !== 'User Story' && parentId) {
-      const selectedUserStory = userStories.find(us => us.TaskID === parentId || us._id === parentId);
+    if (isOpen && !isEditMode && type && type !== 'User Story' && parentId && Array.isArray(userStoriesToUse)) {
+      const selectedUserStory = userStoriesToUse.find(us => us.TaskID === parentId || us._id === parentId);
       if (selectedUserStory && selectedUserStory.DueDate) {
         setDueDate(new Date(selectedUserStory.DueDate).toISOString().split('T')[0]);
       }
     }
-  }, [parentId, type, userStories, isOpen, isEditMode]);
+  }, [parentId, type, userStoriesToUse, isOpen, isEditMode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -283,8 +339,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       setError('Project is required');
       return;
     }
-    // Only validate User Story selection if task type is not 'User Story' and mode is 'fromProject'
-    if (mode === 'fromProject' && type !== 'User Story' && !parentId) {
+    // Validate User Story selection if task type is not 'User Story'
+    if (type !== 'User Story' && !parentId) {
       setError('User Story is required');
       return;
     }
@@ -313,8 +369,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       Priority: type !== 'User Story' ? priority : undefined,
       Assignee: assignee,
       ProjectID_FK: projectId,
-      ParentID: mode === 'fromProject' && type !== 'User Story' ? parentId : null,
-      AssignedTo: mode === 'fromProject' && type !== 'User Story' ? (assignedTo || undefined) : undefined,
+      ParentID: type !== 'User Story' ? parentId : null,
+      AssignedTo: type !== 'User Story' ? (assignedTo || undefined) : undefined,
       DueDate: dueDate ? new Date(dueDate) : undefined,
       CreatedBy: createdBy
     };
@@ -332,7 +388,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
       setName('');
       setDescription('');
       setType(typeOptions[0]?.Value || '');
-      setPriority('Medium');
+      setPriority(2);
       setAssignee(userDetails?._id || '');
       setAssignedTo('');
       setProjectId('');
@@ -452,7 +508,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 resize-none',
                 'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500 resize-none'
               )}
-              rows={3}
+              rows={5}
               required
               placeholder="Enter task description"
             />
@@ -478,7 +534,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 options={typeOptions}
                 placeholder="Select Task Type"
                 required
-                disabled={mode === 'fromSideBar' || addTaskTypeMode === 'userStory'}
+                disabled={addTaskTypeMode === 'userStory'}
                 badgeType="taskType"
               />
             </div>
@@ -552,25 +608,23 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                   Project<span className="text-red-500 ml-1">*</span>
                 </label>
               </div>
-              <select
-                value={projectId}
-                onChange={e => setProjectId(e.target.value)}
-                className={getThemeClasses(
-                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-                )}
-                required
-              >
-                <option value="">Select Project</option>
-                {projects.map(proj => (
-                  <option key={proj._id} value={proj.ProjectID}>{proj.Name}</option>
-                ))}
-              </select>
+              <div className="flex-1">
+                <SearchableDropdown
+                  value={projectId}
+                  onChange={val => setProjectId(val)}
+                  options={projects.map(proj => ({
+                    value: proj.ProjectID,
+                    label: proj.Name
+                  }))}
+                  placeholder="Select Project"
+                  required
+                />
+              </div>
             </div>
           )}
 
           {/* User Story Dropdown (only for tasks, not user stories) */}
-          {mode === 'fromProject' && type !== 'User Story' && (
+          {(mode === 'fromProject' || mode === 'fromSideBar') && type !== 'User Story' && (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 min-w-[120px]">
                 <FaList className={getThemeClasses(
@@ -588,10 +642,10 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 <BadgeDropdown
                   value={parentId}
                   onChange={setParentId}
-                  options={userStories || []}
-                  placeholder="Select User Story"
+                  options={userStoriesToUse || []}
+                  placeholder={!projectId ? "Select Project First" : "Select User Story"}
                   required
-                  disabled={userStories && userStories.length === 1}
+                  disabled={!projectId || (userStoriesToUse && userStoriesToUse.length === 1)}
                   badgeType="userStory"
                 />
               </div>
@@ -599,7 +653,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
           )}
 
           {/* Team member dropdown for assignment (hide for User Story) */}
-          {type !== 'User Story' && Array.isArray(projectMembers) && projectMembers.length > 0 && (
+          {type !== 'User Story' && Array.isArray(projectMembersToUse) && projectMembersToUse.length > 0 && (
             <div className="mt-3 flex items-center gap-4">
               <div className="flex items-center gap-2 min-w-[120px]">
                 <FaUsers className={getThemeClasses('text-gray-500', 'text-gray-400')} size={16} />
@@ -611,7 +665,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 <SearchableDropdown
                   value={assignedTo}
                   onChange={setAssignedTo}
-                  options={projectMembers.map((m) => {
+                  options={projectMembersToUse.map((m) => {
                     const id = m._id || m.id;
                     const fullName = [m.firstName, m.lastName].filter(Boolean).join(' ') || m.fullName || m.email || 'Member';
                     const initials = fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();

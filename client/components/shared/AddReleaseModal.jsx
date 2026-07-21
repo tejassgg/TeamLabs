@@ -1020,7 +1020,7 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                               }`}>
                               New Release Available
                             </h3>
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-800'
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-primary'
                               }`}>
                               v{formData.version || '1.0.0'}
                             </span>

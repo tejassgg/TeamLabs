@@ -19,14 +19,13 @@ import SubtaskList from '../../components/task/SubtaskList';
 
 import CustomModal from '../../components/shared/CustomModal';
 import { getPriorityBadge, getTaskTypeBadge } from '../../components/task/TaskTypeBadge';
-import AddTaskModal from '../../components/shared/AddTaskModal';
 import CustomDropdown from '../../components/shared/CustomDropdown';
 
 const TaskDetailsPage = () => {
     const router = useRouter();
     const { taskId } = router.query;
     const { theme } = useTheme();
-    const { userDetails, formatTimeAgo } = useGlobal();
+    const { userDetails, formatTimeAgo, openAddTaskModal } = useGlobal();
     const { showToast } = useToast();
     const getThemeClasses = useThemeClasses();
 
@@ -62,7 +61,6 @@ const TaskDetailsPage = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [userStoryTasks, setUserStoryTasks] = useState([]);
-    const [showAddTaskModal, setShowAddTaskModal] = useState(false);
 
     // Mobile specific comment states & helpers
     const [mobileCommentText, setMobileCommentText] = useState('');
@@ -654,7 +652,6 @@ const TaskDetailsPage = () => {
                     onClick: () => router.push(`/task/${newTask.TaskID}`)
                 }
             });
-            setShowAddTaskModal(false);
         } catch (err) {
             showToast('Failed to add task', 'error');
         }
@@ -675,7 +672,7 @@ const TaskDetailsPage = () => {
                         "dark:text-red-400"
                     )}>Task not found</div>
                     <Link href="/dashboard" className={getThemeClasses(
-                        "text-blue-600 hover:text-blue-800 font-medium",
+                        "text-blue-600 hover:text-primary font-medium",
                         "dark:text-blue-400 dark:hover:text-blue-300"
                     )}>
                         Return to Dashboard
@@ -925,7 +922,7 @@ const TaskDetailsPage = () => {
                                     <Link
                                         href={`/project/${project.ProjectID || project._id}`}
                                         className={getThemeClasses(
-                                            "text-blue-600 hover:text-blue-800 font-semibold text-sm block",
+                                            "text-blue-600 hover:text-primary font-semibold text-sm block",
                                             "dark:text-blue-400 dark:hover:text-blue-300"
                                         )}
                                     >
@@ -1282,10 +1279,15 @@ const TaskDetailsPage = () => {
                                                 )}>
                                                     Customer Support Request
                                                 </h3>
+                                                {task.TicketNumber && (
+                                                    <span className="text-xs font-mono bg-orange-100 dark:bg-orange-950/60 px-2.5 py-0.5 rounded-full border border-orange-200 dark:border-orange-900/40 text-orange-700 dark:text-orange-300 font-semibold shadow-sm">
+                                                        Ticket: {task.TicketNumber}
+                                                    </span>
+                                                )}
                                                 {/* Mobile badges - show on small screens */}
                                                 <div className="flex flex-wrap items-center gap-2 sm:hidden">
                                                     {getTaskTypeBadge(task.Type)}
-                                                    {task.Priority && getPriorityBadge(task.Priority)}
+                                                    {getPriorityBadge(task.Priority)}
                                                 </div>
                                             </div>
 
@@ -1329,7 +1331,7 @@ const TaskDetailsPage = () => {
                                         <div className="hidden sm:flex items-end gap-2 flex-shrink-0">
                                             <div className="flex items-center gap-2">
                                                 {getTaskTypeBadge(task.Type)}
-                                                {task.Priority && getPriorityBadge(task.Priority)}
+                                                {getPriorityBadge(task.Priority)}
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 {/* Status Dropdown */}
@@ -1467,7 +1469,7 @@ const TaskDetailsPage = () => {
                                         </div>
                                         <div className="flex-1">
                                             <h3 className={getThemeClasses(
-                                                'text-sm font-semibold text-blue-800 mb-1',
+                                                'text-sm font-semibold text-primary mb-1',
                                                 'dark:text-blue-300'
                                             )}>
                                                 Task Description
@@ -1494,7 +1496,7 @@ const TaskDetailsPage = () => {
                                         <div className="flex items-center gap-2 flex-shrink-0">
                                             {getTaskTypeBadge(task.Type)}
                                             {/* Priority Badge using existing system */}
-                                            {task.Priority && getPriorityBadge(task.Priority)}
+                                            {getPriorityBadge(task.Priority)}
                                         </div>
                                         {/* Status Dropdown */}
                                         <div className="relative status-dropdown">
@@ -1749,7 +1751,7 @@ const TaskDetailsPage = () => {
                                         <Link
                                             href={`/project/${project.ProjectID || project._id}`}
                                             className={getThemeClasses(
-                                                "text-blue-600 hover:text-blue-800 font-medium text-lg block",
+                                                "text-blue-600 hover:text-primary font-medium text-lg block",
                                                 "dark:text-blue-400 dark:hover:text-blue-300"
                                             )}
                                         >
@@ -1971,7 +1973,13 @@ const TaskDetailsPage = () => {
                                             "dark:bg-blue-700 dark:hover:bg-blue-800"
                                         )}
                                         title="Add Task to this User Story"
-                                        onClick={() => setShowAddTaskModal(true)}
+                                        onClick={() => openAddTaskModal({
+                                            mode: 'fromProject',
+                                            projectIdDefault: task.ProjectID_FK,
+                                            userStories: [{ TaskID: task.TaskID, Name: task.Name }],
+                                            addTaskTypeMode: 'task',
+                                            onAddTask: handleAddTask
+                                        })}
                                     >
                                         <FaPlus />
                                     </button>
@@ -1998,7 +2006,7 @@ const TaskDetailsPage = () => {
                                                             <Link
                                                                 href={`/task/${t.TaskID}`}
                                                                 className={getThemeClasses(
-                                                                    "font-medium text-blue-600 hover:text-blue-800 transition-colors duration-200 block",
+                                                                    "font-medium text-blue-600 hover:text-primary transition-colors duration-200 block",
                                                                     "dark:text-blue-400 dark:hover:text-blue-300"
                                                                 )}
                                                             >
@@ -2022,15 +2030,6 @@ const TaskDetailsPage = () => {
                                         })}
                                     </ul>
                                 )}
-                                <AddTaskModal
-                                    isOpen={showAddTaskModal}
-                                    onClose={() => setShowAddTaskModal(false)}
-                                    onAddTask={handleAddTask}
-                                    mode="fromProject"
-                                    projectIdDefault={task.ProjectID_FK}
-                                    userStories={[{ TaskID: task.TaskID, Name: task.Name }]}
-                                    addTaskTypeMode="task"
-                                />
                             </div>
                         )}
                     </div>

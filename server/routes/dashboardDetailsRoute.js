@@ -9,41 +9,44 @@ const TaskDetails = require('../models/TaskDetails');
 const Invite = require('../models/Invite');
 const Organization = require('../models/Organization');
 const Comment = require('../models/Comment');
+const Attachment = require('../models/Attachment');
+const ContactSupport = require('../models/ContactSupport');
+const Meeting = require('../models/Meeting');
 const { protect } = require('../middleware/auth');
 
 // Get recent comments across the organization's projects
 router.get('/:organizationId/recent-comments', async (req, res) => {
   try {
     const { organizationId } = req.params;
-    
+
     // Find all projects in the organization
     const projects = await Project.find({ OrganizationID: organizationId });
     const projectIds = projects.map(p => p.ProjectID);
-    
+
     // Find all tasks in these projects
     const tasks = await TaskDetails.find({ ProjectID_FK: { $in: projectIds } });
     const taskIds = tasks.map(t => t.TaskID);
-    
+
     // Find the latest comments for these tasks
     const comments = await Comment.find({ TaskID: { $in: taskIds } })
       .sort({ CreatedAt: -1 })
       .limit(10);
-      
+
     const authorIds = [...new Set(comments.map(c => c.Author))];
-    
+
     const users = await User.find({
       $or: [
         { _id: { $in: authorIds.filter(id => id && id.match(/^[0-9a-fA-F]{24}$/)) } },
         { username: { $in: authorIds } }
       ]
     }).select('firstName lastName username email');
-    
+
     const userMap = {};
     users.forEach(u => {
       userMap[u._id.toString()] = u;
       userMap[u.username] = u;
     });
-    
+
     const commentsWithDetails = comments.map(c => {
       const authorUser = userMap[c.Author];
       const taskObj = tasks.find(t => t.TaskID === c.TaskID);
@@ -64,7 +67,7 @@ router.get('/:organizationId/recent-comments', async (req, res) => {
         CreatedAt: c.CreatedAt
       };
     });
-    
+
     res.json(commentsWithDetails);
   } catch (error) {
     console.error('Error fetching recent comments for dashboard:', error);
@@ -78,19 +81,19 @@ router.get('/:organizationId/github-commits', async (req, res) => {
     const { organizationId } = req.params;
     const axios = require('axios');
     const Integration = require('../models/Integration');
-    
+
     // Find all projects in the organization with connected repos
     const projects = await Project.find({
       OrganizationID: organizationId,
       'githubRepository.connected': true
     });
-    
+
     if (projects.length === 0) {
       return res.json([]);
     }
-    
+
     let allCommits = [];
-    
+
     // Fetch commits for each project in parallel
     const promises = projects.map(async (project) => {
       try {
@@ -98,11 +101,11 @@ router.get('/:organizationId/github-commits', async (req, res) => {
           userId: project.githubRepository.connectedBy,
           integrationType: 'github'
         });
-        
+
         if (!linkingIntegration || !linkingIntegration.isConnected || !linkingIntegration.accessToken) {
           return;
         }
-        
+
         const response = await axios.get(
           `https://api.github.com/repos/${project.githubRepository.repositoryFullName}/commits`,
           {
@@ -115,7 +118,7 @@ router.get('/:organizationId/github-commits', async (req, res) => {
             }
           }
         );
-        
+
         const projectCommits = response.data.map(commit => ({
           sha: commit.sha,
           message: commit.commit.message,
@@ -126,18 +129,18 @@ router.get('/:organizationId/github-commits', async (req, res) => {
           projectName: project.Name,
           projectId: project.ProjectID
         }));
-        
+
         allCommits.push(...projectCommits);
       } catch (err) {
         console.error(`Error fetching commits for project ${project.Name}:`, err.message);
       }
     });
-    
+
     await Promise.all(promises);
-    
+
     // Sort all commits by date desc
     allCommits.sort((a, b) => new Date(b.date) - new Date(a.date));
-    
+
     // Return latest 10 commits
     res.json(allCommits.slice(0, 10));
   } catch (error) {
@@ -153,10 +156,10 @@ router.get('/:organizationId', async (req, res) => {
 
     // Get all projects in the organization
     const projects = await Project.find({ OrganizationID: organizationId });
-    
+
     // Get all teams in the organization
     const teams = await Team.find({ organizationID: organizationId });
-    
+
     // Get all users in the organization
     const users = await User.find({ organizationID: organizationId });
 
@@ -175,7 +178,7 @@ router.get('/:organizationId', async (req, res) => {
     });
 
     // Get all tasks in the organization
-    const tasks = await TaskDetails.find({ 
+    const tasks = await TaskDetails.find({
       ProjectID_FK: { $in: projects.map(p => p.ProjectID) }
     });
 
@@ -189,15 +192,15 @@ router.get('/:organizationId', async (req, res) => {
     // Create a map of user's last login
     const lastLoginMap = {};
     lastLogins.forEach(login => {
-      if (!lastLoginMap[login.user.toString()] || 
-          new Date(login.timestamp) > new Date(lastLoginMap[login.user.toString()])) {
+      if (!lastLoginMap[login.user.toString()] ||
+        new Date(login.timestamp) > new Date(lastLoginMap[login.user.toString()])) {
         lastLoginMap[login.user.toString()] = login.timestamp;
       }
     });
 
     // Calculate upcoming deadlines (projects due today or in the future)
     const now = new Date();
-    
+
     const upcomingDeadlines = projects.filter(project => {
       if (!project.DueDate) return false;
       const due = new Date(project.DueDate);
@@ -206,8 +209,8 @@ router.get('/:organizationId', async (req, res) => {
     });
 
     // Get organization details
-    const organization = await Organization.findOne({OrganizationID: organizationId});
-    const projStatus = await CommonType.find({MasterType: 'ProjectStatus'});
+    const organization = await Organization.findOne({ OrganizationID: organizationId });
+    const projStatus = await CommonType.find({ MasterType: 'ProjectStatus' });
 
     // Calculate project status distribution
     const projectStatusDistribution = {};
@@ -249,11 +252,11 @@ router.get('/:organizationId', async (req, res) => {
 
     // Calculate team performance metrics
     const teamPerformance = teams.map(team => {
-      const teamProjects = projects.filter(project => 
-        project.ProjectOwner === team.OwnerID || 
+      const teamProjects = projects.filter(project =>
+        project.ProjectOwner === team.OwnerID ||
         project.OrganizationID === team.organizationID
       );
-      
+
       return {
         teamId: team.TeamID,
         teamName: team.TeamName,
@@ -266,7 +269,7 @@ router.get('/:organizationId', async (req, res) => {
     // Get recent activity (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
+
     const recentActivity = await UserActivity.find({
       user: { $in: users.map(u => u._id) },
       timestamp: { $gte: thirtyDaysAgo }
@@ -379,6 +382,22 @@ router.get('/:organizationId/whats-up', protect, async (req, res) => {
       Status: { $lt: 5 }
     });
 
+    const userTaskIds = userTasks.map(t => t.TaskID);
+
+    // Get attachment counts for these tasks
+    const attachments = await Attachment.find({ TaskID: { $in: userTaskIds } });
+    const attachmentCountMap = {};
+    attachments.forEach(a => {
+      attachmentCountMap[a.TaskID] = (attachmentCountMap[a.TaskID] || 0) + 1;
+    });
+
+    // Get comment counts for these tasks
+    const comments = await Comment.find({ TaskID: { $in: userTaskIds } });
+    const commentCountMap = {};
+    comments.forEach(c => {
+      commentCountMap[c.TaskID] = (commentCountMap[c.TaskID] || 0) + 1;
+    });
+
     const todos = userTasks.map(t => ({
       TaskID: t.TaskID,
       Name: t.Name,
@@ -387,7 +406,9 @@ router.get('/:organizationId/whats-up', protect, async (req, res) => {
       Priority: t.Priority,
       Type: t.Type,
       DueDate: t.DueDate,
-      ProjectName: projectMap[t.ProjectID_FK] || 'Unknown Project'
+      ProjectName: projectMap[t.ProjectID_FK] || 'Unknown Project',
+      commentCount: commentCountMap[t.TaskID] || 0,
+      fileCount: attachmentCountMap[t.TaskID] || 0
     }));
 
     // 3. Timeline / What's Ahead (tasks sorted by DueDate)
@@ -442,7 +463,6 @@ router.get('/:organizationId/whats-up', protect, async (req, res) => {
     });
 
     // 5. Recent updates/activities on user's assigned tasks
-    const userTaskIds = userTasks.map(t => t.TaskID);
     const taskUpdates = await UserActivity.find({
       'metadata.taskId': { $in: userTaskIds }
     }).sort({ timestamp: -1 }).limit(15);
@@ -469,6 +489,43 @@ router.get('/:organizationId/whats-up', protect, async (req, res) => {
       };
     });
 
+    // 6. Fetch support tickets for the organization's users
+    const supportTickets = await ContactSupport.find({
+      status: 'open'
+    }).sort({ createdAt: -1 }).limit(10).lean();
+
+    // Map ticket numbers to task IDs
+    const ticketNumbers = supportTickets.map(t => t.ticketNumber).filter(Boolean);
+    const supportTasks = await TaskDetails.find({ TicketNumber: { $in: ticketNumbers } }).select('TaskID TicketNumber').lean();
+    const taskIdMap = {};
+    supportTasks.forEach(task => {
+      taskIdMap[task.TicketNumber] = task.TaskID;
+    });
+
+    // 7. Fetch user's meetings (Organizer or Attendee)
+    const myMeetings = await Meeting.find({
+      IsActive: true,
+      $or: [
+        { OrganizerID: userId },
+        { AttendeeIDs: userId }
+      ]
+    }).sort({ StartTime: 1 }).limit(10).lean();
+
+    // Resolve organizer and attendee details
+    const allUserIds = [];
+    myMeetings.forEach(m => {
+      if (m.OrganizerID) allUserIds.push(m.OrganizerID);
+      if (m.AttendeeIDs && Array.isArray(m.AttendeeIDs)) {
+        allUserIds.push(...m.AttendeeIDs);
+      }
+    });
+    const uniqueUserIds = [...new Set(allUserIds.filter(Boolean))];
+    const usersList = await User.find({ _id: { $in: uniqueUserIds } }).select('username name email avatar').lean();
+    const meetingUserMap = {};
+    usersList.forEach(u => {
+      meetingUserMap[u._id.toString()] = u;
+    });
+
     res.json({
       success: true,
       todosCount: todos.length,
@@ -476,7 +533,38 @@ router.get('/:organizationId/whats-up', protect, async (req, res) => {
       todos,
       timeline,
       taggedComments: commentsWithDetails,
-      taskUpdates: updatesWithDetails
+      taskUpdates: updatesWithDetails,
+      supportTickets: supportTickets.map(ticket => ({
+        id: ticket._id,
+        ticketNumber: ticket.ticketNumber,
+        title: ticket.title,
+        description: ticket.description,
+        name: ticket.name,
+        email: ticket.email,
+        status: ticket.status,
+        priority: ticket.priority,
+        createdAt: ticket.createdAt,
+        taskId: taskIdMap[ticket.ticketNumber] || null
+      })),
+      myMeetings: myMeetings.map(m => ({
+        id: m._id,
+        meetingId: m.MeetingID,
+        title: m.Title,
+        description: m.Description,
+        startTime: m.StartTime,
+        endTime: m.EndTime,
+        googleMeetLink: m.GoogleMeetLink,
+        organizer: meetingUserMap[m.OrganizerID] ? {
+          username: meetingUserMap[m.OrganizerID].username,
+          name: meetingUserMap[m.OrganizerID].name,
+          email: meetingUserMap[m.OrganizerID].email
+        } : null,
+        attendees: (m.AttendeeIDs || []).map(attId => meetingUserMap[attId] ? {
+          username: meetingUserMap[attId].username,
+          name: meetingUserMap[attId].name,
+          email: meetingUserMap[attId].email
+        } : null).filter(Boolean)
+      }))
     });
   } catch (error) {
     console.error('Error fetching dashboard whats-up details:', error);
