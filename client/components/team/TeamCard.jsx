@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { FaUsers, FaCalendarAlt, FaChevronRight, FaProjectDiagram, FaRegHandshake } from 'react-icons/fa';
 import { getProjectStatusStyle } from '../project/ProjectStatusBadge';
+import { getTaskStatusLabel } from '../task/TaskTypeBadge';
 import StatusPill from '../shared/StatusPill';
 import { teamService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
@@ -80,15 +81,7 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
 
   // Get project status text based on ProjectStatusID
   const getProjectStatusText = (statusId) => {
-    const statusMap = {
-      1: 'Not Assigned',
-      2: 'Assigned',
-      3: 'In Progress',
-      4: 'QA',
-      5: 'Deployment',
-      6: 'Completed'
-    };
-    return statusMap[statusId] || 'Unknown';
+    return getTaskStatusLabel(statusId);
   };
 
 

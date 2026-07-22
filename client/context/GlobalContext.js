@@ -1,8 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react';
-import { useTheme } from './ThemeContext';
 import { teamService, projectService, authService, taskService, commonTypeService, searchService } from '../services/api';
 import { getProjectStatusStyle, getProjectStatusBadge } from '../components/project/ProjectStatusBadge';
-import { getTaskTypeStyle, getTaskTypeBadge, getTaskStatusBadge } from '../components/task/TaskTypeBadge';
+import { getTaskTypeStyle, getTaskTypeBadge, getTaskStatusBadge, getTaskStatusLabel } from '../components/task/TaskTypeBadge';
 import { getDeadlineStatus, calculateDeadlineText } from '../components/shared/DeadlineStatusBadge';
 import StatusPill from '../components/shared/StatusPill';
 import { useRouter } from 'next/router';
@@ -19,7 +18,6 @@ export const useGlobal = () => {
 };
 
 export const GlobalProvider = ({ children }) => {
-  const { theme } = useTheme();
   const router = useRouter();
   const [userDetails, setUserDetails] = useState(null);
   const [isLoggedInState, setIsLoggedInState] = useState(false);
@@ -161,25 +159,17 @@ export const GlobalProvider = ({ children }) => {
 
   // Get task status badge component (reusable globally)
   const getStatus = (statusCode) => {
-    return getTaskStatusBadge(statusCode, theme === 'dark');
+    return getTaskStatusBadge(statusCode);
   };
 
   // Get member status badge component (reusable globally)
   const getMemberStatusBadgeComponent = (status) => {
-    return <StatusPill status={status} theme={theme} />;
+    return <StatusPill status={status} />;
   };
 
   // Get task status text
   const getTaskStatusText = (statusCode) => {
-    const statusTexts = {
-      1: 'Not Assigned',
-      2: 'Assigned',
-      3: 'In Progress',
-      4: 'QA',
-      5: 'Deployment',
-      6: 'Completed'
-    };
-    return statusTexts[statusCode] || 'Unknown';
+    return getTaskStatusLabel(statusCode);
   };
 
   // Get deadline status component
@@ -490,24 +480,36 @@ export const GlobalProvider = ({ children }) => {
   };
 
   // Table styling functions for consistent table appearance across the system
+  const combineThemeClasses = (lightClass, defaultLight, darkClass, defaultDark) => {
+    const light = lightClass || defaultLight;
+    const dark = darkClass || defaultDark;
+    const darkPrefixed = dark.split(' ').filter(Boolean).map(c => c.startsWith('dark:') ? c : `dark:${c}`).join(' ');
+    return `${light} ${darkPrefixed}`.trim();
+  };
+
   const getTableHeaderClasses = (lightClass, darkClass) => {
-    return theme === 'dark' ? (darkClass || 'border-b border-gray-700') : (lightClass || 'border-b border-gray-200');
+    return combineThemeClasses(lightClass, 'border-b border-gray-200', darkClass, 'border-b border-gray-700');
   };
 
   const getTableHeaderTextClasses = (lightClass, darkClass) => {
-    return theme === 'dark' ? (darkClass || 'text-gray-100') : (lightClass || 'text-gray-900');
+    return combineThemeClasses(lightClass, 'text-gray-900', darkClass, 'text-gray-100');
   };
 
   const getTableRowClasses = (lightClass, darkClass) => {
-    return theme === 'dark' ? (darkClass || 'border-b border-gray-700 hover:bg-gray-50/50 dark:hover:bg-[#232329]/40 transition-colors last:border-b-0') : (lightClass || 'border-b border-gray-100 hover:bg-gray-50/50 transition-colors last:border-b-0');
+    return combineThemeClasses(
+      lightClass,
+      'border-b border-gray-100 hover:bg-gray-50/50 transition-colors last:border-b-0',
+      darkClass,
+      'border-b border-gray-700 hover:bg-gray-50/50 hover:bg-[#232329]/40 transition-colors last:border-b-0'
+    );
   };
 
   const getTableTextClasses = (lightClass, darkClass) => {
-    return theme === 'dark' ? (darkClass || 'text-gray-100 whitespace-nowrap') : (lightClass || 'text-gray-900 whitespace-nowrap');
+    return combineThemeClasses(lightClass, 'text-gray-900 whitespace-nowrap', darkClass, 'text-gray-100 whitespace-nowrap');
   };
 
   const getTableSecondaryTextClasses = (lightClass, darkClass) => {
-    return theme === 'dark' ? (darkClass || 'text-gray-400') : (lightClass || 'text-gray-500');
+    return combineThemeClasses(lightClass, 'text-gray-500', darkClass, 'text-gray-400');
   };
 
   // Theme-aware classes function for consistent styling across the system
@@ -554,40 +556,38 @@ export const GlobalProvider = ({ children }) => {
 
   // Helper function to get status color based on status code
   const getStatusColor = (statusCode) => {
-    const isDark = theme === 'dark';
     const statusMap = {
-      1: isDark ? 'bg-gray-600' : 'bg-gray-300',      // Not Assigned
-      2: isDark ? 'bg-indigo-600' : 'bg-indigo-400',  // Assigned
-      3: isDark ? 'bg-yellow-600' : 'bg-yellow-400',  // In Progress
-      4: isDark ? 'bg-green-600' : 'bg-green-400',    // Completed
-      5: isDark ? 'bg-red-600' : 'bg-red-400',        // Cancelled
+      1: 'dark:bg-gray-600 bg-gray-300',      // Not Assigned
+      2: 'dark:bg-indigo-600 bg-indigo-400',  // Assigned
+      3: 'dark:bg-yellow-600 bg-yellow-400',  // In Progress
+      4: 'dark:bg-green-600 bg-green-400',    // Completed
+      5: 'dark:bg-red-600 bg-red-400',        // Cancelled
     };
     return statusMap[statusCode] || statusMap[1];
   };
 
   // Helper function to get priority style
   const getPriorityStyle = (priority) => {
-    const isDark = theme === 'dark';
     const styles = {
       'Critical': {
-        bgColor: isDark ? 'bg-rose-900/30' : 'bg-rose-50',
-        textColor: isDark ? 'text-rose-400' : 'text-rose-700',
-        borderColor: isDark ? 'border-rose-700' : 'border-rose-200'
+        bgColor: 'dark:bg-rose-900/30 bg-rose-50',
+        textColor: 'dark:text-rose-400 text-rose-700',
+        borderColor: 'dark:border-rose-700 border-rose-200'
       },
       'High': {
-        bgColor: isDark ? 'bg-red-900/20' : 'bg-red-50',
-        textColor: isDark ? 'text-red-400' : 'text-red-700',
-        borderColor: isDark ? 'border-red-700' : 'border-red-200'
+        bgColor: 'dark:bg-red-900/20 bg-red-50',
+        textColor: 'dark:text-red-400 text-red-700',
+        borderColor: 'dark:border-red-700 border-red-200'
       },
       'Medium': {
-        bgColor: isDark ? 'bg-yellow-900/20' : 'bg-yellow-50',
-        textColor: isDark ? 'text-yellow-400' : 'text-yellow-700',
-        borderColor: isDark ? 'border-yellow-700' : 'border-yellow-200'
+        bgColor: 'dark:bg-yellow-900/20 bg-yellow-50',
+        textColor: 'dark:text-yellow-400 text-yellow-700',
+        borderColor: 'dark:border-yellow-700 border-yellow-200'
       },
       'Low': {
-        bgColor: isDark ? 'bg-green-900/20' : 'bg-green-50',
-        textColor: isDark ? 'text-green-400' : 'text-green-700',
-        borderColor: isDark ? 'border-green-700' : 'border-green-200'
+        bgColor: 'dark:bg-green-900/20 bg-green-50',
+        textColor: 'dark:text-green-400 text-green-700',
+        borderColor: 'dark:border-green-700 border-green-200'
       }
     };
     const norm = priority === 0 || priority === '0' ? 'Critical' : priority;
@@ -723,24 +723,23 @@ export const GlobalProvider = ({ children }) => {
 
   // Helper function to get join request status style
   const getJoinRequestStatusStyle = (status) => {
-    const isDark = theme === 'dark';
     const styles = {
       'pending': {
-        bgColor: isDark ? 'from-yellow-900/50 to-yellow-800/50' : 'from-yellow-50 to-yellow-100',
-        textColor: isDark ? 'text-yellow-200' : 'text-yellow-700',
-        borderColor: isDark ? 'border-yellow-700' : 'border-yellow-200',
+        bgColor: 'dark:from-yellow-900/50 dark:to-yellow-800/50 from-yellow-50 to-yellow-100',
+        textColor: 'dark:text-yellow-200 text-yellow-700',
+        borderColor: 'dark:border-yellow-700 border-yellow-200',
         icon: 'FaClock'
       },
       'approved': {
-        bgColor: isDark ? 'from-green-900/50 to-green-800/50' : 'from-green-50 to-green-100',
-        textColor: isDark ? 'text-green-200' : 'text-green-700',
-        borderColor: isDark ? 'border-green-700' : 'border-green-200',
+        bgColor: 'dark:from-green-900/50 dark:to-green-800/50 from-green-50 to-green-100',
+        textColor: 'dark:text-green-200 text-green-700',
+        borderColor: 'dark:border-green-700 border-green-200',
         icon: 'FaCheck'
       },
       'rejected': {
-        bgColor: isDark ? 'from-red-900/50 to-red-800/50' : 'from-red-50 to-red-100',
-        textColor: isDark ? 'text-red-200' : 'text-red-700',
-        borderColor: isDark ? 'border-red-700' : 'border-red-200',
+        bgColor: 'dark:from-red-900/50 dark:to-red-800/50 from-red-50 to-red-100',
+        textColor: 'dark:text-red-200 text-red-700',
+        borderColor: 'dark:border-red-700 border-red-200',
         icon: 'FaTimes'
       }
     };

@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { FaFolder, FaCalendarAlt, FaChevronRight, FaGithub, FaClock, FaUsers, FaClipboardList, FaChartLine } from 'react-icons/fa';
 import { getProjectStatusStyle } from './ProjectStatusBadge';
+import { getTaskStatusLabel } from '../task/TaskTypeBadge';
 import { getDeadlineStatus, calculateDeadlineText } from '../shared/DeadlineStatusBadge';
 import { useGlobal } from '../../context/GlobalContext';
 import ProjectPriorityBadge from '../shared/ProjectPriorityBadge';
@@ -17,15 +18,7 @@ const ProjectCard = ({ project, theme }) => {
 
   // Get project status text based on ProjectStatusID
   const getStatusText = (statusId) => {
-    const statusMap = {
-      1: 'Not Assigned',
-      2: 'Assigned',
-      3: 'In Progress',
-      4: 'QA',
-      5: 'Deployment',
-      6: 'Completed'
-    };
-    return statusMap[statusId] || 'Unknown';
+    return getTaskStatusLabel(statusId);
   };
 
   const getStatusColor = (status) => {

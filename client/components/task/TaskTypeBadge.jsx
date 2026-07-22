@@ -1,3 +1,19 @@
+import commonTypes from '../../data/commonTypes.json';
+
+export const statusMap = commonTypes
+  .filter(item => item.MasterType === 'TaskStatus')
+  .reduce((acc, item) => {
+    acc[item.Code] = item.Value;
+    return acc;
+  }, {});
+
+export const priorityMap = commonTypes
+  .filter(item => item.MasterType === 'PriorityType')
+  .reduce((acc, item) => {
+    acc[item.Code] = item.Value;
+    return acc;
+  }, {});
+
 // Task type styles and utilities
 export const getTaskTypeStyle = (type) => {
   const styles = {
@@ -114,14 +130,9 @@ export const getTaskTypeBadge = (type) => {
 // Priority styles and utilities
 export const getPriorityStyle = (priority) => {
   let norm = priority;
-  if (priority === 0 || priority === '0') norm = 'Critical';
-  else if (priority === 1 || priority === '1') norm = 'High';
-  else if (priority === 2 || priority === '2') norm = 'Medium';
-  else if (priority === 3 || priority === '3') norm = 'Low';
-  else if (priority === 'Critical') norm = 'Critical';
-  else if (priority === 'High') norm = 'High';
-  else if (priority === 'Medium') norm = 'Medium';
-  else if (priority === 'Low') norm = 'Low';
+  if (priorityMap[priority] !== undefined) {
+    norm = priorityMap[priority];
+  }
 
   const styles = {
     'Critical': {
@@ -164,12 +175,7 @@ export const getPriorityStyle = (priority) => {
 export const getPriorityBadge = (priority) => {
   if (priority === undefined || priority === null || priority === '') return null;
 
-  let label = priority;
-  if (priority === 0) label = 'Critical';
-  else if (priority === 1) label = 'High';
-  else if (priority === 2) label = 'Medium';
-  else if (priority === 3) label = 'Low';
-
+  const label = priorityMap[priority] || priority;
   const style = getPriorityStyle(priority);
 
   return (
@@ -181,57 +187,57 @@ export const getPriorityBadge = (priority) => {
 };
 
 // Task status styles and utilities
-export const getTaskStatusStyle = (statusCode, isDark = false) => {
+export const getTaskStatusStyle = (statusCode) => {
   const styles = {
     1: { // Not Assigned
-      bgColor: isDark ? 'from-gray-800/50 to-gray-700/50' : 'from-gray-50 to-gray-100',
-      textColor: isDark ? 'text-gray-300' : 'text-gray-700',
-      borderColor: isDark ? 'border-gray-700' : 'border-gray-200',
+      bgColor: 'from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50',
+      textColor: 'text-gray-700 dark:text-gray-300',
+      borderColor: 'border-gray-200 dark:border-gray-700',
       icon: (
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isDark ? 'text-gray-400' : 'text-gray-500'}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       )
     },
     2: { // Assigned
-      bgColor: isDark ? 'from-blue-900/50 to-blue-800/50' : 'from-blue-50 to-blue-100',
-      textColor: isDark ? 'text-blue-300' : 'text-blue-700',
-      borderColor: isDark ? 'border-blue-700' : 'border-blue-200',
+      bgColor: 'from-blue-50 to-blue-100 dark:from-blue-900/50 dark:to-blue-800/50',
+      textColor: 'text-blue-700 dark:text-blue-300',
+      borderColor: 'border-blue-200 dark:border-blue-700',
       icon: (
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isDark ? 'text-blue-400' : 'text-blue-500'}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 dark:text-blue-400">
           <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
           <polyline points="22 4 12 14.01 9 11.01" />
         </svg>
       )
     },
     3: { // In Progress
-      bgColor: isDark ? 'from-yellow-900/50 to-yellow-800/50' : 'from-yellow-50 to-yellow-100',
-      textColor: isDark ? 'text-yellow-300' : 'text-yellow-700',
-      borderColor: isDark ? 'border-yellow-700' : 'border-yellow-200',
+      bgColor: 'from-yellow-50 to-yellow-100 dark:from-yellow-900/50 dark:to-yellow-800/50',
+      textColor: 'text-yellow-700 dark:text-yellow-300',
+      borderColor: 'border-yellow-200 dark:border-yellow-700',
       icon: (
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isDark ? 'text-yellow-400' : 'text-yellow-500'}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500 dark:text-yellow-400 animate-spin-slow">
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
         </svg>
       )
     },
     4: { // QA
-      bgColor: isDark ? 'from-indigo-900/50 to-indigo-800/50' : 'from-indigo-50 to-indigo-100',
-      textColor: isDark ? 'text-indigo-300' : 'text-indigo-700',
-      borderColor: isDark ? 'border-indigo-700' : 'border-indigo-200',
+      bgColor: 'from-indigo-50 to-indigo-100 dark:from-indigo-900/50 dark:to-indigo-800/50',
+      textColor: 'text-indigo-700 dark:text-indigo-300',
+      borderColor: 'border-indigo-200 dark:border-indigo-700',
       icon: (
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isDark ? 'text-indigo-400' : 'text-indigo-500'}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500 dark:text-indigo-400">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
         </svg>
       )
     },
     5: { // Deployment
-      bgColor: isDark ? 'from-pink-900/50 to-pink-800/50' : 'from-pink-50 to-pink-100',
-      textColor: isDark ? 'text-pink-300' : 'text-pink-700',
-      borderColor: isDark ? 'border-pink-700' : 'border-pink-200',
+      bgColor: 'from-pink-50 to-pink-100 dark:from-pink-900/50 dark:to-pink-800/50',
+      textColor: 'text-pink-700 dark:text-pink-300',
+      borderColor: 'border-pink-200 dark:border-pink-700',
       icon: (
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isDark ? 'text-pink-400' : 'text-pink-500'}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-pink-500 dark:text-pink-400">
           <path d="M4.5 16.5c-1.5 1.25-2.5 3-2.5 5.5 2.5 0 4.25-1 5.5-2.5L18.5 8 16 5.5 4.5 16.5z" />
           <path d="M12 12l9-9" />
           <path d="M9 15l-3-3" />
@@ -239,11 +245,11 @@ export const getTaskStatusStyle = (statusCode, isDark = false) => {
       )
     },
     6: { // Completed
-      bgColor: isDark ? 'from-green-900/50 to-green-800/50' : 'from-green-50 to-green-100',
-      textColor: isDark ? 'text-green-300' : 'text-green-700',
-      borderColor: isDark ? 'border-green-700' : 'border-green-200',
+      bgColor: 'from-green-50 to-green-100 dark:from-green-900/50 dark:to-green-800/50',
+      textColor: 'text-green-700 dark:text-green-300',
+      borderColor: 'border-green-200 dark:border-green-700',
       icon: (
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isDark ? 'text-green-400' : 'text-green-500'}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 dark:text-green-400">
           <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
           <polyline points="22 4 12 14.01 9 11.01" />
         </svg>
@@ -254,28 +260,21 @@ export const getTaskStatusStyle = (statusCode, isDark = false) => {
   return styles[statusCode] || styles[1]; // Default to Not Assigned if status not found
 };
 
-export const getTaskStatusBadge = (statusCode, isDark = false, statusText = null) => {
+export const getTaskStatusLabel = (statusCode) => {
+  return statusMap[statusCode] || 'Unknown';
+};
+
+export const getTaskStatusBadge = (statusCode, statusText = null) => {
   if (!statusCode) return null;
 
-  const style = getTaskStatusStyle(statusCode, isDark);
+  const style = getTaskStatusStyle(statusCode);
+  const labelText = statusText || getTaskStatusLabel(statusCode);
 
   return (
     <span className={`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${style.bgColor} ${style.textColor} border ${style.borderColor}`}>
       {style.icon}
-      <span>{statusText || getTaskStatusText(statusCode)}</span>
+      <span>{labelText}</span>
     </span>
   );
 };
-
-// Helper function to get task status text
-const getTaskStatusText = (statusCode) => {
-  const statusMap = {
-    1: 'Not Assigned',
-    2: 'Assigned',
-    3: 'In Progress',
-    4: 'QA',
-    5: 'Deployment',
-    6: 'Completed'
-  };
-  return statusMap[statusCode] || 'Unknown';
-}; 
+ 

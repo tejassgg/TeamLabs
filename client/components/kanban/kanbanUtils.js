@@ -1,14 +1,8 @@
 import { FaTimes, FaCheckCircle, FaClock, FaShieldAlt, FaRocket } from 'react-icons/fa';
 import { useTheme } from '../../context/ThemeContext';
 
-export const statusMap = {
-  1: 'Not Assigned',
-  2: 'Assigned',
-  3: 'In Progress',
-  4: 'QA',
-  5: 'Deployment',
-  6: 'Completed'
-};
+import { statusMap } from '../task/TaskTypeBadge';
+export { statusMap };
 
 export const statusIcons = {
   1: <FaTimes className="text-gray-500" />,

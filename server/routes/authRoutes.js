@@ -4,7 +4,7 @@ const {
   registerUser, loginUser, googleLogin, getUserProfile, completeUserProfile, getUserActivities, logoutUser,
   getUserOrganizations, generate2FA, verify2FA, disable2FA, verifyLogin2FA, getSecuritySettings, updateOnboardingStatus,
   updateSecuritySettings, updateUserSettings, updateUserStatus,
-  verifyEmail, resendVerification, requestSignInCode, verifySignInCode
+  verifyEmail, resendVerification, requestSignInCode, verifySignInCode, enrollExperimental
 } = require('../controllers/authController');
 const { initiateGitHubAuth, handleGitHubCallback, disconnectGitHub, getGitHubStatus, getIntegrationsStatus, getUserRepositories } = require('../controllers/integrationController');
 const { protect } = require('../middleware/auth');
@@ -419,5 +419,8 @@ router.get('/github/repositories/:userId', protect, getUserRepositories);
 
 // Integrations routes
 router.get('/integrations/:userId', protect, getIntegrationsStatus);
+
+// Experimental features routes
+router.post('/experimental/enroll', protect, enrollExperimental);
 
 module.exports = router; 

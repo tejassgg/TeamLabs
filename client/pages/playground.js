@@ -5,7 +5,7 @@ import { useGlobal } from '../context/GlobalContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 
-import { verifyEmailHtml, inviteEmailHtml, taskAssignmentEmailHtml, commentMentionEmailHtml, contactConfirmationEmailHtml, contactNotificationEmailHtml, releaseSummaryEmailHtml, roleChangeEmailHtml, welcomeEmailHtml, premiumEmailHtml } from '../utils/mockEmailTemplates';
+import { verifyEmailHtml, inviteEmailHtml, taskAssignmentEmailHtml, commentMentionEmailHtml, contactConfirmationEmailHtml, contactNotificationEmailHtml, releaseSummaryEmailHtml, roleChangeEmailHtml, welcomeEmailHtml, premiumEmailHtml, experimentalEnrollmentEmailHtml } from '../utils/mockEmailTemplates';
 import { sendBrowserNotification } from '../utils/browserNotifications';
 
 import { FaLaptopCode, FaEnvelope, FaBell, FaDesktop, FaCheckCircle, FaExclamationTriangle, FaInfoCircle, FaTimesCircle } from 'react-icons/fa';
@@ -380,12 +380,12 @@ const Playground = () => {
                     <div className="flex flex-col gap-2">
                       <p className={`text-xs text-gray-500 dark:text-gray-400`}>Task Status Badges</p>
                       <div className="flex flex-wrap gap-4">
-                        {getTaskStatusBadge(1, theme === 'dark')}
-                        {getTaskStatusBadge(2, theme === 'dark')}
-                        {getTaskStatusBadge(3, theme === 'dark')}
-                        {getTaskStatusBadge(4, theme === 'dark')}
-                        {getTaskStatusBadge(5, theme === 'dark')}
-                        {getTaskStatusBadge(6, theme === 'dark')}
+                        {getTaskStatusBadge(1)}
+                        {getTaskStatusBadge(2)}
+                        {getTaskStatusBadge(3)}
+                        {getTaskStatusBadge(4)}
+                        {getTaskStatusBadge(5)}
+                        {getTaskStatusBadge(6)}
                       </div>
                     </div>
 
@@ -540,6 +540,14 @@ const Playground = () => {
                   <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Premium Subscription Announcement</h3>
                   <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200 dark:border-zinc-800/80">
                     <iframe scrolling="no" className="w-full border-none" srcDoc={premiumEmailHtml} title="Premium Upgrade Email Template" onLoad={handleIframeLoad} />
+                  </div>
+                </div>
+
+                {/* Experimental Features Enrollment Email */}
+                <div className="inline-flex flex-col w-full break-inside-avoid mb-8">
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Experimental Features Enrollment</h3>
+                  <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200 dark:border-zinc-800/80">
+                    <iframe scrolling="no" className="w-full border-none" srcDoc={experimentalEnrollmentEmailHtml} title="Experimental Enrollment Email Template" onLoad={handleIframeLoad} />
                   </div>
                 </div>
               </div>

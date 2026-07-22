@@ -485,7 +485,8 @@ const completeUserProfile = async (req, res) => {
       country,
       organizationID,
       role,
-      needsUpdate
+      needsUpdate,
+      isEnrolledInExperimental
     } = req.body;
 
     const user = await User.findById(req.user._id);
@@ -523,10 +524,27 @@ const completeUserProfile = async (req, res) => {
       user.role = role;
     }
 
+    let sendEnrollmentMail = false;
+    if (isEnrolledInExperimental !== undefined) {
+      if (isEnrolledInExperimental && !user.isEnrolledInExperimental) {
+        sendEnrollmentMail = true;
+      }
+      user.isEnrolledInExperimental = isEnrolledInExperimental;
+    }
+
     // Mark user as Active after profile completion
     user.status = 'Active';
 
     await user.save();
+
+    if (sendEnrollmentMail) {
+      try {
+        const { sendExperimentalEnrollmentEmail } = require('../services/emailService');
+        await sendExperimentalEnrollmentEmail(user.email, user.firstName || user.username);
+      } catch (emailErr) {
+        console.error('Error sending experimental enrollment email during profile update:', emailErr);
+      }
+    }
 
     // Log profile update
     await logActivity(user._id, 'profile_update', 'success', 'Profile updated successfully', req);
@@ -555,12 +573,48 @@ const completeUserProfile = async (req, res) => {
       state: user.state,
       country: user.country,
       organizationID: user.organizationID,
+      isEnrolledInExperimental: user.isEnrolledInExperimental,
       needsAdditionalDetails: false,
       role: user.role,
       organization: organization ? {
         name: organization.Name,
         code: organization.Code
       } : null
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Enroll in Experimental Features
+// @route   POST /api/auth/experimental/enroll
+// @access  Private
+const enrollExperimental = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.isEnrolledInExperimental) {
+      user.isEnrolledInExperimental = true;
+      await user.save();
+
+      try {
+        const { sendExperimentalEnrollmentEmail } = require('../services/emailService');
+        await sendExperimentalEnrollmentEmail(user.email, user.firstName || user.username);
+      } catch (emailErr) {
+        console.error('Error sending experimental enrollment email:', emailErr);
+      }
+
+      await logActivity(user._id, 'profile_update', 'success', 'Enrolled in experimental features', req);
+    }
+
+    res.json({
+      success: true,
+      message: 'Enrolled in experimental features successfully',
+      isEnrolledInExperimental: user.isEnrolledInExperimental
     });
   } catch (error) {
     console.error(error);
@@ -1936,5 +1990,6 @@ module.exports = {
   getProjectIssues,
   updateOnboardingStatus,
   requestSignInCode,
-  verifySignInCode
+  verifySignInCode,
+  enrollExperimental
 }; 

@@ -1012,7 +1012,7 @@ const TeamDetailsPage = () => {
             </div>
           </div>
         ) : (
-          <div className="px-4 py-6">
+          <div className="p-4">
             <div className="flex flex-col lg:flex-row lg:justify-between gap-4 mb-4">
               {/* Team Description - Desktop View */}
               <div className={`hidden md:flex ${showJoinRequests ? 'w-1/3' : 'w-full'} md:items-start justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm h-fit dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none`}>
@@ -1781,7 +1781,7 @@ const TeamDetailsPage = () => {
                               </div>
                             </td>
                             <td className="py-3 px-4 ">
-                              {getTaskStatusBadge(task.Status, theme === 'dark', getTaskStatusText(task.Status))}
+                              {getTaskStatusBadge(task.Status, getTaskStatusText(task.Status))}
                             </td>
                           </tr>
                         );

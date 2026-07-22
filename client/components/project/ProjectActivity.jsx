@@ -107,7 +107,7 @@ const ProjectActivity = ({ projectId, activity, projectCreatedDate, hasMore = fa
             <div className="relative mx-auto max-w-5xl">
               <div className="relative">
                 {/* Vertical timeline line */}
-                <div className={"absolute left-1/2 top-0 w-1 h-full bg-gradient-to-b from-gray-200 via-blue-200 to-gray-200 rounded-full -translate-x-1/2 z-0 absolute left-1/2 top-0 w-1 h-full bg-gradient-to-b from-gray-800 via-blue-900 to-gray-800 rounded-full -translate-x-1/2 z-0"} />
+                <div className={"absolute left-1/2 top-0 w-1 h-full bg-gradient-to-b from-gray-200 via-blue-200 to-gray-200 dark:from-gray-800 dark:via-blue-900 dark:to-gray-800 rounded-full -translate-x-1/2 z-0"} />
                 {days.map((date, i) => (
                   <div key={date} className="mb-4 flex w-full min-h-[120px] relative items-center">
                     {/* Centered day/date label */}

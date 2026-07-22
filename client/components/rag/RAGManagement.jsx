@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { useGlobal } from '../../context/GlobalContext';
 import api from '../../services/api';
-const RAGManagement = ({ organizationId }) => {
+const RAGManagement = ({ organizationId, canSync = true }) => {
   const { userDetails } = useGlobal();
   const [loading, setLoading] = useState(false);
   const [syncStatus, setSyncStatus] = useState(null);
@@ -14,6 +14,12 @@ const RAGManagement = ({ organizationId }) => {
   const [syncProgress, setSyncProgress] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+
+  useEffect(() => {
+    if (!canSync && (activeTab === 'sync' || activeTab === 'config')) {
+      setActiveTab('overview');
+    }
+  }, [canSync, activeTab]);
   
   // Configuration options
   const [config, setConfig] = useState({
@@ -285,7 +291,7 @@ const RAGManagement = ({ organizationId }) => {
           { id: 'search', label: 'Search' },
           { id: 'sync', label: 'Sync Management' },
           { id: 'config', label: 'Configuration' }
-        ].map((tab) => (
+        ].filter(tab => canSync || (tab.id !== 'sync' && tab.id !== 'config')).map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -373,14 +379,16 @@ const RAGManagement = ({ organizationId }) => {
             <div className={"bg-white p-6 rounded-2xl border border-gray-200 shadow-sm dark:bg-[#1e1e24] dark:border-zinc-800 dark:shadow-none"}>
               <h3 className={"text-lg font-medium text-gray-900 mb-4 dark:text-white"}>Quick Actions</h3>
               <div className="flex flex-wrap gap-4">
-                <button
-                  onClick={triggerSync}
-                  disabled={loading}
-                  className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium"
-                >
-                  {loading ? 'Syncing...' : 'Sync Now'}
-                </button>
-                {userDetails?.isAdmin && (
+                {canSync && (
+                  <button
+                    onClick={triggerSync}
+                    disabled={loading}
+                    className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium"
+                  >
+                    {loading ? 'Syncing...' : 'Sync Now'}
+                  </button>
+                )}
+                {canSync && (
                   <button
                     onClick={regenerateEmbeddings}
                     disabled={loading}

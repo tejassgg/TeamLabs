@@ -5,6 +5,7 @@ import { FaRegMessage } from "react-icons/fa6";
 import { useRouter } from 'next/router';
 import { authService } from '../../services/api';
 import { useGlobal } from '../../context/GlobalContext';
+import { useToast } from '../../context/ToastContext';
 import ChatBot from '../shared/ChatBot';
 import ProjectPriorityBadge from '../shared/ProjectPriorityBadge';
 import SidebarButton from './SidebarButton';
@@ -12,14 +13,40 @@ import { FiCornerDownRight } from 'react-icons/fi';
 
 const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const { theme, toggleTheme } = useTheme();
+  const { showToast } = useToast();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [isTeamsOpen, setIsTeamsOpen] = useState(true);
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
+  const [isExperimentalOpen, setIsExperimentalOpen] = useState(true);
+  const [isEnrolling, setIsEnrolling] = useState(false);
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
-  const { teams, projects, organization, userDetails } = useGlobal();
+  const { teams, projects, organization, userDetails, updateUser } = useGlobal();
   const [subscriptionData, setSubscriptionData] = useState(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
+  
+  const handleEnrollExperimental = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setIsEnrolling(true);
+    try {
+      const response = await authService.enrollExperimental();
+      if (response.success) {
+        updateUser({
+          ...userDetails,
+          isEnrolledInExperimental: true
+        });
+        showToast('Successfully enrolled in experimental features!', 'success');
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to enroll in experimental features', 'error');
+    } finally {
+      setIsEnrolling(false);
+    }
+  };
+
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
   const activeProjectId = router.pathname.startsWith('/project/') ? router.query.projectId : null;
   // Load collapsed state from localStorage after component mounts
@@ -368,6 +395,80 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                       </li>
                     );
                   }).filter(Boolean)
+                )}
+              </ul>
+            )}
+          </div>
+
+          {/* Experimental Section */}
+          <div>
+            <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
+              <div className="flex-1 min-w-0">
+                <SidebarButton
+                  icon={
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600 dark:text-purple-400">
+                      <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.513C3.91 22.124 5.08 24 6.89 24h10.22c1.81 0 2.98-1.876 2.17-3.487l-5.07-10.09a2 2 0 0 1-.21-.896V2h-4z" />
+                      <path d="M8.5 2h7" />
+                      <path d="M7 16h10" />
+                    </svg>
+                  }
+                  label="Experimental"
+                  active={router.pathname.startsWith('/experimental')}
+                  onClick={() => {
+                    if (!isMobile && collapsed) {
+                      handleNavigation('/experimental/automation');
+                    } else {
+                      setIsExperimentalOpen((prev) => !prev);
+                    }
+                  }}
+                  theme={theme}
+                  isMobile={isMobile}
+                  collapsed={collapsed}
+                />
+              </div>
+              {(!isMobile && collapsed) ? null : (
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button
+                    className={`p-1.5 rounded-full transition hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200`}
+                    aria-label={`${isExperimentalOpen ? 'Collapse' : 'Expand'} Experimental`}
+                    onClick={() => setIsExperimentalOpen((prev) => !prev)}
+                  >
+                    {isExperimentalOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+                  </button>
+                </div>
+              )}
+            </div>
+            {isExperimentalOpen && (!isMobile && collapsed ? false : true) && (
+              <ul className="ml-2 mt-1 space-y-1">
+                {userDetails?.isEnrolledInExperimental ? (
+                  <li key="automation">
+                    <button
+                      className={`w-full text-left px-2 py-1.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${router.pathname === '/experimental/automation'
+                        ? 'bg-blue-50 text-blue-600 font-medium dark:bg-blue-900/60 dark:text-blue-200'
+                        : 'hover:bg-gray-100 dark:hover:bg-dark-hover dark:text-blue-200'}`}
+                      onClick={() => handleNavigation('/experimental/automation')}
+                      title="Automation"
+                    >
+                      <span className="flex items-center gap-2 w-full">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-650 dark:text-purple-300">
+                          <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                          <line x1="8" y1="21" x2="16" y2="21" />
+                          <line x1="12" y1="17" x2="12" y2="21" />
+                        </svg>
+                        <span className="truncate text-sm font-medium">Automation</span>
+                      </span>
+                    </button>
+                  </li>
+                ) : (
+                  <li key="enroll" className="px-2 py-1.5">
+                    <button
+                      onClick={handleEnrollExperimental}
+                      disabled={isEnrolling}
+                      className="w-full text-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md shadow-purple-600/10 transition-all duration-200 disabled:opacity-50"
+                    >
+                      {isEnrolling ? 'Enrolling...' : 'Enroll'}
+                    </button>
+                  </li>
                 )}
               </ul>
             )}

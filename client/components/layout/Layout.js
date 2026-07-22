@@ -208,6 +208,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
 
   const currentPageTitle = getPageTitle();
   const currentPageProject = getPageProject();
+  const isNavbarBreadcrumbPage = ['/task/[taskId]', '/project/[projectId]', '/team/[teamId]'].includes(router.pathname);
   const hideTitleOnMobile = isMobile && (router.pathname === '/project/[projectId]' || router.pathname === '/task/[taskId]');
   const hideBreadcrumbOnMobile = isMobile && router.pathname === '/task/[taskId]';
 
@@ -454,11 +455,32 @@ const Layout = ({ children, pageProject, pageTitle }) => {
                 onLogout={logout}
                 pageTitle={currentPageTitle}
                 onSearchClick={() => setIsSearchModalOpen(true)}
+                breadcrumb={
+                  isNavbarBreadcrumbPage ? (
+                    <DynamicBreadcrumb
+                      teams={teams}
+                      projects={projects}
+                      tasksDetails={tasksDetails}
+                      currentPageProject={currentPageProject}
+                      onEditProjectName={handleEditProjectName}
+                      onEditTaskName={handleEditTaskName}
+                      onSaveProjectName={handleSaveProjectName}
+                      onSaveTaskName={handleSaveTaskName}
+                      onCancelEdit={handleCancelEdit}
+                      editingProjectId={editingProjectId}
+                      editingTaskId={editingTaskId}
+                      editingProjectName={editingProjectName}
+                      editingTaskName={editingTaskName}
+                      setEditingProjectName={setEditingProjectName}
+                      setEditingTaskName={setEditingTaskName}
+                    />
+                  ) : null
+                }
               />
             </div>
           </div>
         )}
-        <main className={`overflow-y-auto min-h-[calc(100vh-80px)] p-2 dark:bg-dark-bg dark:text-white`}>
+        <main className={`overflow-y-auto min-h-[calc(100vh-80px)] dark:bg-dark-bg dark:text-white`}>
           {/* Release Notification Banner */}
           {latestRelease && (
             <div className="py-2" data-release-banner>
@@ -472,7 +494,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
             </div>
           )}
 
-          {!hideBreadcrumbOnMobile && router.pathname !== '/messages' && (
+          {!hideBreadcrumbOnMobile && router.pathname !== '/messages' && !isNavbarBreadcrumbPage && (
             <div className="px-2">
               <DynamicBreadcrumb
                 teams={teams}

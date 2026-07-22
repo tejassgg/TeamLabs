@@ -24,7 +24,7 @@ router.get('/:projectId', protect, async (req, res) => {
       return res.status(403).json({ error: 'Forbidden: This project is archived and can only be viewed by the owner.' });
     }
     // Fetch teams assigned to project
-    const projectDetails = await ProjectDetails.find({ ProjectID: projectId, IsActive: true });
+    const projectDetails = await ProjectDetails.find({ ProjectID: projectId });
 
     const projectDetailsWithMembers = await Promise.all(projectDetails.map(async detail => {
       const newDetail = detail.toObject();
@@ -394,13 +394,17 @@ router.patch('/:projectId/team/:teamId/toggle', protect, async (req, res) => {
     projectDetail.ModifiedBy = req.user._id;
     await projectDetail.save();
 
+
     // Get all unique project members after adding the new team
     const allAssignedTeamIds = await ProjectDetails.find({ ProjectID: req.params.projectId }).select('TeamID');
     const allTeamDetails = await TeamDetails.find({ TeamID_FK: { $in: allAssignedTeamIds.map(t => t.TeamID) }, IsMemberActive: true });
     const allMemberIds = [...new Set(allTeamDetails.map(td => td.MemberID))];
     const allProjectMembers = await User.find({ _id: { $in: allMemberIds } }).select('_id firstName lastName email profileImage');
 
-    res.status(200).json({ success: true, message: `${projectDetail.TeamName} access updated successfully`, projectMembers: allProjectMembers });
+    const teamDet = await Team.findOne({ TeamID: projectDetailz.TeamID }).select('TeamName');
+    projectDetailz.TeamName = teamDet.TeamName;
+
+    res.status(200).json({ success: true, message: `${projectDetailz.TeamName} access updated successfully`, projectMembers: allProjectMembers, currentStatus: projectDetail.IsActive });
   } catch (err) {
     await logActivity(
       req.user._id,

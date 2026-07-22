@@ -146,6 +146,16 @@ export const authService = {
     }
   },
 
+  enrollExperimental: async () => {
+    try {
+      const response = await api.post('/auth/experimental/enroll');
+      return response.data;
+    } catch (error) {
+      if (env == 'DEV') console.log(error);
+      throw error.response?.data || { message: 'Failed to enroll in experimental features' };
+    }
+  },
+
   completeProfile: async (profileData, onboarding = false, nextStep = null) => {
     try {
       // If onboarding, call complete-profile, then update onboarding in the same chain to reduce extra calls

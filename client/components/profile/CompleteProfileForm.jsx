@@ -21,7 +21,8 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding', profil
     state: '',
     country: '',
     role: '',
-    phoneExtension: ''
+    phoneExtension: '',
+    isEnrolledInExperimental: false
   });
   const [roleOptions, setRoleOptions] = useState([]);
   const [phoneExtensions, setPhoneExtensions] = useState([]);
@@ -51,7 +52,8 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding', profil
           state: '',
           country: '',
           role: profile.role || 'User',
-          phoneExtension: profile.phoneExtension || ''
+          phoneExtension: profile.phoneExtension || '',
+          isEnrolledInExperimental: profile.isEnrolledInExperimental || false
         };
         setFormData(next);
         setProfileDraft && setProfileDraft(next);
@@ -157,6 +159,21 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding', profil
               placeholder="Last Name"
             />
           </div>
+        </div>
+
+        {/* Row 3: Experimental Features Checkbox */}
+        <div className="flex items-center gap-3 mt-4 p-4 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-zinc-900/30">
+          <input
+            type="checkbox"
+            id="isEnrolledInExperimental"
+            name="isEnrolledInExperimental"
+            checked={formData.isEnrolledInExperimental || false}
+            onChange={e => { const v = e.target.checked; setFormData({ ...formData, isEnrolledInExperimental: v }); setProfileDraft && setProfileDraft({ ...formData, isEnrolledInExperimental: v }); }}
+            className="w-4 h-4 text-blue-600 border-gray-350 rounded focus:ring-blue-500 dark:border-gray-600 dark:focus:ring-blue-600 cursor-pointer"
+          />
+          <label htmlFor="isEnrolledInExperimental" className="text-sm font-medium text-gray-900 dark:text-white cursor-pointer select-none">
+            Enroll in Experimental Features (Automation)
+          </label>
         </div>
       </>
     );

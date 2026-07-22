@@ -28,7 +28,7 @@ const isProfileComplete = (userDetails) => {
   return requiredFields.every(field => userDetails[field] && userDetails[field].toString().trim() !== '');
 };
 
-const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
+const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick, breadcrumb }) => {
   const { userDetails } = useGlobal();
   const router = useRouter();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -217,9 +217,13 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
     <nav className={`bg-white text-gray-900 border-gray-200 dark:bg-dark-bg dark:text-white dark:border-gray-700 border-b`}>
       <div className="mx-auto">
         <div className="flex justify-between items-center h-16 ml-2">
-          {/* Left side - Logo */}
-          <div className="flex-shrink-0">
-            {pageTitle ? (
+          {/* Left side - Logo or Breadcrumb */}
+          <div className="flex-shrink-0 flex items-center">
+            {breadcrumb ? (
+              <div className="flex items-center">
+                {breadcrumb}
+              </div>
+            ) : pageTitle ? (
               <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent select-none cursor-pointer" onClick={handleLogoClick}>
                 {pageTitle}
               </div>

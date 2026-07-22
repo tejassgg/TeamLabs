@@ -6,7 +6,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { reportService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 
-const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) => {
+const ReportGenerator = ({ projectId, projectName, onClose, inline = false, canGenerate = true }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [reportType, setReportType] = useState('executive');
   const [startDate, setStartDate] = useState('');
@@ -28,12 +28,18 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
   const [existingReports, setExistingReports] = useState([]);
   const [loadingReports, setLoadingReports] = useState(false);
   const [subscriptionInfo, setSubscriptionInfo] = useState({ isPremium: false, maxReports: 1, currentCount: 0 });
-  const [activeTab, setActiveTab] = useState('generate'); // 'generate' or 'view'
+  const [activeTab, setActiveTab] = useState(canGenerate ? 'generate' : 'view'); // 'generate' or 'view'
   const [deletingReportId, setDeletingReportId] = useState(null);
 
   const { userDetails } = useGlobal();
   const { theme } = useTheme();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (!canGenerate) {
+      setActiveTab('view');
+    }
+  }, [canGenerate]);
 
   useEffect(() => {
     // Set default date range (last 30 days)
@@ -321,23 +327,29 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
 
           {/* Tabs */}
           <div className={`flex space-x-2 bg-gray-100 mb-1 p-1 dark:bg-dark-bg dark:p-1 dark:border dark:border-zinc-800 rounded-xl transition-all duration-300`}>
+            {canGenerate && (
+              <button
+                onClick={() => setActiveTab('generate')}
+                className={`flex-1 py-3 px-6 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === 'generate'
+                  ? 'bg-white text-emerald-600 shadow-lg dark:bg-zinc-800 dark:text-white dark:shadow-sm dark:border dark:border-zinc-750'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-850/50'
+                  }`}
+              >
+                Generate New Report
+              </button>
+            )}
             <button
-              onClick={() => setActiveTab('generate')}
-              className={`flex-1 py-3 px-6 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === 'generate'
+              onClick={() => {
+                setGeneratedReport(null);
+                setActiveTab('view');
+              }}
+              className={`flex-1 py-3 px-6 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === 'view' || (!canGenerate && !generatedReport)
                 ? 'bg-white text-emerald-600 shadow-lg dark:bg-zinc-800 dark:text-white dark:shadow-sm dark:border dark:border-zinc-750'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-850/50'
                 }`}
+              style={!canGenerate && !generatedReport ? { pointerEvents: 'none' } : {}}
             >
-              Generate New Report
-            </button>
-            <button
-              onClick={() => setActiveTab('view')}
-              className={`flex-1 py-3 px-6 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === 'view'
-                ? 'bg-white text-emerald-600 shadow-lg dark:bg-zinc-800 dark:text-white dark:shadow-sm dark:border dark:border-zinc-750'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-850/50'
-                }`}
-            >
-              View Reports ({existingReports.length}/{subscriptionInfo.maxReports})
+              {canGenerate ? `View Reports (${existingReports.length}/${subscriptionInfo.maxReports})` : 'Existing Reports'}
             </button>
           </div>
         </div>
@@ -347,7 +359,18 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
           {activeTab === 'generate' ? (
             // Generate Report Tab
             !generatedReport ? (
-              <div className="space-y-6">
+              !canGenerate ? (
+                <div className="flex flex-col items-center justify-center p-12 text-center h-full">
+                  <div className="p-4 rounded-full bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400 mb-4 animate-bounce">
+                    <FaExclamationTriangle className="text-3xl" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Access Restricted</h3>
+                  <p className="text-sm text-gray-650 dark:text-zinc-400 max-w-md">
+                    Only the Project Owner and Administrators can generate new project reports. You can view existing reports under the "Existing Reports" tab.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
                 {/* Report Type Selection */}
                 <div>
                   <label className={`block text-lg font-semibold mb-6 text-gray-900 dark:text-white transition-colors duration-300`}>
@@ -682,7 +705,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                   </div>
                 )}
               </div>
-            ) : (
+            ) ) : (
               // Generated Report Display
               <div className="space-y-6 sm:space-y-8">
                 {/* Report Header */}

@@ -81,8 +81,7 @@ const ProjectListView = ({ taskList, togglingSubtasks, onSubtaskToggle, onDelete
                 });
               }
             });
-            const statusStyle = getTaskStatusStyle(code, theme === 'dark');
-            const StatusIcon = statusStyle.icon;
+            const statusStyle = getTaskStatusStyle(code);
 
             return (
               <React.Fragment key={code}>
@@ -92,15 +91,15 @@ const ProjectListView = ({ taskList, togglingSubtasks, onSubtaskToggle, onDelete
                     <div className={`flex items-center ${indexx === 0 ? '' : 'mt-2'}`}>
                       <div className="flex items-center justify-center w-8 h-12" onClick={(e) => { e.preventDefault(); toggleAccordion(code); }}>
                         {openAccordions[code] ? (
-                          <FaSortUp className={`${statusStyle.iconColor} transition-transform duration-300 cursor-pointer`} size={14} />
+                          <FaSortUp className={`${statusStyle.textColor} transition-transform duration-300 cursor-pointer`} size={14} />
                         ) : (
-                          <FaSortDown className={`${statusStyle.iconColor} transition-transform duration-300 cursor-pointer`} size={14} />
+                          <FaSortDown className={`${statusStyle.textColor} transition-transform duration-300 cursor-pointer`} size={14} />
                         )}
                       </div>
                       <div className={`flex-1 cursor-pointer select-none px-4 py-3 font-semibold rounded-lg ${statusStyle.textColor} bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.borderColor} flex items-center justify-start gap-3`}
                         onClick={(e) => { e.preventDefault(); toggleAccordion(code); }} >
                         <div className="flex items-center gap-3">
-                          <StatusIcon className={statusStyle.iconColor} size={16} />
+                          {statusStyle.icon && React.cloneElement(statusStyle.icon, { width: 16, height: 16, className: `${statusStyle.icon.props.className} w-4 h-4` })}
                           <span>{label}</span>
                         </div>
                         <span className={`text-sm ${statusStyle.textColor} opacity-70`}>{tasksByStatus.length}</span>

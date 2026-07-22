@@ -1,18 +1,12 @@
 import React from 'react';
-import { useTheme } from '../../context/ThemeContext';
 
 const TeamDetailsSkeleton = () => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
-  const skeletonClass = isDark 
-    ? 'animate-pulse bg-gray-700 rounded' 
-    : 'animate-pulse bg-gray-200 rounded';
+  const skeletonClass = 'animate-pulse bg-gray-200 dark:bg-gray-700 rounded';
 
   return (
     <div className="mx-auto">
       {/* Top Info Card */}
-      <div className={`rounded-xl ${isDark ? 'bg-[#0f1729]/40 border border-gray-700' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100'} p-4 mb-4`}>
+      <div className="rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 dark:bg-[#0f1729]/40 dark:border-gray-700 p-4 mb-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <div className={`h-4 w-40 ${skeletonClass} mb-2`}></div>
@@ -32,8 +26,8 @@ const TeamDetailsSkeleton = () => {
       </div>
 
       {/* Join Requests */}
-      <div className={`rounded-xl ${isDark ? 'border border-gray-700' : 'border border-gray-200'} mb-4`}>
-        <div className={`px-4 py-3 ${isDark ? 'border-b border-gray-700' : 'border-b border-gray-200'}`}>
+      <div className="rounded-xl border border-gray-200 dark:border-gray-700 mb-4">
+        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <div className={`h-5 w-32 ${skeletonClass}`}></div>
         </div>
         <div className="p-4">
@@ -46,7 +40,7 @@ const TeamDetailsSkeleton = () => {
         <div className={`h-6 w-40 ${skeletonClass} mb-3`}></div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1,2].map(i => (
-            <div key={i} className={`rounded-xl ${isDark ? 'border border-gray-700' : 'border border-gray-200'} p-4`}>
+            <div key={i} className="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <div className={`h-4 w-56 ${skeletonClass} mb-2`}></div>
@@ -70,8 +64,8 @@ const TeamDetailsSkeleton = () => {
       {/* Team Members and Projects Tables Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Team Members Table Skeleton */}
-        <div className={`rounded-xl border ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className={`p-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               {/* Table Title Skeleton */}
               <div className={`h-6 w-32 ${skeletonClass}`}></div>
@@ -80,7 +74,7 @@ const TeamDetailsSkeleton = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
                   {/* Checkbox Column Skeleton */}
                   <th className="py-3 px-4 text-center w-[50px]">
                     <div className={`h-4 w-4 mx-auto ${skeletonClass}`}></div>
@@ -110,7 +104,7 @@ const TeamDetailsSkeleton = () => {
               <tbody>
                 {/* Member Row Skeletons */}
                 {[1, 2, 3, 4].map((index) => (
-                  <tr key={index} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                  <tr key={index} className="border-b border-gray-200 dark:border-gray-700">
                     <td className="py-3 px-4 text-center">
                       <div className={`h-4 w-4 mx-auto ${skeletonClass}`}></div>
                     </td>
@@ -149,8 +143,8 @@ const TeamDetailsSkeleton = () => {
         </div>
 
         {/* Active Projects Table Skeleton */}
-        <div className={`rounded-xl border ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className={`p-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               {/* Table Title Skeleton */}
               <div className={`h-6 w-36 ${skeletonClass}`}></div>
@@ -159,7 +153,7 @@ const TeamDetailsSkeleton = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
                   {/* Checkbox Column Skeleton */}
                   <th className="py-3 px-4 text-center w-[50px]">
                     <div className={`h-4 w-4 mx-auto ${skeletonClass}`}></div>
@@ -181,7 +175,7 @@ const TeamDetailsSkeleton = () => {
               <tbody>
                 {/* Project Row Skeletons */}
                 {[1, 2, 3].map((index) => (
-                  <tr key={index} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                  <tr key={index} className="border-b border-gray-200 dark:border-gray-700">
                     <td className="py-3 px-4 text-center">
                       <div className={`h-4 w-4 mx-auto ${skeletonClass}`}></div>
                     </td>

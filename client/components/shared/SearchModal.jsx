@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
+import { getTaskStatusLabel } from '../task/TaskTypeBadge';
 import { searchService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import {
@@ -406,18 +407,6 @@ const SearchModal = ({ isOpen, onClose }) => {
     }
 
     return items;
-  };
-
-  const getTaskStatusLabel = (statusCode) => {
-    const statuses = {
-      1: 'Not Assigned',
-      2: 'Assigned',
-      3: 'In Progress',
-      4: 'QA',
-      5: 'Deployment',
-      6: 'Completed'
-    };
-    return statuses[statusCode] || 'Unknown';
   };
 
   const allItems = getSearchItems();

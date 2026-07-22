@@ -252,6 +252,10 @@ const UserSchema = new mongoose.Schema({
       default: 0
     }
   },
+  isEnrolledInExperimental: {
+    type: Boolean,
+    default: false
+  },
   pushSubscriptions: [
     {
       endpoint: String,

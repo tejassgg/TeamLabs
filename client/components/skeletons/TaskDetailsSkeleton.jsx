@@ -1,11 +1,8 @@
 import React from 'react';
-import { useTheme } from '../../context/ThemeContext';
 
 const TaskDetailsSkeleton = () => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-  const skeletonClass = isDark ? 'animate-pulse bg-gray-700 rounded' : 'animate-pulse bg-gray-200 rounded';
-  const lightSkeletonClass = isDark ? 'animate-pulse bg-gray-800 rounded' : 'animate-pulse bg-gray-100 rounded';
+  const skeletonClass = 'animate-pulse bg-gray-200 dark:bg-gray-700 rounded';
+  const lightSkeletonClass = 'animate-pulse bg-gray-100 dark:bg-gray-800 rounded';
 
   return (
     <div className="mx-auto">
@@ -24,7 +21,7 @@ const TaskDetailsSkeleton = () => {
           </div>
 
           {/* Task Progress Bar Card */}
-          <div className={`p-6 rounded-xl border ${isDark ? 'border-zinc-800 bg-zinc-900/50' : 'border-gray-100 bg-gray-50'} space-y-6`}>
+          <div className="p-6 rounded-xl border border-gray-100 bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900/50 space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className={`h-5 w-5 rounded ${lightSkeletonClass}`}></div>
@@ -35,18 +32,20 @@ const TaskDetailsSkeleton = () => {
 
             {/* Progress Bar steps */}
             <div className="relative flex items-center justify-between w-full pt-2">
-              <div className={`absolute left-0 right-0 h-1 bg-gray-300 dark:bg-gray-700 -z-10`}></div>
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="flex flex-col items-center gap-2 px-1">
-                  <div className={`h-6 w-6 rounded-full ${skeletonClass}`}></div>
-                  <div className={`h-3 w-12 ${lightSkeletonClass} hidden sm:block`}></div>
-                </div>
-              ))}
+              <div className="relative flex items-center justify-between w-full pt-2">
+                <div className="absolute left-0 right-0 h-1 bg-gray-300 dark:bg-gray-700 -z-10"></div>
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="flex flex-col items-center gap-2 px-1">
+                    <div className={`h-6 w-6 rounded-full ${skeletonClass}`}></div>
+                    <div className={`h-3 w-12 ${lightSkeletonClass} hidden sm:block`}></div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Task Description Card */}
-          <div className={`p-4 rounded-xl border ${isDark ? 'border-zinc-800 bg-zinc-900/50' : 'border-gray-100 bg-gray-50'} space-y-4`}>
+          <div className="p-4 rounded-xl border border-gray-100 bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900/50 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className={`h-4 w-4 rounded ${lightSkeletonClass}`}></div>
@@ -81,7 +80,7 @@ const TaskDetailsSkeleton = () => {
             <div className="flex items-center gap-2">
               <div className={`h-5 w-24 ${skeletonClass}`}></div>
             </div>
-            <div className={`h-32 w-full border-2 border-dashed border-gray-300 dark:border-zinc-800 rounded-lg flex flex-col items-center justify-center gap-3 ${isDark ? 'bg-zinc-900/10' : 'bg-gray-50/50'}`}>
+            <div className="h-32 w-full border-2 border-dashed border-gray-300 dark:border-zinc-800 rounded-lg flex flex-col items-center justify-center gap-3 bg-gray-50/50 dark:bg-zinc-900/10">
               <div className={`h-8 w-8 ${skeletonClass}`}></div>
               <div className={`h-4 w-40 ${skeletonClass}`}></div>
               <div className={`h-3 w-48 ${lightSkeletonClass}`}></div>
@@ -96,11 +95,11 @@ const TaskDetailsSkeleton = () => {
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className={`h-4 w-4 rounded border border-gray-300 dark:border-zinc-800`}></div>
+                <div className="h-4 w-4 rounded border border-gray-300 dark:border-zinc-800"></div>
                 <div className={`h-4 w-64 ${lightSkeletonClass}`}></div>
               </div>
               <div className="flex items-center gap-3">
-                <div className={`h-4 w-4 rounded border border-gray-300 dark:border-zinc-800`}></div>
+                <div className="h-4 w-4 rounded border border-gray-300 dark:border-zinc-800"></div>
                 <div className={`h-4 w-48 ${lightSkeletonClass}`}></div>
               </div>
             </div>
@@ -134,7 +133,7 @@ const TaskDetailsSkeleton = () => {
               <div className={`h-4 w-4 rounded ${lightSkeletonClass}`}></div>
               <div className={`h-5 w-24 ${skeletonClass}`}></div>
             </div>
-            <div className={`flex flex-col gap-3 p-4 rounded-xl border ${isDark ? 'border-zinc-800 bg-zinc-900/50' : 'border-gray-100 bg-gray-50'}`}>
+            <div className="flex flex-col gap-3 p-4 rounded-xl border border-gray-100 bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900/50">
               <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
                 <div className={`h-3 w-14 ${lightSkeletonClass}`}></div>
                 <div className={`h-4 w-20 ${skeletonClass}`}></div>
@@ -159,7 +158,7 @@ const TaskDetailsSkeleton = () => {
               <div className={`h-4 w-4 rounded ${lightSkeletonClass}`}></div>
               <div className={`h-5 w-28 ${skeletonClass}`}></div>
             </div>
-            <div className={`p-4 rounded-xl border ${isDark ? 'border-zinc-800 bg-zinc-900/50' : 'border-gray-100 bg-gray-50'} space-y-3`}>
+            <div className="p-4 rounded-xl border border-gray-100 bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900/50 space-y-3">
               <div className={`h-5 w-40 ${skeletonClass}`}></div>
               <div className={`h-12 w-full ${lightSkeletonClass}`}></div>
               <div className="space-y-1 pt-1">
@@ -175,7 +174,7 @@ const TaskDetailsSkeleton = () => {
               <div className={`h-4 w-4 rounded ${lightSkeletonClass}`}></div>
               <div className={`h-5 w-28 ${skeletonClass}`}></div>
             </div>
-            <div className={`p-4 rounded-xl border ${isDark ? 'border-zinc-800 bg-zinc-900/50' : 'border-gray-100 bg-gray-50'} space-y-4`}>
+            <div className="p-4 rounded-xl border border-gray-100 bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900/50 space-y-4">
               <div className="flex items-start gap-3 p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
                 <div className={`h-8 w-8 rounded ${lightSkeletonClass}`}></div>
                 <div className="flex-1 space-y-1.5">
@@ -202,7 +201,7 @@ const TaskDetailsSkeleton = () => {
               <div className={`h-4 w-4 rounded ${lightSkeletonClass}`}></div>
               <div className={`h-5 w-16 ${skeletonClass}`}></div>
             </div>
-            <div className={`p-4 rounded-xl border ${isDark ? 'border-zinc-800 bg-zinc-900/50' : 'border-gray-100 bg-gray-50'} space-y-3`}>
+            <div className="p-4 rounded-xl border border-gray-100 bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900/50 space-y-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="space-y-1 pb-2 border-b border-gray-100 dark:border-zinc-800 last:border-b-0 last:pb-0">
                   <div className={`h-4 w-full ${skeletonClass}`}></div>

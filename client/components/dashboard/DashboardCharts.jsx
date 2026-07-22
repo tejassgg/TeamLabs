@@ -18,7 +18,7 @@ import { FaProjectDiagram, FaUsers, FaClock, FaUserFriends } from 'react-icons/f
 import DashboardSkeleton from '../skeletons/DashboardSkeleton';
 import TimeTrackerWidget from './TimeTrackerWidget';
 import BurndownWidget from './BurndownWidget';
-import commonTypes from '../../data/commonTypes.json';
+import { statusMap } from '../task/TaskTypeBadge';
 
 ChartJS.register(
   CategoryScale,
@@ -41,10 +41,7 @@ const DashboardCharts = ({ stats, theme, userDetails, tasks, setTasks }) => {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     // Project Status Distribution
-    const projectStatusLabels = commonTypes
-      .filter(item => item.MasterType === 'ProjectStatus')
-      .sort((a, b) => a.Code - b.Code)
-      .map(item => item.Value);
+    const projectStatusLabels = Object.values(statusMap);
     const projectStatusValues = projectStatusLabels.map(label => charts.projectStatusDistribution[label] || 0);
     const projectStatusData = {
       labels: projectStatusLabels,

@@ -176,26 +176,37 @@ const Profile = () => {
           {/* Full Width Tabs */}
           <div className="mb-6">
             <div className={`border-b border-gray-200 dark:border-gray-700`}>
-              <nav className="-mb-px flex space-x-8">
+              <nav className="ml-2 mt-2 flex space-x-2 pb-3 -mb-px">
                 <button
                   onClick={() => setActiveTab('profile')}
                   className={`${activeTab === 'profile'
-                    ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600'
-                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+                    ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700/80 shadow-sm'
+                    : 'border border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-zinc-800/50'
+                    } whitespace-nowrap px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 transition-all duration-200 group relative`}
                 >
-                  <FaUserCircle size={16} />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${activeTab === 'profile' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'}`}>
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
                   <span>Profile Information</span>
+                  {activeTab === 'profile' && (
+                    <div className="absolute -bottom-[13px] left-0 right-0 h-[3px] bg-blue-600 dark:bg-blue-400 rounded-t-full"></div>
+                  )}
                 </button>
                 <button
                   onClick={() => setActiveTab('activity')}
                   className={`${activeTab === 'activity'
-                    ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600'
-                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+                    ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700/80 shadow-sm'
+                    : 'border border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-zinc-800/50'
+                    } whitespace-nowrap px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 transition-all duration-200 group relative`}
                 >
-                  <FaChartLine size={16} />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${activeTab === 'activity' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'}`}>
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                  </svg>
                   <span>Activity History</span>
+                  {activeTab === 'activity' && (
+                    <div className="absolute -bottom-[13px] left-0 right-0 h-[3px] bg-blue-600 dark:bg-blue-400 rounded-t-full"></div>
+                  )}
                 </button>
               </nav>
             </div>
