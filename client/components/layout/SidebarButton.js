@@ -21,11 +21,11 @@ const SidebarButton = ({ icon, label, active, onClick, theme, isMobile, collapse
     <div className="relative">
       <button
         ref={btnRef}
-        className={`flex items-center gap-3 w-full py-1.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-sm
+        className={`flex items-center w-full py-1.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-sm
           ${active
             ? `bg-blue-100 text-blue-700 font-bold dark:bg-blue-800 dark:text-white dark:font-bold shadow-sm`
             : 'hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200'}
-          ${!isMobile && collapsed ? 'px-0 justify-center' : 'px-3 justify-start'}
+          px-3 justify-start
         `}
         onClick={onClick}
         tabIndex={0}
@@ -35,8 +35,12 @@ const SidebarButton = ({ icon, label, active, onClick, theme, isMobile, collapse
         onMouseLeave={() => setShowTooltip(false)}
         onBlur={() => setShowTooltip(false)}
       >
-        <span className="text-lg flex items-center justify-center">{icon}</span>
-        {(!isMobile && collapsed) ? null : <span className="font-medium text-base">{label}</span>}
+        <span className="text-lg flex items-center justify-center flex-shrink-0">{icon}</span>
+        <span className={`font-medium text-sm inline-block truncate transition-all duration-300 ease-in-out origin-left
+          ${!isMobile && collapsed ? 'opacity-0 scale-95 max-w-0 ml-0 pointer-events-none' : 'opacity-100 scale-100 max-w-[200px] ml-3'}
+        `}>
+          {label}
+        </span>
       </button>
       {!isMobile && collapsed && showTooltip && (
         <TooltipPortal position={tooltipPos}>

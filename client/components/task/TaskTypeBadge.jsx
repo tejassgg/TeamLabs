@@ -277,4 +277,3 @@ export const getTaskStatusBadge = (statusCode, statusText = null) => {
     </span>
   );
 };
- 

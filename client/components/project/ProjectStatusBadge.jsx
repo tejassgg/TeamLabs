@@ -90,8 +90,8 @@ export const getProjectStatusBadge = (status, showTooltip = true) => {
 
   return (
     <div className="group relative inline-block">
-      <span className={`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.textColor} border ${statusStyle.borderColor}`}>
-        <StatusIcon className={statusStyle.iconColor} size={14} />
+      <span className={`inline-flex items-center gap-1 p-1 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.textColor} border ${statusStyle.borderColor}`}>
+        <StatusIcon className={`${statusStyle.iconColor} m-1`} size={14} />
         {status.Value}
       </span>
       {showTooltip && (

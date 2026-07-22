@@ -15,7 +15,7 @@ import { useGlobal } from '../../context/GlobalContext';
 import { useTheme } from '../../context/ThemeContext';
 import KanbanBoard from '../kanban';
 import { getProjectStatusBadge, getProjectStatusStyle } from '../../components/project/ProjectStatusBadge';
-import { getPriorityBadge, getTaskStatusBadge, getTaskStatusStyle } from '../../components/task/TaskTypeBadge';
+import { getPriorityBadge, getTaskStatusBadge } from '../../components/task/TaskTypeBadge';
 import ProjectPriorityBadge from '../../components/shared/ProjectPriorityBadge';
 import ProjectDetailsSkeleton from '../../components/skeletons/ProjectDetailsSkeleton';
 import ProjectFilesTab from '../../components/project/ProjectFilesTab';
@@ -1516,9 +1516,9 @@ const ProjectDetailsPage = () => {
                             {(() => {
                               const status = getDeadlineStatusComponent(deadline);
                               return (
-                                <span className={`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-semibold bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
-                                  <FiClock size={12} className={status.textColor} />
-                                  {status.text}
+                                <span className={`inline-flex items-center gap-1 px-1.5 py-1 rounded-full text-xs font-semibold bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
+                                  <FiClock size={12} className={`${status.textColor} m-1`} />
+                                  <span className="mr-1"> {status.text}</span>
                                 </span>
                               );
                             })()}

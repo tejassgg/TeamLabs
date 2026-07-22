@@ -1,5 +1,5 @@
 import { useTheme } from '../../context/ThemeContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FaCog, FaChevronLeft, FaTasks, FaUsers, FaHome, FaChevronDown, FaChevronUp, FaTimes, FaArrowRight, FaRegMoon, FaRegSun, FaChevronRight, FaRobot, FaRegClipboard, FaProjectDiagram, FaCalendarAlt, FaFlask, FaPlus } from 'react-icons/fa';
 import { FaRegMessage } from "react-icons/fa6";
 import { useRouter } from 'next/router';
@@ -21,10 +21,29 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const [isExperimentalOpen, setIsExperimentalOpen] = useState(true);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
+  const [showAllProjects, setShowAllProjects] = useState(false);
+  const [showAllTeams, setShowAllTeams] = useState(false);
   const { teams, projects, organization, userDetails, updateUser } = useGlobal();
   const [subscriptionData, setSubscriptionData] = useState(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
-  
+
+  const sortedProjects = useMemo(() => {
+    if (!projects) return [];
+    return [...projects].sort((a, b) => {
+      const pA = a.Priority !== undefined ? a.Priority : 3;
+      const pB = b.Priority !== undefined ? b.Priority : 3;
+      if (pA !== pB) {
+        return pA - pB;
+      }
+      if (a.DueDate && b.DueDate) {
+        return new Date(a.DueDate) - new Date(b.DueDate);
+      }
+      if (a.DueDate) return -1;
+      if (b.DueDate) return 1;
+      return 0;
+    });
+  }, [projects]);
+
   const handleEnrollExperimental = async (e) => {
     if (e) {
       e.preventDefault();
@@ -120,8 +139,8 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
         }}
       >
         {/* Top: Logo & Collapse Button */}
-        <div className={`flex items-center justify-between p-3 border-b border-gray-200 dark:border-dark-card bg-transparent`}>
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className={`relative flex items-center justify-between p-3 border-b border-gray-200 dark:border-dark-card bg-transparent`}>
+          <div className="flex items-center flex-1 min-w-0">
             {/* Dynamic Org Initials */}
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg flex-shrink-0 bg-blue-600 text-white dark:bg-blue-900 dark:text-blue-200`}>
               {organization && organization.Name
@@ -129,7 +148,9 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                 : 'OG'}
             </div>
             {/* Dynamic Org Name */}
-            <span className={`font-bold text-lg truncate transition-all duration-300 ease-in-out ${!isMobile && collapsed ? 'opacity-0 scale-95 w-0' : 'opacity-100 scale-100'}`}>
+            <span className={`font-bold text-lg inline-block truncate transition-all duration-300 ease-in-out origin-left
+              ${!isMobile && collapsed ? 'opacity-0 scale-95 max-w-0 ml-0 pointer-events-none' : 'opacity-100 scale-100 max-w-[150px] ml-2'}
+            `}>
               {organization && organization.Name
                 ? organization.Name
                 : 'Organization'}
@@ -137,17 +158,17 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           </div>
           {!isMobile && (
             <button
-              className={`p-1.5 rounded-full transition-all duration-300 ease-in-out transform hover:scale-110 flex-shrink-0 hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200`}
+              className={`absolute top-1/2 -translate-y-1/2 -right-3 w-6 h-6 rounded-full border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-md flex items-center justify-center text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:scale-110 transition-all duration-300 z-50`}
               onClick={handleCollapseToggle}
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
-              {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
+              {collapsed ? <FaChevronRight size={10} /> : <FaChevronLeft size={10} />}
             </button>
           )}
         </div>
 
         {/* Main Navigation */}
-        <nav className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
+        <nav className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto overflow-x-hidden">
           <SidebarButton
             icon={
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-300">
@@ -241,7 +262,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
 
           {/* Teams Section */}
           <div>
-            <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
+            <div className="flex items-center justify-between w-full">
               <div className="flex-1 min-w-0">
                 <SidebarButton
                   icon={
@@ -260,65 +281,74 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                   collapsed={collapsed}
                 />
               </div>
-              {(!isMobile && collapsed) ? null : (
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    className={`p-1.5 rounded-full transition hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200`}
-                    aria-label="Add new team"
-                    title="Add Team"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleNavigation('/teams?addTeam=1');
-                    }}
-                  >
-                    <FaPlus size={12} />
-                  </button>
-                  <button
-                    className={`p-1.5 rounded-full transition hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200`}
-                    aria-label={`${isTeamsOpen ? 'Collapse' : 'Expand'} Teams`}
-                    onClick={() => setIsTeamsOpen((prev) => !prev)}
-                  >
-                    {isTeamsOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
-                  </button>
-                </div>
-              )}
+              <div className={`flex items-center gap-1 flex-shrink-0 transition-all duration-300 ease-in-out origin-right
+                ${!isMobile && collapsed ? 'opacity-0 scale-90 w-0 max-w-0 pointer-events-none overflow-hidden ml-0' : 'opacity-100 scale-100 max-w-full ml-1'}
+              `}>
+                <button
+                  className={`p-1.5 rounded-full transition hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200`}
+                  aria-label="Add new team"
+                  title="Add Team"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNavigation('/teams?addTeam=1');
+                  }}
+                >
+                  <FaPlus size={12} />
+                </button>
+                <button
+                  className={`p-1.5 rounded-full transition hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200`}
+                  aria-label={`${isTeamsOpen ? 'Collapse' : 'Expand'} Teams`}
+                  onClick={() => setIsTeamsOpen((prev) => !prev)}
+                >
+                  {isTeamsOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+                </button>
+              </div>
             </div>
             {isTeamsOpen && (!isMobile && collapsed ? false : true) && (
-              <ul className="ml-2 mt-1 space-y-1">
-                {teams.length === 0 ? (
-                  <li key="no-teams" className="text-gray-400 italic">No Teams</li>
-                ) : (
-                  teams.map((team) => {
-                    if (!team || !team.TeamID) return null;
-                    const teamId = team.TeamID || team._id;
-                    const teamName = team.TeamName || 'Unnamed Team';
+              <>
+                <ul className="ml-2 mt-1">
+                  {teams.length === 0 ? (
+                    <li key="no-teams" className="text-gray-400 italic">No Teams</li>
+                  ) : (
+                    (showAllTeams ? teams : teams.slice(0, 4)).map((team) => {
+                      if (!team || !team.TeamID) return null;
+                      const teamId = team.TeamID || team._id;
+                      const teamName = team.TeamName || 'Unnamed Team';
 
-                    return (
-                      <li key={teamId}>
-                        <button
-                          className={`w-full text-left px-2 py-1.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeTeamId === teamId
-                            ? 'bg-blue-50 text-blue-600 font-medium dark:bg-blue-900/60 dark:text-blue-200'
-                            : 'hover:bg-gray-100 dark:hover:bg-dark-hover dark:text-blue-200'}`}
-                          onClick={() => handleNavigation(`/team/${teamId}`)}
-                          title={teamName}
-                        >
-                          <span className="flex items-center gap-2 w-full">
-                            {/* <FiCornerDownRight className='text-gray-400' /> */}
-                            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0 border border-black/10 dark:border-white/10" style={{ backgroundColor: team.TeamColor || '#3B82F6' }}></span>
-                            <span className="truncate text-sm font-medium" >{teamName}</span>
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  }).filter(Boolean)
+                      return (
+                        <li key={teamId}>
+                          <button
+                            className={`w-full text-left px-2 py-1.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeTeamId === teamId
+                              ? 'bg-blue-50 text-blue-600 font-medium dark:bg-blue-900/60 dark:text-blue-200'
+                              : 'hover:bg-gray-100 dark:hover:bg-dark-hover dark:text-blue-200 ml-2'}`}
+                            onClick={() => handleNavigation(`/team/${teamId}`)}
+                            title={teamName}
+                          >
+                            <span className="flex items-center gap-2 w-full">
+                              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0 border border-black/10 dark:border-white/10" style={{ backgroundColor: team.TeamColor || '#3B82F6' }}></span>
+                              <span className="truncate text-sm font-medium" >{teamName}</span>
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    }).filter(Boolean)
+                  )}
+                </ul>
+                {teams.length > 4 && (
+                  <button
+                    onClick={() => setShowAllTeams(!showAllTeams)}
+                    className="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors mt-2 ml-4 flex items-center gap-1 hover:underline"
+                  >
+                    {showAllTeams ? 'Show Less' : `Show More (${teams.length - 4} more)`}
+                  </button>
                 )}
-              </ul>
+              </>
             )}
           </div>
 
           {/* Projects Section */}
           <div>
-            <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
+            <div className="flex items-center justify-between w-full">
               <div className="flex-1 min-w-0">
                 <SidebarButton
                   icon={
@@ -337,72 +367,81 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                   collapsed={collapsed}
                 />
               </div>
-              {(!isMobile && collapsed) ? null : (
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    className={`p-1.5 rounded-full transition hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200`}
-                    aria-label="Add new project"
-                    title="Add Project"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleNavigation('/projects?addProject=1');
-                    }}
-                  >
-                    <FaPlus size={12} />
-                  </button>
-                  <button
-                    className={`p-1.5 rounded-full transition hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200`}
-                    aria-label={`${isProjectsOpen ? 'Collapse' : 'Expand'} Projects`}
-                    onClick={() => setIsProjectsOpen((prev) => !prev)}
-                  >
-                    {isProjectsOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
-                  </button>
-                </div>
-              )}
+              <div className={`flex items-center gap-1 flex-shrink-0 transition-all duration-300 ease-in-out origin-right
+                ${!isMobile && collapsed ? 'opacity-0 scale-90 w-0 max-w-0 pointer-events-none overflow-hidden ml-0' : 'opacity-100 scale-100 max-w-full ml-1'}
+              `}>
+                <button
+                  className={`p-1.5 rounded-full transition hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200`}
+                  aria-label="Add new project"
+                  title="Add Project"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNavigation('/projects?addProject=1');
+                  }}
+                >
+                  <FaPlus size={12} />
+                </button>
+                <button
+                  className={`p-1.5 rounded-full transition hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200`}
+                  aria-label={`${isProjectsOpen ? 'Collapse' : 'Expand'} Projects`}
+                  onClick={() => setIsProjectsOpen((prev) => !prev)}
+                >
+                  {isProjectsOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+                </button>
+              </div>
             </div>
             {isProjectsOpen && (!isMobile && collapsed ? false : true) && (
-              <ul className="ml-2 mt-1 space-y-1">
-                {projects.length === 0 ? (
-                  <li key="no-projects" className="text-gray-400 italic">No Projects</li>
-                ) : (
-                  projects.map((project) => {
-                    if (!project || !project.ProjectID) return null;
-                    const projectId = project.ProjectID || project._id;
-                    const rawName = project.Name || 'Unnamed Project';
-                    // const displayName = rawName.length > 18 ? `${rawName.slice(0, 18)}...` : rawName;
+              <>
+                <ul className="ml-2 mt-1">
+                  {projects.length === 0 ? (
+                    <li key="no-projects" className="text-gray-400 italic">No Projects</li>
+                  ) : (
+                    (showAllProjects ? sortedProjects : sortedProjects.slice(0, 4)).map((project) => {
+                      if (!project || !project.ProjectID) return null;
+                      const projectId = project.ProjectID || project._id;
+                      const rawName = project.Name || 'Unnamed Project';
 
-                    return (
-                      <li key={projectId}>
-                        <button
-                          className={`w-full text-left px-2 py-1.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeProjectId === projectId
-                            ? 'bg-blue-50 text-blue-600 font-medium dark:bg-blue-900/60 dark:text-blue-200'
-                            : 'hover:bg-gray-100 dark:hover:bg-dark-hover dark:text-blue-200'}`}
-                          onClick={() => handleNavigation(`/project/${projectId}`)}
-                          title={rawName}
-                        >
-                          <span className="flex items-center justify-between gap-1.5 w-full">
-                            <span className="truncate text-sm font-medium">{rawName}</span>
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                              {project.isArchived && (
-                                <span className="text-[9px] opacity-60 font-normal uppercase tracking-wider">
-                                  (Archived)
-                                </span>
-                              )}
-                              <ProjectPriorityBadge priority={project.Priority} />
-                            </div>
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  }).filter(Boolean)
+                      return (
+                        <li key={projectId}>
+                          <button
+                            className={`w-full text-left px-2 py-1.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${activeProjectId === projectId
+                              ? 'bg-blue-50 text-blue-600 font-medium dark:bg-blue-900/60 dark:text-blue-200'
+                              : 'hover:bg-gray-100 dark:hover:bg-dark-hover dark:text-blue-200 ml-2'}`}
+                            onClick={() => handleNavigation(`/project/${projectId}`)}
+                            title={rawName}
+                          >
+                            <span className="flex items-center justify-between gap-1.5 w-full">
+                              <span className="truncate text-sm font-medium">{rawName}</span>
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                {project.isArchived && (
+                                  <span className="text-[9px] opacity-60 font-normal uppercase tracking-wider">
+                                    (Archived)
+                                  </span>
+                                )}
+                                <ProjectPriorityBadge priority={project.Priority} />
+                              </div>
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    }).filter(Boolean)
+                  )}
+                </ul>
+                {projects.length > 4 && (
+                  <button
+                    onClick={() => setShowAllProjects(!showAllProjects)}
+                    className="text-xs text-gray-400 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-600 transition-colors ml-4 flex items-center gap-1 hover:underline"
+                  >
+                    {showAllProjects ? 'Show Less' : `Show More (+${projects.length - 4})`}
+                  </button>
                 )}
-              </ul>
+              </>
             )}
           </div>
 
           {/* Experimental Section */}
           <div>
-            <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
+            <div className="flex items-center justify-between w-full">
               <div className="flex-1 min-w-0">
                 <SidebarButton
                   icon={
@@ -426,17 +465,17 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                   collapsed={collapsed}
                 />
               </div>
-              {(!isMobile && collapsed) ? null : (
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    className={`p-1.5 rounded-full transition hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200`}
-                    aria-label={`${isExperimentalOpen ? 'Collapse' : 'Expand'} Experimental`}
-                    onClick={() => setIsExperimentalOpen((prev) => !prev)}
-                  >
-                    {isExperimentalOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
-                  </button>
-                </div>
-              )}
+              <div className={`flex items-center gap-1 flex-shrink-0 transition-all duration-300 ease-in-out origin-right
+                ${!isMobile && collapsed ? 'opacity-0 scale-90 w-0 max-w-0 pointer-events-none overflow-hidden ml-0' : 'opacity-100 scale-100 max-w-full ml-1'}
+              `}>
+                <button
+                  className={`p-1.5 rounded-full transition hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200`}
+                  aria-label={`${isExperimentalOpen ? 'Collapse' : 'Expand'} Experimental`}
+                  onClick={() => setIsExperimentalOpen((prev) => !prev)}
+                >
+                  {isExperimentalOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+                </button>
+              </div>
             </div>
             {isExperimentalOpen && (!isMobile && collapsed ? false : true) && (
               <ul className="ml-2 mt-1 space-y-1">
@@ -445,7 +484,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                     <button
                       className={`w-full text-left px-2 py-1.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.01] ${router.pathname === '/experimental/automation'
                         ? 'bg-blue-50 text-blue-600 font-medium dark:bg-blue-900/60 dark:text-blue-200'
-                        : 'hover:bg-gray-100 dark:hover:bg-dark-hover dark:text-blue-200'}`}
+                        : 'hover:bg-gray-100 dark:hover:bg-dark-hover dark:text-blue-200 ml-2'}`}
                       onClick={() => handleNavigation('/experimental/automation')}
                       title="Automation"
                     >

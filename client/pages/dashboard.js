@@ -61,6 +61,43 @@ const Dashboard = () => {
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const isAdmin = userDetails?.role === 'Admin';
   const [activeTab, setActiveTab] = useState('whats_up');   // whats_up, metrics, manage
+
+  const tabs = [
+    {
+      id: 'whats_up',
+      label: "What's Up",
+      icon: (isActive) => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'}`}>
+          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+        </svg>
+      )
+    },
+    {
+      id: 'metrics',
+      label: 'Metrics & Analytics',
+      icon: (isActive) => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'}`}>
+          <line x1="18" y1="20" x2="18" y2="10" />
+          <line x1="12" y1="20" x2="12" y2="4" />
+          <line x1="6" y1="20" x2="6" y2="14" />
+        </svg>
+      )
+    },
+    {
+      id: 'manage',
+      label: 'Manage Organization',
+      icon: (isActive) => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'}`}>
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      )
+    }
+  ];
+
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteStatus, setInviteStatus] = useState('');
@@ -99,7 +136,8 @@ const Dashboard = () => {
     null,
     {
       revalidateOnFocus: true,
-      dedupingInterval: 5000 }
+      dedupingInterval: 5000
+    }
   );
 
   const whatsUpLoading = !whatsUpData && !whatsUpError && !!userDetails?.organizationID;
@@ -182,7 +220,8 @@ const Dashboard = () => {
     null,
     {
       revalidateOnFocus: false,
-      dedupingInterval: 5000 }
+      dedupingInterval: 5000
+    }
   );
 
   const statsLoading = !dashboardData && !dashboardFetchError && !stats && !!userDetails?.organizationID;
@@ -563,64 +602,34 @@ const Dashboard = () => {
         {/* Tab Navigation */}
         {!shouldShowWelcomeMessage && (
           <div className="mb-6">
-            <div className={`border-b border-gray-200 dark:border-gray-700 overflow-x-auto scrollbar-none`}>
-              <nav className="-mb-px flex items-center justify-between min-w-max w-full pb-3">
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setActiveTab('whats_up')}
-                    className={`${activeTab === 'whats_up'
-                      ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700/80 shadow-sm'
-                      : 'border border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-zinc-800/50'
-                      } whitespace-nowrap px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 transition-all duration-200 group relative`}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${activeTab === 'whats_up' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'}`}>
-                      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-                    </svg>
-                    <span>What's Up</span>
-                    {activeTab === 'whats_up' && (
-                      <div className="absolute -bottom-[13px] left-0 right-0 h-[3px] bg-blue-600 dark:bg-blue-400 rounded-t-full"></div>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('metrics')}
-                    className={`${activeTab === 'metrics'
-                      ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700/80 shadow-sm'
-                      : 'border border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-zinc-800/50'
-                      } whitespace-nowrap px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 transition-all duration-200 group relative`}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${activeTab === 'metrics' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'}`}>
-                      <line x1="18" y1="20" x2="18" y2="10" />
-                      <line x1="12" y1="20" x2="12" y2="4" />
-                      <line x1="6" y1="20" x2="6" y2="14" />
-                    </svg>
-                    <span>Metrics & Analytics</span>
-                    {activeTab === 'metrics' && (
-                      <div className="absolute -bottom-[13px] left-0 right-0 h-[3px] bg-blue-600 dark:bg-blue-400 rounded-t-full"></div>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('manage')}
-                    className={`${activeTab === 'manage'
-                      ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700/80 shadow-sm'
-                      : 'border border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-zinc-800/50'
-                      } whitespace-nowrap px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 transition-all duration-200 group relative`}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${activeTab === 'manage' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'}`}>
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                    <span>Manage Organization</span>
-                    {activeTab === 'manage' && (
-                      <div className="absolute -bottom-[13px] left-0 right-0 h-[3px] bg-blue-600 dark:bg-blue-400 rounded-t-full"></div>
-                    )}
-                  </button>
+            <div className={`border-b border-gray-200 dark:border-gray-700`}>
+              <div className="-mb-px flex items-center justify-between">
+                <div className="flex-1 overflow-x-auto scrollbar-none">
+                  <nav className="flex space-x-2 min-w-max ml-2 mt-2 pb-3 -mb-px">
+                    {tabs.map((tab) => {
+                      const isActive = activeTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveTab(tab.id)}
+                          className={`${isActive
+                            ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700/80 shadow-xs'
+                            : 'border border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-zinc-800/50'
+                            } whitespace-nowrap px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all duration-100 group relative`}
+                        >
+                          {tab.icon(isActive)}
+                          <span>{tab.label}</span>
+                          {isActive && (
+                            <div className="absolute -bottom-[13px] left-0 right-0 h-[3px] bg-blue-600 dark:bg-blue-400 rounded-t-full"></div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </nav>
                 </div>
 
                 {/* Customize Button at the right end of the tabs row */}
-                <div className="hidden sm:flex items-center gap-2 flex-shrink-0 pb-3">
+                <div className="hidden sm:flex items-center gap-2 flex-shrink-0 ml-4">
                   {isEditMode ? (
                     <>
                       <button
@@ -639,13 +648,13 @@ const Dashboard = () => {
                   ) : (
                     <button
                       onClick={() => setIsEditMode(true)}
-                      className={`px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all duration-200 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-600 bg-white shadow-sm dark:border-white/10 dark:hover:bg-slate-800 dark:hover:text-white dark:text-slate-400 dark:bg-slate-900/50`}
+                      className={`px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all duration-200 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-650 bg-white shadow-sm dark:border-white/10 dark:hover:bg-slate-800 dark:hover:text-white dark:text-slate-400 dark:bg-slate-900/50`}
                     >
                       <FaWrench size={11} /> Customize
                     </button>
                   )}
                 </div>
-              </nav>
+              </div>
             </div>
           </div>
         )}
