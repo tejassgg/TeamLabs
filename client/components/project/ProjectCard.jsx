@@ -115,8 +115,8 @@ const ProjectCard = ({ project, theme }) => {
               const StatusIcon = statusStyle.icon;
 
               return (
-                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${theme === 'dark' ? `${statusStyle.bgColor.replace('50', '900/30').replace('100', '900/30')} ${statusStyle.textColor.replace('700', '300')} ${statusStyle.borderColor.replace('200', '600')}` : `${statusStyle.bgColor} ${statusStyle.textColor} ${statusStyle.borderColor}`}`}>
-                  <StatusIcon className={`${statusStyle.iconColor} ${theme === 'dark' ? statusStyle.iconColor.replace('500', '400') : ''}`} size={10} />
+                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${statusStyle.bgColor} ${statusStyle.textColor} ${statusStyle.borderColor}`}>
+                  <StatusIcon className={statusStyle.iconColor} size={10} />
                   {getStatusText(project.ProjectStatusID)}
                 </span>
               );

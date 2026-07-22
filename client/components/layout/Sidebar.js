@@ -22,7 +22,6 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const [loadingSubscription, setLoadingSubscription] = useState(false);
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
   const activeProjectId = router.pathname.startsWith('/project/') ? router.query.projectId : null;
-
   // Load collapsed state from localStorage after component mounts
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -123,7 +122,11 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
         {/* Main Navigation */}
         <nav className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
           <SidebarButton
-            icon={<FaHome className="text-blue-600 dark:text-blue-300" />}
+            icon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-300">
+                <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />
+              </svg>
+            }
             label="Dashboard"
             active={router.pathname === '/dashboard'}
             onClick={() => handleNavigation('/dashboard')}
@@ -132,7 +135,12 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             collapsed={collapsed}
           />
           <SidebarButton
-            icon={<FaTasks className="text-blue-600 dark:text-blue-300" />}
+            icon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-300">
+                <path d="M9 11l3 3 8-8" />
+                <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9" />
+              </svg>
+            }
             label="Tasks"
             active={router.pathname === '/tasks'}
             onClick={() => handleNavigation('/tasks')}
@@ -141,7 +149,12 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             collapsed={collapsed}
           />
           <SidebarButton
-            icon={<FaCalendarAlt className="text-blue-600 dark:text-blue-300" />}
+            icon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-300">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18" />
+              </svg>
+            }
             label="TimeSheet"
             active={router.pathname === '/timesheet'}
             onClick={() => handleNavigation('/timesheet')}
@@ -151,7 +164,11 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           />
           {/* Messages Section */}
           <SidebarButton
-            icon={<FaRegMessage className="text-blue-600 dark:text-blue-300" />}
+            icon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-300">
+                <path d="M21 11.5a8.38 8.38 0 0 1-9 8.3 8.5 8.5 0 0 1-3.9-.9L3 20l1.9-4.1A8.38 8.38 0 0 1 12 3.5a8.5 8.5 0 0 1 9 8z" />
+              </svg>
+            }
             label="Messages"
             active={router.pathname === '/messages'}
             onClick={() => handleNavigation('/messages')}
@@ -161,7 +178,12 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           />
 
           <SidebarButton
-            icon={<FaRegClipboard className="text-blue-600 dark:text-blue-300" />}
+            icon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-300">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M9 3v18M15 3v10" />
+              </svg>
+            }
             label="Kanban Board"
             active={router.pathname === '/kanban'}
             onClick={() => handleNavigation('/kanban')}
@@ -174,7 +196,12 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           {userDetails?.username === 'tejassgg' && (
             <div className="border-b border-gray-200 dark:border-gray-700 pb-2">
               <SidebarButton
-                icon={<FaFlask className={'text-purple-600 text-purple-300'} />}
+                icon={
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600 dark:text-purple-300">
+                    <path d="M6 3h12" />
+                    <path d="M18 21a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2 6 6 0 0 1 .5-2.5l5.5-10.5V5h-2V3h6v2h-2v3l5.5 10.5A6 6 0 0 1 18 21z" />
+                  </svg>
+                }
                 label="Playground"
                 active={router.pathname === '/playground'}
                 onClick={() => handleNavigation('/playground')}
@@ -190,7 +217,14 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
               <div className="flex-1 min-w-0">
                 <SidebarButton
-                  icon={<FaUsers className="text-blue-600 dark:text-blue-300" />}
+                  icon={
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-300">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                  }
                   label="Teams"
                   active={router.pathname === '/teams'}
                   onClick={() => handleNavigation('/teams')}
@@ -260,7 +294,14 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             <div className={`flex items-center ${(!isMobile && collapsed) ? 'justify-center' : 'justify-between'}`}>
               <div className="flex-1 min-w-0">
                 <SidebarButton
-                  icon={<FaProjectDiagram className="text-blue-600 dark:text-blue-300" />}
+                  icon={
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-300">
+                      <rect x="3" y="3" width="7" height="9" rx="1" />
+                      <rect x="14" y="3" width="7" height="5" rx="1" />
+                      <rect x="14" y="12" width="7" height="9" rx="1" />
+                      <rect x="3" y="16" width="7" height="5" rx="1" />
+                    </svg>
+                  }
                   label="Projects"
                   active={router.pathname === '/projects'}
                   onClick={() => handleNavigation('/projects')}
@@ -301,7 +342,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                     if (!project || !project.ProjectID) return null;
                     const projectId = project.ProjectID || project._id;
                     const rawName = project.Name || 'Unnamed Project';
-                    const displayName = rawName.length > 18 ? `${rawName.slice(0, 18)}...` : rawName;
+                    // const displayName = rawName.length > 18 ? `${rawName.slice(0, 18)}...` : rawName;
 
                     return (
                       <li key={projectId}>
@@ -313,7 +354,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
                           title={rawName}
                         >
                           <span className="flex items-center justify-between gap-1.5 w-full">
-                            <span className="truncate text-sm font-medium">{displayName}</span>
+                            <span className="truncate text-sm font-medium">{rawName}</span>
                             <div className="flex items-center gap-1 flex-shrink-0">
                               {project.isArchived && (
                                 <span className="text-[9px] opacity-60 font-normal uppercase tracking-wider">
@@ -350,7 +391,12 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
           )}
 
           <SidebarButton
-            icon={<FaRobot className="text-blue-600 dark:text-blue-300" />}
+            icon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-300">
+                <rect x="4" y="8" width="16" height="12" rx="3" />
+                <path d="M12 8V5M9 3h6M9 14h.01M15 14h.01" />
+              </svg>
+            }
             label="AI Assistant"
             onClick={() => setIsChatBotOpen(!isChatBotOpen)}
             theme={theme}
@@ -358,7 +404,12 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             collapsed={collapsed}
           />
           <SidebarButton
-            icon={<FaCog className='text-red-600' />}
+            icon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            }
             label="Settings"
             onClick={async () => {
               router.push('/settings');
@@ -368,7 +419,25 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
             collapsed={collapsed}
           />
           <SidebarButton
-            icon={theme === 'dark' ? <FaRegSun className="text-yellow-300" /> : <FaRegMoon className="text-gray-600" />}
+            icon={
+              theme === 'dark' ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500">
+                  <circle cx="12" cy="12" r="5" />
+                  <line x1="12" y1="1" x2="12" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="23" />
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                  <line x1="1" y1="12" x2="3" y2="12" />
+                  <line x1="21" y1="12" x2="23" y2="12" />
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-blue-300">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+              )
+            }
             label="Dark Mode"
             onClick={toggleTheme}
             theme={theme}

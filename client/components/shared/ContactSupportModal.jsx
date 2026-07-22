@@ -5,6 +5,8 @@ import { useTheme } from '../../context/ThemeContext';
 
 const ContactSupportModal = ({ isOpen, onClose }) => {
   const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -191,24 +193,27 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
+  const labelClass = `block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-200' : 'text-gray-700'}`;
+  const inputClass = `w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:outline-none transition-all duration-200 bg-transparent placeholder-gray-400 ${isDark ? 'border-zinc-800 text-white focus:ring-blue-400 focus:border-blue-400' : 'border-gray-200 text-gray-900 focus:ring-blue-500 focus:border-blue-500'}`;
+
   return (
     <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50 p-3">
-      <div className={`relative w-full sm:max-w-3xl max-h-[95vh] overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl border ${'bg-white border-gray-200 bg-dark-bg border-dark-card'}`}>
-        <div className={`sticky top-0 z-10 ${'bg-white border-b border-gray-100 bg-dark-bg border-b border-dark-card'}`}>
+      <div className={`relative w-full sm:max-w-3xl max-h-[95vh] overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl border ${isDark ? 'bg-dark-bg border-dark-card' : 'bg-white border-gray-200'}`}>
+        <div className={`sticky top-0 z-10 ${isDark ? 'bg-dark-bg border-b border-dark-card' : 'bg-white border-b border-gray-100'}`}>
           <div className="flex items-start sm:items-center justify-between p-4 sm:p-6 gap-3">
             <div className="flex items-start sm:items-center">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-3 sm:mr-4 ${'bg-blue-50 text-blue-600 bg-blue-900/30 text-blue-400'}`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-3 sm:mr-4 ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
                 <FaHeadset className="w-6 h-6" />
               </div>
               <div>
-                <h1 className={`text-2xl sm:text-3xl font-bold ${'text-gray-900 text-white'}`}>Contact Support</h1>
-                <p className={`text-xs sm:text-sm mt-1 ${'text-gray-500 text-gray-400'}`}>We typically respond within 24 hours.</p>
+                <h1 className={`text-2xl sm:text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Contact Support</h1>
+                <p className={`text-xs sm:text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>We typically respond within 24 hours.</p>
               </div>
             </div>
             <button
               onClick={handleClose}
               disabled={loading}
-              className={`p-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${'hover:bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-800 text-gray-400 hover:text-gray-300'}`}
+              className={`p-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${isDark ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-300' : 'hover:bg-gray-100 text-gray-450 hover:text-gray-600'}`}
             >
               <FaTimes className="w-5 h-5" />
             </button>
@@ -219,30 +224,30 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
           <div className="p-4 sm:p-8">
             {success ? (
               <div className="text-center py-8">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${'bg-green-100 bg-green-900/30'}`}>
-                  <FaCheckCircle className={`w-8 h-8 animate-pulse ${'text-green-600 text-green-400'}`} />
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-green-900/30' : 'bg-green-100'}`}>
+                  <FaCheckCircle className={`w-8 h-8 animate-pulse ${isDark ? 'text-green-400' : 'text-green-600'}`} />
                 </div>
-                <h3 className={`text-xl font-semibold mb-2 ${'text-green-900 text-white'}`}>
+                <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-green-900'}`}>
                   Request Submitted Successfully!
                 </h3>
                 <div className="mb-4">
-                  <p className={`${'text-green-600 text-green-400'} mb-2`}>
+                  <p className={`${isDark ? 'text-green-400' : 'text-green-600'} mb-2`}>
                     We've received your support request and will get back to you within 24 hours.
                   </p>
-                  <div className={`rounded-lg p-3 mb-3 border ${'bg-green-50 border-green-200 bg-gray-900/60 border-gray-800'}`}>
-                    <p className={`text-sm font-medium mb-1 ${'text-green-800 text-white'}`}>Your Ticket Number:</p>
-                    <p className={`text-lg font-bold font-mono ${'text-green-600 text-green-400'}`}>#{ticketNumber}</p>
+                  <div className={`rounded-lg p-3 mb-3 border ${isDark ? 'bg-gray-900/60 border-gray-800' : 'bg-green-50 border-green-200'}`}>
+                    <p className={`text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-green-800'}`}>Your Ticket Number:</p>
+                    <p className={`text-lg font-bold font-mono ${isDark ? 'text-green-400' : 'text-green-600'}`}>#{ticketNumber}</p>
                   </div>
                 </div>
-                <p className={`${'text-green-600 text-green-400'} text-sm`}>
+                <p className={`${isDark ? 'text-green-400' : 'text-green-600'} text-sm`}>
                   A confirmation email has been sent to your email address.
                 </p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className='flex flex-col sm:flex-row gap-4 items-center justify-between w-full'>
-                  <div className='w-full sm:w-1/2'>
-                    <label className={`block text-sm font-medium mb-1 ${'text-gray-700 text-gray-200'}`}>
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between w-full">
+                  <div className="w-full sm:w-1/2">
+                    <label className={labelClass}>
                       Full Name<span className="text-red-500">*</span>
                     </label>
                     <input
@@ -251,13 +256,13 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder="Enter your full name"
-                      className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 transition-all duration-200 ${'bg-transparent border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 bg-transparent border-gray-700 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400'}`}
+                      className={inputClass}
                       disabled={loading}
                       required
                     />
                   </div>
-                  <div className='w-full sm:w-1/2'>
-                    <label className={`block text-sm font-medium mb-1 ${'text-gray-700 text-gray-200'}`}>
+                  <div className="w-full sm:w-1/2">
+                    <label className={labelClass}>
                       Email Address<span className="text-red-500">*</span>
                     </label>
                     <input
@@ -266,7 +271,7 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="your.email@example.com"
-                      className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 transition-all duration-200 ${'bg-transparent border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 bg-transparent border-gray-700 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400'}`}
+                      className={inputClass}
                       disabled={loading}
                       required
                     />
@@ -274,7 +279,7 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${'text-gray-700 text-gray-200'}`}>
+                  <label className={labelClass}>
                     Problem Title<span className="text-red-500">*</span>
                   </label>
                   <input
@@ -283,14 +288,14 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
                     value={formData.title}
                     onChange={handleInputChange}
                     placeholder="Brief description of your issue"
-                    className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 transition-all duration-200 ${'bg-transparent border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 bg-transparent border-gray-700 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400'}`}
+                    className={inputClass}
                     disabled={loading}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${'text-gray-700 text-gray-200'}`}>
+                  <label className={labelClass}>
                     Problem Description<span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -299,73 +304,17 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
                     onChange={handleInputChange}
                     placeholder="Please provide detailed information about your issue, including steps to reproduce if applicable"
                     rows={4}
-                    className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 transition-all duration-200 ${'bg-transparent border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 bg-transparent border-gray-700 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400'}`}
+                    className={inputClass}
                     disabled={loading}
                     required
                   />
                 </div>
 
-                {/* <div>
-                  <label className={`block text-sm font-medium mb-1 ${'text-gray-700 text-gray-200'}`}>
-                    Attachments
-                  </label>
-                  <div className={`border-2 border-dashed rounded-xl p-4 text-center transition-colors duration-200 ${'border-gray-300 hover:border-blue-400 bg-gray-50 border-gray-700 hover:border-blue-400 bg-gray-900/40'}`}>
-                    <input
-                      type="file"
-                      multiple
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="file-upload"
-                      disabled={loading}
-                    />
-                    <label
-                      htmlFor="file-upload"
-                      className={`cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <FaPaperclip className={`w-6 h-6 mx-auto mb-2 ${'text-gray-400 text-gray-500'}`} />
-                      <p className={`text-sm ${'text-gray-600 text-gray-300'}`}>
-                        Click to upload files or drag and drop
-                      </p>
-                      <p className={`text-xs mt-1 ${'text-gray-500 text-gray-400'}`}>
-                        PNG, JPG, PDF, DOC, DOCX up to 10MB each
-                      </p>
-                    </label>
-                  </div>
-
-                  {formData.attachments.length > 0 && (
-                    <div className="mt-3">
-                      <h4 className={`text-sm font-medium mb-2 ${'text-gray-700 text-gray-200'}`}>
-                        Selected Files:
-                      </h4>
-                      <div className="space-y-2">
-                        {formData.attachments.map((attachment, index) => (
-                          <div key={index} className={`flex items-center justify-between p-2 rounded-lg border ${'bg-gray-50 border-gray-200 bg-gray-900/60 border-gray-800'}`}>
-                            <div className="flex items-center">
-                              <FaPaperclip className={`w-4 h-4 mr-2 ${'text-gray-500 text-gray-400'}`} />
-                              <span className={`text-sm ${'text-gray-700 text-white'}`}>
-                                {attachment.filename} ({(attachment.size / 1024 / 1024).toFixed(2)} MB)
-                              </span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeAttachment(index)}
-                              disabled={loading}
-                              className={`p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed ${'text-red-500 hover:bg-red-50 text-red-400 hover:bg-red-900/20'}`}
-                            >
-                              <FaTimes className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div> */}
-
                 {error && (
-                  <div className={`p-3 rounded-xl border ${'bg-red-50 border-red-200 bg-red-900/20 border-red-800'}`}>
+                  <div className={`p-3 rounded-xl border ${isDark ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'}`}>
                     <div className="flex items-center">
-                      <FaExclamationTriangle className={`w-4 h-4 mr-2 ${'text-red-600 text-red-400'}`} />
-                      <p className={`text-sm ${'text-red-700 text-red-300'}`}>
+                      <FaExclamationTriangle className={`w-4 h-4 mr-2 ${isDark ? 'text-red-400' : 'text-red-600'}`} />
+                      <p className={`text-sm ${isDark ? 'text-red-300' : 'text-red-700'}`}>
                         {error}
                       </p>
                     </div>
@@ -377,7 +326,7 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
                     type="button"
                     onClick={handleClose}
                     disabled={loading}
-                    className={`px-6 py-2.5 rounded-xl font-medium transition-all duration-200 border ${'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 border-gray-700 bg-transparent text-gray-300 hover:bg-gray-800/50'}`}
+                    className={`px-6 py-2.5 rounded-xl font-medium transition-all duration-200 border ${isDark ? 'border-zinc-800 bg-transparent text-gray-300 hover:bg-zinc-800/50' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'}`}
                   >
                     Cancel
                   </button>
@@ -404,9 +353,9 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        <div className={`sticky bottom-0 ${'bg-white border-t border-gray-100 bg-dark-bg border-t border-dark-card'}`}>
+        <div className={`sticky bottom-0 ${isDark ? 'bg-dark-bg border-t border-dark-card' : 'bg-white border-t border-gray-100'}`}>
           <div className="p-4">
-            <p className={`text-xs text-center ${'text-gray-500 text-gray-400'}`}>
+            <p className={`text-xs text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
               We typically respond within 24 hours. For urgent issues, please call our support line.
             </p>
           </div>

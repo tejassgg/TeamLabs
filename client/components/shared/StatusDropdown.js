@@ -1,13 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import {
-  FaChevronDown,
-  FaVideo,
-  FaChalkboardTeacher,
-  FaCoffee,
-  FaPowerOff,
-  FaCheckCircle,
-  FaUserSlash
-} from 'react-icons/fa';
+import { getStatusConfig } from '../dashboard/StatusConfig';
 
 // Enhanced StatusDropdown component
 const StatusDropdown = ({ isMobile, currentStatus, onStatusChange, theme, isReadOnly = false }) => {
@@ -15,40 +7,16 @@ const StatusDropdown = ({ isMobile, currentStatus, onStatusChange, theme, isRead
   const dropdownRef = useRef(null);
   const [isChanging, setIsChanging] = useState(false);
 
-  const statusConfig = {
-    'Active': {
-      color: 'text-green-500',
-      icon: FaCheckCircle,
-      tooltip: 'Available and active'
-    },
-    'In a Meeting': {
-      color: 'text-blue-500',
-      icon: FaVideo,
-      tooltip: 'Currently in a meeting'
-    },
-    'Presenting': {
-      color: 'text-purple-500',
-      icon: FaChalkboardTeacher,
-      tooltip: 'Currently presenting'
-    },
-    'Away': {
-      color: 'text-yellow-500',
-      icon: FaCoffee,
-      tooltip: 'Away from keyboard'
-    },
-    'Busy': {
-      color: 'text-red-500',
-      icon: FaUserSlash,
-      tooltip: 'Currently busy'
-    },
-    'Offline': {
-      color: 'text-gray-500',
-      icon: FaPowerOff,
-      tooltip: 'Currently offline'
-    }
+  const statusTooltips = {
+    'Active': 'Available and active',
+    'In a Meeting': 'Currently in a meeting',
+    'Presenting': 'Currently presenting',
+    'Away': 'Away from keyboard',
+    'Busy': 'Currently busy',
+    'Offline': 'Currently offline'
   };
 
-  const statusOptions = Object.keys(statusConfig);
+  const statusOptions = Object.keys(statusTooltips);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -72,13 +40,14 @@ const StatusDropdown = ({ isMobile, currentStatus, onStatusChange, theme, isRead
     }
   };
 
-  const StatusIcon = statusConfig[currentStatus]?.icon || FaPowerOff;
+  const currentConfig = getStatusConfig(currentStatus || 'Offline');
+  const StatusIcon = currentConfig.icon;
 
   // For read-only display, just show the status without dropdown functionality
   if (isReadOnly) {
     return (
       <div className="flex items-center gap-2">
-        <StatusIcon className={`${statusConfig[currentStatus]?.color || 'text-gray-500'} text-sm`} />
+        <StatusIcon className={`${currentConfig.color} text-sm`} size={14} />
         <span className="text-sm font-medium">{currentStatus}</span>
       </div>
     );
@@ -92,18 +61,30 @@ const StatusDropdown = ({ isMobile, currentStatus, onStatusChange, theme, isRead
           hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200
           ${isChanging ? 'scale-95' : 'scale-100'}
           relative overflow-hidden`}
-        title={statusConfig[currentStatus]?.tooltip}
+        title={statusTooltips[currentStatus]}
       >
         {/* Pulsing effect for Active status */}
         {currentStatus === 'Active' && (
           <span className="absolute inset-0 bg-green-500/10 rounded-lg animate-pulse"></span>
         )}
         <div className="relative flex items-center gap-2">
-          <StatusIcon className={`${statusConfig[currentStatus]?.color || 'text-gray-500'} text-sm transition-transform duration-200 group-hover:scale-110`} />
+          <StatusIcon className={`${currentConfig.color} transition-transform duration-200 group-hover:scale-110`} size={14} />
           {!isMobile && (
             <>
               <span className="text-sm font-medium transition-all duration-200">{currentStatus}</span>
-              <FaChevronDown className={`text-xs transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
             </>
           )}
         </div>
@@ -115,7 +96,8 @@ const StatusDropdown = ({ isMobile, currentStatus, onStatusChange, theme, isRead
         >
           <div className="py-1.5">
             {statusOptions.map((status) => {
-              const StatusOptionIcon = statusConfig[status].icon;
+              const optionConfig = getStatusConfig(status);
+              const StatusOptionIcon = optionConfig.icon;
               return (
                 <button
                   key={status}
@@ -126,9 +108,9 @@ const StatusDropdown = ({ isMobile, currentStatus, onStatusChange, theme, isRead
                   className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-all duration-200
                     hover:bg-gray-50 text-gray-700 dark:hover:bg-[#2d2d2d] dark:text-blue-200
                     ${currentStatus === status ? 'font-semibold' : ''}`}
-                  title={statusConfig[status].tooltip}
+                  title={statusTooltips[status]}
                 >
-                  <StatusOptionIcon className={`${statusConfig[status].color} text-sm`} />
+                  <StatusOptionIcon className={optionConfig.color} size={14} />
                   <span>{status}</span>
                   {currentStatus === status && (
                     <span className="ml-auto text-xs text-gray-400">Current</span>
@@ -143,4 +125,4 @@ const StatusDropdown = ({ isMobile, currentStatus, onStatusChange, theme, isRead
   );
 };
 
-export default StatusDropdown; 
+export default StatusDropdown;

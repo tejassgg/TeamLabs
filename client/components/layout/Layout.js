@@ -447,7 +447,7 @@ const Layout = ({ children, pageProject, pageTitle }) => {
         style={{ transition: 'margin-left 500ms cubic-bezier(0.4, 0, 0.2, 1)' }}
       >
         {!isMobile && (
-          <div className="flex justify-center">
+          <div className="flex justify-center sticky top-0 z-20 bg-white dark:bg-dark-bg">
             <div style={{ width: '100%' }}>
               <Navbar
                 theme={theme}

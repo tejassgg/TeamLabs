@@ -17,6 +17,7 @@ const TasksPage = () => {
   const router = useRouter();
   const { userDetails } = useGlobal();
   const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const {
     getTaskTypeBadgeComponent,
     getProjectStatusBadgeComponent,
@@ -567,7 +568,11 @@ const TasksPage = () => {
                       <div className="flex items-center gap-2 relative" ref={filterDropdownRef}>
                         <button
                           onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
-                          className={'flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-blue-100 hover:bg-blue-200/80 text-blue-600 text-sm font-medium transition-all duration-200 border-0 cursor-pointer flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-blue-950/50 hover:bg-blue-900/60 text-blue-400 text-sm font-medium transition-all duration-200 border border-blue-900/50 cursor-pointer'}
+                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+                            isDark
+                              ? 'bg-blue-950/50 hover:bg-blue-900/60 text-blue-400 border border-blue-900/50'
+                              : 'bg-blue-100 hover:bg-blue-200/80 text-blue-600 border-0'
+                          }`}
                         >
                           <FaFilter className="w-3.5 h-3.5" />
                           <span>Filter</span>
@@ -580,7 +585,11 @@ const TasksPage = () => {
 
                         <button
                           onClick={exportToCSV}
-                          className={'flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[#00AA4F] hover:bg-[#009042] text-white text-sm font-medium transition-all duration-200 border-0 cursor-pointer flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-green-700 hover:bg-green-600 text-white text-sm font-medium transition-all duration-200 border-0 cursor-pointer'}
+                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-white text-sm font-medium transition-all duration-200 border-0 cursor-pointer ${
+                            isDark
+                              ? 'bg-green-700 hover:bg-green-600'
+                              : 'bg-[#00AA4F] hover:bg-[#009042]'
+                          }`}
                         >
                           <FaDownload className="w-3.5 h-3.5 text-white" />
                           <span>Export CSV</span>
@@ -589,14 +598,20 @@ const TasksPage = () => {
                         {/* Filter Dropdown */}
                         {isFilterModalOpen && (
                           <div
-                            className={`absolute right-0 top-full mt-2 w-80 z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-white border-gray-200 absolute right-0 top-full mt-2 w-80 z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-dark-card border-gray-600`}
+                            className={`absolute right-0 top-full mt-2 w-80 z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${
+                              filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'
+                            } ${
+                              isDark
+                                ? 'bg-dark-card border-gray-600'
+                                : 'bg-white border-gray-200'
+                            }`}
                             role="dialog"
                             aria-label="Filters"
                           >
                             <div className="grid grid-cols-1 gap-4">
                               {/* Status */}
                               <div>
-                                <label className={'block text-sm font-medium mb-1 text-gray-700 text-gray-300'}>Status</label>
+                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Status</label>
                                 <SearchableDropdown
                                   value={statusFilter}
                                   onChange={(val) => setStatusFilter(val)}
@@ -612,7 +627,7 @@ const TasksPage = () => {
 
                               {/* Priority */}
                               <div>
-                                <label className={'block text-sm font-medium mb-1 text-gray-700 text-gray-300'}>Priority</label>
+                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Priority</label>
                                 <SearchableDropdown
                                   value={priorityFilter}
                                   onChange={(val) => setPriorityFilter(val)}
@@ -631,7 +646,7 @@ const TasksPage = () => {
 
                               {/* Project */}
                               <div>
-                                <label className={'block text-sm font-medium mb-1 text-gray-700 text-gray-300'}>Project</label>
+                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Project</label>
                                 <SearchableDropdown
                                   value={projectFilter}
                                   onChange={(val) => setProjectFilter(val)}
@@ -645,7 +660,7 @@ const TasksPage = () => {
 
                               {/* Task Type */}
                               <div>
-                                <label className={'block text-sm font-medium mb-1 text-gray-700 text-gray-300'}>Task Type</label>
+                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Task Type</label>
                                 <SearchableDropdown
                                   value={taskTypeFilter}
                                   onChange={(val) => setTaskTypeFilter(val)}
@@ -661,7 +676,7 @@ const TasksPage = () => {
 
                               {/* Assigned To */}
                               <div>
-                                <label className={'block text-sm font-medium mb-1 text-gray-700 text-gray-300'}>Assigned To</label>
+                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Assigned To</label>
                                 <SearchableDropdown
                                   value={assignedToFilter}
                                   onChange={(val) => setAssignedToFilter(val)}
@@ -678,7 +693,7 @@ const TasksPage = () => {
 
                               {/* Assigned By */}
                               <div>
-                                <label className={'block text-sm font-medium mb-1 text-gray-700 text-gray-300'}>Assigned By</label>
+                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Assigned By</label>
                                 <SearchableDropdown
                                   value={assignedByFilter}
                                   onChange={(val) => setAssignedByFilter(val)}
@@ -704,13 +719,21 @@ const TasksPage = () => {
                                   setAssignedToFilter('');
                                   setAssignedByFilter('');
                                 }}
-                                className={'px-3 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-2 text-sm rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800'}
+                                className={`px-3 py-2 text-sm rounded-lg border ${
+                                  isDark
+                                    ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
+                                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                                }`}
                               >
                                 Reset
                               </button>
                               <button
                                 onClick={() => setIsFilterModalOpen(false)}
-                                className={'px-3 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 px-3 py-2 text-sm rounded-lg bg-blue-500 text-white hover:bg-blue-600'}
+                                className={`px-3 py-2 text-sm rounded-lg text-white ${
+                                  isDark
+                                    ? 'bg-blue-500 hover:bg-blue-600'
+                                    : 'bg-blue-600 hover:bg-blue-700'
+                                }`}
                               >
                                 Close
                               </button>
@@ -725,14 +748,14 @@ const TasksPage = () => {
             })()}
           </div>
           <div className=" py-1 flex items-center justify-between">
-            <h2 className={'text-xl font-bold text-gray-900 text-2xl dark:font-bold dark:text-white'}>
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               Your Tasks ({filteredTasks.length})
             </h2>
             <div className="flex items-center gap-4">
               {/* Per page selector */}
               {filteredTasks.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <span className={'text-xs font-semibold text-gray-500 text-xs font-semibold text-gray-400'}>
+                  <span className={`text-xs font-semibold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     Per page:
                   </span>
                   <CustomDropdown
@@ -774,7 +797,7 @@ const TasksPage = () => {
           {/* Pagination Controls */}
           {filteredTasks.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-1">
-              <div className={'text-sm text-gray-650 text-gray-500 text-sm text-gray-400'}>
+              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                 Showing <span className="font-semibold text-blue-500">{indexOfFirstTask + 1}</span> to{' '}
                 <span className="font-semibold text-blue-500">
                   {Math.min(indexOfLastTask, filteredTasks.length)}
@@ -837,7 +860,7 @@ const TasksPage = () => {
 
           <div className="overflow-x-auto border border-gray-300 dark:border-zinc-800 bg-white dark:bg-dark-bg rounded-xl">
             {filteredTasks.length === 0 ? (
-              <div className={'text-center py-8 text-gray-400 text-center py-8  text-gray-500'}>
+              <div className={`text-center py-8 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                 <FaTasks className="w-16 h-16 mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">
                   {searchTerm || statusFilter || priorityFilter || projectFilter
@@ -923,7 +946,7 @@ const TasksPage = () => {
                 </thead>
                 <tbody>
                   {currentTasks.map((task) => (
-                    <tr key={task.TaskID || task._id} className={`${tableRowClasses} transition-colors duration-150 ${'hover:bg-gray-50/70 hover:bg-[#2A2A2A]/40'}`}>
+                    <tr key={task.TaskID || task._id} className={`${tableRowClasses} transition-colors duration-150 ${isDark ? 'hover:bg-[#2A2A2A]/40' : 'hover:bg-gray-50/70'}`}>
                       <td className="py-3 pl-4 text-center">
                         <input
                           type="checkbox"

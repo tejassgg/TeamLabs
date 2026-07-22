@@ -78,7 +78,7 @@ const ChatSidebar = ({
                       const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'GR';
                       const isRecentlyUpdated = recentlyUpdatedConversation === c._id;
                       return (
-                        <button key={c._id} onClick={() => selectConversationWithCleanup(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `bg-blue-50 text-blue-700 border border-blue-300 dark:bg-blue-900 dark:text-blue-200 dark:border dark:border-blue-600` : ''} ${panel} ${isRecentlyUpdated ? 'bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-500/30' : ''}`}>
+                        <button key={c._id} onClick={() => selectConversationWithCleanup(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `bg-blue-50 text-blue-700 border border-blue-300 dark:bg-blue-900 dark:text-blue-200 dark:border dark:border-blue-600` : ''} ${isRecentlyUpdated ? 'bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-500/30' : ''}`}>
                           {c.avatarUrl ? (
                             <img src={c.avatarUrl} alt="" className="w-8 h-8 rounded-full" />
                           ) : (
@@ -129,7 +129,7 @@ const ChatSidebar = ({
                       const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'U';
                       const isRecentlyUpdated = recentlyUpdatedConversation === c._id;
                       return (
-                        <button key={c._id} onClick={() => selectConversationWithCleanup(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `bg-blue-50 text-blue-700 border border-blue-300 dark:bg-blue-900 dark:text-blue-200 dark:border dark:border-blue-600` : ''} ${panel} ${isRecentlyUpdated ? 'bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-500/30' : ''}`}>
+                        <button key={c._id} onClick={() => selectConversationWithCleanup(c)} className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all duration-500 ease-in-out transform ${isRecentlyUpdated ? 'animate-pulse scale-[1.02] shadow-lg' : 'scale-100'} ${selectedConversation?._id === c._id ? `bg-blue-50 text-blue-700 border border-blue-300 dark:bg-blue-900 dark:text-blue-200 dark:border dark:border-blue-600` : ''} ${isRecentlyUpdated ? 'bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-500/30' : ''}`}>
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-blue-600 text-white dark:bg-blue-900 dark:text-blue-200`}>{initials}</div>
                           <div className="min-w-0 flex-1">
                             <div className="font-medium truncate flex items-center gap-2">

@@ -136,9 +136,6 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
             {team.projects.slice(0, 3).map((project) => {
               const statusStyle = getProjectStatusStyle(project.ProjectStatusID);
               const StatusIcon = statusStyle.icon;
-              const pillBg = theme === 'dark' ? statusStyle.bgColor.replace('50', '900/30').replace('100', '900/30') : statusStyle.bgColor;
-              const pillText = theme === 'dark' ? statusStyle.textColor.replace('700', '300') : statusStyle.textColor;
-              const pillBorder = theme === 'dark' ? statusStyle.borderColor.replace('200', '600') : statusStyle.borderColor;
 
               return (
                 <div key={project.ProjectID} className="group flex items-center justify-between p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-dark-hover/50 transition-colors duration-150">
@@ -155,8 +152,8 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
                       )}
                     </div>
                   </div>
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${pillBg} ${pillText} ${pillBorder}`}>
-                    <StatusIcon className={`${statusStyle.iconColor} ${theme === 'dark' ? statusStyle.iconColor.replace('500', '400') : ''}`} size={8} />
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${statusStyle.bgColor} ${statusStyle.textColor} ${statusStyle.borderColor}`}>
+                    <StatusIcon className={statusStyle.iconColor} size={8} />
                     {getProjectStatusText(project.ProjectStatusID)}
                   </span>
                 </div>

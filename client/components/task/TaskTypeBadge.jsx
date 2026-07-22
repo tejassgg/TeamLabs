@@ -1,5 +1,3 @@
-import { FaTimes, FaCheckCircle, FaClock, FaShieldAlt, FaRocket } from 'react-icons/fa';
-
 // Task type styles and utilities
 export const getTaskTypeStyle = (type) => {
   const styles = {
@@ -7,61 +5,83 @@ export const getTaskTypeStyle = (type) => {
       bgColor: 'bg-gradient-to-r from-red-50 to-red-100',
       textColor: 'text-red-700',
       borderColor: 'border-red-200',
-      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8 17V7.00001C8 5.20202 8 4.30302 8.43597 3.66606C8.81947 3.10068 9.40173 2.67724 10.0858 2.4636C10.8449 2.22222 11.7476 2.45386 13.553 2.91712L18.553 4.19381C19.6884 4.47175 20.2562 4.61072 20.628 4.9568C20.9552 5.26041 21.1613 5.66725 21.2204 6.10576C21.2873 6.61029 21.0513 7.19377 20.5794 8.36072C20.2881 9.05932 20 10.1937 20 11.5V13.5C20 14.8063 20.2881 15.9407 20.5794 16.6393C21.0513 17.8062 21.2873 18.3897 21.2204 18.8942C21.1613 19.3328 20.9552 19.7396 20.628 20.0432C20.2562 20.3893 19.6884 20.5283 18.553 20.8062L13.553 22.0829C11.7476 22.5461 10.8449 22.7778 10.0858 22.5364C9.40173 22.3228 8.81947 21.8993 8.43597 21.3339C8 20.697 8 19.798 8 18.0001V17ZM17 12H12M17.5 16H12M17.5 8H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      </svg>
+      icon: (
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect width="8" height="14" x="8" y="6" rx="4" />
+          <path d="m19 7-3 2M5 7l3 2m11 4h-4M5 13h4m10 4-3-2M5 17l3-2M12 20v2M12 3v3" />
+        </svg>
+      )
     },
     'Feature': {
       bgColor: 'bg-gradient-to-r from-blue-50 to-blue-100',
       textColor: 'text-blue-700',
       borderColor: 'border-blue-200',
-      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.0784 19.0784L16.25 16.25M19.0784 4.99994L16.25 7.82838M4.92157 19.0784L7.75 16.25M4.92157 4.99994L7.75 7.82838" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      icon: (
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+        </svg>
+      )
     },
     'Improvement': {
       bgColor: 'bg-gradient-to-r from-green-50 to-green-100',
       textColor: 'text-green-700',
       borderColor: 'border-green-200',
-      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M12 17V11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M12 8V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      icon: (
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+          <polyline points="16 7 22 7 22 13" />
+        </svg>
+      )
     },
     'Documentation': {
       bgColor: 'bg-gradient-to-r from-indigo-50 to-indigo-100',
       textColor: 'text-indigo-700',
       borderColor: 'border-indigo-200',
-      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      icon: (
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+          <line x1="10" y1="9" x2="8" y2="9" />
+        </svg>
+      )
     },
     'Maintenance': {
       bgColor: 'bg-gradient-to-r from-yellow-50 to-yellow-100',
       textColor: 'text-yellow-700',
       borderColor: 'border-yellow-200',
-      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      icon: (
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+        </svg>
+      )
     },
     'User Story': {
       bgColor: 'bg-gradient-to-r from-purple-50 to-purple-100',
       textColor: 'text-purple-700',
       borderColor: 'border-purple-200',
-      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.74" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      icon: (
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+          <path d="M6 6h10M6 10h10" />
+        </svg>
+      )
     },
     'Support': {
       bgColor: 'bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-950/40 dark:to-orange-900/40',
       textColor: 'text-orange-700 dark:text-orange-300',
       borderColor: 'border-orange-200 dark:border-orange-800/60',
-      icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      icon: (
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="4" />
+          <line x1="4.93" y1="4.93" x2="9.17" y2="9.17" />
+          <line x1="14.83" y1="14.83" x2="19.07" y2="19.07" />
+          <line x1="14.83" y1="9.17" x2="19.07" y2="4.93" />
+          <line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
+        </svg>
+      )
     }
   };
 
@@ -69,9 +89,12 @@ export const getTaskTypeStyle = (type) => {
     bgColor: 'bg-gradient-to-r from-gray-50 to-gray-100',
     textColor: 'text-gray-700',
     borderColor: 'border-gray-200',
-    icon: <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M9 11L12 14L22 4M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    icon: (
+      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" />
+        <path d="m9 12 2 2 4-4" />
+      </svg>
+    )
   };
 
   return styles[type] || defaultStyle;
@@ -164,43 +187,67 @@ export const getTaskStatusStyle = (statusCode, isDark = false) => {
       bgColor: isDark ? 'from-gray-800/50 to-gray-700/50' : 'from-gray-50 to-gray-100',
       textColor: isDark ? 'text-gray-300' : 'text-gray-700',
       borderColor: isDark ? 'border-gray-700' : 'border-gray-200',
-      icon: FaTimes,
-      iconColor: isDark ? 'text-gray-400' : 'text-gray-500'
+      icon: (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isDark ? 'text-gray-400' : 'text-gray-500'}>
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      )
     },
     2: { // Assigned
       bgColor: isDark ? 'from-blue-900/50 to-blue-800/50' : 'from-blue-50 to-blue-100',
       textColor: isDark ? 'text-blue-300' : 'text-blue-700',
       borderColor: isDark ? 'border-blue-700' : 'border-blue-200',
-      icon: FaCheckCircle,
-      iconColor: isDark ? 'text-blue-400' : 'text-blue-500'
+      icon: (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isDark ? 'text-blue-400' : 'text-blue-500'}>
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+      )
     },
     3: { // In Progress
       bgColor: isDark ? 'from-yellow-900/50 to-yellow-800/50' : 'from-yellow-50 to-yellow-100',
       textColor: isDark ? 'text-yellow-300' : 'text-yellow-700',
       borderColor: isDark ? 'border-yellow-700' : 'border-yellow-200',
-      icon: FaClock,
-      iconColor: isDark ? 'text-yellow-400' : 'text-yellow-500'
+      icon: (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isDark ? 'text-yellow-400' : 'text-yellow-500'}>
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      )
     },
     4: { // QA
       bgColor: isDark ? 'from-indigo-900/50 to-indigo-800/50' : 'from-indigo-50 to-indigo-100',
       textColor: isDark ? 'text-indigo-300' : 'text-indigo-700',
       borderColor: isDark ? 'border-indigo-700' : 'border-indigo-200',
-      icon: FaShieldAlt,
-      iconColor: isDark ? 'text-indigo-400' : 'text-indigo-500'
+      icon: (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isDark ? 'text-indigo-400' : 'text-indigo-500'}>
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+      )
     },
     5: { // Deployment
       bgColor: isDark ? 'from-pink-900/50 to-pink-800/50' : 'from-pink-50 to-pink-100',
       textColor: isDark ? 'text-pink-300' : 'text-pink-700',
       borderColor: isDark ? 'border-pink-700' : 'border-pink-200',
-      icon: FaRocket,
-      iconColor: isDark ? 'text-pink-400' : 'text-pink-500'
+      icon: (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isDark ? 'text-pink-400' : 'text-pink-500'}>
+          <path d="M4.5 16.5c-1.5 1.25-2.5 3-2.5 5.5 2.5 0 4.25-1 5.5-2.5L18.5 8 16 5.5 4.5 16.5z" />
+          <path d="M12 12l9-9" />
+          <path d="M9 15l-3-3" />
+        </svg>
+      )
     },
     6: { // Completed
       bgColor: isDark ? 'from-green-900/50 to-green-800/50' : 'from-green-50 to-green-100',
       textColor: isDark ? 'text-green-300' : 'text-green-700',
       borderColor: isDark ? 'border-green-700' : 'border-green-200',
-      icon: FaCheckCircle,
-      iconColor: isDark ? 'text-green-400' : 'text-green-500'
+      icon: (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isDark ? 'text-green-400' : 'text-green-500'}>
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+      )
     }
   };
 
@@ -211,11 +258,10 @@ export const getTaskStatusBadge = (statusCode, isDark = false, statusText = null
   if (!statusCode) return null;
 
   const style = getTaskStatusStyle(statusCode, isDark);
-  const StatusIcon = style.icon;
 
   return (
     <span className={`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${style.bgColor} ${style.textColor} border ${style.borderColor}`}>
-      <StatusIcon className={style.iconColor} size={12} />
+      {style.icon}
       <span>{statusText || getTaskStatusText(statusCode)}</span>
     </span>
   );

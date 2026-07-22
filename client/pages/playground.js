@@ -336,10 +336,10 @@ const Playground = () => {
                     <div className="flex flex-col gap-2">
                       <p className={`text-xs text-gray-500 dark:text-gray-400`}>Project Priority Badges</p>
                       <div className="flex flex-wrap gap-4">
-                        <ProjectPriorityBadge priority="3" showLabel={true} />
-                        <ProjectPriorityBadge priority="2" showLabel={true} />
-                        <ProjectPriorityBadge priority="1" showLabel={true} />
-                        <ProjectPriorityBadge priority="0" showLabel={true} />
+                        <ProjectPriorityBadge priority={3} showLabel={true} />
+                        <ProjectPriorityBadge priority={2} showLabel={true} />
+                        <ProjectPriorityBadge priority={1} showLabel={true} />
+                        <ProjectPriorityBadge priority={0} showLabel={true} />
                       </div>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -380,12 +380,12 @@ const Playground = () => {
                     <div className="flex flex-col gap-2">
                       <p className={`text-xs text-gray-500 dark:text-gray-400`}>Task Status Badges</p>
                       <div className="flex flex-wrap gap-4">
-                         {getTaskStatusBadge(1, theme === 'dark')}
-                         {getTaskStatusBadge(2, theme === 'dark')}
-                         {getTaskStatusBadge(3, theme === 'dark')}
-                         {getTaskStatusBadge(4, theme === 'dark')}
-                         {getTaskStatusBadge(5, theme === 'dark')}
-                         {getTaskStatusBadge(6, theme === 'dark')}
+                        {getTaskStatusBadge(1, theme === 'dark')}
+                        {getTaskStatusBadge(2, theme === 'dark')}
+                        {getTaskStatusBadge(3, theme === 'dark')}
+                        {getTaskStatusBadge(4, theme === 'dark')}
+                        {getTaskStatusBadge(5, theme === 'dark')}
+                        {getTaskStatusBadge(6, theme === 'dark')}
                       </div>
                     </div>
 
