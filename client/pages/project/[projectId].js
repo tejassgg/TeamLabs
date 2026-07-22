@@ -25,6 +25,7 @@ import GanttChart from '../../components/project/GanttChart';
 import ReportGenerator from '../../components/reports/ReportGenerator';
 import RAGManagement from '../../components/rag/RAGManagement';
 import ReleaseSummaryGenerator from '../../components/project/ReleaseSummaryGenerator';
+import ProjectListView from '../../components/project/ProjectListView';
 import { connectSocket, subscribe, getSocket } from '../../services/socket';
 import { subtaskService } from '../../services/api';
 
@@ -223,7 +224,7 @@ const ProjectDetailsPage = () => {
   const [tasksSortKey, setTasksSortKey] = useState('assignedDate'); // name | assignedTo | assignedDate | priority | status
   const [tasksSortDir, setTasksSortDir] = useState('desc'); // asc | desc
 
-  
+
   // Helper to convert hex color to rgba with alpha for subtle backgrounds
   const hexToRgba = (hex, alpha = 0.08) => {
     try {
@@ -322,7 +323,8 @@ const ProjectDetailsPage = () => {
     null,
     {
       revalidateOnFocus: false,
-      dedupingInterval: 5000 }
+      dedupingInterval: 5000
+    }
   );
 
   const loading = !projectDetailsData && !fetchError && !project && !!projectId;
@@ -658,8 +660,8 @@ const ProjectDetailsPage = () => {
           onClick={onPrev}
           disabled={currentPage === 1 || loading}
           className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${currentPage === 1 || loading
-              ? "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-transparent dark:text-gray-500 dark:border-gray-700"
-              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-800/40 dark:border-gray-700"}`}
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-transparent dark:text-gray-500 dark:border-gray-700"
+            : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-800/40 dark:border-gray-700"}`}
         >
           Previous
         </button>
@@ -670,10 +672,10 @@ const ProjectDetailsPage = () => {
             onClick={() => typeof page === 'number' ? onPageChange(page) : null}
             disabled={page === '...' || loading}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${page === '...'
-                ? "text-gray-400 cursor-default dark:text-gray-500"
-                : page === currentPage
-                  ? "bg-blue-600 text-white dark:bg-blue-600 dark:text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-800/40 dark:border-gray-700"}`}
+              ? "text-gray-400 cursor-default dark:text-gray-500"
+              : page === currentPage
+                ? "bg-blue-600 text-white dark:bg-blue-600 dark:text-white"
+                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-800/40 dark:border-gray-700"}`}
           >
             {page}
           </button>
@@ -683,8 +685,8 @@ const ProjectDetailsPage = () => {
           onClick={onNext}
           disabled={currentPage === totalPages || loading}
           className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${currentPage === totalPages || loading
-              ? "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-transparent dark:text-gray-500 dark:border-gray-700"
-              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-800/40 dark:border-gray-700"}`}
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-transparent dark:text-gray-500 dark:border-gray-700"
+            : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-800/40 dark:border-gray-700"}`}
         >
           Next
         </button>
@@ -1314,7 +1316,7 @@ const ProjectDetailsPage = () => {
 
 
         {/* Tab Navigation */}
-        <div className="mb-6">
+        <div className="">
           <div className={`border-b border-gray-200 dark:border-gray-700`}>
             <div className="-mb-px flex items-center justify-between">
               <div className="flex-1 overflow-x-auto">
@@ -1442,697 +1444,580 @@ const ProjectDetailsPage = () => {
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'manage' ? (
-          <div>
-            {/* Unified Top Layout Hero Banner (Details + KPI Progress + Goals) */}
-            <div className={"mb-6 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none"}>
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
-                {/* Left Section: Details */}
-                <div className="lg:col-span-3 flex flex-col justify-between gap-4 min-w-0 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-zinc-800/85 pb-6 lg:pb-0 lg:pr-6">
-                  <div>
-                    {/* Top Row: Statuses */}
-                    <div className="flex items-center justify-between mb-4">
-                      {/* Left: Project Status & Priority */}
-                      <div className="flex items-center gap-2">
-                        {project && (() => {
-                          const statusStyle = getProjectStatusStyle(project.ProjectStatusID);
-                          const statusDetails = getProjectStatus(project.ProjectStatusID) || { Value: 'NOT ASSIGNED' };
-                          const StatusIcon = statusStyle.icon;
-                          return (
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.textColor} border ${statusStyle.borderColor}`}>
-                              <StatusIcon className={statusStyle.iconColor} size={12} />
-                              {statusDetails.Value}
-                            </span>
-                          );
-                        })()}
-                        {project && <ProjectPriorityBadge priority={project.Priority} showLabel={true} />}
-                      </div>
-
-                      {/* Right: Deadline Status */}
-                      {project.DueDate && (
-                        <div>
-                          {(() => {
-                            const status = getDeadlineStatusComponent(deadline);
+        <div className='py-6 px-4'>
+          {activeTab === 'manage' ? (
+            <div>
+              {/* Unified Top Layout Hero Banner (Details + KPI Progress + Goals) */}
+              <div className={"mb-6 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none"}>
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
+                  {/* Left Section: Details */}
+                  <div className="lg:col-span-3 flex flex-col justify-between gap-4 min-w-0 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-zinc-800/85 pb-6 lg:pb-0 lg:pr-6">
+                    <div>
+                      {/* Top Row: Statuses */}
+                      <div className="flex items-center justify-between mb-4">
+                        {/* Left: Project Status & Priority */}
+                        <div className="flex items-center gap-2">
+                          {project && (() => {
+                            const statusStyle = getProjectStatusStyle(project.ProjectStatusID);
+                            const statusDetails = getProjectStatus(project.ProjectStatusID) || { Value: 'NOT ASSIGNED' };
+                            const StatusIcon = statusStyle.icon;
                             return (
-                              <span className={`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-semibold bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
-                                <FaClock size={12} className={status.textColor} />
-                                {status.text}
+                              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.textColor} border ${statusStyle.borderColor}`}>
+                                <StatusIcon className={statusStyle.iconColor} size={12} />
+                                {statusDetails.Value}
                               </span>
                             );
                           })()}
+                          {project && <ProjectPriorityBadge priority={project.Priority} showLabel={true} />}
                         </div>
-                      )}
-                    </div>
 
-                    {/* Middle Row: Name & Description */}
-                    <div className="space-y-2">
-                      <h1 className={"text-2xl font-bold tracking-tight text-gray-900 flex items-center gap-3 dark:text-white flex items-center gap-3"}>
-                        <span>{project.Name}</span>
-                        {project.isArchived && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-zinc-150 text-zinc-800 border border-zinc-200 dark:bg-zinc-800/80 dark:text-zinc-300 dark:border-zinc-700">
-                            Archived
-                          </span>
-                        )}
-                      </h1>
-                      {project.Description ? (
-                        <p className={"text-sm text-gray-600 leading-relaxed max-w-2xl dark:text-gray-300"}>
-                          {project.Description}
-                        </p>
-                      ) : (
-                        <p className={"text-sm text-gray-400 italic dark:text-gray-500"}>
-                          No description provided.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Bottom Row: Members & Actions */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 mt-6 border-t border-gray-100 dark:border-zinc-800/80">
-                    {/* Left: Project Members Avatars */}
-                    {projectMembers.length > 0 ? (
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center">
-                          {projectMembers.slice(0, 4).map((member, idx) => (
-                            <div
-                              key={member._id}
-                              className={"w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden bg-gradient-to-r from-purple-500 to-purple-700 dark:border-zinc-800"}
-                              style={{ marginLeft: idx === 0 ? '0' : '-8px' }}
-                              title={`${member.firstName} ${member.lastName}`}
-                            >
-                              {member.profileImage ? (
-                                <img
-                                  src={member.profileImage}
-                                  alt={`${member.firstName} ${member.lastName}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <span className="text-xs font-semibold text-white">
-                                  {getUserInitials(member)}
+                        {/* Right: Deadline Status */}
+                        {project.DueDate && (
+                          <div>
+                            {(() => {
+                              const status = getDeadlineStatusComponent(deadline);
+                              return (
+                                <span className={`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-semibold bg-gradient-to-r ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
+                                  <FaClock size={12} className={status.textColor} />
+                                  {status.text}
                                 </span>
-                              )}
-                            </div>
-                          ))}
-                          {projectMembers.length > 4 && (
-                            <div className={"w-8 h-8 flex items-center justify-center px-2 py-1 rounded-full bg-gray-100 border border-gray-200 shadow-sm dark:bg-zinc-800 dark:border-zinc-700"}
-                              style={{ marginLeft: '-8px' }}>
-                              <span className={"text-xs font-semibold text-gray-600 dark:text-gray-300"}>
-                                +{projectMembers.length - 4}
-                              </span>
-                            </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Middle Row: Name & Description */}
+                      <div className="space-y-2">
+                        <h1 className={"text-2xl font-bold tracking-tight text-gray-900 flex items-center gap-3 dark:text-white flex items-center gap-3"}>
+                          <span>{project.Name}</span>
+                          {project.isArchived && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-zinc-150 text-zinc-800 border border-zinc-200 dark:bg-zinc-800/80 dark:text-zinc-300 dark:border-zinc-700">
+                              Archived
+                            </span>
                           )}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-xs text-gray-400 dark:text-gray-500">No members assigned</div>
-                    )}
-
-                    {/* Right: Actions */}
-                    <div className="flex items-center gap-2">
-                      {isOwner && (
-                        <button
-                          onClick={handleOpenModal}
-                          className="p-1.5 text-black dark:text-white hover:bg-blue-100/70 dark:hover:bg-zinc-700/80 rounded-lg transition-all duration-200 hover:shadow-sm"
-                          title="Edit Project"
-                        >
-                          <FaEdit size={14} />
-                        </button>
-                      )}
-
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(window.location.href);
-                          showToast('Project link copied to clipboard!', 'success');
-                        }}
-                        className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-100/70 dark:hover:bg-zinc-700/80 rounded-lg transition-all duration-200 hover:shadow-sm"
-                        title="Share Project"
-                      >
-                        <FiShare2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Middle Section: Circular Progress */}
-                <div className="lg:col-span-1 flex flex-col justify-between gap-4 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-zinc-800/85 pb-6 lg:pb-0 lg:pr-6">
-                  {/* Progress Circle & Text */}
-                  {(() => {
-                    const totalTasksCount = taskList.length;
-                    const completedTasksCount = taskList.filter(t => t.Status === 6).length;
-                    const progressPercent = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
-
-                    const radius = 54;
-                    const strokeWidth = 10;
-                    const C = 2 * Math.PI * radius; // 339.29
-                    const gap = 12;
-
-                    let greenLength = 0;
-                    let grayLength = 0;
-                    let greenOffset = 0;
-                    let grayOffset = 0;
-
-                    if (progressPercent === 100) {
-                      greenLength = C;
-                      grayLength = 0;
-                    } else if (progressPercent === 0) {
-                      greenLength = 0;
-                      grayLength = C;
-                    } else {
-                      greenLength = (progressPercent / 100) * C - gap;
-                      grayLength = ((100 - progressPercent) / 100) * C - gap;
-                      greenOffset = -gap / 2;
-                      grayOffset = -(greenLength + 1.5 * gap);
-                    }
-
-                    let healthText = 'On Track';
-                    let healthColor = 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
-                    if (deadline === 'Deadline Passed' && progressPercent < 100) {
-                      healthText = 'Overdue';
-                      healthColor = 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
-                    } else if (deadline !== 'No Deadline' && progressPercent < 40 && !deadline.includes('Days Left')) {
-                      healthText = 'Needs Attention';
-                      healthColor = 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
-                    }
-
-                    return (
-                      <div className="flex flex-col items-center justify-center gap-2 py-2">
-                        <div className="relative w-32 h-32 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-full h-full transform -rotate-90">
-                            {/* Gray remainder path */}
-                            {grayLength > 0 && (
-                              <circle
-                                cx="64"
-                                cy="64"
-                                r={radius}
-                                className="text-gray-100 dark:text-zinc-800"
-                                strokeWidth={strokeWidth}
-                                strokeDasharray={`${grayLength} ${C}`}
-                                strokeDashoffset={grayOffset}
-                                strokeLinecap="round"
-                                stroke="currentColor"
-                                fill="transparent"
-                              />
-                            )}
-                            {/* Emerald progress path */}
-                            {greenLength > 0 && (
-                              <circle
-                                cx="64"
-                                cy="64"
-                                r={radius}
-                                className="text-emerald-500 dark:text-emerald-400"
-                                strokeWidth={strokeWidth}
-                                strokeDasharray={`${greenLength} ${C}`}
-                                strokeDashoffset={greenOffset}
-                                strokeLinecap="round"
-                                stroke="currentColor"
-                                fill="transparent"
-                              />
-                            )}
-                          </svg>
-                          <div className="absolute flex flex-col items-center justify-center text-center">
-                            <span className="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white">
-                              {progressPercent}%
-                            </span>
-                            <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mt-1">
-                              Progress
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col items-center gap-1.5 text-center">
-                          <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold border ${healthColor}`}>
-                            {healthText}
-                          </span>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {completedTasksCount} of {totalTasksCount} tasks completed
+                        </h1>
+                        {project.Description ? (
+                          <p className={"text-sm text-gray-600 leading-relaxed max-w-2xl dark:text-gray-300"}>
+                            {project.Description}
                           </p>
-                        </div>
+                        ) : (
+                          <p className={"text-sm text-gray-400 italic dark:text-gray-500"}>
+                            No description provided.
+                          </p>
+                        )}
                       </div>
-                    );
-                  })()}
-
-                  {/* Task counts details */}
-                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-zinc-800/80">
-                    <div className="p-2 bg-gray-50 dark:bg-zinc-800/40 border border-gray-100 dark:border-zinc-800/80 rounded-xl">
-                      <span className="text-xs text-gray-500 dark:text-gray-400 block font-medium">In Progress</span>
-                      <span className="text-md font-bold text-gray-900 dark:text-white">
-                        {taskList.filter(t => t.Status === 3).length}
-                      </span>
-                    </div>
-                    <div className="p-2 bg-gray-50 dark:bg-zinc-800/40 border border-gray-100 dark:border-zinc-800/80 rounded-xl">
-                      <span className="text-xs text-gray-500 dark:text-gray-400 block font-medium">User Stories</span>
-                      <span className="text-md font-bold text-gray-900 dark:text-white">
-                        {userStories.length}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Section: Goals Tracker */}
-                <div className="lg:col-span-1 flex flex-col justify-between gap-4">
-                  <div>
-                    {/* Inline Goals Title Badge */}
-                    <div className="flex items-center gap-1.5 mb-4 border-b border-gray-100 dark:border-zinc-800/80 pb-3">
-                      <FaFlag className="text-blue-500 dark:text-blue-400 w-3.5 h-3.5" />
-                      <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500">Project Goals</span>
                     </div>
 
-                    {/* Goals List */}
-                    <div className="space-y-3.5 overflow-y-auto pr-1 max-h-[170px]">
-                      {!project?.Goals || project.Goals.length === 0 ? (
-                        <p className={"text-xs text-gray-400 italic dark:text-gray-500"}>No goals defined for this project.</p>
-                      ) : (
-                        project.Goals.map((goal) => (
-                          <div key={goal._id} className="flex items-center justify-between gap-3 group">
-                            {editingGoalId === goal._id ? (
-                              <input
-                                type="text"
-                                value={editingGoalText}
-                                onChange={(e) => setEditingGoalText(e.target.value)}
-                                onBlur={() => handleUpdateGoalText(goal._id, editingGoalText)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') handleUpdateGoalText(goal._id, editingGoalText);
-                                  if (e.key === 'Escape') setEditingGoalId(null);
-                                }}
-                                className="flex-1 px-2.5 py-1 text-xs bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 dark:text-white"
-                                autoFocus
-                              />
-                            ) : (
-                              <>
-                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                  <span
-                                    role="checkbox"
-                                    aria-checked={!!goal.completed}
-                                    tabIndex={isOwner ? 0 : -1}
-                                    onClick={() => isOwner && handleToggleGoal(goal._id)}
-                                    onKeyDown={(e) => { if (isOwner && (e.key === 'Enter' || e.key === ' ')) handleToggleGoal(goal._id); }}
-                                    className={`inline-flex items-center justify-center w-4 h-4 rounded-full border flex-shrink-0 ${goal.completed ? 'bg-green-600 border-transparent' : 'bg-white dark:bg-transparent border-gray-300 dark:border-gray-600'} ${isOwner ? 'cursor-pointer' : 'cursor-default'}`}
-                                  >
-                                    {goal.completed ? (
-                                      <svg viewBox="0 0 20 20" className="w-3.5 h-3.5 text-white" fill="currentColor">
-                                        <path d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.5 7.5a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L8.5 12.086l6.793-6.793a1 1 0 0 1 1.414 0Z" />
-                                      </svg>
-                                    ) : null}
+                    {/* Bottom Row: Members & Actions */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 mt-6 border-t border-gray-100 dark:border-zinc-800/80">
+                      {/* Left: Project Members Avatars */}
+                      {projectMembers.length > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center">
+                            {projectMembers.slice(0, 4).map((member, idx) => (
+                              <div
+                                key={member._id}
+                                className={"w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden bg-gradient-to-r from-purple-500 to-purple-700 dark:border-zinc-800"}
+                                style={{ marginLeft: idx === 0 ? '0' : '-8px' }}
+                                title={`${member.firstName} ${member.lastName}`}
+                              >
+                                {member.profileImage ? (
+                                  <img
+                                    src={member.profileImage}
+                                    alt={`${member.firstName} ${member.lastName}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="text-xs font-semibold text-white">
+                                    {getUserInitials(member)}
                                   </span>
-                                  <span
-                                    onClick={() => {
-                                      if (isOwner) {
-                                        setEditingGoalId(goal._id);
-                                        setEditingGoalText(goal.text);
-                                      }
-                                    }}
-                                    className={`text-xs font-semibold truncate ${goal.completed ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-700 dark:text-gray-300'} ${isOwner ? 'cursor-pointer hover:text-blue-600 dark:hover:text-blue-450' : ''}`}
-                                    title={isOwner ? "Click to edit goal" : goal.text}
-                                  >
-                                    {goal.text}
-                                  </span>
-                                </div>
-                                {isOwner && (
-                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0">
-                                    <button
-                                      onClick={() => handleDeleteGoal(goal._id)}
-                                      className="p-1 rounded-md text-gray-455 hover:text-red-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-zinc-800 transition-all duration-150"
-                                      title="Delete Goal"
-                                    >
-                                      <FaTrash size={10} />
-                                    </button>
-                                  </div>
                                 )}
-                              </>
+                              </div>
+                            ))}
+                            {projectMembers.length > 4 && (
+                              <div className={"w-8 h-8 flex items-center justify-center px-2 py-1 rounded-full bg-gray-100 border border-gray-200 shadow-sm dark:bg-zinc-800 dark:border-zinc-700"}
+                                style={{ marginLeft: '-8px' }}>
+                                <span className={"text-xs font-semibold text-gray-600 dark:text-gray-300"}>
+                                  +{projectMembers.length - 4}
+                                </span>
+                              </div>
                             )}
                           </div>
-                        ))
+                        </div>
+                      ) : (
+                        <div className="text-xs text-gray-400 dark:text-gray-500">No members assigned</div>
                       )}
-                    </div>
-                  </div>
 
-                  {/* Add Goal Input */}
-                  {isOwner && (
-                    <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex gap-2">
-                      <input
-                        type="text"
-                        value={newGoalText}
-                        onChange={e => setNewGoalText(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddGoalDirect(); } }}
-                        placeholder="Add new goal..."
-                        className="flex-1 px-2.5 py-1.5 text-xs bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                      />
-                      <button
-                        onClick={handleAddGoalDirect}
-                        className={'px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white rounded-lg transition-colors shadow-sm dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'}
-                      >
-                        Add
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Teams Assigned & User Stories Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-              <div className={showUserStories ? 'lg:col-span-3' : 'lg:col-span-6'}>
-                <div className="flex justify-between mb-2 gap-4">
-                  <h2 className={'text-xl font-semibold text-gray-900 dark:text-gray-100'}>Teams</h2>
-                  {isOwner && (
-                    <form onSubmit={(e) => { e.preventDefault(); if (selectedTeam) handleAddTeam(selectedTeam.TeamID); }} className="relative">
+                      {/* Right: Actions */}
                       <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          className={'border rounded-xl px-3 py-1.5 w-64 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white border-gray-300 text-gray-900 dark:bg-dark-bg dark:border-[#232323] dark:text-gray-100 dark:focus:outline-none dark:focus:ring-blue-500 dark:focus:border-blue-500'}
-                          value={teamSearch}
-                          onChange={e => {
-                            setTeamSearch(e.target.value);
-                            setSelectedTeam(null);
-                            setShowAllTeams(false);
-                          }}
-                          onFocus={() => {
-                            setIsTeamInputFocused(true);
-                            if (!teamSearch) {
-                              const assignedIds = new Set(teams.map(t => t.TeamID));
-                              const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
-                              setFilteredAvailableTeams(availableTeams.slice(0, 10));
-                            }
-                          }}
-                          onBlur={() => {
-                            setTimeout(() => {
-                              setIsTeamInputFocused(false);
-                            }, 200);
-                          }}
-                          placeholder="Search team to add..."
-                          autoComplete="off"
-                        />
-                        {selectedTeam && (
+                        {isOwner && (
                           <button
-                            type="submit"
-                            disabled={!selectedTeam}
-                            className={'px-4 py-2 text-sm text-white font-semibold rounded-xl transition-all duration-200 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 shadow-sm dark:bg-blue-600 dark:hover:bg-blue-500'}
-                            title={selectedTeam ? 'Add selected team to project' : 'Select a team from dropdown'}
+                            onClick={handleOpenModal}
+                            className="p-1.5 text-black dark:text-white hover:bg-blue-100/70 dark:hover:bg-zinc-700/80 rounded-lg transition-all duration-200 hover:shadow-sm"
+                            title="Edit Project"
                           >
-                            Add
+                            <FaEdit size={14} />
                           </button>
                         )}
+
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(window.location.href);
+                            showToast('Project link copied to clipboard!', 'success');
+                          }}
+                          className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-100/70 dark:hover:bg-zinc-700/80 rounded-lg transition-all duration-200 hover:shadow-sm"
+                          title="Share Project"
+                        >
+                          <FiShare2 size={14} />
+                        </button>
                       </div>
-                      {isTeamInputFocused && filteredAvailableTeams.length > 0 && (
-                        <div className="absolute top-full right-0 z-50 mt-2 w-96 animate-fadeIn">
-                          <ul className={'border border-gray-200 rounded-xl bg-white max-h-80 overflow-y-auto shadow-2xl py-1.5 scrollbar-thin dark:bg-dark-bg dark:border-[#232323]'}>
-                            {filteredAvailableTeams.map((team, index) => (
-                              <li key={`${team.TeamID}-${index}`} className={'px-3 py-1.5 border-b border-gray-100 last:border-b-0 transition-colors duration-150 dark:border-zinc-800/60'}>
-                                <div className="flex items-center justify-between gap-2">
-                                  <div
-                                    className={'flex-1 cursor-pointer rounded-lg p-2 hover:bg-gray-50 transition-colors duration-150 dark:hover:bg-zinc-800/40'}
-                                    onMouseEnter={(e) => {
-                                      const el = e.currentTarget;
-                                      el.style.backgroundColor = hexToRgba(team.TeamColor, theme === 'dark' ? 0.15 : 0.08) || '';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      const el = e.currentTarget;
-                                      el.style.backgroundColor = '';
-                                    }}
-                                    onClick={() => {
-                                      setSelectedTeam(team);
-                                      setTeamSearch(team.TeamName + (team.TeamDescription ? ' (' + team.TeamDescription + ')' : ''));
-                                      setIsTeamInputFocused(false);
-                                    }}
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div
-                                        className="w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0 text-xs"
-                                        style={{
-                                          backgroundColor: hexToRgba(team.TeamColor, theme === 'dark' ? 0.18 : 0.12),
-                                          color: team.TeamColor || (theme === 'dark' ? '#60A5FA' : '#2563EB')
-                                        }}
-                                      >
-                                        {(team.TeamName || '').split(' ').map(n => n[0]).join('')}
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className={'font-semibold text-gray-900 text-sm truncate dark:text-gray-100'}>
-                                          {team.TeamName}
-                                        </div>
-                                        {team.TeamDescription && (
-                                          <div className={'text-xs text-gray-500 truncate mt-0.5 dark:text-gray-400'}>
-                                            {team.TeamDescription}
-                                          </div>
-                                        )}
-                                        <div className={'text-xs text-gray-400 mt-0.5 dark:text-gray-500'}>
-                                          Members: {Array.isArray(team.teamMembers) ? team.teamMembers.length : (team.memberCount ?? 0)}
-                                        </div>
-                                      </div>
-                                    </div>
+                    </div>
+                  </div>
+
+                  {/* Middle Section: Circular Progress */}
+                  <div className="lg:col-span-1 flex flex-col justify-between gap-4 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-zinc-800/85 pb-6 lg:pb-0 lg:pr-6">
+                    {/* Progress Circle & Text */}
+                    {(() => {
+                      const totalTasksCount = taskList.length;
+                      const completedTasksCount = taskList.filter(t => t.Status === 6).length;
+                      const progressPercent = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
+
+                      const radius = 54;
+                      const strokeWidth = 10;
+                      const C = 2 * Math.PI * radius; // 339.29
+                      const gap = 12;
+
+                      let greenLength = 0;
+                      let grayLength = 0;
+                      let greenOffset = 0;
+                      let grayOffset = 0;
+
+                      if (progressPercent === 100) {
+                        greenLength = C;
+                        grayLength = 0;
+                      } else if (progressPercent === 0) {
+                        greenLength = 0;
+                        grayLength = C;
+                      } else {
+                        greenLength = (progressPercent / 100) * C - gap;
+                        grayLength = ((100 - progressPercent) / 100) * C - gap;
+                        greenOffset = -gap / 2;
+                        grayOffset = -(greenLength + 1.5 * gap);
+                      }
+
+                      let healthText = 'On Track';
+                      let healthColor = 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
+                      if (deadline === 'Deadline Passed' && progressPercent < 100) {
+                        healthText = 'Overdue';
+                        healthColor = 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
+                      } else if (deadline !== 'No Deadline' && progressPercent < 40 && !deadline.includes('Days Left')) {
+                        healthText = 'Needs Attention';
+                        healthColor = 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
+                      }
+
+                      return (
+                        <div className="flex flex-col items-center justify-center gap-2 py-2">
+                          <div className="relative w-32 h-32 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-full h-full transform -rotate-90">
+                              {/* Gray remainder path */}
+                              {grayLength > 0 && (
+                                <circle
+                                  cx="64"
+                                  cy="64"
+                                  r={radius}
+                                  className="text-gray-100 dark:text-zinc-800"
+                                  strokeWidth={strokeWidth}
+                                  strokeDasharray={`${grayLength} ${C}`}
+                                  strokeDashoffset={grayOffset}
+                                  strokeLinecap="round"
+                                  stroke="currentColor"
+                                  fill="transparent"
+                                />
+                              )}
+                              {/* Emerald progress path */}
+                              {greenLength > 0 && (
+                                <circle
+                                  cx="64"
+                                  cy="64"
+                                  r={radius}
+                                  className="text-emerald-500 dark:text-emerald-400"
+                                  strokeWidth={strokeWidth}
+                                  strokeDasharray={`${greenLength} ${C}`}
+                                  strokeDashoffset={greenOffset}
+                                  strokeLinecap="round"
+                                  stroke="currentColor"
+                                  fill="transparent"
+                                />
+                              )}
+                            </svg>
+                            <div className="absolute flex flex-col items-center justify-center text-center">
+                              <span className="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white">
+                                {progressPercent}%
+                              </span>
+                              <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mt-1">
+                                Progress
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col items-center gap-1.5 text-center">
+                            <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold border ${healthColor}`}>
+                              {healthText}
+                            </span>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {completedTasksCount} of {totalTasksCount} tasks completed
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Task counts details */}
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-zinc-800/80">
+                      <div className="p-2 bg-gray-50 dark:bg-zinc-800/40 border border-gray-100 dark:border-zinc-800/80 rounded-xl">
+                        <span className="text-xs text-gray-500 dark:text-gray-400 block font-medium">In Progress</span>
+                        <span className="text-md font-bold text-gray-900 dark:text-white">
+                          {taskList.filter(t => t.Status === 3).length}
+                        </span>
+                      </div>
+                      <div className="p-2 bg-gray-50 dark:bg-zinc-800/40 border border-gray-100 dark:border-zinc-800/80 rounded-xl">
+                        <span className="text-xs text-gray-500 dark:text-gray-400 block font-medium">User Stories</span>
+                        <span className="text-md font-bold text-gray-900 dark:text-white">
+                          {userStories.length}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Section: Goals Tracker */}
+                  <div className="lg:col-span-1 flex flex-col justify-between gap-4">
+                    <div>
+                      {/* Inline Goals Title Badge */}
+                      <div className="flex items-center gap-1.5 mb-4 border-b border-gray-100 dark:border-zinc-800/80 pb-3">
+                        <FaFlag className="text-blue-500 dark:text-blue-400 w-3.5 h-3.5" />
+                        <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500">Project Goals</span>
+                      </div>
+
+                      {/* Goals List */}
+                      <div className="space-y-3.5 overflow-y-auto pr-1 max-h-[170px]">
+                        {!project?.Goals || project.Goals.length === 0 ? (
+                          <p className={"text-xs text-gray-400 italic dark:text-gray-500"}>No goals defined for this project.</p>
+                        ) : (
+                          project.Goals.map((goal) => (
+                            <div key={goal._id} className="flex items-center justify-between gap-3 group">
+                              {editingGoalId === goal._id ? (
+                                <input
+                                  type="text"
+                                  value={editingGoalText}
+                                  onChange={(e) => setEditingGoalText(e.target.value)}
+                                  onBlur={() => handleUpdateGoalText(goal._id, editingGoalText)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleUpdateGoalText(goal._id, editingGoalText);
+                                    if (e.key === 'Escape') setEditingGoalId(null);
+                                  }}
+                                  className="flex-1 px-2.5 py-1 text-xs bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 dark:text-white"
+                                  autoFocus
+                                />
+                              ) : (
+                                <>
+                                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                                    <span
+                                      role="checkbox"
+                                      aria-checked={!!goal.completed}
+                                      tabIndex={isOwner ? 0 : -1}
+                                      onClick={() => isOwner && handleToggleGoal(goal._id)}
+                                      onKeyDown={(e) => { if (isOwner && (e.key === 'Enter' || e.key === ' ')) handleToggleGoal(goal._id); }}
+                                      className={`inline-flex items-center justify-center w-4 h-4 rounded-full border flex-shrink-0 ${goal.completed ? 'bg-green-600 border-transparent' : 'bg-white dark:bg-transparent border-gray-300 dark:border-gray-600'} ${isOwner ? 'cursor-pointer' : 'cursor-default'}`}
+                                    >
+                                      {goal.completed ? (
+                                        <svg viewBox="0 0 20 20" className="w-3.5 h-3.5 text-white" fill="currentColor">
+                                          <path d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.5 7.5a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L8.5 12.086l6.793-6.793a1 1 0 0 1 1.414 0Z" />
+                                        </svg>
+                                      ) : null}
+                                    </span>
+                                    <span
+                                      onClick={() => {
+                                        if (isOwner) {
+                                          setEditingGoalId(goal._id);
+                                          setEditingGoalText(goal.text);
+                                        }
+                                      }}
+                                      className={`text-xs font-semibold truncate ${goal.completed ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-700 dark:text-gray-300'} ${isOwner ? 'cursor-pointer hover:text-blue-600 dark:hover:text-blue-450' : ''}`}
+                                      title={isOwner ? "Click to edit goal" : goal.text}
+                                    >
+                                      {goal.text}
+                                    </span>
                                   </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => { setSelectedTeam(team); handleAddTeam(team.TeamID); }}
-                                    className={'ml-1 p-2 rounded-full transition-all duration-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-600 dark:hover:text-white'}
-                                  >
-                                    <FaPlus size={12} />
-                                  </button>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                          {!showAllTeams && orgTeams.length > 10 && (
+                                  {isOwner && (
+                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0">
+                                      <button
+                                        onClick={() => handleDeleteGoal(goal._id)}
+                                        className="p-1 rounded-md text-gray-455 hover:text-red-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-zinc-800 transition-all duration-150"
+                                        title="Delete Goal"
+                                      >
+                                        <FaTrash size={10} />
+                                      </button>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Add Goal Input */}
+                    {isOwner && (
+                      <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex gap-2">
+                        <input
+                          type="text"
+                          value={newGoalText}
+                          onChange={e => setNewGoalText(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddGoalDirect(); } }}
+                          placeholder="Add new goal..."
+                          className="flex-1 px-2.5 py-1.5 text-xs bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        />
+                        <button
+                          onClick={handleAddGoalDirect}
+                          className={'px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white rounded-lg transition-colors shadow-sm dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'}
+                        >
+                          Add
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Teams Assigned & User Stories Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+                <div className={showUserStories ? 'lg:col-span-3' : 'lg:col-span-6'}>
+                  <div className="flex justify-between mb-2 gap-4">
+                    <h2 className={'text-xl font-semibold text-gray-900 dark:text-gray-100'}>Teams</h2>
+                    {isOwner && (
+                      <form onSubmit={(e) => { e.preventDefault(); if (selectedTeam) handleAddTeam(selectedTeam.TeamID); }} className="relative">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            className={'border rounded-xl px-3 py-1.5 w-64 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white border-gray-300 text-gray-900 dark:bg-dark-bg dark:border-[#232323] dark:text-gray-100 dark:focus:outline-none dark:focus:ring-blue-500 dark:focus:border-blue-500'}
+                            value={teamSearch}
+                            onChange={e => {
+                              setTeamSearch(e.target.value);
+                              setSelectedTeam(null);
+                              setShowAllTeams(false);
+                            }}
+                            onFocus={() => {
+                              setIsTeamInputFocused(true);
+                              if (!teamSearch) {
+                                const assignedIds = new Set(teams.map(t => t.TeamID));
+                                const availableTeams = orgTeams.filter(t => !assignedIds.has(t.TeamID));
+                                setFilteredAvailableTeams(availableTeams.slice(0, 10));
+                              }
+                            }}
+                            onBlur={() => {
+                              setTimeout(() => {
+                                setIsTeamInputFocused(false);
+                              }, 200);
+                            }}
+                            placeholder="Search team to add..."
+                            autoComplete="off"
+                          />
+                          {selectedTeam && (
                             <button
-                              type="button"
-                              onClick={() => setShowAllTeams(true)}
-                              className={'w-full mt-2 px-4 py-2.5 text-xs text-emerald-600 hover:text-emerald-700 font-semibold hover:bg-emerald-50 rounded-xl transition-colors duration-200 border border-gray-100 bg-white shadow-sm dark:text-emerald-400 dark:hover:text-emerald-300 dark:hover:bg-zinc-800/40 dark:bg-[#111113] dark:border-[#232323]'}
+                              type="submit"
+                              disabled={!selectedTeam}
+                              className={'px-4 py-2 text-sm text-white font-semibold rounded-xl transition-all duration-200 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 shadow-sm dark:bg-blue-600 dark:hover:bg-blue-500'}
+                              title={selectedTeam ? 'Add selected team to project' : 'Select a team from dropdown'}
                             >
-                              Show All Teams ({orgTeams.length})
+                              Add
                             </button>
                           )}
                         </div>
-                      )}
-                    </form>
-                  )}
-                </div>
-                <div>
-                  {teams.length === 0 ? (
-                    <div className={'text-center py-8 text-gray-400 dark:text-gray-500'}>
-                      No teams assigned to this project.
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {teams.map((team) => {
-                        const initials = team.TeamName.length > 0 ? team.TeamName.split(' ').map(n => n[0]).join('') : '';
-                        return (
-                          <div key={team.TeamID}
-                            className={'relative rounded-2xl border border-gray-200/80 p-4 bg-white hover:shadow-md hover:scale-[1.01] transition-all duration-300 dark:border-zinc-800/80 dark:bg-dark-bg hover:bg-gray-50/50 dark:hover:bg-[#232329]/40'}>
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-start gap-3 min-w-0">
-                                <div
-                                  className={'w-10 h-10 rounded-full flex items-center justify-center font-semibold flex-shrink-0 dark:bg-emerald-950/20'}
-                                  style={{ backgroundColor: hexToRgba(team.TeamColor, theme === 'dark' ? 0.12 : 0.3) }}>
-                                  {initials}
-                                </div>
-                                <div className="min-w-0">
-                                  <Link href={`/team/${team.TeamID}`} className={`${tableTextClasses} hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer block truncate`} title="View Team Details">
-                                    {team?.TeamName || team.TeamID}
-                                  </Link>
-                                  {team?.TeamDescription && (
-                                    <div className={`${tableSecondaryTextClasses} truncate`}>{team.TeamDescription}</div>
-                                  )}
-                                  <div className={`${tableSecondaryTextClasses} mt-1 text-sm`}>
-                                    <span className={'text-black text-md text-white'}>Created: </span> {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <StatusPill status={team.IsActive ? 'Active' : 'Inactive'} theme={theme} showPulseOnActive />
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between mt-3">
-                              {/* Members overlay */}
-                              {team.teamMembers && team.teamMembers.length > 0 && (
-                                <div className='flex items-center'>
-                                  <div className="flex -space-x-2">
-                                    {team.teamMembers.slice(0, 3).map((member, idx) => (
-                                      <div
-                                        key={member._id || idx}
-                                        className={'w-7 h-7 rounded-full border-2 border-white overflow-hidden bg-gradient-to-r from-purple-500 to-purple-700 flex items-center justify-center text-white text-xs font-medium shadow-sm dark:border-gray-700'}
-                                        title={`${member.firstName || ''} ${member.lastName || ''}`.trim()}
-                                      >
-                                        {member.profileImage ? (
-                                          <img src={member.profileImage} alt={(member.firstName || member.lastName || 'Member')} className="w-full h-full object-cover" />
-                                        ) : (
-                                          <span>{getUserInitials(member)}</span>
-                                        )}
+                        {isTeamInputFocused && filteredAvailableTeams.length > 0 && (
+                          <div className="absolute top-full right-0 z-50 mt-2 w-96 animate-fadeIn">
+                            <ul className={'border border-gray-200 rounded-xl bg-white max-h-80 overflow-y-auto shadow-2xl py-1.5 scrollbar-thin dark:bg-dark-bg dark:border-[#232323]'}>
+                              {filteredAvailableTeams.map((team, index) => (
+                                <li key={`${team.TeamID}-${index}`} className={'px-3 py-1.5 border-b border-gray-100 last:border-b-0 transition-colors duration-150 dark:border-zinc-800/60'}>
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div
+                                      className={'flex-1 cursor-pointer rounded-lg p-2 hover:bg-gray-50 transition-colors duration-150 dark:hover:bg-zinc-800/40'}
+                                      onMouseEnter={(e) => {
+                                        const el = e.currentTarget;
+                                        el.style.backgroundColor = hexToRgba(team.TeamColor, theme === 'dark' ? 0.15 : 0.08) || '';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        const el = e.currentTarget;
+                                        el.style.backgroundColor = '';
+                                      }}
+                                      onClick={() => {
+                                        setSelectedTeam(team);
+                                        setTeamSearch(team.TeamName + (team.TeamDescription ? ' (' + team.TeamDescription + ')' : ''));
+                                        setIsTeamInputFocused(false);
+                                      }}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div
+                                          className="w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0 text-xs"
+                                          style={{
+                                            backgroundColor: hexToRgba(team.TeamColor, theme === 'dark' ? 0.18 : 0.12),
+                                            color: team.TeamColor || (theme === 'dark' ? '#60A5FA' : '#2563EB')
+                                          }}
+                                        >
+                                          {(team.TeamName || '').split(' ').map(n => n[0]).join('')}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <div className={'font-semibold text-gray-900 text-sm truncate dark:text-gray-100'}>
+                                            {team.TeamName}
+                                          </div>
+                                          {team.TeamDescription && (
+                                            <div className={'text-xs text-gray-500 truncate mt-0.5 dark:text-gray-400'}>
+                                              {team.TeamDescription}
+                                            </div>
+                                          )}
+                                          <div className={'text-xs text-gray-400 mt-0.5 dark:text-gray-500'}>
+                                            Members: {Array.isArray(team.teamMembers) ? team.teamMembers.length : (team.memberCount ?? 0)}
+                                          </div>
+                                        </div>
                                       </div>
-                                    ))}
-                                    {team.teamMembers.length > 3 && (
-                                      <div className={'w-7 h-7 rounded-full border-2 border-white bg-gray-100 text-gray-600 text-xs font-semibold flex items-center justify-center dark:bg-gray-700 dark:border-gray-700 dark:text-gray-300'}
-                                      >
-                                        +{team.teamMembers.length - 3}
-                                      </div>
-                                    )}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => { setSelectedTeam(team); handleAddTeam(team.TeamID); }}
+                                      className={'ml-1 p-2 rounded-full transition-all duration-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-600 dark:hover:text-white'}
+                                    >
+                                      <FaPlus size={12} />
+                                    </button>
                                   </div>
-                                </div>
-                              )}
-                              {isOwner && (
-                                <div className="flex items-center justify-end gap-2">
-                                  <button
-                                    onClick={() => {
-                                      setRevokingTeam(team);
-                                      setShowRevokeDialog(true);
-                                    }}
-                                    className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
-                                      ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-800/50'
-                                      : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-800/50'}`}
-                                    title={team.IsActive ? 'Revoke Access' : 'Grant Access'}
-                                    disabled={toggling === team.TeamID}
-                                  >
-                                    <FaToggleOn size={14} />
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setRemovingTeam(team);
-                                      setShowRemoveDialog(true);
-                                    }}
-                                    className={'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'}
-                                    title="Remove Team"
-                                    disabled={removing}
-                                  >
-                                    <FaTimes size={14} />
-                                  </button>
-                                </div>
-                              )}
-                            </div>
+                                </li>
+                              ))}
+                            </ul>
+                            {!showAllTeams && orgTeams.length > 10 && (
+                              <button
+                                type="button"
+                                onClick={() => setShowAllTeams(true)}
+                                className={'w-full mt-2 px-4 py-2.5 text-xs text-emerald-600 hover:text-emerald-700 font-semibold hover:bg-emerald-50 rounded-xl transition-colors duration-200 border border-gray-100 bg-white shadow-sm dark:text-emerald-400 dark:hover:text-emerald-300 dark:hover:bg-zinc-800/40 dark:bg-[#111113] dark:border-[#232323]'}
+                              >
+                                Show All Teams ({orgTeams.length})
+                              </button>
+                            )}
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* User Stories Table */}
-              {showUserStories && (
-                <div className="lg:col-span-2">
-                  <div className="flex justify-between mb-2">
-                    <h2 className={'text-xl font-semibold text-gray-900 dark:text-gray-100'}>User Stories</h2>
-                    {!project?.isArchived && (
-                      <button
-                        onClick={() => openAddTaskModal({
-                          mode: 'fromProject',
-                          projectIdDefault: projectId,
-                          userStories: userStories,
-                          addTaskTypeMode: 'userStory',
-                          projectMembers: projectMembers,
-                          onAddTask: handleAddTask
-                        })}
-                        className={'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'}
-                      >
-                        <FaPlus size={14} />
-                        Create
-                      </button>
+                        )}
+                      </form>
                     )}
                   </div>
-                  <div className={`overflow-x-auto overflow-y-auto max-h-[220px] custom-scrollbar ${tableContainerClasses}`}>
-                    {userStories.length === 0 ? (
+                  <div>
+                    {teams.length === 0 ? (
                       <div className={'text-center py-8 text-gray-400 dark:text-gray-500'}>
-                        No user stories for this project.
+                        No teams assigned to this project.
                       </div>
                     ) : (
-                      <table className="w-full">
-                        <thead className={`sticky top-0 z-10 border-b bg-gray-50 border-gray-200 dark:bg-[#111113] dark:border-zinc-800/80`}>
-                          <tr className={tableHeaderClasses}>
-                            <th className={`py-3 px-4 text-left w-[340px] ${tableHeaderTextClasses}`}>Name</th>
-                            <th className={`hidden md:table-cell py-3 px-4 text-left w-[180px] ${tableHeaderTextClasses}`}>Due Date</th>
-                            <th className={`py-3 px-4 text-center w-[160px] ${tableHeaderTextClasses}`}>Status</th>
-                            <th className={`py-3 px-4 text-center w-[120px] ${tableHeaderTextClasses}`}>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {userStories.map(story => (
-                            <tr key={story._id} className={tableRowClasses}>
-                              <td className="py-1.5 px-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="flex flex-col">
-                                    <Link href={`/task/${story.TaskID}`} className={tableTextClasses + ' hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer'} title="View User Story Details">
-                                      {story.Name}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {teams.map((team) => {
+                          const initials = team.TeamName.length > 0 ? team.TeamName.split(' ').map(n => n[0]).join('') : '';
+                          return (
+                            <div key={team.TeamID}
+                              className={'relative rounded-2xl border border-gray-200/80 p-4 bg-white hover:shadow-md hover:scale-[1.01] transition-all duration-300 dark:border-zinc-800/80 dark:bg-dark-bg hover:bg-gray-50/50 dark:hover:bg-[#232329]/40'}>
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-start gap-3 min-w-0">
+                                  <div
+                                    className={'w-10 h-10 rounded-full flex items-center justify-center font-semibold flex-shrink-0 dark:bg-emerald-950/20'}
+                                    style={{ backgroundColor: hexToRgba(team.TeamColor, theme === 'dark' ? 0.12 : 0.3) }}>
+                                    {initials}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <Link href={`/team/${team.TeamID}`} className={`${tableTextClasses} hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer block truncate`} title="View Team Details">
+                                      {team?.TeamName || team.TeamID}
                                     </Link>
-                                    <div className="flex items-center justify-start gap-1 min-w-0 w-full text-xs mt-0.5">
-                                      {(story.TaskNumber || story.TicketNumber) && (
-                                        <span className="font-semibold font-mono text-blue-600 dark:text-blue-400 shrink-0">
-                                          #{story.TaskNumber || story.TicketNumber}
-                                        </span>
-                                      )}
-                                      {(story.TaskNumber || story.TicketNumber) && story.Description && (
-                                        <span className="text-gray-300 dark:text-gray-600 shrink-0">•</span>
-                                      )}
-                                      {story.Description && (
-                                        <span className={`${tableSecondaryTextClasses} truncate block`} title={story.Description}>{story.Description}</span>
-                                      )}
+                                    {team?.TeamDescription && (
+                                      <div className={`${tableSecondaryTextClasses} truncate`}>{team.TeamDescription}</div>
+                                    )}
+                                    <div className={`${tableSecondaryTextClasses} mt-1 text-sm`}>
+                                      <span className={'dark:text-white'}>Created: </span> {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
                                     </div>
                                   </div>
                                 </div>
-                              </td>
-                              <td className={`hidden md:table-cell py-1.5 px-4 ${tableSecondaryTextClasses}`}>
-                                <span>{formatDateUTC(story.DueDate)}</span>
-                              </td>
-                              <td className="py-1.5 px-4 text-center">
-                                {getTaskStatusBadge(story.Status, theme === 'dark', getTaskStatusText(story.Status))}
-                              </td>
-                              <td className="py-1.5 px-4 text-center">
-                                <div className="flex items-center justify-center gap-2">
-                                  <button
-                                    onClick={() => handleEditTask(story)}
-                                    className={'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-800/50'}
-                                    title="Edit User Story"
-                                  >
-                                    <FaEdit size={12} />
-                                  </button>
-                                  <button
-                                    onClick={() => confirmDeleteUserStory(story)}
-                                    className={'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'}
-                                    title="Delete User Story"
-                                  >
-                                    <FaTrash size={12} />
-                                  </button>
+                                <div className="flex items-center gap-2">
+                                  <StatusPill status={team.IsActive ? 'Active' : 'Inactive'} theme={theme} showPulseOnActive />
                                 </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                              </div>
+                              <div className="flex items-center justify-between mt-3">
+                                {/* Members overlay */}
+                                {team.teamMembers && team.teamMembers.length > 0 && (
+                                  <div className='flex items-center'>
+                                    <div className="flex -space-x-2">
+                                      {team.teamMembers.slice(0, 3).map((member, idx) => (
+                                        <div
+                                          key={member._id || idx}
+                                          className={'w-7 h-7 rounded-full border-2 border-white overflow-hidden bg-gradient-to-r from-purple-500 to-purple-700 flex items-center justify-center text-white text-xs font-medium shadow-sm dark:border-gray-700'}
+                                          title={`${member.firstName || ''} ${member.lastName || ''}`.trim()}
+                                        >
+                                          {member.profileImage ? (
+                                            <img src={member.profileImage} alt={(member.firstName || member.lastName || 'Member')} className="w-full h-full object-cover" />
+                                          ) : (
+                                            <span>{getUserInitials(member)}</span>
+                                          )}
+                                        </div>
+                                      ))}
+                                      {team.teamMembers.length > 3 && (
+                                        <div className={'w-7 h-7 rounded-full border-2 border-white bg-gray-100 text-gray-600 text-xs font-semibold flex items-center justify-center dark:bg-gray-700 dark:border-gray-700 dark:text-gray-300'}
+                                        >
+                                          +{team.teamMembers.length - 3}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                                {isOwner && (
+                                  <div className="flex items-center justify-end gap-2">
+                                    <button
+                                      onClick={() => {
+                                        setRevokingTeam(team);
+                                        setShowRevokeDialog(true);
+                                      }}
+                                      className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive
+                                        ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-800/50'
+                                        : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-800/50'}`}
+                                      title={team.IsActive ? 'Revoke Access' : 'Grant Access'}
+                                      disabled={toggling === team.TeamID}
+                                    >
+                                      <FaToggleOn size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setRemovingTeam(team);
+                                        setShowRemoveDialog(true);
+                                      }}
+                                      className={'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'}
+                                      title="Remove Team"
+                                      disabled={removing}
+                                    >
+                                      <FaTimes size={14} />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* Tasks Table - Keep it full width below */}
-            <div className="mb-8">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className={'text-xl font-semibold text-gray-900 dark:text-gray-100'}>Tasks</h2>
-                  <div className="flex items-center gap-3">
-                    {selectedTasks.length > 0 ? (
-                      <>
-                        <div className={'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'}>
-                          <span className="text-sm font-medium">{selectedTasks.length} selected</span>
-                          <button
-                            onClick={() => setSelectedTasks([])}
-                            className={'p-1 hover:bg-emerald-100 rounded-full transition-colors dark:hover:bg-emerald-900/50'}
-                          >
-                            <FaTimes size={14} />
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => setShowBulkDeleteDialog(true)}
-                          className={'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'}
-                        >
-                          <MdDelete size={18} />
-                          Delete Selected
-                        </button>
-                      </>
-                    ) : (
-                      !project?.isArchived && (
+                {/* User Stories Table */}
+                {showUserStories && (
+                  <div className="lg:col-span-2">
+                    <div className="flex justify-between mb-2">
+                      <h2 className={'text-xl font-semibold text-gray-900 dark:text-gray-100'}>User Stories</h2>
+                      {!project?.isArchived && (
                         <button
                           onClick={() => openAddTaskModal({
                             mode: 'fromProject',
                             projectIdDefault: projectId,
-                            parentIdDefault: selectedUserStory !== 'all' ? selectedUserStory : '',
                             userStories: userStories,
-                            addTaskTypeMode: 'task',
+                            addTaskTypeMode: 'userStory',
                             projectMembers: projectMembers,
                             onAddTask: handleAddTask
                           })}
@@ -2141,441 +2026,336 @@ const ProjectDetailsPage = () => {
                           <FaPlus size={14} />
                           Create
                         </button>
-                      )
-                    )}
+                      )}
+                    </div>
+                    <div className={`overflow-x-auto overflow-y-auto max-h-[220px] custom-scrollbar ${tableContainerClasses}`}>
+                      {userStories.length === 0 ? (
+                        <div className={'text-center py-8 text-gray-400 dark:text-gray-500'}>
+                          No user stories for this project.
+                        </div>
+                      ) : (
+                        <table className="w-full">
+                          <thead className={`sticky top-0 z-10 border-b bg-gray-50 border-gray-200 dark:bg-[#111113] dark:border-zinc-800/80`}>
+                            <tr className={tableHeaderClasses}>
+                              <th className={`py-3 px-4 text-left w-[340px] ${tableHeaderTextClasses}`}>Name</th>
+                              <th className={`hidden md:table-cell py-3 px-4 text-left w-[180px] ${tableHeaderTextClasses}`}>Due Date</th>
+                              <th className={`py-3 px-4 text-center w-[160px] ${tableHeaderTextClasses}`}>Status</th>
+                              <th className={`py-3 px-4 text-center w-[120px] ${tableHeaderTextClasses}`}>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {userStories.map(story => (
+                              <tr key={story._id} className={tableRowClasses}>
+                                <td className="py-1.5 px-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex flex-col">
+                                      <Link href={`/task/${story.TaskID}`} className={tableTextClasses + ' hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer'} title="View User Story Details">
+                                        {story.Name}
+                                      </Link>
+                                      <div className="flex items-center justify-start gap-1 min-w-0 w-full text-xs mt-0.5">
+                                        {(story.TaskNumber || story.TicketNumber) && (
+                                          <span className="font-semibold font-mono text-blue-600 dark:text-blue-400 shrink-0">
+                                            #{story.TaskNumber || story.TicketNumber}
+                                          </span>
+                                        )}
+                                        {(story.TaskNumber || story.TicketNumber) && story.Description && (
+                                          <span className="text-gray-300 dark:text-gray-600 shrink-0">•</span>
+                                        )}
+                                        {story.Description && (
+                                          <span className={`${tableSecondaryTextClasses} truncate block`} title={story.Description}>{story.Description}</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className={`hidden md:table-cell py-1.5 px-4 ${tableSecondaryTextClasses}`}>
+                                  <span>{formatDateUTC(story.DueDate)}</span>
+                                </td>
+                                <td className="py-1.5 px-4 text-center">
+                                  {getTaskStatusBadge(story.Status, theme === 'dark', getTaskStatusText(story.Status))}
+                                </td>
+                                <td className="py-1.5 px-4 text-center">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <button
+                                      onClick={() => handleEditTask(story)}
+                                      className={'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-800/50'}
+                                      title="Edit User Story"
+                                    >
+                                      <FaEdit size={12} />
+                                    </button>
+                                    <button
+                                      onClick={() => confirmDeleteUserStory(story)}
+                                      className={'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'}
+                                      title="Delete User Story"
+                                    >
+                                      <FaTrash size={12} />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div className={`overflow-x-auto overflow-y-auto max-h-[80vh] custom-scrollbar mb-2 ${tableContainerClasses}`}>
-                {taskList.length === 0 ? (
-                  <div className={'text-center py-8 text-gray-400 dark:text-gray-500'}>
-                    No tasks for this project.
-                  </div>
-                ) : (
-                  <table className="w-full table-fixed">
-                    <thead className={`sticky top-0 z-10 border-b bg-gray-50 border-gray-200 dark:bg-[#111113] dark:border-zinc-800/80`}>
-                      <tr className={tableHeaderClasses}>
-                        <th className={`hidden sm:table-cell py-3 pl-4 text-center w-[50px] ${tableHeaderTextClasses}`}>
-                          <input
-                            type="checkbox"
-                            checked={selectedTasks.length === taskList.length && taskList.length > 0}
-                            onChange={handleSelectAllTasks}
-                            className={'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'}
-                          />
-                        </th>
-                        <th className={`py-3 px-4 text-left w-[42%] ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
-                            <span>Name</span>
-                            {getTasksSortIcon('name')}
-                          </button>
-                        </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[12%] ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
-                            <span>Assigned To</span>
-                            {getTasksSortIcon('assignedTo')}
-                          </button>
-                        </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-center w-[11%] ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
-                            <span>Assigned On</span>
-                            {getTasksSortIcon('assignedDate')}
-                          </button>
-                        </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-center w-[11%] ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('dueDate')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
-                            <span>Due Date</span>
-                            {getTasksSortIcon('dueDate')}
-                          </button>
-                        </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[8%] ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
-                            <span>Priority</span>
-                            {getTasksSortIcon('priority')}
-                          </button>
-                        </th>
-                        <th className={`py-3 px-4 text-center w-[9%] ${tableHeaderTextClasses}`}>
-                          <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
-                            <span>Status</span>
-                            {getTasksSortIcon('status')}
-                          </button>
-                        </th>
-                        <th className={`hidden sm:table-cell py-3 px-4 text-center w-[7%] ${tableHeaderTextClasses}`}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {tasksSorted.map(task => {
-                        const ticketRowClasses = task.Type === 'Support'
-                          ? `${tableRowClasses} bg-red-50 dark:bg-red-900/10`
-                          : tableRowClasses;
-
-                        return (
-                          <tr key={task._id} className={ticketRowClasses}>
-                            <td className="hidden sm:table-cell py-3 pl-4 text-center">
-                              <input
-                                type="checkbox"
-                                checked={selectedTasks.includes(task.TaskID)}
-                                onChange={() => handleSelectTask(task.TaskID)}
-                                className={'w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-emerald-600'}
-                              />
-                            </td>
-                            <td className="py-3 px-4 overflow-hidden">
-                              <div className="flex flex-col min-w-0">
-                                <div className="flex items-center gap-2 mb-1 w-full min-w-0">
-                                  <button
-                                    onClick={() => router.push(`/task/${task.TaskID}`)}
-                                    className={'text-left hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full dark:hover:text-blue-400'}
-                                    title={task.Name}
-                                  >
-                                    {task.Name && task.Name.length > 100 ? `${task.Name.substring(0, 100)}...` : task.Name}
-                                  </button>
-                                  {getTaskTypeBadgeComponent(task.Type)}
-                                </div>
-                                <div className="flex items-center justify-start gap-1 min-w-0 w-full text-xs">
-                                  {(task.TaskNumber || task.TicketNumber) && (
-                                    <span className="font-semibold font-mono text-blue-600 dark:text-blue-400 shrink-0">
-                                      #{task.TaskNumber || task.TicketNumber}
-                                    </span>
-                                  )}
-                                  {(task.TaskNumber || task.TicketNumber) && task.Description && (
-                                    <span className="text-gray-300 dark:text-gray-600 shrink-0">•</span>
-                                  )}
-                                  <span className={'text-gray-500 truncate block dark:text-gray-400'} title={task.Description}>{task.Description}</span>
-                                </div>
-                                {/* Show assigned to on mobile if available */}
-                                {task.AssignedTo && task.AssignedToDetails && (
-                                  <div className={'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300'}>
-                                    <span>{task.AssignedToDetails.fullName.split(' ')[0]}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="hidden md:table-cell py-3 px-4">
-                              {task.AssignedTo && task.AssignedToDetails ? (
-                                <div className="flex items-center gap-3">
-                                  <div className={'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm dark:from-blue-600 dark:to-blue-700'}>
-                                    {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
-                                  </div>
-                                  <div className="flex flex-col">
-                                    <span className={tableTextClasses}>{task.AssignedToDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
-                                    {task.AssignedToDetails.teamName && (
-                                      <span className={`text-xs ${tableSecondaryTextClasses}`}>{task.AssignedToDetails.teamName}</span>
-                                    )}
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="flex items-center">
-                                  <span className={tableSecondaryTextClasses}>Not Assigned</span>
-                                </div>
-                              )}
-                            </td>
-                            <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
-                              {task.AssignedDate ? (
-                                <div className="flex flex-col items-center leading-tight text-sm">
-                                  <span>{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                                  <span className={'text-xs text-gray-500 text-xs text-gray-400'}>
-                                    {new Date(task.AssignedDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                                  </span>
-                                </div>
-                              ) : (
-                                '-'
-                              )}
-                            </td>
-                            <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
-                              <span>{formatDateUTC(task.DueDate)}</span>
-                            </td>
-                            <td className="hidden md:table-cell py-3 px-4">
-                              <div className="flex items-center justify-center gap-1.5">
-                                {task.Type !== 'User Story' && getPriorityBadge(task.Priority)}
-                              </div>
-                            </td>
-                            <td className="py-3 px-4 text-center">
-                              {getTaskStatusBadge(task.Status, theme === 'dark', getTaskStatusText(task.Status))}
-                            </td>
-                            <td className="hidden sm:table-cell py-3 px-4 text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  onClick={() => handleEditTask(task)}
-                                  className={'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-800/50'}
-                                  title="Edit Task"
-                                >
-                                  <FaEdit size={12} />
-                                </button>
-                                <button
-                                  onClick={() => confirmDeleteTask(task)}
-                                  className={'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'}
-                                  title="Delete Task"
-                                  disabled={removing}
-                                >
-                                  <MdDelete size={16} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
                 )}
               </div>
-            </div>
-            {/* Project Activity Timeline - moved below Tasks Table */}
-            {projectActivity.length > 0 && (
+
+              {/* Tasks Table - Keep it full width below */}
               <div className="mb-8">
-                <ProjectActivity
-                  projectId={projectId}
-                  activity={projectActivity}
-                  projectCreatedDate={project?.CreatedDate}
-                  hasMore={hasMoreActivities}
-                  onLoadMore={handleLoadMoreActivities}
-                  loadingMore={loadingMoreActivities}
-                />
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className={'text-xl font-semibold text-gray-900 dark:text-gray-100'}>Tasks</h2>
+                    <div className="flex items-center gap-3">
+                      {selectedTasks.length > 0 ? (
+                        <>
+                          <div className={'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'}>
+                            <span className="text-sm font-medium">{selectedTasks.length} selected</span>
+                            <button
+                              onClick={() => setSelectedTasks([])}
+                              className={'p-1 hover:bg-emerald-100 rounded-full transition-colors dark:hover:bg-emerald-900/50'}
+                            >
+                              <FaTimes size={14} />
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => setShowBulkDeleteDialog(true)}
+                            className={'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'}
+                          >
+                            <MdDelete size={18} />
+                            Delete Selected
+                          </button>
+                        </>
+                      ) : (
+                        !project?.isArchived && (
+                          <button
+                            onClick={() => openAddTaskModal({
+                              mode: 'fromProject',
+                              projectIdDefault: projectId,
+                              parentIdDefault: selectedUserStory !== 'all' ? selectedUserStory : '',
+                              userStories: userStories,
+                              addTaskTypeMode: 'task',
+                              projectMembers: projectMembers,
+                              onAddTask: handleAddTask
+                            })}
+                            className={'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'}
+                          >
+                            <FaPlus size={14} />
+                            Create
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className={`overflow-x-auto overflow-y-auto max-h-[80vh] custom-scrollbar mb-2 ${tableContainerClasses}`}>
+                  {taskList.length === 0 ? (
+                    <div className={'text-center py-8 text-gray-400 dark:text-gray-500'}>
+                      No tasks for this project.
+                    </div>
+                  ) : (
+                    <table className="w-full table-fixed">
+                      <thead className={`sticky top-0 z-10 border-b bg-gray-50 border-gray-200 dark:bg-[#111113] dark:border-zinc-800/80`}>
+                        <tr className={tableHeaderClasses}>
+                          <th className={`hidden sm:table-cell py-3 pl-4 text-center w-[50px] ${tableHeaderTextClasses}`}>
+                            <input
+                              type="checkbox"
+                              checked={selectedTasks.length === taskList.length && taskList.length > 0}
+                              onChange={handleSelectAllTasks}
+                              className={'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'}
+                            />
+                          </th>
+                          <th className={`py-3 px-4 text-left w-[42%] ${tableHeaderTextClasses}`}>
+                            <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                              <span>Name</span>
+                              {getTasksSortIcon('name')}
+                            </button>
+                          </th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-left w-[12%] ${tableHeaderTextClasses}`}>
+                            <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                              <span>Assigned To</span>
+                              {getTasksSortIcon('assignedTo')}
+                            </button>
+                          </th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-center w-[11%] ${tableHeaderTextClasses}`}>
+                            <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                              <span>Assigned On</span>
+                              {getTasksSortIcon('assignedDate')}
+                            </button>
+                          </th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-center w-[11%] ${tableHeaderTextClasses}`}>
+                            <button type="button" onClick={() => handleTasksSort('dueDate')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                              <span>Due Date</span>
+                              {getTasksSortIcon('dueDate')}
+                            </button>
+                          </th>
+                          <th className={`hidden md:table-cell py-3 px-4 text-left w-[8%] ${tableHeaderTextClasses}`}>
+                            <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                              <span>Priority</span>
+                              {getTasksSortIcon('priority')}
+                            </button>
+                          </th>
+                          <th className={`py-3 px-4 text-center w-[9%] ${tableHeaderTextClasses}`}>
+                            <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                              <span>Status</span>
+                              {getTasksSortIcon('status')}
+                            </button>
+                          </th>
+                          <th className={`hidden sm:table-cell py-3 px-4 text-center w-[7%] ${tableHeaderTextClasses}`}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {tasksSorted.map(task => {
+                          const ticketRowClasses = task.Type === 'Support'
+                            ? `${tableRowClasses} bg-red-50 dark:bg-red-900/10`
+                            : tableRowClasses;
+
+                          return (
+                            <tr key={task._id} className={ticketRowClasses}>
+                              <td className="hidden sm:table-cell py-3 pl-4 text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedTasks.includes(task.TaskID)}
+                                  onChange={() => handleSelectTask(task.TaskID)}
+                                  className={'w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-emerald-600'}
+                                />
+                              </td>
+                              <td className="py-3 px-4 overflow-hidden">
+                                <div className="flex flex-col min-w-0">
+                                  <div className="flex items-center gap-2 mb-1 w-full min-w-0">
+                                    <button
+                                      onClick={() => router.push(`/task/${task.TaskID}`)}
+                                      className={'text-left hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full dark:hover:text-blue-400'}
+                                      title={task.Name}
+                                    >
+                                      {task.Name && task.Name.length > 100 ? `${task.Name.substring(0, 100)}...` : task.Name}
+                                    </button>
+                                    {getTaskTypeBadgeComponent(task.Type)}
+                                  </div>
+                                  <div className="flex items-center justify-start gap-1 min-w-0 w-full text-xs">
+                                    {(task.TaskNumber || task.TicketNumber) && (
+                                      <span className="font-semibold font-mono text-blue-600 dark:text-blue-400 shrink-0">
+                                        #{task.TaskNumber || task.TicketNumber}
+                                      </span>
+                                    )}
+                                    {(task.TaskNumber || task.TicketNumber) && task.Description && (
+                                      <span className="text-gray-300 dark:text-gray-600 shrink-0">•</span>
+                                    )}
+                                    <span className={'text-gray-500 truncate block dark:text-gray-400'} title={task.Description}>{task.Description}</span>
+                                  </div>
+                                  {/* Show assigned to on mobile if available */}
+                                  {task.AssignedTo && task.AssignedToDetails && (
+                                    <div className={'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300'}>
+                                      <span>{task.AssignedToDetails.fullName.split(' ')[0]}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="hidden md:table-cell py-3 px-4">
+                                {task.AssignedTo && task.AssignedToDetails ? (
+                                  <div className="flex items-center gap-3">
+                                    <div className={'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm dark:from-blue-600 dark:to-blue-700'}>
+                                      {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className={tableTextClasses}>{task.AssignedToDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
+                                      {task.AssignedToDetails.teamName && (
+                                        <span className={`text-xs ${tableSecondaryTextClasses}`}>{task.AssignedToDetails.teamName}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center">
+                                    <span className={tableSecondaryTextClasses}>Not Assigned</span>
+                                  </div>
+                                )}
+                              </td>
+                              <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
+                                {task.AssignedDate ? (
+                                  <div className="flex flex-col items-center leading-tight text-sm">
+                                    <span>{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                                    <span className={'text-xs text-gray-500 text-xs text-gray-400'}>
+                                      {new Date(task.AssignedDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  '-'
+                                )}
+                              </td>
+                              <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
+                                <span>{formatDateUTC(task.DueDate)}</span>
+                              </td>
+                              <td className="hidden md:table-cell py-3 px-4">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  {task.Type !== 'User Story' && getPriorityBadge(task.Priority)}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                {getTaskStatusBadge(task.Status, theme === 'dark', getTaskStatusText(task.Status))}
+                              </td>
+                              <td className="hidden sm:table-cell py-3 px-4 text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                  <button
+                                    onClick={() => handleEditTask(task)}
+                                    className={'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-800/50'}
+                                    title="Edit Task"
+                                  >
+                                    <FaEdit size={12} />
+                                  </button>
+                                  <button
+                                    onClick={() => confirmDeleteTask(task)}
+                                    className={'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'}
+                                    title="Delete Task"
+                                    disabled={removing}
+                                  >
+                                    <MdDelete size={16} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-        ) : activeTab === 'board' ? (
-          <div>
-            {/* Board Tab: Re-using global Kanban board */}
-            <KanbanBoard projectId={projectId} selectedUserStoryProp={selectedUserStory} projectMembersProp={projectMembers} taskListProp={taskList} />
-          </div>
-        ) : activeTab === 'timeline' ? (
-          <GanttChart tasks={taskList} userStories={userStories} project={project} onUpdateTask={handleUpdateTask} onEditTask={handleEditTask} />
-        ) : activeTab === 'files' ? (
-          <ProjectFilesTab projectId={projectId} />
-        ) : activeTab === 'list' ? (
-          <div className="overflow-x-auto">
-            <table className="w-full cursor-pointer">
-              <tbody className="bg-white dark:bg-dark-bg">
-                {[
-                  { code: 1, label: 'Not Assigned' },
-                  { code: 2, label: 'Assigned' },
-                  { code: 3, label: 'In Progress' },
-                  { code: 4, label: 'QA' },
-                  { code: 5, label: 'Deployment' },
-                  { code: 6, label: 'Completed' }
-                ].map(({ code, label }, indexx) => {
-                  const tasksByStatus = (taskList || []).filter(t => t.Status === code);
-
-                  // Flatten tasks and subtasks into a single array
-                  const flattenedItems = [];
-                  tasksByStatus.forEach(task => {
-                    // Add the main task
-                    flattenedItems.push({ ...task, isSubtask: false });
-
-                    // Add subtasks if they exist
-                    if (task.subtasks && task.subtasks.length > 0) {
-                      task.subtasks.forEach(subtask => {
-                        flattenedItems.push({
-                          ...subtask,
-                          isSubtask: true,
-                          parentTask: task,
-                          // Map subtask fields to task-like structure
-                          Name: subtask.Name,
-                          Description: '', // Subtasks typically don't have descriptions
-                          Status: task.Status, // Use parent task status for background color
-                          AssignedTo: subtask.CompletedBy, // Map CompletedBy to AssignedTo
-                          AssignedToDetails: subtask.CompletedByDetails,
-                          Assignee: subtask.CreatedBy, // Map CreatedBy to Assignee
-                          AssigneeDetails: subtask.CreatedByDetails,
-                          IsCompleted: subtask.IsCompleted,
-                          AssignedDate: subtask.CompletedDate,
-                          DueDate: task.DueDate
-                        });
-                      });
-                    }
-                  });
-                  const statusStyle = getTaskStatusStyle(code, theme === 'dark');
-                  const StatusIcon = statusStyle.icon;
-
-                  return (
-                    <React.Fragment key={code}>
-                      {/* Status Header Row */}
-                      <tr>
-                        <td colSpan="8" className="p-0">
-                          <div className={`flex items-center ${indexx === 0 ? '' : 'mt-2'}`}>
-                            <div className="flex items-center justify-center w-8 h-12" onClick={(e) => { e.preventDefault(); toggleAccordion(code); }}>
-                              {openAccordions[code] ? (
-                                <FaSortUp className={`${statusStyle.iconColor} transition-transform duration-300 cursor-pointer`} size={14} />
-                              ) : (
-                                <FaSortDown className={`${statusStyle.iconColor} transition-transform duration-300 cursor-pointer`} size={14} />
-                              )}
-                            </div>
-                            <div className={`flex-1 cursor-pointer select-none px-4 py-3 font-semibold rounded-lg ${statusStyle.textColor} bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.borderColor} flex items-center justify-start gap-3`}
-                              onClick={(e) => { e.preventDefault(); toggleAccordion(code); }} >
-                              <div className="flex items-center gap-3">
-                                <StatusIcon className={statusStyle.iconColor} size={16} />
-                                <span>{label}</span>
-                              </div>
-                              <span className={`text-sm ${statusStyle.textColor} opacity-70`}>{tasksByStatus.length}</span>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-
-                      {/* Task Rows */}
-                      <tr>
-                        <td colSpan="8" className="p-0">
-                          <div className={`accordion-content ${openAccordions[code] ? 'open' : 'closed'}`}>
-                            {flattenedItems.length > 0 && (
-                              <table className="w-full table-fixed">
-                                <thead>
-                                  <tr className="text-left text-xs font-medium text-gray-400 uppercase dark:bg-[#111113]">
-                                    <th className="py-3 px-4 tracking-wider w-[4%]"></th>
-                                    <th className="py-3 px-4 tracking-wider w-[43%] border-b border-gray-200 dark:border-gray-700">Task</th>
-                                    <th className="py-3 px-4 tracking-wider w-[15%] border-b border-gray-200 dark:border-gray-700">Assigned To</th>
-                                    <th className="py-3 px-4 tracking-wider text-center hidden sm:table-cell w-[11%] border-b border-gray-200 dark:border-gray-700">Assigned On</th>
-                                    <th className="py-3 px-4 tracking-wider text-center hidden sm:table-cell w-[8%] border-b border-gray-200 dark:border-gray-700">Priority</th>
-                                    <th className="py-3 px-4 tracking-wider text-center hidden sm:table-cell w-[11%] border-b border-gray-200 dark:border-gray-700">Task Type</th>
-                                    <th className="py-3 px-4 tracking-wider text-center hidden sm:table-cell w-[8%] border-b border-gray-200 dark:border-gray-700">Actions</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {flattenedItems.map((item, index) => {
-                                    return (
-                                      <tr key={item.isSubtask ? `subtask-${item.SubtaskID}` : `task-${item.TaskID}`}
-                                        className={item.isSubtask ? `bg-opacity-10 ${statusStyle.bgColor.replace('bg-gradient-to-r', '').trim()}` : ''} >
-                                        <td className={`w-[4%] ${item.isSubtask ? 'py-2' : 'py-3'} px-4`}></td>
-                                        <td className={`px-4 ${item.isSubtask ? 'py-2' : 'py-1'} w-[43%]`}>
-                                          <div className={`flex flex-col ${item.isSubtask ? 'ml-4' : ''}`}>
-                                            <div className="flex items-center gap-2 mb-1">
-                                              {item.isSubtask ? (
-                                                <div className="flex items-center gap-1">
-                                                  <FiCornerDownRight className='text-gray-400' />
-                                                  <div
-                                                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${item.IsCompleted
-                                                      ? 'bg-green-500 border-green-500'
-                                                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                                                      } ${togglingSubtasks.has(item.SubtaskID) ? 'opacity-50' : ''}`}
-                                                    onClick={() => handleSubtaskToggle(item.SubtaskID, item.parentTask.TaskID)}
-                                                    title={item.IsCompleted ? 'Mark as incomplete' : 'Mark as complete'}
-                                                  >
-                                                    {item.IsCompleted && (
-                                                      <FaCheck size={8} className="text-white" />
-                                                    )}
-                                                    {togglingSubtasks.has(item.SubtaskID) && (
-                                                      <FaSpinner size={8} className="text-white animate-spin" />
-                                                    )}
-                                                  </div>
-                                                  <span className={`text-sm font-medium ${item.IsCompleted ? 'line-through text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>
-                                                    {item.Name && item.Name.length > 100 ? `${item.Name.substring(0, 100)}...` : item.Name}
-                                                  </span>
-                                                </div>
-                                              ) : (
-                                                <div className="flex flex-col items-start gap-1">
-                                                  <button
-                                                    onClick={() => router.push(`/task/${item.TaskID}`)}
-                                                    className="text-left text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-450 hover:underline transition-colors cursor-pointer font-medium text-md"
-                                                    title="Click to view task details"
-                                                  >
-                                                    {item.Name && item.Name.length > 100 ? `${item.Name.substring(0, 100)}...` : item.Name}
-                                                  </button>
-                                                  <span className={'text-xs text-gray-500 dark:text-gray-400'}>{item.Description}</span>
-                                                </div>
-                                              )}
-                                            </div>
-
-                                          </div>
-                                        </td>
-                                        <td className={`px-4 ${item.isSubtask ? 'py-2' : 'py-3'} w-[15%]`}>
-                                          {item.AssignedTo && item.AssignedToDetails ? (
-                                            <div className={`flex items-center ${item.isSubtask ? '' : 'gap-3'}`}>
-                                              {!item.isSubtask && (
-                                                <div className={'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm dark:from-blue-600 dark:to-blue-700'}>
-                                                  {item.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
-                                                </div>
-                                              )}
-                                              <div className="flex flex-col">
-                                                <span className={'text-sm font-medium text-gray-900 dark:text-gray-100'}>
-                                                  {item.AssignedToDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(item.AssignedTo) ? ' (You)' : ''}</span>
-                                                </span>
-                                                {item.AssignedToDetails.teamName && (
-                                                  <span className={`text-xs ${'text-gray-500 dark:text-gray-400'}`}>{item.AssignedToDetails.teamName}</span>
-                                                )}
-                                              </div>
-                                            </div>
-                                          ) : (
-                                            <div className="flex items-center">
-                                              <span className={'text-sm text-gray-500 dark:text-gray-400'}>Not Assigned</span>
-                                            </div>
-                                          )}
-                                        </td>
-                                        <td className={`px-4 hidden sm:table-cell text-center ${item.isSubtask ? 'py-2' : 'py-3'} w-[11%]`}>
-                                          {!item.isSubtask ? (
-                                            <span className={'text-sm text-gray-900 dark:text-gray-100'}>
-                                              {item.AssignedDate ? formatDate(item.AssignedDate) : '-'}
-                                            </span>
-                                          ) : (
-                                            <span className={'text-sm text-gray-900 dark:text-gray-100'}>{item.CreatedDate ? formatDate(item.CreatedDate) : '-'}</span>
-                                          )}
-                                        </td>
-                                        <td className={`px-4 hidden sm:table-cell text-center ${item.isSubtask ? 'py-2' : 'py-3'} w-[8%]`}>
-                                          {!item.isSubtask && getPriorityBadge(item.Priority)}
-                                        </td>
-                                        <td className={`px-4 hidden sm:table-cell text-center ${item.isSubtask ? 'py-2' : 'py-3'} w-[11%]`}>
-                                          {!item.isSubtask && getTaskTypeBadgeComponent(item.Type)}
-                                        </td>
-                                        <td className={`px-4 hidden sm:table-cell text-center ${item.isSubtask ? 'py-2' : 'py-3'} w-[8%]`}>
-                                          {!item.isSubtask && (
-                                            <div className="flex items-center justify-center gap-2">
-                                              <button
-                                                onClick={() => router.push(`/task/${item.TaskID}`)}
-                                                className={'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50'}
-                                                title="Open Task"
-                                              >
-                                                <FaExternalLinkAlt size={14} />
-                                              </button>
-                                              <button
-                                                onClick={() => confirmDeleteTask(item)}
-                                                className={'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'}
-                                                title="Delete Task"
-                                              >
-                                                <MdDelete size={18} />
-                                              </button>
-                                            </div>
-                                          )}
-                                        </td>
-                                      </tr>
-                                    );
-                                  })}
-                                </tbody>
-                              </table>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-
-                      {/* Empty State Row */}
-                      <tr>
-                        <td colSpan="8" className="p-0">
-                          <div className={`accordion-content ${openAccordions[code] ? 'open' : 'closed'}`}>
-                            {flattenedItems.length === 0 && (
-                              <div className="px-4 py-6 text-gray-500 dark:text-gray-400 text-center">
-                                No tasks
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : activeTab === 'knowledge' && userDetails?.role === 'Admin' ? (
-          <RAGManagement organizationId={project?.OrganizationID} />
-        ) : activeTab === 'reports' && isOwner ? (
-          <ReportGenerator
-            projectId={projectId}
-            projectName={project?.Name}
-            inline={true}
-          />
-        ) : activeTab === 'releases' ? (
-          <ReleaseSummaryGenerator
-            projectId={projectId}
-            projectName={project?.Name}
-            theme={theme}
-          />
-        ) : null}
+              {/* Project Activity Timeline - moved below Tasks Table */}
+              {projectActivity.length > 0 && (
+                <div className="mb-8">
+                  <ProjectActivity
+                    projectId={projectId}
+                    activity={projectActivity}
+                    projectCreatedDate={project?.CreatedDate}
+                    hasMore={hasMoreActivities}
+                    onLoadMore={handleLoadMoreActivities}
+                    loadingMore={loadingMoreActivities}
+                  />
+                </div>
+              )}
+            </div>
+          ) : activeTab === 'board' ? (
+            <div>
+              {/* Board Tab: Re-using global Kanban board */}
+              <KanbanBoard projectId={projectId} selectedUserStoryProp={selectedUserStory} projectMembersProp={projectMembers} taskListProp={taskList} />
+            </div>
+          ) : activeTab === 'timeline' ? (
+            <GanttChart tasks={taskList} userStories={userStories} project={project} onUpdateTask={handleUpdateTask} onEditTask={handleEditTask} />
+          ) : activeTab === 'files' ? (
+            <ProjectFilesTab projectId={projectId} />
+          ) : activeTab === 'list' ? (
+            <ProjectListView taskList={taskList} togglingSubtasks={togglingSubtasks} onSubtaskToggle={handleSubtaskToggle} onDeleteTask={confirmDeleteTask} />
+          ) : activeTab === 'knowledge' && userDetails?.role === 'Admin' ? (
+            <RAGManagement organizationId={project?.OrganizationID} />
+          ) : activeTab === 'reports' && isOwner ? (
+            <ReportGenerator projectId={projectId} projectName={project?.Name} inline={true} />
+          ) : activeTab === 'releases' ? (
+            <ReleaseSummaryGenerator projectId={projectId} projectName={project?.Name}
+              theme={theme}
+            />
+          ) : null}
+        </div>
 
         {showSettingsModal && (
           <div className="fixed inset-0 z-40">
@@ -2723,8 +2503,6 @@ const ProjectDetailsPage = () => {
                     <span>Only the project owner can edit project properties and settings.</span>
                   </div>
                 )}
-
-
 
                 <div className="flex justify-end gap-4">
                   <button
@@ -3036,8 +2814,8 @@ const ProjectDetailsPage = () => {
                 <button
                   onClick={() => handleToggleTeamStatus(revokingTeam.TeamID)}
                   className={`px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 ${revokingTeam.IsActive
-                      ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
-                      : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                    ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
+                    : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
                     } dark:${revokingTeam.IsActive
                       ? 'bg-red-900/50 text-red-300 hover:bg-red-900/70'
                       : 'bg-green-900/50 text-green-300 hover:bg-green-900/70'

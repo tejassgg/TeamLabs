@@ -102,7 +102,8 @@ const TasksPage = () => {
     ([url, s]) => authService.getTasksData('all'),
     {
       revalidateOnFocus: false,
-      dedupingInterval: 5000 }
+      dedupingInterval: 5000
+    }
   );
 
   const loading = !myTasksRes && !fetchError;
@@ -378,7 +379,7 @@ const TasksPage = () => {
 
         {/* Stats Card - Unified Layout matching Project details page hero */}
         <div className="w-full mb-6">
-          <div className={`border rounded-2xl p-6 max-w-5xl ${"bg-white border-gray-200 shadow-sm dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none"}`}>
+          <div className={`border rounded-2xl p-6 max-w-7xl ${"bg-white border-gray-200 shadow-sm dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none"}`}>
             {(() => {
               const totalTasksCount = stats.totalTasks;
               const completedTasksCount = stats.completedTasks;
@@ -724,7 +725,7 @@ const TasksPage = () => {
             })()}
           </div>
           <div className=" py-1 flex items-center justify-between">
-            <h2 className={'text-xl font-bold text-gray-900 text-xl font-bold text-white'}>
+            <h2 className={'text-xl font-bold text-gray-900 text-2xl dark:font-bold dark:text-white'}>
               Your Tasks ({filteredTasks.length})
             </h2>
             <div className="flex items-center gap-4">

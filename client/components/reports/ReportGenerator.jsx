@@ -282,7 +282,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
     <div className={inline ? 'w-full h-full' : `fixed inset-0 bg-gray-900/50 backdrop-blur-sm dark:bg-black/70 dark:backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300`}>
       <div className={`${inline ? 'bg-transparent' : 'bg-white dark:bg-[#1e1e24] border border-gray-200 dark:border-zinc-800 shadow-2xl dark:shadow-sm rounded-2xl'} max-w-7xl w-full ${inline ? '' : 'mx-4 h-[90vh] overflow-hidden'} transition-all duration-300 flex flex-col`}>
         {/* Header */}
-        <div className={`p-6 ${inline ? 'bg-transparent' : 'bg-white dark:bg-[#1e1e24]'} border-b border-gray-200 dark:border-zinc-800 transition-all duration-300`}>
+        <div className={` ${inline ? 'bg-transparent' : 'bg-white dark:bg-[#1e1e24]'} border-b border-gray-200 dark:border-zinc-800 transition-all duration-300`}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-start space-x-4">
               <div className={`p-3 rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 transition-all duration-300`}>
@@ -320,7 +320,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
           </div>
 
           {/* Tabs */}
-          <div className={`flex space-x-2 bg-gray-100 p-1 dark:bg-dark-bg dark:p-1 dark:border dark:border-zinc-800 rounded-xl transition-all duration-300`}>
+          <div className={`flex space-x-2 bg-gray-100 mb-1 p-1 dark:bg-dark-bg dark:p-1 dark:border dark:border-zinc-800 rounded-xl transition-all duration-300`}>
             <button
               onClick={() => setActiveTab('generate')}
               className={`flex-1 py-3 px-6 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === 'generate'
@@ -343,7 +343,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
         </div>
 
         {/* Content */}
-        <div className={`p-8 ${inline ? 'bg-transparent' : 'bg-gray-50 dark:bg-[#1e1e24]'} transition-all duration-300 overflow-y-auto flex-1`}>
+        <div className={` ${inline ? 'bg-transparent' : 'bg-gray-50 dark:bg-[#1e1e24]'} transition-all duration-300 overflow-y-auto flex-1`}>
           {activeTab === 'generate' ? (
             // Generate Report Tab
             !generatedReport ? (

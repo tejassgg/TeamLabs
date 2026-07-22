@@ -317,7 +317,7 @@ router.patch('/:teamId/member/:memberId/toggle', checkOwner, protect, async (req
 // PATCH /api/team-details/:teamId - Update team details
 router.patch('/:teamId', checkOwner, protect, async (req, res) => {
   try {
-    const { TeamName, TeamDescription, TeamType, OwnerID } = req.body;
+    const { TeamName, TeamDescription, TeamType, TeamColor, OwnerID } = req.body;
     if (!TeamName) return res.status(400).json({ error: 'Team name is required' });
     if (!OwnerID) return res.status(400).json({ error: 'Owner ID is required' });
 
@@ -333,6 +333,7 @@ router.patch('/:teamId', checkOwner, protect, async (req, res) => {
     team.TeamName = TeamName;
     team.TeamDescription = TeamDescription || team.TeamDescription;
     team.TeamType = TeamType || team.TeamType;
+    team.TeamColor = TeamColor || team.TeamColor;
     team.ModifiedDate = new Date();
     team.ModifiedBy = OwnerID;
     await team.save();

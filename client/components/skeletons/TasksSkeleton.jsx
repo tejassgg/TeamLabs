@@ -1,8 +1,8 @@
 import React from 'react';
 
 const TasksSkeleton = () => {
-    
-  
+
+
   const TaskRow = () => (
     <tr className={'border-b border-gray-100 dark:border-b dark:border-zinc-800/60'}>
       <td className="py-3 pl-4 text-center">
@@ -56,11 +56,6 @@ const TasksSkeleton = () => {
 
   return (
     <div className="w-full">
-      {/* Page Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className={'text-2xl font-bold text-gray-900 dark:text-2xl dark:font-bold dark:text-white'}>Tasks</h1>
-      </div>
-
       {/* Stats Hero Card Skeleton */}
       <div className="w-full mb-6">
         <div className={`border rounded-2xl p-6 max-w-5xl ${"bg-white border-gray-200 shadow-sm dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none"}`}>

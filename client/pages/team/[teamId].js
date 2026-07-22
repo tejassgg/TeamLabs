@@ -7,7 +7,7 @@ import { useGlobal } from '../../context/GlobalContext';
 import api, { authService, teamService, meetingService, commonTypeService } from '../../services/api';
 import CustomModal from '../../components/shared/CustomModal';
 import StatusDropdown from '../../components/shared/StatusDropdown';
-import { FaCog, FaTrash, FaTimes, FaPlus, FaExternalLinkAlt, FaClock, FaArrowRight, FaToggleOn, FaUsers, FaAlignLeft, FaTag, FaCalendarAlt, FaUserFriends, FaSignOutAlt, FaCheck, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
+import { FaCog, FaTrash, FaTimes, FaPlus, FaExternalLinkAlt, FaClock, FaArrowRight, FaToggleOn, FaUsers, FaAlignLeft, FaTag, FaCalendarAlt, FaUserFriends, FaSignOutAlt, FaCheck, FaSort, FaSortUp, FaSortDown, FaCircle, FaPalette } from 'react-icons/fa';
 import { getTaskTypeBadge, getPriorityBadge, getTaskStatusBadge } from '../../components/task/TaskTypeBadge';
 import TeamDetailsSkeleton from '../../components/skeletons/TeamDetailsSkeleton';
 import { subscribe } from '../../services/socket';
@@ -21,11 +21,22 @@ const TeamDetailsPage = () => {
   const { teamId } = router.query;
   const { teams, setTeams, getProjectStatusBadgeComponent, getProjectStatusStyle, getProjectStatus, getDaysBadgeColor, getUserInitials, getDeadlineStatusComponent, isMe } = useGlobal();
   const { theme } = useTheme();
-    const { showToast } = useToast();
+  const { showToast } = useToast();
   const { formatDateWithTime, calculateMeetingDays } = require('../../utils/dateUtils');
 
   const tableTextClasses = getTableTextClasses();
   const tableSecondaryTextClasses = getTableSecondaryTextClasses();
+
+  // Predefined colors from Team model
+  const teamColors = [
+    { value: '#3B82F6', name: 'Blue' },
+    { value: '#10B981', name: 'Green' },
+    { value: '#F59E0B', name: 'Amber' },
+    { value: '#EF4444', name: 'Red' },
+    { value: '#8B5CF6', name: 'Purple' },
+    { value: '#EC4899', name: 'Pink' },
+    { value: '#6B7280', name: 'Gray' },
+  ];
 
 
   const formatForDatetimeLocal = (dateInput) => {
@@ -58,7 +69,8 @@ const TeamDetailsPage = () => {
     TeamName: '',
     TeamDescription: '',
     TeamType: '',
-    TeamColor: '' });
+    TeamColor: ''
+  });
   const [savingSettings, setSavingSettings] = useState(false);
   const [teamTypes, setTeamTypes] = useState([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -235,12 +247,13 @@ const TeamDetailsPage = () => {
     const unsubscribeTeamUpdated = subscribe('team.updated', (data) => {
       if (data.data.teamId === teamId) {
         setTeam(data.data.team);
-        // Update settings form if team name/description/type changed
+        // Update settings form if team name/description/type/color changed
         setSettingsForm(prev => ({
           ...prev,
           TeamName: data.data.team.TeamName,
           TeamType: data.data.team.TeamType,
-          TeamDescription: data.data.team.TeamDescription
+          TeamDescription: data.data.team.TeamDescription,
+          TeamColor: data.data.team.TeamColor || ''
         }));
       }
     });
@@ -625,6 +638,13 @@ const TeamDetailsPage = () => {
 
       if (res.data.success) {
         setTeam(res.data.team);
+        setTeams(prevTeams =>
+          prevTeams.map(t =>
+            (t.TeamID === teamId || t._id === teamId)
+              ? { ...t, TeamColor: res.data.team.TeamColor, TeamName: res.data.team.TeamName, TeamDescription: res.data.team.TeamDescription }
+              : t
+          )
+        );
         showToast(res.data.message, 'success');
       }
       else {
@@ -992,7 +1012,7 @@ const TeamDetailsPage = () => {
             </div>
           </div>
         ) : (
-          <>
+          <div className="px-4 py-6">
             <div className="flex flex-col lg:flex-row lg:justify-between gap-4 mb-4">
               {/* Team Description - Desktop View */}
               <div className={`hidden md:flex ${showJoinRequests ? 'w-1/3' : 'w-full'} md:items-start justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm h-fit dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none`}>
@@ -1241,8 +1261,8 @@ const TeamDetailsPage = () => {
                           <div className="mt-2 flex items-center justify-between">
                             {m.GoogleMeetLink && (
                               <a href={m.GoogleMeetLink} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className={`${meetingDays.status === 'past' || meetingDays.status === 'yesterday'
-                                  ? 'text-red-600 cursor-not-allowed'
-                                  : 'text-blue-600 hover:underline'} dark:text-red-400`}>
+                                ? 'text-red-600 cursor-not-allowed'
+                                : 'text-blue-600 hover:underline'} dark:text-red-400`}>
                                 {meetingDays.status === 'past' || meetingDays.status === 'yesterday' ? 'Expired' : 'Join Meeting'}
                               </a>
                             )}
@@ -1429,8 +1449,8 @@ const TeamDetailsPage = () => {
                                 {/* Show status badge on mobile inline with name */}
                                 <div className="md:hidden mt-1">
                                   <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${member.IsMemberActive
-                                      ? 'bg-green-100 text-green-700'
-                                      : 'bg-red-100 text-red-700'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-red-100 text-red-700'
                                     } dark:${member.IsMemberActive
                                       ? 'bg-green-900/30 text-green-300'
                                       : 'bg-red-900/30 text-red-300'
@@ -1462,8 +1482,8 @@ const TeamDetailsPage = () => {
                                     setShowRevokeDialog(true);
                                   }}
                                   className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${member.IsMemberActive
-                                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                                     } dark:${member.IsMemberActive
                                       ? 'bg-green-900/50 text-green-300 hover:bg-green-900/70'
                                       : 'bg-blue-900/50 text-blue-300 hover:bg-blue-900/70'
@@ -1915,33 +1935,37 @@ const TeamDetailsPage = () => {
                         </select>
                       </div>
                     </div>
-                    <div className="flex flex-col gap-4 pt-4 mt-4 sm:mt-2">
-                      {/* Admin-only actions */}
-                      <div className="flex flex-row justify-center gap-3">
-                        {isOwner && (
-                          <button
-                            type="button"
-                            onClick={() => setShowDeleteDialog(true)}
-                            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70"
-                          >
-                            <FaTrash className="w-4 h-4" />
-                            Delete Team
-                          </button>
-                        )}
-                        {isOwner && (
-                          <button
-                            type="button"
-                            onClick={() => setShowConfirmDialog(true)}
-                            className={`inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200' : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'} ${togglingTeam ? 'opacity-50 cursor-not-allowed' : ''} dark:${team.IsActive ? 'bg-red-900/50 text-red-300 hover:bg-red-900/70' : 'bg-green-900/50 text-green-300 hover:bg-green-900/70'}`}
-                            disabled={togglingTeam}
-                          >
-                            <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-red-500' : 'bg-green-500'}`}></span>
-                            {togglingTeam ? 'Updating...' : team.IsActive ? 'Deactivate Team' : 'Activate Team'}
-                          </button>
-                        )}
+                    <div className="flex flex-row justify-center sm:justify-start gap-4">
+                      <div className="flex items-center gap-2 min-w-[120px]">
+                        <FaPalette className="text-gray-500 dark:text-white" size={16} />
+                        <label className="text-sm font-medium text-gray-700 dark:text-white">
+                          Team Color
+                        </label>
                       </div>
-
-
+                      <div className="flex-1">
+                        <div className="flex flex-wrap gap-2 p-2 border-0 border-b-2 border-gray-200 dark:border-gray-600">
+                          {teamColors.map((color) => (
+                            <button
+                              key={color.value}
+                              type="button"
+                              onClick={() => setSettingsForm(prev => ({ ...prev, TeamColor: color.value }))}
+                              disabled={!isOwner}
+                              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${settingsForm.TeamColor === color.value
+                                ? 'ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-dark-bg'
+                                : isOwner ? 'hover:ring-2 hover:ring-offset-2 hover:ring-gray-200 dark:hover:ring-offset-dark-bg' : ''
+                                } ${!isOwner ? 'cursor-not-allowed opacity-80' : ''}`}
+                              style={{ backgroundColor: color.value }}
+                              title={color.name}
+                            >
+                              {settingsForm.TeamColor === color.value && (
+                                <FaCircle className="text-white text-xs" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-4 pt-4 mt-4 sm:mt-2">
                       {/* Action buttons - only show Save/Cancel for owners */}
                       {isOwner && (
                         <div className="flex flex-row justify-end gap-3">
@@ -1976,6 +2000,35 @@ const TeamDetailsPage = () => {
                       )}
                     </div>
                   </form>
+
+                  {/* Danger Zone */}
+                  {isOwner && (
+                    <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800">
+                      <h4 className="text-sm font-semibold text-red-500 mb-2">Danger Zone</h4>
+                      <p className="text-xs mb-4 text-gray-500 dark:text-gray-400">
+                        Once you delete a team, there is no going back. All projects, tasks, and data associated with this team will be permanently deleted.
+                      </p>
+                      <div className="flex flex-row gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowDeleteDialog(true)}
+                          className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70 cursor-pointer"
+                        >
+                          <FaTrash className="w-4 h-4" />
+                          Delete Team
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmDialog(true)}
+                          className={`inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 cursor-pointer ${team.IsActive ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200' : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'} ${togglingTeam ? 'opacity-50 cursor-not-allowed' : ''} dark:${team.IsActive ? 'bg-red-900/50 text-red-300 hover:bg-red-900/70' : 'bg-green-900/50 text-green-300 hover:bg-green-900/70'}`}
+                          disabled={togglingTeam}
+                        >
+                          <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-red-500' : 'bg-green-500'}`}></span>
+                          {togglingTeam ? 'Updating...' : team.IsActive ? 'Deactivate Team' : 'Activate Team'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -2117,6 +2170,7 @@ const TeamDetailsPage = () => {
                 </p>
               </CustomModal>
             )}
+
             {/* Create Meeting Modal */}
             {showCreateMeetingModal && (
               <div className="fixed inset-0 z-40">
@@ -2498,8 +2552,8 @@ const TeamDetailsPage = () => {
                             }
                           }}
                           className={`${isExpired
-                              ? 'px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-medium cursor-not-allowed'
-                              : 'px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200'} dark:from-red-600 dark:to-red-700`}
+                            ? 'px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-medium cursor-not-allowed'
+                            : 'px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200'} dark:from-red-600 dark:to-red-700`}
                           disabled={isExpired}
                         >
                           {isExpired ? 'Expired' : 'Join Meeting'}
@@ -2733,7 +2787,7 @@ const TeamDetailsPage = () => {
                 </div>
               </CustomModal>
             )}
-          </>
+          </div>
         )}
       </div>
     </>

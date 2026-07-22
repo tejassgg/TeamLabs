@@ -6,8 +6,8 @@ const ProjectDetailsSkeleton = () => {
   const isDark = theme === 'dark';
 
   const skeletonClass = isDark ? 'animate-pulse bg-zinc-800 rounded-lg' : 'animate-pulse bg-gray-200 rounded-lg';
-  const skeletonSubClass = isDark ? 'animate-pulse bg-zinc-700/50 rounded-lg' : 'animate-pulse bg-gray-150 rounded-lg';
-  const cardClass = isDark ? 'bg-[#1e1e24] border-gray-800' : 'bg-white border-gray-200';
+  const skeletonSubClass = isDark ? 'animate-pulse bg-zinc-700/50 rounded-lg' : 'animate-pulse bg-gray-100 rounded-lg';
+  const cardClass = isDark ? 'bg-dark-bg border-zinc-800/80 shadow-none' : 'bg-white border-gray-200 shadow-sm';
 
   return (
     <div className="mx-auto select-none">
@@ -37,11 +37,14 @@ const ProjectDetailsSkeleton = () => {
         </div>
       </div>
 
-      {/* Split Top Layout: Details (Left, 3 cols) & Progress (1 col) & Goals (1 col) */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-        {/* Left Column: Project Details Card Skeleton */}
-        <div className="lg:col-span-3">
-          <div className={`h-full border rounded-2xl p-6 flex flex-col justify-between gap-6 ${cardClass} shadow-sm`}>
+      {/* Unified Top Layout Hero Banner (Details + KPI Progress + Goals) */}
+      <div className={`mb-6 border rounded-2xl p-6 ${cardClass} relative overflow-hidden`}>
+        {/* Shimmer Effect */}
+        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none"></div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
+          {/* Left Section: Details */}
+          <div className="lg:col-span-3 flex flex-col justify-between gap-4 min-w-0 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-zinc-800/85 pb-6 lg:pb-0 lg:pr-6">
             <div className="space-y-4">
               {/* Top Row: Statuses */}
               <div className="flex items-center justify-between">
@@ -51,8 +54,13 @@ const ProjectDetailsSkeleton = () => {
                     <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-2"></div>
                     <div className={`h-2.5 w-12 ${isDark ? 'bg-blue-800' : 'bg-blue-200'} rounded`}></div>
                   </div>
+                  {/* Priority badge mock */}
+                  <div className={`h-6 w-16 rounded-full ${isDark ? 'bg-red-900/20 border border-red-800/40' : 'bg-red-50 border border-red-100'} animate-pulse flex items-center px-2.5`}>
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 mr-2"></div>
+                    <div className={`h-2.5 w-8 ${isDark ? 'bg-red-800' : 'bg-red-200'} rounded`}></div>
+                  </div>
                 </div>
-                {/* Deadline pill mock */}
+                {/* Deadline status mock */}
                 <div className={`h-6 w-28 rounded-full ${isDark ? 'bg-green-900/20 border border-green-800/40' : 'bg-green-50 border border-green-100'} animate-pulse flex items-center px-2.5`}>
                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2"></div>
                   <div className={`h-2.5 w-16 ${isDark ? 'bg-green-800' : 'bg-green-200'} rounded`}></div>
@@ -75,11 +83,11 @@ const ProjectDetailsSkeleton = () => {
               {/* Avatars stacked */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center -space-x-2">
-                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1e1e24] ${skeletonClass}`}></div>
-                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1e1e24] ${skeletonClass}`}></div>
-                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1e1e24] ${skeletonClass}`}></div>
-                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1e1e24] ${skeletonClass}`}></div>
-                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1e1e24] flex items-center justify-center text-xs font-bold ${isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-gray-100 text-gray-500'}`}>+3</div>
+                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] ${skeletonClass}`}></div>
+                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] ${skeletonClass}`}></div>
+                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] ${skeletonClass}`}></div>
+                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] ${skeletonClass}`}></div>
+                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] flex items-center justify-center text-xs font-bold ${isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-gray-100 text-gray-500'}`}>+5</div>
                 </div>
                 <div className={`h-3 w-20 ${skeletonSubClass}`}></div>
               </div>
@@ -90,64 +98,60 @@ const ProjectDetailsSkeleton = () => {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Middle Column: Progress Card Skeleton */}
-        <div className="lg:col-span-1">
-          <div className={`h-full border rounded-2xl p-6 flex flex-col justify-between shadow-sm ${cardClass}`}>
+          {/* Middle Section: Circular Progress */}
+          <div className="lg:col-span-1 flex flex-col justify-between gap-4 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-zinc-800/85 pb-6 lg:pb-0 lg:pr-6">
             <div className="flex flex-col items-center justify-center gap-2 py-2">
-              {/* Large Centered Circular Progress Skeleton */}
-              <div className="relative w-36 h-36 flex items-center justify-center flex-shrink-0">
+              {/* Circular progress path placeholder */}
+              <div className="relative w-32 h-32 flex items-center justify-center flex-shrink-0">
                 <svg className="w-full h-full transform -rotate-90">
-                  <circle cx="72" cy="72" r="54" className={isDark ? 'text-zinc-800' : 'text-gray-100'} strokeWidth="10" stroke="currentColor" fill="transparent" />
-                  <circle cx="72" cy="72" r="54" className="text-emerald-500/20 animate-pulse" strokeWidth="10" strokeDasharray="339.3" strokeDashoffset="100" strokeLinecap="round" stroke="currentColor" fill="transparent" />
+                  <circle cx="64" cy="64" r="54" className={isDark ? 'text-zinc-800' : 'text-gray-100'} strokeWidth="10" stroke="currentColor" fill="transparent" />
+                  <circle cx="64" cy="64" r="54" className="text-emerald-500/20 animate-pulse" strokeWidth="10" strokeDasharray="339.3" strokeDashoffset="80" strokeLinecap="round" stroke="currentColor" fill="transparent" />
                 </svg>
                 <div className="absolute flex flex-col items-center justify-center text-center">
-                  <div className={`text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white ${skeletonClass} h-7 w-12 mb-1.5`}></div>
+                  <div className={`text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white ${skeletonClass} h-6 w-12 mb-1.5`}></div>
                   <div className={`text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mt-1 ${skeletonSubClass} h-3.5 w-16`}></div>
                 </div>
               </div>
 
-              <div className="flex flex-col items-center gap-1.5 text-center mt-2">
+              <div className="flex flex-col items-center gap-1.5 text-center">
                 <div className={`h-5 w-16 rounded-full ${skeletonClass}`}></div>
                 <div className={`h-3.5 w-32 ${skeletonSubClass}`}></div>
               </div>
             </div>
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <div className={`p-3 rounded-xl ${isDark ? 'bg-zinc-800/30' : 'bg-gray-50'}`}>
+            {/* Stats counts grid */}
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-zinc-800/80">
+              <div className={`p-2 rounded-xl ${isDark ? 'bg-zinc-800/30' : 'bg-gray-50'}`}>
                 <div className={`h-3 w-12 mb-2 ${skeletonSubClass}`}></div>
                 <div className={`h-5 w-6 ${skeletonClass}`}></div>
               </div>
-              <div className={`p-3 rounded-xl ${isDark ? 'bg-zinc-800/30' : 'bg-gray-50'}`}>
+              <div className={`p-2 rounded-xl ${isDark ? 'bg-zinc-800/30' : 'bg-gray-50'}`}>
                 <div className={`h-3 w-16 mb-2 ${skeletonSubClass}`}></div>
                 <div className={`h-5 w-6 ${skeletonClass}`}></div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Column: Goals Card Skeleton */}
-        <div className="lg:col-span-1">
-          <div className={`h-full border rounded-2xl p-6 flex flex-col justify-between gap-5 ${cardClass} shadow-sm`}>
+          {/* Right Section: Goals Tracker */}
+          <div className="lg:col-span-1 flex flex-col justify-between gap-4">
             <div>
-              {/* Inline Goals Title Badge Mockup */}
+              {/* Inline Goals Title Badge */}
               <div className="flex items-center gap-1.5 mb-4 border-b border-gray-100 dark:border-zinc-800/80 pb-3">
                 <div className={`w-3.5 h-3.5 rounded-full ${skeletonClass}`}></div>
                 <div className={`h-3 w-20 ${skeletonSubClass}`}></div>
               </div>
               {/* Goals List */}
               <div className="space-y-3.5 pr-1">
-                {[1, 2, 3].map((g) => (
+                {[1, 2, 3, 4].map((g) => (
                   <div key={g} className="flex items-center gap-3">
                     <div className={`w-4 h-4 rounded-full border flex-shrink-0 ${isDark ? 'border-zinc-700 bg-zinc-800/40' : 'border-gray-300 bg-white'} ${skeletonClass}`}></div>
-                    <div className={`h-3.5 flex-1 ${skeletonSubClass}`} style={{ width: g === 1 ? '75%' : g === 2 ? '60%' : '80%' }}></div>
+                    <div className={`h-3.5 flex-1 ${skeletonSubClass}`} style={{ width: g === 1 ? '75%' : g === 2 ? '60%' : g === 3 ? '80%' : '50%' }}></div>
                   </div>
                 ))}
               </div>
             </div>
             {/* Add goal placeholder */}
-            <div className="pt-3 border-t border-gray-100 dark:border-zinc-800/60 flex gap-2">
+            <div className="pt-2 border-t border-gray-100 dark:border-zinc-800/60 flex gap-2">
               <div className={`h-8 flex-1 ${skeletonSubClass}`}></div>
               <div className={`h-8 w-12 ${skeletonClass}`}></div>
             </div>
@@ -165,21 +169,34 @@ const ProjectDetailsSkeleton = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className={`rounded-xl border p-4 ${cardClass} shadow-sm`}>
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full ${skeletonClass} flex items-center justify-center`}></div>
-                    <div className="flex flex-col gap-1">
-                      <div className={`h-3.5 w-16 ${skeletonClass}`}></div>
-                      <div className={`h-2.5 w-20 ${skeletonSubClass}`}></div>
+              <div key={i} className={`rounded-2xl border p-4 ${cardClass} relative overflow-hidden shadow-sm`}>
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none"></div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    {/* Team Avatar (w-10 h-10) */}
+                    <div className={`w-10 h-10 rounded-full ${skeletonClass} flex-shrink-0`}></div>
+                    <div className="flex flex-col gap-1.5 min-w-0">
+                      {/* Team Name */}
+                      <div className={`h-3.5 w-24 ${skeletonClass}`}></div>
+                      {/* Team Description */}
+                      <div className={`h-2.5 w-28 ${skeletonSubClass}`}></div>
+                      {/* Created: Date */}
+                      <div className={`h-2.5 w-32 ${skeletonSubClass} mt-1`}></div>
                     </div>
                   </div>
-                  <div className={`h-5 w-12 rounded-full ${isDark ? 'bg-zinc-800' : 'bg-gray-100'} animate-pulse`}></div>
+                  {/* Status Pill (Active / Inactive) */}
+                  <div className={`h-5 w-14 rounded-full ${isDark ? 'bg-zinc-800' : 'bg-gray-100'} animate-pulse flex-shrink-0`}></div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-gray-100 dark:border-zinc-800/40 flex items-center -space-x-1.5">
-                  <div className={`w-6 h-6 rounded-full border border-white dark:border-zinc-800 ${skeletonClass}`}></div>
-                  <div className={`w-6 h-6 rounded-full border border-white dark:border-zinc-800 ${skeletonClass}`}></div>
-                  <div className={`w-6 h-6 rounded-full border border-white dark:border-zinc-800 ${skeletonClass}`}></div>
+                {/* Bottom Row */}
+                <div className="flex items-center justify-between mt-3">
+                  {/* Members Stack */}
+                  <div className="flex items-center -space-x-2">
+                    <div className={`w-7 h-7 rounded-full border border-white dark:border-zinc-800 ${skeletonClass}`}></div>
+                    <div className={`w-7 h-7 rounded-full border border-white dark:border-zinc-800 ${skeletonClass}`}></div>
+                    <div className={`w-7 h-7 rounded-full border border-white dark:border-zinc-800 ${skeletonClass}`}></div>
+                  </div>
+                  {/* Action Button */}
+                  <div className={`w-6 h-6 rounded-full ${skeletonClass}`}></div>
                 </div>
               </div>
             ))}
@@ -187,7 +204,8 @@ const ProjectDetailsSkeleton = () => {
         </div>
 
         {/* Right: User Stories (lg:col-span-2) */}
-        <div className={`lg:col-span-2 rounded-xl border ${cardClass} overflow-hidden shadow-sm`}>
+        <div className={`lg:col-span-2 rounded-xl border ${cardClass} overflow-hidden shadow-sm relative overflow-hidden`}>
+          <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none"></div>
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div className={`h-5 w-24 ${skeletonClass}`}></div>
@@ -206,7 +224,7 @@ const ProjectDetailsSkeleton = () => {
               </thead>
               <tbody>
                 {[1, 2].map((i) => (
-                  <tr key={i} className={`border-b border-gray-100 last:border-b-0 ${isDark ? 'border-gray-750' : ''}`}>
+                  <tr key={i} className={`border-b border-gray-100 last:border-b-0 ${isDark ? 'border-zinc-800/60' : ''}`}>
                     <td className="py-3 px-3">
                       <div className="flex flex-col gap-1">
                         <div className={`h-3.5 w-28 ${skeletonClass}`}></div>
@@ -231,7 +249,8 @@ const ProjectDetailsSkeleton = () => {
 
       {/* Tasks Table Skeleton - Full Width */}
       <div className="mb-8">
-        <div className={`rounded-xl border ${cardClass} overflow-hidden shadow-sm`}>
+        <div className={`rounded-xl border ${cardClass} overflow-hidden shadow-sm relative overflow-hidden`}>
+          <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none"></div>
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div className={`h-5 w-12 ${skeletonClass}`}></div>
@@ -270,20 +289,20 @@ const ProjectDetailsSkeleton = () => {
               </thead>
               <tbody>
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <tr key={i} className={`border-b border-gray-100 last:border-b-0 ${isDark ? 'border-gray-750' : ''}`}>
-                    <td className="py-4.5 px-4 text-center">
+                  <tr key={i} className={`border-b border-gray-100 last:border-b-0 ${isDark ? 'border-zinc-800/60' : ''}`}>
+                    <td className="py-4 px-4 text-center">
                       <div className={`h-4 w-4 mx-auto border ${isDark ? 'border-zinc-700 bg-zinc-800/40' : 'border-gray-300 bg-white'} ${skeletonClass}`}></div>
                     </td>
-                    <td className="py-4.5 px-4">
+                    <td className="py-4 px-4">
                       <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-2">
                           <div className={`h-3.5 w-40 ${skeletonClass}`}></div>
-                          <div className={`h-4.5 w-14 rounded-full ${isDark ? 'bg-zinc-800' : 'bg-gray-100'} animate-pulse`}></div>
+                          <div className={`h-4 w-14 rounded-full ${isDark ? 'bg-zinc-800' : 'bg-gray-100'} animate-pulse`}></div>
                         </div>
                         <div className={`h-2.5 w-24 ${skeletonSubClass}`}></div>
                       </div>
                     </td>
-                    <td className="py-4.5 px-4">
+                    <td className="py-4 px-4">
                       <div className="flex items-center gap-2.5">
                         <div className={`w-7 h-7 rounded-full ${skeletonClass}`}></div>
                         <div className="flex flex-col gap-1">
@@ -292,7 +311,7 @@ const ProjectDetailsSkeleton = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-4.5 px-4">
+                    <td className="py-4 px-4">
                       <div className="flex items-center gap-2.5">
                         <div className={`w-7 h-7 rounded-full ${skeletonClass}`}></div>
                         <div className="flex flex-col gap-1">
@@ -301,19 +320,19 @@ const ProjectDetailsSkeleton = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-4.5 px-4 text-center">
+                    <td className="py-4 px-4 text-center">
                       <div className="flex flex-col gap-1 mx-auto w-fit">
                         <div className={`h-3 w-16 ${skeletonClass}`}></div>
                         <div className={`h-2.5 w-10 ${skeletonSubClass} mx-auto`}></div>
                       </div>
                     </td>
-                    <td className="py-4.5 px-4">
+                    <td className="py-4 px-4">
                       <div className={`h-5 w-16 rounded-full ${isDark ? 'bg-zinc-800' : 'bg-gray-100'} animate-pulse`}></div>
                     </td>
-                    <td className="py-4.5 px-4 text-left">
+                    <td className="py-4 px-4 text-left">
                       <div className={`h-6 w-20 rounded-full ${isDark ? 'bg-zinc-800' : 'bg-gray-100'} animate-pulse`}></div>
                     </td>
-                    <td className="py-4.5 px-4 text-left">
+                    <td className="py-4 px-4 text-left">
                       <div className="flex items-center gap-1.5">
                         <div className={`w-7 h-7 rounded-lg ${skeletonClass}`}></div>
                         <div className={`w-7 h-7 rounded-lg ${skeletonClass}`}></div>

@@ -791,7 +791,7 @@ const SearchModal = ({ isOpen, onClose }) => {
             ref={inputRef}
             type="text"
             className="flex-1 ml-3 bg-transparent border-none outline-none text-base placeholder-gray-400 dark:placeholder-gray-500 focus:ring-0 focus:outline-none"
-            placeholder="What are you looking for?"
+            placeholder="What are you looking for? /for commands"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
