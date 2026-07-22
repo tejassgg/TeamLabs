@@ -164,10 +164,9 @@ const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: set
       ? 'bg-dark-bg border-zinc-800/80'
       : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
       }`}>
-      <div className="pb-4 mb-4 border-b border-dark-border/40 flex items-start justify-between">
+      <div className="pb-4 mb-4 flex items-start justify-between">
         <div>
-          <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
-            <FaClock className="text-indigo-500 animate-spin-slow" style={{ animationDuration: '8s' }} />
+          <h2 className="text-lg font-bold tracking-tight">
             <span>Personal Time Tracker</span>
           </h2>
           <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>

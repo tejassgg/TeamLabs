@@ -60,7 +60,7 @@ const Dashboard = () => {
   const [removingUser, setRemovingUser] = useState(null);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const isAdmin = userDetails?.role === 'Admin';
-  const [activeTab, setActiveTab] = useState('whats_up');
+  const [activeTab, setActiveTab] = useState('whats_up');   // whats_up, metrics, manage
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteStatus, setInviteStatus] = useState('');
@@ -207,8 +207,6 @@ const Dashboard = () => {
   // Widget customization states
   const DEFAULT_WIDGETS = useMemo(() => [
     { id: 'analytics', title: 'Metrics & Analytics', visible: true, colSpan: 2 },
-    { id: 'timeTracker', title: 'Personal Time Tracker', visible: true, colSpan: 1 },
-    { id: 'burndown', title: 'Task Burndown', visible: true, colSpan: 1 },
   ], []);
 
   const [widgets, setWidgets] = useState([]);
@@ -513,30 +511,20 @@ const Dashboard = () => {
     switch (id) {
       case 'analytics':
         return DashboardCharts ? (
-          <DashboardCharts stats={stats} theme={theme} />
+          <DashboardCharts
+            stats={stats}
+            theme={theme}
+            userDetails={userDetails}
+            tasks={tasksDetails || []}
+            setTasks={setTasksDetails}
+          />
         ) : (
           <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-6' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border p-6'}`}>
             <h3 className="text-lg font-semibold mb-4">Dashboard Analytics</h3>
             <p className="text-sm text-slate-600">Analytics charts are currently unavailable.</p>
           </div>
         );
-      case 'timeTracker':
-        return (
-          <TimeTrackerWidget
-            userDetails={userDetails}
-            theme={theme}
-            tasks={tasksDetails || []}
-            setTasks={setTasksDetails}
-          />
-        );
-      case 'burndown':
-        return (
-          <BurndownWidget
-            organizationId={userDetails?.organizationID}
-            theme={theme}
-            tasks={tasksDetails || []}
-          />
-        );
+
 
       default:
         return null;
@@ -669,7 +657,7 @@ const Dashboard = () => {
 
         {/* Tab Content */}
         {!shouldShowWelcomeMessage && activeTab === 'whats_up' && (
-          <div className="space-y-2">
+          <div className="space-y-2 px-4">
             {/* What's Up Personalized Greeting Banner */}
             <div className="pb-2 transition-all duration-300 relative overflow-hidden ">
               {(() => {
@@ -1505,7 +1493,7 @@ const Dashboard = () => {
 
         {/* Tab Content */}
         {!shouldShowWelcomeMessage && activeTab === 'metrics' && (
-          <div className="space-y-6">
+          <div className="space-y-6 px-4">
             {/* Widget Catalog Panel in Edit Mode */}
             {isEditMode && (
               <div className={`p-5 rounded-2xl border transition-all duration-300 backdrop-blur-md ${theme === 'dark'
@@ -1591,7 +1579,7 @@ const Dashboard = () => {
         )}
 
         {!shouldShowWelcomeMessage && activeTab === 'manage' && (
-          <div className="space-y-6 ">
+          <div className="space-y-6 px-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-visible">
               {/* Recent Projects */}
               <div className={`${theme === 'dark' ? 'text-[#F3F6FA]' : 'bg-white text-gray-900'} overflow-visible lg:col-span-2`}>

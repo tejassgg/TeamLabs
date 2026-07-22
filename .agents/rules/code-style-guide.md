@@ -3,6 +3,7 @@ trigger: always_on
 ---
 
 Always use the colors from the tailwind.config.js when defining style for background color, borders & everything.
+Always Use data from client/data/.json file for dropdowns & list
 Never use custom text size, use the ones that are available from Tailwind.
 Udpate the playground page when:
 
