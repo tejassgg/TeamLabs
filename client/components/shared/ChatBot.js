@@ -105,11 +105,7 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
               <Link
                 key={index}
                 href={link.url}
-                className={`inline-block px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-95 ${
-                  theme === 'dark'
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                    : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
-                }`}
+                className={`inline-block px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-95 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white`}
               >
                 {link.text}
               </Link>
@@ -137,9 +133,7 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
 
       {/* Chat Window */}
       {isOpen && (
-        <div className={`absolute bottom-0 right-0 w-96 h-[520px] ${
-          theme === 'dark' ? 'bg-dark-bg' : 'bg-white'
-        } rounded-2xl shadow-2xl flex flex-col transition-all duration-300`}>
+        <div className={`absolute bottom-0 right-0 w-96 h-[520px] bg-white dark:bg-dark-bg rounded-2xl shadow-2xl flex flex-col transition-all duration-300`}>
           
           {/* Chat Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-4 rounded-t-2xl flex items-center justify-between shadow-sm flex-shrink-0">
@@ -180,24 +174,20 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
             {showHistory ? (
               // Conversation History View
               <div className="space-y-3">
-                <h4 className={`text-xs font-semibold uppercase tracking-wider mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Past Conversations</h4>
+                <h4 className={`text-xs font-semibold uppercase tracking-wider mb-2 text-gray-500 dark:text-gray-400`}>Past Conversations</h4>
                 {conversationHistory.length === 0 ? (
                   <div className="text-center py-8 text-gray-500 text-sm">No history found.</div>
                 ) : (
                   conversationHistory.map((conversation, index) => (
                     <div
                       key={index}
-                      className={`p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
-                        theme === 'dark' 
-                          ? 'bg-[#202024]/40 hover:bg-[#202024]/75 border-gray-800' 
-                          : 'bg-gray-50/50 hover:bg-gray-105 border-gray-100'
-                      }`}
+                      className={`p-3 rounded-xl border transition-all duration-200 cursor-pointer bg-gray-50/50 hover:bg-gray-105 border-gray-100 dark:bg-[#202024]/40 dark:hover:bg-[#202024]/75 dark:border-gray-800`}
                       onClick={() => loadPreviousConversation(conversation)}
                     >
                       <div className="text-xs font-semibold text-gray-400 mb-1">
                         {new Date(conversation.lastInteraction).toLocaleString()}
                       </div>
-                      <div className={`text-xs truncate ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <div className={`text-xs truncate text-gray-700 dark:text-gray-300`}>
                         {conversation.messages[0]?.content || 'Empty conversation'}
                       </div>
                     </div>
@@ -226,41 +216,29 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
               // Chat Messages View
               <>
                 {messages.length === 0 ? (
-                  <div className={`text-center py-10 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <div className={`text-center py-10 text-gray-500 dark:text-gray-400`}>
                     <div className="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-900/10 flex items-center justify-center mx-auto mb-4">
                       <FaRobot className="text-blue-600 dark:text-blue-400 text-3xl" />
                     </div>
-                    <h4 className={`font-semibold mb-1 text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Hello! I'm your TeamLabs Assistant</h4>
+                    <h4 className={`font-semibold mb-1 text-sm text-gray-900 dark:text-white`}>Hello! I'm your TeamLabs Assistant</h4>
                     <p className="text-xs max-w-[80%] mx-auto mb-6">How can I help you manage your projects or guide your team today?</p>
                     {isLandingPage && (
                       <div className="flex flex-wrap justify-center gap-2">
                         <Link
                           href="/auth?type=login"
-                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-95 ${
-                            theme === 'dark'
-                              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                              : 'bg-blue-50 hover:bg-blue-105 text-blue-600'
-                          }`}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-95 bg-blue-50 hover:bg-blue-105 text-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white`}
                         >
                           Sign In
                         </Link>
                         <Link
                           href="/auth"
-                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-95 ${
-                            theme === 'dark'
-                              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                              : 'bg-blue-50 hover:bg-blue-105 text-blue-600'
-                          }`}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-95 bg-blue-50 hover:bg-blue-105 text-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white`}
                         >
                           Register
                         </Link>
                         <Link
                           href="/"
-                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-95 ${
-                            theme === 'dark'
-                              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                              : 'bg-blue-50 hover:bg-blue-105 text-blue-600'
-                          }`}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-95 bg-blue-50 hover:bg-blue-105 text-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white`}
                         >
                           Learn More
                         </Link>
@@ -277,9 +255,7 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
                         className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
                           msg.type === 'user'
                             ? 'bg-blue-600 text-white rounded-tr-none'
-                            : theme === 'dark' 
-                              ? 'bg-gray-800 text-white rounded-tl-none border border-gray-700/60' 
-                              : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                            : 'bg-gray-100 text-gray-800 rounded-tl-none dark:bg-gray-800 dark:text-white dark:border dark:border-gray-700/60'
                         }`}
                       >
                         {renderMessageContent(msg.content)}
@@ -289,7 +265,7 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
                 )}
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className={`${theme === 'dark' ? 'bg-gray-800 border border-gray-700/60' : 'bg-gray-100'} rounded-2xl rounded-tl-none px-4 py-3`}>
+                    <div className={`bg-gray-100 dark:bg-gray-800 dark:border dark:border-gray-700/60 rounded-2xl rounded-tl-none px-4 py-3`}>
                       <div className="flex space-x-1.5">
                         <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" />
                         <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-100" />
@@ -305,18 +281,14 @@ const ChatBot = ({ isOpen: externalIsOpen, onToggle: externalOnToggle, showButto
 
           {/* Input Form */}
           {!showHistory && (
-            <form onSubmit={handleSubmit} className={`p-4 border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'} bg-transparent flex-shrink-0`}>
+            <form onSubmit={handleSubmit} className={`p-4 border-t border-gray-100 dark:border-gray-800 bg-transparent flex-shrink-0`}>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder="Type your message..."
-                  className={`flex-1 border rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                    theme === 'dark'
-                      ? 'bg-[#202024]/60 text-white border-gray-700 placeholder-gray-500 focus:bg-[#1a1a1e]'
-                      : 'bg-gray-50 text-gray-800 border-gray-200 placeholder-gray-400 focus:bg-white'
-                  }`}
+                  className={`flex-1 border rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 text-gray-800 border-gray-200 placeholder-gray-400 focus:bg-white dark:bg-[#202024]/60 dark:text-white dark:border-gray-700 dark:placeholder-gray-500 dark:focus:bg-[#1a1a1e]`}
                   disabled={isLoading}
                 />
                 <button

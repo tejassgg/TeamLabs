@@ -149,11 +149,11 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <h2 className={`text-xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>Two-Factor Authentication</h2>
-          <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Please enter the 6-digit code from your authenticator app</p>
+          <h2 className={`text-xl font-bold mb-2 text-gray-700 dark:text-white`}>Two-Factor Authentication</h2>
+          <p className={`text-sm mb-4 text-gray-500 dark:text-gray-400`}>Please enter the 6-digit code from your authenticator app</p>
         </div>
         {error && (
-          <div className={`border px-4 py-3 rounded-xl text-sm ${theme === 'dark' ? 'bg-red-900/20 border-red-700 text-red-300' : 'bg-red-50 border-red-200 text-red-600'}`}>
+          <div className={`border px-4 py-3 rounded-xl text-sm bg-red-50 border-red-200 text-red-600 dark:bg-red-900/20 dark:border-red-700 dark:text-red-300`}>
             {error}
           </div>
         )}
@@ -164,7 +164,7 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
               value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="Enter 6-digit code"
-              className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-center tracking-widest ${theme === 'dark' ? 'bg-gray-900 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
+              className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-center tracking-widest bg-white border-gray-200 text-gray-900 placeholder-gray-400 dark:bg-gray-900 dark:border-gray-700 dark:text-white dark:placeholder-gray-500`}
               maxLength={6}
             />
           </div>
@@ -172,14 +172,14 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
             <button
               type="button"
               onClick={() => setShow2FA(false)}
-              className={`w-1/2 px-4 py-2.5 text-sm font-medium rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 ${theme === 'dark' ? 'text-gray-200 bg-gray-800 hover:bg-dark-hover focus:ring-gray-600' : 'text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-gray-500'}`}
+              className={`w-1/2 px-4 py-2.5 text-sm font-medium rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-gray-500 dark:text-gray-200 dark:bg-gray-800 dark:hover:bg-dark-hover dark:focus:ring-gray-600`}
             >
               Back
             </button>
             <button
               type="submit"
               disabled={isLoading || verificationCode.length !== 6}
-              className={`w-1/2 px-4 py-2.5 text-sm font-medium rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark' ? 'text-white bg-gradient-to-r from-blue-700 to-blue-900 hover:from-blue-800 hover:to-blue-950 focus:ring-blue-800' : 'text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:ring-blue-500'}`}
+              className={`w-1/2 px-4 py-2.5 text-sm font-medium rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:ring-blue-500 dark:text-white dark:bg-gradient-to-r dark:from-blue-700 dark:to-blue-900 dark:hover:from-blue-800 dark:hover:to-blue-950 dark:focus:ring-blue-800`}
             >
               {isLoading ? 'Verifying...' : 'Verify'}
             </button>
@@ -192,7 +192,7 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
   return (
     <div className="space-y-6">
       {error && (
-        <div className={`border px-4 py-3 rounded-xl text-sm ${theme === 'dark' ? 'bg-red-900/20 border-red-700 text-red-300' : 'bg-red-50 border-red-200 text-red-600'}`}>
+        <div className={`border px-4 py-3 rounded-xl text-sm bg-red-50 border-red-200 text-red-600 dark:bg-red-900/20 dark:border-red-700 dark:text-red-300`}>
           {error}
         </div>
       )}
@@ -202,10 +202,10 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
           {/* Header Section */}
           <div className="mb-6 w-full">
             <div className="text-left">
-              <h1 className={`text-3xl lg:text-5xl font-bold mb-2 sm:mb-4 w-full ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              <h1 className={`text-3xl lg:text-5xl font-bold mb-2 sm:mb-4 w-full text-gray-900 dark:text-white`}>
                 Sign In with <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Code</span>
               </h1>
-              <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+              <p className={`text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300`}>
                 Enter your email address to receive a secure login code
               </p>
             </div>
@@ -213,11 +213,11 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
 
           <form onSubmit={handleRequestCode} className="space-y-5">
             <div>
-              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Email Address</label>
+              <label className={`block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200`}>Email Address</label>
               <input
                 type="email"
                 placeholder="name@company.com"
-                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base ${theme === 'dark' ? 'bg-transparent border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
+                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base bg-white border-gray-200 text-gray-900 placeholder-gray-400 dark:bg-transparent dark:border-gray-700 dark:text-white dark:placeholder-gray-500`}
                 value={otpEmail}
                 onChange={(e) => setOtpEmail(e.target.value)}
                 required
@@ -232,11 +232,11 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
                   theme="outline"
                   shape="rectangular"
                 />
-                <span className={`text-sm sm:mx-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>or</span>
+                <span className={`text-sm sm:mx-1 text-gray-500 dark:text-gray-400`}>or</span>
                 <button
                   type="submit"
                   disabled={isLoading || !otpEmail}
-                  className={`w-auto py-1 sm:py-2 px-8 sm:px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 text-white hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`w-auto py-1 sm:py-2 px-8 sm:px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500 dark:bg-gradient-to-r dark:from-blue-700 dark:to-purple-700 dark:text-white dark:hover:from-blue-800 dark:hover:to-purple-800 dark:focus:ring-blue-800 disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {isLoading ? 'Sending...' : 'Send Code'}
                 </button>
@@ -249,10 +249,10 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
           {/* Header Section */}
           <div className="mb-6 w-full">
             <div className="text-left">
-              <h1 className={`text-2xl lg:text-4xl font-bold mb-2 sm:mb-4 w-full ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              <h1 className={`text-2xl lg:text-4xl font-bold mb-2 sm:mb-4 w-full text-gray-900 dark:text-white`}>
                 Verify <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Your Code</span>
               </h1>
-              <p className={`text-sm sm:text-base md:text-md ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+              <p className={`text-sm sm:text-base md:text-md text-gray-600 dark:text-gray-300`}>
                 We sent a 6-digit verification code to <span className="font-semibold text-blue-500">{otpEmail}</span>
               </p>
             </div>
@@ -260,13 +260,13 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
 
           <form onSubmit={handleVerifyCode} className="space-y-6">
             <div>
-              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Verification Code</label>
+              <label className={`block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200`}>Verification Code</label>
               <input
                 type="text"
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="••••••"
-                className={`w-full px-2 py-1.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-center tracking-[0.5em] text-2xl font-mono font-bold ${theme === 'dark' ? 'bg-transparent border-gray-700 text-white placeholder-gray-600' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
+                className={`w-full px-2 py-1.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-center tracking-[0.5em] text-2xl font-mono font-bold bg-white border-gray-200 text-gray-900 placeholder-gray-400 dark:bg-transparent dark:border-gray-700 dark:text-white dark:placeholder-gray-600`}
                 maxLength={6}
                 required
               />
@@ -280,20 +280,20 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
                   setOtpCode('');
                   setError('');
                 }}
-                className={`font-semibold hover:underline ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'}`}
+                className={`font-semibold hover:underline text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300`}
               >
                 Change Email
               </button>
 
               {countdown > 0 ? (
-                <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>
+                <span className="text-gray-500 dark:text-gray-400">
                   Resend code in <strong className="text-blue-500">{countdown}s</strong>
                 </span>
               ) : (
                 <button
                   type="button"
                   onClick={handleResendCode}
-                  className={`font-semibold hover:underline flex items-center ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}
+                  className={`font-semibold hover:underline flex items-center text-blue-600 dark:text-blue-400`}
                 >
                   Resend code <IoMdRefresh size={14} />
                 </button>
@@ -308,14 +308,14 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
                   setOtpCode('');
                   setError('');
                 }}
-                className={`w-1/2 py-2.5 px-3 rounded-lg sm:rounded-xl font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${theme === 'dark' ? 'bg-gray-800 hover:bg-dark-hover text-gray-200 focus:ring-gray-600' : 'bg-gray-100 hover:bg-gray-200 text-gray-800 focus:ring-gray-500'}`}
+                className={`w-1/2 py-2.5 px-3 rounded-lg sm:rounded-xl font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 bg-gray-100 hover:bg-gray-200 text-gray-800 focus:ring-gray-500 dark:bg-gray-800 dark:hover:bg-dark-hover dark:text-gray-200 dark:focus:ring-gray-600`}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading || otpCode.length !== 6}
-                className={`w-1/2 py-2.5 px-3 rounded-lg sm:rounded-xl font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-white ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`w-1/2 py-2.5 px-3 rounded-lg sm:rounded-xl font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500 dark:bg-gradient-to-r dark:from-blue-700 dark:to-purple-700 dark:hover:from-blue-800 dark:hover:to-purple-800 dark:focus:ring-blue-800 disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {isLoading ? 'Verifying...' : 'Verify & Sign In'}
               </button>
@@ -326,17 +326,17 @@ const LoginForm = ({ onSuccess, onOpenRegister }) => {
 
       {/* Navigation Switcher */}
       <div className="text-center mt-4 sm:mt-6 border-t pt-4 border-gray-100 dark:border-gray-700/50">
-        <span className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Don't have an account? </span>
+        <span className={`text-sm sm:text-base text-gray-600 dark:text-gray-400`}>Don't have an account? </span>
         {onOpenRegister ? (
           <button
             type="button"
             onClick={onOpenRegister}
-            className={`font-bold hover:underline text-sm sm:text-base ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}
+            className={`font-bold hover:underline text-sm sm:text-base text-blue-700 dark:text-blue-400`}
           >
             Sign Up
           </button>
         ) : (
-          <Link href="/auth" className={`font-bold hover:underline text-sm sm:text-base ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}>Sign Up</Link>
+          <Link href="/auth" className={`font-bold hover:underline text-sm sm:text-base text-blue-700 dark:text-blue-400`}>Sign Up</Link>
         )}
       </div>
     </div>

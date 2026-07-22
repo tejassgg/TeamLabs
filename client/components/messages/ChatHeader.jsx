@@ -22,12 +22,12 @@ const ChatHeader = ({
   }
 
   return (
-    <header className={`p-3 border-b ${theme === 'dark' ? 'bg-transparent border-dark-border text-[#F3F6FA]' : 'bg-white border-gray-200 text-gray-900'} flex-shrink-0 z-20`}>
+    <header className={`p-3 border-b bg-white border-gray-200 text-gray-900 dark:bg-transparent dark:border-dark-border dark:text-[#F3F6FA] flex-shrink-0 z-20`}>
       <div className="flex items-center justify-between">
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMobileSidebarOpen(true)}
-          className={`lg:hidden p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-dark-hover text-gray-400' : 'hover:bg-gray-100 text-gray-600'} mr-3`}
+          className={`lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600 dark:hover:bg-dark-hover dark:text-gray-400 mr-3`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -39,7 +39,7 @@ const ChatHeader = ({
             {selectedConversation.isGroup && selectedConversation.avatarUrl ? (
               <img src={selectedConversation.avatarUrl} alt="" className="w-8 h-8 rounded-full" />
             ) : (
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 bg-blue-600 text-white dark:bg-blue-900 dark:text-blue-200`}>
                 {(() => {
                   if (selectedConversation.isGroup) {
                     const parts = (selectedConversation.name || '').split(' ').filter(Boolean);
@@ -58,7 +58,7 @@ const ChatHeader = ({
                   ? selectedConversation.name || 'Group'
                   : selectedConversation.participants?.filter(p => String(p._id || p) !== String(userDetails?._id)).map(p => `${p.firstName || ''} ${p.lastName || ''}`.trim()).join(', ') || 'Direct Message'}
               </div>
-              <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} truncate`}>
+              <div className={`text-xs text-gray-500 dark:text-gray-400 truncate`}>
                 {selectedConversation.isGroup
                   ? `${selectedConversation.participants?.length || 0} members`
                   : 'Direct Message'}
@@ -73,16 +73,16 @@ const ChatHeader = ({
           {selectedConversation.isGroup && (
             <div className="relative" ref={kebabMenuRef}>
               <button
-                className={`p-2 rounded-full transition-colors ${theme === 'dark' ? 'hover:bg-[#2A2A2A] text-[#F3F6FA]' : 'hover:bg-gray-100 text-gray-900'}`}
+                className={`p-2 rounded-full transition-colors hover:bg-gray-100 text-gray-900 dark:hover:bg-[#2A2A2A] dark:text-[#F3F6FA]`}
                 onClick={() => setShowKebabMenu(!showKebabMenu)}
               >
                 <FaEllipsisV size={16} />
               </button>
               {showKebabMenu && (
-                <div className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg border z-50 overflow-hidden ${theme === 'dark' ? 'bg-dark-card border-dark-border' : 'bg-white border-gray-200'}`}>
+                <div className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg border z-50 overflow-hidden bg-white border-gray-200 dark:bg-dark-card dark:border-dark-border`}>
                   {(selectedConversation?.participants || []).some(p => String(p._id || p) === String(userDetails?._id)) && (
                     <button
-                      className={`w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition-colors ${theme === 'dark' ? 'hover:bg-[#2A2A2A] text-red-400' : 'hover:bg-red-50 text-red-600'}`}
+                      className={`w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition-colors hover:bg-red-50 text-red-600 dark:hover:bg-[#2A2A2A] dark:text-red-400`}
                       onClick={handleLeaveGroup}
                     >
                       <FaSignOutAlt /> Leave Group
@@ -90,7 +90,7 @@ const ChatHeader = ({
                   )}
                   {selectedConversation.createdBy === userDetails?._id && (
                     <button
-                      className={`w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition-colors border-t ${theme === 'dark' ? 'hover:bg-[#2A2A2A] text-red-500 border-dark-border' : 'hover:bg-red-50 text-red-600 border-gray-100'}`}
+                      className={`w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition-colors border-t hover:bg-red-50 text-red-600 border-gray-100 dark:hover:bg-[#2A2A2A] dark:text-red-500 dark:border-dark-border`}
                       onClick={() => {
                         setShowKebabMenu(false);
                         setShowDeleteDialog(true);

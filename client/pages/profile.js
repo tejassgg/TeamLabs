@@ -175,13 +175,13 @@ const Profile = () => {
         <div className="mx-auto">
           {/* Full Width Tabs */}
           <div className="mb-6">
-            <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+            <div className={`border-b border-gray-200 dark:border-gray-700`}>
               <nav className="-mb-px flex space-x-8">
                 <button
                   onClick={() => setActiveTab('profile')}
                   className={`${activeTab === 'profile'
-                    ? theme === 'dark' ? 'border-blue-400 text-blue-400' : 'border-blue-500 text-blue-600'
-                    : theme === 'dark' ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600'
                     } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
                 >
                   <FaUserCircle size={16} />
@@ -190,8 +190,8 @@ const Profile = () => {
                 <button
                   onClick={() => setActiveTab('activity')}
                   className={`${activeTab === 'activity'
-                    ? theme === 'dark' ? 'border-blue-400 text-blue-400' : 'border-blue-500 text-blue-600'
-                    : theme === 'dark' ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600'
                     } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
                 >
                   <FaChartLine size={16} />
@@ -207,10 +207,10 @@ const Profile = () => {
 
               {/* Profile Information Tab */}
               {activeTab === 'profile' && (
-                <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-lg border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className={`bg-white dark:bg-transparent rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700`}>
                   <div className="p-8">
                     <div className="flex justify-between items-center mb-8">
-                      <h2 className={`text-2xl font-bold flex items-center gap-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      <h2 className={`text-2xl font-bold flex items-center gap-3 text-gray-900 dark:text-white`}>
                         <FaUserCircle className="text-blue-500" size={28} />
                         Review Your Information
                       </h2>
@@ -243,7 +243,7 @@ const Profile = () => {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {/* Contact Details */}
                             <div>
-                              <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                              <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 text-blue-700 dark:text-blue-300`}>
                                 <FaUser className="text-blue-500" />
                                 Contact Details
                               </h3>
@@ -251,15 +251,15 @@ const Profile = () => {
                                 <li className="flex items-center gap-4">
                                   <FaEnvelope className="text-blue-400 text-xl" />
                                   <div>
-                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Email</div>
-                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.email || '-'}</div>
+                                    <div className={`font-medium text-gray-900 dark:text-white`}>Email</div>
+                                    <div className={`text-gray-900 dark:text-white`}>{profile?.email || '-'}</div>
                                   </div>
                                 </li>
                               </ul>
                             </div>
                             {/* Organization Details */}
                             <div>
-                              <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                              <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 text-blue-700 dark:text-blue-300`}>
                                 <FaOrganization className="text-blue-500" />
                                 Organization Details
                               </h3>
@@ -267,8 +267,8 @@ const Profile = () => {
                                 <li className="flex items-center gap-4">
                                   <FaOrganization className="text-blue-400 text-xl" />
                                   <div>
-                                    <div className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Organization</div>
-                                    <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile?.orgName || profile?.organization?.name || '-'}</div>
+                                    <div className={`font-medium text-gray-900 dark:text-white`}>Organization</div>
+                                    <div className={`text-gray-900 dark:text-white`}>{profile?.orgName || profile?.organization?.name || '-'}</div>
                                   </div>
                                 </li>
                               </ul>
@@ -283,9 +283,9 @@ const Profile = () => {
 
               {/* Activity History Tab */}
               {activeTab === 'activity' && (
-                <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-lg overflow-hidden border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className={`bg-white dark:bg-transparent rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700`}>
                   <div className="p-8">
-                    <h2 className={`text-xl font-semibold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Activity History</h2>
+                    <h2 className={`text-xl font-semibold mb-6 text-gray-900 dark:text-white`}>Activity History</h2>
                     {loadingActivities ? (
                       <div className="flex items-center justify-center py-8">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -293,15 +293,15 @@ const Profile = () => {
                     ) : activities.length > 0 ? (
                       <>
                         {/* Activity Statistics */}
-                        <div className={`mb-6 p-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-gray-50'} rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                        <div className={`mb-6 p-4 bg-gray-50 dark:bg-transparent rounded-xl border border-gray-200 dark:border-gray-700`}>
                           <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-                            <div className={`p-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-sm border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Total Activities</p>
-                              <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{pagination.total}</p>
+                            <div className={`p-4 bg-white dark:bg-transparent rounded-xl shadow-sm border border-gray-200 dark:border-gray-700`}>
+                              <p className={`text-sm text-gray-500 dark:text-gray-400`}>Total Activities</p>
+                              <p className={`text-lg font-semibold text-gray-900 dark:text-white`}>{pagination.total}</p>
                             </div>
-                            <div className={`p-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-sm border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Date Range</p>
-                              <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            <div className={`p-4 bg-white dark:bg-transparent rounded-xl shadow-sm border border-gray-200 dark:border-gray-700`}>
+                              <p className={`text-sm text-gray-500 dark:text-gray-400`}>Date Range</p>
+                              <p className={`text-lg font-semibold text-gray-900 dark:text-white`}>
                                 {getDateRange(activities) ? `${getDateRange(activities).oldest} to ${getDateRange(activities).newest}` : 'N/A'}
                               </p>
                             </div>
@@ -313,20 +313,20 @@ const Profile = () => {
                           {activities.map((activity) => (
                             <div
                               key={activity._id}
-                              className={`flex items-center space-x-3 p-4 rounded-xl ${theme === 'dark' ? 'hover:bg-gray-800/50 border border-gray-700' : 'hover:bg-gray-50'} transition-colors duration-200`}
+                              className={`flex items-center space-x-3 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 dark:border dark:border-gray-700 transition-colors duration-200`}
                             >
                               <div className="flex-shrink-0">
                                 {getActivityIcon(activity)}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
-                                  <p className={`font-medium text-sm truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{getActivityTitle(activity)}</p>
-                                  <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} whitespace-nowrap ml-2`}>
+                                  <p className={`font-medium text-sm truncate text-gray-900 dark:text-white`}>{getActivityTitle(activity)}</p>
+                                  <span className={`text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap ml-2`}>
                                     {formatDate(activity.timestamp)}
                                   </span>
                                 </div>
                                 {activity.details && (
-                                  <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} truncate`}>{activity.details}</p>
+                                  <p className={`text-xs text-gray-500 dark:text-gray-400 truncate`}>{activity.details}</p>
                                 )}
                               </div>
                             </div>
@@ -336,22 +336,22 @@ const Profile = () => {
                         {/* Pagination Information and Controls */}
                         <div className="mt-6 space-y-4">
                           <div className="flex justify-between items-center">
-                            <div className={`p-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-sm border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Showing</p>
-                              <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            <div className={`p-4 bg-white dark:bg-transparent rounded-xl shadow-sm border border-gray-200 dark:border-gray-700`}>
+                              <p className={`text-sm text-gray-500 dark:text-gray-400`}>Showing</p>
+                              <p className={`text-lg font-semibold text-gray-900 dark:text-white`}>
                                 {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)}
                               </p>
                             </div>
 
                             <div className="flex items-center space-x-2">
-                              <label htmlFor="pageSize" className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                              <label htmlFor="pageSize" className={`text-sm text-gray-500 dark:text-gray-400`}>
                                 Items per page:
                               </label>
                               <select
                                 id="pageSize"
                                 value={pagination.limit}
                                 onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                                className={`block w-20 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${theme === 'dark' ? 'border-gray-700 bg-transparent text-white' : 'border-gray-300 bg-white text-gray-900'}`}
+                                className={`block w-20 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border-gray-300 bg-white text-gray-900 dark:border-gray-700 dark:bg-transparent dark:text-white`}
                               >
                                 {pageSizeOptions.map(size => (
                                   <option key={size} value={size}>
@@ -369,14 +369,14 @@ const Profile = () => {
                                 onClick={() => handlePageChange(pagination.page - 1)}
                                 disabled={pagination.page === 1}
                                 className={`px-4 py-2 rounded-xl ${pagination.page === 1
-                                  ? theme === 'dark' ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                                   : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700'
                                   }`}
                               >
                                 Previous
                               </button>
 
-                              <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                              <span className={`text-sm text-gray-600 dark:text-gray-300`}>
                                 Page {pagination.page} of {pagination.totalPages}
                               </span>
 
@@ -384,7 +384,7 @@ const Profile = () => {
                                 onClick={() => handlePageChange(pagination.page + 1)}
                                 disabled={pagination.page === pagination.totalPages}
                                 className={`px-4 py-2 rounded-xl ${pagination.page === pagination.totalPages
-                                  ? theme === 'dark' ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                                   : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700'
                                   }`}
                               >
@@ -395,7 +395,7 @@ const Profile = () => {
                         </div>
                       </>
                     ) : (
-                      <div className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      <div className={`text-center py-8 text-gray-500 dark:text-gray-400`}>
                         <FaHistory className="mx-auto mb-4" size={32} />
                         <p>No activity history available</p>
                       </div>
@@ -407,8 +407,8 @@ const Profile = () => {
 
             {/* Right Column - Profile Header and Social Links */}
             <div className="lg:col-span-1">
-              <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'} rounded-xl shadow-lg overflow-hidden border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                <div className={`relative h-40 ${theme === 'dark' ? 'bg-transparent' : 'bg-gradient-to-br from-gray-50 to-blue-50'}`}>
+              <div className={`bg-white dark:bg-transparent rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700`}>
+                <div className={`relative h-40 bg-gradient-to-br from-gray-50 to-blue-50 dark:bg-transparent`}>
                   <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
                     <div className="h-24 w-24 rounded-full border-4 border-white overflow-hidden bg-white shadow-lg">
                       <img
@@ -424,27 +424,27 @@ const Profile = () => {
                   </div>
                 </div>
                 <div className="pt-16 pb-8 px-8 text-center">
-                  <h1 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>
+                  <h1 className={`text-2xl font-bold mb-2 text-gray-700 dark:text-white`}>
                     {profile?.firstName} {profile?.middleName} {profile?.lastName}
                   </h1>
-                  <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'} mb-4`}>{profile?.username}</p>
+                  <p className={`text-gray-500 dark:text-gray-300 mb-4`}>{profile?.username}</p>
 
                   {/* Social Media Links */}
                   <div className="mt-6">
                     <div className="flex justify-center space-x-4">
-                      <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                      <a href="#" className={`text-gray-400 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors duration-200`}>
                         <FaGithub size={24} />
                       </a>
-                      <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                      <a href="#" className={`text-gray-400 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors duration-200`}>
                         <FaLinkedin size={24} />
                       </a>
-                      <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                      <a href="#" className={`text-gray-400 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors duration-200`}>
                         <FaTwitter size={24} />
                       </a>
-                      <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                      <a href="#" className={`text-gray-400 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors duration-200`}>
                         <FaFacebook size={24} />
                       </a>
-                      <a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'} transition-colors duration-200`}>
+                      <a href="#" className={`text-gray-400 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors duration-200`}>
                         <FaInstagram size={24} />
                       </a>
                     </div>

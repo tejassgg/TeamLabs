@@ -19,24 +19,24 @@ const Modal = ({ isOpen, onClose, children, title, maxWidth = 'max-w-md' }) => {
 
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 bg-black/40`}>
-      <div className={`rounded-xl shadow-lg p-6 relative w-full ${maxWidth} mx-4 animate-fadeIn transition-colors duration-300 ${theme === 'dark' ? 'bg-dark-bg text-white border border-dark-card' : 'bg-white text-gray-900'}`}>
+      <div className={`rounded-xl shadow-lg p-6 relative w-full ${maxWidth} mx-4 animate-fadeIn transition-colors duration-300 bg-white text-gray-900 dark:bg-dark-bg dark:text-white dark:border dark:border-dark-card`}>
         {/* Header with centered title and close button */}
         <div className="mb-4">
           {title ? (
             <div className="flex">
               <div className="flex flex-col items-start w-[90%]">
-                <p className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                <p className={`text-3xl font-bold text-black dark:text-white`}>
                   {title}
                 </p>
               </div>
-              <button className={`text-2xl transition-colors flex justify-end w-[10%] focus:outline-none ${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`} onClick={onClose} aria-label="Close" >
+              <button className={`text-2xl transition-colors flex justify-end w-[10%] focus:outline-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200`} onClick={onClose} aria-label="Close" >
                 &times;
               </button>
             </div>
           ) : (
             <div className="flex justify-end">
               <button
-                className={`text-2xl transition-colors focus:outline-none ${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`text-2xl transition-colors focus:outline-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200`}
                 onClick={onClose}
                 aria-label="Close"
               >

@@ -10,7 +10,7 @@ import { useState } from 'react';
 const TeamCard = ({ team, theme, onRequestSent }) => {
   const router = useRouter();
   const { showToast } = useToast();
-  const { userDetails, getInitials, getAvatarColor, getThemeClasses } = useGlobal();
+  const { userDetails, getInitials, getAvatarColor } = useGlobal();
   const [isRequesting, setIsRequesting] = useState(false);
 
 
@@ -94,20 +94,14 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
 
   return (
     <div
-      className={getThemeClasses(
-        'bg-white border border-gray-200 rounded-xl px-6 pt-6 pb-3 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex flex-col h-full',
-        'bg-transparent border border-gray-700 hover:bg-gray-800/30 rounded-xl px-6 pt-6 pb-3 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex flex-col h-full'
-      )}
+      className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-700 rounded-xl px-6 pt-6 pb-3 cursor-pointer hover:shadow-lg hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-all duration-300 transform hover:scale-[1.02] flex flex-col h-full"
       onClick={handleCardClick}
     >
       {/* Team Header */}
       <div className="flex items-center justify-between">
         {/* Team Name and Description */}
         <div>
-          <h3 className={getThemeClasses(
-            'text-lg font-semibold text-gray-900',
-            'text-lg font-semibold text-white'
-          )}>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {team.TeamName}
           </h3>
         </div>
@@ -118,31 +112,22 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
             <StatusPill status={team.IsActive ? 'Active' : 'InActive'} theme={theme} showPulseOnActive />
 
             {/* Team Type Badge */}
-            <span className={getThemeClasses(
-              `inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${getTeamTypeColor(team.TeamType)}`,
-              `inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${getTeamTypeColorDark(team.TeamType)}`
-            )}>
+            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${theme === 'dark' ? getTeamTypeColorDark(team.TeamType) : getTeamTypeColor(team.TeamType)}`}>
               <FaProjectDiagram size={10} />
               {getTeamTypeText(team.TeamType)}
             </span>
           </div>
-          <FaChevronRight className={getThemeClasses('text-gray-400', 'text-gray-500')} size={14} />
+          <FaChevronRight className="text-gray-400 dark:text-gray-500" size={14} />
         </div>
       </div>
-      <p className={getThemeClasses(
-        'mb-4 text-sm text-gray-600',
-        'mb-4 text-sm text-gray-400'
-      )}>
+      <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
         {team.TeamDescription || 'No description available'}
       </p>
 
       {/* Team Projects */}
       {team.projects && team.projects.length > 0 && (
         <div>
-          <div className={getThemeClasses(
-            'text-sm font-medium text-gray-700 mb-3',
-            'text-sm font-medium text-gray-300 mb-3'
-          )}>
+          <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             Active Projects ({team.projects.length})
           </div>
 
@@ -151,39 +136,27 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
             {team.projects.slice(0, 3).map((project) => {
               const statusStyle = getProjectStatusStyle(project.ProjectStatusID);
               const StatusIcon = statusStyle.icon;
+              const pillBg = theme === 'dark' ? statusStyle.bgColor.replace('50', '900/30').replace('100', '900/30') : statusStyle.bgColor;
+              const pillText = theme === 'dark' ? statusStyle.textColor.replace('700', '300') : statusStyle.textColor;
+              const pillBorder = theme === 'dark' ? statusStyle.borderColor.replace('200', '600') : statusStyle.borderColor;
 
               return (
-                <div key={project.ProjectID} className={getThemeClasses(
-                  'group flex items-center justify-between p-2 rounded-xl hover:bg-gray-100 transition-colors duration-150',
-                  'group flex items-center justify-between p-2 rounded-xl hover:bg-dark-hover/50 transition-colors duration-150'
-                )}>
+                <div key={project.ProjectID} className="group flex items-center justify-between p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-dark-hover/50 transition-colors duration-150">
                   <div className="flex items-start gap-2 flex-1 min-w-0">
-                    <div className={getThemeClasses(
-                      'w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0 mt-1.5',
-                      'w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0 mt-1.5'
-                    )}></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400 flex-shrink-0 mt-1.5"></div>
                     <div className="flex-1 min-w-0">
-                      <div className={getThemeClasses(
-                        'text-sm font-medium text-gray-900 truncate',
-                        'text-sm font-medium text-white truncate'
-                      )}>
+                      <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
                         {project.Name}
                       </div>
                       {project.Description && (
-                        <div className={getThemeClasses(
-                          'text-xs text-gray-600 truncate',
-                          'text-xs text-gray-400 truncate'
-                        )}>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
                           {project.Description}
                         </div>
                       )}
                     </div>
                   </div>
-                  <span className={getThemeClasses(
-                    `inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${statusStyle.bgColor} ${statusStyle.textColor} ${statusStyle.borderColor}`,
-                    `inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${statusStyle.bgColor.replace('50', '900/30').replace('100', '900/30')} ${statusStyle.textColor.replace('700', '300')} ${statusStyle.borderColor.replace('200', '600')}`
-                  )}>
-                    <StatusIcon className={getThemeClasses(statusStyle.iconColor, statusStyle.iconColor.replace('500', '400'))} size={8} />
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${pillBg} ${pillText} ${pillBorder}`}>
+                    <StatusIcon className={`${statusStyle.iconColor} ${theme === 'dark' ? statusStyle.iconColor.replace('500', '400') : ''}`} size={8} />
                     {getProjectStatusText(project.ProjectStatusID)}
                   </span>
                 </div>
@@ -192,14 +165,8 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
 
             {/* Additional Projects Indicator */}
             {team.projects.length > 3 && (
-              <div className={'pb-2 rounded-md' + getThemeClasses(
-                'bg-gray-50/50',
-                'bg-gray-800/30'
-              )}>
-                <p className={getThemeClasses(
-                  'text-center text-xs text-gray-500',
-                  'text-center text-xs text-gray-400'
-                )}>
+              <div className="pb-2 rounded-md bg-gray-50/50 dark:bg-gray-800/30">
+                <p className="text-center text-xs text-gray-500 dark:text-gray-400">
                   +{team.projects.length - 3} more projects
                 </p>
               </div>
@@ -211,7 +178,7 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
       {/* Bottom Section: Created Date and Navigation */}
       <div className="mt-auto">
         {/* Team Members and Created Date */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-zinc-800">
           {team.members && team.members.length > 0 && (
             <div className="flex items-center">
               <div className="flex -space-x-2">
@@ -222,7 +189,7 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
                   return (
                     <div
                       key={member._id}
-                      className={`w-8 h-8 rounded-full ${avatarColor} flex items-center justify-center text-white text-xs font-medium shadow-sm border-2 ${getThemeClasses('border-white', 'border-gray-800')} relative z-${index + 1}`}
+                      className={`w-8 h-8 rounded-full ${avatarColor} flex items-center justify-center text-white text-xs font-medium shadow-sm border-2 border-white dark:border-gray-800 relative z-${index + 1}`}
                       title={`${member.firstName} ${member.lastName}`}
                       style={{ zIndex: 10 - index }}
                     >
@@ -231,10 +198,7 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
                   );
                 })}
                 {team.members.length > 4 && (
-                  <div className={getThemeClasses(
-                    'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-medium shadow-sm border-2 border-white',
-                    'w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-300 text-xs font-medium shadow-sm border-2 border-gray-800'
-                  )}>
+                  <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 text-xs font-medium shadow-sm border-2 border-white dark:border-gray-800">
                     +{team.members.length - 4}
                   </div>
                 )}
@@ -242,11 +206,8 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
             </div>
           )}
           <div className="flex items-center gap-2">
-            <FaCalendarAlt className={getThemeClasses('text-gray-400', 'text-gray-500')} size={12} />
-            <span className={getThemeClasses(
-              'text-xs text-gray-900',
-              'text-xs text-gray-400'
-            )}>
+            <FaCalendarAlt className="text-gray-400 dark:text-gray-500" size={12} />
+            <span className="text-xs text-gray-900 dark:text-gray-400">
               Created {team.CreatedDate ? new Date(team.CreatedDate).toLocaleDateString() : 'Unknown'}
             </span>
           </div>
@@ -255,16 +216,13 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
         {/* Request to Join Button - Show for non-members */}
         {team.userRelationship && team.userRelationship.canRequestJoin && (
           <div
-            className="mt-3 pt-3 border-t border-gray-200"
+            className="mt-3 pt-3 border-t border-gray-200 dark:border-zinc-800"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={handleRequestToJoin}
               disabled={isRequesting}
-              className={getThemeClasses(
-                'w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
-                'w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-              )}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <FaRegHandshake size={16} />
               {isRequesting ? 'Sending...' : 'Request to Join'}
@@ -275,13 +233,10 @@ const TeamCard = ({ team, theme, onRequestSent }) => {
         {/* Pending Request Status */}
         {team.userRelationship && team.userRelationship.hasPendingRequest && (
           <div
-            className="mt-3 pt-3 border-t border-gray-200"
+            className="mt-3 pt-3 border-t border-gray-200 dark:border-zinc-800"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={getThemeClasses(
-              'w-full flex items-center justify-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg border border-yellow-200',
-              'w-full flex items-center justify-center gap-2 px-4 py-2 bg-yellow-900/30 text-yellow-300 rounded-lg border border-yellow-600'
-            )}>
+            <div className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded-lg border border-yellow-200 dark:border-yellow-600">
               <FaRegHandshake size={14} />
               Request Pending
             </div>

@@ -216,7 +216,7 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
       case 'info':
         return 'text-blue-500';
       default:
-        return theme === 'dark' ? 'text-gray-400' : 'text-gray-500';
+        return 'text-gray-500 dark:text-gray-400';
     }
   };
 
@@ -251,24 +251,17 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
   const currentLoading = activeTab === 'inbox' ? notificationsLoading : activitiesLoading;
 
   return (
-    <div className={`absolute top-12 right-[-60px] sm:right-0 w-[100vw] sm:w-96 rounded-2xl shadow-xl py-1 border z-50 transition-all duration-200 ${theme === 'dark'
-      ? 'bg-dark-bg/100 text-white border-dark-border backdrop-blur-md'
-      : 'bg-white/100 text-gray-900 border-slate-200/80 shadow-slate-200/40 backdrop-blur-md'
-      } focus:outline-none`}>
+    <div className={`absolute top-12 right-[-60px] sm:right-0 w-[100vw] sm:w-96 rounded-2xl shadow-xl py-1 border z-50 transition-all duration-200 bg-white/100 text-gray-900 border-slate-200/80 shadow-slate-200/40 backdrop-blur-md dark:bg-dark-bg/100 dark:text-white dark:border-dark-border dark:backdrop-blur-md focus:outline-none`}>
 
       {/* Header and Tabs */}
-      <div className={`px-4 py-2 border-b ${theme === 'dark' ? 'border-dark-border' : 'border-slate-100'}`}>
+      <div className={`px-4 py-2 border-b border-slate-100 dark:border-dark-border`}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex space-x-4">
             <button
               onClick={() => setActiveTab('inbox')}
               className={`text-sm font-semibold pb-1 border-b-2 transition-all duration-200 ${activeTab === 'inbox'
-                ? theme === 'dark'
-                  ? 'border-blue-400 text-blue-400'
-                  : 'border-primary text-primary'
-                : theme === 'dark'
-                  ? 'border-transparent text-zinc-400 hover:text-zinc-300'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-primary text-primary dark:border-blue-400 dark:text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-300'
                 }`}
             >
               Inbox
@@ -281,12 +274,8 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
             <button
               onClick={() => setActiveTab('activities')}
               className={`text-sm font-semibold pb-1 border-b-2 transition-all duration-200 ${activeTab === 'activities'
-                ? theme === 'dark'
-                  ? 'border-blue-400 text-blue-400'
-                  : 'border-primary text-primary'
-                : theme === 'dark'
-                  ? 'border-transparent text-zinc-400 hover:text-zinc-300'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-primary text-primary dark:border-blue-400 dark:text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-300'
                 }`}
             >
               Activities
@@ -295,8 +284,7 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
           {activeTab === 'inbox' && notifications.some(n => !n.IsRead) && (
             <button
               onClick={handleMarkAllRead}
-              className={`text-xs font-semibold ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-primary hover:text-primary/80'
-                } transition-colors duration-200`}
+              className={`text-xs font-semibold text-primary hover:text-primary/80 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200`}
             >
               Mark all as read
             </button>
@@ -311,21 +299,18 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
             <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : error ? (
-          <div className={`px-4 py-3 text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
-            } flex items-center justify-center`}>
+          <div className={`px-4 py-3 text-sm text-red-600 dark:text-red-400 flex items-center justify-center`}>
             <FaExclamationTriangle className="mr-2" />
             {error}
           </div>
         ) : activeTab === 'inbox' && notifications.length === 0 ? (
-          <div className={`px-4 py-8 text-sm text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-            }`}>
+          <div className={`px-4 py-8 text-sm text-center text-gray-500 dark:text-gray-400`}>
             <FaEnvelopeOpen className="mx-auto mb-2 text-gray-400" size={24} />
             <p className="font-medium">Inbox is clean!</p>
             <p className="text-xs text-gray-400 mt-1">We will alert you when you get mentioned or assigned tasks.</p>
           </div>
         ) : activeTab === 'activities' && activities.length === 0 ? (
-          <div className={`px-4 py-8 text-sm text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-            }`}>
+          <div className={`px-4 py-8 text-sm text-center text-gray-500 dark:text-gray-400`}>
             <FaHistory className="mx-auto mb-2 text-gray-400" size={24} />
             <p className="font-medium">No recent activities</p>
           </div>
@@ -335,28 +320,24 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
               <div
                 key={noti.NotificationID}
                 onClick={() => handleNotificationClick(noti)}
-                className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-hover/20 transition-all duration-150 relative ${!noti.IsRead ? (theme === 'dark' ? 'bg-primary/5' : 'bg-primary/5') : ''
+                className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-hover/20 transition-all duration-150 relative ${!noti.IsRead ? 'bg-primary/5' : ''
                   }`}
               >
                 {!noti.IsRead && (
                   <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow" />
                 )}
                 <div className="flex items-start space-x-3 pl-2">
-                  <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-lg ${theme === 'dark' ? 'bg-dark-card' : 'bg-slate-50'
-                    }`}>
+                  <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-lg bg-slate-50 dark:bg-dark-card`}>
                     {getNotiIcon(noti.Type)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-semibold leading-tight ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'
-                      }`}>
+                    <p className={`text-sm font-semibold leading-tight text-gray-900 dark:text-[#F3F6FA]`}>
                       {noti.Title}
                     </p>
-                    <p className={`text-xs mt-1 leading-normal ${theme === 'dark' ? 'text-zinc-300' : 'text-gray-600'
-                      } break-words`}>
+                    <p className={`text-xs mt-1 leading-normal text-gray-600 dark:text-zinc-300 break-words`}>
                       {noti.Body}
                     </p>
-                    <p className={`text-xs mt-1.5 font-medium ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-400'
-                      }`}>
+                    <p className={`text-xs mt-1.5 font-medium text-gray-400 dark:text-zinc-500`}>
                       {formatDate(noti.CreatedDate)}
                     </p>
                   </div>
@@ -372,14 +353,12 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
                 className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-hover/20 transition-colors duration-150`}
               >
                 <div className="flex items-start space-x-3">
-                  <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-lg ${theme === 'dark' ? 'bg-dark-card' : 'bg-slate-50'
-                    }`}>
+                  <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-lg bg-slate-50 dark:bg-dark-card`}>
                     {getActivityIcon(activity)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'
-                        }`}>
+                      <p className={`text-sm font-semibold text-gray-900 dark:text-[#F3F6FA]`}>
                         {getActivityTitle(activity)}
                       </p>
                       <span className={`text-xs font-medium ${getActivityStatus(activity)}`}>
@@ -389,13 +368,11 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
                       </span>
                     </div>
                     {activity.details && (
-                      <p className={`text-xs mt-1 leading-normal ${theme === 'dark' ? 'text-zinc-300' : 'text-gray-600'
-                        }`}>
+                      <p className={`text-xs mt-1 leading-normal text-gray-600 dark:text-zinc-300`}>
                         {activity.details}
                       </p>
                     )}
-                    <p className={`text-xs mt-1.5 font-medium ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-400'
-                      }`}>
+                    <p className={`text-xs mt-1.5 font-medium text-gray-400 dark:text-zinc-500`}>
                       {formatDate(activity.timestamp)}
                     </p>
                   </div>

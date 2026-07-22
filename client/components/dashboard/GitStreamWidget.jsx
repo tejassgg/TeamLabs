@@ -42,25 +42,21 @@ const GitStreamWidget = ({ organizationId, theme }) => {
   };
 
   return (
-    <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${theme === 'dark'
-      ? 'bg-dark-bg border-zinc-800/80'
-      : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
-      }`}>
+    <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl dark:bg-dark-bg dark:border-zinc-800/80`}>
       <div className="flex items-center justify-between pb-4 mb-4 border-b border-dark-border/40">
         <div>
           <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
-            <FaGithub className={theme === 'dark' ? 'text-white' : 'text-slate-900'} />
+            <FaGithub className="text-slate-900 dark:text-white" />
             <span>GitHub Commit Stream</span>
           </h2>
-          <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+          <p className={`text-xs text-slate-500 dark:text-slate-400`}>
             Live code updates across organization projects
           </p>
         </div>
         <button
           onClick={fetchCommits}
           disabled={loading}
-          className={`p-2 rounded-lg transition-all ${theme === 'dark' ? 'hover:bg-dark-hover text-slate-400' : 'hover:bg-slate-100 text-slate-600'
-            }`}
+          className={`p-2 rounded-lg transition-all hover:bg-slate-100 text-slate-600 dark:hover:bg-dark-hover dark:text-slate-400`}
           title="Refresh commit stream"
         >
           <FaSync size={12} className={loading ? 'animate-spin' : ''} />
@@ -90,14 +86,10 @@ const GitStreamWidget = ({ organizationId, theme }) => {
         {!loading && !error && commits.map((commit, index) => (
           <div
             key={`${commit.sha}-${index}`}
-            className={`p-3 rounded-xl mb-3 border transition-all duration-200 ${theme === 'dark'
-              ? 'bg-dark-bg/40 border-dark-border/40 hover:border-dark-border'
-              : 'bg-slate-50 border-slate-200/50 hover:border-slate-200'
-              }`}
+            className={`p-3 rounded-xl mb-3 border transition-all duration-200 bg-slate-50 border-slate-200/50 hover:border-slate-200 dark:bg-dark-bg/40 dark:border-dark-border/40 dark:hover:border-dark-border`}
           >
             <div className="flex items-start gap-3">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${theme === 'dark' ? 'bg-dark-hover text-white' : 'bg-slate-100 text-slate-900'
-                }`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-slate-100 text-slate-900 dark:bg-dark-hover dark:text-white`}>
                 <FaGithub size={14} />
               </div>
               <div className="flex-1 min-w-0">
@@ -113,7 +105,7 @@ const GitStreamWidget = ({ organizationId, theme }) => {
                   in <span className="font-medium text-slate-400">{commit.projectName}</span>
                 </div>
 
-                <p className={`text-xs mt-2 break-words leading-relaxed font-mono ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
+                <p className={`text-xs mt-2 break-words leading-relaxed font-mono text-slate-700 dark:text-slate-300`}>
                   {commit.message}
                 </p>
 

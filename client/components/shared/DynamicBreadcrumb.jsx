@@ -135,17 +135,17 @@ const DynamicBreadcrumb = ({
   if (items.length <= 1) return null;
 
   return (
-    <nav className={`flex items-center space-x-2 text-sm h-8 x-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
+    <nav className={`flex items-center space-x-2 text-sm h-8 x-8 text-gray-500 dark:text-gray-300`}>
       {items.map((item, index) => (
         <div key={index} className="flex items-center space-x-2">
-          {index > 0 && <FaChevronRight className={`w-3 h-3 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />}
+          {index > 0 && <FaChevronRight className={`w-3 h-3 text-gray-400 dark:text-gray-500`} />}
 
           {/* Project Name with Edit Functionality - Only editable when not on task details page */}
           {item.isProject && !item.isCurrent ? (
             <div className="flex items-center gap-1">
               <Link
                 href={item.href}
-                className={`hover:text-blue-600 transition-colors duration-200 ${theme === 'dark' ? 'hover:text-blue-400' : ''}`}
+                className={`hover:text-blue-600 transition-colors duration-200 dark:hover:text-blue-400`}
               >
                 {item.label}
               </Link>
@@ -153,7 +153,7 @@ const DynamicBreadcrumb = ({
               {!router.pathname.startsWith('/task/') && (
                 <button
                   onClick={() => onEditProjectName(item.project)}
-                  className={`breadcrumb-edit-button p-1 rounded-full hover:bg-blue-100 transition-colors ${theme === 'dark' ? 'hover:bg-blue-900/30 text-blue-400' : 'text-blue-600'}`}
+                  className={`breadcrumb-edit-button p-1 rounded-full hover:bg-blue-100 transition-colors text-blue-600 dark:hover:bg-blue-900/30 dark:text-blue-400`}
                   title="Edit Project Name"
                 >
                   <FaEdit size={12} />
@@ -178,19 +178,19 @@ const DynamicBreadcrumb = ({
                         }
                       }}
                       onBlur={() => onCancelEdit()}
-                      className={`breadcrumb-edit-input px-2 py-1 text-sm font-medium bg-white border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800 text-gray-100 border-blue-600' : 'text-gray-900'}`}
+                      className={`breadcrumb-edit-input px-2 py-1 text-sm font-medium bg-white border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:bg-gray-800 dark:text-gray-100 dark:border-blue-600`}
                       autoFocus
                     />
                   </div>
                 ) : (
                   <>
-                    <span className={`font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-700'}`}>
+                    <span className={`font-medium text-gray-700 dark:text-gray-100`}>
                       {item.label}
                     </span>
                     {item.task && (
                       <button
                         onClick={() => onEditTaskName(item.task)}
-                        className={`breadcrumb-edit-button p-1 rounded-full hover:bg-blue-100 transition-colors ${theme === 'dark' ? 'hover:bg-blue-900/30 text-blue-400' : 'text-blue-600'}`}
+                        className={`breadcrumb-edit-button p-1 rounded-full hover:bg-blue-100 transition-colors text-blue-600 dark:hover:bg-blue-900/30 dark:text-blue-400`}
                         title="Edit Task Name"
                       >
                         <FaEdit size={12} />
@@ -217,20 +217,20 @@ const DynamicBreadcrumb = ({
                           }
                         }}
                         onBlur={() => onCancelEdit()}
-                        className={`breadcrumb-edit-input px-2 py-1 text-sm font-medium bg-white border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800 text-gray-100 border-blue-600' : 'text-gray-900'}`}
+                        className={`breadcrumb-edit-input px-2 py-1 text-sm font-medium bg-white border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:bg-gray-800 dark:text-gray-100 dark:border-blue-600`}
                         autoFocus
                       />
                     </div>
                   ) : (
                     <>
-                      <span className={`font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-700'}`}>
+                      <span className={`font-medium text-gray-700 dark:text-gray-100`}>
                         {item.label}
                       </span>
                       {/* Only show edit button if not on task details page */}
                       {!router.pathname.startsWith('/task/') && (
                         <button
                           onClick={() => onEditProjectName(item.project)}
-                          className={`breadcrumb-edit-button p-1 rounded-full hover:bg-blue-100 transition-colors ${theme === 'dark' ? 'hover:bg-blue-900/30 text-blue-400' : 'text-blue-600'}`}
+                          className={`breadcrumb-edit-button p-1 rounded-full hover:bg-blue-100 transition-colors text-blue-600 dark:hover:bg-blue-900/30 dark:text-blue-400`}
                           title="Edit Project Name"
                         >
                           <FaEdit size={12} />
@@ -242,13 +242,13 @@ const DynamicBreadcrumb = ({
               ) :
                 /* Regular Items */
                 item.isCurrent ? (
-                  <span className={`font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-700'}`}>
+                  <span className={`font-medium text-gray-700 dark:text-gray-100`}>
                     {item.label}
                   </span>
                 ) : (
                   <Link
                     href={item.href}
-                    className={`hover:text-blue-600 transition-colors duration-200 ${theme === 'dark' ? 'hover:text-blue-400' : ''}`}
+                    className={`hover:text-blue-600 transition-colors duration-200 dark:hover:text-blue-400`}
                   >
                     {item.label}
                   </Link>

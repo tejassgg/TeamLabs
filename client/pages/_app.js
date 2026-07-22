@@ -53,8 +53,7 @@ function MyApp({ Component, pageProps }) {
       <SWRConfig value={{
         fetcher: (url) => api.get(url).then(res => res.data),
         revalidateOnFocus: false,
-        dedupingInterval: 5000,
-      }}>
+        dedupingInterval: 5000 }}>
         <ThemeProvider>
           <GlobalProvider>
             <ToastProvider>

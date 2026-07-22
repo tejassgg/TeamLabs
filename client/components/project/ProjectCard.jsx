@@ -7,7 +7,7 @@ import ProjectPriorityBadge from '../shared/ProjectPriorityBadge';
 
 const ProjectCard = ({ project, theme }) => {
   const router = useRouter();
-  const { getThemeClasses, getInitials, getAvatarColor } = useGlobal();
+  const { getInitials, getAvatarColor } = useGlobal();
 
   const handleCardClick = () => {
     router.push(`/project/${project.ProjectID || project._id}`);
@@ -87,20 +87,14 @@ const ProjectCard = ({ project, theme }) => {
 
   return (
     <div
-      className={getThemeClasses(
-        'bg-white border border-gray-200 rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex flex-col h-full',
-        'bg-transparent border border-gray-700 hover:bg-gray-800/30 rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex flex-col h-full'
-      )}
+      className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-700 rounded-xl p-6 cursor-pointer hover:shadow-lg hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-all duration-300 transform hover:scale-[1.02] flex flex-col h-full"
       onClick={handleCardClick}
     >
       {/* Project Header */}
       <div className="flex items-center justify-between mb-6">
         {/* Project Name and Description */}
         <div>
-          <h3 className={getThemeClasses(
-            'text-lg font-semibold text-gray-900 flex items-center gap-2',
-            'text-lg font-semibold text-white flex items-center gap-2'
-          )}>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             {project.Name}
             {project.isArchived && (
               <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-zinc-150 text-zinc-800 border border-zinc-200 dark:bg-zinc-800/80 dark:text-zinc-300 dark:border-zinc-700">
@@ -108,10 +102,7 @@ const ProjectCard = ({ project, theme }) => {
               </span>
             )}
           </h3>
-          <p className={getThemeClasses(
-            'text-sm text-gray-600',
-            'text-sm text-gray-400'
-          )}>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             {project.Description.slice(0, 40) + '...'}
           </p>
         </div>
@@ -124,64 +115,43 @@ const ProjectCard = ({ project, theme }) => {
               const StatusIcon = statusStyle.icon;
 
               return (
-                <span className={getThemeClasses(
-                  `inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${statusStyle.bgColor} ${statusStyle.textColor} ${statusStyle.borderColor}`,
-                  `inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${statusStyle.bgColor.replace('50', '900/30').replace('100', '900/30')} ${statusStyle.textColor.replace('700', '300')} ${statusStyle.borderColor.replace('200', '600')}`
-                )}>
-                  <StatusIcon className={getThemeClasses(statusStyle.iconColor, statusStyle.iconColor.replace('500', '400'))} size={10} />
+                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${theme === 'dark' ? `${statusStyle.bgColor.replace('50', '900/30').replace('100', '900/30')} ${statusStyle.textColor.replace('700', '300')} ${statusStyle.borderColor.replace('200', '600')}` : `${statusStyle.bgColor} ${statusStyle.textColor} ${statusStyle.borderColor}`}`}>
+                  <StatusIcon className={`${statusStyle.iconColor} ${theme === 'dark' ? statusStyle.iconColor.replace('500', '400') : ''}`} size={10} />
                   {getStatusText(project.ProjectStatusID)}
                 </span>
               );
             })()}
             <ProjectPriorityBadge priority={project.Priority} showLabel={true} />
           </div>
-          <FaChevronRight className={getThemeClasses('text-gray-400', 'text-gray-500')} size={14} />
+          <FaChevronRight className="text-gray-400 dark:text-gray-500" size={14} />
         </div>
       </div>
 
       {/* Assigned Teams */}
       {project.teams && project.teams.length > 0 && (
         <div className="mb-6">
-          <div className={getThemeClasses(
-            'text-sm font-medium text-gray-700 mb-3',
-            'text-sm font-medium text-gray-300 mb-3'
-          )}>
+          <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             Assigned Teams ({project.teams.length})
           </div>
 
           {/* Compact Team List */}
           <div className="space-y-1">
             {project.teams.slice(0, 2).map((team) => (
-              <div key={team.TeamID} className={getThemeClasses(
-                'group flex items-center justify-between p-2 rounded-xl hover:bg-gray-100 transition-colors duration-150',
-                'group flex items-center justify-between p-2 rounded-xl hover:bg-dark-hover/50 transition-colors duration-150'
-              )}>
+              <div key={team.TeamID} className="group flex items-center justify-between p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-dark-hover/50 transition-colors duration-150">
                 <div className="flex items-start gap-2 flex-1 min-w-0">
-                  <div className={getThemeClasses(
-                    'w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0 mt-1.5',
-                    'w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0 mt-1.5'
-                  )}></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500 dark:bg-purple-400 flex-shrink-0 mt-1.5"></div>
                   <div className="flex-1 min-w-0">
-                    <div className={getThemeClasses(
-                      'text-sm font-medium text-gray-900 truncate',
-                      'text-sm font-medium text-white truncate'
-                    )}>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {team.Name}
                     </div>
                     {team.Description && (
-                      <div className={getThemeClasses(
-                        'text-xs text-gray-600 truncate',
-                        'text-xs text-gray-400 truncate'
-                      )}>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
                         {team.Description}
                       </div>
                     )}
                   </div>
                 </div>
-                <span className={getThemeClasses(
-                  `inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getTeamTypeColor(team.TeamType)}`,
-                  `inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getTeamTypeColorDark(team.TeamType)}`
-                )}>
+                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${theme === 'dark' ? getTeamTypeColorDark(team.TeamType) : getTeamTypeColor(team.TeamType)}`}>
                   <FaUsers size={8} />
                   {getTeamTypeText(team.TeamType)}
                 </span>
@@ -190,14 +160,8 @@ const ProjectCard = ({ project, theme }) => {
 
             {/* Additional Teams Indicator */}
             {project.teams.length > 2 && (
-              <div className={getThemeClasses(
-                'flex items-center justify-center gap-2 p-2 rounded-md bg-gray-50/50',
-                'flex items-center justify-center gap-2 p-2 rounded-md bg-gray-800/30'
-              )}>
-                <span className={getThemeClasses(
-                  'text-xs text-gray-500',
-                  'text-xs text-gray-400'
-                )}>
+              <div className="flex items-center justify-center gap-2 p-2 rounded-md bg-gray-50/50 dark:bg-gray-800/30">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   +{project.teams.length - 2} more teams
                 </span>
               </div>
@@ -213,23 +177,14 @@ const ProjectCard = ({ project, theme }) => {
           {/* Progress Bar */}
           <div className="mb-2">
             <div className="flex items-center justify-between mb-2">
-              <span className={getThemeClasses(
-                'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-gray-300'
-              )}>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Progress
               </span>
-              <span className={getThemeClasses(
-                'text-sm font-semibold text-gray-900',
-                'text-sm font-semibold text-white'
-              )}>
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">
                 {progress}%
               </span>
             </div>
-            <div className={getThemeClasses(
-              'w-full bg-gray-200 rounded-full h-2',
-              'w-full bg-gray-700 rounded-full h-2'
-            )}>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div
                 className="h-2 rounded-full transition-all duration-300 bg-gradient-to-r from-blue-500 to-green-500"
                 style={{ width: `${Math.min(progress, 100)}%` }}
@@ -250,7 +205,7 @@ const ProjectCard = ({ project, theme }) => {
                   return (
                     <div
                       key={member._id}
-                      className={`w-8 h-8 rounded-full ${avatarColor} flex items-center justify-center text-white text-xs font-medium shadow-sm border-2 ${getThemeClasses('border-white', 'border-gray-800')} relative z-${index + 1}`}
+                      className={`w-8 h-8 rounded-full ${avatarColor} flex items-center justify-center text-white text-xs font-medium shadow-sm border-2 border-white dark:border-gray-800 relative z-${index + 1}`}
                       title={`${member.firstName} ${member.lastName}`}
                       style={{ zIndex: 10 - index }}
                     >
@@ -259,10 +214,7 @@ const ProjectCard = ({ project, theme }) => {
                   );
                 })}
                 {project.members.length > 4 && (
-                  <div className={getThemeClasses(
-                    'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-medium shadow-sm border-2 border-white',
-                    'w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-300 text-xs font-medium shadow-sm border-2 border-gray-800'
-                  )}>
+                  <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 text-xs font-medium shadow-sm border-2 border-white dark:border-gray-800">
                     +{project.members.length - 4}
                   </div>
                 )}
@@ -272,21 +224,15 @@ const ProjectCard = ({ project, theme }) => {
           <div className="flex items-center gap-2">
 
             {project.githubRepository?.connected && (
-              <div className={getThemeClasses(
-                'flex items-center gap-1 text-sm text-gray-900',
-                'flex items-center gap-1 text-sm text-gray-100'
-              )}>
+              <div className="flex items-center gap-1 text-sm text-gray-900 dark:text-gray-100">
                 <FaGithub size={10} />
                 <span>
                   {project.githubRepository?.repositoryName || 'GitHub'}
                 </span>
               </div>
             )}
-            <FaCalendarAlt className={getThemeClasses('text-gray-400', 'text-gray-500')} size={12} />
-            <span className={getThemeClasses(
-              'text-xs text-gray-900',
-              'text-xs text-gray-400'
-            )}>
+            <FaCalendarAlt className="text-gray-400 dark:text-gray-500" size={12} />
+            <span className="text-xs text-gray-900 dark:text-gray-400">
               Created {project.CreatedDate ? new Date(project.CreatedDate).toLocaleDateString() : 'Unknown'}
             </span>
           </div>

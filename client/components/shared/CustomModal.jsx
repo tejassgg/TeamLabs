@@ -1,21 +1,10 @@
 import React from 'react';
 
-const CustomModal = ({ isOpen, onClose, title, children, actions, getThemeClasses, maxWidthClass = 'max-w-md' }) => {
+const CustomModal = ({ isOpen, onClose, title, children, actions, maxWidthClass = 'max-w-md' }) => {
   if (!isOpen) return null;
-  const containerClasses = getThemeClasses
-    ? getThemeClasses(
-      `bg-white rounded-xl p-6 ${maxWidthClass} w-full mx-4 shadow-lg border border-gray-100`,
-      'dark:bg-dark-bg dark:border-dark-card'
-    )
-    : `bg-white rounded-xl p-6 ${maxWidthClass} w-full mx-4 shadow-lg border border-gray-100`;
-
-  const titleClasses = getThemeClasses
-    ? getThemeClasses('text-lg font-semibold text-gray-900', 'text-lg font-semibold text-white')
-    : 'text-lg font-semibold';
-
-  const closeBtnClasses = getThemeClasses
-    ? getThemeClasses('text-gray-400 hover:text-gray-600 text-xl font-bold', 'text-gray-400 hover:text-gray-300 text-xl font-bold')
-    : 'text-gray-400 hover:text-gray-600 text-xl font-bold';
+  const containerClasses = `bg-white dark:bg-dark-bg rounded-xl p-6 ${maxWidthClass} w-full mx-4 shadow-lg border border-gray-100 dark:border-dark-card`;
+  const titleClasses = 'text-lg font-semibold text-gray-900 dark:text-white';
+  const closeBtnClasses = 'text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 text-xl font-bold';
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

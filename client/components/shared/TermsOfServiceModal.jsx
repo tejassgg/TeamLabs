@@ -67,14 +67,10 @@ const TermsOfServiceModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
-      <div id="terms-of-service-modal" className={`relative w-full sm:max-w-5xl h-[85vh] flex flex-col overflow-hidden rounded-2xl border shadow-2xl transition-all duration-300 ${theme === 'dark'
-        ? 'bg-slate-955 bg-slate-950 border-slate-800 text-slate-300 shadow-slate-950/80'
-        : 'bg-white border-slate-200 text-slate-700 shadow-slate-200/50'
-        }`}>
+      <div id="terms-of-service-modal" className={`relative w-full sm:max-w-5xl h-[85vh] flex flex-col overflow-hidden rounded-2xl border shadow-2xl transition-all duration-300 bg-white border-slate-200 text-slate-700 shadow-slate-200/50 dark:bg-slate-955 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300 dark:shadow-slate-950/80`}>
 
         {/* Header */}
-        <div className={`flex items-center justify-between p-6 border-b transition-all duration-300 ${theme === 'dark' ? 'border-slate-800 bg-slate-950' : 'border-slate-100 bg-white'
-          }`}>
+        <div className={`flex items-center justify-between p-6 border-b transition-all duration-300 border-slate-100 bg-white dark:border-slate-800 dark:bg-slate-950`}>
           <div className="flex items-center gap-3.5">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-600 text-white shadow-md shadow-indigo-600/10">
               <FaFileContract className="w-4 h-4" />
@@ -100,10 +96,7 @@ const TermsOfServiceModal = ({ isOpen, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className={`p-2 rounded-lg transition-colors ${theme === 'dark'
-              ? 'hover:bg-slate-900 text-slate-400 hover:text-slate-205 hover:text-slate-200'
-              : 'hover:bg-slate-100 text-slate-500 hover:text-slate-800'
-              }`}
+            className={`p-2 rounded-lg transition-colors hover:bg-slate-100 text-slate-500 hover:text-slate-800 dark:hover:bg-slate-900 dark:text-slate-400 dark:hover:text-slate-205 dark:hover:text-slate-200`}
           >
             <FaTimes className="w-4 h-4" />
           </button>
@@ -113,8 +106,7 @@ const TermsOfServiceModal = ({ isOpen, onClose }) => {
         <div className="flex flex-1 overflow-hidden">
 
           {/* Sticky Left Sidebar Navigation */}
-          <div className={`hidden md:flex w-60 shrink-0 border-r flex-col p-4 overflow-y-auto space-y-1 ${theme === 'dark' ? 'border-slate-800 bg-slate-950/40' : 'border-slate-100 bg-slate-50/50'
-            }`}>
+          <div className={`hidden md:flex w-60 shrink-0 border-r flex-col p-4 overflow-y-auto space-y-1 border-slate-100 bg-slate-50/50 dark:border-slate-800 dark:bg-slate-950/40`}>
             <span className="text-xs font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase px-3 mb-2 block">
               Document Index
             </span>
@@ -492,18 +484,14 @@ const TermsOfServiceModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className={`p-5 flex flex-col sm:flex-row items-center sm:justify-between gap-4 border-t transition-all duration-300 ${theme === 'dark' ? 'border-slate-800 bg-slate-950' : 'border-slate-100 bg-white'
-          }`}>
+        <div className={`p-5 flex flex-col sm:flex-row items-center sm:justify-between gap-4 border-t transition-all duration-300 border-slate-100 bg-white dark:border-slate-800 dark:bg-slate-950`}>
           <div className="text-xs font-bold tracking-wide uppercase text-slate-400 dark:text-slate-500">
             TeamLabs Terms of Service • Version 1.0
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
               onClick={onClose}
-              className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold transition-all border text-xs ${theme === 'dark'
-                ? 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
+              className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold transition-all border text-xs bg-white border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white`}
             >
               Close
             </button>

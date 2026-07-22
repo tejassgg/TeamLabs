@@ -79,26 +79,18 @@ const VoiceMessagePlayer = ({ audioUrl, duration, senderName, timestamp, onDownl
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className={`max-w-sm rounded-lg p-3 ${
-      theme === 'dark' 
-        ? 'bg-gray-700 border border-gray-600' 
-        : 'bg-gray-100 border border-gray-200'
-    }`}>
+    <div className={`max-w-sm rounded-lg p-3 bg-gray-100 border border-gray-200 dark:bg-gray-700 dark:border dark:border-gray-600`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <FaVolumeUp className={`text-sm ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
-          <span className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+          <FaVolumeUp className={`text-sm text-blue-600 dark:text-blue-400`} />
+          <span className={`text-xs font-medium text-gray-700 dark:text-gray-300`}>
             Voice Message
           </span>
         </div>
         <button
           onClick={handleDownload}
-          className={`p-1 rounded transition-colors ${
-            theme === 'dark' 
-              ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-600' 
-              : 'text-gray-500 hover:text-blue-600 hover:bg-gray-200'
-          }`}
+          className={`p-1 rounded transition-colors text-gray-500 hover:text-blue-600 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-600`}
           title="Download voice message"
         >
           <FaDownload size={12} />
@@ -113,7 +105,7 @@ const VoiceMessagePlayer = ({ audioUrl, duration, senderName, timestamp, onDownl
           className={`p-2 rounded-full transition-colors ${
             isLoading
               ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-              : theme === 'dark'
+              : theme'dark'
                 ? 'bg-blue-500 hover:bg-blue-600 text-white'
                 : 'bg-blue-500 hover:bg-blue-600 text-white'
           }`}
@@ -133,9 +125,7 @@ const VoiceMessagePlayer = ({ audioUrl, duration, senderName, timestamp, onDownl
           <div
             ref={progressRef}
             onClick={handleSeek}
-            className={`w-full h-2 bg-gray-300 rounded-full cursor-pointer ${
-              theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'
-            }`}
+            className={`w-full h-2 bg-gray-300 rounded-full cursor-pointer bg-gray-300 dark:bg-gray-600`}
           >
             <div
               className="h-full bg-blue-500 rounded-full transition-all duration-100"
@@ -144,17 +134,17 @@ const VoiceMessagePlayer = ({ audioUrl, duration, senderName, timestamp, onDownl
           </div>
         </div>
 
-        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+        <span className={`text-xs text-gray-600 dark:text-gray-400`}>
           {formatTime(currentTime)} / {formatTime(duration)}
         </span>
       </div>
 
       {/* Footer */}
       <div className="flex items-center justify-between text-xs">
-        <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+        <span className={`text-gray-500 dark:text-gray-400`}>
           {senderName}
         </span>
-        <span className={`${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+        <span className={`text-gray-400 dark:text-gray-500`}>
           {timestamp}
         </span>
       </div>

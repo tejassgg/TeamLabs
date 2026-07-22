@@ -45,10 +45,7 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
     }
   }, [isOpen]);
 
-  const getThemeClasses = (lightClass, darkClass) => {
-    return theme === 'dark' ? darkClass : lightClass;
-  };
-
+  
   // Handle animation when modal opens/closes
   useEffect(() => {
     if (isOpen) {
@@ -130,18 +127,12 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}
         onClick={handleClose}
       />
-      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-dark-card' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
+      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg bg-white text-gray-900 dark:bg-dark-bg dark:text-white border-l border-gray-200 dark:border-dark-card p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
         <div className="flex items-center justify-between mb-6">
-          <h3 className={getThemeClasses(
-            'text-xl font-semibold text-gray-900',
-            'text-xl font-semibold text-white'
-          )}>Create New Project</h3>
+          <h3 className={'text-xl font-semibold text-gray-900 text-xl font-semibold text-white'}>Create New Project</h3>
           <button
             onClick={handleClose}
-            className={getThemeClasses(
-              'text-gray-400 hover:text-gray-600 text-2xl font-bold',
-              'text-gray-400 hover:text-gray-300 text-2xl font-bold'
-            )}
+            className={'text-gray-400 hover:text-gray-600 text-2xl font-bold text-gray-400 hover:text-gray-300 text-2xl font-bold'}
           >
             ×
           </button>
@@ -150,14 +141,8 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
         <form onSubmit={handleSubmit} className="space-y-6" autoComplete="on">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 min-w-[120px]">
-              <FaProjectDiagram className={getThemeClasses(
-                'text-gray-500',
-                'text-gray-400'
-              )} size={16} />
-              <label className={getThemeClasses(
-                'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-gray-300'
-              )}>
+              <FaProjectDiagram className={'text-gray-500 text-gray-400'} size={16} />
+              <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-gray-300'}>
                 Name<span className="text-red-500 ml-1">*</span>
               </label>
             </div>
@@ -165,10 +150,7 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              className={getThemeClasses(
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-              )}
+              className={'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'}
               maxLength={50}
               required
               autoComplete="project-name"
@@ -178,24 +160,15 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
 
           <div className="flex items-start gap-4">
             <div className="flex items-center gap-2 min-w-[120px] pt-2">
-              <FaAlignLeft className={getThemeClasses(
-                'text-gray-500',
-                'text-gray-400'
-              )} size={16} />
-              <label className={getThemeClasses(
-                'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-gray-300'
-              )}>
+              <FaAlignLeft className={'text-gray-500 text-gray-400'} size={16} />
+              <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-gray-300'}>
                 Description
               </label>
             </div>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
-              className={getThemeClasses(
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 resize-none',
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500 resize-none'
-              )}
+              className={'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 resize-none flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500 resize-none'}
               rows={5}
               autoComplete="off"
               placeholder="Enter project description"
@@ -204,14 +177,8 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
 
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 min-w-[120px]">
-              <FaCalendarAlt className={getThemeClasses(
-                'text-gray-500',
-                'text-gray-400'
-              )} size={16} />
-              <label className={getThemeClasses(
-                'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-gray-300'
-              )}>
+              <FaCalendarAlt className={'text-gray-500 text-gray-400'} size={16} />
+              <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-gray-300'}>
                 Due Date
               </label>
             </div>
@@ -219,24 +186,15 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
               type="date"
               value={dueDate}
               onChange={e => setDueDate(e.target.value)}
-              className={getThemeClasses(
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-              )}
+              className={'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'}
             />
           </div>
 
           {/* Priority Custom Dropdown */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 min-w-[120px]">
-              <FaSignal className={getThemeClasses(
-                'text-gray-500',
-                'text-gray-400'
-              )} size={16} />
-              <label className={getThemeClasses(
-                'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-gray-300'
-              )}>
+              <FaSignal className={'text-gray-500 text-gray-400'} size={16} />
+              <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-gray-300'}>
                 Priority
               </label>
             </div>
@@ -265,11 +223,8 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
           {/* Goals Input Section */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <FaCheck className={getThemeClasses('text-gray-500', 'text-gray-400')} size={14} />
-              <label className={getThemeClasses(
-                'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-gray-300'
-              )}>
+              <FaCheck className={'text-gray-500 text-gray-400'} size={14} />
+              <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-gray-300'}>
                 Project Goals
               </label>
             </div>
@@ -280,19 +235,13 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
                 value={goalInput}
                 onChange={e => setGoalInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddGoal(); } }}
-                className={getThemeClasses(
-                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                )}
+                className={'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'}
                 placeholder="Add a key project goal..."
               />
               <button
                 type="button"
                 onClick={handleAddGoal}
-                className={getThemeClasses(
-                  "px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 border border-blue-200 rounded-lg transition-colors",
-                  "px-3 py-1.5 text-xs font-semibold text-blue-400 hover:bg-zinc-800 border border-zinc-700 rounded-lg transition-colors"
-                )}
+                className={"px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 border border-blue-200 rounded-lg transition-colors px-3 py-1.5 text-xs font-semibold text-blue-400 hover:bg-zinc-800 border border-zinc-700 rounded-lg transition-colors"}
               >
                 Add
               </button>
@@ -302,10 +251,7 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
             {goals.length > 0 && (
               <div className="space-y-2 max-h-40 overflow-y-auto pt-2">
                 {goals.map((goal, idx) => (
-                  <div key={idx} className={getThemeClasses(
-                    "flex items-center justify-between p-2.5 bg-gray-50 border border-gray-100 rounded-xl",
-                    "flex items-center justify-between p-2.5 bg-[#1f1f23] border border-[#2b2b30] rounded-xl"
-                  )}>
+                  <div key={idx} className={"flex items-center justify-between p-2.5 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-between p-2.5 bg-[#1f1f23] border border-[#2b2b30] rounded-xl"}>
                     <span className="text-xs font-medium truncate max-w-[85%]">{goal}</span>
                     <button
                       type="button"
@@ -325,10 +271,7 @@ const AddProjectModal = ({ isOpen, onClose, onAddProject, organizationId, projec
             <button
               type="button"
               onClick={handleClose}
-              className={getThemeClasses(
-                'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                'px-6 py-2.5 text-gray-300 hover:bg-dark-hover rounded-xl border border-gray-600 transition-all duration-200'
-              )}
+              className={'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 px-6 py-2.5 text-gray-300 hover:bg-dark-hover rounded-xl border border-gray-600 transition-all duration-200'}
             >
               Cancel
             </button>

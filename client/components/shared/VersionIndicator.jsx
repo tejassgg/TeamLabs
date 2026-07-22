@@ -13,10 +13,7 @@ const VersionIndicator = ({ versionUpdateAvailable, latestVersion, onClick }) =>
   return (
     <button
       onClick={onClick}
-      className={`relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${theme === 'dark'
-          ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg'
-          : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg'
-        }`}
+      className={`relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg dark:bg-gradient-to-r dark:from-blue-600 dark:to-purple-600 dark:hover:from-blue-700 dark:hover:to-purple-700 dark:text-white dark:shadow-lg`}
       title={`Update available: v${latestVersion}`}
     >
       <FaRocket size={12} />
@@ -32,8 +29,8 @@ export const VersionBadge = ({ version, isLatest = false }) => {
 
   return (
     <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${isLatest
-        ? (theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800')
-        : (theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-primary')
+        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+        : 'bg-blue-100 text-primary dark:bg-blue-900/30 dark:text-blue-400'
       }`}>
       <FaInfo size={8} />
       <span>v{version}</span>
@@ -48,8 +45,7 @@ export const CurrentVersionInfo = () => {
   const { theme } = useTheme();
 
   return (
-    <div className={`flex items-center gap-2 px-2 py-1 rounded text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-      }`}>
+    <div className={`flex items-center gap-2 px-2 py-1 rounded text-xs text-gray-600 dark:text-gray-400`}>
       <span>Current: v{CLIENT_VERSION}</span>
     </div>
   );

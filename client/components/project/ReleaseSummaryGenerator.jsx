@@ -182,8 +182,8 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
     <div className="space-y-6">
       {/* Title Header */}
       <div className="flex flex-col gap-1">
-        <h2 className={`text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Automated Release Summary Generator</h2>
-        <p className={`text-sm ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-500'}`}>
+        <h2 className={`text-2xl font-bold tracking-tight text-gray-900 dark:text-white`}>Automated Release Summary Generator</h2>
+        <p className={`text-sm text-gray-500 dark:text-zinc-400`}>
           Generate changelogs using AI and email them to the project team.
         </p>
       </div>
@@ -194,7 +194,7 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
           <div className="space-y-4">
             <h3 className="text-md font-bold mb-2 flex items-center gap-2 border-b border-gray-100 dark:border-zinc-800/80 pb-2">
               <FaCalendarAlt className="text-emerald-500" />
-              <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>Release Details</span>
+              <span className="text-gray-900 dark:text-white">Release Details</span>
             </h3>
 
             {/* Version */}
@@ -284,14 +284,14 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-gray-100 dark:border-zinc-800/80">
               <h3 className="text-md font-bold flex items-center gap-2">
                 <FaFileAlt className="text-emerald-500" />
-                <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>Draft Release Notes</span>
+                <span className="text-gray-900 dark:text-white">Draft Release Notes</span>
               </h3>
 
               <div className="flex items-center border border-gray-100 dark:border-zinc-850 rounded-xl overflow-hidden shadow-sm p-0.5 bg-gray-50 dark:bg-zinc-900/60">
-                <button
+                 <button
                   onClick={() => setPreviewMode('edit')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${previewMode === 'edit'
-                      ? theme === 'dark' ? 'bg-zinc-800 text-white' : 'bg-white text-slate-900 shadow-sm border border-gray-100'
+                      ? 'bg-white text-slate-900 shadow-sm border border-gray-100 dark:bg-zinc-800 dark:text-white dark:border-transparent'
                       : 'text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400'
                     }`}
                 >
@@ -300,7 +300,7 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
                 <button
                   onClick={() => setPreviewMode('preview')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${previewMode === 'preview'
-                      ? theme === 'dark' ? 'bg-zinc-800 text-white' : 'bg-white text-slate-900 shadow-sm border border-gray-100'
+                      ? 'bg-white text-slate-900 shadow-sm border border-gray-100 dark:bg-zinc-800 dark:text-white dark:border-transparent'
                       : 'text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400'
                     }`}
                 >
@@ -316,12 +316,10 @@ const ReleaseSummaryGenerator = ({ projectId, projectName, theme }) => {
                   value={releaseNotes}
                   onChange={e => setReleaseNotes(e.target.value)}
                   placeholder="The AI-generated changelog draft will appear here, or you can start typing your own notes manually..."
-                  className={`w-full flex-1 min-h-[250px] p-4 rounded-xl border text-sm font-mono outline-none resize-none ${theme === 'dark' ? 'bg-dark-bg border-zinc-800 text-zinc-300 focus:border-emerald-500 focus:ring-1' : 'bg-gray-50 border-gray-200 text-slate-800 focus:border-emerald-500 focus:ring-1'
-                    }`}
+                  className={`w-full flex-1 min-h-[250px] p-4 rounded-xl border text-sm font-mono outline-none resize-none bg-gray-50 border-gray-200 text-slate-800 focus:border-emerald-500 focus:ring-1 dark:bg-dark-bg dark:border-zinc-800 dark:text-zinc-300 dark:focus:border-emerald-500 dark:focus:ring-1`}
                 />
               ) : (
-                <div className={`w-full flex-1 min-h-[250px] p-5 rounded-xl border overflow-y-auto max-h-[350px] ${theme === 'dark' ? 'bg-dark-bg border-zinc-800' : 'bg-gray-50 border-gray-200'
-                  }`}>
+                <div className={`w-full flex-1 min-h-[250px] p-5 rounded-xl border overflow-y-auto max-h-[350px] bg-gray-50 border-gray-200 dark:bg-dark-bg dark:border-zinc-800`}>
                   {renderMarkdown(releaseNotes)}
                 </div>
               )}

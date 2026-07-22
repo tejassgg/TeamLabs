@@ -94,10 +94,7 @@ export default function MessagesPage() {
   const [modalInitialAction, setModalInitialAction] = useState(null); // 'answer' | 'decline' | null
 
   // Get theme classes helper function
-  const getThemeClasses = (baseClasses, darkClasses) => {
-    return `${baseClasses} ${theme === 'dark' ? darkClasses : ''}`;
-  };
-
+  
 
   const renderMessageText = (text) => {
     if (!text) return '';
@@ -132,7 +129,7 @@ export default function MessagesPage() {
             href={part}
             target="_blank"
             rel="noopener noreferrer"
-            className={`underline ${theme === 'dark' ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-700'}`}
+            className={`underline text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200`}
             onClick={(e) => e.stopPropagation()}
           >
             {part}
@@ -1361,7 +1358,6 @@ export default function MessagesPage() {
     }
   };
 
-  const bg = theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900';
 
   const handleMentionSelect = (member) => {
     const beforeMention = input.substring(0, mentionPosition);
@@ -1426,7 +1422,7 @@ export default function MessagesPage() {
       </Head>
 
       <div className="mx-auto">
-        <div className={`flex h-[calc(111.11vh-64px)] ${bg} relative`}>
+        <div className="flex h-[calc(111.11vh-64px)] bg-white dark:bg-dark-bg text-gray-900 dark:text-white relative">
           {/* Mobile Overlay */}
           {isMobileSidebarOpen && (
             <div
@@ -1493,7 +1489,7 @@ export default function MessagesPage() {
                 )}
                 {/* Typing Indicator - positioned at bottom of message area, above footer */}
                 {Object.keys(typingUsers).length > 0 && (
-                  <div className={`px-2 lg:px-3 mx-2 lg:mx-3 mb-2 text-xs flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <div className={`px-2 lg:px-3 mx-2 lg:mx-3 mb-2 text-xs flex items-center gap-1 text-gray-500 dark:text-gray-400`}>
                     <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
                     <div className="text-xs">{Object.keys(typingUsers).map((userId) => {
                       // Try to find user in conversation participants first, then fallback to orgUsers

@@ -17,8 +17,7 @@ export default function TooltipPortal({ children, position }) {
     zIndex: 9999,
     minWidth: 'max-content',
     pointerEvents: 'none',
-    transform: 'translateY(-50%)',
-  };
+    transform: 'translateY(-50%)' };
 
   return createPortal(
     <div style={style}>

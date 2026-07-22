@@ -7,10 +7,7 @@ const StatusPill = ({ status, theme, className = '' }) => {
 
   return (
     <div className={`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-semibold border transition-all duration-200
-      ${theme === 'dark'
-        ? 'bg-dark-card border-dark-border text-gray-200 hover:bg-dark-hover'
-        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-      } ${className}`}
+      bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-dark-card dark:border-dark-border dark:text-gray-200 dark:hover:bg-dark-hover ${className}`}
     >
       <StatusIcon className={`${statusConfig.color} text-xs`} />
       <span>{statusConfig.label}</span>

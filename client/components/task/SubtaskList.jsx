@@ -191,10 +191,7 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
     return userDetails && userDetails._id === subtask.CreatedBy;
   };
 
-  const getThemeClasses = (lightClasses, darkClasses) => {
-    return theme === 'dark' ? darkClasses : lightClasses;
-  };
-
+  
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -220,28 +217,22 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
     <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
-        <FaTasks className={getThemeClasses("text-gray-500", "dark:text-gray-400")} />
-        <h3 className={getThemeClasses("text-base font-bold text-gray-900 flex items-center gap-2", "dark:text-white")}>Subtasks</h3>
-        <span className={getThemeClasses("bg-blue-100 text-primary text-xs font-medium px-2 py-1 rounded-full", "dark:bg-blue-900/30 dark:text-blue-300")}>{subtasks.length}</span>
+        <FaTasks className={"text-gray-500 dark:text-gray-400"} />
+        <h3 className={"text-base font-bold text-gray-900 flex items-center gap-2 dark:text-white"}>Subtasks</h3>
+        <span className={"bg-blue-100 text-primary text-xs font-medium px-2 py-1 rounded-full dark:bg-blue-900/30 dark:text-blue-300"}>{subtasks.length}</span>
       </div>
 
       {/* Subtasks List */}
       <div className="space-y-1">
         {subtasks.length === 0 ? (
-          <div className={getThemeClasses(
-            'text-center text-gray-500',
-            'text-center text-gray-400'
-          )}>
+          <div className={'text-center text-gray-500 text-center text-gray-400'}>
             <p>No subtasks yet.</p>
           </div>
         ) : (
           subtasks.map((subtask) => (
             <div
               key={subtask.SubtaskID}
-              className={getThemeClasses(
-                'px-2 py-2 bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors',
-                'px-2 py-2 bg-transparent border-b border-gray-700 hover:bg-white/5 transition-colors'
-              )}
+              className={'px-2 py-2 bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors px-2 py-2 bg-transparent border-b border-gray-700 hover:bg-white/5 transition-colors'}
             >
               <div className="flex items-center justify-between gap-3">
                 {/* Left: checkbox + text */}
@@ -252,10 +243,7 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
                     tabIndex={0}
                     onClick={() => handleToggleSubtask(subtask.SubtaskID)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleToggleSubtask(subtask.SubtaskID); }}
-                    className={getThemeClasses(
-                      `inline-flex items-center justify-center w-4 h-4 rounded-full border ${subtask.IsCompleted ? 'bg-blue-600 border-transparent' : 'bg-white border-gray-300'}`,
-                      `inline-flex items-center justify-center w-4 h-4 rounded-full border ${subtask.IsCompleted ? 'bg-blue-600 border-transparent' : 'bg-transparent border-gray-600'}`
-                    )}
+                    className={`inline-flex items-center justify-center w-4 h-4 rounded-full border ${subtask.IsCompleted ? 'bg-blue-600 border-transparent' : 'bg-white border-gray-300'} inline-flex items-center justify-center w-4 h-4 rounded-full border ${subtask.IsCompleted ? 'bg-blue-600 border-transparent' : 'bg-transparent border-gray-600'}`}
                     style={{ cursor: 'pointer' }}
                   >
                     {subtask.IsCompleted ? (
@@ -277,14 +265,11 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
                             if (e.key === 'Escape') setEditingSubtask(null);
                           }}
                           onBlur={() => saveInlineEdit(subtask)}
-                          className={getThemeClasses(
-                            'w-full px-0 py-0 text-sm bg-transparent border-none focus:outline-none focus:ring-0',
-                            'w-full px-0 py-0 text-sm bg-transparent border-none focus:outline-none focus:ring-0 text-white'
-                          )}
+                          className={'w-full px-0 py-0 text-sm bg-transparent border-none focus:outline-none focus:ring-0 w-full px-0 py-0 text-sm bg-transparent border-none focus:outline-none focus:ring-0 text-white'}
                           maxLength={NAME_LIMIT}
                           autoFocus
                         />
-                        <div className={getThemeClasses('text-xs text-gray-400 mt-0.5', 'text-xs text-gray-500 mt-0.5')}>
+                        <div className={'text-xs text-gray-400 mt-0.5 text-xs text-gray-500 mt-0.5'}>
                           {editingName.length}/{NAME_LIMIT}
                         </div>
                       </div>
@@ -292,10 +277,7 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
                       <div>
                         <div
                           onClick={() => beginInlineEdit(subtask)}
-                          className={getThemeClasses(
-                            `text-sm ${subtask.IsCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`,
-                            `text-sm ${subtask.IsCompleted ? 'line-through text-gray-500' : 'text-gray-100'}`
-                          )}
+                          className={`text-sm ${subtask.IsCompleted ? 'line-through text-gray-500' : 'text-gray-900'} text-sm ${subtask.IsCompleted ? 'line-through text-gray-500' : 'text-gray-100'}`}
                           style={{ cursor: canEditSubtask(subtask) ? 'text' : 'default' }}
                           title={canEditSubtask(subtask) ? 'Click to edit' : undefined}
                         >
@@ -308,7 +290,7 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
 
                 {/* Right: date + avatar + actions */}
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className={getThemeClasses('text-xs text-gray-500', 'text-xs text-gray-400')}>
+                  <span className={'text-xs text-gray-500 text-xs text-gray-400'}>
                     {formatDate(subtask.CreatedDate)}
                   </span>
                   <div
@@ -323,10 +305,7 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
                       {canDeleteSubtask(subtask) && (
                         <button
                           onClick={() => handleDeleteSubtask(subtask.SubtaskID)}
-                          className={getThemeClasses(
-                            "inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed",
-                            "dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70"
-                          )}
+                          className={"inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70"}
                           title="Delete subtask"
                         >
                           <FaTimes size={12} className='text-red-500 dark:text-red-400' />
@@ -345,29 +324,20 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
       {!showAddForm && (
         <button
           onClick={() => setShowAddForm(true)}
-          className={getThemeClasses(
-            'w-full text-left flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 px-2 py-2',
-            'w-full text-left flex items-center gap-2 text-sm text-gray-400 hover:text-gray-200 px-2 py-2'
-          )}
+          className={'w-full text-left flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 px-2 py-2 w-full text-left flex items-center gap-2 text-sm text-gray-400 hover:text-gray-200 px-2 py-2'}
         >
-          <span className={getThemeClasses('text-gray-400', 'text-gray-500')}>+</span>
+          <span className={'text-gray-400 text-gray-500'}>+</span>
           <span>Add subtask</span>
         </button>
       )}
 
       {/* Add Subtask Form (inline) */}
       {showAddForm && (
-        <div className={getThemeClasses(
-          'px-2 py-2 bg-white border-b border-gray-200',
-          'px-2 py-2 bg-transparent border-b border-gray-700'
-        )}>
+        <div className={'px-2 py-2 bg-white border-b border-gray-200 px-2 py-2 bg-transparent border-b border-gray-700'}>
           <div className="flex items-center gap-2">
             {/* Circular placeholder checkbox */}
             <span
-              className={getThemeClasses(
-                'inline-flex items-center justify-center w-4 h-4 rounded-full border bg-white border-gray-300',
-                'inline-flex items-center justify-center w-4 h-4 rounded-full border bg-transparent border-gray-600'
-              )}
+              className={'inline-flex items-center justify-center w-4 h-4 rounded-full border bg-white border-gray-300 inline-flex items-center justify-center w-4 h-4 rounded-full border bg-transparent border-gray-600'}
             />
             <input
               ref={nameInputRef}
@@ -391,14 +361,11 @@ const SubtaskList = ({ taskId, subtasks: initialSubtasks, onSubtasksChange }) =>
                 }
               }}
               placeholder="Add a subtask"
-              className={getThemeClasses(
-                'w-full px-0 py-0 text-sm bg-transparent border-none focus:outline-none focus:ring-0',
-                'w-full px-0 py-0 text-sm bg-transparent border-none focus:outline-none focus:ring-0 text-white'
-              )}
+              className={'w-full px-0 py-0 text-sm bg-transparent border-none focus:outline-none focus:ring-0 w-full px-0 py-0 text-sm bg-transparent border-none focus:outline-none focus:ring-0 text-white'}
               maxLength={NAME_LIMIT}
               autoFocus
             />
-            <span className={getThemeClasses('ml-auto text-xs text-gray-400', 'ml-auto text-xs text-gray-500')}>
+            <span className={'ml-auto text-xs text-gray-400 ml-auto text-xs text-gray-500'}>
               {newSubtaskName.length}/{NAME_LIMIT}
             </span>
           </div>

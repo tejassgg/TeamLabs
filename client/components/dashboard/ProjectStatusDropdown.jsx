@@ -67,10 +67,7 @@ const ProjectStatusDropdown = ({
   const dropdownContent = isOpen && (
     <div
       ref={dropdownRef}
-      className={`fixed z-[99999] rounded-lg border shadow-lg ${theme === 'dark'
-          ? 'bg-dark-card border-dark-border'
-          : 'bg-white border-gray-200'
-        }`}
+      className={`fixed z-[99999] rounded-lg border shadow-lg bg-white border-gray-200 dark:bg-dark-card dark:border-dark-border`}
       style={{
         top: dropdownPosition.top,
         left: dropdownPosition.left,
@@ -85,12 +82,8 @@ const ProjectStatusDropdown = ({
             onClick={() => handleStatusSelect(status)}
             disabled={isUpdating}
             className={`w-full flex items-center justify-between px-3 py-2 text-left transition-colors duration-150 ${status.Code === selectedStatus.Code
-                ? theme === 'dark'
-                  ? 'bg-blue-900 text-blue-200'
-                  : 'bg-blue-50 text-blue-700'
-                : theme === 'dark'
-                  ? 'hover:bg-[#2A2A2A] text-[#F3F6FA]'
-                  : 'hover:bg-gray-50 text-gray-900'
+                ? 'bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                : 'hover:bg-gray-50 text-gray-900 dark:hover:bg-[#2A2A2A] dark:text-[#F3F6FA]'
               }`}
           >
             <div className="flex items-center gap-2">
@@ -98,7 +91,7 @@ const ProjectStatusDropdown = ({
             </div>
             {status.Code === selectedStatus.Code && (
               <FaCheck
-                className={theme === 'dark' ? 'text-blue-300' : 'text-blue-600'}
+                className="text-blue-600 dark:text-blue-300"
                 size={12}
               />
             )}
@@ -117,17 +110,13 @@ const ProjectStatusDropdown = ({
         className={`flex items-center justify-between gap-4 w-full px-3 py-2 rounded-lg transition-all duration-200 ${disabled || isUpdating
             ? 'opacity-50 cursor-not-allowed'
             : 'cursor-pointer'
-          } ${theme === 'dark'
-            ? 'text-[#F3F6FA]'
-            : 'text-gray-900 '
-          }`}
+          } text-gray-900 dark:text-[#F3F6FA]`}
       >
         <div className="flex items-center gap-2">
           {getProjectStatusBadge(selectedStatus, false)}
         </div>
         <FaChevronDown
-          className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-400'
-            }`}
+          className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} text-gray-400 dark:text-[#B0B8C1]`}
           size={12}
         />
       </button>
@@ -135,8 +124,7 @@ const ProjectStatusDropdown = ({
       {typeof window !== 'undefined' && createPortal(dropdownContent, document.body)}
 
       {isUpdating && (
-        <div className={`absolute inset-0 flex items-center justify-center rounded-lg ${theme === 'dark' ? 'bg-dark-card/80' : 'bg-white/80'
-          }`}>
+        <div className={`absolute inset-0 flex items-center justify-center rounded-lg bg-white/80 dark:bg-dark-card/80`}>
           <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       )}

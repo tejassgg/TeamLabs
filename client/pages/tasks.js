@@ -26,7 +26,6 @@ const TasksPage = () => {
     getTableRowClasses,
     getTableTextClasses,
     getTableSecondaryTextClasses,
-    getThemeClasses,
     isMe
   } = useGlobal();
   const { showToast } = useToast();
@@ -103,8 +102,7 @@ const TasksPage = () => {
     ([url, s]) => authService.getTasksData('all'),
     {
       revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+      dedupingInterval: 5000 }
   );
 
   const loading = !myTasksRes && !fetchError;
@@ -369,7 +367,7 @@ const TasksPage = () => {
   }
 
   return (
-    <div className={`${getThemeClasses('bg-white', 'bg-dark-bg')}`}>
+    <div className="bg-white dark:bg-dark-bg text-gray-900 dark:text-white">
       <Head>
         <title>Tasks - TeamLabs</title>
         <meta name="description" content="View and manage all your assigned tasks, projects, and teams" />
@@ -380,10 +378,7 @@ const TasksPage = () => {
 
         {/* Stats Card - Unified Layout matching Project details page hero */}
         <div className="w-full mb-6">
-          <div className={`border rounded-2xl p-6 max-w-5xl ${getThemeClasses(
-            "bg-white border-gray-200 shadow-sm",
-            "dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none"
-          )}`}>
+          <div className={`border rounded-2xl p-6 max-w-5xl ${"bg-white border-gray-200 shadow-sm dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none"}`}>
             {(() => {
               const totalTasksCount = stats.totalTasks;
               const completedTasksCount = stats.completedTasks;
@@ -424,65 +419,53 @@ const TasksPage = () => {
                   {/* Left Column: Cards (lg:col-span-6) */}
                   <div className="lg:col-span-4 grid grid-cols-2 gap-3 w-full lg:border-r border-gray-100 dark:border-zinc-800/85 pb-6 lg:pb-0 lg:pr-6">
                     {/* Total Tasks */}
-                    <div className={`p-4 rounded-xl border flex flex-col justify-between hover:shadow-md transition-all duration-300 ${getThemeClasses(
-                      'border-gray-100 bg-gray-50/50',
-                      'border-zinc-800/80 bg-zinc-900/30 hover:bg-zinc-800/20'
-                    )}`}>
+                    <div className="p-4 rounded-xl border border-gray-100 dark:border-zinc-800/80 bg-gray-50/50 dark:bg-zinc-900/30 hover:bg-zinc-100 dark:hover:bg-zinc-800/20 flex flex-col justify-between hover:shadow-md transition-all duration-300">
                       <div className="flex items-center justify-between">
-                        <span className={getThemeClasses('text-xs font-semibold text-gray-500 uppercase tracking-wider', 'text-xs font-semibold text-gray-400 uppercase tracking-wider')}>Total Tasks</span>
+                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Tasks</span>
                         <div className="p-1 rounded-lg bg-blue-100 dark:bg-blue-900/20 text-blue-600">
                           <FaTasks className="w-3 h-3" />
                         </div>
                       </div>
-                      <span className={getThemeClasses('text-xl font-bold text-gray-900 mt-2', 'text-xl font-bold text-white mt-2')}>
+                      <span className="text-xl font-bold text-gray-900 dark:text-white mt-2">
                         {stats.totalTasks}
                       </span>
                     </div>
 
                     {/* Completed */}
-                    <div className={`p-4 rounded-xl border flex flex-col justify-between hover:shadow-md transition-all duration-300 ${getThemeClasses(
-                      'border-gray-100 bg-gray-50/50',
-                      'border-zinc-800/80 bg-zinc-900/30 hover:bg-zinc-800/20'
-                    )}`}>
+                    <div className="p-4 rounded-xl border border-gray-100 dark:border-zinc-800/80 bg-gray-50/50 dark:bg-zinc-900/30 hover:bg-zinc-100 dark:hover:bg-zinc-800/20 flex flex-col justify-between hover:shadow-md transition-all duration-300">
                       <div className="flex items-center justify-between">
-                        <span className={getThemeClasses('text-xs font-semibold text-gray-500 uppercase tracking-wider', 'text-xs font-semibold text-gray-400 uppercase tracking-wider')}>Completed</span>
+                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Completed</span>
                         <div className="p-1 rounded-lg bg-green-100 dark:bg-green-900/20 text-green-600">
                           <FaCheckCircle className="w-3 h-3" />
                         </div>
                       </div>
-                      <span className={getThemeClasses('text-xl font-bold text-green-650 mt-2', 'text-xl font-bold text-green-400 mt-2')}>
+                      <span className="text-xl font-bold text-green-600 dark:text-green-400 mt-2">
                         {stats.completedTasks}
                       </span>
                     </div>
 
                     {/* Overdue Card */}
-                    <div className={`p-4 rounded-xl border flex flex-col justify-between hover:shadow-md transition-all duration-300 ${getThemeClasses(
-                      'border-gray-100 bg-gray-50/50',
-                      'border-zinc-800/80 bg-zinc-900/30 hover:bg-zinc-800/20'
-                    )}`}>
+                    <div className="p-4 rounded-xl border border-gray-100 dark:border-zinc-800/80 bg-gray-50/50 dark:bg-zinc-900/30 hover:bg-zinc-100 dark:hover:bg-zinc-800/20 flex flex-col justify-between hover:shadow-md transition-all duration-300">
                       <div className="flex items-center justify-between">
-                        <span className={getThemeClasses('text-xs font-semibold text-gray-500 uppercase tracking-wider', 'text-xs font-semibold text-gray-400 uppercase tracking-wider')}>Overdue</span>
-                        <div className="p-1.5 rounded-lg bg-red-100 dark:bg-red-955/40 dark:bg-red-950/40">
-                          <FaExclamationTriangle className="w-3 h-3 text-red-655" />
+                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Overdue</span>
+                        <div className="p-1.5 rounded-lg bg-red-100 dark:bg-red-950/40">
+                          <FaExclamationTriangle className="w-3 h-3 text-red-600" />
                         </div>
                       </div>
-                      <span className={`text-xl font-bold mt-2 ${stats.overdueTasks > 0 ? 'text-red-600' : getThemeClasses('text-gray-900', 'text-white')}`}>
+                      <span className={`text-xl font-bold mt-2 ${stats.overdueTasks > 0 ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
                         {stats.overdueTasks}
                       </span>
                     </div>
 
                     {/* High Priority Card */}
-                    <div className={`p-4 rounded-xl border flex flex-col justify-between hover:shadow-md transition-all duration-300 ${getThemeClasses(
-                      'border-gray-100 bg-gray-50/50',
-                      'border-zinc-800/80 bg-zinc-900/30 hover:bg-zinc-800/20'
-                    )}`}>
+                    <div className="p-4 rounded-xl border border-gray-100 dark:border-zinc-800/80 bg-gray-50/50 dark:bg-zinc-900/30 hover:bg-zinc-100 dark:hover:bg-zinc-800/20 flex flex-col justify-between hover:shadow-md transition-all duration-300">
                       <div className="flex items-center justify-between">
-                        <span className={getThemeClasses('text-xs font-semibold text-gray-500 uppercase tracking-wider', 'text-xs font-semibold text-gray-400 uppercase tracking-wider')}>High Priority</span>
+                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">High Priority</span>
                         <div className="p-1.5 rounded-lg bg-[#FFF2E5] dark:bg-[#FFA500]/10">
-                          <FaFlag className="w-3 h-3 text-orange-655" />
+                          <FaFlag className="w-3 h-3 text-orange-600" />
                         </div>
                       </div>
-                      <span className={`text-xl font-bold mt-2 ${stats.highPriorityTasks > 0 ? 'text-orange-600' : getThemeClasses('text-gray-900', 'text-white')}`}>
+                      <span className={`text-xl font-bold mt-2 ${stats.highPriorityTasks > 0 ? 'text-orange-600' : 'text-gray-900 dark:text-white'}`}>
                         {stats.highPriorityTasks}
                       </span>
                     </div>
@@ -524,10 +507,7 @@ const TasksPage = () => {
                         )}
                       </svg>
                       <div className="absolute flex flex-col items-center justify-center text-center">
-                        <span className={getThemeClasses(
-                          "text-xl font-extrabold tracking-tight text-slate-800",
-                          "text-white"
-                        )}>
+                        <span className="text-xl font-extrabold tracking-tight text-slate-800 dark:text-white">
                           {progressPercent}%
                         </span>
                       </div>
@@ -539,7 +519,7 @@ const TasksPage = () => {
                     </span>
 
                     {/* Completion stats text */}
-                    <p className={getThemeClasses('text-xs font-semibold text-gray-500 mt-0.5', 'text-xs font-semibold text-gray-400 mt-0.5')}>
+                    <p className="text-xs font-semibold text-gray-500 mt-0.5 dark:text-gray-450 mt-0.5">
                       {stats.completedTasks} of {stats.totalTasks} completed
                     </p>
                   </div>
@@ -554,25 +534,19 @@ const TasksPage = () => {
                         placeholder="Search tasks..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className={getThemeClasses(
-                          'w-full pl-10 pr-4 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500',
-                          'w-full pl-10 pr-4 py-2 text-sm rounded-lg border border-dark-border bg-dark-card text-white focus:outline-none focus:ring-1 focus:ring-blue-500'
-                        )}
+                        className="w-full pl-10 pr-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-card text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
                     </div>
 
                     {/* Bottom: Scope Toggle, Filter and Export CSV */}
                     <div className="flex flex-wrap items-center gap-2 w-full justify-between sm:justify-end">
                       {/* Scope Toggles */}
-                      <div className={`flex rounded-lg p-0.5 border text-sm font-medium ${getThemeClasses(
-                        'border-gray-300 bg-gray-50',
-                        'dark:border-dark-border dark:bg-dark-card'
-                      )}`}>
+                      <div className={`flex rounded-lg p-0.5 border text-sm font-medium ${'border-gray-300 bg-gray-50 dark:border-dark-border dark:bg-dark-card'}`}>
                         <button
                           onClick={() => setScope('includes-me')}
                           className={`px-3 py-1.5 rounded-md text-xs transition-all duration-200 ${scope === 'includes-me'
                             ? 'bg-blue-600 text-white shadow-sm font-semibold'
-                            : theme === 'dark' ? 'text-gray-400 hover:text-gray-250 hover:text-gray-205 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
+                            : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
                             }`}
                         >
                           Includes Me
@@ -581,7 +555,7 @@ const TasksPage = () => {
                           onClick={() => setScope('all')}
                           className={`px-3 py-1.5 rounded-md text-xs transition-all duration-200 ${scope === 'all'
                             ? 'bg-blue-600 text-white shadow-sm font-semibold'
-                            : theme === 'dark' ? 'text-gray-400 hover:text-gray-250 hover:text-gray-205 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
+                            : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
                             }`}
                         >
                           All Tasks
@@ -592,10 +566,7 @@ const TasksPage = () => {
                       <div className="flex items-center gap-2 relative" ref={filterDropdownRef}>
                         <button
                           onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
-                          className={getThemeClasses(
-                            'flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-blue-100 hover:bg-blue-200/80 text-blue-600 text-sm font-medium transition-all duration-200 border-0 cursor-pointer',
-                            'flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-blue-950/50 hover:bg-blue-900/60 text-blue-400 text-sm font-medium transition-all duration-200 border border-blue-900/50 cursor-pointer'
-                          )}
+                          className={'flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-blue-100 hover:bg-blue-200/80 text-blue-600 text-sm font-medium transition-all duration-200 border-0 cursor-pointer flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-blue-950/50 hover:bg-blue-900/60 text-blue-400 text-sm font-medium transition-all duration-200 border border-blue-900/50 cursor-pointer'}
                         >
                           <FaFilter className="w-3.5 h-3.5" />
                           <span>Filter</span>
@@ -608,10 +579,7 @@ const TasksPage = () => {
 
                         <button
                           onClick={exportToCSV}
-                          className={getThemeClasses(
-                            'flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[#00AA4F] hover:bg-[#009042] text-white text-sm font-medium transition-all duration-200 border-0 cursor-pointer',
-                            'flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-green-700 hover:bg-green-600 text-white text-sm font-medium transition-all duration-200 border-0 cursor-pointer'
-                          )}
+                          className={'flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[#00AA4F] hover:bg-[#009042] text-white text-sm font-medium transition-all duration-200 border-0 cursor-pointer flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-green-700 hover:bg-green-600 text-white text-sm font-medium transition-all duration-200 border-0 cursor-pointer'}
                         >
                           <FaDownload className="w-3.5 h-3.5 text-white" />
                           <span>Export CSV</span>
@@ -620,17 +588,14 @@ const TasksPage = () => {
                         {/* Filter Dropdown */}
                         {isFilterModalOpen && (
                           <div
-                            className={getThemeClasses(
-                              `absolute right-0 top-full mt-2 w-80 z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-white border-gray-200`,
-                              `absolute right-0 top-full mt-2 w-80 z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-dark-card border-gray-600`
-                            )}
+                            className={`absolute right-0 top-full mt-2 w-80 z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-white border-gray-200 absolute right-0 top-full mt-2 w-80 z-50 rounded-xl border shadow-lg p-4 transition-all duration-200 ease-out origin-top-right ${filterAnim ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'} bg-dark-card border-gray-600`}
                             role="dialog"
                             aria-label="Filters"
                           >
                             <div className="grid grid-cols-1 gap-4">
                               {/* Status */}
                               <div>
-                                <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'text-gray-300')}>Status</label>
+                                <label className={'block text-sm font-medium mb-1 text-gray-700 text-gray-300'}>Status</label>
                                 <SearchableDropdown
                                   value={statusFilter}
                                   onChange={(val) => setStatusFilter(val)}
@@ -646,7 +611,7 @@ const TasksPage = () => {
 
                               {/* Priority */}
                               <div>
-                                <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'text-gray-300')}>Priority</label>
+                                <label className={'block text-sm font-medium mb-1 text-gray-700 text-gray-300'}>Priority</label>
                                 <SearchableDropdown
                                   value={priorityFilter}
                                   onChange={(val) => setPriorityFilter(val)}
@@ -665,7 +630,7 @@ const TasksPage = () => {
 
                               {/* Project */}
                               <div>
-                                <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'text-gray-300')}>Project</label>
+                                <label className={'block text-sm font-medium mb-1 text-gray-700 text-gray-300'}>Project</label>
                                 <SearchableDropdown
                                   value={projectFilter}
                                   onChange={(val) => setProjectFilter(val)}
@@ -679,7 +644,7 @@ const TasksPage = () => {
 
                               {/* Task Type */}
                               <div>
-                                <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'text-gray-300')}>Task Type</label>
+                                <label className={'block text-sm font-medium mb-1 text-gray-700 text-gray-300'}>Task Type</label>
                                 <SearchableDropdown
                                   value={taskTypeFilter}
                                   onChange={(val) => setTaskTypeFilter(val)}
@@ -695,7 +660,7 @@ const TasksPage = () => {
 
                               {/* Assigned To */}
                               <div>
-                                <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'text-gray-300')}>Assigned To</label>
+                                <label className={'block text-sm font-medium mb-1 text-gray-700 text-gray-300'}>Assigned To</label>
                                 <SearchableDropdown
                                   value={assignedToFilter}
                                   onChange={(val) => setAssignedToFilter(val)}
@@ -712,7 +677,7 @@ const TasksPage = () => {
 
                               {/* Assigned By */}
                               <div>
-                                <label className={getThemeClasses('block text-sm font-medium mb-1 text-gray-700', 'text-gray-300')}>Assigned By</label>
+                                <label className={'block text-sm font-medium mb-1 text-gray-700 text-gray-300'}>Assigned By</label>
                                 <SearchableDropdown
                                   value={assignedByFilter}
                                   onChange={(val) => setAssignedByFilter(val)}
@@ -738,19 +703,13 @@ const TasksPage = () => {
                                   setAssignedToFilter('');
                                   setAssignedByFilter('');
                                 }}
-                                className={getThemeClasses(
-                                  'px-3 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50',
-                                  'px-3 py-2 text-sm rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800'
-                                )}
+                                className={'px-3 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-2 text-sm rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800'}
                               >
                                 Reset
                               </button>
                               <button
                                 onClick={() => setIsFilterModalOpen(false)}
-                                className={getThemeClasses(
-                                  'px-3 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700',
-                                  'px-3 py-2 text-sm rounded-lg bg-blue-500 text-white hover:bg-blue-600'
-                                )}
+                                className={'px-3 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 px-3 py-2 text-sm rounded-lg bg-blue-500 text-white hover:bg-blue-600'}
                               >
                                 Close
                               </button>
@@ -765,17 +724,14 @@ const TasksPage = () => {
             })()}
           </div>
           <div className=" py-1 flex items-center justify-between">
-            <h2 className={getThemeClasses(
-              'text-xl font-bold text-gray-900',
-              'text-xl font-bold text-white'
-            )}>
+            <h2 className={'text-xl font-bold text-gray-900 text-xl font-bold text-white'}>
               Your Tasks ({filteredTasks.length})
             </h2>
             <div className="flex items-center gap-4">
               {/* Per page selector */}
               {filteredTasks.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <span className={getThemeClasses('text-xs font-semibold text-gray-500', 'text-xs font-semibold text-gray-400')}>
+                  <span className={'text-xs font-semibold text-gray-500 text-xs font-semibold text-gray-400'}>
                     Per page:
                   </span>
                   <CustomDropdown
@@ -800,17 +756,11 @@ const TasksPage = () => {
 
               {selectedTasks.length > 0 ? (
                 <>
-                  <div className={getThemeClasses(
-                    'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
-                    'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-900/30 text-blue-300'
-                  )}>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
                     <span className="text-sm font-medium">{selectedTasks.length} selected</span>
                     <button
                       onClick={() => setSelectedTasks([])}
-                      className={getThemeClasses(
-                        'p-1 hover:bg-blue-100 rounded-full transition-colors',
-                        'p-1 hover:bg-blue-900/50 rounded-full transition-colors'
-                      )}
+                      className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-colors"
                     >
                       <FaTimes size={14} />
                     </button>
@@ -823,7 +773,7 @@ const TasksPage = () => {
           {/* Pagination Controls */}
           {filteredTasks.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-1">
-              <div className={getThemeClasses('text-sm text-gray-650 text-gray-500', 'text-sm text-gray-400')}>
+              <div className={'text-sm text-gray-650 text-gray-500 text-sm text-gray-400'}>
                 Showing <span className="font-semibold text-blue-500">{indexOfFirstTask + 1}</span> to{' '}
                 <span className="font-semibold text-blue-500">
                   {Math.min(indexOfLastTask, filteredTasks.length)}
@@ -835,10 +785,7 @@ const TasksPage = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className={getThemeClasses(
-                    'px-3.5 py-1.5 rounded-lg border text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-gray-700 bg-white border-gray-300',
-                    'px-3.5 py-1.5 rounded-lg border text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-800/40 text-gray-300 bg-[#2A2A2A] border-gray-600'
-                  )}
+                  className="px-3.5 py-1.5 rounded-lg border text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800/40 text-gray-700 dark:text-gray-300 bg-white dark:bg-[#2A2A2A] border-gray-300 dark:border-gray-600"
                 >
                   <FaChevronLeft className="w-3 h-3" />
                 </button>
@@ -858,10 +805,7 @@ const TasksPage = () => {
                           className={
                             currentPage === pageNum
                               ? 'px-3 py-1.5 rounded-lg text-sm font-bold text-white bg-blue-600 shadow-sm shadow-blue-500/20'
-                              : getThemeClasses(
-                                'px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm font-medium text-gray-700 bg-white',
-                                'px-3 py-1.5 rounded-lg border border-gray-600 hover:bg-gray-800/40 text-sm font-medium text-gray-300 bg-[#2A2A2A]'
-                              )
+                              : 'px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/40 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#2A2A2A]'
                           }
                         >
                           {pageNum}
@@ -882,10 +826,7 @@ const TasksPage = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className={getThemeClasses(
-                    'px-3.5 py-1.5 rounded-lg border text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-gray-700 bg-white border-gray-300',
-                    'px-3.5 py-1.5 rounded-lg border text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-800/40 text-gray-300 bg-[#2A2A2A] border-gray-600'
-                  )}
+                  className="px-3.5 py-1.5 rounded-lg border text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800/40 text-gray-700 dark:text-gray-300 bg-white dark:bg-[#2A2A2A] border-gray-300 dark:border-gray-600"
                 >
                   <FaChevronRight className="w-3 h-3" />
                 </button>
@@ -893,12 +834,9 @@ const TasksPage = () => {
             </div>
           )}
 
-          <div className={getThemeClasses('overflow-x-auto border border-gray-300 rounded-xl', 'overflow-x-auto border border-zinc-800 rounded-xl')}>
+          <div className="overflow-x-auto border border-gray-300 dark:border-zinc-800 bg-white dark:bg-dark-bg rounded-xl">
             {filteredTasks.length === 0 ? (
-              <div className={getThemeClasses(
-                'text-center py-8 text-gray-400',
-                'text-center py-8  text-gray-500'
-              )}>
+              <div className={'text-center py-8 text-gray-400 text-center py-8  text-gray-500'}>
                 <FaTasks className="w-16 h-16 mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">
                   {searchTerm || statusFilter || priorityFilter || projectFilter
@@ -922,10 +860,7 @@ const TasksPage = () => {
                         type="checkbox"
                         checked={selectedTasks.length === filteredTasks.length && filteredTasks.length > 0}
                         onChange={handleSelectAllTasks}
-                        className={getThemeClasses(
-                          'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                          'w-4 h-4 rounded border-gray-600 bg-gray-700 checked:bg-blue-600'
-                        )}
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700 checked:bg-blue-600"
                       />
                     </th>
                     <th className={`py-3 px-4 text-left w-[42%] ${tableHeaderTextClasses}`}>
@@ -987,16 +922,13 @@ const TasksPage = () => {
                 </thead>
                 <tbody>
                   {currentTasks.map((task) => (
-                    <tr key={task.TaskID || task._id} className={`${tableRowClasses} transition-colors duration-150 ${getThemeClasses('hover:bg-gray-50/70', 'hover:bg-[#2A2A2A]/40')}`}>
+                    <tr key={task.TaskID || task._id} className={`${tableRowClasses} transition-colors duration-150 ${'hover:bg-gray-50/70 hover:bg-[#2A2A2A]/40'}`}>
                       <td className="py-3 pl-4 text-center">
                         <input
                           type="checkbox"
                           checked={selectedTasks.includes(task.TaskID || task._id)}
                           onChange={() => handleSelectTask(task.TaskID || task._id)}
-                          className={getThemeClasses(
-                            'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                            'w-4 h-4 rounded border-gray-600 bg-gray-700 checked:bg-blue-600'
-                          )}
+                          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700 checked:bg-blue-600"
                         />
                       </td>
                       <td className="py-3 px-4 overflow-hidden">
@@ -1004,10 +936,7 @@ const TasksPage = () => {
                           <div className="flex items-center flex-wrap gap-2 mb-1 w-full min-w-0">
                             <button
                               onClick={() => handleTaskClick(task.TaskID || task._id, task.ProjectID)}
-                              className={getThemeClasses(
-                                'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full',
-                                'text-left hover:text-blue-400 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full'
-                              )}
+                              className="text-left text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full"
                               title={task.Name}
                             >
                               {task.Name && task.Name.length > 70 ? `${task.Name.substring(0, 70)}...` : task.Name}
@@ -1028,17 +957,10 @@ const TasksPage = () => {
                             {(task.TaskNumber || task.TicketNumber) && task.Description && (
                               <span className="text-gray-300 dark:text-gray-600 shrink-0">•</span>
                             )}
-                            <span className={getThemeClasses(
-                              'text-xs text-gray-500 truncate block w-full',
-                              'text-xs text-gray-400 truncate block w-full'
-                            )} title={task.Description}>{task.Description}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 truncate block w-full" title={task.Description}>{task.Description}</span>
                           </div>
-                          {/* Show assigned to on mobile if available */}
                           {task.AssignedTo && task.AssignedToDetails && (
-                            <div className={getThemeClasses(
-                              'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600',
-                              'md:hidden mt-1 flex items-center gap-1 text-xs text-gray-300'
-                            )}>
+                            <div className="md:hidden mt-1 flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300">
                               <span className="font-medium">Assigned to:</span>
                               <span>{task.AssignedToDetails.username}</span>
                             </div>
@@ -1048,14 +970,11 @@ const TasksPage = () => {
                       <td className="hidden md:table-cell py-3 px-4">
                         {task.AssignedTo && task.AssignedToDetails ? (
                           <div className="flex items-center gap-3">
-                            <div className={getThemeClasses(
-                              'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
-                              'w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center text-black font-medium text-sm'
-                            )}>
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center text-white font-medium text-sm">
                               {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
                             </div>
                             <div className="flex flex-col">
-                              <span className={tableTextClasses}>{task.AssignedToDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
+                              <span className={tableTextClasses}>{task.AssignedToDetails.fullName.split(' ')[0]} <span className="text-xs">{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
                               {task.AssignedToDetails.teamName && (
                                 <span className={`text-xs ${tableSecondaryTextClasses}`}>{task.AssignedToDetails.teamName}</span>
                               )}
@@ -1070,10 +989,7 @@ const TasksPage = () => {
                       <td className="hidden md:table-cell py-3 px-4">
                         {task.Assignee && task.AssigneeDetails ? (
                           <div className="flex items-center gap-3">
-                            <div className={getThemeClasses(
-                              'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm',
-                              'w-8 h-8 rounded-full bg-gradient-to-r from-green-600 to-green-700 flex items-center justify-center text-black font-medium text-sm'
-                            )}>
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 flex items-center justify-center text-white font-medium text-sm">
                               {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
                             </div>
                             <div className="flex flex-col">
@@ -1085,10 +1001,7 @@ const TasksPage = () => {
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <div className={getThemeClasses(
-                              'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm',
-                              'bg-gray-700 text-gray-400'
-                            )}>
+                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 font-medium text-sm">
                               <span>NA</span>
                             </div>
                             <span className={tableSecondaryTextClasses}>Not Assigned</span>
@@ -1099,7 +1012,7 @@ const TasksPage = () => {
                         {task.AssignedDate ? (
                           <div className="flex flex-col items-center leading-tight text-sm">
                             <span >{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                            <span className={getThemeClasses('text-xs text-gray-500', 'text-xs text-gray-400')}>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
                               {new Date(task.AssignedDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                             </span>
                           </div>
@@ -1119,20 +1032,14 @@ const TasksPage = () => {
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => handleTaskClick(task.TaskID || task._id, task.ProjectID)}
-                            className={getThemeClasses(
-                              'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200',
-                              'bg-blue-900/50 text-blue-300 hover:bg-blue-800/50'
-                            )}
+                            className="inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50"
                             title="Edit Task"
                           >
                             <FaEdit size={12} />
                           </button>
                           <button
                             onClick={() => handleTaskClick(task.TaskID || task._id, task.ProjectID)}
-                            className={getThemeClasses(
-                              'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
-                              'text-red-400 bg-red-900/50 hover:bg-red-800/50'
-                            )}
+                            className="inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50"
                             title="Delete Task"
                           >
                             <FaTrash size={12} />

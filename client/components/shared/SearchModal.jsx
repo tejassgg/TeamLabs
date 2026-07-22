@@ -698,10 +698,7 @@ const SearchModal = ({ isOpen, onClose }) => {
             }
           }}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border transition-colors duration-150 text-xs font-semibold cursor-pointer
-            ${theme === 'dark'
-              ? 'bg-zinc-800/50 border-zinc-800 text-gray-300 hover:bg-zinc-800 hover:text-white hover:border-zinc-700'
-              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:border-gray-300'
-            }
+            bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:border-gray-300 dark:bg-zinc-800/50 dark:border-zinc-800 dark:text-gray-300 dark:hover:bg-zinc-800 dark:hover:text-white dark:hover:border-zinc-700
           `}
         >
           <span className="text-xs text-blue-600 dark:text-blue-400 flex-shrink-0 flex items-center justify-center">
@@ -716,10 +713,7 @@ const SearchModal = ({ isOpen, onClose }) => {
         {/* Dropdown menus */}
         {action.id === 'projects' && activeDropdown === 'projects' && (
           <div className={`absolute top-full left-0 mt-2 w-64 rounded-xl shadow-xl border z-50 py-1 overflow-hidden transition-all duration-200 animate-fadeIn
-            ${theme === 'dark'
-              ? 'bg-zinc-900 border-zinc-800 text-white'
-              : 'bg-white border-gray-200 text-gray-900'
-            }
+            bg-white border-gray-200 text-gray-900 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white
           `}>
             <div className="px-3 py-1.5 text-xs font-bold tracking-wider uppercase text-gray-400 border-b border-gray-100 dark:border-zinc-800">
               My Projects
@@ -748,10 +742,7 @@ const SearchModal = ({ isOpen, onClose }) => {
 
         {action.id === 'tasks' && activeDropdown === 'tasks' && (
           <div className={`absolute top-full left-0 mt-2 w-72 rounded-xl shadow-xl border z-50 py-1 overflow-hidden transition-all duration-200 animate-fadeIn
-            ${theme === 'dark'
-              ? 'bg-zinc-900 border-zinc-800 text-white'
-              : 'bg-white border-gray-200 text-gray-900'
-            }
+            bg-white border-gray-200 text-gray-900 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white
           `}>
             <div className="px-3 py-1.5 text-xs font-bold tracking-wider uppercase text-gray-400 border-b border-gray-100 dark:border-zinc-800">
               Tasks
@@ -793,12 +784,9 @@ const SearchModal = ({ isOpen, onClose }) => {
       <div className={`relative w-full max-w-2xl flex flex-col gap-2.5 max-h-[80vh] overflow-visible ${isClosing ? 'animate-slideUp' : 'animate-slideDown'}`}>
         {/* Panel 1: Header Search Input Card */}
         <div className={`w-full rounded-2xl shadow-lg border flex items-center p-2.5 flex-shrink-0
-          ${theme === 'dark'
-            ? 'bg-zinc-900 border-zinc-800 text-white'
-            : 'bg-white border-gray-200 text-gray-900'
-          }
+          bg-white border-gray-200 text-gray-900 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white
         `}>
-          <FaSearch className={`text-xl ${theme === 'dark' ? 'text-gray-400' : 'text-gray-400'}`} />
+          <FaSearch className={`text-xl text-gray-400 dark:text-gray-400`} />
           <input
             ref={inputRef}
             type="text"
@@ -809,19 +797,13 @@ const SearchModal = ({ isOpen, onClose }) => {
           />
           <div className="flex items-center gap-1.5 ml-2">
             <kbd className={`px-1.5 py-0.5 rounded text-xs font-sans border shadow-sm select-none
-              ${theme === 'dark'
-                ? 'bg-gray-800 border-gray-700 text-gray-400'
-                : 'bg-gray-50 border-gray-200 text-gray-500'
-              }
+              bg-gray-50 border-gray-200 text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400
             `}>
               ⌘
             </kbd>
             <span className="text-xs text-gray-400 select-none">+</span>
             <kbd className={`px-2 py-0.5 rounded text-xs font-sans border shadow-sm select-none
-              ${theme === 'dark'
-                ? 'bg-gray-800 border-gray-700 text-gray-400'
-                : 'bg-gray-50 border-gray-200 text-gray-500'
-              }
+              bg-gray-50 border-gray-200 text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400
             `}>
               /
             </kbd>
@@ -837,10 +819,7 @@ const SearchModal = ({ isOpen, onClose }) => {
 
         {/* Panel 2: Tab Filters & Results Card */}
         <div className={`w-full rounded-2xl shadow-2xl border flex flex-col flex-1 max-h-[80vh] overflow-hidden
-          ${theme === 'dark'
-            ? 'bg-zinc-900 border-zinc-800 text-white'
-            : 'bg-white border-gray-200 text-gray-900'
-          }
+          bg-white border-gray-200 text-gray-900 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white
         `}>
 
           {/* Tab Filters */}
@@ -852,9 +831,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                 className={`px-2 py-1 rounded-lg text-sm font-semibold transition-all whitespace-nowrap
                 ${activeTab === tab.id
                     ? 'bg-blue-600 text-white border border-blue-600'
-                    : (theme === 'dark'
-                      ? 'text-gray-400 hover:bg-gray-800/50 hover:text-white border border-transparent'
-                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800 border border-transparent')
+                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800 border border-transparent dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-white'
                   }
               `}
               >
@@ -894,7 +871,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                 {/* Quick Actions Pills */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-4 px-3 py-2 select-none">
-                    <span className={`text-xs font-bold tracking-wider uppercase ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                    <span className={`text-xs font-bold tracking-wider uppercase text-gray-400 dark:text-gray-500`}>
                       Quick Actions
                     </span>
                   </div>
@@ -906,7 +883,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                 {/* Commands List */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-4 px-3 py-2 select-none">
-                    <span className={`text-sm font-medium tracking-wider ${theme === 'dark' ? 'text-gray-300' : 'text-gray-400'}`}>
+                    <span className={`text-sm font-medium tracking-wider text-gray-400 dark:text-gray-300`}>
                       Commands
                     </span>
                     <div className="flex-1 border-t border-gray-200 dark:border-zinc-800/80"></div>
@@ -922,20 +899,18 @@ const SearchModal = ({ isOpen, onClose }) => {
                           onClick={() => handleItemSelect(cmd)}
                           className={`flex items-center justify-between p-1.5 rounded-xl cursor-pointer transition-all duration-150
                           ${isSelected
-                              ? (theme === 'dark'
-                                ? 'bg-blue-950/30 text-white'
-                                : 'bg-blue-50/70 text-blue-900')
+                              ? 'bg-blue-50/70 text-blue-900 dark:bg-blue-950/30 dark:text-white'
                               : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/40'
                             }
                         `}
                         >
                           <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg flex-shrink-0 flex items-center justify-center text-base ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                            <div className={`p-2 rounded-lg flex-shrink-0 flex items-center justify-center text-base bg-gray-100 dark:bg-gray-800`}>
                               {cmd.icon}
                             </div>
                             <div className="flex flex-col">
                               <span className="font-semibold text-sm leading-tight">{cmd.name}</span>
-                              <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{cmd.desc}</span>
+                              <span className={`text-xs text-gray-500 dark:text-gray-400`}>{cmd.desc}</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5">
@@ -955,7 +930,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                 {/* Members List */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-4 px-3 py-2 select-none">
-                    <span className={`text-sm font-medium tracking-wider ${theme === 'dark' ? 'text-gray-300' : 'text-gray-400'}`}>
+                    <span className={`text-sm font-medium tracking-wider text-gray-400 dark:text-gray-300`}>
                       Members
                     </span>
                     <div className={`flex-1 border-t border-gray-200`}></div>
@@ -974,9 +949,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                             onClick={() => handleItemSelect(item)}
                             className={`flex items-center justify-between p-1.5 rounded-xl cursor-pointer transition-all duration-150
                             ${isSelected
-                                ? (theme === 'dark'
-                                  ? 'bg-blue-950/30 text-white'
-                                  : 'bg-blue-50/70 text-blue-900')
+                                ? 'bg-blue-50/70 text-blue-900 dark:bg-blue-950/30 dark:text-white'
                                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/40'
                               }
                           `}
@@ -993,7 +966,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                               </div>
                               <div className="flex flex-col">
                                 <span className="font-semibold text-sm leading-tight">{item.name}</span>
-                                <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{item.desc}</span>
+                                <span className={`text-xs text-gray-500 dark:text-gray-400`}>{item.desc}</span>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
@@ -1003,7 +976,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                                   <FaLevelUpAlt className="transform rotate-90 text-xs" />
                                 </div>
                               )}
-                              <span className={`text-xs font-mono font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                              <span className={`text-xs font-mono font-medium text-gray-400 dark:text-gray-500`}>
                                 @{item.username}
                               </span>
                             </div>
@@ -1021,7 +994,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                 {activeTab === 'all' && getVisibleQuickActions().length > 0 && (
                   <div className="space-y-2 pb-2">
                     <div className="flex items-center gap-4 px-3 py-2 select-none">
-                      <span className={`text-sm font-medium tracking-wider ${theme === 'dark' ? 'text-gray-300' : 'text-gray-400'}`}>
+                      <span className={`text-sm font-medium tracking-wider text-gray-400 dark:text-gray-300`}>
                         Quick Actions
                       </span>
                       <div className={`flex-1 border-t border-gray-200`}></div>
@@ -1039,11 +1012,11 @@ const SearchModal = ({ isOpen, onClose }) => {
                     <div key={cat} className="space-y-1">
                       {/* Section Header */}
                       <div className="flex items-center gap-4 px-3 py-2 select-none">
-                        <span className={`text-sm font-medium tracking-wider flex items-center gap-1.5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                        <span className={`text-sm font-medium tracking-wider flex items-center gap-1.5 text-gray-400 dark:text-gray-500`}>
                           <span>{categoryTitles[cat]}</span>
                           <span className="text-xs font-normal font-mono">({group.totalCount})</span>
                         </span>
-                        <div className={`flex-1 border-t ${theme === 'dark' ? 'border-dark-card' : 'border-gray-100'}`}></div>
+                        <div className={`flex-1 border-t border-gray-100 dark:border-dark-card`}></div>
                       </div>
 
                       {/* Section Items */}
@@ -1059,16 +1032,14 @@ const SearchModal = ({ isOpen, onClose }) => {
                               onClick={() => handleItemSelect(item)}
                               className={`flex items-start gap-3 p-2.5 rounded-xl cursor-pointer transition-all duration-150
                               ${isSelected
-                                  ? (theme === 'dark'
-                                    ? 'bg-blue-950/30 text-white'
-                                    : 'bg-blue-50/70 text-blue-900')
+                                  ? 'bg-blue-50/70 text-blue-900 dark:bg-blue-950/30 dark:text-white'
                                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/40'
                                 }
                             `}
                             >
                               {/* Item Icon */}
                               <div className={`p-2 rounded-lg flex-shrink-0 flex items-center justify-center text-base
-                              ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}
+                              bg-gray-100 dark:bg-gray-800
                             `}>
                                 {item.image ? (
                                   <img
@@ -1088,7 +1059,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                                     {highlightText(item.type === 'comment' ? item.desc : item.name, searchQuery)}
                                   </span>
                                 </div>
-                                <p className={`text-xs mt-0.5 truncate ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                <p className={`text-xs mt-0.5 truncate text-gray-500 dark:text-gray-400`}>
                                   {highlightText(item.type === 'comment' ? item.name : item.desc, searchQuery)}
                                 </p>
                               </div>
@@ -1107,7 +1078,7 @@ const SearchModal = ({ isOpen, onClose }) => {
 
                       {/* Section "+ N more" Indicator */}
                       {group.totalCount > group.items.length && !cat.includes('trigger') && (
-                        <div className={`px-3 py-1 text-xs italic ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`}>
+                        <div className={`px-3 py-1 text-xs italic text-gray-400 dark:text-gray-600`}>
                           + {group.totalCount - group.items.length} more. Narrow query or select tab to view all.
                         </div>
                       )}
@@ -1120,10 +1091,7 @@ const SearchModal = ({ isOpen, onClose }) => {
 
           {/* Footer shortcuts hint */}
           <div className={`px-4 py-2.5 border-t text-xs flex justify-between items-center select-none flex-shrink-0
-          ${theme === 'dark'
-              ? 'bg-gray-950/40 border-zinc-800 text-gray-500'
-              : 'bg-gray-50 border-gray-100 text-gray-400'
-            }
+          bg-gray-50 border-gray-100 text-gray-400 dark:bg-gray-950/40 dark:border-zinc-800 dark:text-gray-500
         `}>
             <div className="w-full flex items-center justify-end gap-4">
               <span className="flex items-center gap-1">

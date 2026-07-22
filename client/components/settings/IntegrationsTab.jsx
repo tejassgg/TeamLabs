@@ -112,8 +112,7 @@ const IntegrationsTab = ({
       FaVideo: SiGooglemeet,
       FaGoogleDrive: FaGoogleDrive,
       FaDropbox: FaDropbox,
-      FaSlack: FaSlack,
-    };
+      FaSlack: FaSlack };
     return iconMap[iconName] || FaGithub;
   };
 
@@ -126,8 +125,7 @@ const IntegrationsTab = ({
       google_drive: '#4285F4',
       dropbox: '#0061FF',
       slack: '#4A154B',
-      zoom: '#2D8CFF',
-    };
+      zoom: '#2D8CFF' };
     return colorMap[integrationType] || '#6B7280';
   };
 
@@ -192,18 +190,18 @@ const IntegrationsTab = ({
   return (
     <div className="p-6 bg-white dark:bg-transparent">
       <div className="mb-6">
-        <h2 className={`text-2xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+        <h2 className={`text-2xl font-semibold text-gray-900 dark:text-white`}>
           Integrations
         </h2>
-        <p className={`mt-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+        <p className={`mt-2 text-sm text-gray-600 dark:text-gray-400`}>
           Connect your favorite tools and services to enhance your workflow
         </p>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${theme === 'dark' ? 'border-white' : 'border-gray-900'}`}></div>
-          <span className={`ml-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Loading integrations...</span>
+          <div className={`animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white`}></div>
+          <span className={`ml-3 text-gray-600 dark:text-gray-400`}>Loading integrations...</span>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -214,10 +212,7 @@ const IntegrationsTab = ({
             return (
               <div
                 key={integration.id}
-                className={`relative p-6 rounded-xl border transition-all duration-200 hover:shadow-lg ${theme === 'dark'
-                  ? 'bg-transparent border-gray-700 hover:border-gray-600'
-                  : 'bg-white border-gray-200 hover:border-gray-300 shadow-sm'
-                  }`}
+                className={`relative p-6 rounded-xl border transition-all duration-200 hover:shadow-lg bg-white border-gray-200 hover:border-gray-300 shadow-sm dark:bg-transparent dark:border-gray-700 dark:hover:border-gray-600`}
               >
                 {/* Integration Icon */}
                 <div className="flex justify-between">
@@ -231,10 +226,10 @@ const IntegrationsTab = ({
 
                 {/* Integration Info */}
                 <div className="mb-4">
-                  <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  <h3 className={`text-lg font-semibold text-gray-900 dark:text-white`}>
                     {integration.name}
                   </h3>
-                  <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <p className={`text-sm mt-1 text-gray-600 dark:text-gray-400`}>
                     {integration.description}
                   </p>
                 </div>
@@ -242,7 +237,7 @@ const IntegrationsTab = ({
                 {/* Controls */}
                 <div className="flex items-center justify-between lg:mt-6 mt-3">
                   <button
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border  text-sm font-medium transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-dark-hover border-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-gray-200'}`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border  text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-gray-200 dark:text-gray-400 dark:hover:text-white dark:hover:bg-dark-hover dark:border-gray-700`}
                     onClick={() => { setSelectedIntegration(integration); setShowDetailsModal(true); }}
                   >
                     <FaCog size={14} />
@@ -260,9 +255,7 @@ const IntegrationsTab = ({
                     />
                     <div className={`relative w-11 h-6 rounded-full peer transition-colors ${integration.connected
                       ? 'bg-green-600'
-                      : theme === 'dark'
-                        ? 'bg-gray-700'
-                        : 'bg-gray-200'
+                      : 'bg-gray-200 dark:bg-gray-700'
                       } peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800`}>
                       <div className={`absolute top-0.5 ${integration.connected ? 'left-[calc(100%-1.375rem)]' : 'left-0.5'} bg-white border border-gray-300 rounded-full h-5 w-5 transition-transform peer-checked:border-white`}></div>
                     </div>
@@ -276,7 +269,7 @@ const IntegrationsTab = ({
       {showDetailsModal && selectedIntegration && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowDetailsModal(false)} />
-          <div className={`relative w-full max-w-lg mx-4 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-[#1F1F1F] border border-gray-700' : 'bg-white border border-gray-200'}`}>
+          <div className={`relative w-full max-w-lg mx-4 rounded-xl shadow-lg bg-white border border-gray-200 dark:bg-[#1F1F1F] dark:border dark:border-gray-700`}>
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -290,12 +283,12 @@ const IntegrationsTab = ({
                     );
                   })()}
                   <div>
-                    <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{selectedIntegration.name}</h3>
-                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{selectedIntegration.description}</p>
+                    <h3 className={`text-lg font-semibold text-gray-900 dark:text-white`}>{selectedIntegration.name}</h3>
+                    <p className={`text-sm text-gray-600 dark:text-gray-400`}>{selectedIntegration.description}</p>
                   </div>
                 </div>
                 <button
-                  className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
+                  className={`p-2 rounded-lg hover:bg-gray-100 text-gray-600 dark:hover:bg-white/10 dark:text-gray-300`}
                   onClick={() => setShowDetailsModal(false)}
                   aria-label="Close"
                 >
@@ -303,7 +296,7 @@ const IntegrationsTab = ({
                 </button>
               </div>
 
-              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 dark:text-gray-300`}>
                 <div className="space-y-1">
                   <div className="text-sm opacity-70">Status</div>
                   <div className="font-medium">
@@ -346,7 +339,7 @@ const IntegrationsTab = ({
 
               <div className="mt-6 flex justify-end gap-3">
                 <button
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600`}
                   onClick={() => setShowDetailsModal(false)}
                 >
                   Close

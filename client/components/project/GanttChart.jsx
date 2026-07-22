@@ -324,7 +324,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
     };
 
     return (
-        <div className={`w-full ${theme === 'dark' ? 'bg-transparent' : 'bg-white'} overflow-hidden`}>
+        <div className={`w-full bg-white dark:bg-transparent overflow-hidden`}>
             {/* Mobile Warning */}
             <div className="md:hidden p-4 bg-yellow-50 border-b border-yellow-200">
                 <div className="flex items-center gap-2 text-yellow-800">
@@ -334,7 +334,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
             </div>
 
             {/* Header Controls */}
-            <div className={`mb-6 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+            <div className={`mb-6 border-gray-200 dark:border-gray-700`}>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
@@ -344,8 +344,8 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                     goToCurrentWeek();
                                 }}
                                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'week'
-                                    ? theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
-                                    : theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'
+                                    ? 'bg-blue-500 dark:bg-blue-600 text-white'
+                                    : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300'
                                     }`}
                             >
                                 Week
@@ -353,8 +353,8 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                             <button
                                 onClick={() => setViewMode('month')}
                                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'month'
-                                    ? theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
-                                    : theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'
+                                    ? 'bg-blue-500 dark:bg-blue-600 text-white'
+                                    : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300'
                                     }`}
                             >
                                 Month
@@ -362,8 +362,8 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                             <button
                                 onClick={() => setViewMode('quarter')}
                                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'quarter'
-                                    ? theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
-                                    : theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'
+                                    ? 'bg-blue-500 dark:bg-blue-600 text-white'
+                                    : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300'
                                     }`}
                             >
                                 Quarter
@@ -374,21 +374,21 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                             <div className="flex items-center gap-2 ml-4">
                                 <button
                                     onClick={goToPreviousWeek}
-                                    className={`p-2 rounded-md transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300 hover:bg-dark-hover' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'}`}
+                                    className={`p-2 rounded-md transition-colors text-gray-600 hover:text-gray-800 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-dark-hover`}
                                     title="Previous Week"
                                 >
                                     <FaChevronLeft className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={goToCurrentWeek}
-                                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600`}
                                     title="Current Week"
                                 >
                                     Today
                                 </button>
                                 <button
                                     onClick={goToNextWeek}
-                                    className={`p-2 rounded-md transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300 hover:bg-dark-hover' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'}`}
+                                    className={`p-2 rounded-md transition-colors text-gray-600 hover:text-gray-800 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-dark-hover`}
                                     title="Next Week"
                                 >
                                     <FaChevronRight className="w-4 h-4" />
@@ -397,20 +397,19 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                         )}
                     </div>
 
-                    <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} italic`}>
+                    <div className={`text-xs text-gray-500 dark:text-gray-400 italic`}>
                         Tip: Drag timeline bars to reschedule, or stretch ends to change duration
                     </div>
                 </div>
             </div>
 
             {/* Timeline Wrapper */}
-            <div className={`border rounded-2xl ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} max-h-[800px] overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800`}>
+            <div className={`border rounded-2xl border-gray-200 dark:border-gray-800 max-h-[800px] overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800`}>
                 <div className="min-w-max flex flex-col">
                     {/* Header Row */}
-                    <div className={`flex min-w-max border-b sticky top-0 z-30 ${theme === 'dark' ? 'border-gray-800 bg-[#161616]' : 'border-gray-200 bg-gray-50'}`}>
+                    <div className={`flex min-w-max border-b sticky top-0 z-30 border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-[#161616]`}>
                         {/* Task List Header */}
-                        <div className={`w-80 p-4 font-semibold text-sm flex-shrink-0 sticky left-0 z-40 border-r ${theme === 'dark' ? 'bg-[#161616] border-gray-800' : 'bg-gray-50 border-gray-200'
-                            }`}>
+                        <div className={`w-80 p-4 font-semibold text-sm flex-shrink-0 sticky left-0 z-40 border-r bg-gray-50 border-gray-200 dark:bg-[#161616] dark:border-gray-800`}>
                             Task / User Story Info
                         </div>
                         {/* Dates Header Columns */}
@@ -421,8 +420,8 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                     className={`flex-1 p-3 text-center text-xs font-semibold border-r last:border-r-0 ${header.isToday
                                         ? 'text-blue-500 border-blue-500/20 bg-blue-500/5'
                                         : header.isWeekend
-                                            ? theme === 'dark' ? 'border-gray-800 text-gray-500 bg-gray-900/50' : 'border-gray-250 text-gray-450 bg-gray-50'
-                                            : theme === 'dark' ? 'border-gray-800 text-gray-400' : 'border-gray-200 text-gray-600'
+                                            ? 'border-gray-250 text-gray-450 bg-gray-50 dark:border-gray-800 dark:text-gray-500 dark:bg-gray-900/50'
+                                            : 'border-gray-200 text-gray-600 dark:border-gray-800 dark:text-gray-400'
                                         }`}
                                     style={{ minWidth: '100px' }}
                                 >
@@ -435,7 +434,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                     {/* Timeline Body Rows */}
                     <div className="flex flex-col">
                         {timelineData.items.length === 0 ? (
-                            <div className={`p-12 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <div className={`p-12 text-center text-gray-500 dark:text-gray-400`}>
                                 <FaCalendarAlt size={48} className="mx-auto mb-4 opacity-40" />
                                 <p className="text-lg font-semibold mb-1">No timeline entries yet</p>
                                 <p className="text-sm">Create user stories or sprint tasks to visualize them here.</p>
@@ -450,19 +449,15 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                 return (
                                     <div
                                         key={item.TaskID || item._id}
-                                        className={`flex border-b last:border-b-0 relative group transition-colors duration-200 ${theme === 'dark' ? 'border-gray-800 hover:bg-gray-800/40' : 'border-gray-200 hover:bg-gray-100'
-                                            }`}
+                                        className={`flex border-b last:border-b-0 relative group transition-colors duration-200 border-gray-200 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-800/40`}
                                     >
                                         {/* Task Metadata Info Column */}
-                                        <div className={`w-80 p-3.5 border-r sticky left-0 z-10 flex-shrink-0 flex flex-col justify-center transition-colors duration-200 ${theme === 'dark'
-                                            ? 'bg-[#121212] border-gray-800 group-hover:bg-[#1e1e20]'
-                                            : 'bg-white border-gray-200 group-hover:bg-gray-50'
-                                            }`}>
+                                        <div className={`w-80 p-3.5 border-r sticky left-0 z-10 flex-shrink-0 flex flex-col justify-center transition-colors duration-200 bg-white border-gray-200 group-hover:bg-gray-50 dark:bg-[#121212] dark:border-gray-800 dark:group-hover:bg-[#1e1e20]`}>
                                             <div className="flex items-start gap-2.5">
                                                 <span className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${getStatusColor(item.Status, item.Type)}`}></span>
                                                 <div className="flex-1 min-w-0">
                                                     <div
-                                                        className={`font-semibold text-sm truncate cursor-pointer hover:underline hover:text-blue-600 dark:hover:text-blue-400 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}
+                                                        className={`font-semibold text-sm truncate cursor-pointer hover:underline hover:text-blue-600 dark:hover:text-blue-400 text-gray-900 dark:text-white`}
                                                         onClick={() => onEditTask && onEditTask(item)}
                                                     >
                                                         {(item.TaskNumber || item.TicketNumber) ? `#${item.TaskNumber || item.TicketNumber} ` : ''}{item.Name}
@@ -479,14 +474,12 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                                                 setDependencyTask(item);
                                                                 setShowDependencyModal(true);
                                                             }}
-                                                            className={`px-1.5 py-0.5 rounded text-xs font-semibold border flex items-center gap-1 transition-all ${isBlocked
-                                                                ? 'bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20'
-                                                                : item.Dependencies?.length > 0
-                                                                    ? 'bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20'
-                                                                    : theme === 'dark'
-                                                                        ? 'bg-gray-800 text-gray-400 border-gray-700 hover:bg-dark-hover'
-                                                                        : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
-                                                                }`}
+                                                             className={`px-1.5 py-0.5 rounded text-xs font-semibold border flex items-center gap-1 transition-all ${isBlocked
+                                                                 ? 'bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20'
+                                                                 : item.Dependencies?.length > 0
+                                                                     ? 'bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20'
+                                                                     : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-dark-hover'
+                                                                 }`}
                                                         >
                                                             <FaLink size={8} />
                                                             {item.Dependencies?.length > 0 ? `${item.Dependencies.length} Prerequisites` : 'Add Prerequisites'}
@@ -508,8 +501,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                             {/* Bar container */}
                                             <div
                                                 className={`group absolute top-3 bottom-3 rounded-lg flex items-center transition-shadow shadow-md hover:shadow-lg select-none pointer-events-auto border-2 ${getStatusColor(item.Status, item.Type)
-                                                    } ${theme === 'dark' ? 'border-gray-900/30 text-white' : 'border-white/30 text-white'
-                                                    }`}
+                                                    } border-white/30 text-white dark:border-gray-900/30 dark:text-white`}
                                                 style={{
                                                     left: `${item.startPercentage}%`,
                                                     width: `${Math.max(item.durationPercentage, 1.5)}%`,
@@ -570,8 +562,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
             {/* Dependency Management Modal */}
             {showDependencyModal && dependencyTask && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className={`w-full max-w-lg rounded-3xl shadow-2xl p-6 border transition-all duration-300 ${theme === 'dark' ? 'bg-dark-bg border-dark-card text-zinc-100' : 'bg-white border-gray-100 text-gray-900'
-                        }`}>
+                    <div className={`w-full max-w-lg rounded-3xl shadow-2xl p-6 border transition-all duration-300 bg-white border-gray-100 text-gray-900 dark:bg-dark-bg dark:border-dark-card dark:text-zinc-100`}>
                         <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-4 mb-5">
                             <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -589,10 +580,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                     setShowDependencyModal(false);
                                     setDependencyTask(null);
                                 }}
-                                className={`p-2 rounded-xl transition-all duration-200 ${theme === 'dark'
-                                    ? 'hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200'
-                                    : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
-                                    }`}
+                                className={`p-2 rounded-xl transition-all duration-200 hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200`}
                             >
                                 <FaTimes size={14} />
                             </button>
@@ -604,8 +592,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                 Active Prerequisites
                             </h4>
                             {(!dependencyTask.Dependencies || dependencyTask.Dependencies.length === 0) ? (
-                                <div className={`text-sm italic p-4 text-center border border-dashed rounded-2xl ${theme === 'dark' ? 'border-zinc-800 text-zinc-500' : 'border-gray-200 text-gray-400'
-                                    }`}>
+                                <div className={`text-sm italic p-4 text-center border border-dashed rounded-2xl border-gray-200 text-gray-400 dark:border-zinc-800 dark:text-zinc-500`}>
                                     No dependencies currently defined.
                                 </div>
                             ) : (
@@ -616,8 +603,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                         return (
                                             <div
                                                 key={depId}
-                                                className={`flex items-center justify-between p-3.5 rounded-2xl border transition-colors ${theme === 'dark' ? 'bg-zinc-900/40 border-zinc-800/80' : 'bg-gray-50/50 border-gray-100'
-                                                    }`}
+                                                className={`flex items-center justify-between p-3.5 rounded-2xl border transition-colors bg-gray-50/50 border-gray-100 dark:bg-zinc-900/40 dark:border-zinc-800/80`}
                                             >
                                                 <div className="flex items-center gap-3 min-w-0">
                                                     <span className={`w-2.5 h-2.5 rounded-full ${getStatusColor(dep.Status, dep.Type)}`}></span>
@@ -651,10 +637,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                     .map(item => (
                                         <div
                                             key={item.TaskID || item._id}
-                                            className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${theme === 'dark'
-                                                ? 'border-dark-card hover:bg-zinc-800/40'
-                                                : 'border-gray-100 hover:bg-gray-50/50'
-                                                }`}
+                                            className={`flex items-center justify-between p-3 rounded-2xl border transition-all border-gray-100 hover:bg-gray-50/50 dark:border-dark-card dark:hover:bg-zinc-800/40`}
                                         >
                                             <div className="flex items-center gap-3 min-w-0">
                                                 <span className={`w-1.5 h-1.5 rounded-full ${getStatusColor(item.Status, item.Type)}`}></span>
@@ -673,7 +656,7 @@ const GanttChart = ({ tasks = [], userStories = [], project, onUpdateTask, onEdi
                                     (item.TaskID || item._id) !== (dependencyTask.TaskID || dependencyTask._id) &&
                                     !(dependencyTask.Dependencies || []).includes(item.TaskID || item._id)
                                 ).length === 0 && (
-                                        <p className={`text-xs italic text-center py-4 ${theme === 'dark' ? 'text-zinc-550' : 'text-gray-400'}`}>
+                                        <p className={`text-xs italic text-center py-4 text-gray-400 dark:text-zinc-550`}>
                                             No other tasks available to link.
                                         </p>
                                     )}

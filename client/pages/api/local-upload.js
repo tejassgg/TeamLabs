@@ -4,9 +4,7 @@ import path from 'path';
 export const config = {
   api: {
     bodyParser: false,
-    responseLimit: false,
-  },
-};
+    responseLimit: false } };
 
 function ensureUploadsDir(subDir = '') {
   const dir = path.join(process.cwd(), 'public', 'uploads', subDir);

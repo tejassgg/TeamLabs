@@ -61,8 +61,7 @@ const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
 
         const res = await fetch('/api/local-upload?type=profile', {
           method: 'POST',
-          body: formData,
-        });
+          body: formData });
 
         if (!res.ok) {
           throw new Error(`Upload failed: ${res.statusText}`);
@@ -120,10 +119,7 @@ const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
   return (
     <div className="space-y-4 sm:space-y-6">
       {error && (
-        <div className={`px-4 py-3 rounded-lg text-sm ${theme === 'dark'
-          ? 'bg-red-900/20 border border-red-800 text-red-400'
-          : 'bg-red-50 border border-red-200 text-red-600'
-          }`}>
+        <div className={`px-4 py-3 rounded-lg text-sm bg-red-50 border border-red-200 text-red-600 dark:bg-red-900/20 dark:border dark:border-red-800 dark:text-red-400`}>
           {error}
         </div>
       )}
@@ -133,24 +129,17 @@ const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
             {/* Header and Profile Image Section */}
             <div className="flex flex-col justify-start w-full">
               <div className="text-left">
-                <h1 className={`text-3xl lg:text-5xl font-bold mb-2 sm:mb-4 w-full ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                <h1 className={`text-3xl lg:text-5xl font-bold mb-2 sm:mb-4 w-full text-gray-900 dark:text-white`}>
                   Create Your <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Account</span>
                 </h1>
-                <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                  }`}>
+                <p className={`text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300`}>
                   Join TeamLabs to boost your productivity
                 </p>
                 <div className="mt-3 sm:mt-4 flex flex-row gap-2 sm:gap-4 justify-start">
-                  <div className={`flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg ${theme === 'dark'
-                    ? 'bg-blue-900/30 text-blue-300 border border-blue-700'
-                    : 'bg-blue-100 text-primary border border-blue-200'
-                    }`}>
+                  <div className={`flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-blue-100 text-primary border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border dark:border-blue-700`}>
                     <span className="text-xs sm:text-sm font-medium">✓ Free Trial</span>
                   </div>
-                  <div className={`flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg ${theme === 'dark'
-                    ? 'bg-green-900/30 text-green-300 border border-green-700'
-                    : 'bg-green-100 text-green-800 border border-green-200'
-                    }`}>
+                  <div className={`flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border dark:border-green-700`}>
                     <span className="text-xs sm:text-sm font-medium">✓ No Credit Card</span>
                   </div>
                 </div>
@@ -161,26 +150,21 @@ const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
             {/* Role dropdown removed as requested */}
             <div className="grid grid-cols-1 gap-3 sm:gap-4">
               <div>
-                <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>Email <span className="text-red-500">*</span></label>
+                <label className={`block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300`}>Email <span className="text-red-500">*</span></label>
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
-                    ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
-                    }`}
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white border-gray-200 text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400`}
                   {...register("email", {
                     required: "Email is required",
                     pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2 }$/i,
                       message: "Invalid email address"
                     }
                   })}
                 />
                 {errors.email && (
-                  <p className={`mt-1 text-xs sm:text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-600'
-                    }`}>{errors.email.message}</p>
+                  <p className={`mt-1 text-xs sm:text-sm text-red-600 dark:text-red-400`}>{errors.email.message}</p>
                 )}
               </div>
               {/* Username removed as requested */}
@@ -197,26 +181,26 @@ const RegisterForm = ({ onOpenLogin, isVisible = true }) => {
               text="signup_with"
               shape="rectangular"
             />
-            <span className={`text-sm sm:mx-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>or</span>
+            <span className={`text-sm sm:mx-1 text-gray-500 dark:text-gray-400`}>or</span>
             <button
               type="submit"
-              className={`w-auto py-1 sm:py-2 px-8 sm:px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base ${theme === 'dark' ? 'bg-gradient-to-r from-blue-700 to-purple-700 text-white hover:from-blue-800 hover:to-purple-800 focus:ring-blue-800' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500'}`}
+              className={`w-auto py-1 sm:py-2 px-8 sm:px-6 rounded-lg font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 text-base bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500 dark:bg-gradient-to-r dark:from-blue-700 dark:to-purple-700 dark:text-white dark:hover:from-blue-800 dark:hover:to-purple-800 dark:focus:ring-blue-800`}
               disabled={isLoading}
             >
               {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
           </div>
           <div className="text-center">
-            <span className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Already have an account?  </span>
+            <span className={`text-sm sm:text-base text-gray-600 dark:text-gray-400`}>Already have an account?  </span>
             {onOpenLogin ? (
               <button
                 type="button"
                 onClick={onOpenLogin}
-                className={`font-bold hover:underline text-sm sm:text-base ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}
+                className={`font-bold hover:underline text-sm sm:text-base text-blue-700 dark:text-blue-400`}
               >Sign In
               </button>
             ) : (
-              <Link href="/auth?type=login" className={`font-bold hover:underline text-sm sm:text-base ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'}`}>Sign In</Link>
+              <Link href="/auth?type=login" className={`font-bold hover:underline text-sm sm:text-base text-blue-700 dark:text-blue-400`}>Sign In</Link>
             )}
           </div>
         </div>

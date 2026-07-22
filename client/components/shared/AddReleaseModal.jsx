@@ -114,10 +114,7 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
   const { theme } = useTheme();
   const { showToast } = useToast();
 
-  const getThemeClasses = (lightClasses, darkClasses) => {
-    return theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
-  };
-
+  
   const [isAnimating, setIsAnimating] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingVersionData, setLoadingVersionData] = useState(false);
@@ -584,30 +581,22 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-[120px]">
             {icon}
-            <label className={getThemeClasses(
-              'text-sm font-medium text-gray-700',
-              'text-sm font-medium text-white'
-            )}>
+            <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
               {fieldLabel}
             </label>
           </div>
           <button
             type="button"
             onClick={() => addArrayField(fieldName)}
-            className={getThemeClasses(
-              'flex items-center p-1.5 text-xs rounded-full transition-colors bg-blue-500 hover:bg-blue-600 text-white',
-              'flex items-center p-1.5 text-xs rounded-full transition-colors bg-blue-500 hover:bg-blue-600 text-white'
-            )}
+            className={'flex items-center p-1.5 text-xs rounded-full transition-colors bg-blue-500 hover:bg-blue-600 text-white flex items-center p-1.5 text-xs rounded-full transition-colors bg-blue-500 hover:bg-blue-600 text-white'}
           >
             <FaPlus size={14} />
           </button>
         </div>
         {items.map((item, index) => (
-          <div key={index} className={`p-3 rounded-lg border ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
-            }`}>
+          <div key={index} className={`p-3 rounded-lg border bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700`}>
             <div className="flex justify-between items-start mb-2">
-              <span className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                }`}>
+              <span className={`text-xs font-medium text-gray-600 dark:text-gray-300`}>
                 {fieldLabel.slice(0, -1)} {index + 1}
               </span>
               {items.length > 1 && (
@@ -626,20 +615,14 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                 placeholder="Title"
                 value={item.title}
                 onChange={(e) => handleArrayFieldChange(fieldName, index, 'title', e.target.value)}
-                className={getThemeClasses(
-                  'w-full px-2 py-1 text-sm rounded border transition-colors bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500',
-                  'w-full px-2 py-1 text-sm rounded border transition-colors bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'
-                )}
+                className={'w-full px-2 py-1 text-sm rounded border transition-colors bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 w-full px-2 py-1 text-sm rounded border transition-colors bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'}
               />
               <textarea
                 placeholder="Description"
                 value={item.description}
                 onChange={(e) => handleArrayFieldChange(fieldName, index, 'description', e.target.value)}
                 rows={5}
-                className={getThemeClasses(
-                  'w-full px-2 py-1 text-sm rounded border transition-colors bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 resize-none',
-                  'w-full px-2 py-1 text-sm rounded border transition-colors bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 resize-none'
-                )}
+                className={'w-full px-2 py-1 text-sm rounded border transition-colors bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 resize-none w-full px-2 py-1 text-sm rounded border transition-colors bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 resize-none'}
               />
             </div>
           </div>
@@ -654,14 +637,11 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}
         onClick={handleClose}
       />
-      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-2xl ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-dark-card' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
+      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-2xl bg-white text-gray-900 dark:bg-dark-bg dark:text-white border-l border-gray-200 dark:border-dark-card p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
 
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <h3 className={getThemeClasses(
-              'text-xl font-semibold text-gray-900',
-              'text-xl font-semibold text-white'
-            )}>{modalTitle}</h3>
+            <h3 className={'text-xl font-semibold text-gray-900 text-xl font-semibold text-white'}>{modalTitle}</h3>
             {loadingVersionData && (
               <div className="flex items-center gap-2 text-sm text-blue-500">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
@@ -671,10 +651,7 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
           </div>
           <button
             onClick={handleClose}
-            className={getThemeClasses(
-              'text-gray-400 hover:text-gray-600 text-2xl font-bold',
-              'text-gray-400 hover:text-gray-300 text-2xl font-bold'
-            )}
+            className={'text-gray-400 hover:text-gray-600 text-2xl font-bold text-gray-400 hover:text-gray-300 text-2xl font-bold'}
           >
             ×
           </button>
@@ -686,7 +663,7 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
             type="button"
             onClick={() => setModalView('edit')}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${modalView === 'edit'
-              ? theme === 'dark' ? 'bg-zinc-800 text-white shadow-sm' : 'bg-blue-50 text-blue-600 shadow-sm'
+              ? 'bg-blue-50 text-blue-600 dark:bg-zinc-800 dark:text-white shadow-sm'
               : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
               }`}
           >
@@ -696,7 +673,7 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
             type="button"
             onClick={() => setModalView('preview')}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${modalView === 'preview'
-              ? theme === 'dark' ? 'bg-zinc-800 text-white shadow-sm' : 'bg-blue-50 text-blue-600 shadow-sm'
+              ? 'bg-blue-50 text-blue-600 dark:bg-zinc-800 dark:text-white shadow-sm'
               : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
               }`}
           >
@@ -708,13 +685,9 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
           {modalView === 'edit' ? (
             <>
               {/* Markdown Import Box */}
-              <div className={`p-4 rounded-xl border mb-6 ${theme === 'dark' ? 'bg-[#1e1e24] border-zinc-800' : 'bg-gray-50 border-gray-200'
-                }`}>
+              <div className={`p-4 rounded-xl border mb-6 bg-gray-50 border-gray-200 dark:bg-[#1e1e24] dark:border-zinc-800`}>
                 <div className="flex items-center justify-between mb-2">
-                  <label className={getThemeClasses(
-                    'block text-sm font-semibold text-gray-700',
-                    'block text-sm font-semibold text-white'
-                  )}>
+                  <label className={'block text-sm font-semibold text-gray-700 block text-sm font-semibold text-white'}>
                     Quick Import / Paste Markdown (.md)
                   </label>
                   {markdownInput && (
@@ -735,13 +708,9 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                   value={markdownInput}
                   onChange={(e) => handleMarkdownPaste(e.target.value)}
                   rows={4}
-                  className={getThemeClasses(
-                    'w-full px-3 py-2.5 text-sm rounded-xl border bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none',
-                    'w-full px-3 py-2.5 text-sm rounded-xl border bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none resize-none'
-                  )}
+                  className={'w-full px-3 py-2.5 text-sm rounded-xl border bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none w-full px-3 py-2.5 text-sm rounded-xl border bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none resize-none'}
                 />
-                <p className={`text-xs mt-1.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                  }`}>
+                <p className={`text-xs mt-1.5 text-gray-500 dark:text-gray-400`}>
                   Supports parsing headers like `# Release v1.1.0`, general descriptions, and bullet lists under headers like `### Features`, `### Improvements`, and `### Bug Fixes`.
                 </p>
               </div>
@@ -749,14 +718,8 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
               {/* Basic Information */}
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <FaTag className={getThemeClasses(
-                    'text-gray-500',
-                    'text-gray-400'
-                  )} size={16} />
-                  <label className={getThemeClasses(
-                    'text-sm font-medium text-gray-700',
-                    'text-sm font-medium text-white'
-                  )}>
+                  <FaTag className={'text-gray-500 text-gray-400'} size={16} />
+                  <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                     Version<span className="text-red-500 ml-1">*</span>
                   </label>
                 </div>
@@ -765,10 +728,7 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                     type="text"
                     value={formData.version}
                     onChange={(e) => handleInputChange('version', e.target.value)}
-                    className={getThemeClasses(
-                      'w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                      'w-full px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                    )}
+                    className={'w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 w-full px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'}
                     required
                     placeholder="e.g., 1.2.0"
                   />
@@ -783,14 +743,8 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
 
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <FaRocket className={getThemeClasses(
-                    'text-gray-500',
-                    'text-gray-400'
-                  )} size={16} />
-                  <label className={getThemeClasses(
-                    'text-sm font-medium text-gray-700',
-                    'text-sm font-medium text-white'
-                  )}>
+                  <FaRocket className={'text-gray-500 text-gray-400'} size={16} />
+                  <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                     Title<span className="text-red-500 ml-1">*</span>
                   </label>
                 </div>
@@ -799,10 +753,7 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                     type="text"
                     value={formData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
-                    className={getThemeClasses(
-                      'w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                      'w-full px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                    )}
+                    className={'w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 w-full px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'}
                     required
                     placeholder="Release title"
                   />
@@ -817,14 +768,8 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
 
               <div className="flex items-start gap-4">
                 <div className="flex items-center gap-2 min-w-[120px] pt-2">
-                  <FaAlignLeft className={getThemeClasses(
-                    'text-gray-500',
-                    'text-gray-400'
-                  )} size={16} />
-                  <label className={getThemeClasses(
-                    'text-sm font-medium text-gray-700',
-                    'text-sm font-medium text-white'
-                  )}>
+                  <FaAlignLeft className={'text-gray-500 text-gray-400'} size={16} />
+                  <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                     Description<span className="text-red-500 ml-1">*</span>
                   </label>
                 </div>
@@ -832,10 +777,7 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                   <textarea
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
-                    className={getThemeClasses(
-                      'w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 resize-none',
-                      'w-full px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500 resize-none'
-                    )}
+                    className={'w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 resize-none w-full px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500 resize-none'}
                     rows={3}
                     required
                     placeholder="Brief description of the release"
@@ -851,24 +793,15 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
 
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <FaFlag className={getThemeClasses(
-                    'text-gray-500',
-                    'text-gray-400'
-                  )} size={16} />
-                  <label className={getThemeClasses(
-                    'text-sm font-medium text-gray-700',
-                    'text-sm font-medium text-white'
-                  )}>
+                  <FaFlag className={'text-gray-500 text-gray-400'} size={16} />
+                  <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                     Priority
                   </label>
                 </div>
                 <select
                   value={formData.priority}
                   onChange={(e) => handleInputChange('priority', e.target.value)}
-                  className={getThemeClasses(
-                    'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                    'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-                  )}
+                  className={'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'}
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -879,24 +812,15 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
 
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <FaUsers className={getThemeClasses(
-                    'text-gray-500',
-                    'text-gray-400'
-                  )} size={16} />
-                  <label className={getThemeClasses(
-                    'text-sm font-medium text-gray-700',
-                    'text-sm font-medium text-white'
-                  )}>
+                  <FaUsers className={'text-gray-500 text-gray-400'} size={16} />
+                  <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                     Target Audience
                   </label>
                 </div>
                 <select
                   value={formData.targetAudience}
                   onChange={(e) => handleInputChange('targetAudience', e.target.value)}
-                  className={getThemeClasses(
-                    'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                    'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-                  )}
+                  className={'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'}
                 >
                   <option value="all">All Users</option>
                   <option value="admin">Admin Only</option>
@@ -908,22 +832,22 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
 
               {/* Features */}
               {renderArrayField('features', 'Features', formData.features,
-                <FaCheckCircle className={getThemeClasses('text-gray-500', 'text-gray-400')} size={16} />
+                <FaCheckCircle className={'text-gray-500 text-gray-400'} size={16} />
               )}
 
               {/* Improvements */}
               {renderArrayField('improvements', 'Improvements', formData.improvements,
-                <FaRocketIcon className={getThemeClasses('text-gray-500', 'text-gray-400')} size={16} />
+                <FaRocketIcon className={'text-gray-500 text-gray-400'} size={16} />
               )}
 
               {/* Bug Fixes */}
               {renderArrayField('bugFixes', 'Bug Fixes', formData.bugFixes,
-                <FaBug className={getThemeClasses('text-gray-500', 'text-gray-400')} size={16} />
+                <FaBug className={'text-gray-500 text-gray-400'} size={16} />
               )}
 
               {/* Release Notes */}
               {renderArrayField('releaseNotes', 'Release Notes', formData.releaseNotes,
-                <FaFileAlt className={getThemeClasses('text-gray-500', 'text-gray-400')} size={16} />
+                <FaFileAlt className={'text-gray-500 text-gray-400'} size={16} />
               )}
 
 
@@ -931,31 +855,22 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
               {/* Metadata Section */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <FaCodeBranch className={getThemeClasses('text-gray-500', 'text-gray-400')} size={16} />
-                  <h4 className={getThemeClasses(
-                    'text-sm font-medium text-gray-700',
-                    'text-sm font-medium text-white'
-                  )}>
+                  <FaCodeBranch className={'text-gray-500 text-gray-400'} size={16} />
+                  <h4 className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                     Metadata (Optional)
                   </h4>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2 min-w-[120px]">
-                    <label className={getThemeClasses(
-                      'text-sm font-medium text-gray-700',
-                      'text-sm font-medium text-white'
-                    )}>
+                    <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                       Release Type
                     </label>
                   </div>
                   <select
                     value={formData.metadata.releaseType}
                     onChange={(e) => handleInputChange('metadata.releaseType', e.target.value)}
-                    className={getThemeClasses(
-                      'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                      'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-                    )}
+                    className={'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'}
                   >
                     <option value="major">Major</option>
                     <option value="minor">Minor</option>
@@ -966,10 +881,7 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
 
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2 min-w-[120px]">
-                    <label className={getThemeClasses(
-                      'text-sm font-medium text-gray-700',
-                      'text-sm font-medium text-white'
-                    )}>
+                    <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                       Build Number
                     </label>
                   </div>
@@ -978,10 +890,7 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                       type="text"
                       value={formData.metadata.buildNumber}
                       onChange={(e) => handleInputChange('metadata.buildNumber', e.target.value)}
-                      className={getThemeClasses(
-                        'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                        'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                      )}
+                      className={'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'}
                       placeholder="Auto-generated on save"
                       disabled={!isEditMode}
                     />
@@ -999,14 +908,11 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
           ) : (
             /* Live Preview View */
             <div className="space-y-6">
-              <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#1e1e24] border-zinc-800' : 'bg-gray-50 border-gray-200'
-                }`}>
-                <p className={`text-sm mb-4 font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                  }`}>
+              <div className={`p-4 rounded-xl border bg-gray-50 border-gray-200 dark:bg-[#1e1e24] dark:border-zinc-800`}>
+                <p className={`text-sm mb-4 font-semibold text-gray-600 dark:text-gray-400`}>
                   Simulated Banner Notification Preview:
                 </p>
-                <div className={`relative border-l-4 rounded-r-xl overflow-hidden shadow-md ${getPriorityColor(formData.priority)} ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-                  }`}>
+                <div className={`relative border-l-4 rounded-r-xl overflow-hidden shadow-md ${getPriorityColor(formData.priority)} bg-white dark:bg-gray-800`}>
                   {/* Banner Header */}
                   <div className="p-4">
                     <div className="flex items-start justify-between">
@@ -1016,21 +922,17 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                              }`}>
+                            <h3 className={`text-lg font-semibold text-gray-900 dark:text-white`}>
                               New Release Available
                             </h3>
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-primary'
-                              }`}>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-primary dark:bg-blue-900/30 dark:text-blue-400`}>
                               v{formData.version || '1.0.0'}
                             </span>
                           </div>
-                          <h4 className={`text-base font-medium mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
-                            }`}>
+                          <h4 className={`text-base font-medium mb-2 text-gray-800 dark:text-gray-200`}>
                             {formData.title || 'Untitled Release'}
                           </h4>
-                          <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                            }`}>
+                          <p className={`text-sm text-gray-600 dark:text-gray-300`}>
                             {formData.description || 'No description provided.'}
                           </p>
                         </div>
@@ -1039,8 +941,7 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                         <button
                           type="button"
                           onClick={() => setPreviewExpanded(!previewExpanded)}
-                          className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-dark-hover transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600'
-                            }`}
+                          className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-dark-hover transition-colors text-gray-600 dark:text-gray-400 dark:hover:text-white`}
                         >
                           {previewExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
                         </button>
@@ -1050,14 +951,14 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                     {/* Meta information */}
                     <div className="flex items-center gap-4 mt-3 text-xs">
                       <div className="flex items-center gap-1">
-                        <FaCalendar className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                        <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>
+                        <FaCalendar className={`text-gray-500 dark:text-gray-400`} />
+                        <span className="text-gray-500 dark:text-gray-400">
                           {new Date().toLocaleDateString()}
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <FaUser className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                        <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>
+                        <FaUser className={`text-gray-500 dark:text-gray-400`} />
+                        <span className="text-gray-500 dark:text-gray-400">
                           {userDetails?.firstName ? `${userDetails.firstName} ${userDetails.lastName || ''}` : 'Organization Admin'}
                         </span>
                       </div>
@@ -1066,22 +967,19 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
 
                   {/* Banner Expanded content */}
                   {previewExpanded && (
-                    <div className={`border-t p-4 space-y-6 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-                      }`}>
+                    <div className={`border-t p-4 space-y-6 border-gray-200 dark:border-gray-700`}>
                       {/* Release Notes */}
                       {formData.releaseNotes && formData.releaseNotes.some(n => n.title.trim() || n.description.trim()) && (
                         <div>
-                          <h5 className={`font-semibold text-sm mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                            }`}>
+                          <h5 className={`font-semibold text-sm mb-2 text-gray-900 dark:text-white`}>
                             Release Notes
                           </h5>
-                          <div className={`p-3 rounded-lg space-y-2 ${theme === 'dark' ? 'bg-gray-700/60' : 'bg-gray-100/80'
-                            }`}>
+                          <div className={`p-3 rounded-lg space-y-2 bg-gray-100/80 dark:bg-gray-700/60`}>
                             {formData.releaseNotes.map((note, index) => (
                               note.title.trim() || note.description.trim() ? (
                                 <div key={index} className="text-sm">
-                                  {note.title.trim() && <strong className={theme === 'dark' ? 'text-white' : 'text-gray-800'}>{note.title}: </strong>}
-                                  <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{note.description}</span>
+                                  {note.title.trim() && <strong className="text-gray-800 dark:text-white">{note.title}: </strong>}
+                                  <span className="text-gray-700 dark:text-gray-300">{note.description}</span>
                                 </div>
                               ) : null
                             ))}
@@ -1092,25 +990,21 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                       {/* Features */}
                       {formData.features && formData.features.some(f => f.title.trim() || f.description.trim()) && (
                         <div>
-                          <h5 className={`font-semibold text-sm mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                            }`}>
+                          <h5 className={`font-semibold text-sm mb-3 text-gray-900 dark:text-white`}>
                             New Features
                           </h5>
                           <div className="space-y-3">
                             {formData.features.map((feature, index) => (
                               feature.title.trim() || feature.description.trim() ? (
-                                <div key={index} className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
-                                  }`}>
+                                <div key={index} className={`p-3 rounded-lg bg-gray-100 dark:bg-gray-700`}>
                                   <div className="flex items-start gap-3">
                                     {getFeatureIcon('feature')}
                                     <div>
-                                      <h6 className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                                        }`}>
+                                      <h6 className={`font-medium text-sm text-gray-900 dark:text-white`}>
                                         {feature.title}
                                       </h6>
                                       {feature.description.trim() && (
-                                        <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                                          }`}>
+                                        <p className={`text-sm mt-1 text-gray-700 dark:text-gray-300`}>
                                           {feature.description}
                                         </p>
                                       )}
@@ -1126,25 +1020,21 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                       {/* Improvements */}
                       {formData.improvements && formData.improvements.some(imp => imp.title.trim() || imp.description.trim()) && (
                         <div>
-                          <h5 className={`font-semibold text-sm mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                            }`}>
+                          <h5 className={`font-semibold text-sm mb-3 text-gray-900 dark:text-white`}>
                             Improvements
                           </h5>
                           <div className="space-y-3">
                             {formData.improvements.map((improvement, index) => (
                               improvement.title.trim() || improvement.description.trim() ? (
-                                <div key={index} className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
-                                  }`}>
+                                <div key={index} className={`p-3 rounded-lg bg-gray-100 dark:bg-gray-700`}>
                                   <div className="flex items-start gap-3">
                                     {getFeatureIcon('improvement')}
                                     <div>
-                                      <h6 className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                                        }`}>
+                                      <h6 className={`font-medium text-sm text-gray-900 dark:text-white`}>
                                         {improvement.title}
                                       </h6>
                                       {improvement.description.trim() && (
-                                        <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                                          }`}>
+                                        <p className={`text-sm mt-1 text-gray-700 dark:text-gray-300`}>
                                           {improvement.description}
                                         </p>
                                       )}
@@ -1160,25 +1050,21 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
                       {/* Bug Fixes */}
                       {formData.bugFixes && formData.bugFixes.some(bf => bf.title.trim() || bf.description.trim()) && (
                         <div>
-                          <h5 className={`font-semibold text-sm mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                            }`}>
+                          <h5 className={`font-semibold text-sm mb-3 text-gray-900 dark:text-white`}>
                             Bug Fixes
                           </h5>
                           <div className="space-y-3">
                             {formData.bugFixes.map((bugFix, index) => (
                               bugFix.title.trim() || bugFix.description.trim() ? (
-                                <div key={index} className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
-                                  }`}>
+                                <div key={index} className={`p-3 rounded-lg bg-gray-100 dark:bg-gray-700`}>
                                   <div className="flex items-start gap-3">
                                     {getFeatureIcon('bugfix')}
                                     <div>
-                                      <h6 className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-                                        }`}>
+                                      <h6 className={`font-medium text-sm text-gray-900 dark:text-white`}>
                                         {bugFix.title}
                                       </h6>
                                       {bugFix.description.trim() && (
-                                        <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                                          }`}>
+                                        <p className={`text-sm mt-1 text-gray-700 dark:text-gray-300`}>
                                           {bugFix.description}
                                         </p>
                                       )}
@@ -1197,28 +1083,19 @@ const AddReleaseModal = ({ isOpen, onClose, onAddRelease, onUpdateRelease, editi
             </div>
           )}
 
-          {error && <div className={getThemeClasses(
-            'text-red-500 text-sm mt-4',
-            'text-red-400 text-sm mt-4'
-          )}>{error}</div>}
+          {error && <div className={'text-red-500 text-sm mt-4 text-red-400 text-sm mt-4'}>{error}</div>}
 
           <div className="flex justify-end gap-3 pt-6">
             <button
               type="button"
               onClick={handleClose}
-              className={getThemeClasses(
-                'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                'px-6 py-2.5 text-gray-300 hover:bg-dark-hover rounded-xl border border-gray-600 transition-all duration-200'
-              )}
+              className={'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 px-6 py-2.5 text-gray-300 hover:bg-dark-hover rounded-xl border border-gray-600 transition-all duration-200'}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={getThemeClasses(
-                'px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200',
-                'px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200'
-              )}
+              className={'px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200'}
               disabled={loading}
             >
               {loading ? 'Saving...' : (isEditMode ? 'Update Release' : 'Create Release')}

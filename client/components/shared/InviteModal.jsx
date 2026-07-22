@@ -218,26 +218,20 @@ const InviteModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className={`w-full max-w-2xl min-h-[580px] max-h-[90vh] flex flex-col justify-between rounded-3xl p-6 sm:p-8 shadow-2xl transition-all relative transform animate-in zoom-in-95 duration-200 overflow-y-auto ${theme === 'dark'
-          ? 'bg-dark-bg border border-[#27272a] text-[#F3F6FA]'
-          : 'bg-white border border-gray-100 text-gray-900'
-          }`}
+        className={`w-full max-w-2xl min-h-[580px] max-h-[90vh] flex flex-col justify-between rounded-3xl p-6 sm:p-8 shadow-2xl transition-all relative transform animate-in zoom-in-95 duration-200 overflow-y-auto bg-white border border-gray-100 text-gray-900 dark:bg-dark-bg dark:border dark:border-[#27272a] dark:text-[#F3F6FA]`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3.5">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center relative flex-shrink-0 ${theme === 'dark'
-              ? 'bg-blue-900/40 text-blue-400 border border-blue-800/50'
-              : 'bg-blue-50 text-blue-600 border border-blue-100'
-              }`}>
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center relative flex-shrink-0 bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-900/40 dark:text-blue-400 dark:border dark:border-blue-800/50`}>
               <FaUserPlus className="text-xl" />
             </div>
             <div>
               <h2 className="text-xl font-bold tracking-tight">
                 Invite to {orgNameDisplay}
               </h2>
-              <p className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className={`text-xs sm:text-sm text-gray-500 dark:text-gray-400`}>
                 Collaborate with members
               </p>
             </div>
@@ -245,10 +239,7 @@ const InviteModal = ({
 
           <button
             onClick={onClose}
-            className={`p-2 rounded-full transition-colors ${theme === 'dark'
-              ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-              : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
-              }`}
+            className={`p-2 rounded-full transition-colors text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800`}
             aria-label="Close modal"
           >
             <FaTimes className="text-lg" />
@@ -256,18 +247,14 @@ const InviteModal = ({
         </div>
 
         {/* Dashed Separator */}
-        <div className={`my-5 border-b border-dashed ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
-          }`} />
+        <div className={`my-5 border-b border-dashed border-gray-200 dark:border-gray-800`} />
 
         {/* Link to Share Section */}
-        <div className={`p-4 sm:p-4.5 rounded-2xl mb-5 border ${theme === 'dark'
-          ? 'bg-dark-card border-[#2e2e2e]'
-          : 'bg-gray-50/90 border-gray-100'
-          }`}>
+        <div className={`p-4 sm:p-4.5 rounded-2xl mb-5 border bg-gray-50/90 border-gray-100 dark:bg-dark-card dark:border-[#2e2e2e]`}>
           <div className="flex items-center justify-between mb-3">
             <div>
               <h3 className="text-sm font-semibold">Link to Share</h3>
-              <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className={`text-xs text-gray-500 dark:text-gray-400`}>
                 {linkAccess === 'anyone' ? 'Anyone with the link can access' : 'Only invited members can access'}
               </p>
             </div>
@@ -290,19 +277,14 @@ const InviteModal = ({
               type="text"
               readOnly
               value={isGeneratingToken ? 'Generating token...' : shareableLink}
-              className={`flex-1 px-3.5 py-2 rounded-xl text-xs sm:text-sm border truncate outline-none select-all ${theme === 'dark'
-                ? 'bg-dark-bg border-[#3f3f46] text-gray-300'
-                : 'bg-white border-gray-200 text-gray-600'
-                }`}
+              className={`flex-1 px-3.5 py-2 rounded-xl text-xs sm:text-sm border truncate outline-none select-all bg-white border-gray-200 text-gray-600 dark:bg-dark-bg dark:border-[#3f3f46] dark:text-gray-300`}
             />
             <button
               onClick={handleCopyLink}
               disabled={isGeneratingToken}
               className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer ${copied
                 ? 'bg-emerald-600 text-white border-emerald-600'
-                : theme === 'dark'
-                  ? 'bg-dark-bg hover:bg-[#27272a] border-[#3f3f46] text-gray-200'
-                  : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-800'
+                : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-800 dark:bg-dark-bg dark:hover:bg-[#27272a] dark:border-[#3f3f46] dark:text-gray-200'
                 }`}
             >
               {copied ? <FaCheck className="text-xs" /> : <FaRegCopy className="text-xs" />}
@@ -318,17 +300,11 @@ const InviteModal = ({
           </label>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             {/* Input field with email pills */}
-            <div className={`flex-1 min-w-0 flex flex-wrap items-center gap-1.5 px-3 py-1.5 rounded-xl border shadow-xs transition-all ${theme === 'dark'
-              ? 'bg-dark-bg border-[#3f3f46] focus-within:border-blue-500'
-              : 'bg-white border-gray-200 focus-within:border-blue-500'
-              }`}>
+            <div className={`flex-1 min-w-0 flex flex-wrap items-center gap-1.5 px-3 py-1.5 rounded-xl border shadow-xs transition-all bg-white border-gray-200 focus-within:border-blue-500 dark:bg-dark-bg dark:border-[#3f3f46] dark:focus-within:border-blue-500`}>
               {emailChips.map((email, idx) => (
                 <span
                   key={idx}
-                  className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg ${theme === 'dark'
-                    ? 'bg-gray-800 text-gray-200 border border-gray-700'
-                    : 'bg-gray-100 text-gray-800 border border-gray-200'
-                    }`}
+                  className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg bg-gray-100 text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border dark:border-gray-700`}
                 >
                   {email}
                   <button
@@ -366,10 +342,7 @@ const InviteModal = ({
             <button
               onClick={handleSendInvite}
               disabled={isSubmitting || (emailChips.length === 0 && !emailInput.trim())}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 flex-shrink-0 cursor-pointer ${theme === 'dark'
-                ? 'bg-white hover:bg-gray-100 text-gray-900'
-                : 'bg-dark-bg hover:bg-black text-white'
-                }`}
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 flex-shrink-0 cursor-pointer bg-dark-bg hover:bg-black text-white dark:bg-white dark:hover:bg-gray-100 dark:text-gray-900`}
             >
               {isSubmitting ? (
                 <>
@@ -418,7 +391,7 @@ const InviteModal = ({
                     <h4 className="text-xs sm:text-sm font-semibold truncate leading-tight">
                       {member.name}
                     </h4>
-                    <p className={`text-xs truncate ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <p className={`text-xs truncate text-gray-500 dark:text-gray-400`}>
                       {member.email}
                     </p>
                   </div>

@@ -36,24 +36,14 @@ const CustomDropdown = ({
     lg: 'px-4 py-3 text-lg'
   };
 
-  // Variant classes
   const variantClasses = {
-    default: theme === 'dark'
-      ? 'bg-dark-card border-gray-600 text-gray-100 hover:bg-[#2A2A2A]'
-      : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50',
-    outlined: theme === 'dark'
-      ? 'bg-transparent border-gray-600 text-gray-100 hover:bg-[#2A2A2A]'
-      : 'bg-transparent border-gray-300 text-gray-900 hover:bg-gray-50',
-    filled: theme === 'dark'
-      ? 'bg-[#2A2A2A] border-gray-600 text-gray-100 hover:bg-[#323232]'
-      : 'bg-gray-100 border-gray-200 text-gray-900 hover:bg-gray-200'
+    default: 'bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 dark:bg-dark-card dark:border-zinc-800 dark:text-gray-100 dark:hover:bg-[#2A2A2A]',
+    outlined: 'bg-transparent border border-gray-300 text-gray-900 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-[#2A2A2A]',
+    filled: 'bg-gray-100 border border-gray-200 text-gray-900 hover:bg-gray-200 dark:bg-[#2A2A2A] dark:border-gray-600 dark:text-gray-100 dark:hover:bg-[#323232]'
   };
 
   // Theme-aware classes
-  const getThemeClasses = (lightClasses, darkClasses) => {
-    return theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
-  };
-
+  
   // Filter options based on search query
   const filteredOptions = showSearch
     ? options.filter(option => {
@@ -161,7 +151,7 @@ const CustomDropdown = ({
     }
 
     return (
-      <span className={getThemeClasses('text-gray-500', 'dark:text-gray-400')}>
+      <span className={'text-gray-500 dark:text-gray-400'}>
         {placeholder}
       </span>
     );
@@ -171,10 +161,7 @@ const CustomDropdown = ({
     <div className={`relative ${width} ${className} ${isOpen ? 'z-[99]' : ''}`} ref={dropdownRef}>
       {/* Label */}
       {label && (
-        <label className={getThemeClasses(
-          'block text-sm font-medium mb-2 text-gray-700',
-          'dark:text-gray-300'
-        )}>
+        <label className={'block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300'}>
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -208,7 +195,7 @@ const CustomDropdown = ({
         ) : (
           <svg
             className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''
-              } ${getThemeClasses('text-gray-400', 'dark:text-gray-500')}`}
+              } ${'text-gray-400 dark:text-gray-500'}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -222,17 +209,11 @@ const CustomDropdown = ({
       {isOpen && (
         <div className={`
           absolute z-[9999] w-full mt-2 rounded-xl shadow-lg overflow-hidden
-          ${getThemeClasses(
-          'bg-white border border-gray-200',
-          'dark:bg-dark-card dark:border-gray-600'
-        )}
+          ${'bg-white border border-gray-200 dark:bg-dark-card dark:border-gray-600'}
         `}>
           {/* Search Input */}
           {showSearch && (
-            <div className={getThemeClasses(
-              'p-3 border-b border-gray-200',
-              'dark:border-gray-600'
-            )}>
+            <div className={'p-3 border-b border-gray-200 dark:border-gray-600'}>
               <input
                 type="text"
                 value={searchQuery}
@@ -240,10 +221,7 @@ const CustomDropdown = ({
                 placeholder={searchPlaceholder}
                 className={`
                   w-full px-3 py-2 rounded-lg border transition-colors
-                  ${getThemeClasses(
-                  'bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                  'dark:bg-[#2A2A2A] dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400'
-                )}
+                  ${'bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-[#2A2A2A] dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400'}
                 `}
                 autoFocus
               />
@@ -253,10 +231,7 @@ const CustomDropdown = ({
           {/* Options List */}
           <div className={`${maxHeight} overflow-y-auto`}>
             {filteredOptions.length === 0 ? (
-              <div className={getThemeClasses(
-                'px-4 py-3 text-center text-gray-500',
-                'dark:text-gray-400'
-              )}>
+              <div className={'px-4 py-3 text-center text-gray-500 dark:text-gray-400'}>
                 {showSearch && searchQuery ? 'No results found' : 'No options available'}
               </div>
             ) : (
@@ -271,14 +246,8 @@ const CustomDropdown = ({
                     onClick={() => handleSelect(option)}
                     className={`
                       w-full px-4 py-3 text-left transition-colors duration-150
-                      ${getThemeClasses(
-                      'hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl',
-                      'dark:hover:bg-dark-hover'
-                    )}
-                      ${isSelected ? getThemeClasses(
-                      'bg-blue-50 text-blue-700',
-                      'dark:bg-blue-900/30 dark:text-blue-300'
-                    ) : ''}
+                      ${'hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl dark:hover:bg-dark-hover'}
+                      ${isSelected ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : ''}
                     `}
                   >
                     {renderOptionContent(option)}
@@ -299,10 +268,7 @@ const CustomDropdown = ({
 
       {/* Help Text */}
       {helpText && !error && (
-        <p className={getThemeClasses(
-          'mt-1 text-sm text-gray-500',
-          'dark:text-gray-400'
-        )}>
+        <p className={'mt-1 text-sm text-gray-500 dark:text-gray-400'}>
           {helpText}
         </p>
       )}

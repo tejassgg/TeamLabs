@@ -27,10 +27,6 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
     { value: '#6B7280', name: 'Gray' },
   ];
 
-  const getThemeClasses = (lightClass, darkClass) => {
-    return theme === 'dark' ? darkClass : lightClass;
-  };
-
   // Handle animation when modal opens/closes
   useEffect(() => {
     if (isOpen) {
@@ -91,35 +87,23 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}
         onClick={handleClose}
       />
-      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-dark-card' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
-        
+      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white border-l border-gray-200 dark:border-dark-card p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
+
         <div className="flex items-center justify-between mb-6">
-          <h3 className={getThemeClasses(
-            'text-xl font-semibold text-gray-900',
-            'text-xl font-semibold text-white'
-          )}>Create New Team</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Create New Team</h3>
           <button
             onClick={handleClose}
-            className={getThemeClasses(
-              'text-gray-400 hover:text-gray-600 text-2xl font-bold',
-              'text-gray-400 hover:text-gray-300 text-2xl font-bold'
-            )}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl font-bold"
           >
             ×
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 min-w-[120px]">
-              <FaUsers className={getThemeClasses(
-                'text-gray-500',
-                'text-gray-400'
-              )} size={16} />
-              <label className={getThemeClasses(
-                'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-gray-300'
-              )}>
+              <FaUsers className="text-gray-500 dark:text-gray-400" size={16} />
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Team Name<span className="text-red-500 ml-1">*</span>
               </label>
             </div>
@@ -127,52 +111,34 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
               type="text"
               value={teamName}
               onChange={e => setTeamName(e.target.value)}
-              className={getThemeClasses(
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-              )}
+              className="flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 dark:border-gray-600 focus:border-gray-200 dark:focus:border-gray-600 focus:outline-none bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               maxLength={50}
               required
               placeholder="Enter team name"
             />
           </div>
-          
+
           <div className="flex items-start gap-4">
             <div className="flex items-center gap-2 min-w-[120px] pt-2">
-              <FaAlignLeft className={getThemeClasses(
-                'text-gray-500',
-                'text-gray-400'
-              )} size={16} />
-              <label className={getThemeClasses(
-                'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-gray-300'
-              )}>
+              <FaAlignLeft className="text-gray-500 dark:text-gray-400" size={16} />
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Description
               </label>
             </div>
             <textarea
               value={teamDescription}
               onChange={e => setTeamDescription(e.target.value)}
-              className={getThemeClasses(
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 resize-none',
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500 resize-none'
-              )}
+              className="flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 dark:border-gray-600 focus:border-gray-200 dark:focus:border-gray-600 focus:outline-none bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none"
               maxLength={100}
               rows={3}
               placeholder="Enter team description"
             />
           </div>
-          
+
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 min-w-[120px]">
-              <FaTag className={getThemeClasses(
-                'text-gray-500',
-                'text-gray-400'
-              )} size={16} />
-              <label className={getThemeClasses(
-                'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-gray-300'
-              )}>
+              <FaTag className="text-gray-500 dark:text-gray-400" size={16} />
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Team Type
               </label>
             </div>
@@ -191,35 +157,25 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
               />
             </div>
           </div>
-          
+
           <div className="flex items-start gap-4">
             <div className="flex items-center gap-2 min-w-[120px] pt-2">
-              <FaPalette className={getThemeClasses(
-                'text-gray-500',
-                'text-gray-400'
-              )} size={16} />
-              <label className={getThemeClasses(
-                'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-gray-300'
-              )}>
+              <FaPalette className="text-gray-500 dark:text-gray-400" size={16} />
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Team Color<span className="text-red-500 ml-1">*</span>
               </label>
             </div>
             <div className="flex-1">
-              <div className={getThemeClasses(
-                'flex gap-2 p-2 border-0 border-b-2 border-gray-200',
-                'flex gap-2 p-2 border-0 border-b-2 border-gray-600'
-              )}>
+              <div className="flex gap-2 p-2 border-0 border-b-2 border-gray-200 dark:border-gray-600">
                 {teamColors.map((color) => (
                   <button
                     key={color.value}
                     type="button"
                     onClick={() => setTeamColor(color.value)}
-                    className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
-                      teamColor === color.value 
-                        ? 'ring-2 ring-offset-2 ring-gray-400' 
+                    className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${teamColor === color.value
+                        ? 'ring-2 ring-offset-2 ring-gray-400'
                         : 'hover:ring-2 hover:ring-offset-2 hover:ring-gray-200'
-                    }`}
+                      }`}
                     style={{ backgroundColor: color.value }}
                     title={color.name}
                   >
@@ -231,16 +187,13 @@ const AddTeamModal = ({ isOpen, onClose, onAddTeam }) => {
               </div>
             </div>
           </div>
-          
+
           {error && <div className="text-red-500 text-sm mt-4">{error}</div>}
           <div className="flex justify-end gap-3 pt-6">
             <button
               type="button"
               onClick={handleClose}
-              className={getThemeClasses(
-                'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                'px-6 py-2.5 text-gray-300 hover:bg-dark-hover rounded-xl border border-gray-600 transition-all duration-200'
-              )}
+              className="px-6 py-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-hover rounded-xl border border-gray-200 dark:border-gray-600 transition-all duration-200"
             >
               Cancel
             </button>

@@ -21,7 +21,7 @@ const MessageList = ({
           <button
             onClick={handleLoadMore}
             disabled={isFetchingMore}
-            className={`px-3 py-1 text-xs rounded-lg border ${theme === 'dark' ? 'border-gray-700 text-gray-300 hover:bg-gray-800' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
+            className={`px-3 py-1 text-xs rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800`}
           >
             {isFetchingMore ? 'Loading…' : 'Load more'}
           </button>
@@ -31,7 +31,7 @@ const MessageList = ({
       {/* Group creation date display */}
       {selectedConversation.isGroup && selectedConversation.createdAt && (
         <div className="flex justify-center mb-4">
-          <div className={`px-4 py-2 rounded-lg text-xs ${theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+          <div className={`px-4 py-2 rounded-lg text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300`}>
             Created on {new Date(selectedConversation.createdAt).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'long',
@@ -60,7 +60,7 @@ const MessageList = ({
             {/* Date separator - show for first message or when date changes */}
             {(index === 0 || showDateSeparator) && (
               <div className="flex justify-center my-4">
-                <div className={`text-xs font-bold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                <div className={`text-xs font-bold text-gray-600 dark:text-gray-400`}>
                   {messageDate.toLocaleDateString('en-US', {
                     weekday: 'long',
                     year: 'numeric',
@@ -74,7 +74,7 @@ const MessageList = ({
             {/* Handle system messages */}
             {m.type === 'system' ? (
               <div className="flex justify-center">
-                <div className={`px-3 py-2 rounded-lg text-xs ${theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                <div className={`px-3 py-2 rounded-lg text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300`}>
                   {m.text}
                 </div>
               </div>
@@ -95,7 +95,7 @@ const MessageList = ({
       {/* System message for users who are no longer members */}
       {selectedConversation && !(selectedConversation?.participants || []).some(p => String(p._id || p) === String(userDetails?._id)) && (
         <div className="flex justify-center mb-4">
-          <div className={`px-4 py-3 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-orange-900/20 border border-orange-500/30 text-orange-300' : 'bg-orange-50 border border-orange-200 text-orange-700'}`}>
+          <div className={`px-4 py-3 rounded-lg text-sm font-medium bg-orange-50 border border-orange-200 text-orange-700 dark:bg-orange-900/20 dark:border dark:border-orange-500/30 dark:text-orange-300`}>
             ⚠️ You are no longer a member of this conversation. You can view the conversation history but cannot send new messages.
           </div>
         </div>

@@ -54,7 +54,7 @@ export const GlobalProvider = ({ children }) => {
       attachments,
       comments,
       meetings,
-      subtasks,
+      subtasks
     };
   }, [projects, teams, orgMembers, tasksDetails, attachments, comments, meetings, subtasks]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -210,7 +210,7 @@ export const GlobalProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        message: error.message || 'Failed to verify 2FA code',
+        message: error.message || 'Failed to verify 2FA code'
       };
     }
   };
@@ -223,7 +223,7 @@ export const GlobalProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        message: error.message || 'Failed to register',
+        message: error.message || 'Failed to register'
       };
     }
   };
@@ -255,7 +255,7 @@ export const GlobalProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        message: error.message || 'Failed to login with Google',
+        message: error.message || 'Failed to login with Google'
       };
     }
   };
@@ -268,7 +268,7 @@ export const GlobalProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        message: error.message || 'Failed to send verification code',
+        message: error.message || 'Failed to send verification code'
       };
     }
   };
@@ -297,7 +297,7 @@ export const GlobalProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        message: error.message || 'Failed to verify verification code',
+        message: error.message || 'Failed to verify verification code'
       };
     }
   };
@@ -314,7 +314,7 @@ export const GlobalProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        message: error.message || 'Failed to complete profile',
+        message: error.message || 'Failed to complete profile'
       };
     }
   };
@@ -511,9 +511,6 @@ export const GlobalProvider = ({ children }) => {
   };
 
   // Theme-aware classes function for consistent styling across the system
-  const getThemeClasses = (lightClasses, darkClasses) => {
-    return theme === 'dark' ? darkClasses : lightClasses;
-  };
 
   // Helper function to check if a user ID matches the current user
   const isMe = (userId) => {
@@ -539,7 +536,7 @@ export const GlobalProvider = ({ children }) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric',
+      day: 'numeric'
     });
   };
 
@@ -575,23 +572,23 @@ export const GlobalProvider = ({ children }) => {
       'Critical': {
         bgColor: isDark ? 'bg-rose-900/30' : 'bg-rose-50',
         textColor: isDark ? 'text-rose-400' : 'text-rose-700',
-        borderColor: isDark ? 'border-rose-700' : 'border-rose-200',
+        borderColor: isDark ? 'border-rose-700' : 'border-rose-200'
       },
       'High': {
         bgColor: isDark ? 'bg-red-900/20' : 'bg-red-50',
         textColor: isDark ? 'text-red-400' : 'text-red-700',
-        borderColor: isDark ? 'border-red-700' : 'border-red-200',
+        borderColor: isDark ? 'border-red-700' : 'border-red-200'
       },
       'Medium': {
         bgColor: isDark ? 'bg-yellow-900/20' : 'bg-yellow-50',
         textColor: isDark ? 'text-yellow-400' : 'text-yellow-700',
-        borderColor: isDark ? 'border-yellow-700' : 'border-yellow-200',
+        borderColor: isDark ? 'border-yellow-700' : 'border-yellow-200'
       },
       'Low': {
         bgColor: isDark ? 'bg-green-900/20' : 'bg-green-50',
         textColor: isDark ? 'text-green-400' : 'text-green-700',
-        borderColor: isDark ? 'border-green-700' : 'border-green-200',
-      },
+        borderColor: isDark ? 'border-green-700' : 'border-green-200'
+      }
     };
     const norm = priority === 0 || priority === '0' ? 'Critical' : priority;
     return styles[norm] || styles['Medium'];
@@ -833,7 +830,7 @@ export const GlobalProvider = ({ children }) => {
     projectMembers: [],
     onAddTask: null,
     onUpdateTask: null,
-    onSuccess: null,
+    onSuccess: null
   });
 
   const openAddTaskModal = (config = {}) => {
@@ -848,7 +845,7 @@ export const GlobalProvider = ({ children }) => {
       projectMembers: config.projectMembers || [],
       onAddTask: config.onAddTask || null,
       onUpdateTask: config.onUpdateTask || null,
-      onSuccess: config.onSuccess || null,
+      onSuccess: config.onSuccess || null
     });
   };
 
@@ -903,7 +900,6 @@ export const GlobalProvider = ({ children }) => {
     getTableRowClasses,
     getTableTextClasses,
     getTableSecondaryTextClasses,
-    getThemeClasses,
     isMe,
     formatDateUTC,
     formatDate,
@@ -926,7 +922,7 @@ export const GlobalProvider = ({ children }) => {
     isEmpty,
     isNotEmpty,
     debounce,
-    fetchSearchDataGlobal,
+    fetchSearchDataGlobal
   };
 
   return (

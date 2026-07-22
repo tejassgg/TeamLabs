@@ -9,10 +9,7 @@ const Message = ({
   theme,
   userDetails,
   formatTimeAgo,
-  handleReaction,
-}) => {
-  const panel = theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900';
-  const border = theme === 'dark' ? 'border border-dark-border' : 'border border-gray-200';
+  handleReaction }) => {
 
   const renderMessageText = (text) => {
     if (!text) return '';
@@ -47,7 +44,7 @@ const Message = ({
             href={part}
             target="_blank"
             rel="noopener noreferrer"
-            className={`underline ${theme === 'dark' ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-700'}`}
+            className={`underline text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200`}
             onClick={(e) => e.stopPropagation()}
           >
             {part}
@@ -71,7 +68,7 @@ const Message = ({
               {m.sender?.profileImage ? (
                 <img src={m.sender.profileImage} alt="" className="w-7 h-7 object-cover" />
               ) : (
-                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
+                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold bg-blue-600 text-white dark:bg-blue-900 dark:text-blue-200`}>
                   {`${(m.sender?.firstName || '')[0] || ''}${(m.sender?.lastName || '')[0] || ''}`.toUpperCase() || 'U'}
                 </span>
               )}
@@ -86,7 +83,7 @@ const Message = ({
         </div>
 
         {/* Message content */}
-        <div className={`group relative ${mine ? 'bg-blue-600 text-white rounded-2xl rounded-br-none' : `${theme === 'dark' ? 'bg-gray-700 ' : 'bg-gray-100 '} rounded-2xl rounded-bl-none`} ${m.type === 'text' ? 'inline-block w-fit' : 'p-3'}`}>
+        <div className={`group relative ${mine ? 'bg-blue-600 text-white rounded-2xl rounded-br-none' : `bg-gray-100 dark:bg-gray-700 rounded-2xl rounded-bl-none`} ${m.type === 'text' ? 'inline-block w-fit' : 'p-3'}`}>
           {m.type === 'text' && (
             <div className="whitespace-pre-wrap px-3 py-2">{renderMessageText(m.text)}</div>
           )}

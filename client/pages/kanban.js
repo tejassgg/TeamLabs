@@ -34,8 +34,7 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
   const [userStories, setUserStories] = useState([]);
   const [projectMembers, setProjectMembers] = useState(projectMembersProp || []);
   const [selectedUserStory, setSelectedUserStory] = useState(selectedUserStoryProp ?? 'all');
-  const getThemeClasses = useThemeClasses();
-  
+
   const projectDetails = projects.find(p => (p.ProjectID || p._id) === selectedProject);
   const isProjectArchived = projectDetails?.isArchived || false;
 
@@ -316,25 +315,13 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
         {!forcedProjectId && (
           <div className="flex items-center justify-between gap-4 flex-col-reverse sm:flex-row mt-2 mb-4">
             {/* Project Info Banner */}
-            <div className={getThemeClasses(
-              'hidden sm:flex bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 flex items-center gap-3 border border-blue-100',
-              'dark:from-blue-900/30 dark:to-indigo-900/30 dark:border-blue-800/50'
-            )}>
-              <FaInfoCircle className={getThemeClasses(
-                'text-blue-500',
-                'dark:text-blue-400'
-              )} size={20} />
+            <div className={'hidden sm:flex bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 flex items-center gap-3 border border-blue-100 dark:from-blue-900/30 dark:to-indigo-900/30 dark:border-blue-800/50'}>
+              <FaInfoCircle className={'text-blue-500 dark:text-blue-400'} size={20} />
               <div>
-                <p className={getThemeClasses(
-                  'text-gray-700',
-                  'dark:text-gray-300'
-                )}>
+                <p className={'text-gray-700 dark:text-gray-300'}>
                   Currently viewing: <span className="font-semibold">{getCurrentProjectName()}</span>
                 </p>
-                <p className={getThemeClasses(
-                  'text-sm text-gray-600',
-                  'dark:text-gray-400'
-                )}>Drag and drop tasks to update their status</p>
+                <p className={'text-sm text-gray-600 dark:text-gray-400'}>Drag and drop tasks to update their status</p>
               </div>
             </div>
             <SearchableDropdown
@@ -366,28 +353,16 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
 
         {loading && tasks.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <div className={getThemeClasses(
-              'animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500',
-              'dark:border-blue-400'
-            )}></div>
+            <div className={'animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 dark:border-blue-400'}></div>
           </div>
         ) : error && tasks.length === 0 ? (
-          <div className={getThemeClasses(
-            'text-center py-16 text-red-500 flex flex-col items-center',
-            'dark:text-red-400'
-          )}>
+          <div className={'text-center py-16 text-red-500 flex flex-col items-center dark:text-red-400'}>
             <FaExclamationCircle size={48} className="mb-4" />
             <p>{error}</p>
           </div>
         ) : (
-          <div className={getThemeClasses(
-            'rounded-xl border border-gray-200 overflow-hidden',
-            'dark:border-gray-700'
-          )}>
-            <div className={getThemeClasses(
-              'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 divide-x divide-gray-200',
-              'dark:divide-gray-700'
-            )}>
+          <div className={'rounded-xl border border-gray-200 overflow-hidden dark:border-gray-700'}>
+            <div className={'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 divide-x divide-gray-200 dark:divide-gray-700'}>
               {Object.entries(statusMap).map(([statusCode, statusName], index, arr) => {
                 const status = parseInt(statusCode);
                 const icon = statusIcons[status];
@@ -514,7 +489,7 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
                         height: size + 'px',
                         left: left + '%',
                         bottom: '-20px',
-                        animation: `float ${duration}s ease-in ${delay}s infinite`,
+                        animation: `float ${duration}s ease-in ${delay}s infinite`
                       }}
                     />
                   );
@@ -626,25 +601,14 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
         />
 
         {/* Instructions */}
-        <div className={getThemeClasses(
-          'mt-8 p-4 bg-gray-50 rounded-xl border border-gray-200',
-          'dark:bg-gray-800/50 dark:border-gray-700'
-        )}>
-          <h3 className={getThemeClasses(
-            'font-semibold mb-2 text-gray-800',
-            'dark:text-gray-200'
-          )}>How to use the Kanban Board:</h3>
-          <ul className={getThemeClasses(
-            'list-disc ml-5 text-gray-700 space-y-1',
-            'dark:text-gray-300'
-          )}>
+        <div className={'mt-8 p-4 bg-gray-50 rounded-xl border border-gray-200 dark:bg-gray-800/50 dark:border-gray-700'}>
+          <h3 className={'font-semibold mb-2 text-gray-800 dark:text-gray-200'}>How to use the Kanban Board:</h3>
+          <ul className={'list-disc ml-5 text-gray-700 space-y-1 dark:text-gray-300'}>
             <li>Select a project from the dropdown menu</li>
             <li>Drag tasks between columns to update their status</li>
             <li>Click on a task to view more details</li>
           </ul>
-          <div className={getThemeClasses(
-            'dark:text-gray-400'
-          )}>
+          <div className="dark:text-gray-400">
           </div>
         </div>
       </div>

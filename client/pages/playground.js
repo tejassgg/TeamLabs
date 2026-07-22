@@ -130,17 +130,17 @@ const Playground = () => {
 
       <div className="p-1">
         <div className="mb-2">
-          <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>
+          <h1 className={`text-3xl font-bold text-gray-900 dark:text-white mb-2`}>
             Developer Playground
           </h1>
-          <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p className={`text-gray-600 dark:text-gray-400`}>
             Test and preview various UI components and templates. Exclusive to tejassgg.
           </p>
         </div>
 
         {/* Tabs */}
         <div className="mb-6">
-          <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div className={`border-b border-gray-200 dark:border-gray-700`}>
             <nav className="-mb-px flex space-x-8 overflow-x-auto">
               {[
                 { id: 'components', label: 'Components', icon: FaLaptopCode },
@@ -152,8 +152,8 @@ const Playground = () => {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`${activeTab === tab.id
-                    ? theme === 'dark' ? 'border-blue-400 text-blue-400' : 'border-blue-500 text-blue-600'
-                    : theme === 'dark' ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600'
                     } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors duration-200`}
                 >
                   <tab.icon size={16} />
@@ -165,14 +165,14 @@ const Playground = () => {
         </div>
 
         {/* Tab Content */}
-        <div className={`${theme === 'dark' ? 'bg-transparent' : 'bg-white'} min-h-[500px]`}>
+        <div className={`bg-white dark:bg-transparent min-h-[500px]`}>
 
           {activeTab === 'components' && (
             <div>
               <div className="mt-2 space-y-8">
                 {/* Status Pills */}
                 <div>
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Status Pills</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Status Pills</h3>
                   <div className="flex flex-wrap gap-4 p-4 rounded-xl border border-dashed border-gray-300 dark:border-zinc-800/80">
                     <StatusPill status="Active" theme={theme} />
                     <StatusPill status="In a Meeting" theme={theme} />
@@ -186,10 +186,10 @@ const Playground = () => {
 
                 {/* Dropdowns */}
                 <div>
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Dropdowns</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Dropdowns</h3>
                   <div className="flex flex-wrap gap-8 p-4 rounded-xl border border-dashed border-gray-300 dark:border-zinc-800/80">
                     <div className="w-64">
-                      <p className={`mb-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Status Dropdown</p>
+                      <p className={`mb-2 text-sm text-gray-500 dark:text-gray-400`}>Status Dropdown</p>
                       <StatusDropdown
                         currentStatus={statusDropdownValue}
                         onStatusChange={setStatusDropdownValue}
@@ -197,7 +197,7 @@ const Playground = () => {
                       />
                     </div>
                     <div className="w-64">
-                      <p className={`mb-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Custom Dropdown</p>
+                      <p className={`mb-2 text-sm text-gray-500 dark:text-gray-400`}>Custom Dropdown</p>
                       <CustomDropdown
                         value={customDropdownValue}
                         onChange={setCustomDropdownValue}
@@ -210,7 +210,7 @@ const Playground = () => {
 
                 {/* Version Indicators */}
                 <div>
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Version Indicators</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Version Indicators</h3>
                   <div className="flex flex-wrap items-center gap-4 p-4 rounded-xl border border-dashed border-gray-300 dark:border-zinc-800/80">
                     <VersionBadge version="1.2.0" isLatest={true} />
                     <VersionBadge version="1.1.0" isLatest={false} />
@@ -224,7 +224,7 @@ const Playground = () => {
 
                 {/* Modals & Dialogs */}
                 <div>
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Modals & Dialogs</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Modals & Dialogs</h3>
                   <div className="flex flex-wrap gap-4 p-4 rounded-xl border border-dashed border-gray-300 dark:border-zinc-800/80">
                     <button
                       onClick={() => setModalOpen(true)}
@@ -317,12 +317,12 @@ const Playground = () => {
                       title="Example Modal"
                       actions={
                         <>
-                          <button onClick={() => setModalOpen(false)} className={`px-4 py-2 font-medium text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'}`}>Cancel</button>
+                          <button onClick={() => setModalOpen(false)} className={`px-4 py-2 font-medium text-sm transition-colors text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300`}>Cancel</button>
                           <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium text-sm shadow-sm">Confirm</button>
                         </>
                       }
                     >
-                      <p className={theme === 'dark' ? 'text-gray-300 text-sm' : 'text-gray-600 text-sm'}>
+                      <p className="text-gray-600 text-sm dark:text-gray-300 dark:text-sm">
                         This is an example of the CustomModal component used throughout the TeamLabs application.
                       </p>
                     </CustomModal>
@@ -331,10 +331,10 @@ const Playground = () => {
 
                 {/* Priority & Collaboration */}
                 <div>
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Priority & Collaboration Badges</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Priority & Collaboration Badges</h3>
                   <div className="flex flex-wrap items-center gap-8 p-4 rounded-xl border border-dashed border-gray-300 dark:border-zinc-800/80">
                     <div className="flex flex-col gap-2">
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Project Priority Badges</p>
+                      <p className={`text-xs text-gray-500 dark:text-gray-400`}>Project Priority Badges</p>
                       <div className="flex flex-wrap gap-4">
                         <ProjectPriorityBadge priority="3" showLabel={true} />
                         <ProjectPriorityBadge priority="2" showLabel={true} />
@@ -343,7 +343,7 @@ const Playground = () => {
                       </div>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Task Collaboration Indicator</p>
+                      <p className={`text-xs text-gray-500 dark:text-gray-400`}>Task Collaboration Indicator</p>
                       <div className="border p-2 rounded-lg bg-gray-50 dark:bg-zinc-900 border-gray-200 dark:border-zinc-800">
                         <TaskCollaborationIndicator taskId="demo-task-id" projectId="demo-project-id" />
                       </div>
@@ -353,10 +353,10 @@ const Playground = () => {
 
                 {/* Task Badges & Displays */}
                 <div>
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Task Badges & Displays</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Task Badges & Displays</h3>
                   <div className="space-y-6 p-4 rounded-xl border border-dashed border-gray-300 dark:border-zinc-800/80">
                     <div className="flex flex-col gap-2">
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Task Type Badges</p>
+                      <p className={`text-xs text-gray-500 dark:text-gray-400`}>Task Type Badges</p>
                       <div className="flex flex-wrap gap-4">
                         {getTaskTypeBadge('Bug')}
                         {getTaskTypeBadge('Feature')}
@@ -368,7 +368,7 @@ const Playground = () => {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Task Priority Badges</p>
+                      <p className={`text-xs text-gray-500 dark:text-gray-400`}>Task Priority Badges</p>
                       <div className="flex flex-wrap gap-6">
                         {getPriorityBadge('Critical')}
                         {getPriorityBadge('High')}
@@ -378,19 +378,19 @@ const Playground = () => {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Task Status Badges</p>
+                      <p className={`text-xs text-gray-500 dark:text-gray-400`}>Task Status Badges</p>
                       <div className="flex flex-wrap gap-4">
-                        {getTaskStatusBadge(1, theme === 'dark')}
-                        {getTaskStatusBadge(2, theme === 'dark')}
-                        {getTaskStatusBadge(3, theme === 'dark')}
-                        {getTaskStatusBadge(4, theme === 'dark')}
-                        {getTaskStatusBadge(5, theme === 'dark')}
-                        {getTaskStatusBadge(6, theme === 'dark')}
+                         {getTaskStatusBadge(1, theme === 'dark')}
+                         {getTaskStatusBadge(2, theme === 'dark')}
+                         {getTaskStatusBadge(3, theme === 'dark')}
+                         {getTaskStatusBadge(4, theme === 'dark')}
+                         {getTaskStatusBadge(5, theme === 'dark')}
+                         {getTaskStatusBadge(6, theme === 'dark')}
                       </div>
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Subtask Display (Summary Card)</p>
+                      <p className={`text-xs text-gray-500 dark:text-gray-400`}>Subtask Display (Summary Card)</p>
                       <div className="max-w-xs border border-gray-200 dark:border-zinc-800 rounded-lg p-2 bg-white dark:bg-zinc-900">
                         <SubtaskDisplay
                           theme={theme}
@@ -408,16 +408,16 @@ const Playground = () => {
 
                 {/* Embedded Layout Blocks */}
                 <div>
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Embedded Layout Blocks</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Embedded Layout Blocks</h3>
                   <div className="space-y-6 p-4 rounded-xl border border-dashed border-gray-300 dark:border-zinc-800/80">
                     <div className="space-y-2">
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Breadcrumb Navigation</p>
+                      <p className={`text-xs text-gray-500 dark:text-gray-400`}>Breadcrumb Navigation</p>
                       <Breadcrumb type="task" projectName="Website Redesign" projectId="web-123" taskName="Implement dark mode toggle" />
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Loading Screen Component</p>
+                        <p className={`text-xs text-gray-500 dark:text-gray-400`}>Loading Screen Component</p>
                         <button
                           onClick={() => {
                             showToast('Showing LoadingScreen inline for 3 seconds...', 'info');
@@ -437,7 +437,7 @@ const Playground = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Release Notification Banner</p>
+                      <p className={`text-xs text-gray-500 dark:text-gray-400`}>Release Notification Banner</p>
                       <div className="border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden bg-white dark:bg-zinc-900">
                         <ReleaseNotificationBanner
                           onClose={() => showToast('Banner dismissed', 'info')}
@@ -465,7 +465,7 @@ const Playground = () => {
               <div className="mt-2 columns-1 md:columns-2 xl:columns-3 gap-8 space-y-0">
                 {/* Verify Email Template */}
                 <div className="inline-flex flex-col w-full break-inside-avoid mb-8">
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Verify Email</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Verify Email</h3>
                   <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200 dark:border-zinc-800/80">
                     <iframe scrolling="no" className="w-full border-none" srcDoc={verifyEmailHtml} title="Verify Email Template" onLoad={handleIframeLoad} />
                   </div>
@@ -473,7 +473,7 @@ const Playground = () => {
 
                 {/* Invite Email Template */}
                 <div className="inline-flex flex-col w-full break-inside-avoid mb-8">
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Organization Invite</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Organization Invite</h3>
                   <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200 dark:border-zinc-800/80">
                     <iframe scrolling="no" className="w-full border-none" srcDoc={inviteEmailHtml} title="Invite Email Template" onLoad={handleIframeLoad} />
                   </div>
@@ -481,7 +481,7 @@ const Playground = () => {
 
                 {/* Task Assignment */}
                 <div className="inline-flex flex-col w-full break-inside-avoid mb-8">
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Task Assignment</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Task Assignment</h3>
                   <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200 dark:border-zinc-800/80">
                     <iframe scrolling="no" className="w-full border-none" srcDoc={taskAssignmentEmailHtml} title="Task Assignment Email" onLoad={handleIframeLoad} />
                   </div>
@@ -489,7 +489,7 @@ const Playground = () => {
 
                 {/* Comment Mention */}
                 <div className="inline-flex flex-col w-full break-inside-avoid mb-8">
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Comment Mention</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Comment Mention</h3>
                   <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200 dark:border-zinc-800/80">
                     <iframe scrolling="no" className="w-full border-none" srcDoc={commentMentionEmailHtml} title="Comment Mention Email" onLoad={handleIframeLoad} />
                   </div>
@@ -497,7 +497,7 @@ const Playground = () => {
 
                 {/* Contact Confirmation */}
                 <div className="inline-flex flex-col w-full break-inside-avoid mb-8">
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Contact Confirmation (To User)</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Contact Confirmation (To User)</h3>
                   <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200 dark:border-zinc-800/80">
                     <iframe scrolling="no" className="w-full border-none" srcDoc={contactConfirmationEmailHtml} title="Contact Confirmation Email" onLoad={handleIframeLoad} />
                   </div>
@@ -505,7 +505,7 @@ const Playground = () => {
 
                 {/* Contact Notification */}
                 <div className="inline-flex flex-col w-full break-inside-avoid mb-8">
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Contact Notification (To Admin)</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Contact Notification (To Admin)</h3>
                   <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200 dark:border-zinc-800/80">
                     <iframe scrolling="no" className="w-full border-none" srcDoc={contactNotificationEmailHtml} title="Contact Notification Email" onLoad={handleIframeLoad} />
                   </div>
@@ -513,7 +513,7 @@ const Playground = () => {
 
                 {/* Role Change Email */}
                 <div className="inline-flex flex-col w-full break-inside-avoid mb-8">
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Role Change Notification</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Role Change Notification</h3>
                   <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200 dark:border-zinc-800/80">
                     <iframe scrolling="no" className="w-full border-none" srcDoc={roleChangeEmailHtml} title="Role Change Email" onLoad={handleIframeLoad} />
                   </div>
@@ -521,7 +521,7 @@ const Playground = () => {
 
                 {/* Release Summary */}
                 <div className="inline-flex flex-col w-full break-inside-avoid mb-8">
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Release Summary</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Release Summary</h3>
                   <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200 dark:border-zinc-800/80">
                     <iframe scrolling="no" className="w-full border-none" srcDoc={releaseSummaryEmailHtml} title="Release Summary Email" onLoad={handleIframeLoad} />
                   </div>
@@ -529,7 +529,7 @@ const Playground = () => {
 
                 {/* Welcome Email */}
                 <div className="inline-flex flex-col w-full break-inside-avoid mb-8">
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Welcome Email</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Welcome Email</h3>
                   <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200 dark:border-zinc-800/80">
                     <iframe scrolling="no" className="w-full border-none" srcDoc={welcomeEmailHtml} title="Welcome Email Template" onLoad={handleIframeLoad} />
                   </div>
@@ -537,7 +537,7 @@ const Playground = () => {
 
                 {/* Premium Upgrade Email */}
                 <div className="inline-flex flex-col w-full break-inside-avoid mb-8">
-                  <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Premium Subscription Announcement</h3>
+                  <h3 className={`text-lg font-medium mb-4 text-gray-700 dark:text-gray-300`}>Premium Subscription Announcement</h3>
                   <div className="border rounded-xl overflow-hidden bg-white shadow-sm border-gray-200 dark:border-zinc-800/80">
                     <iframe scrolling="no" className="w-full border-none" srcDoc={premiumEmailHtml} title="Premium Upgrade Email Template" onLoad={handleIframeLoad} />
                   </div>
@@ -549,8 +549,8 @@ const Playground = () => {
           {activeTab === 'toast' && (
             <div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-dark-bg' : 'border-gray-200 bg-gray-50'}`}>
-                  <h3 className={`font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
+                <div className={`p-6 rounded-xl border border-gray-200 bg-gray-50 dark:border-zinc-800/80 dark:bg-dark-bg`}>
+                  <h3 className={`font-semibold mb-4 flex items-center gap-2 text-green-600 dark:text-green-400`}>
                     <FaCheckCircle /> Success Toast
                   </h3>
                   <button
@@ -561,8 +561,8 @@ const Playground = () => {
                   </button>
                 </div>
 
-                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-dark-bg' : 'border-gray-200 bg-gray-50'}`}>
-                  <h3 className={`font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
+                <div className={`p-6 rounded-xl border border-gray-200 bg-gray-50 dark:border-zinc-800/80 dark:bg-dark-bg`}>
+                  <h3 className={`font-semibold mb-4 flex items-center gap-2 text-red-600 dark:text-red-400`}>
                     <FaTimesCircle /> Error Toast
                   </h3>
                   <button
@@ -573,8 +573,8 @@ const Playground = () => {
                   </button>
                 </div>
 
-                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-dark-bg' : 'border-gray-200 bg-gray-50'}`}>
-                  <h3 className={`font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                <div className={`p-6 rounded-xl border border-gray-200 bg-gray-50 dark:border-zinc-800/80 dark:bg-dark-bg`}>
+                  <h3 className={`font-semibold mb-4 flex items-center gap-2 text-yellow-600 dark:text-yellow-400`}>
                     <FaExclamationTriangle /> Warning Toast
                   </h3>
                   <button
@@ -585,8 +585,8 @@ const Playground = () => {
                   </button>
                 </div>
 
-                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-dark-bg' : 'border-gray-200 bg-gray-50'}`}>
-                  <h3 className={`font-semibold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
+                <div className={`p-6 rounded-xl border border-gray-200 bg-gray-50 dark:border-zinc-800/80 dark:bg-dark-bg`}>
+                  <h3 className={`font-semibold mb-4 flex items-center gap-2 text-blue-600 dark:text-blue-400`}>
                     <FaInfoCircle /> Info Toast
                   </h3>
                   <button
@@ -603,9 +603,9 @@ const Playground = () => {
           {activeTab === 'browser' && (
             <div>
               <div className="max-w-md mt-2">
-                <div className={`p-6 rounded-xl border ${theme === 'dark' ? 'border-zinc-800/80 bg-dark-bg' : 'border-gray-200 bg-gray-50'}`}>
+                <div className={`p-6 rounded-xl border border-gray-200 bg-gray-50 dark:border-zinc-800/80 dark:bg-dark-bg`}>
                   <div className="flex justify-between items-center mb-6">
-                    <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>Current Permission:</span>
+                    <span className="text-gray-700 dark:text-gray-300">Current Permission:</span>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${notificationPermission === 'granted'
                       ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                       : notificationPermission === 'denied'

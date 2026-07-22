@@ -19,18 +19,10 @@ const CustomToast = ({ message, type = 'success', onClose, duration = 3500, desc
     const baseStyles = 'relative z-50 flex items-start gap-4 p-5 pr-10 rounded-2xl shadow-xl border transition-all duration-500 ease-in-out animate-slide-in w-[420px] max-w-[95vw]';
 
     const typeStyles = {
-      success: theme === 'dark'
-        ? 'bg-gradient-to-r from-[#0f291e] to-[#18181b] border-[#133d2b]'
-        : 'bg-gradient-to-r from-emerald-50 via-white to-white border-emerald-100',
-      error: theme === 'dark'
-        ? 'bg-gradient-to-r from-[#2c1318] to-[#18181b] border-[#441a22]'
-        : 'bg-gradient-to-r from-[#fff5f5] via-white to-white border-rose-100',
-      warning: theme === 'dark'
-        ? 'bg-gradient-to-r from-[#292211] to-[#18181b] border-[#3f3214]'
-        : 'bg-gradient-to-r from-amber-50 via-white to-white border-amber-100',
-      info: theme === 'dark'
-        ? 'bg-gradient-to-r from-[#112235] to-[#18181b] border-[#163050]'
-        : 'bg-gradient-to-r from-blue-50 via-white to-white border-blue-100'
+      success: 'bg-gradient-to-r from-emerald-50 via-white to-white border-emerald-100 dark:from-[#0f291e] dark:to-[#18181b] dark:border-[#133d2b]',
+      error: 'bg-gradient-to-r from-[#fff5f5] via-white to-white border-rose-100 dark:from-[#2c1318] dark:to-[#18181b] dark:border-[#441a22]',
+      warning: 'bg-gradient-to-r from-amber-50 via-white to-white border-amber-100 dark:from-[#292211] dark:to-[#18181b] dark:border-[#3f3214]',
+      info: 'bg-gradient-to-r from-blue-50 via-white to-white border-blue-100 dark:from-[#112235] dark:to-[#18181b] dark:border-[#163050]'
     };
 
     return `${baseStyles} ${typeStyles[type]}`;

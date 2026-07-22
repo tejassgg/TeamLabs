@@ -583,7 +583,7 @@ function Home() {
   };
 
   return (
-    <div className={`min-h-screen w-full overflow-x-hidden transition-colors duration-500 ${theme === 'dark' ? 'bg-[#030712] text-white' : 'bg-[#f8fafc] text-slate-900'}`}>
+    <div className={`min-h-screen w-full overflow-x-hidden transition-colors duration-500 bg-[#f8fafc] text-slate-900 dark:bg-[#030712] dark:text-white`}>
       <Head>
         <title>TeamLabs | AI-Powered Velocity Project Management SaaS</title>
         <meta name="description" content="Unlock hyper-velocity team performance with AI-powered task automation, modular Kanban boards, real-time Slack-like messaging, and advanced analytics dashboards." />
@@ -594,11 +594,10 @@ function Home() {
       {/* Futuristic Background Dot Grid and Radial Lights */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none select-none z-0">
         {/* Glowing Blobs */}
-        <div className={`absolute top-0 right-0 w-[500px] h-[500px] rounded-full mix-blend-screen filter blur-[120px] opacity-[0.15] animate-blob ${theme === 'dark' ? 'bg-indigo-600' : 'bg-indigo-400'}`}></div>
-        <div className={`absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full mix-blend-screen filter blur-[120px] opacity-[0.15] animate-blob animation-delay-2000 ${theme === 'dark' ? 'bg-purple-600' : 'bg-purple-400'}`}></div>
-        <div className={`absolute top-1/2 left-1/3 w-[350px] h-[350px] rounded-full mix-blend-screen filter blur-[100px] opacity-[0.1] animate-blob animation-delay-4000 ${theme === 'dark' ? 'bg-cyan-500' : 'bg-cyan-400'}`}></div>
+        <div className={`absolute top-0 right-0 w-[500px] h-[500px] rounded-full mix-blend-screen filter blur-[120px] opacity-[0.15] animate-blob bg-indigo-400 dark:bg-indigo-600`}></div>
+        <div className={`absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full mix-blend-screen filter blur-[120px] opacity-[0.15] animate-blob animation-delay-2000 bg-purple-400 dark:bg-purple-600`}></div>
+        <div className={`absolute top-1/2 left-1/3 w-[350px] h-[350px] rounded-full mix-blend-screen filter blur-[100px] opacity-[0.1] animate-blob animation-delay-4000 bg-cyan-400 dark:bg-cyan-500`}></div>
 
-        {/* SVG Custom Dot Matrix */}
         <div className="absolute inset-0 opacity-[0.4] dark:opacity-[0.8]" style={{
           backgroundImage: theme === 'dark'
             ? `radial-gradient(rgba(99, 102, 241, 0.08) 1.5px, transparent 1.5px)`
@@ -617,7 +616,7 @@ function Home() {
 
             {/* Hero Left: Pitch & CTA */}
             <div className="lg:col-span-6 flex flex-col justify-center text-left reveal reveal-fade-up">
-              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-6 tracking-wide max-w-max border ${theme === 'dark' ? 'bg-indigo-950/40 text-indigo-300 border-indigo-500/30' : 'bg-indigo-50 text-indigo-800 border-indigo-200'}`}>
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-6 tracking-wide max-w-max border bg-indigo-50 text-indigo-800 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-500/30`}>
                 <FaRocket className="animate-bounce text-indigo-500" />
                 <span>MEET THE FUTURE OF PROJECT MANAGEMENT</span>
               </div>
@@ -632,7 +631,7 @@ function Home() {
                 with AI Automation
               </h1>
 
-              <p className={`text-lg md:text-xl leading-relaxed mb-8 max-w-2xl ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+              <p className={`text-lg md:text-xl leading-relaxed mb-8 max-w-2xl text-slate-600 dark:text-slate-400`}>
                 Transform absolute chaos into streamlined sprint progress. Deploy Kanban boards, native team group chat, instant analytics summaries, and live-punch timesheets instantly.
                 <span className="font-semibold text-indigo-500"> Built for modern high-performance organizations.</span>
               </p>
@@ -643,7 +642,7 @@ function Home() {
                     <Link href="/dashboard" className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-base hover:opacity-90 shadow-xl shadow-indigo-600/25 transition-transform transform hover:-translate-y-0.5 flex items-center gap-2">
                       Go to Dashboard <FaChevronRight size={14} />
                     </Link>
-                    <button onClick={handleLogout} className={`px-4 py-2 border font-bold text-base rounded-xl flex items-center gap-2 transition-all ${theme === 'dark' ? 'border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300' : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700'}`}>
+                    <button onClick={handleLogout} className={`px-4 py-2 border font-bold text-base rounded-xl flex items-center gap-2 transition-all border-slate-300 bg-white hover:bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-900/50 dark:hover:bg-slate-800 dark:text-slate-300`}>
                       <FaSignOutAlt /> Logout
                     </button>
                   </div>
@@ -652,7 +651,7 @@ function Home() {
                     <button onClick={openRegister} className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-base hover:opacity-90 shadow-xl shadow-indigo-600/25 transition-transform transform hover:-translate-y-0.5">
                       Start Free Trial
                     </button>
-                    <button onClick={openLogin} className={`px-4 py-2 border font-bold text-base rounded-xl flex items-center justify-center gap-2 transition-all ${theme === 'dark' ? 'border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300' : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700'}`}>
+                    <button onClick={openLogin} className={`px-4 py-2 border font-bold text-base rounded-xl flex items-center justify-center gap-2 transition-all border-slate-300 bg-white hover:bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-900/50 dark:hover:bg-slate-800 dark:text-slate-300`}>
                       <FaSignInAlt /> Sign In
                     </button>
                   </>
@@ -666,7 +665,7 @@ function Home() {
                     <span className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
                       {stat.number === "0" ? "..." : stat.number}{stat.label.includes("Completed") || stat.label.includes("Teams") ? "+" : ""}
                     </span>
-                    <span className={`text-xs font-semibold uppercase tracking-wider mt-1 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-500'}`}>
+                    <span className={`text-xs font-semibold uppercase tracking-wider mt-1 text-slate-500 dark:text-slate-500`}>
                       {stat.label}
                     </span>
                   </div>
@@ -676,23 +675,23 @@ function Home() {
 
             {/* Hero Right: Interactive AI Terminal Mockup */}
             <div className="lg:col-span-6 w-full reveal reveal-fade-left">
-              <div className={`relative rounded-2xl border transition-all duration-300 shadow-2xl p-0.5 ${theme === 'dark' ? 'border-white/10 bg-slate-950/70 shadow-slate-950/80' : 'border-slate-200/80 bg-white/70 shadow-slate-200/50'} backdrop-blur-md`}>
+              <div className={`relative rounded-2xl border transition-all duration-300 shadow-2xl p-0.5 border-slate-200/80 bg-white/70 shadow-slate-200/50 dark:border-white/10 dark:bg-slate-950/70 dark:shadow-slate-950/80 backdrop-blur-md`}>
 
                 {/* Gloss header */}
-                <div className={`flex items-center justify-between px-4 py-3 rounded-t-2xl border-b ${theme === 'dark' ? 'bg-slate-950/80 border-white/5' : 'bg-slate-100 border-slate-200'}`}>
+                <div className={`flex items-center justify-between px-4 py-3 rounded-t-2xl border-b bg-slate-100 border-slate-200 dark:bg-slate-950/80 dark:border-white/5`}>
                   <div className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-red-500/80 block"></span>
                     <span className="w-3 h-3 rounded-full bg-yellow-500/80 block"></span>
                     <span className="w-3 h-3 rounded-full bg-green-500/80 block"></span>
                   </div>
-                  <span className={`text-xs font-mono font-medium tracking-wide flex items-center gap-2 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <span className={`text-xs font-mono font-medium tracking-wide flex items-center gap-2 text-slate-500 dark:text-slate-400`}>
                     <FaRobot className="text-indigo-500" /> terminal@teamlabs
                   </span>
                   <div className="w-12"></div>
                 </div>
 
                 {/* Terminal Workspace */}
-                <div className={`p-5 min-h-[300px] max-h-[380px] overflow-y-auto font-mono text-xs sm:text-sm leading-relaxed text-left flex flex-col justify-start rounded-b-2xl ${theme === 'dark' ? 'bg-slate-950/40 text-slate-300' : 'bg-slate-50/50 text-slate-800'}`} ref={terminalScrollRef}>
+                <div className={`p-5 min-h-[300px] max-h-[380px] overflow-y-auto font-mono text-xs sm:text-sm leading-relaxed text-left flex flex-col justify-start rounded-b-2xl bg-slate-50/50 text-slate-800 dark:bg-slate-950/40 dark:text-slate-300`} ref={terminalScrollRef}>
 
                   {/* Console prompt */}
                   <div className="flex items-start gap-2 mb-2">
@@ -730,26 +729,26 @@ function Home() {
                 </div>
 
                 {/* Prompt Controls overlay */}
-                <div className={`p-4 border-t rounded-b-2xl flex flex-wrap gap-2 items-center justify-between ${theme === 'dark' ? 'bg-slate-950/80 border-white/5' : 'bg-slate-100 border-slate-200'}`}>
+                <div className={`p-4 border-t rounded-b-2xl flex flex-wrap gap-2 items-center justify-between bg-slate-100 border-slate-200 dark:bg-slate-950/80 dark:border-white/5`}>
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">TRY A CHIP:</span>
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => { setSelectedPrompt('sprint'); runTerminalSimulation('sprint'); }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${selectedPrompt === 'sprint' ? 'bg-indigo-600 text-white' : theme === 'dark' ? 'bg-slate-800 hover:bg-slate-700 text-slate-300' : 'bg-white hover:bg-slate-50 text-slate-700'}`}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${selectedPrompt === 'sprint' ? 'bg-indigo-600 text-white' : 'bg-white hover:bg-slate-50 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300'}`}
                       disabled={terminalStatus === 'typing' || terminalStatus === 'executing'}
                     >
                       🤖 Optimize Sprint
                     </button>
                     <button
                       onClick={() => { setSelectedPrompt('tasks'); runTerminalSimulation('tasks'); }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${selectedPrompt === 'tasks' ? 'bg-indigo-600 text-white' : theme === 'dark' ? 'bg-slate-800 hover:bg-slate-700 text-slate-300' : 'bg-white hover:bg-slate-50 text-slate-700'}`}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${selectedPrompt === 'tasks' ? 'bg-indigo-600 text-white' : 'bg-white hover:bg-slate-50 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300'}`}
                       disabled={terminalStatus === 'typing' || terminalStatus === 'executing'}
                     >
                       ⚡ Auto-Tasks
                     </button>
                     <button
                       onClick={() => { setSelectedPrompt('blockers'); runTerminalSimulation('blockers'); }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${selectedPrompt === 'blockers' ? 'bg-indigo-600 text-white' : theme === 'dark' ? 'bg-slate-800 hover:bg-slate-700 text-slate-300' : 'bg-white hover:bg-slate-50 text-slate-700'}`}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${selectedPrompt === 'blockers' ? 'bg-indigo-600 text-white' : 'bg-white hover:bg-slate-50 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300'}`}
                       disabled={terminalStatus === 'typing' || terminalStatus === 'executing'}
                     >
                       🔍 Analyze Blocker
@@ -771,7 +770,7 @@ function Home() {
               <br />
               <span className="bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">Integrated Dashboard</span>
             </h2>
-            <p className={`text-base sm:text-lg max-w-3xl mx-auto ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+            <p className={`text-base sm:text-lg max-w-3xl mx-auto text-slate-600 dark:text-slate-400`}>
               Don't just take our word for it. Test driving core modular tools in our sandbox workspace right now.
             </p>
           </div>
@@ -790,18 +789,14 @@ function Home() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`p-4 rounded-xl text-left border transition-all duration-300 flex flex-col gap-1 ${activeTab === tab.id
-                      ? theme === 'dark'
-                        ? 'bg-gradient-to-r from-indigo-950/60 to-purple-950/60 border-indigo-500/50 shadow-lg shadow-indigo-950/20'
-                        : 'bg-white border-indigo-500/40 shadow-xl shadow-slate-200'
-                      : theme === 'dark'
-                        ? 'bg-slate-900/20 hover:bg-slate-900/40 border-white/5'
-                        : 'bg-white/40 hover:bg-white/80 border-slate-200'
+                      ? 'bg-white border-indigo-500/40 shadow-xl shadow-slate-200 dark:bg-gradient-to-r dark:from-indigo-950/60 dark:to-purple-950/60 dark:border-indigo-500/50 dark:shadow-lg dark:shadow-indigo-950/20'
+                      : 'bg-white/40 hover:bg-white/80 border-slate-200 dark:bg-slate-900/20 dark:hover:bg-slate-900/40 dark:border-white/5'
                     }`}
                 >
-                  <span className={`font-bold text-sm sm:text-base ${activeTab === tab.id ? 'text-indigo-500' : theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
+                  <span className={`font-bold text-sm sm:text-base ${activeTab === tab.id ? 'text-indigo-500' : 'text-slate-700 dark:text-slate-300'}`}>
                     {tab.label}
                   </span>
-                  <span className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-slate-500'}`}>
+                  <span className="text-xs text-slate-500 dark:text-slate-500">
                     {tab.desc}
                   </span>
                 </button>
@@ -810,7 +805,7 @@ function Home() {
 
             {/* Showcase Visualizer Terminal - Right Column */}
             <div className="lg:col-span-8 w-full">
-              <div className={`rounded-2xl border transition-all duration-300 shadow-2xl p-6 min-h-[380px] flex flex-col ${theme === 'dark' ? 'bg-slate-950/70 border-white/10 shadow-slate-950/65' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40'} backdrop-blur-md`}>
+              <div className={`rounded-2xl border transition-all duration-300 shadow-2xl p-6 min-h-[380px] flex flex-col bg-white/90 border-slate-200/80 shadow-slate-200/40 dark:bg-slate-950/70 dark:border-white/10 dark:shadow-slate-950/65 backdrop-blur-md`}>
 
                 {/* 1. Analytics Showcase */}
                 {activeTab === 'analytics' && (
@@ -818,14 +813,14 @@ function Home() {
                     <h3 className="text-xl font-bold flex items-center gap-2">
                       <FaChartLine className="text-indigo-500" /> Executive Analytics Workspace
                     </h3>
-                    <p className={`text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <p className={`text-sm text-slate-600 dark:text-slate-400`}>
                       Beautiful visualizations represent metrics for live user story progress and sprint velocity scores.
                     </p>
 
                     <div className="grid sm:grid-cols-3 gap-6">
 
                       {/* Metric Card 1 */}
-                      <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-slate-900/30 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
+                      <div className={`p-4 rounded-xl border bg-slate-50 border-slate-100 dark:bg-slate-900/30 dark:border-white/5`}>
                         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Sprint Velocity</span>
                         <div className="flex items-center gap-3 mt-2">
                           <div className="relative w-12 h-12 flex items-center justify-center rounded-full bg-indigo-500/10">
@@ -839,7 +834,7 @@ function Home() {
                       </div>
 
                       {/* Metric Card 2 */}
-                      <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-slate-900/30 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
+                      <div className={`p-4 rounded-xl border bg-slate-50 border-slate-100 dark:bg-slate-900/30 dark:border-white/5`}>
                         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Tasks Completed</span>
                         <div className="flex items-center gap-3 mt-2">
                           <div className="relative w-12 h-12 flex items-center justify-center rounded-full bg-emerald-500/10">
@@ -853,7 +848,7 @@ function Home() {
                       </div>
 
                       {/* Metric Card 3 */}
-                      <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-slate-900/30 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
+                      <div className={`p-4 rounded-xl border bg-slate-50 border-slate-100 dark:bg-slate-900/30 dark:border-white/5`}>
                         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Current Burndown</span>
                         <div className="flex items-center gap-2 mt-4 h-6 items-end">
                           <div className="w-full bg-indigo-500/30 rounded-t h-1/2"></div>
@@ -866,7 +861,7 @@ function Home() {
                     </div>
 
                     {/* Chart Container Grid */}
-                    <div className={`p-5 rounded-xl border mt-2 flex flex-col gap-4 ${theme === 'dark' ? 'bg-slate-900/20 border-white/5' : 'bg-slate-100 border-slate-200/50'}`}>
+                    <div className={`p-5 rounded-xl border mt-2 flex flex-col gap-4 bg-slate-100 border-slate-200/50 dark:bg-slate-900/20 dark:border-white/5`}>
                       <div className="flex items-center justify-between text-xs text-slate-500">
                         <span>Sprint 3 Daily Burndown Forecast</span>
                         <span className="flex items-center gap-1 font-semibold text-indigo-500"><span className="w-2 h-2 rounded-full bg-indigo-500"></span> Live</span>
@@ -875,9 +870,9 @@ function Home() {
                       {/* SVG Bar Chart with animate transitions */}
                       <svg className="w-full h-24 overflow-visible" viewBox="0 0 400 100">
                         {/* Grid lines */}
-                        <line x1="0" y1="20" x2="400" y2="20" stroke={theme === 'dark' ? '#1e293b' : '#cbd5e1'} strokeWidth="1" strokeDasharray="3" />
-                        <line x1="0" y1="50" x2="400" y2="50" stroke={theme === 'dark' ? '#1e293b' : '#cbd5e1'} strokeWidth="1" strokeDasharray="3" />
-                        <line x1="0" y1="80" x2="400" y2="80" stroke={theme === 'dark' ? '#1e293b' : '#cbd5e1'} strokeWidth="1" strokeDasharray="3" />
+                        <line x1="0" y1="20" x2="400" y2="20" stroke="#cbd5e1 dark:#1e293b" strokeWidth="1" strokeDasharray="3" />
+                        <line x1="0" y1="50" x2="400" y2="50" stroke="#cbd5e1 dark:#1e293b" strokeWidth="1" strokeDasharray="3" />
+                        <line x1="0" y1="80" x2="400" y2="80" stroke="#cbd5e1 dark:#1e293b" strokeWidth="1" strokeDasharray="3" />
 
                         {/* Bar charts path */}
                         <path
@@ -909,7 +904,7 @@ function Home() {
                         <h3 className="text-xl font-bold flex items-center gap-2">
                           <FaUsers className="text-indigo-500" /> Modular Scrum Kanban Board
                         </h3>
-                        <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+                        <p className={`text-sm mt-1 text-slate-600 dark:text-slate-400`}>
                           Interact with the board: click subtasks to toggle progress, or click a card title/body to cycle columns.
                         </p>
                       </div>
@@ -928,13 +923,13 @@ function Home() {
                         const colTasks = demoKanbanTasks.filter(t => t.column === col.id);
 
                         return (
-                          <div key={col.id} className={`p-3.5 rounded-xl border flex flex-col gap-3.5 flex-shrink-0 w-[290px] min-h-[460px] ${theme === 'dark' ? 'bg-slate-900/20 border-white/5' : 'bg-slate-50 border-slate-200'}`} style={{ scrollSnapAlign: 'start' }}>
+                          <div key={col.id} className={`p-3.5 rounded-xl border flex flex-col gap-3.5 flex-shrink-0 w-[290px] min-h-[460px] bg-slate-50 border-slate-200 dark:bg-slate-900/20 dark:border-white/5`} style={{ scrollSnapAlign: 'start' }}>
 
                             {/* Column Header */}
                             <div className="flex items-center justify-between pb-2 border-b border-indigo-500/10">
                               <div className="flex items-center gap-2">
                                 <IconComponent className={col.iconColor} size={14} />
-                                <span className={`text-xs sm:text-sm font-bold ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>{col.title}</span>
+                                <span className={`text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300`}>{col.title}</span>
                               </div>
                               <span className={`px-2 py-0.5 rounded-full text-xs font-extrabold border ${col.pillBg}`}>
                                 {col.count}
@@ -997,7 +992,7 @@ function Home() {
                                   return (
                                     <div
                                       key={task.id}
-                                      className={`p-3.5 rounded-xl border flex flex-col gap-2.5 transition-all duration-200 text-left relative cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-[1.01] ${theme === 'dark' ? 'bg-slate-950 border-white/10 text-white hover:border-indigo-500/30' : 'bg-white border-slate-200 text-slate-800 hover:border-indigo-500/20'}`}
+                                      className={`p-3.5 rounded-xl border flex flex-col gap-2.5 transition-all duration-200 text-left relative cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-[1.01] bg-white border-slate-200 text-slate-800 hover:border-indigo-500/20 dark:bg-slate-950 dark:border-white/10 dark:text-white dark:hover:border-indigo-500/30`}
                                     >
                                       {/* Top Badges Row */}
                                       <div className="flex items-center justify-between text-xs font-extrabold uppercase">
@@ -1017,7 +1012,7 @@ function Home() {
                                           {task.title}
                                         </h4>
                                         {task.description && (
-                                          <p className={`text-xs leading-relaxed mt-1 line-clamp-2 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-500'}`}>
+                                          <p className={`text-xs leading-relaxed mt-1 line-clamp-2 text-slate-500 dark:text-slate-500`}>
                                             {task.description}
                                           </p>
                                         )}
@@ -1096,12 +1091,12 @@ function Home() {
                     <h3 className="text-xl font-bold flex items-center gap-2">
                       <FaUsers className="text-indigo-500" /> Collaborative Channels Workspace
                     </h3>
-                    <p className={`text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <p className={`text-sm text-slate-600 dark:text-slate-400`}>
                       Integrated group and direct conversations. Test drive simulated chats below with automated AI bot responses.
                     </p>
 
                     {/* Chat Terminal Frame */}
-                    <div className={`p-4 rounded-xl border flex flex-col gap-4 justify-between h-[220px] ${theme === 'dark' ? 'bg-slate-900/30 border-white/5' : 'bg-slate-50 border-slate-200/50'}`}>
+                    <div className={`p-4 rounded-xl border flex flex-col gap-4 justify-between h-[220px] bg-slate-50 border-slate-200/50 dark:bg-slate-900/30 dark:border-white/5`}>
 
                       {/* Active header */}
                       <div className="flex items-center gap-2 border-b border-indigo-500/10 pb-2 text-xs">
@@ -1117,7 +1112,7 @@ function Home() {
                             <span className={`font-bold mr-1.5 ${msg.sender === 'You' ? 'text-indigo-400' : msg.sender === 'AI Assistant' ? 'text-purple-400 font-extrabold' : 'text-slate-400'}`}>
                               {msg.sender}:
                             </span>
-                            <span className={theme === 'dark' ? 'text-slate-300' : 'text-slate-800'}>{msg.content}</span>
+                            <span className="text-slate-800 dark:text-slate-300">{msg.content}</span>
                             <span className="text-[9px] text-slate-500 float-right mt-0.5">{msg.time}</span>
                           </div>
                         ))}
@@ -1130,10 +1125,7 @@ function Home() {
                           value={chatInput}
                           onChange={(e) => setChatInput(e.target.value)}
                           placeholder="Type simulated message (e.g. Optimize login flow)..."
-                          className={`flex-grow px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 ${theme === 'dark'
-                              ? 'bg-slate-950 border-white/10 text-white placeholder-slate-500'
-                              : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
-                            }`}
+                          className={`flex-grow px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white border-slate-200 text-slate-900 placeholder-slate-400 dark:bg-slate-950 dark:border-white/10 dark:text-white dark:placeholder-slate-500`}
                         />
                         <button type="submit" className="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shrink-0">
                           <FaPaperPlane size={11} />
@@ -1150,13 +1142,13 @@ function Home() {
                     <h3 className="text-xl font-bold flex items-center gap-2">
                       <FaRobot className="text-indigo-500" /> AI Requirement Blueprint Engine
                     </h3>
-                    <p className={`text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <p className={`text-sm text-slate-600 dark:text-slate-400`}>
                       Input high level feature requirements. Our platform generates task subtrees, assignments, and priorities automatically.
                     </p>
 
                     <div className="flex flex-col gap-4">
                       {/* Interactive prompt area */}
-                      <div className={`p-4 rounded-xl border flex flex-col sm:flex-row items-center gap-4 justify-between ${theme === 'dark' ? 'bg-slate-900/30 border-white/5' : 'bg-slate-50 border-slate-200/50'}`}>
+                      <div className={`p-4 rounded-xl border flex flex-col sm:flex-row items-center gap-4 justify-between bg-slate-50 border-slate-200/50 dark:bg-slate-900/30 dark:border-white/5`}>
                         <div className="text-xs text-left">
                           <p className="font-bold text-slate-500 uppercase tracking-wide">Feature Requirement Prompt</p>
                           <p className="mt-1 font-semibold text-slate-700 dark:text-slate-300 italic">"Integrate Stripe subscriptions with monthly and annual choices and direct webhooks."</p>
@@ -1177,7 +1169,7 @@ function Home() {
                           <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Generated Task Subtree:</p>
                           <div className="grid sm:grid-cols-2 gap-2">
                             {aiGeneratedTasks.map((t) => (
-                              <div key={t.id} className={`p-3 rounded-lg border text-xs flex justify-between items-center ${theme === 'dark' ? 'bg-slate-950 border-white/5' : 'bg-white border-slate-200'}`}>
+                              <div key={t.id} className={`p-3 rounded-lg border text-xs flex justify-between items-center bg-white border-slate-200 dark:bg-slate-950 dark:border-white/5`}>
                                 <div>
                                   <p className="font-bold">{t.title}</p>
                                   <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">{t.type}</span>
@@ -1200,7 +1192,7 @@ function Home() {
                     <h3 className="text-xl font-bold flex items-center gap-2">
                       <FaHourglassHalf className="text-indigo-500 animate-spin" style={{ animationDuration: '6s' }} /> High-Velocity Timesheet Clock
                     </h3>
-                    <p className={`text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <p className={`text-sm text-slate-600 dark:text-slate-400`}>
                       Integrated punch systems allow developers to sync hourly timesheets on a click. Punch-in below to test it.
                     </p>
 
@@ -1228,7 +1220,7 @@ function Home() {
                       {/* Punch Clock Logs Right */}
                       <div className="sm:col-span-7 flex flex-col text-left">
                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Timesheet Punch Event Logs:</span>
-                        <div className={`p-4 rounded-xl border mt-2 min-h-[140px] max-h-[160px] overflow-y-auto flex flex-col gap-2 ${theme === 'dark' ? 'bg-slate-900/30 border-white/5' : 'bg-slate-50 border-slate-200/50'}`}>
+                        <div className={`p-4 rounded-xl border mt-2 min-h-[140px] max-h-[160px] overflow-y-auto flex flex-col gap-2 bg-slate-50 border-slate-200/50 dark:bg-slate-900/30 dark:border-white/5`}>
                           {punchLogs.length === 0 ? (
                             <p className="text-xs text-slate-500 italic mt-6 text-center">No logs generated. Punch in to create dynamic timesheet rows.</p>
                           ) : (
@@ -1238,7 +1230,7 @@ function Home() {
                                   <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                                   {log.type}
                                 </span>
-                                <span className={theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}>
+                                <span className="text-slate-600 dark:text-slate-400">
                                   {log.date} @ {log.time}
                                 </span>
                                 {log.duration && (
@@ -1267,19 +1259,19 @@ function Home() {
             {features.map((feature, idx) => {
               const IconComp = feature.icon;
               const colorTheme = {
-                blue: theme === 'dark' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-700 border-blue-200',
-                purple: theme === 'dark' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-purple-50 text-purple-700 border-purple-200',
-                green: theme === 'dark' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-green-50 text-green-700 border-green-200',
-                red: theme === 'dark' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-red-50 text-red-700 border-red-200',
+                blue: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20',
+                purple: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20',
+                green: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20',
+                red: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
               };
 
               return (
-                <div key={idx} className={`p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.03] text-left reveal reveal-fade-up reveal-delay-${idx * 100} ${theme === 'dark' ? 'bg-slate-950/40 border-white/5 hover:border-indigo-500/20 hover:bg-slate-900/40' : 'bg-white border-slate-200 hover:border-indigo-500/20 hover:shadow-xl hover:shadow-slate-100'}`}>
+                <div key={idx} className={`p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.03] text-left reveal reveal-fade-up reveal-delay-${idx * 100} bg-white border-slate-200 hover:border-indigo-500/20 hover:shadow-xl hover:shadow-slate-100 dark:bg-slate-950/40 dark:border-white/5 dark:hover:border-indigo-500/20 dark:hover:bg-slate-900/40`}>
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 border ${colorTheme[feature.color]}`}>
                     <IconComp size={20} />
                   </div>
                   <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
-                  <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-slate-500' : 'text-slate-600'}`}>{feature.description}</p>
+                  <p className={`text-sm leading-relaxed text-slate-600 dark:text-slate-500`}>{feature.description}</p>
                 </div>
               );
             })}
@@ -1292,21 +1284,21 @@ function Home() {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4">
               Endorsed by Fast-Growing Teams
             </h2>
-            <p className={`text-base sm:text-lg max-w-2xl mx-auto ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+            <p className={`text-base sm:text-lg max-w-2xl mx-auto text-slate-600 dark:text-slate-400`}>
               Modern executives and product managers achieve rapid backlog conversions with TeamLabs project suites.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((item, idx) => (
-              <div key={idx} className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between text-left reveal reveal-fade-up reveal-delay-${idx * 150} ${theme === 'dark' ? 'bg-slate-950/40 border-white/5 hover:border-indigo-500/20' : 'bg-white border-slate-200 hover:shadow-xl hover:border-indigo-500/20'}`}>
+              <div key={idx} className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between text-left reveal reveal-fade-up reveal-delay-${idx * 150} bg-white border-slate-200 hover:shadow-xl hover:border-indigo-500/20 dark:bg-slate-950/40 dark:border-white/5 dark:hover:border-indigo-500/20`}>
                 <div>
                   <div className="flex gap-1.5 mb-4">
                     {[...Array(item.rating)].map((_, i) => (
                       <FaStar key={i} className="text-amber-500" size={14} />
                     ))}
                   </div>
-                  <p className={`text-base leading-relaxed italic mb-6 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
+                  <p className={`text-base leading-relaxed italic mb-6 text-slate-700 dark:text-slate-300`}>
                     "{item.content}"
                   </p>
                 </div>
@@ -1317,7 +1309,7 @@ function Home() {
                   </div>
                   <div>
                     <h4 className="font-bold text-sm">{item.name}</h4>
-                    <p className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-slate-600'}`}>{item.role} @ {item.company}</p>
+                    <p className={`text-xs text-slate-600 dark:text-slate-500`}>{item.role} @ {item.company}</p>
                   </div>
                 </div>
               </div>
@@ -1331,7 +1323,7 @@ function Home() {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4">
               Simple, Dynamic pricing plans
             </h2>
-            <p className={`text-base sm:text-lg max-w-2xl mx-auto mb-8 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+            <p className={`text-base sm:text-lg max-w-2xl mx-auto mb-8 text-slate-600 dark:text-slate-400`}>
               Optimize sprint cycles on a plan tailored to developer requirements. Save up to 29% annually.
             </p>
 
@@ -1341,11 +1333,11 @@ function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
 
             {/* Card 1: Free */}
-            <div className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between text-left reveal reveal-fade-up ${theme === 'dark' ? 'bg-slate-950/30 border-white/5 hover:border-slate-800' : 'bg-white border-slate-200 hover:shadow-xl'}`}>
+            <div className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between text-left reveal reveal-fade-up bg-white border-slate-200 hover:shadow-xl dark:bg-slate-950/30 dark:border-white/5 dark:hover:border-slate-800`}>
               <div className="flex flex-col gap-4">
                 <div>
                   <h3 className="text-xl font-extrabold">Basic Free Account</h3>
-                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-500'}`}>Perfect for small teams and developers.</p>
+                  <p className={`text-xs mt-1 text-slate-500 dark:text-slate-500`}>Perfect for small teams and developers.</p>
                 </div>
                 <div className="py-2">
                   <span className="text-5xl font-extrabold">$0</span>
@@ -1359,20 +1351,20 @@ function Home() {
                   <li className="flex items-center gap-2.5"><FaCheck className="text-indigo-500 shrink-0" size={12} /> <span>Basic Support</span></li>
                 </ul>
               </div>
-              <button onClick={openRegister} className={`w-full py-3.5 mt-8 font-bold text-sm rounded-xl transition-all ${theme === 'dark' ? 'bg-slate-800 hover:bg-slate-700 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}>
+              <button onClick={openRegister} className={`w-full py-3.5 mt-8 font-bold text-sm rounded-xl transition-all bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300`}>
                 Get Started Free
               </button>
             </div>
 
             {/* Card 2: Premium Monthly */}
-            <div className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between text-left relative reveal reveal-fade-up reveal-delay-150 ${theme === 'dark' ? 'bg-slate-950/30 border-indigo-500/40 hover:border-indigo-500' : 'bg-white border-indigo-500/40 hover:shadow-xl shadow-lg shadow-indigo-500/5'}`}>
+            <div className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between text-left relative reveal reveal-fade-up reveal-delay-150 bg-white border-indigo-500/40 hover:shadow-xl shadow-lg shadow-indigo-500/5 dark:bg-slate-950/30 dark:border-indigo-500/40 dark:hover:border-indigo-500`}>
               <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-indigo-600 text-white text-xs font-extrabold uppercase tracking-widest shadow-lg">
                 MOST POPULAR
               </div>
               <div className="flex flex-col gap-4">
                 <div>
                   <h3 className="text-xl font-extrabold">Premium Monthly</h3>
-                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-500'}`}>Best choice for scaling team velocities.</p>
+                  <p className={`text-xs mt-1 text-slate-500 dark:text-slate-500`}>Best choice for scaling team velocities.</p>
                 </div>
                 <div className="py-2">
                   <span className="text-5xl font-extrabold">$49</span>
@@ -1394,14 +1386,14 @@ function Home() {
             </div>
 
             {/* Card 3: Premium Annual */}
-            <div className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between text-left relative reveal reveal-fade-up reveal-delay-300 ${theme === 'dark' ? 'bg-slate-950/30 border-white/5 hover:border-slate-800' : 'bg-white border-slate-200 hover:shadow-xl'}`}>
+            <div className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between text-left relative reveal reveal-fade-up reveal-delay-300 bg-white border-slate-200 hover:shadow-xl dark:bg-slate-950/30 dark:border-white/5 dark:hover:border-slate-800`}>
               <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-500 text-white text-xs font-extrabold uppercase tracking-widest shadow-lg">
                 BEST VALUE (SAVE 29%)
               </div>
               <div className="flex flex-col gap-4">
                 <div>
                   <h3 className="text-xl font-extrabold">Premium Annual</h3>
-                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-500'}`}>Max savings for permanent scrums.</p>
+                  <p className={`text-xs mt-1 text-slate-500 dark:text-slate-500`}>Max savings for permanent scrums.</p>
                 </div>
                 <div className="py-2 flex flex-col">
                   <div>
@@ -1432,7 +1424,7 @@ function Home() {
 
         {/* CTA Footer Wrapper */}
         <section className="py-24 text-center px-4 sm:px-6 lg:px-8 border-t border-indigo-500/10 max-w-7xl mx-auto">
-          <div className={`p-12 rounded-3xl relative overflow-hidden flex flex-col items-center justify-center border ${theme === 'dark' ? 'bg-gradient-to-r from-indigo-950/40 to-purple-950/40 border-indigo-500/20' : 'bg-gradient-to-r from-indigo-500 to-purple-600 border-indigo-600'}`}>
+          <div className={`p-12 rounded-3xl relative overflow-hidden flex flex-col items-center justify-center border bg-gradient-to-r from-indigo-500 to-purple-600 border-indigo-600 dark:bg-gradient-to-r dark:from-indigo-950/40 dark:to-purple-950/40 dark:border-indigo-500/20`}>
 
             {/* Background mesh glow inside card */}
             <div className="absolute inset-0 opacity-[0.1] pointer-events-none select-none bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.4),transparent)]"></div>
@@ -1478,15 +1470,15 @@ function Home() {
                 </div>
                 <span className="text-2xl font-extrabold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">TeamLabs</span>
               </div>
-              <p className={`text-sm leading-relaxed max-w-sm ${theme === 'dark' ? 'text-slate-500' : 'text-slate-600'}`}>
+              <p className={`text-sm leading-relaxed max-w-sm text-slate-600 dark:text-slate-500`}>
                 Transform operational backlog into structured sprint momentum. Deliver Next.js client tools, secure authentication, timesheet managers, and AI assistants.
               </p>
 
               <div className="flex gap-3 mt-2">
-                <a href="https://github.com/tejassgg" target="_blank" className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors border ${theme === 'dark' ? 'bg-slate-900 border-white/10 hover:bg-slate-800 text-slate-400' : 'bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-600'}`}>
+                <a href="https://github.com/tejassgg" target="_blank" className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors border bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-600 dark:bg-slate-900 dark:border-white/10 dark:hover:bg-slate-800 dark:text-slate-400">
                   <FaGithub size={16} />
                 </a>
-                <a href="#" className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors border ${theme === 'dark' ? 'bg-slate-900 border-white/10 hover:bg-slate-800 text-slate-400' : 'bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-600'}`}>
+                <a href="#" className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors border bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-600 dark:bg-slate-900 dark:border-white/10 dark:hover:bg-slate-800 dark:text-slate-400`}>
                   <FaRocket size={16} />
                 </a>
               </div>
@@ -1539,17 +1531,14 @@ function Home() {
 
         {/* Cookie Consent Banner */}
         {showCookieBanner && (
-          <div className={`fixed bottom-6 left-6 right-6 md:left-auto md:right-8 md:max-w-md z-50 p-5 rounded-2xl border shadow-2xl transition-all duration-500 ease-in-out transform translate-y-0 scale-100 flex flex-col gap-4 animate-fade-in-up ${theme === 'dark'
-              ? 'bg-slate-900 border-slate-800 text-slate-100 shadow-slate-950/80'
-              : 'bg-white border-slate-200 text-slate-800 shadow-slate-200/50'
-            }`}>
+          <div className={`fixed bottom-6 left-6 right-6 md:left-auto md:right-8 md:max-w-md z-50 p-5 rounded-2xl border shadow-2xl transition-all duration-500 ease-in-out transform translate-y-0 scale-100 flex flex-col gap-4 animate-fade-in-up bg-white border-slate-200 text-slate-800 shadow-slate-200/50 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-100 dark:shadow-slate-950/80`}>
             <div className="flex items-start gap-3.5">
               <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center bg-indigo-600 text-white shadow-md shadow-indigo-600/10">
                 <FaCookieBite className="w-5 h-5" />
               </div>
               <div className="space-y-1">
                 <h4 className="text-sm font-bold leading-tight">Cookie Consent</h4>
-                <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                <p className={`text-xs leading-relaxed text-slate-500 dark:text-slate-400`}>
                   We use cookies to optimize our AI-powered velocity project management SaaS, analyze site telemetry, and personalize your experience. By clicking &quot;Accept All&quot;, you agree to our cookie storage.
                 </p>
               </div>
@@ -1558,10 +1547,7 @@ function Home() {
             <div className="flex items-center gap-2.5 ml-auto">
               <button
                 onClick={() => setShowCookiePolicy(true)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${theme === 'dark'
-                    ? 'border-slate-800 text-slate-300 hover:bg-slate-800'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                  }`}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800`}
               >
                 Preferences
               </button>

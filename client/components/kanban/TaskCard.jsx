@@ -1,14 +1,12 @@
 import React, { useRef } from 'react';
 import { useRouter } from 'next/router';
-import { useThemeClasses } from './kanbanUtils';
 import { getPriorityBadge, getTaskTypeBadge } from '../task/TaskTypeBadge';
 import { FaRegComment } from 'react-icons/fa';
 import { TiAttachment } from "react-icons/ti";
 
 const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssignedToUser, bgColor }) => {
   const router = useRouter();
-  const getThemeClasses = useThemeClasses();
-  const cardRef = useRef(null);
+    const cardRef = useRef(null);
   const isSupport = task.Name?.startsWith('Support Request:');
   const canMove = isSupport || isTaskAssignedToUser(task) || task.Status === 1;
 
@@ -70,10 +68,7 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
   // isSupport already computed above to control draggable permission
   return (
     <div ref={cardRef} key={task.TaskID}
-      className={getThemeClasses(
-        `${isSupport ? 'p-3 rounded-xl mb-2 border border-amber-300 bg-amber-50' : `p-3 rounded-xl mb-2 border ${canMove ? 'border-gray-200' : 'border-dashed border-gray-300'}`} ${canMove ? 'cursor-grab' : 'cursor-not-allowed opacity-70'}`,
-        `${isSupport ? 'dark:border-amber-600 dark:bg-amber-900/20' : (canMove ? 'dark:border-gray-700' : 'dark:border-dashed dark:border-gray-700/50')} ${canMove && !isSupport ? 'dark:hover:bg-dark-hover' : ''}`
-      )}
+      className={`${isSupport ? 'p-3 rounded-xl mb-2 border border-amber-300 bg-amber-50' : `p-3 rounded-xl mb-2 border ${canMove ? 'border-gray-200' : 'border-dashed border-gray-300'}`} ${canMove ? 'cursor-grab' : 'cursor-not-allowed opacity-70'} ${isSupport ? 'dark:border-amber-600 dark:bg-amber-900/20' : (canMove ? 'dark:border-gray-700' : 'dark:border-dashed dark:border-gray-700/50')} ${canMove && !isSupport ? 'dark:hover:bg-dark-hover' : ''}`}
       draggable={canMove}
       onDragStart={onDragStart}
       onDragEnd={handleDragEnd}
@@ -92,15 +87,12 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
 
       </div>
 
-      <div className={getThemeClasses(
-        'mb-1 text-gray-900',
-        'dark:text-gray-100'
-      )}>
-        <span className={getThemeClasses('text-sm font-medium text-gray-900', 'dark:text-gray-100')}>
+      <div className={'mb-1 text-gray-900 dark:text-gray-100'}>
+        <span className={'text-sm font-medium text-gray-900 dark:text-gray-100'}>
           {task.Name}
         </span>
         {task.Description && (
-          <p className={getThemeClasses('text-sm text-gray-600', 'dark:text-gray-400')}>
+          <p className={'text-sm text-gray-600 dark:text-gray-400'}>
             {task.Description}
           </p>
         )}
@@ -110,23 +102,14 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
       <h4 className="font-medium mb-1 flex items-center justify-start gap-2 mt-1">
         {isSupport ? (
           <>
-            <span className={getThemeClasses(
-              "inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-700 border border-amber-200",
-              "dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700"
-            )}>Support</span>
+            <span className={"inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700"}>Support</span>
             {(task.TicketNumber || task.TaskNumber) && (
-              <span className={getThemeClasses(
-                "ml-auto text-xs font-medium px-2 py-0.5 rounded bg-amber-200 text-amber-800 border border-amber-300",
-                "dark:bg-amber-800 dark:text-amber-100 dark:border-amber-700"
-              )}>#{task.TicketNumber || task.TaskNumber}</span>
+              <span className={"ml-auto text-xs font-medium px-2 py-0.5 rounded bg-amber-200 text-amber-800 border border-amber-300 dark:bg-amber-800 dark:text-amber-100 dark:border-amber-700"}>#{task.TicketNumber || task.TaskNumber}</span>
             )}
           </>
         ) : (
           (task.TaskNumber || task.TicketNumber) && (
-            <span className={getThemeClasses(
-              "ml-auto text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-primary border border-blue-200",
-              "dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800"
-            )}>#{task.TaskNumber || task.TicketNumber}</span>
+            <span className={"ml-auto text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-primary border border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800"}>#{task.TaskNumber || task.TicketNumber}</span>
           )
         )}
       </h4>
@@ -146,20 +129,14 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
                   </svg>
                 ) : null}
               </span>
-              <span className={getThemeClasses(
-                `text-xs whitespace-normal break-words ${subtask.IsCompleted ? 'line-through text-gray-500' : 'text-gray-700'}`,
-                `dark:text-xs whitespace-normal break-words ${subtask.IsCompleted ? 'dark:line-through dark:text-gray-400' : 'dark:text-gray-300'}`
-              )}>
+              <span className={`text-xs whitespace-normal break-words ${subtask.IsCompleted ? 'line-through text-gray-500' : 'text-gray-700'} dark:text-xs whitespace-normal break-words ${subtask.IsCompleted ? 'dark:line-through dark:text-gray-400' : 'dark:text-gray-300'}`}>
                 {subtask.Name}
               </span>
             </div>
           ))}
           {task.subtasks.length > 4 && (
             <div className="flex items-center gap-2">
-              <span className={getThemeClasses(
-                'text-xs text-gray-500',
-                'dark:text-xs dark:text-gray-400'
-              )}>
+              <span className={'text-xs text-gray-500 dark:text-xs dark:text-gray-400'}>
                 +{task.subtasks.length - 4} more
               </span>
             </div>
@@ -170,34 +147,22 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
       {/* Progress Bar */}
       <div className="mt-3 flex items-center justify-between gap-2">
         {task.AssignedToDetails && (
-          <div className={getThemeClasses(
-            'w-6 h-6 rounded-md bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-semibold',
-            'dark:from-blue-600 dark:to-blue-700'
-          )}>
+          <div className={'w-6 h-6 rounded-md bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-semibold dark:from-blue-600 dark:to-blue-700'}>
             {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
           </div>
         )}
         <div className="w-full">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
-              <span className={getThemeClasses(
-                'text-xs font-medium text-gray-700',
-                'dark:text-xs dark:font-medium dark:text-gray-300'
-              )}>
+              <span className={'text-xs font-medium text-gray-700 dark:text-xs dark:font-medium dark:text-gray-300'}>
                 Progress
               </span>
             </div>
-            <span className={getThemeClasses(
-              'text-xs text-gray-600',
-              'dark:text-xs dark:text-gray-400'
-            )}>
+            <span className={'text-xs text-gray-600 dark:text-xs dark:text-gray-400'}>
               {getProgressPercentage()}%
             </span>
           </div>
-          <div className={getThemeClasses(
-            'w-full bg-gray-200 rounded-full h-2',
-            'dark:w-full dark:bg-gray-700 dark:rounded-full dark:h-2'
-          )}>
+          <div className={'w-full bg-gray-200 rounded-full h-2 dark:w-full dark:bg-gray-700 dark:rounded-full dark:h-2'}>
             <div
               className={`h-2 rounded-full transition-all duration-300 bg-green-500`}
               style={{ width: `${getProgressPercentage()}%` }}
@@ -210,7 +175,7 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
       <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2">
         {/* Left: Due By */}
         <div className="flex items-center gap-2">
-          <span className={getThemeClasses('text-xs font-medium text-gray-700', 'text-xs font-medium text-white')}>
+          <span className={'text-xs font-medium text-gray-700 text-xs font-medium text-white'}>
             Due {(() => {
               const d = task.DueDate || task.AssignedDate || task.CreatedDate;
               return d ? new Date(d).toLocaleDateString(undefined, { month: 'short', day: '2-digit', timeZone: 'UTC' }) : 'No due date';
@@ -221,19 +186,13 @@ const TaskCard = React.memo(({ task, handleDragStart, handleDragEnd, isTaskAssig
         {/* Right: Comments & Attachments */}
         <div className="flex items-center gap-3">
           {task.commentsCount > 0 && (
-            <div className={getThemeClasses(
-              'flex items-center gap-1 text-xs text-gray-600',
-              'dark:text-gray-400'
-            )}>
+            <div className={'flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400'}>
               <FaRegComment size={12} />
               <span>{task.commentsCount}</span>
             </div>
           )}
           {task.attachmentsCount > 0 && (
-            <div className={getThemeClasses(
-              'flex items-center gap-1 text-xs text-gray-600',
-              'dark:text-gray-400'
-            )}>
+            <div className={'flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400'}>
               <TiAttachment size={16} />
               <span>{task.attachmentsCount}</span>
             </div>

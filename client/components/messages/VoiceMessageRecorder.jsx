@@ -117,7 +117,7 @@ const VoiceMessageRecorder = ({ onSendVoiceMessage, disabled = false }) => {
               className={`p-2 rounded-lg transition-colors ${
                 disabled
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : theme === 'dark'
+                  : theme'dark'
                     ? 'bg-red-500 hover:bg-red-600 text-white'
                     : 'bg-red-500 hover:bg-red-600 text-white'
               }`}
@@ -147,11 +147,7 @@ const VoiceMessageRecorder = ({ onSendVoiceMessage, disabled = false }) => {
         <>
           <button
             onClick={playRecording}
-            className={`p-2 rounded-lg transition-colors ${
-              theme === 'dark'
-                ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
-            }`}
+            className={`p-2 rounded-lg transition-colors bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white`}
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? <FaPause size={16} /> : <FaPlay size={16} />}
@@ -171,11 +167,7 @@ const VoiceMessageRecorder = ({ onSendVoiceMessage, disabled = false }) => {
           
           <button
             onClick={sendVoiceMessage}
-            className={`p-2 rounded-lg transition-colors ${
-              theme === 'dark'
-                ? 'bg-green-500 hover:bg-green-600 text-white'
-                : 'bg-green-500 hover:bg-green-600 text-white'
-            }`}
+            className={`p-2 rounded-lg transition-colors bg-green-500 hover:bg-green-600 text-white dark:bg-green-500 dark:hover:bg-green-600 dark:text-white`}
             title="Send voice message"
           >
             <FaPaperPlane size={16} />

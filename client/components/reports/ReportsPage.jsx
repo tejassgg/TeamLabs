@@ -148,34 +148,22 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
   };
 
   return (
-    <div className={`min-h-screen transition-all duration-300 ${theme === 'dark'
-      ? 'bg-gray-900 text-white'
-      : 'bg-white text-gray-900'
-      }`}>
+    <div className={`min-h-screen transition-all duration-300 bg-white text-gray-900 dark:bg-gray-900 dark:text-white`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className={`text-3xl sm:text-4xl font-bold transition-colors duration-300 ${theme === 'dark'
-                ? 'text-white'
-                : 'text-gray-900'
-                }`}>
+              <h1 className={`text-3xl sm:text-4xl font-bold transition-colors duration-300 text-gray-900 dark:text-white`}>
                 AI-Powered Reports
               </h1>
-              <p className={`mt-2 text-lg transition-colors duration-300 ${theme === 'dark'
-                ? 'text-gray-400'
-                : 'text-gray-600'
-                }`}>
+              <p className={`mt-2 text-lg transition-colors duration-300 text-gray-600 dark:text-gray-400`}>
                 Generate intelligent project progress reports using AI
               </p>
             </div>
             <button
               onClick={() => setShowGenerator(true)}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105 ${theme === 'dark'
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/25'
-                : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/25'
-                }`}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105 bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/25 dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white dark:shadow-emerald-500/25`}
             >
               <FaPlus className="text-lg" />
               <span>Generate Report</span>
@@ -185,18 +173,15 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
 
         {/* Tabs */}
         <div className="mb-8">
-          <div className={`border-b transition-colors duration-300 ${theme === 'dark'
-            ? 'border-gray-700'
-            : 'border-zinc-850 dark:border-zinc-800'
-            }`}>
+          <div className={`border-b transition-colors duration-300 border-zinc-850 dark:border-zinc-800 dark:border-gray-700`}>
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveTab('reports')}
                 className={`py-3 px-1 border-b-2 font-semibold text-sm transition-all duration-300 ${activeTab === 'reports'
-                    ? theme === 'dark'
+                    ? theme'dark'
                       ? 'border-emerald-400 text-emerald-400'
                       : 'border-emerald-600 text-emerald-600'
-                    : theme === 'dark'
+                    : theme'dark'
                       ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
@@ -207,10 +192,10 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
               <button
                 onClick={() => setActiveTab('configs')}
                 className={`py-3 px-1 border-b-2 font-semibold text-sm transition-all duration-300 ${activeTab === 'configs'
-                    ? theme === 'dark'
+                    ? theme'dark'
                       ? 'border-emerald-400 text-emerald-400'
                       : 'border-emerald-600 text-emerald-600'
-                    : theme === 'dark'
+                    : theme'dark'
                       ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
@@ -226,19 +211,13 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
         <div className="mb-8 flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors duration-300 ${theme === 'dark'
-                ? 'text-gray-400'
-                : 'text-gray-500'
-                }`} />
+              <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors duration-300 text-gray-500 dark:text-gray-400`} />
               <input
                 type="text"
                 placeholder="Search reports..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${theme === 'dark'
-                  ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                  }`}
+                className={`w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white border-gray-300 text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400`}
               />
             </div>
           </div>
@@ -246,10 +225,7 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
             <select
               value={filters.reportType}
               onChange={(e) => setFilters({ ...filters, reportType: e.target.value })}
-              className={`px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${theme === 'dark'
-                ? 'bg-gray-800 border-gray-600 text-white'
-                : 'bg-white border-gray-300 text-gray-900'
-                }`}
+              className={`px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white border-gray-300 text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-white`}
             >
               <option value="">All Types</option>
               <option value="executive">Executive</option>
@@ -257,10 +233,7 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
               <option value="technical">Technical</option>
               <option value="dashboard">Dashboard</option>
             </select>
-            <button className={`px-4 py-3 rounded-xl border transition-all duration-300 hover:shadow-md ${theme === 'dark'
-              ? 'border-gray-600 hover:bg-dark-hover text-gray-300 hover:text-white'
-              : 'border-gray-300 hover:bg-gray-50 text-gray-600 hover:text-gray-900'
-              }`}>
+            <button className={`px-4 py-3 rounded-xl border transition-all duration-300 hover:shadow-md border-gray-300 hover:bg-gray-50 text-gray-600 hover:text-gray-900 dark:border-gray-600 dark:hover:bg-dark-hover dark:text-gray-300 dark:hover:text-white`}>
               <FaFilter className="text-lg" />
             </button>
           </div>
@@ -269,44 +242,23 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
         {/* Content */}
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <div className={`animate-spin rounded-full h-12 w-12 border-b-2 transition-colors duration-300 ${theme === 'dark'
-              ? 'border-emerald-400'
-              : 'border-emerald-600'
-              }`}></div>
-            <span className={`ml-4 text-lg font-medium transition-colors duration-300 ${theme === 'dark'
-              ? 'text-gray-400'
-              : 'text-gray-600'
-              }`}>Loading...</span>
+            <div className={`animate-spin rounded-full h-12 w-12 border-b-2 transition-colors duration-300 border-emerald-600 dark:border-emerald-400`}></div>
+            <span className={`ml-4 text-lg font-medium transition-colors duration-300 text-gray-600 dark:text-gray-400`}>Loading...</span>
           </div>
         ) : activeTab === 'reports' ? (
           <div className="space-y-6">
             {filteredReports.length === 0 ? (
               <div className="text-center py-16">
-                <div className={`p-8 rounded-3xl mx-auto max-w-md ${theme === 'dark'
-                  ? 'bg-gray-800 border border-gray-700'
-                  : 'bg-white border border-zinc-850 dark:border-zinc-800'
-                  } transition-all duration-300`}>
-                  <FaFileAlt className={`mx-auto h-16 w-16 transition-colors duration-300 ${theme === 'dark'
-                    ? 'text-gray-600'
-                    : 'text-gray-400'
-                    }`} />
-                  <h3 className={`mt-6 text-xl font-semibold transition-colors duration-300 ${theme === 'dark'
-                    ? 'text-white'
-                    : 'text-gray-900'
-                    }`}>No reports found</h3>
-                  <p className={`mt-3 text-base transition-colors duration-300 ${theme === 'dark'
-                    ? 'text-gray-400'
-                    : 'text-gray-600'
-                    }`}>
+                <div className={`p-8 rounded-3xl mx-auto max-w-md bg-white border border-zinc-850 dark:border-zinc-800 dark:bg-gray-800 dark:border dark:border-gray-700 transition-all duration-300`}>
+                  <FaFileAlt className={`mx-auto h-16 w-16 transition-colors duration-300 text-gray-400 dark:text-gray-600`} />
+                  <h3 className={`mt-6 text-xl font-semibold transition-colors duration-300 text-gray-900 dark:text-white`}>No reports found</h3>
+                  <p className={`mt-3 text-base transition-colors duration-300 text-gray-600 dark:text-gray-400`}>
                     Get started by generating your first AI-powered report.
                   </p>
                   <div className="mt-8">
                     <button
                       onClick={() => setShowGenerator(true)}
-                      className={`inline-flex items-center px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${theme === 'dark'
-                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/25'
-                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/25'
-                        }`}
+                      className={`inline-flex items-center px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/25 dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white dark:shadow-emerald-500/25`}
                     >
                       <FaPlus className="mr-2 text-lg" />
                       Generate Report
@@ -316,18 +268,12 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
               </div>
             ) : (
               filteredReports.map((report) => (
-                <div key={report.reportId} className={`rounded-2xl shadow-lg border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] ${theme === 'dark'
-                  ? 'bg-gray-800 border-gray-700'
-                  : 'bg-white border-zinc-850 dark:border-zinc-800'
-                  }`}>
+                <div key={report.reportId} className={`rounded-2xl shadow-lg border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] bg-white border-zinc-850 dark:border-zinc-800 dark:bg-gray-800 dark:border-gray-700`}>
                   <div className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-3 mb-4">
-                          <h3 className={`text-xl font-bold transition-colors duration-300 ${theme === 'dark'
-                            ? 'text-white'
-                            : 'text-gray-900'
-                            }`}>
+                          <h3 className={`text-xl font-bold transition-colors duration-300 text-gray-900 dark:text-white`}>
                             {report.projectId?.Name || 'Unknown Project'}
                           </h3>
                           <span className={`px-3 py-1 text-sm font-medium rounded-full transition-colors duration-300 ${getReportTypeColor(report.reportType)}`}>
@@ -338,24 +284,15 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
                           </span>
                         </div>
                         <div className="flex flex-wrap items-center gap-6 text-sm transition-colors duration-300">
-                          <div className={`flex items-center space-x-2 ${theme === 'dark'
-                            ? 'text-gray-400'
-                            : 'text-gray-600'
-                            }`}>
+                          <div className={`flex items-center space-x-2 text-gray-600 dark:text-gray-400`}>
                             <FaCalendarAlt className="text-lg" />
                             <span>{new Date(report.generatedAt).toLocaleDateString()}</span>
                           </div>
-                          <div className={`flex items-center space-x-2 ${theme === 'dark'
-                            ? 'text-gray-400'
-                            : 'text-gray-600'
-                            }`}>
+                          <div className={`flex items-center space-x-2 text-gray-600 dark:text-gray-400`}>
                             <FaChartLine className="text-lg" />
                             <span>{report.content.metrics.completionRate}% Complete</span>
                           </div>
-                          <div className={`flex items-center space-x-2 ${theme === 'dark'
-                            ? 'text-gray-400'
-                            : 'text-gray-600'
-                            }`}>
+                          <div className={`flex items-center space-x-2 text-gray-600 dark:text-gray-400`}>
                             <FaFileAlt className="text-lg" />
                             <span>{report.content.metrics.totalTasks} Tasks</span>
                           </div>
@@ -364,19 +301,13 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
                       <div className="flex items-center space-x-2 ml-4">
                         <button
                           onClick={() => handleDownloadReport(report)}
-                          className={`p-3 rounded-xl transition-all duration-300 hover:shadow-md ${theme === 'dark'
-                            ? 'text-gray-400 hover:text-white hover:bg-dark-hover'
-                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                            }`}
+                          className={`p-3 rounded-xl transition-all duration-300 hover:shadow-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-dark-hover`}
                           title="Download Report"
                         >
                           <FaDownload className="text-lg" />
                         </button>
                         <button
-                          className={`p-3 rounded-xl transition-all duration-300 hover:shadow-md ${theme === 'dark'
-                            ? 'text-gray-400 hover:text-white hover:bg-dark-hover'
-                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                            }`}
+                          className={`p-3 rounded-xl transition-all duration-300 hover:shadow-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-dark-hover`}
                           title="View Report"
                         >
                           <FaEye className="text-lg" />
@@ -385,18 +316,9 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
                     </div>
 
                     {/* Report Preview */}
-                    <div className={`mt-6 p-5 rounded-xl transition-colors duration-300 ${theme === 'dark'
-                      ? 'bg-gray-700'
-                      : 'bg-gray-50'
-                      }`}>
-                      <h4 className={`text-base font-semibold mb-3 transition-colors duration-300 ${theme === 'dark'
-                        ? 'text-white'
-                        : 'text-gray-900'
-                        }`}>Executive Summary</h4>
-                      <p className={`text-sm leading-relaxed line-clamp-3 transition-colors duration-300 ${theme === 'dark'
-                        ? 'text-gray-400'
-                        : 'text-gray-600'
-                        }`}>
+                    <div className={`mt-6 p-5 rounded-xl transition-colors duration-300 bg-gray-50 dark:bg-gray-700`}>
+                      <h4 className={`text-base font-semibold mb-3 transition-colors duration-300 text-gray-900 dark:text-white`}>Executive Summary</h4>
+                      <p className={`text-sm leading-relaxed line-clamp-3 transition-colors duration-300 text-gray-600 dark:text-gray-400`}>
                         {report.content.executiveSummary}
                       </p>
                     </div>
@@ -409,40 +331,22 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
           <div className="space-y-6">
             {filteredConfigs.length === 0 ? (
               <div className="text-center py-16">
-                <div className={`p-8 rounded-3xl mx-auto max-w-md ${theme === 'dark'
-                  ? 'bg-gray-800 border border-gray-700'
-                  : 'bg-white border border-zinc-850 dark:border-zinc-800'
-                  } transition-all duration-300`}>
-                  <FaCog className={`mx-auto h-16 w-16 transition-colors duration-300 ${theme === 'dark'
-                    ? 'text-gray-600'
-                    : 'text-gray-400'
-                    }`} />
-                  <h3 className={`mt-6 text-xl font-semibold transition-colors duration-300 ${theme === 'dark'
-                    ? 'text-white'
-                    : 'text-gray-900'
-                    }`}>No configurations found</h3>
-                  <p className={`mt-3 text-base transition-colors duration-300 ${theme === 'dark'
-                    ? 'text-gray-400'
-                    : 'text-gray-600'
-                    }`}>
+                <div className={`p-8 rounded-3xl mx-auto max-w-md bg-white border border-zinc-850 dark:border-zinc-800 dark:bg-gray-800 dark:border dark:border-gray-700 transition-all duration-300`}>
+                  <FaCog className={`mx-auto h-16 w-16 transition-colors duration-300 text-gray-400 dark:text-gray-600`} />
+                  <h3 className={`mt-6 text-xl font-semibold transition-colors duration-300 text-gray-900 dark:text-white`}>No configurations found</h3>
+                  <p className={`mt-3 text-base transition-colors duration-300 text-gray-600 dark:text-gray-400`}>
                     Create automated report configurations to schedule regular reports.
                   </p>
                 </div>
               </div>
             ) : (
               filteredConfigs.map((config) => (
-                <div key={config.configId} className={`rounded-2xl shadow-lg border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] ${theme === 'dark'
-                  ? 'bg-gray-800 border-gray-700'
-                  : 'bg-white border-zinc-850 dark:border-zinc-800'
-                  }`}>
+                <div key={config.configId} className={`rounded-2xl shadow-lg border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] bg-white border-zinc-850 dark:border-zinc-800 dark:bg-gray-800 dark:border-gray-700`}>
                   <div className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-3 mb-4">
-                          <h3 className={`text-xl font-bold transition-colors duration-300 ${theme === 'dark'
-                            ? 'text-white'
-                            : 'text-gray-900'
-                            }`}>
+                          <h3 className={`text-xl font-bold transition-colors duration-300 text-gray-900 dark:text-white`}>
                             {config.projectId?.Name || 'Unknown Project'}
                           </h3>
                           <span className={`px-3 py-1 text-sm font-medium rounded-full transition-colors duration-300 ${getReportTypeColor(config.reportType)}`}>
@@ -454,25 +358,16 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
                           </span>
                         </div>
                         <div className="flex flex-wrap items-center gap-6 text-sm transition-colors duration-300">
-                          <div className={`flex items-center space-x-2 ${theme === 'dark'
-                            ? 'text-gray-400'
-                            : 'text-gray-600'
-                            }`}>
+                          <div className={`flex items-center space-x-2 text-gray-600 dark:text-gray-400`}>
                             <FaCalendarAlt className="text-lg" />
                             <span>{config.frequency.charAt(0).toUpperCase() + config.frequency.slice(1)}</span>
                           </div>
-                          <div className={`flex items-center space-x-2 ${theme === 'dark'
-                            ? 'text-gray-400'
-                            : 'text-gray-600'
-                            }`}>
+                          <div className={`flex items-center space-x-2 text-gray-600 dark:text-gray-400`}>
                             <FaFileAlt className="text-lg" />
                             <span>{config.recipients.length} Recipients</span>
                           </div>
                           {config.lastGenerated && (
-                            <div className={`flex items-center space-x-2 ${theme === 'dark'
-                              ? 'text-gray-400'
-                              : 'text-gray-600'
-                              }`}>
+                            <div className={`flex items-center space-x-2 text-gray-600 dark:text-gray-400`}>
                               <FaChartLine className="text-lg" />
                               <span>Last: {new Date(config.lastGenerated).toLocaleDateString()}</span>
                             </div>
@@ -481,20 +376,14 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
                       </div>
                       <div className="flex items-center space-x-2 ml-4">
                         <button
-                          className={`p-3 rounded-xl transition-all duration-300 hover:shadow-md ${theme === 'dark'
-                            ? 'text-gray-400 hover:text-white hover:bg-dark-hover'
-                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                            }`}
+                          className={`p-3 rounded-xl transition-all duration-300 hover:shadow-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-dark-hover`}
                           title="Edit Configuration"
                         >
                           <FaCog className="text-lg" />
                         </button>
                         <button
                           onClick={() => handleDeleteConfig(config.configId)}
-                          className={`p-3 rounded-xl transition-all duration-300 hover:shadow-md ${theme === 'dark'
-                            ? 'text-gray-400 hover:text-red-400 hover:bg-dark-hover'
-                            : 'text-gray-500 hover:text-red-600 hover:bg-gray-100'
-                            }`}
+                          className={`p-3 rounded-xl transition-all duration-300 hover:shadow-md text-gray-500 hover:text-red-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-dark-hover`}
                           title="Delete Configuration"
                         >
                           <FaTrash className="text-lg" />
@@ -511,30 +400,21 @@ ${report.content.insights.map((insight, index) => `${index + 1}. ${insight}`).jo
         {/* Pagination */}
         {pagination.pages > 1 && (
           <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className={`text-sm font-medium transition-colors duration-300 ${theme === 'dark'
-              ? 'text-gray-300'
-              : 'text-gray-700'
-              }`}>
+            <div className={`text-sm font-medium transition-colors duration-300 text-gray-700 dark:text-gray-300`}>
               Showing page {pagination.current} of {pagination.pages} ({pagination.total} total)
             </div>
             <div className="flex space-x-3">
               <button
                 onClick={() => setFilters({ ...filters, page: Math.max(1, filters.page - 1) })}
                 disabled={filters.page === 1}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark'
-                  ? 'border border-gray-600 text-gray-300 hover:bg-dark-hover hover:text-white'
-                  : 'border border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:border dark:border-gray-600 dark:text-gray-300 dark:hover:bg-dark-hover dark:hover:text-white`}
               >
                 Previous
               </button>
               <button
                 onClick={() => setFilters({ ...filters, page: Math.min(pagination.pages, filters.page + 1) })}
                 disabled={filters.page === pagination.pages}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark'
-                  ? 'border border-gray-600 text-gray-300 hover:bg-dark-hover hover:text-white'
-                  : 'border border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:border dark:border-gray-600 dark:text-gray-300 dark:hover:bg-dark-hover dark:hover:text-white`}
               >
                 Next
               </button>

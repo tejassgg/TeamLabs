@@ -89,9 +89,7 @@ const StatusDropdown = ({ isMobile, currentStatus, onStatusChange, theme, isRead
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`group flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all duration-200
-          ${theme === 'dark'
-            ? 'hover:bg-dark-hover text-blue-200'
-            : 'hover:bg-blue-100 text-blue-600'}
+          hover:bg-blue-100 text-blue-600 dark:hover:bg-dark-hover dark:text-blue-200
           ${isChanging ? 'scale-95' : 'scale-100'}
           relative overflow-hidden`}
         title={statusConfig[currentStatus]?.tooltip}
@@ -113,7 +111,7 @@ const StatusDropdown = ({ isMobile, currentStatus, onStatusChange, theme, isRead
 
       {isOpen && (
         <div className={`absolute right-0 mt-2 w-56 rounded-xl shadow-lg z-50 transform transition-all duration-200 origin-top-right
-          ${theme === 'dark' ? 'bg-dark-hover border border-[#2d2d2d]' : 'bg-white border border-gray-200'}`}
+          bg-white border border-gray-200 dark:bg-dark-hover dark:border dark:border-[#2d2d2d]`}
         >
           <div className="py-1.5">
             {statusOptions.map((status) => {
@@ -126,9 +124,7 @@ const StatusDropdown = ({ isMobile, currentStatus, onStatusChange, theme, isRead
                     setIsOpen(false);
                   }}
                   className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-all duration-200
-                    ${theme === 'dark'
-                      ? 'hover:bg-[#2d2d2d] text-blue-200'
-                      : 'hover:bg-gray-50 text-gray-700'}
+                    hover:bg-gray-50 text-gray-700 dark:hover:bg-[#2d2d2d] dark:text-blue-200
                     ${currentStatus === status ? 'font-semibold' : ''}`}
                   title={statusConfig[status].tooltip}
                 >

@@ -21,10 +21,7 @@ const BadgeDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const { theme } = useTheme();
 
-  const getThemeClasses = (lightClasses, darkClasses) => {
-    return theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
-  };
-
+  
   const selectedOption = options.find(opt =>
     badgeType === 'taskType' ? opt.Value === value : badgeType === 'userStory' ? opt.TaskID === value : opt === value
   );
@@ -41,10 +38,7 @@ const BadgeDropdown = ({
       return getTaskTypeBadge(optionValue);
     } else if (badgeType === 'userStory') {
       return (
-        <span className={getThemeClasses(
-          'text-gray-900',
-          'text-white'
-        )}>
+        <span className={'text-gray-900 text-white'}>
           {option.Name}
         </span>
       );
@@ -61,20 +55,17 @@ const BadgeDropdown = ({
         disabled={disabled}
         className={
           `w-full px-0 py-2 border-0 border-b-2 
-          ${theme === 'dark' ? 'bg-dark-card' : 'bg-white'} 
-          ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'} 
-          ${theme === 'dark' ? 'focus:border-gray-600' : 'focus:border-gray-200'} focus:outline-none bg-transparent 
-          ${theme === 'dark' ? 'text-white' : 'text-gray-900'} flex items-center justify-between`
+          bg-white dark:bg-dark-card 
+          border-gray-200 dark:border-gray-600 
+          focus:border-gray-200 dark:focus:border-gray-600 focus:outline-none bg-transparent 
+          text-gray-900 dark:text-white flex items-center justify-between`
         }
       >
         <div className="flex items-center gap-2">
           {selectedOption !== undefined && selectedOption !== null ? (
             renderBadge(selectedOption)
           ) : (
-            <span className={getThemeClasses(
-              'text-gray-500',
-              'dark:text-gray-400'
-            )}>
+            <span className={'text-gray-500 dark:text-gray-400'}>
               {placeholder}
             </span>
           )}
@@ -90,7 +81,7 @@ const BadgeDropdown = ({
       </button>
 
       {isOpen && (
-        <div className={`absolute z-50 w-full mt-1 ${theme === 'dark' ? 'bg-dark-bg border-gray-600' : 'bg-white border-gray-200'} border rounded-xl shadow-lg overflow-auto`}>
+        <div className={`absolute z-50 w-full mt-1 bg-white border-gray-200 dark:bg-dark-bg dark:border-gray-600 border rounded-xl shadow-lg overflow-auto`}>
           {options.map((option, index) => {
             const optionKey = badgeType === 'taskType' ? index : badgeType === 'userStory' ? option.TaskID : index;
             return (
@@ -98,10 +89,7 @@ const BadgeDropdown = ({
                 key={optionKey}
                 type="button"
                 onClick={() => handleSelect(option)}
-                className={getThemeClasses(
-                  'w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2',
-                  'w-full px-4 py-3 text-left hover:bg-dark-hover transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2'
-                )}
+                className={'w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2 w-full px-4 py-3 text-left hover:bg-dark-hover transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2'}
               >
                 {renderBadge(option)}
               </button>
@@ -125,10 +113,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
   const { projects, userDetails } = useGlobal();
   const { theme } = useTheme();
 
-  const getThemeClasses = (lightClasses, darkClasses) => {
-    return theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
-  };
-
+  
   const [isAnimating, setIsAnimating] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -441,19 +426,13 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}
         onClick={handleClose}
       />
-      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-2xl ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-dark-card' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
+      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-2xl bg-white text-gray-900 dark:bg-dark-bg dark:text-white border-l border-gray-200 dark:border-dark-card p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
 
         <div className="flex items-center justify-between mb-6">
-          <h3 className={getThemeClasses(
-            'text-xl font-semibold text-gray-900',
-            'text-xl font-semibold text-white'
-          )}>{modalTitle}</h3>
+          <h3 className={'text-xl font-semibold text-gray-900 text-xl font-semibold text-white'}>{modalTitle}</h3>
           <button
             onClick={handleClose}
-            className={getThemeClasses(
-              'text-gray-400 hover:text-gray-600 text-2xl font-bold',
-              'text-gray-400 hover:text-gray-300 text-2xl font-bold'
-            )}
+            className={'text-gray-400 hover:text-gray-600 text-2xl font-bold text-gray-400 hover:text-gray-300 text-2xl font-bold'}
           >
             ×
           </button>
@@ -462,14 +441,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 min-w-[120px]">
-              <FaTasks className={getThemeClasses(
-                'text-gray-500',
-                'text-gray-400'
-              )} size={16} />
-              <label className={getThemeClasses(
-                'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-white'
-              )}>
+              <FaTasks className={'text-gray-500 text-gray-400'} size={16} />
+              <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                 Name<span className="text-red-500 ml-1">*</span>
               </label>
             </div>
@@ -478,18 +451,12 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value)}
-                className={getThemeClasses(
-                  'w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                  'w-full px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                )}
+                className={'w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 w-full px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'}
                 maxLength={100}
                 required
                 placeholder="Enter task name"
               />
-              <span className={getThemeClasses(
-                'text-xs text-gray-400 text-right mt-1',
-                'text-xs text-gray-500 text-right mt-1'
-              )}>
+              <span className={'text-xs text-gray-400 text-right mt-1 text-xs text-gray-500 text-right mt-1'}>
                 {(name || '').length} / 100
               </span>
             </div>
@@ -497,24 +464,15 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
 
           <div className="flex items-start gap-4">
             <div className="flex items-center gap-2 min-w-[120px] pt-2">
-              <FaAlignLeft className={getThemeClasses(
-                'text-gray-500',
-                'text-gray-400'
-              )} size={16} />
-              <label className={getThemeClasses(
-                'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-white'
-              )}>
+              <FaAlignLeft className={'text-gray-500 text-gray-400'} size={16} />
+              <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                 Description<span className="text-red-500 ml-1">*</span>
               </label>
             </div>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
-              className={getThemeClasses(
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 resize-none',
-                'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500 resize-none'
-              )}
+              className={'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400 resize-none flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500 resize-none'}
               rows={5}
               required
               placeholder="Enter task description"
@@ -523,14 +481,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
 
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 min-w-[120px]">
-              <FaTag className={getThemeClasses(
-                'text-gray-500',
-                'text-gray-400'
-              )} size={16} />
-              <label className={getThemeClasses(
-                'text-sm font-medium text-gray-700',
-                'text-sm font-medium text-white'
-              )}>
+              <FaTag className={'text-gray-500 text-gray-400'} size={16} />
+              <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                 Type<span className="text-red-500 ml-1">*</span>
               </label>
             </div>
@@ -550,14 +502,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
           {type !== 'User Story' && (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 min-w-[120px]">
-                <FaExclamationTriangle className={getThemeClasses(
-                  'text-gray-500',
-                  'text-gray-400'
-                )} size={16} />
-                <label className={getThemeClasses(
-                  'text-sm font-medium text-gray-700',
-                  'text-sm font-medium text-white'
-                )}>
+                <FaExclamationTriangle className={'text-gray-500 text-gray-400'} size={16} />
+                <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                   Priority<span className="text-red-500 ml-1">*</span>
                 </label>
               </div>
@@ -576,14 +522,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
           {type && (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 min-w-[120px]">
-                <FaCalendarAlt className={getThemeClasses(
-                  'text-gray-500',
-                  'text-gray-400'
-                )} size={16} />
-                <label className={getThemeClasses(
-                  'text-sm font-medium text-gray-700',
-                  'text-sm font-medium text-white'
-                )}>
+                <FaCalendarAlt className={'text-gray-500 text-gray-400'} size={16} />
+                <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                   Due Date{type === 'User Story' && <span className="text-red-500 ml-1">*</span>}
                 </label>
               </div>
@@ -592,10 +532,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 min={new Date().toLocaleDateString('en-CA')}
-                className={getThemeClasses(
-                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                  'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-                )}
+                className={'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'}
                 required={type === 'User Story'}
               />
             </div>
@@ -604,14 +541,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
           {mode === 'fromSideBar' && (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 min-w-[120px]">
-                <FaFolder className={getThemeClasses(
-                  'text-gray-500',
-                  'text-gray-400'
-                )} size={16} />
-                <label className={getThemeClasses(
-                  'text-sm font-medium text-gray-700',
-                  'text-sm font-medium text-white'
-                )}>
+                <FaFolder className={'text-gray-500 text-gray-400'} size={16} />
+                <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                   Project<span className="text-red-500 ml-1">*</span>
                 </label>
               </div>
@@ -634,14 +565,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
           {(mode === 'fromProject' || mode === 'fromSideBar') && type !== 'User Story' && (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 min-w-[120px]">
-                <FaList className={getThemeClasses(
-                  'text-gray-500',
-                  'text-gray-400'
-                )} size={16} />
-                <label className={getThemeClasses(
-                  'text-sm font-medium text-gray-700',
-                  'text-sm font-medium text-white'
-                )}>
+                <FaList className={'text-gray-500 text-gray-400'} size={16} />
+                <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                   User Story<span className="text-red-500 ml-1">*</span>
                 </label>
               </div>
@@ -663,8 +588,8 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
           {type !== 'User Story' && Array.isArray(projectMembersToUse) && projectMembersToUse.length > 0 && (
             <div className="mt-3 flex items-center gap-4">
               <div className="flex items-center gap-2 min-w-[120px]">
-                <FaUsers className={getThemeClasses('text-gray-500', 'text-gray-400')} size={16} />
-                <label className={getThemeClasses('text-sm font-medium text-gray-700', 'text-sm font-medium text-white')}>
+                <FaUsers className={'text-gray-500 text-gray-400'} size={16} />
+                <label className={'text-sm font-medium text-gray-700 text-sm font-medium text-white'}>
                   Assign To
                 </label>
               </div>
@@ -677,10 +602,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
                     const fullName = [m.firstName, m.lastName].filter(Boolean).join(' ') || m.fullName || m.email || 'Member';
                     const initials = fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
                     const initialsBadge = (
-                      <span className={getThemeClasses(
-                        'inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-medium border border-blue-200',
-                        'inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-900/40 text-blue-300 text-xs font-medium border border-blue-800/40'
-                      )}>{initials}</span>
+                      <span className={'inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-medium border border-blue-200 inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-900/40 text-blue-300 text-xs font-medium border border-blue-800/40'}>{initials}</span>
                     );
                     return { value: id, label: fullName, initialsBadge };
                   })}
@@ -702,10 +624,7 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
             </div>
           )}
 
-          {error && <div className={getThemeClasses(
-            'text-red-500 text-sm mt-4',
-            'text-red-400 text-sm mt-4'
-          )}>{error}</div>}
+          {error && <div className={'text-red-500 text-sm mt-4 text-red-400 text-sm mt-4'}>{error}</div>}
 
 
 
@@ -713,19 +632,13 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask, onUpdateTask, mode = 'fromSi
             <button
               type="button"
               onClick={handleClose}
-              className={getThemeClasses(
-                'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                'px-6 py-2.5 text-gray-300 hover:bg-dark-hover rounded-xl border border-gray-600 transition-all duration-200'
-              )}
+              className={'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 px-6 py-2.5 text-gray-300 hover:bg-dark-hover rounded-xl border border-gray-600 transition-all duration-200'}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={getThemeClasses(
-                'px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200',
-                'px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200'
-              )}
+              className={'px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200'}
               disabled={loading}
             >
               {loading ? 'Saving...' : (isEditMode ? 'Update Task' : 'Create')}

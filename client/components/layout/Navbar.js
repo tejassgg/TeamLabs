@@ -132,10 +132,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
         {/* Search Trigger (Mobile) */}
         <button
           onClick={onSearchClick}
-          className={`p-1.5 rounded-lg transition-all duration-200 ${theme === 'dark'
-            ? 'text-blue-200 hover:bg-dark-hover'
-            : 'text-blue-600 hover:bg-blue-100'
-            }`}
+          className={`p-1.5 rounded-lg transition-all duration-200 text-blue-600 hover:bg-blue-100 dark:text-blue-200 dark:hover:bg-dark-hover`}
           aria-label="Search organization"
         >
           <FaSearch size={18} />
@@ -144,10 +141,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
         <div className="notifications-container relative">
           <button
             onClick={toggleNotifications}
-            className={`p-1.5 rounded-lg transition-all duration-200 relative ${theme === 'dark'
-              ? 'text-blue-200 hover:bg-dark-hover'
-              : 'text-blue-600 hover:bg-blue-100'
-              }`}
+            className={`p-1.5 rounded-lg transition-all duration-200 relative text-blue-600 hover:bg-blue-100 dark:text-blue-200 dark:hover:bg-dark-hover`}
           >
             <FaBell size={18} />
             {unreadCount > 0 && (
@@ -167,13 +161,10 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
           <div className="relative user-menu-container z-50">
             <button
               onClick={toggleUserMenu}
-              className={`flex items-center space-x-1 p-1.5 rounded-lg transition-all duration-200 ${theme === 'dark'
-                ? 'text-blue-200 hover:bg-dark-hover'
-                : 'text-blue-600 hover:bg-blue-100'
-                }`}
+              className={`flex items-center space-x-1 p-1.5 rounded-lg transition-all duration-200 text-blue-600 hover:bg-blue-100 dark:text-blue-200 dark:hover:bg-dark-hover`}
               aria-label="User profile menu"
             >
-              <div className={`w-8 h-8 rounded-full overflow-hidden shadow-sm ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600'}`}>
+              <div className={`w-8 h-8 rounded-full overflow-hidden shadow-sm bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200`}>
                 {userDetails.profileImage ? (
                   <img
                     src={userDetails.profileImage}
@@ -189,40 +180,28 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
             </button>
             {/* Dropdown Menu */}
             {isUserMenuOpen && (
-              <div className={`absolute right-0 top-full mt-1 w-48 rounded-xl shadow-lg py-1 border z-50 ${theme === 'dark'
-                  ? 'bg-gray-800 text-white border-gray-700'
-                  : 'bg-white text-gray-900 border-gray-200'
-                }`}>
-                <div className={`px-4 py-2 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className={`absolute right-0 top-full mt-1 w-48 rounded-xl shadow-lg py-1 border z-50 bg-white text-gray-900 border-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-700`}>
+                <div className={`px-4 py-2 border-b border-gray-200 dark:border-gray-700`}>
                   <p className="font-medium text-sm truncate">{userDetails.firstName} {userDetails.lastName}</p>
                   <p className="text-xs text-gray-400 truncate">{userDetails.email}</p>
                 </div>
                 <Link
                   href="/profile"
-                  className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${theme === 'dark'
-                      ? 'hover:bg-dark-hover text-gray-300 hover:text-white'
-                      : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                    }`}
+                  className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 hover:bg-gray-100 text-gray-700 hover:text-gray-900 dark:hover:bg-dark-hover dark:text-gray-300 dark:hover:text-white`}
                 >
                   <FaUser size={16} />
                   <span>Profile</span>
                 </Link>
                 <Link
                   href="/settings"
-                  className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${theme === 'dark'
-                      ? 'hover:bg-dark-hover text-gray-300 hover:text-white'
-                      : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                    }`}
+                  className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 hover:bg-gray-100 text-gray-700 hover:text-gray-900 dark:hover:bg-dark-hover dark:text-gray-300 dark:hover:text-white`}
                 >
                   <FaCog size={16} />
                   <span>Settings</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className={`w-full flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${theme === 'dark'
-                      ? 'hover:bg-dark-hover text-red-400 hover:text-red-300'
-                      : 'hover:bg-gray-100 text-red-600 hover:text-red-700'
-                    }`}
+                  className={`w-full flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 hover:bg-gray-100 text-red-600 hover:text-red-700 dark:hover:bg-dark-hover dark:text-red-400 dark:hover:text-red-300`}
                 >
                   <FaSignOutAlt size={16} />
                   <span>Logout</span>
@@ -235,7 +214,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
     );
   }
   return (
-    <nav className={`${theme === 'dark' ? 'bg-dark-bg text-white border-gray-700' : 'bg-white text-gray-900 border-gray-200'} border-b`}>
+    <nav className={`bg-white text-gray-900 border-gray-200 dark:bg-dark-bg dark:text-white dark:border-gray-700 border-b`}>
       <div className="mx-auto">
         <div className="flex justify-between items-center h-16 ml-2">
           {/* Left side - Logo */}
@@ -257,10 +236,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
             <button
               onClick={onSearchClick}
               className={`hidden md:flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition-all duration-200 cursor-pointer shadow-sm
-                ${theme === 'dark'
-                  ? 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-dark-hover hover:text-white'
-                  : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-900'
-                }
+                bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-dark-hover dark:hover:text-white
               `}
             // title="What are you looking for?"
             >
@@ -268,13 +244,13 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
               <span className="font-medium text-xs text-gray-400 dark:text-gray-500">What are you looking for?</span>
               <div className="flex items-center gap-1 ml-2">
                 <kbd className={`px-1 py-0.2 rounded text-xs font-sans border shadow-sm select-none
-                  ${theme === 'dark' ? 'bg-gray-900 border-gray-800 text-gray-500' : 'bg-white border-gray-200 text-gray-400'}
+                  bg-white border-gray-200 text-gray-400 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-500
                 `}>
                   ⌘
                 </kbd>
                 <span className="text-xs text-gray-400 select-none">+</span>
                 <kbd className={`px-1.5 py-0.2 rounded text-xs font-sans border shadow-sm select-none
-                  ${theme === 'dark' ? 'bg-gray-900 border-gray-800 text-gray-500' : 'bg-white border-gray-200 text-gray-400'}
+                  bg-white border-gray-200 text-gray-400 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-500
                 `}>
                   /
                 </kbd>
@@ -290,10 +266,7 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
             <div className="notifications-container relative">
               <button
                 onClick={toggleNotifications}
-                className={`p-2 rounded-full transition-all duration-200 relative ${theme === 'dark'
-                  ? 'text-blue-200 hover:bg-dark-hover'
-                  : 'text-blue-600 hover:bg-blue-100'
-                  }`}
+                className={`p-2 rounded-full transition-all duration-200 relative text-blue-600 hover:bg-blue-100 dark:text-blue-200 dark:hover:bg-dark-hover`}
               >
                 <FaBell size={mobileScreen ? 18 : 20} />
                 {unreadCount > 0 && (
@@ -313,12 +286,9 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
               <div className="relative user-menu-container">
                 <button
                   onClick={toggleUserMenu}
-                  className={`flex items-center space-x-2 px-2 lg:px-3 py-2 rounded-xl transition-all duration-200 ${theme === 'dark'
-                    ? 'text-blue-200 hover:bg-dark-hover'
-                    : 'text-blue-600 hover:bg-blue-100'
-                    }`}
+                  className={`flex items-center space-x-2 px-2 lg:px-3 py-2 rounded-xl transition-all duration-200 text-blue-600 hover:bg-blue-100 dark:text-blue-200 dark:hover:bg-dark-hover`}
                 >
-                  <div className={`w-8 h-8 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600'}`}>
+                  <div className={`w-8 h-8 rounded-full overflow-hidden bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200`}>
                     {userDetails.profileImage ? (
                       <img
                         src={userDetails.profileImage}
@@ -336,40 +306,28 @@ const Navbar = ({ isMobile, theme, onLogout, pageTitle, onSearchClick }) => {
                 </button>
                 {/* Dropdown Menu */}
                 {isUserMenuOpen && (
-                  <div className={`absolute right-0 mt-2 w-48 rounded-xl shadow-lg py-1 border z-50 ${theme === 'dark'
-                      ? 'bg-gray-800 text-white border-gray-700'
-                      : 'bg-white text-gray-900 border-gray-200'
-                    }`}>
-                    <div className={`px-4 py-2 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                  <div className={`absolute right-0 mt-2 w-48 rounded-xl shadow-lg py-1 border z-50 bg-white text-gray-900 border-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-700`}>
+                    <div className={`px-4 py-2 border-b border-gray-200 dark:border-gray-700`}>
                       <p className="font-medium text-sm truncate">{userDetails.firstName} {userDetails.lastName}</p>
                       <p className="text-xs text-gray-400 truncate">{userDetails.email}</p>
                     </div>
                     <Link
                       href="/profile"
-                      className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${theme === 'dark'
-                          ? 'hover:bg-dark-hover text-gray-300 hover:text-white'
-                          : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                        }`}
+                      className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 hover:bg-gray-100 text-gray-700 hover:text-gray-900 dark:hover:bg-dark-hover dark:text-gray-300 dark:hover:text-white`}
                     >
                       <FaUser size={16} />
                       <span>Profile</span>
                     </Link>
                     <Link
                       href="/settings"
-                      className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${theme === 'dark'
-                          ? 'hover:bg-dark-hover text-gray-300 hover:text-white'
-                          : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                        }`}
+                      className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 hover:bg-gray-100 text-gray-700 hover:text-gray-900 dark:hover:bg-dark-hover dark:text-gray-300 dark:hover:text-white`}
                     >
                       <FaCog size={16} />
                       <span>Settings</span>
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className={`w-full flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 ${theme === 'dark'
-                          ? 'hover:bg-dark-hover text-red-400 hover:text-red-300'
-                          : 'hover:bg-gray-100 text-red-600 hover:text-red-700'
-                        }`}
+                      className={`w-full flex items-center space-x-2 px-4 py-2 text-sm transition-colors duration-200 hover:bg-gray-100 text-red-600 hover:text-red-700 dark:hover:bg-dark-hover dark:text-red-400 dark:hover:text-red-300`}
                     >
                       <FaSignOutAlt size={16} />
                       <span>Logout</span>

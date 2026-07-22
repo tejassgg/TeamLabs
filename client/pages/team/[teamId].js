@@ -13,7 +13,6 @@ import TeamDetailsSkeleton from '../../components/skeletons/TeamDetailsSkeleton'
 import { subscribe } from '../../services/socket';
 import Link from 'next/link';
 import { useToast } from '../../context/ToastContext';
-import { useThemeClasses } from '../../components/shared/hooks/useThemeClasses';
 import StatusPill from '../../components/shared/StatusPill';
 
 const TeamDetailsPage = () => {
@@ -22,8 +21,7 @@ const TeamDetailsPage = () => {
   const { teamId } = router.query;
   const { teams, setTeams, getProjectStatusBadgeComponent, getProjectStatusStyle, getProjectStatus, getDaysBadgeColor, getUserInitials, getDeadlineStatusComponent, isMe } = useGlobal();
   const { theme } = useTheme();
-  const getThemeClasses = useThemeClasses();
-  const { showToast } = useToast();
+    const { showToast } = useToast();
   const { formatDateWithTime, calculateMeetingDays } = require('../../utils/dateUtils');
 
   const tableTextClasses = getTableTextClasses();
@@ -60,8 +58,7 @@ const TeamDetailsPage = () => {
     TeamName: '',
     TeamDescription: '',
     TeamType: '',
-    TeamColor: '',
-  });
+    TeamColor: '' });
   const [savingSettings, setSavingSettings] = useState(false);
   const [teamTypes, setTeamTypes] = useState([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -129,10 +126,10 @@ const TeamDetailsPage = () => {
   };
 
   const getTasksSortIcon = (key) => {
-    if (tasksSortKey !== key) return <FaSort className={getThemeClasses('text-gray-400', 'text-gray-500')} size={12} />;
+    if (tasksSortKey !== key) return <FaSort className={'text-gray-400 text-gray-500'} size={12} />;
     return tasksSortDir === 'asc'
-      ? <FaSortUp className={getThemeClasses('text-blue-600', 'text-blue-400')} size={12} />
-      : <FaSortDown className={getThemeClasses('text-blue-600', 'text-blue-400')} size={12} />;
+      ? <FaSortUp className={'text-blue-600 text-blue-400'} size={12} />
+      : <FaSortDown className={'text-blue-600 text-blue-400'} size={12} />;
   };
 
   const priorityRank = (p) => {
@@ -964,7 +961,7 @@ const TeamDetailsPage = () => {
     <>
       <Head>
         <title>{`Team - ${team?.TeamName || 'Loading...'} | TeamLabs`}</title>
-        <meta name="theme-color" content={theme === 'dark' ? '#1F2937' : '#FFFFFF'} />
+        <meta name="theme-color" content="#FFFFFF dark:#1F2937" />
       </Head>
       <div className="mx-auto">
 
@@ -972,14 +969,8 @@ const TeamDetailsPage = () => {
           <TeamDetailsSkeleton />
         ) : error ? (
           <div className="flex items-center justify-center py-16">
-            <div className={getThemeClasses(
-              'max-w-xl w-full mx-4 rounded-2xl border bg-white text-gray-800',
-              'max-w-xl w-full mx-4 rounded-2xl border border-gray-700 bg-[#111214] text-gray-100'
-            )}>
-              <div className={getThemeClasses(
-                'p-6 border-b border-gray-200',
-                'p-6 border-b border-gray-800'
-              )}>
+            <div className={'max-w-xl w-full mx-4 rounded-2xl border bg-white text-gray-800 max-w-xl w-full mx-4 rounded-2xl border border-gray-700 bg-[#111214] text-gray-100'}>
+              <div className={'p-6 border-b border-gray-200 p-6 border-b border-gray-800'}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/10 text-red-600 dark:text-red-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.721-1.36 3.486 0l6.518 11.59c.75 1.335-.213 3.01-1.743 3.01H3.482c-1.53 0-2.493-1.675-1.743-3.01L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a1 1 0 01-1-1V8a1 1 0 112 0v3a1 1 0 01-1 1z" clipRule="evenodd" /></svg>
@@ -993,10 +984,7 @@ const TeamDetailsPage = () => {
               <div className="p-6 flex flex-col sm:flex-row gap-3 sm:justify-end">
                 <button
                   onClick={() => router.push('/dashboard')}
-                  className={getThemeClasses(
-                    'w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-700',
-                    'w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-700 hover:bg-gray-800 text-gray-200'
-                  )}
+                  className={'w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-700 w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-700 hover:bg-gray-800 text-gray-200'}
                 >
                   Go to Dashboard
                 </button>
@@ -1007,38 +995,23 @@ const TeamDetailsPage = () => {
           <>
             <div className="flex flex-col lg:flex-row lg:justify-between gap-4 mb-4">
               {/* Team Description - Desktop View */}
-              <div className={getThemeClasses(
-                `hidden md:flex ${showJoinRequests ? 'w-1/3' : 'w-full'} md:items-start justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm h-fit`,
-                'dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none'
-              )}>
+              <div className={`hidden md:flex ${showJoinRequests ? 'w-1/3' : 'w-full'} md:items-start justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm h-fit dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none`}>
                 <div className="flex gap-3 flex-1 min-w-0">
-                  <div className={getThemeClasses(
-                    'flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center',
-                    'dark:bg-blue-900/50'
-                  )}>
+                  <div className={'flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center dark:bg-blue-900/50'}>
                     <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className={getThemeClasses(
-                      'text-sm font-semibold text-primary mb-1',
-                      'dark:text-blue-300'
-                    )}>
+                    <h3 className={'text-sm font-semibold text-primary mb-1 dark:text-blue-300'}>
                       Team Description
                     </h3>
                     {team.TeamDescription ? (
-                      <p className={getThemeClasses(
-                        'text-sm text-blue-700 leading-relaxed break-words',
-                        'dark:text-blue-200'
-                      )}>
+                      <p className={'text-sm text-blue-700 leading-relaxed break-words dark:text-blue-200'}>
                         {team.TeamDescription}
                       </p>
                     ) : (
-                      <p className={getThemeClasses(
-                        'text-sm text-blue-600 italic',
-                        'dark:text-blue-300'
-                      )}>
+                      <p className={'text-sm text-blue-600 italic dark:text-blue-300'}>
                         No description provided
                       </p>
                     )}
@@ -1048,10 +1021,7 @@ const TeamDetailsPage = () => {
                 <div className="flex items-center gap-2 flex-shrink-0 ml-4">
                   <StatusPill status={team.IsActive ? 'Active' : 'InActive'} theme={theme} showPulseOnActive />
                   {team.teamTypeValue && (
-                    <div className={getThemeClasses(
-                      'inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200',
-                      'dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50'
-                    )}>
+                    <div className={'inline-flex items-center gap-1.5 px-1.5 py-1 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50'}>
                       {team.teamTypeValue}
                     </div>
                   )}
@@ -1059,20 +1029,14 @@ const TeamDetailsPage = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={handleOpenSettingsModal}
-                        className={getThemeClasses(
-                          'p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors',
-                          'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-dark-hover'
-                        )}
+                        className={'p-1.5 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-dark-hover'}
                         title="Team Settings"
                       >
                         <FaCog size={20} />
                       </button>
                       <button
                         onClick={() => setShowLeaveTeamDialog(true)}
-                        className={getThemeClasses(
-                          'p-1.5 text-gray-500 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors',
-                          'dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-dark-hover'
-                        )}
+                        className={'p-1.5 text-gray-500 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-dark-hover'}
                         title={isOwner ? 'Transfer Admin & Leave' : 'Leave Team'}
                       >
                         <FaSignOutAlt size={20} />
@@ -1083,39 +1047,24 @@ const TeamDetailsPage = () => {
               </div>
 
               {/* Team Description - Mobile View */}
-              <div className={getThemeClasses(
-                'md:hidden bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm h-fit',
-                'dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none'
-              )}>
+              <div className={'md:hidden bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm h-fit dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700/50 dark:shadow-none'}>
                 {/* Description Section */}
                 <div className="flex items-start gap-3 mb-4">
-                  <div className={getThemeClasses(
-                    'flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center',
-                    'dark:bg-blue-900/50'
-                  )}>
+                  <div className={'flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center dark:bg-blue-900/50'}>
                     <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className={getThemeClasses(
-                      'text-sm font-semibold text-primary mb-2',
-                      'dark:text-blue-300'
-                    )}>
+                    <h3 className={'text-sm font-semibold text-primary mb-2 dark:text-blue-300'}>
                       Team Description
                     </h3>
                     {team.TeamDescription ? (
-                      <p className={getThemeClasses(
-                        'text-sm text-blue-700 leading-relaxed break-words',
-                        'dark:text-blue-200'
-                      )}>
+                      <p className={'text-sm text-blue-700 leading-relaxed break-words dark:text-blue-200'}>
                         {team.TeamDescription}
                       </p>
                     ) : (
-                      <p className={getThemeClasses(
-                        'text-sm text-blue-600 italic',
-                        'dark:text-blue-300'
-                      )}>
+                      <p className={'text-sm text-blue-600 italic dark:text-blue-300'}>
                         No description provided
                       </p>
                     )}
@@ -1127,10 +1076,7 @@ const TeamDetailsPage = () => {
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusPill status={team.IsActive ? 'Active' : 'InActive'} theme={theme} showPulseOnActive />
                     {team.teamTypeValue && (
-                      <div className={getThemeClasses(
-                        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200',
-                        'dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50'
-                      )}>
+                      <div className={'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50'}>
                         {team.teamTypeValue}
                       </div>
                     )}
@@ -1139,20 +1085,14 @@ const TeamDetailsPage = () => {
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
                         onClick={handleOpenSettingsModal}
-                        className={getThemeClasses(
-                          'p-2 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors',
-                          'dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-dark-hover'
-                        )}
+                        className={'p-2 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-dark-hover'}
                         title="Team Settings"
                       >
                         <FaCog size={18} />
                       </button>
                       <button
                         onClick={() => setShowLeaveTeamDialog(true)}
-                        className={getThemeClasses(
-                          'p-2 text-gray-500 hover:text-orange-500 rounded-full hover:bg-gray-100 transition-colors',
-                          'dark:text-gray-400 dark:hover:text-orange-400 dark:hover:bg-dark-hover'
-                        )}
+                        className={'p-2 text-gray-500 hover:text-orange-500 rounded-full hover:bg-gray-100 transition-colors dark:text-gray-400 dark:hover:text-orange-400 dark:hover:bg-dark-hover'}
                         title={isOwner ? 'Transfer Admin & Leave' : 'Leave Team'}
                       >
                         <FaSignOutAlt size={18} />
@@ -1164,8 +1104,8 @@ const TeamDetailsPage = () => {
               {/* Join Requests Table (Owner/Admin only) */}
               {showJoinRequests && (
                 <div className='rounded-xl sm:w-2/3 w-full'>
-                  <h2 className={getThemeClasses('text-xl mb-2 font-semibold text-gray-900', 'dark:text-gray-100')}>Join Requests</h2>
-                  <div className={`overflow-x-auto custom-scrollbar rounded-xl border overflow-hidden ${getThemeClasses('border-gray-200 bg-white shadow-sm', 'dark:border-zinc-800/80 dark:bg-dark-bg dark:shadow-none')}`}>
+                  <h2 className={'text-xl mb-2 font-semibold text-gray-900 dark:text-gray-100'}>Join Requests</h2>
+                  <div className={`overflow-x-auto custom-scrollbar rounded-xl border overflow-hidden ${'border-gray-200 bg-white shadow-sm dark:border-zinc-800/80 dark:bg-dark-bg dark:shadow-none'}`}>
                     {loading ? (
                       <div className="p-4">Loading requests...</div>
                     ) : joinRequests.length === 0 ? (
@@ -1173,7 +1113,7 @@ const TeamDetailsPage = () => {
                     ) : (
                       <table className="w-full">
                         <thead>
-                          <tr className={"border-b " + getThemeClasses('border-gray-200 bg-gray-50', 'dark:border-zinc-800/80 dark:bg-[#111113]')}>
+                          <tr className={"border-b " + 'border-gray-200 bg-gray-50 dark:border-zinc-800/80 dark:bg-[#111113]'}>
                             <th className="py-3 px-4 text-left">User Details</th>
                             <th className="py-3 px-4 text-left hidden sm:table-cell">Status</th>
                             <th className="py-3 px-4 text-left hidden sm:table-cell">Requested At</th>
@@ -1182,35 +1122,23 @@ const TeamDetailsPage = () => {
                         </thead>
                         <tbody>
                           {joinRequests.map(req => (
-                            <tr key={req._id} className={"border-b transition-colors last:border-b-0 " + getThemeClasses('border-gray-100 hover:bg-gray-50/50', 'dark:border-zinc-800/80 dark:hover:bg-[#232329]/40')}>
+                            <tr key={req._id} className={"border-b transition-colors last:border-b-0 " + 'border-gray-100 hover:bg-gray-50/50 dark:border-zinc-800/80 dark:hover:bg-[#232329]/40'}>
                               <td className="py-2 px-4">
                                 <div className="flex items-center gap-3">
-                                  <div className={getThemeClasses(
-                                    'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium',
-                                    'dark:bg-blue-900/50 dark:text-blue-300'
-                                  )}>
+                                  <div className={'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium dark:bg-blue-900/50 dark:text-blue-300'}>
                                     {getUserInitials(req.userId?.fullName)}
                                   </div>
                                   <div className="flex flex-col">
-                                    <span className={getThemeClasses(
-                                      'font-medium text-gray-900',
-                                      'dark:text-gray-100'
-                                    )}>
+                                    <span className={'font-medium text-gray-900 dark:text-gray-100'}>
                                       {req.userId?.fullName
                                       }
                                     </span>
-                                    <span className={getThemeClasses(
-                                      'text-sm text-gray-500',
-                                      'dark:text-gray-400'
-                                    )}>
+                                    <span className={'text-sm text-gray-500 dark:text-gray-400'}>
                                       {req.userId?.email}
                                     </span>
                                     <div className="flex items-center gap-2 mt-1">
                                       {req.userId?.role && (
-                                        <span className={getThemeClasses(
-                                          'text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700',
-                                          'dark:bg-blue-900/30 dark:text-blue-300'
-                                        )}>
+                                        <span className={'text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}>
                                           {req.userId?.role}
                                         </span>
                                       )}
@@ -1231,10 +1159,7 @@ const TeamDetailsPage = () => {
                               <td className="py-2 px-4">
                                 <div className="flex items-center gap-2">
                                   <button
-                                    className={getThemeClasses(
-                                      'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed',
-                                      'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70'
-                                    )}
+                                    className={'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70'}
                                     onClick={() => handleAcceptRequest(req._id, req.userId?._id)}
                                     disabled={processingRequest === req._id + '-accept'}
                                     title="Accept Request"
@@ -1242,10 +1167,7 @@ const TeamDetailsPage = () => {
                                     <FaCheck size={14} />
                                   </button>
                                   <button
-                                    className={getThemeClasses(
-                                      'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed',
-                                      'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
-                                    )}
+                                    className={'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'}
                                     onClick={() => handleRejectRequest(req._id)}
                                     disabled={processingRequest === req._id + '-reject'}
                                     title="Reject Request"
@@ -1266,45 +1188,39 @@ const TeamDetailsPage = () => {
             </div>
 
             {/* Meetings Section */}
-            <div className={getThemeClasses('rounded-xl mb-4', 'dark:border-gray-700')}>
-              <div className={getThemeClasses('flex mb-2 items-center justify-between', 'dark:border-gray-700')}>
-                <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Team Meetings</h2>
+            <div className={'rounded-xl mb-4 dark:border-gray-700'}>
+              <div className={'flex mb-2 items-center justify-between dark:border-gray-700'}>
+                <h2 className={'text-xl font-semibold text-gray-900 dark:text-gray-100'}>Team Meetings</h2>
                 <button
                   onClick={openCreateMeeting}
-                  className={getThemeClasses(
-                    'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                    'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
-                  )}
+                  className={'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'}
                 >
                   <FaPlus size={14} /> Meeting
                 </button>
               </div>
               <div>
                 {loadingMeetings ? (
-                  <div className={getThemeClasses('text-gray-500', 'dark:text-gray-400')}>Loading meetings...</div>
+                  <div className={'text-gray-500 dark:text-gray-400'}>Loading meetings...</div>
                 ) : meetings.length === 0 ? (
-                  <div className={getThemeClasses('text-gray-500', 'dark:text-gray-400')}>No meetings yet.</div>
+                  <div className={'text-gray-500 dark:text-gray-400'}>No meetings yet.</div>
                 ) : (
                   <div className="flex flex-col sm:flex-row items-center justify-unset gap-4">
                     {meetings.map(m => {
                       const meetingDays = calculateMeetingDays(m.StartTime || m.startTime);
 
                       return (
-                        <div key={m.MeetingID} className={getThemeClasses('rounded-xl border border-gray-200 p-4 cursor-pointer hover:shadow-sm transition', 'dark:border-gray-700')} onClick={() => openMeetingDetails(m.MeetingID)}>
+                        <div key={m.MeetingID} className={'rounded-xl border border-gray-200 p-4 cursor-pointer hover:shadow-sm transition dark:border-gray-700'} onClick={() => openMeetingDetails(m.MeetingID)}>
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex-1">
-                              <div className={getThemeClasses('text-lg font-semibold text-gray-900 mb-1', 'dark:text-gray-100')}>{m.Title}</div>
-                              <div className={getThemeClasses('text-sm text-gray-600 line-clamp-2', 'dark:text-gray-400')}>{m.Description || 'No description'}</div>
+                              <div className={'text-lg font-semibold text-gray-900 mb-1 dark:text-gray-100'}>{m.Title}</div>
+                              <div className={'text-sm text-gray-600 line-clamp-2 dark:text-gray-400'}>{m.Description || 'No description'}</div>
                             </div>
                             {/* Actions section similar to Team Members */}
                             {m.OrganizerID === userDetails?._id && (
                               <div className="flex items-center justify-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
                                 <button
                                   onClick={(e) => handleDeleteMeeting(m.MeetingID, e)}
-                                  className={getThemeClasses(
-                                    'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
-                                    'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
-                                  )}
+                                  className={'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'}
                                   title="Delete meeting"
                                 >
                                   <FaTrash size={12} />
@@ -1312,24 +1228,21 @@ const TeamDetailsPage = () => {
                               </div>
                             )}
                           </div>
-                          <div className={getThemeClasses('mt-2 flex items-center gap-3 rounded-lg border border-gray-200 p-3', 'dark:border-gray-700')}>
-                            <FaClock className={getThemeClasses('text-gray-500', 'dark:text-gray-400')} />
-                            <div className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
+                          <div className={'mt-2 flex items-center gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700'}>
+                            <FaClock className={'text-gray-500 dark:text-gray-400'} />
+                            <div className={'text-sm text-gray-900 dark:text-gray-100'}>
                               {formatDateWithTime(m.StartTime || m.startTime)}
                             </div>
-                            <FaArrowRight className={getThemeClasses('text-gray-400', 'dark:text-gray-500')} />
-                            <div className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
+                            <FaArrowRight className={'text-gray-400 dark:text-gray-500'} />
+                            <div className={'text-sm text-gray-900 dark:text-gray-100'}>
                               {formatDateWithTime(m.EndTime || m.endTime)}
                             </div>
                           </div>
                           <div className="mt-2 flex items-center justify-between">
                             {m.GoogleMeetLink && (
-                              <a href={m.GoogleMeetLink} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className={getThemeClasses(
-                                meetingDays.status === 'past' || meetingDays.status === 'yesterday'
+                              <a href={m.GoogleMeetLink} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className={`${meetingDays.status === 'past' || meetingDays.status === 'yesterday'
                                   ? 'text-red-600 cursor-not-allowed'
-                                  : 'text-blue-600 hover:underline',
-                                'dark:text-red-400'
-                              )}>
+                                  : 'text-blue-600 hover:underline'} dark:text-red-400`}>
                                 {meetingDays.status === 'past' || meetingDays.status === 'yesterday' ? 'Expired' : 'Join Meeting'}
                               </a>
                             )}
@@ -1359,16 +1272,13 @@ const TeamDetailsPage = () => {
               {/* Members Table */}
               <div>
                 <div className="flex items-center justify-between gap-4 mb-2">
-                  <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Members</h2>
+                  <h2 className={'text-xl font-semibold text-gray-900 dark:text-gray-100'}>Members</h2>
                   {isOwner && (
                     <form onSubmit={(e) => { e.preventDefault(); if (selectedUser) { setUserToAdd(selectedUser); setShowAddMemberDialog(true); } }} className="relative">
                       <div className="flex items-center gap-2">
                         <input
                           type="text"
-                          className={getThemeClasses(
-                            'border border-gray-200 rounded-xl px-4 py-2 w-64 text-sm font-medium shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200',
-                            'dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
-                          )}
+                          className={'border border-gray-200 rounded-xl px-4 py-2 w-64 text-sm font-medium shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'}
                           value={search}
                           onChange={e => {
                             setSearch(e.target.value);
@@ -1394,10 +1304,7 @@ const TeamDetailsPage = () => {
                         {selectedUser && (
                           <button
                             type="submit"
-                            className={getThemeClasses(
-                              'px-3 py-2 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
-                              'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-                            )}
+                            className={'px-3 py-2 text-sm text-white font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'}
                             title="Add selected member to team"
                           >
                             Add
@@ -1406,23 +1313,14 @@ const TeamDetailsPage = () => {
                       </div>
                       {isInputFocused && filteredUsers.length > 0 && (
                         <div className="absolute top-full right-0 z-50 mt-1 w-[22rem]">
-                          <ul className={getThemeClasses(
-                            'border rounded-xl bg-white max-h-60 overflow-y-auto shadow-lg border-gray-200',
-                            'dark:bg-gray-800 dark:border-gray-700'
-                          )}>
+                          <ul className={'border rounded-xl bg-white max-h-60 overflow-y-auto shadow-lg border-gray-200 dark:bg-gray-800 dark:border-gray-700'}>
                             {filteredUsers.map((user, index) => (
                               <li
                                 key={`${user._id}-${index}`}
-                                className={getThemeClasses(
-                                  'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150',
-                                  'dark:border-gray-700'
-                                )}
+                                className={'px-4 py-2.5 border-b last:border-b-0 transition-colors duration-150 dark:border-gray-700'}
                               >
                                 <div className="flex items-center justify-between gap-2">
-                                  <div className={getThemeClasses(
-                                    'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2',
-                                    'dark:hover:bg-blue-900/30'
-                                  )}
+                                  <div className={'flex-1 cursor-pointer hover:bg-blue-50 rounded-lg p-2 dark:hover:bg-blue-900/30'}
                                     onClick={() => {
                                       setSelectedUser(user);
                                       setSearch(user.firstName + ' ' + user.lastName + ' (' + user.email + ')');
@@ -1430,22 +1328,13 @@ const TeamDetailsPage = () => {
                                     }}
                                   >
                                     <div className="flex flex-col">
-                                      <div className={getThemeClasses(
-                                        'font-medium text-gray-900',
-                                        'dark:text-gray-100'
-                                      )}>
+                                      <div className={'font-medium text-gray-900 dark:text-gray-100'}>
                                         {user.firstName} {user.lastName}
                                       </div>
-                                      <div className={getThemeClasses(
-                                        'text-sm text-gray-600',
-                                        'dark:text-gray-400'
-                                      )}>
+                                      <div className={'text-sm text-gray-600 dark:text-gray-400'}>
                                         {user.email}
                                       </div>
-                                      <div className={getThemeClasses(
-                                        'text-xs text-gray-400 mt-0.5',
-                                        'dark:text-gray-500'
-                                      )}>
+                                      <div className={'text-xs text-gray-400 mt-0.5 dark:text-gray-500'}>
                                         ID: {user._id}
                                       </div>
                                     </div>
@@ -1453,7 +1342,7 @@ const TeamDetailsPage = () => {
                                   <button
                                     type="button"
                                     onClick={() => { setUserToAdd(user); setShowAddMemberDialog(true); }}
-                                    className={getThemeClasses('ml-2 p-2 text-sm text-blue-700 font-medium rounded-full transition-all duration-200 bg-blue-100 hover:bg-blue-600 hover:text-white shadow-sm', 'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800')} >
+                                    className={'ml-2 p-2 text-sm text-blue-700 font-medium rounded-full transition-all duration-200 bg-blue-100 hover:bg-blue-600 hover:text-white shadow-sm dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'} >
                                     <FaPlus size={14} />
                                   </button>
                                 </div>
@@ -1464,10 +1353,7 @@ const TeamDetailsPage = () => {
                             <button
                               type="button"
                               onClick={() => setShowAllUsers(true)}
-                              className={getThemeClasses(
-                                'w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200',
-                                'dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30'
-                              )}
+                              className={'w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 rounded-xl transition-colors duration-200 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30'}
                             >
                               Show All Users ({orgUsers.length})
                             </button>
@@ -1478,27 +1364,18 @@ const TeamDetailsPage = () => {
                   )}
                   {selectedMembers.length > 0 && (
                     <div className="flex items-center gap-3">
-                      <div className={getThemeClasses(
-                        'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
-                        'dark:bg-blue-900/30 dark:text-blue-300'
-                      )}>
+                      <div className={'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}>
                         <span className="text-sm font-medium">{selectedMembers.length} selected</span>
                         <button
                           onClick={() => setSelectedMembers([])}
-                          className={getThemeClasses(
-                            'p-1 hover:bg-blue-100 rounded-full transition-colors',
-                            'dark:hover:bg-blue-900/50'
-                          )}
+                          className={'p-1 hover:bg-blue-100 rounded-full transition-colors dark:hover:bg-blue-900/50'}
                         >
                           <FaTimes size={14} />
                         </button>
                       </div>
                       <button
                         onClick={() => setShowBulkRemoveDialog(true)}
-                        className={getThemeClasses(
-                          'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors',
-                          'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
-                        )}
+                        className={'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'}
                       >
                         <FaTrash size={14} />
                         Remove Selected
@@ -1506,47 +1383,29 @@ const TeamDetailsPage = () => {
                     </div>
                   )}
                 </div>
-                <div className={`overflow-x-auto custom-scrollbar rounded-xl border overflow-hidden ${getThemeClasses('border-gray-200 bg-white shadow-sm', 'dark:border-zinc-800/80 dark:bg-dark-bg dark:shadow-none')}`}>
+                <div className={`overflow-x-auto custom-scrollbar rounded-xl border overflow-hidden ${'border-gray-200 bg-white shadow-sm dark:border-zinc-800/80 dark:bg-dark-bg dark:shadow-none'}`}>
                   <table className="w-full">
                     <thead>
-                      <tr className={"border-b " + getThemeClasses('border-gray-200 bg-gray-50', 'dark:border-zinc-800/80 dark:bg-[#111113]')}>
+                      <tr className={"border-b " + 'border-gray-200 bg-gray-50 dark:border-zinc-800/80 dark:bg-[#111113]'}>
                         {isOwner && (
                           <th className="py-3 px-4 hidden sm:table-cell text-center w-[50px]">
                             <input
                               type="checkbox"
                               checked={selectedMembers.length === members.filter(m => m.MemberID !== team.OwnerID).length}
                               onChange={handleSelectAll}
-                              className={getThemeClasses(
-                                'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                                'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
-                              )}
+                              className={'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'}
                             />
                           </th>
                         )}
-                        <th className={getThemeClasses(
-                          'py-3 px-4 text-left w-[300px] text-gray-700',
-                          'dark:text-gray-300'
-                        )}>Member</th>
-                        <th className={getThemeClasses(
-                          'hidden md:table-cell py-3 px-4 text-left w-[200px] text-gray-700',
-                          'dark:text-gray-300'
-                        )}>Date Added</th>
-                        <th className={getThemeClasses(
-                          'hidden md:table-cell py-3 px-4 text-center w-[150px] text-gray-700',
-                          'dark:text-gray-300'
-                        )}>Status</th>
-                        {isOwner && <th className={getThemeClasses(
-                          'py-3 px-4 text-center w-[150px] text-gray-700',
-                          'dark:text-gray-300'
-                        )}>Actions</th>}
+                        <th className={'py-3 px-4 text-left w-[300px] text-gray-700 dark:text-gray-300'}>Member</th>
+                        <th className={'hidden md:table-cell py-3 px-4 text-left w-[200px] text-gray-700 dark:text-gray-300'}>Date Added</th>
+                        <th className={'hidden md:table-cell py-3 px-4 text-center w-[150px] text-gray-700 dark:text-gray-300'}>Status</th>
+                        {isOwner && <th className={'py-3 px-4 text-center w-[150px] text-gray-700 dark:text-gray-300'}>Actions</th>}
                       </tr>
                     </thead>
                     <tbody>
                       {members.map(member => (
-                        <tr key={member.TeamDetailsID} className={"border-b transition-colors last:border-b-0 " + getThemeClasses(
-                          'border-gray-100 hover:bg-gray-50/50',
-                          'dark:border-zinc-800/80 dark:hover:bg-[#232329]/40'
-                        )}>
+                        <tr key={member.TeamDetailsID} className={"border-b transition-colors last:border-b-0 " + 'border-gray-100 hover:bg-gray-50/50 dark:border-zinc-800/80 dark:hover:bg-[#232329]/40'}>
                           {isOwner && (
                             <td className="py-3 px-4 text-center hidden sm:table-cell">
                               {member.MemberID !== team.OwnerID && (
@@ -1554,43 +1413,28 @@ const TeamDetailsPage = () => {
                                   type="checkbox"
                                   checked={selectedMembers.includes(member.MemberID)}
                                   onChange={() => handleSelectMember(member.MemberID)}
-                                  className={getThemeClasses(
-                                    'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                                    'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
-                                  )}
+                                  className={'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'}
                                 />
                               )}
                             </td>
                           )}
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-3">
-                              <div className={getThemeClasses(
-                                'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium',
-                                'dark:bg-blue-900/50 dark:text-blue-300'
-                              )}>
+                              <div className={'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium dark:bg-blue-900/50 dark:text-blue-300'}>
                                 {member.name.split(' ').map(n => n[0]).join('')}
                               </div>
                               <div className="flex flex-col">
-                                <span className={getThemeClasses(
-                                  'font-medium text-gray-900',
-                                  'dark:text-gray-100'
-                                )}>{member.name}</span>
-                                <span className={getThemeClasses(
-                                  'text-sm text-gray-500',
-                                  'dark:text-gray-400'
-                                )}>{member.email}</span>
+                                <span className={'font-medium text-gray-900 dark:text-gray-100'}>{member.name}</span>
+                                <span className={'text-sm text-gray-500 dark:text-gray-400'}>{member.email}</span>
                                 {/* Show status badge on mobile inline with name */}
                                 <div className="md:hidden mt-1">
-                                  <div className={getThemeClasses(
-                                    `inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${member.IsMemberActive
+                                  <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${member.IsMemberActive
                                       ? 'bg-green-100 text-green-700'
                                       : 'bg-red-100 text-red-700'
-                                    }`,
-                                    `dark:${member.IsMemberActive
+                                    } dark:${member.IsMemberActive
                                       ? 'bg-green-900/30 text-green-300'
                                       : 'bg-red-900/30 text-red-300'
-                                    }`
-                                  )}>
+                                    }`}>
                                     <span className={`w-1.5 h-1.5 rounded-full ${member.IsMemberActive ? 'bg-green-500' : 'bg-red-500'}`}></span>
                                     {member.IsMemberActive ? 'Active' : 'Inactive'}
                                   </div>
@@ -1598,10 +1442,7 @@ const TeamDetailsPage = () => {
                               </div>
                             </div>
                           </td>
-                          <td className={getThemeClasses(
-                            'hidden md:table-cell py-3 px-4 text-gray-600',
-                            'dark:text-gray-400'
-                          )}>
+                          <td className={'hidden md:table-cell py-3 px-4 text-gray-600 dark:text-gray-400'}>
                             {new Date(member.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
                           </td>
                           <td className="hidden md:table-cell py-3 px-4 text-center">
@@ -1620,16 +1461,13 @@ const TeamDetailsPage = () => {
                                     setSelectedMember(member);
                                     setShowRevokeDialog(true);
                                   }}
-                                  className={getThemeClasses(
-                                    `inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${member.IsMemberActive
+                                  className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shadow-sm transition-all duration-200 ${member.IsMemberActive
                                       ? 'bg-green-100 text-green-700 hover:bg-green-200'
                                       : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                    }`,
-                                    `dark:${member.IsMemberActive
+                                    } dark:${member.IsMemberActive
                                       ? 'bg-green-900/50 text-green-300 hover:bg-green-900/70'
                                       : 'bg-blue-900/50 text-blue-300 hover:bg-blue-900/70'
-                                    }`
-                                  )}
+                                    }`}
                                   title={member.IsMemberActive ? 'Revoke Access' : 'Grant Access'}
                                   disabled={toggling === member.TeamDetailsID}
                                 >
@@ -1645,10 +1483,7 @@ const TeamDetailsPage = () => {
                                     setSelectedMember(member);
                                     setShowRemoveDialog(true);
                                   }}
-                                  className={getThemeClasses(
-                                    'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
-                                    'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
-                                  )}
+                                  className={'inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'}
                                   title="Remove Member"
                                   disabled={removing === member.TeamDetailsID}
                                 >
@@ -1661,10 +1496,7 @@ const TeamDetailsPage = () => {
                       ))}
                       {members.length === 0 && (
                         <tr>
-                          <td colSpan={isOwner ? 5 : 4} className={getThemeClasses(
-                            'text-center py-8 text-gray-400',
-                            'dark:text-gray-500'
-                          )}>
+                          <td colSpan={isOwner ? 5 : 4} className={'text-center py-8 text-gray-400 dark:text-gray-500'}>
                             No members in this team
                           </td>
                         </tr>
@@ -1677,30 +1509,21 @@ const TeamDetailsPage = () => {
               {/* Projects Table */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h2 className={getThemeClasses('text-xl mb-2 font-semibold text-gray-900', 'dark:text-gray-100')}>Projects Assigned</h2>
+                  <h2 className={'text-xl mb-2 font-semibold text-gray-900 dark:text-gray-100'}>Projects Assigned</h2>
                   {selectedProjects.length > 0 && (
                     <div className="flex items-center gap-3">
-                      <div className={getThemeClasses(
-                        'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700',
-                        'dark:bg-blue-900/30 dark:text-blue-300'
-                      )}>
+                      <div className={'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}>
                         <span className="text-sm font-medium">{selectedProjects.length} selected</span>
                         <button
                           onClick={() => setSelectedProjects([])}
-                          className={getThemeClasses(
-                            'p-1 hover:bg-blue-100 rounded-full transition-colors',
-                            'dark:hover:bg-blue-900/50'
-                          )}
+                          className={'p-1 hover:bg-blue-100 rounded-full transition-colors dark:hover:bg-blue-900/50'}
                         >
                           <FaTimes size={14} />
                         </button>
                       </div>
                       <button
                         onClick={() => setShowBulkRemoveProjectsDialog(true)}
-                        className={getThemeClasses(
-                          'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors',
-                          'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'
-                        )}
+                        className={'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50'}
                       >
                         <FaTrash size={14} />
                         Remove Selected
@@ -1708,40 +1531,25 @@ const TeamDetailsPage = () => {
                     </div>
                   )}
                 </div>
-                <div className={`overflow-x-auto custom-scrollbar mb-2 rounded-xl border overflow-hidden ${getThemeClasses('border-gray-200 bg-white shadow-sm', 'dark:border-zinc-800/80 dark:bg-dark-bg dark:shadow-none')}`}>
+                <div className={`overflow-x-auto custom-scrollbar mb-2 rounded-xl border overflow-hidden ${'border-gray-200 bg-white shadow-sm dark:border-zinc-800/80 dark:bg-dark-bg dark:shadow-none'}`}>
                   {activeProjects.length > 0 ? (
                     <table className="w-full">
                       <thead>
-                        <tr className={"border-b " + getThemeClasses('border-gray-200 bg-gray-50', 'dark:border-zinc-800/80 dark:bg-[#111113]')}>
+                        <tr className={"border-b " + 'border-gray-200 bg-gray-50 dark:border-zinc-800/80 dark:bg-[#111113]'}>
                           {isOwner && (
                             <th className="py-3 px-4 text-center w-[50px] hidden sm:table-cell">
                               <input
                                 type="checkbox"
                                 checked={selectedProjects.length === activeProjects.length}
                                 onChange={handleSelectAllProjects}
-                                className={getThemeClasses(
-                                  'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                                  'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
-                                )}
+                                className={'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'}
                               />
                             </th>
                           )}
-                          <th className={getThemeClasses(
-                            'py-3 px-4 text-left text-gray-700',
-                            'dark:text-gray-300'
-                          )}>Project Name</th>
-                          <th className={getThemeClasses(
-                            'py-3 px-4 text-left hidden sm:table-cell text-gray-700',
-                            'dark:text-gray-300'
-                          )}>Assigned On</th>
-                          <th className={getThemeClasses(
-                            'py-3 px-4 text-left text-gray-700',
-                            'dark:text-gray-300'
-                          )}>Deadline</th>
-                          <th className={getThemeClasses(
-                            'py-3 px-4 text-center text-gray-700',
-                            'dark:text-gray-300'
-                          )}>Status</th>
+                          <th className={'py-3 px-4 text-left text-gray-700 dark:text-gray-300'}>Project Name</th>
+                          <th className={'py-3 px-4 text-left hidden sm:table-cell text-gray-700 dark:text-gray-300'}>Assigned On</th>
+                          <th className={'py-3 px-4 text-left text-gray-700 dark:text-gray-300'}>Deadline</th>
+                          <th className={'py-3 px-4 text-center text-gray-700 dark:text-gray-300'}>Status</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1750,27 +1558,18 @@ const TeamDetailsPage = () => {
                           const statusStyle = getProjectStatusStyle(projectStatus.Code);
 
                           return (
-                            <tr key={proj.ProjectID} className={"border-b transition-colors last:border-b-0 " + getThemeClasses(
-                              'border-gray-100 hover:bg-gray-50/50',
-                              'dark:border-zinc-800/80 dark:hover:bg-[#232329]/40'
-                            )}>
+                            <tr key={proj.ProjectID} className={"border-b transition-colors last:border-b-0 " + 'border-gray-100 hover:bg-gray-50/50 dark:border-zinc-800/80 dark:hover:bg-[#232329]/40'}>
                               {isOwner && (
                                 <td className="py-3 px-4 text-center hidden sm:table-cell">
                                   <input
                                     type="checkbox"
                                     checked={selectedProjects.includes(proj.ProjectID)}
                                     onChange={() => handleSelectProject(proj.ProjectID)}
-                                    className={getThemeClasses(
-                                      'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500',
-                                      'dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'
-                                    )}
+                                    className={'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600'}
                                   />
                                 </td>
                               )}
-                              <td className={getThemeClasses(
-                                'py-3 px-4 font-medium text-gray-900',
-                                'dark:text-gray-100'
-                              )}>
+                              <td className={'py-3 px-4 font-medium text-gray-900 dark:text-gray-100'}>
                                 <Link
                                   href={`/project/${proj.ProjectID}`}
                                   className="hover:text-blue-600 hover:underline transition-colors cursor-pointer block"
@@ -1779,16 +1578,10 @@ const TeamDetailsPage = () => {
                                   {proj.Name}
                                 </Link>
                               </td>
-                              <td className={getThemeClasses(
-                                'py-3 px-4 text-gray-600 hidden sm:table-cell',
-                                'dark:text-gray-400'
-                              )}>
+                              <td className={'py-3 px-4 text-gray-600 hidden sm:table-cell dark:text-gray-400'}>
                                 {proj.AssignedDate ? new Date(proj.AssignedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
                               </td>
-                              <td className={getThemeClasses(
-                                'py-3 px-4 text-gray-600',
-                                'dark:text-gray-400'
-                              )}>
+                              <td className={'py-3 px-4 text-gray-600 dark:text-gray-400'}>
                                 {proj.DueDate ? new Date(proj.DueDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
                               </td>
                               <td className="py-3 px-4 text-center">
@@ -1800,10 +1593,7 @@ const TeamDetailsPage = () => {
                       </tbody>
                     </table>
                   ) : (
-                    <div className={getThemeClasses(
-                      'text-center py-8 text-gray-400',
-                      'dark:text-gray-500'
-                    )}>
+                    <div className={'text-center py-8 text-gray-400 dark:text-gray-500'}>
                       No Projects Assigned
                     </div>
                   )}
@@ -1815,58 +1605,55 @@ const TeamDetailsPage = () => {
             <div className="mb-8 mt-6">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className={getThemeClasses('text-xl font-semibold text-gray-900', 'dark:text-gray-100')}>Team Tasks</h2>
+                  <h2 className={'text-xl font-semibold text-gray-900 dark:text-gray-100'}>Team Tasks</h2>
                 </div>
               </div>
-              <div className={`overflow-x-auto overflow-y-auto max-h-[80vh] custom-scrollbar mb-2 rounded-xl border overflow-hidden ${getThemeClasses('border-gray-200 bg-white shadow-sm', 'dark:border-zinc-800/80 dark:bg-dark-bg dark:shadow-none')}`}>
+              <div className={`overflow-x-auto overflow-y-auto max-h-[80vh] custom-scrollbar mb-2 rounded-xl border overflow-hidden ${'border-gray-200 bg-white shadow-sm dark:border-zinc-800/80 dark:bg-dark-bg dark:shadow-none'}`}>
                 {teamTasksSorted.length === 0 ? (
-                  <div className={getThemeClasses(
-                    'text-center py-8 text-gray-400',
-                    'dark:text-gray-500'
-                  )}>
+                  <div className={'text-center py-8 text-gray-400 dark:text-gray-500'}>
                     No tasks assigned to this team.
                   </div>
                 ) : (
                   <table className="w-full table-fixed">
-                    <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-[#111113] border-zinc-800/80' : 'bg-gray-50 border-gray-200'}`}>
-                      <tr className={getThemeClasses('text-left text-md font-semibold text-gray-400 uppercase', 'dark:bg-[#111113]')}>
-                        <th className={`py-3 px-4 text-left w-[40%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                    <thead className={`sticky top-0 z-10 border-b bg-gray-50 border-gray-200 dark:bg-[#111113] dark:border-zinc-800/80`}>
+                      <tr className={'text-left text-md font-semibold text-gray-400 uppercase dark:bg-[#111113]'}>
+                        <th className={`py-3 px-4 text-left w-[40%] ${'text-gray-700 dark:text-gray-300'}`}>
                           <button type="button" onClick={() => handleTasksSort('name')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Name</span>
                             {getTasksSortIcon('name')}
                           </button>
                         </th>
-                        <th className={`py-3 px-4 text-left w-[11%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                        <th className={`py-3 px-4 text-left w-[11%] ${'text-gray-700 dark:text-gray-300'}`}>
                           <button type="button" onClick={() => handleTasksSort('projectName')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Project</span>
                             {getTasksSortIcon('projectName')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[12%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[12%] ${'text-gray-700 dark:text-gray-300'}`}>
                           <button type="button" onClick={() => handleTasksSort('assignedTo')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assigned To</span>
                             {getTasksSortIcon('assignedTo')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[12%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                        <th className={`hidden md:table-cell py-3 px-4 text-left w-[12%] ${'text-gray-700 dark:text-gray-300'}`}>
                           <button type="button" onClick={() => handleTasksSort('assignee')} className="inline-flex items-center gap-1 w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assignee</span>
                             {getTasksSortIcon('assignee')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-center w-[11%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                        <th className={`hidden md:table-cell py-3 px-4 text-center w-[11%] ${'text-gray-700 dark:text-gray-300'}`}>
                           <button type="button" onClick={() => handleTasksSort('assignedDate')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Assigned On</span>
                             {getTasksSortIcon('assignedDate')}
                           </button>
                         </th>
-                        <th className={`hidden md:table-cell py-3 px-4 text-center w-[6%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                        <th className={`hidden md:table-cell py-3 px-4 text-center w-[6%] ${'text-gray-700 dark:text-gray-300'}`}>
                           <button type="button" onClick={() => handleTasksSort('priority')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Priority</span>
                             {getTasksSortIcon('priority')}
                           </button>
                         </th>
-                        <th className={`py-3 px-4 text-center w-[8%] ${getThemeClasses('text-gray-700', 'dark:text-gray-300')}`}>
+                        <th className={`py-3 px-4 text-center w-[8%] ${'text-gray-700 dark:text-gray-300'}`}>
                           <button type="button" onClick={() => handleTasksSort('status')} className="inline-flex items-center justify-center gap-1 w-full hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             <span>Status</span>
                             {getTasksSortIcon('status')}
@@ -1885,10 +1672,7 @@ const TeamDetailsPage = () => {
                           return styles[priority] || '';
                         };
 
-                        const baseRowClasses = "border-b transition-colors last:border-b-0 " + getThemeClasses(
-                          'border-gray-100 hover:bg-gray-50/50',
-                          'dark:border-zinc-800/80 dark:hover:bg-[#232329]/40'
-                        );
+                        const baseRowClasses = "border-b transition-colors last:border-b-0 " + 'border-gray-100 hover:bg-gray-50/50 dark:border-zinc-800/80 dark:hover:bg-[#232329]/40';
                         const rowClasses = task.Type === 'Support'
                           ? `${baseRowClasses} ${getPriorityBackgroundColor(task.Priority)}`
                           : baseRowClasses;
@@ -1900,10 +1684,7 @@ const TeamDetailsPage = () => {
                                 <div className="flex items-center gap-2 mb-1 w-full min-w-0">
                                   <button
                                     onClick={() => router.push(`/task/${task.TaskID}`)}
-                                    className={getThemeClasses(
-                                      'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full',
-                                      'dark:hover:text-blue-400'
-                                    )}
+                                    className={'text-left hover:text-blue-600 hover:underline transition-colors cursor-pointer font-medium truncate block max-w-full dark:hover:text-blue-400'}
                                     title={task.Name}
                                   >
                                     {task.Name && task.Name.length > 100 ? `${task.Name.substring(0, 100)}...` : task.Name}
@@ -1919,32 +1700,23 @@ const TeamDetailsPage = () => {
                                   {(task.TaskNumber || task.TicketNumber) && task.Description && (
                                     <span className="text-gray-300 dark:text-gray-600 shrink-0">•</span>
                                   )}
-                                  <span className={getThemeClasses(
-                                    'text-gray-500 truncate block',
-                                    'dark:text-gray-400'
-                                  )} title={task.Description}>{task.Description}</span>
+                                  <span className={'text-gray-500 truncate block dark:text-gray-400'} title={task.Description}>{task.Description}</span>
                                 </div>
                               </div>
                             </td>
                             <td className="py-3 px-4 overflow-hidden">
-                              <span className={getThemeClasses(
-                                'text-sm font-medium text-gray-900 truncate block',
-                                'dark:text-gray-100'
-                              )} title={task.ProjectName}>
+                              <span className={'text-sm font-medium text-gray-900 truncate block dark:text-gray-100'} title={task.ProjectName}>
                                 {task.ProjectName}
                               </span>
                             </td>
                             <td className="hidden md:table-cell py-3 px-4">
                               {task.AssignedToDetails ? (
                                 <div className="flex items-center gap-3">
-                                  <div className={getThemeClasses(
-                                    'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm flex-shrink-0',
-                                    'dark:from-blue-600 dark:to-blue-700'
-                                  )}>
+                                  <div className={'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm flex-shrink-0 dark:from-blue-600 dark:to-blue-700'}>
                                     {task.AssignedToDetails.fullName.split(' ').map(n => n[0]).join('')}
                                   </div>
                                   <div className="flex flex-col min-w-0">
-                                    <span className={getThemeClasses('text-sm text-gray-900 truncate block font-medium', 'dark:text-gray-100')}>{task.AssignedToDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
+                                    <span className={'text-sm text-gray-900 truncate block font-medium dark:text-gray-100'}>{task.AssignedToDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(task.AssignedTo) ? ' (You)' : ''}</span></span>
                                     {task.AssignedToDetails.username && (
                                       <span className="text-xs text-gray-500 dark:text-[#B0B8C1] truncate block">
                                         @{task.AssignedToDetails.username}
@@ -1959,14 +1731,11 @@ const TeamDetailsPage = () => {
                             <td className="hidden md:table-cell py-3 px-4">
                               {task.AssigneeDetails ? (
                                 <div className="flex items-center gap-3">
-                                  <div className={getThemeClasses(
-                                    'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm flex-shrink-0',
-                                    'dark:from-green-600 dark:to-green-700'
-                                  )}>
+                                  <div className={'w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm flex-shrink-0 dark:from-green-600 dark:to-green-700'}>
                                     {task.AssigneeDetails.fullName.split(' ').map(n => n[0]).join('')}
                                   </div>
                                   <div className="flex flex-col min-w-0">
-                                    <span className={getThemeClasses('text-sm text-gray-900 truncate block font-medium', 'dark:text-gray-100')}>{task.AssigneeDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(task.Assignee) ? ' (You)' : ''}</span></span>
+                                    <span className={'text-sm text-gray-900 truncate block font-medium dark:text-gray-100'}>{task.AssigneeDetails.fullName.split(' ')[0]} <span className={'text-xs'}>{isMe(task.Assignee) ? ' (You)' : ''}</span></span>
                                     {task.AssigneeDetails.username && (
                                       <span className="text-xs text-gray-500 dark:text-[#B0B8C1] truncate block">
                                         @{task.AssigneeDetails.username}
@@ -1981,7 +1750,7 @@ const TeamDetailsPage = () => {
                             <td className={`hidden md:table-cell py-3 px-4 text-center ${tableSecondaryTextClasses}`}>
                               <div className="flex flex-col items-center leading-tight text-sm">
                                 <span>{new Date(task.AssignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                                <span className={getThemeClasses('text-xs text-gray-500', 'text-xs text-gray-400')}>
+                                <span className={'text-xs text-gray-500 text-xs text-gray-400'}>
                                   {new Date(task.AssignedDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                                 </span>
                               </div>
@@ -2012,7 +1781,6 @@ const TeamDetailsPage = () => {
                   setSelectedMember(null);
                 }}
                 title={selectedMember.IsMemberActive ? 'Revoke Access' : 'Grant Access'}
-                getThemeClasses={getThemeClasses}
                 actions={
                   <>
                     <button
@@ -2020,19 +1788,13 @@ const TeamDetailsPage = () => {
                         setShowRevokeDialog(false);
                         setSelectedMember(null);
                       }}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-dark-hover'
-                      )}
+                      className={'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={() => handleToggleStatus(selectedMember.MemberID)}
-                      className={getThemeClasses(
-                        `px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 ${selectedMember.IsMemberActive ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'}`,
-                        `dark:${selectedMember.IsMemberActive ? 'bg-red-900/50 text-red-300 hover:bg-red-900/70' : 'bg-green-900/50 text-green-300 hover:bg-green-900/70'}`
-                      )}
+                      className={`px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 ${selectedMember.IsMemberActive ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'} dark:${selectedMember.IsMemberActive ? 'bg-red-900/50 text-red-300 hover:bg-red-900/70' : 'bg-green-900/50 text-green-300 hover:bg-green-900/70'}`}
                       disabled={toggling === selectedMember.MemberID}
                     >
                       {toggling === selectedMember.MemberID ? 'Updating...' : 'Confirm'}
@@ -2040,10 +1802,7 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                <p className={getThemeClasses(
-                  'text-gray-600',
-                  'dark:text-gray-400'
-                )}>
+                <p className={'text-gray-600 dark:text-gray-400'}>
                   {selectedMember.IsMemberActive
                     ? `Are you sure you want to revoke access for ${selectedMember.name}? This will prevent them from accessing team resources.`
                     : `Are you sure you want to grant access for ${selectedMember.name}? This will allow them to access team resources.`}
@@ -2060,7 +1819,6 @@ const TeamDetailsPage = () => {
                   setSelectedMember(null);
                 }}
                 title="Remove Member"
-                getThemeClasses={getThemeClasses}
                 actions={
                   <>
                     <button
@@ -2068,19 +1826,13 @@ const TeamDetailsPage = () => {
                         setShowRemoveDialog(false);
                         setSelectedMember(null);
                       }}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-dark-hover'
-                      )}
+                      className={'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={() => handleRemoveMember(selectedMember.MemberID)}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
-                        'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
-                      )}
+                      className={'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'}
                       disabled={removing === selectedMember.MemberID}
                     >
                       {removing === selectedMember.MemberID ? 'Removing...' : 'Remove'}
@@ -2088,10 +1840,7 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                <p className={getThemeClasses(
-                  'text-gray-600',
-                  'dark:text-gray-400'
-                )}>
+                <p className={'text-gray-600 dark:text-gray-400'}>
                   Are you sure you want to remove {selectedMember.name} from the team? This action cannot be undone.
                 </p>
               </CustomModal>
@@ -2104,18 +1853,12 @@ const TeamDetailsPage = () => {
                   className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isSettingsModalClosing ? 'opacity-0' : 'opacity-100'}`}
                   onClick={handleCloseSettingsModal}
                 />
-                <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-4 lg:p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isSettingsModalClosing ? 'translate-x-full' : isSettingsModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
+                <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg bg-white text-gray-900 dark:bg-dark-bg dark:text-white border-l border-gray-200 dark:border-[#232323] p-4 lg:p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isSettingsModalClosing ? 'translate-x-full' : isSettingsModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
                   <div className="flex items-center justify-between mb-4 lg:mb-6">
-                    <h3 className={getThemeClasses(
-                      'text-lg lg:text-xl font-semibold text-gray-900',
-                      'text-lg lg:text-xl font-semibold text-white'
-                    )}>Team Settings</h3>
+                    <h3 className="text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">Team Settings</h3>
                     <button
                       onClick={handleCloseSettingsModal}
-                      className={getThemeClasses(
-                        'text-gray-400 hover:text-gray-600 text-2xl font-bold',
-                        'text-gray-400 hover:text-gray-300 text-2xl font-bold'
-                      )}
+                      className="text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 text-2xl font-bold"
                     >
                       ×
                     </button>
@@ -2123,14 +1866,8 @@ const TeamDetailsPage = () => {
                   <form onSubmit={handleSettingsSave} className="space-y-4">
                     <div className="flex flex-row justify-center sm:justify-start gap-4">
                       <div className="flex items-center gap-2 min-w-[120px]">
-                        <FaUsers className={getThemeClasses(
-                          'text-gray-500',
-                          'text-white'
-                        )} size={16} />
-                        <label className={getThemeClasses(
-                          'text-sm font-medium text-gray-700',
-                          'text-sm font-medium text-white'
-                        )}>
+                        <FaUsers className="text-gray-500 dark:text-white" size={16} />
+                        <label className="text-sm font-medium text-gray-700 dark:text-white">
                           Name<span className="text-red-500 ml-1">*</span>
                         </label>
                       </div>
@@ -2138,46 +1875,28 @@ const TeamDetailsPage = () => {
                         type="text"
                         value={settingsForm.TeamName}
                         onChange={(e) => setSettingsForm(prev => ({ ...prev, TeamName: e.target.value }))}
-                        className={getThemeClasses(
-                          'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                          'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-                        )}
+                        className="flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 dark:border-gray-600 focus:border-gray-200 dark:focus:border-gray-600 focus:outline-none bg-transparent text-gray-900 dark:text-white"
                         required
                       />
                     </div>
                     <div className="flex flex-row justify-center sm:justify-start gap-4">
                       <div className="flex items-center gap-2 min-w-[120px] pt-2">
-                        <FaAlignLeft className={getThemeClasses(
-                          'text-gray-500',
-                          'text-white'
-                        )} size={16} />
-                        <label className={getThemeClasses(
-                          'text-sm font-medium text-gray-700',
-                          'text-sm font-medium text-white'
-                        )}>
+                        <FaAlignLeft className="text-gray-500 dark:text-white" size={16} />
+                        <label className="text-sm font-medium text-gray-700 dark:text-white">
                           Description
                         </label>
                       </div>
                       <textarea
                         value={settingsForm.TeamDescription}
                         onChange={(e) => setSettingsForm(prev => ({ ...prev, TeamDescription: e.target.value }))}
-                        className={getThemeClasses(
-                          'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 resize-none',
-                          'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white resize-none'
-                        )}
+                        className="flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 dark:border-gray-600 focus:border-gray-200 dark:focus:border-gray-600 focus:outline-none bg-transparent text-gray-900 dark:text-white resize-none"
                         rows="3"
                       />
                     </div>
                     <div className="flex flex-row justify-center sm:justify-start gap-4">
                       <div className="flex items-center gap-2 min-w-[120px]">
-                        <FaTag className={getThemeClasses(
-                          'text-gray-500',
-                          'text-white'
-                        )} size={16} />
-                        <label className={getThemeClasses(
-                          'text-sm font-medium text-gray-700',
-                          'text-sm font-medium text-white'
-                        )}>
+                        <FaTag className="text-gray-500 dark:text-white" size={16} />
+                        <label className="text-sm font-medium text-gray-700 dark:text-white">
                           Team Type
                         </label>
                       </div>
@@ -2185,10 +1904,7 @@ const TeamDetailsPage = () => {
                         <select
                           value={settingsForm.TeamType}
                           onChange={(e) => setSettingsForm(prev => ({ ...prev, TeamType: e.target.value }))}
-                          className={getThemeClasses(
-                            'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                            'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-                          )}
+                          className="flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 dark:border-gray-600 focus:border-gray-200 dark:focus:border-gray-600 focus:outline-none bg-transparent text-gray-900 dark:text-white"
                         >
                           <option value="">Select Team Type</option>
                           {teamTypes.map((type) => (
@@ -2206,10 +1922,7 @@ const TeamDetailsPage = () => {
                           <button
                             type="button"
                             onClick={() => setShowDeleteDialog(true)}
-                            className={getThemeClasses(
-                              `inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200`,
-                              `dark:bg-red-900/50 text-red-300 hover:bg-red-900/70`
-                            )}
+                            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70"
                           >
                             <FaTrash className="w-4 h-4" />
                             Delete Team
@@ -2219,10 +1932,7 @@ const TeamDetailsPage = () => {
                           <button
                             type="button"
                             onClick={() => setShowConfirmDialog(true)}
-                            className={getThemeClasses(
-                              `inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200' : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'} ${togglingTeam ? 'opacity-50 cursor-not-allowed' : ''}`,
-                              `dark:${team.IsActive ? 'bg-red-900/50 text-red-300 hover:bg-red-900/70' : 'bg-green-900/50 text-green-300 hover:bg-green-900/70'} ${togglingTeam ? 'opacity-50 cursor-not-allowed' : ''}`
-                            )}
+                            className={`inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-all duration-200 ${team.IsActive ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200 hover:from-red-100 hover:to-red-200' : 'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200 hover:from-green-100 hover:to-green-200'} ${togglingTeam ? 'opacity-50 cursor-not-allowed' : ''} dark:${team.IsActive ? 'bg-red-900/50 text-red-300 hover:bg-red-900/70' : 'bg-green-900/50 text-green-300 hover:bg-green-900/70'}`}
                             disabled={togglingTeam}
                           >
                             <span className={`w-2 h-2 rounded-full ${team.IsActive ? 'bg-red-500' : 'bg-green-500'}`}></span>
@@ -2238,19 +1948,13 @@ const TeamDetailsPage = () => {
                           <button
                             type="button"
                             onClick={handleCloseSettingsModal}
-                            className={getThemeClasses(
-                              'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                              'dark:text-gray-400 dark:hover:bg-dark-hover'
-                            )}
+                            className={'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                           >
                             Cancel
                           </button>
                           <button
                             type="submit"
-                            className={getThemeClasses(
-                              'px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200',
-                              'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-                            )}
+                            className={'px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'}
                             disabled={savingSettings}
                           >
                             {savingSettings ? 'Saving...' : 'Save Changes'}
@@ -2264,10 +1968,7 @@ const TeamDetailsPage = () => {
                           <button
                             type="button"
                             onClick={handleCloseSettingsModal}
-                            className={getThemeClasses(
-                              'px-6 py-2.5 rounded-xl bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-medium transition-all duration-200',
-                              'dark:from-gray-600 dark:to-gray-700 dark:hover:from-gray-700 dark:hover:to-gray-800'
-                            )}
+                            className={'px-6 py-2.5 rounded-xl bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-medium transition-all duration-200 dark:from-gray-600 dark:to-gray-700 dark:hover:from-gray-700 dark:hover:to-gray-800'}
                           >
                             Close
                           </button>
@@ -2285,24 +1986,17 @@ const TeamDetailsPage = () => {
                 isOpen={showConfirmDialog}
                 onClose={() => setShowConfirmDialog(false)}
                 title={team.IsActive ? 'Deactivate Team' : 'Activate Team'}
-                getThemeClasses={getThemeClasses}
                 actions={
                   <>
                     <button
                       onClick={() => setShowConfirmDialog(false)}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-dark-hover'
-                      )}
+                      className={'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleToggleTeamStatus}
-                      className={getThemeClasses(
-                        `px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 ${team.IsActive ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'}`,
-                        `dark:${team.IsActive ? 'bg-red-900/50 text-red-300 hover:bg-red-900/70' : 'bg-green-900/50 text-green-300 hover:bg-green-900/70'}`
-                      )}
+                      className={`px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 ${team.IsActive ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'} dark:${team.IsActive ? 'bg-red-900/50 text-red-300 hover:bg-red-900/70' : 'bg-green-900/50 text-green-300 hover:bg-green-900/70'}`}
                       disabled={togglingTeam}
                     >
                       {togglingTeam ? 'Updating...' : 'Confirm'}
@@ -2310,10 +2004,7 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                <p className={getThemeClasses(
-                  'text-gray-600',
-                  'dark:text-gray-400'
-                )}>
+                <p className={'text-gray-600 dark:text-gray-400'}>
                   {team.IsActive
                     ? 'Are you sure you want to deactivate this team? This will prevent members from accessing team resources.'
                     : 'Are you sure you want to activate this team? This will allow members to access team resources.'}
@@ -2330,7 +2021,6 @@ const TeamDetailsPage = () => {
                   setUserToAdd(null);
                 }}
                 title="Add Team Member"
-                getThemeClasses={getThemeClasses}
                 actions={
                   <>
                     <button
@@ -2338,19 +2028,13 @@ const TeamDetailsPage = () => {
                         setShowAddMemberDialog(false);
                         setUserToAdd(null);
                       }}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-dark-hover'
-                      )}
+                      className={'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleAddMember}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
-                        'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-                      )}
+                      className={'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'}
                       disabled={adding}
                     >
                       {adding ? 'Adding...' : 'Confirm'}
@@ -2358,10 +2042,7 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                <p className={getThemeClasses(
-                  'text-gray-600',
-                  'dark:text-gray-400'
-                )}>
+                <p className={'text-gray-600 dark:text-gray-400'}>
                   Are you sure you want to add {userToAdd.firstName} {userToAdd.lastName} to the team?
                 </p>
               </CustomModal>
@@ -2376,7 +2057,6 @@ const TeamDetailsPage = () => {
                   setSelectedInactiveMember(null);
                 }}
                 title="Inactive Member"
-                getThemeClasses={getThemeClasses}
                 actions={
                   <>
                     <button
@@ -2384,10 +2064,7 @@ const TeamDetailsPage = () => {
                         setShowInactiveMemberDialog(false);
                         setSelectedInactiveMember(null);
                       }}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-dark-hover'
-                      )}
+                      className={'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                     >
                       Close
                     </button>
@@ -2398,20 +2075,14 @@ const TeamDetailsPage = () => {
                         setSelectedMember(selectedInactiveMember);
                         setShowRevokeDialog(true);
                       }}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
-                        'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70'
-                      )}
+                      className={'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70'}
                     >
                       Activate Member
                     </button>
                   </>
                 }
               >
-                <p className={getThemeClasses(
-                  'text-gray-600',
-                  'dark:text-gray-400'
-                )}>
+                <p className={'text-gray-600 dark:text-gray-400'}>
                   {selectedInactiveMember.name} is currently inactive in the team. You must activate the member before performing any actions.
                 </p>
               </CustomModal>
@@ -2423,24 +2094,17 @@ const TeamDetailsPage = () => {
                 isOpen={showDeleteDialog}
                 onClose={() => setShowDeleteDialog(false)}
                 title="Delete Team"
-                getThemeClasses={getThemeClasses}
                 actions={
                   <>
                     <button
                       onClick={() => setShowDeleteDialog(false)}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-dark-hover'
-                      )}
+                      className={'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleDeleteTeam}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
-                        'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
-                      )}
+                      className={'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'}
                       disabled={deletingTeam}
                     >
                       {deletingTeam ? 'Deleting...' : 'Delete Team'}
@@ -2448,10 +2112,7 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                <p className={getThemeClasses(
-                  'text-gray-600',
-                  'dark:text-gray-400'
-                )}>
+                <p className={'text-gray-600 dark:text-gray-400'}>
                   Are you sure you want to delete this team? This action cannot be undone and will remove all team members and associated data.
                 </p>
               </CustomModal>
@@ -2463,18 +2124,12 @@ const TeamDetailsPage = () => {
                   className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isMeetingModalClosing ? 'opacity-0' : 'opacity-100'}`}
                   onClick={handleCloseMeetingModal}
                 />
-                <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-3xl ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-[#232323]' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isMeetingModalClosing ? 'translate-x-full' : isMeetingModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
+                <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-3xl bg-white text-gray-900 dark:bg-dark-bg dark:text-white border-l border-gray-200 dark:border-[#232323] p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isMeetingModalClosing ? 'translate-x-full' : isMeetingModalOpening ? 'translate-x-full' : 'translate-x-0'}`}>
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className={getThemeClasses(
-                      'text-xl font-semibold text-gray-900',
-                      'text-xl font-semibold text-white'
-                    )}>{isEditingMeeting ? 'Edit Meeting' : 'Create Meeting'}</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{isEditingMeeting ? 'Edit Meeting' : 'Create Meeting'}</h3>
                     <button
                       onClick={handleCloseMeetingModal}
-                      className={getThemeClasses(
-                        'text-gray-400 hover:text-gray-600 text-2xl font-bold',
-                        'text-gray-400 hover:text-gray-300 text-2xl font-bold'
-                      )}
+                      className="text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 text-2xl font-bold"
                     >
                       ×
                     </button>
@@ -2482,14 +2137,8 @@ const TeamDetailsPage = () => {
                   <form onSubmit={handleCreateMeeting} className="space-y-6">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2 min-w-[120px]">
-                        <FaCalendarAlt className={getThemeClasses(
-                          'text-gray-500',
-                          'text-gray-400'
-                        )} size={16} />
-                        <label className={getThemeClasses(
-                          'text-sm font-medium text-gray-700',
-                          'text-sm font-medium text-gray-300'
-                        )}>
+                        <FaCalendarAlt className="text-gray-500 dark:text-gray-400" size={16} />
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           Title<span className="text-red-500 ml-1">*</span>
                         </label>
                       </div>
@@ -2497,47 +2146,29 @@ const TeamDetailsPage = () => {
                         type="text"
                         value={createMeetingForm.title}
                         onChange={(e) => setCreateMeetingForm(prev => ({ ...prev, title: e.target.value }))}
-                        className={getThemeClasses(
-                          'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                          'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-                        )}
+                        className="flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 dark:border-gray-600 focus:border-gray-200 dark:focus:border-gray-600 focus:outline-none bg-transparent text-gray-900 dark:text-white"
                         required
                       />
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2 min-w-[120px]">
-                        <FaAlignLeft className={getThemeClasses(
-                          'text-gray-500',
-                          'text-gray-400'
-                        )} size={16} />
-                        <label className={getThemeClasses(
-                          'text-sm font-medium text-gray-700',
-                          'text-sm font-medium text-gray-300'
-                        )}>
+                        <FaAlignLeft className="text-gray-500 dark:text-gray-400" size={16} />
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           Description
                         </label>
                       </div>
                       <textarea
                         value={createMeetingForm.description}
                         onChange={(e) => setCreateMeetingForm(prev => ({ ...prev, description: e.target.value }))}
-                        className={getThemeClasses(
-                          'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 resize-none',
-                          'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white resize-none'
-                        )}
+                        className="flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 dark:border-gray-600 focus:border-gray-200 dark:focus:border-gray-600 focus:outline-none bg-transparent text-gray-900 dark:text-white resize-none"
                         rows="3"
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 min-w-[120px]">
-                          <FaClock className={getThemeClasses(
-                            'text-gray-500',
-                            'text-gray-400'
-                          )} size={16} />
-                          <label className={getThemeClasses(
-                            'text-sm font-medium text-gray-700',
-                            'text-sm font-medium text-gray-300'
-                          )}>
+                          <FaClock className="text-gray-500 dark:text-gray-400" size={16} />
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                             Start Time<span className="text-red-500 ml-1">*</span>
                           </label>
                         </div>
@@ -2545,22 +2176,13 @@ const TeamDetailsPage = () => {
                           type="datetime-local"
                           value={createMeetingForm.startTime}
                           onChange={(e) => setCreateMeetingForm(prev => ({ ...prev, startTime: e.target.value }))}
-                          className={getThemeClasses(
-                            'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                            'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-                          )}
+                          className="flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 dark:border-gray-600 focus:border-gray-200 dark:focus:border-gray-600 focus:outline-none bg-transparent text-gray-900 dark:text-white"
                         />
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 min-w-[120px]">
-                          <FaClock className={getThemeClasses(
-                            'text-gray-500',
-                            'text-gray-400'
-                          )} size={16} />
-                          <label className={getThemeClasses(
-                            'text-sm font-medium text-gray-700',
-                            'text-sm font-medium text-gray-300'
-                          )}>
+                          <FaClock className="text-gray-500 dark:text-gray-400" size={16} />
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                             End Time<span className="text-red-500 ml-1">*</span>
                           </label>
                         </div>
@@ -2568,23 +2190,14 @@ const TeamDetailsPage = () => {
                           type="datetime-local"
                           value={createMeetingForm.endTime}
                           onChange={(e) => setCreateMeetingForm(prev => ({ ...prev, endTime: e.target.value }))}
-                          className={getThemeClasses(
-                            'flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900',
-                            'flex-1 px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white'
-                          )}
+                          className="flex-1 px-0 py-2 border-0 border-b-2 border-gray-200 dark:border-gray-600 focus:border-gray-200 dark:focus:border-gray-600 focus:outline-none bg-transparent text-gray-900 dark:text-white"
                         />
                       </div>
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-4">
-                        <FaUserFriends className={getThemeClasses(
-                          'text-gray-500',
-                          'text-gray-400'
-                        )} size={16} />
-                        <label className={getThemeClasses(
-                          'text-sm font-medium text-gray-700',
-                          'text-sm font-medium text-gray-300'
-                        )}>
+                        <FaUserFriends className="text-gray-500 dark:text-gray-400" size={16} />
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           Members<span className="text-red-500 ml-1">*</span>
                         </label>
                       </div>
@@ -2598,24 +2211,15 @@ const TeamDetailsPage = () => {
                               return member ? (
                                 <div
                                   key={memberId}
-                                  className={getThemeClasses(
-                                    'flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-sm',
-                                    'flex items-center gap-2 px-3 py-1.5 bg-blue-900/50 border border-blue-700 rounded-lg text-sm'
-                                  )}
+                                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-700 rounded-lg text-sm"
                                 >
-                                  <span className={getThemeClasses(
-                                    'text-blue-700',
-                                    'text-blue-300'
-                                  )}>
+                                  <span className="text-blue-700 dark:text-blue-300">
                                     {member.email}
                                   </span>
                                   <button
                                     type="button"
                                     onClick={() => handleMemberRemove(memberId)}
-                                    className={getThemeClasses(
-                                      'text-blue-500 hover:text-red-500 transition-colors',
-                                      'text-blue-400 hover:text-red-400 transition-colors'
-                                    )}
+                                    className="text-blue-500 dark:text-blue-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                                   >
                                     <FaTimes size={12} />
                                   </button>
@@ -2631,15 +2235,9 @@ const TeamDetailsPage = () => {
                         <button
                           type="button"
                           onClick={() => setShowMemberDropdown(!showMemberDropdown)}
-                          className={getThemeClasses(
-                            'w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 flex items-center justify-between',
-                            'w-full px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white flex items-center justify-between'
-                          )}
+                          className="w-full px-0 py-2 border-0 border-b-2 border-gray-200 dark:border-gray-600 focus:border-gray-200 dark:focus:border-gray-600 focus:outline-none bg-transparent text-gray-900 dark:text-white flex items-center justify-between"
                         >
-                          <span className={getThemeClasses(
-                            'text-gray-500',
-                            'text-gray-400'
-                          )}>
+                          <span className="text-gray-500 dark:text-gray-400">
                             {createMeetingForm.attendeeIds.length > 0
                               ? `${createMeetingForm.attendeeIds.length} member(s) selected`
                               : 'Select team members'
@@ -2657,21 +2255,15 @@ const TeamDetailsPage = () => {
 
                         {showMemberDropdown && (
                           <>
-                            <div className={getThemeClasses(
-                              'absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden flex flex-col max-h-64',
-                              'absolute z-50 w-full mt-1 bg-dark-bg border border-gray-600 rounded-xl shadow-lg overflow-hidden flex flex-col max-h-64'
-                            )}>
+                            <div className="absolute z-50 w-full mt-1 bg-white dark:bg-dark-bg border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg overflow-hidden flex flex-col max-h-64">
                               {/* Search input field */}
-                              <div className={`p-2 border-b ${getThemeClasses('border-gray-100', 'border-zinc-800')}`}>
+                              <div className="p-2 border-b border-gray-100 dark:border-zinc-800">
                                 <input
                                   type="text"
                                   placeholder="Search members..."
                                   value={memberSearchQuery}
                                   onChange={(e) => setMemberSearchQuery(e.target.value)}
-                                  className={getThemeClasses(
-                                    'w-full px-3 py-1.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500',
-                                    'w-full px-3 py-1.5 text-sm rounded-lg border border-zinc-700 bg-zinc-800 text-white focus:outline-none focus:ring-1 focus:ring-blue-500'
-                                  )}
+                                  className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 />
                               </div>
                               <div className="overflow-y-auto max-h-48 divide-y divide-gray-100 dark:divide-zinc-800/80">
@@ -2683,28 +2275,19 @@ const TeamDetailsPage = () => {
                                     key={member.MemberID}
                                     type="button"
                                     onClick={() => handleMemberSelect(member.MemberID)}
-                                    className={getThemeClasses(
-                                      'w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-3',
-                                      'w-full px-4 py-3 text-left hover:bg-[#424242] transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-3'
-                                    )}
+                                    className={'w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-[#424242] transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-3'}
                                   >
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${createMeetingForm.attendeeIds.includes(member.MemberID)
                                       ? 'bg-blue-500 text-white'
-                                      : getThemeClasses('bg-gray-100 text-gray-700', 'bg-gray-700 text-gray-300')
+                                      : 'bg-gray-100 text-gray-700 bg-gray-700 text-gray-300'
                                       }`}>
                                       {member.name.split(' ').map(n => n[0]).join('')}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <div className={getThemeClasses(
-                                        'font-medium text-gray-900 text-sm truncate',
-                                        'font-medium text-white text-sm truncate'
-                                      )}>
+                                      <div className={'font-medium text-gray-900 text-sm truncate font-medium text-white text-sm truncate'}>
                                         {member.name}
                                       </div>
-                                      <div className={getThemeClasses(
-                                        'text-xs text-gray-500 truncate',
-                                        'text-xs text-gray-400 truncate'
-                                      )}>
+                                      <div className={'text-xs text-gray-500 truncate text-xs text-gray-400 truncate'}>
                                         {member.email}
                                       </div>
                                     </div>
@@ -2732,7 +2315,7 @@ const TeamDetailsPage = () => {
                       </div>
                     </div>
                     <div>
-                      <label className={getThemeClasses('block text-sm font-medium text-gray-700 mb-2', 'dark:text-gray-300')}>Attach Tasks</label>
+                      <label className={'block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300'}>Attach Tasks</label>
                       <div className="relative task-search-container">
                         <input
                           type="text"
@@ -2740,7 +2323,7 @@ const TeamDetailsPage = () => {
                           value={taskSearchQuery}
                           onChange={(e) => handleTaskSearch(e.target.value)}
                           onFocus={handleTaskSearchFocus}
-                          className={getThemeClasses('w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200', 'dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400')}
+                          className={'w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'}
                         />
                         {showTaskDropdown && (
                           <div className="absolute top-full left-0 right-0 z-10 mt-1 max-h-64 overflow-y-auto border border-gray-200 rounded-xl bg-white shadow-lg">
@@ -2846,13 +2429,13 @@ const TeamDetailsPage = () => {
                       <button
                         type="button"
                         onClick={handleCloseMeetingModal}
-                        className={getThemeClasses('px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200', 'dark:text-gray-400 dark:hover:bg-dark-hover')}
+                        className={'px-6 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className={getThemeClasses('px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200', 'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800')}
+                        className={'px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'}
                         disabled={creatingMeeting}
                       >
                         {creatingMeeting ? (isEditingMeeting ? 'Updating...' : 'Creating...') : (isEditingMeeting ? 'Update' : 'Create Meeting')}
@@ -2873,7 +2456,6 @@ const TeamDetailsPage = () => {
                   isOpen={showMeetingDetailsModal}
                   onClose={() => setShowMeetingDetailsModal(false)}
                   title={meetingDetails.meeting?.Title || 'Meeting Details'}
-                  getThemeClasses={getThemeClasses}
                   actions={
                     <>
                       {meetingDetails.meeting?.OrganizerID === userDetails?._id && (
@@ -2892,7 +2474,7 @@ const TeamDetailsPage = () => {
                             setShowMeetingDetailsModal(false);
                             handleOpenMeetingModal();
                           }}
-                          className={getThemeClasses('px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-200', 'dark:text-gray-300 dark:hover:bg-dark-hover')}
+                          className={'px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-200 dark:text-gray-300 dark:hover:bg-dark-hover'}
                         >
                           Edit
                         </button>
@@ -2903,7 +2485,7 @@ const TeamDetailsPage = () => {
                             navigator.clipboard?.writeText(meetingDetails.meeting.GoogleMeetLink);
                             showToast('Link copied to clipboard', 'success');
                           }}
-                          className={getThemeClasses('px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-200', 'dark:text-gray-300 dark:hover:bg-dark-hover')}
+                          className={'px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-200 dark:text-gray-300 dark:hover:bg-dark-hover'}
                         >
                           Copy Link
                         </button>
@@ -2915,12 +2497,9 @@ const TeamDetailsPage = () => {
                               window.open(meetingDetails.meeting.GoogleMeetLink, '_blank', 'noopener,noreferrer');
                             }
                           }}
-                          className={getThemeClasses(
-                            isExpired
+                          className={`${isExpired
                               ? 'px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-medium cursor-not-allowed'
-                              : 'px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200',
-                            'dark:from-red-600 dark:to-red-700'
-                          )}
+                              : 'px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200'} dark:from-red-600 dark:to-red-700`}
                           disabled={isExpired}
                         >
                           {isExpired ? 'Expired' : 'Join Meeting'}
@@ -2931,7 +2510,7 @@ const TeamDetailsPage = () => {
                 >
                   <div className="space-y-5">
                     <div className="flex items-center justify-between">
-                      <div className={getThemeClasses('text-sm text-gray-700', 'dark:text-gray-300')}>
+                      <div className={'text-sm text-gray-700 dark:text-gray-300'}>
                         {meetingDetails.meeting?.Description || 'No description'}
                       </div>
                       <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm border ${getDaysBadgeColor(isExpired ? 'past' : modalMeetingDays.status)}`}>
@@ -2939,44 +2518,44 @@ const TeamDetailsPage = () => {
                       </div>
                     </div>
 
-                    <div className={getThemeClasses('flex items-center gap-3 rounded-lg border border-gray-200 p-3', 'dark:border-gray-700')}>
-                      <FaClock className={getThemeClasses('text-gray-500', 'dark:text-gray-400')} />
-                      <div className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
+                    <div className={'flex items-center gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700'}>
+                      <FaClock className={'text-gray-500 dark:text-gray-400'} />
+                      <div className={'text-sm text-gray-900 dark:text-gray-100'}>
                         {formatDateWithTime(meetingDetails.meeting?.StartTime || meetingDetails.meeting?.startTime)}
                       </div>
-                      <FaArrowRight className={getThemeClasses('text-gray-400', 'dark:text-gray-500')} />
-                      <div className={getThemeClasses('text-sm text-gray-900', 'dark:text-gray-100')}>
+                      <FaArrowRight className={'text-gray-400 dark:text-gray-500'} />
+                      <div className={'text-sm text-gray-900 dark:text-gray-100'}>
                         {formatDateWithTime(meetingDetails.meeting?.EndTime || meetingDetails.meeting?.endTime)}
                       </div>
                     </div>
 
                     <div>
-                      <div className={getThemeClasses('font-semibold text-gray-900 mb-2', 'dark:text-gray-100')}>Attendees</div>
+                      <div className={'font-semibold text-gray-900 mb-2 dark:text-gray-100'}>Attendees</div>
                       <ul className="list-disc pl-5">
                         {(meetingDetails.attendees || []).map(a => (
-                          <li key={a._id} className={getThemeClasses('text-sm text-gray-700', 'dark:text-gray-300')}>
+                          <li key={a._id} className={'text-sm text-gray-700 dark:text-gray-300'}>
                             {a.firstName} {a.lastName} ({a.email})
                           </li>
                         ))}
                         {(!meetingDetails.attendees || meetingDetails.attendees.length === 0) && (
-                          <li className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>No attendees</li>
+                          <li className={'text-sm text-gray-500 dark:text-gray-400'}>No attendees</li>
                         )}
                       </ul>
                     </div>
 
                     <div>
-                      <div className={getThemeClasses('font-semibold text-gray-900 mb-2', 'dark:text-gray-100')}>Discussion For</div>
+                      <div className={'font-semibold text-gray-900 mb-2 dark:text-gray-100'}>Discussion For</div>
                       <ul className="list-disc pl-5">
                         {(meetingDetails.tasks || []).map(t => (
-                          <li key={t.TaskID} className={getThemeClasses('text-sm text-gray-700', 'dark:text-gray-300')}>
-                            <Link href={{ pathname: '/task/[taskId]', query: { taskId: t.TaskID } }} target="_blank" rel="noreferrer" className={getThemeClasses('inline-flex items-center gap-2 hover:underline hover:text-blue-600', 'dark:hover:text-gray-200')}>
+                          <li key={t.TaskID} className={'text-sm text-gray-700 dark:text-gray-300'}>
+                            <Link href={{ pathname: '/task/[taskId]', query: { taskId: t.TaskID } }} target="_blank" rel="noreferrer" className={'inline-flex items-center gap-2 hover:underline hover:text-blue-600 dark:hover:text-gray-200'}>
                               <span>{t.Name}</span>
                               <FaExternalLinkAlt className="w-3.5 h-3.5 opacity-70 text-blue-600" />
                             </Link>
                           </li>
                         ))}
                         {(!meetingDetails.tasks || meetingDetails.tasks.length === 0) && (
-                          <li className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>No tasks attached</li>
+                          <li className={'text-sm text-gray-500 dark:text-gray-400'}>No tasks attached</li>
                         )}
                       </ul>
                     </div>
@@ -2988,18 +2567,18 @@ const TeamDetailsPage = () => {
             {/* Google Calendar Connection Prompt Modal */}
             {showGoogleCalendarPrompt && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className={getThemeClasses('bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100', 'bg-dark-bg border-[#232323]')}>
+                <div className="bg-white dark:bg-dark-bg rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border border-gray-100 dark:border-[#232323]">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className={getThemeClasses('text-lg font-semibold text-gray-900', 'dark:text-gray-100')}>Connect Google Calendar</h3>
+                    <h3 className={'text-lg font-semibold text-gray-900 dark:text-gray-100'}>Connect Google Calendar</h3>
                     <button
                       onClick={() => setShowGoogleCalendarPrompt(false)}
-                      className={getThemeClasses('text-gray-400 hover:text-gray-600 text-xl font-bold', 'dark:text-gray-500 dark:hover:text-gray-300')}
+                      className={'text-gray-400 hover:text-gray-600 text-xl font-bold dark:text-gray-500 dark:hover:text-gray-300'}
                     >
                       ×
                     </button>
                   </div>
                   <div className="mb-6">
-                    <p className={getThemeClasses('text-sm text-gray-600 mb-4', 'dark:text-gray-400')}>
+                    <p className={'text-sm text-gray-600 mb-4 dark:text-gray-400'}>
                       To create meetings with Google Meet links, you need to connect your Google Calendar account.
                     </p>
                     <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -3017,19 +2596,13 @@ const TeamDetailsPage = () => {
                   <div className="flex flex-col gap-3">
                     <button
                       onClick={() => setShowGoogleCalendarPrompt(false)}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-dark-hover'
-                      )}
+                      className={'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleInitiateGoogleCalendarAuth}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200',
-                        'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'
-                      )}
+                      className={'px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800'}
                     >
                       Connect Google Calendar
                     </button>
@@ -3044,24 +2617,17 @@ const TeamDetailsPage = () => {
                 isOpen={showBulkRemoveProjectsDialog}
                 onClose={() => setShowBulkRemoveProjectsDialog(false)}
                 title="Remove Selected Projects"
-                getThemeClasses={getThemeClasses}
                 actions={
                   <>
                     <button
                       onClick={() => setShowBulkRemoveProjectsDialog(false)}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-dark-hover'
-                      )}
+                      className={'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleBulkRemoveProjects}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
-                        'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
-                      )}
+                      className={'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'}
                       disabled={bulkRemovingProjects}
                     >
                       {bulkRemovingProjects ? 'Removing...' : 'Remove Projects'}
@@ -3069,10 +2635,7 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                <p className={getThemeClasses(
-                  'text-gray-600',
-                  'dark:text-gray-400'
-                )}>
+                <p className={'text-gray-600 dark:text-gray-400'}>
                   Are you sure you want to remove {selectedProjects.length} selected project{selectedProjects.length !== 1 ? 's' : ''} from the team? This action cannot be undone.
                 </p>
               </CustomModal>
@@ -3084,24 +2647,17 @@ const TeamDetailsPage = () => {
                 isOpen={showLeaveTeamDialog}
                 onClose={() => setShowLeaveTeamDialog(false)}
                 title={isOwner ? 'Transfer Admin & Leave Team' : 'Leave Team'}
-                getThemeClasses={getThemeClasses}
                 actions={
                   <>
                     <button
                       onClick={() => setShowLeaveTeamDialog(false)}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-dark-hover'
-                      )}
+                      className={'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleLeaveTeam}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
-                        'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
-                      )}
+                      className={'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'}
                       disabled={leavingTeam}
                     >
                       {leavingTeam ? 'Processing...' : (isOwner ? 'Transfer & Leave' : 'Leave Team')}
@@ -3109,10 +2665,7 @@ const TeamDetailsPage = () => {
                   </>
                 }
               >
-                <p className={getThemeClasses(
-                  'text-gray-600',
-                  'dark:text-gray-400'
-                )}>
+                <p className={'text-gray-600 dark:text-gray-400'}>
                   {isOwner
                     ? 'As the team owner, you must transfer admin rights to another member before leaving. You will be redirected to select a new admin.'
                     : 'Are you sure you want to leave this team? You will lose access to all team resources and projects.'
@@ -3130,7 +2683,6 @@ const TeamDetailsPage = () => {
                   setSelectedNewAdmin(null);
                 }}
                 title="Transfer Admin Rights"
-                getThemeClasses={getThemeClasses}
                 actions={
                   <>
                     <button
@@ -3138,20 +2690,14 @@ const TeamDetailsPage = () => {
                         setShowTransferAdminDialog(false);
                         setSelectedNewAdmin(null);
                       }}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                        'dark:text-gray-400 dark:hover:bg-dark-hover'
-                      )}
+                      className={'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleTransferAdminAndLeave}
                       disabled={!selectedNewAdmin || leavingTeam}
-                      className={getThemeClasses(
-                        'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed',
-                        'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-900/70'
-                      )}
+                      className={'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-900/70'}
                     >
                       {leavingTeam ? 'Transferring...' : 'Transfer & Leave'}
                     </button>
@@ -3159,10 +2705,7 @@ const TeamDetailsPage = () => {
                 }
               >
                 <div className="space-y-4">
-                  <p className={getThemeClasses(
-                    'text-gray-600',
-                    'dark:text-gray-400'
-                  )}>
+                  <p className={'text-gray-600 dark:text-gray-400'}>
                     Select a team member to transfer admin rights to:
                   </p>
                   <div className="space-y-2">
@@ -3176,20 +2719,14 @@ const TeamDetailsPage = () => {
                           onChange={(e) => setSelectedNewAdmin(e.target.value)}
                           className="text-blue-600 focus:ring-blue-500"
                         />
-                        <span className={getThemeClasses(
-                          'text-gray-900',
-                          'dark:text-gray-100'
-                        )}>
+                        <span className={'text-gray-900 dark:text-gray-100'}>
                           {member.name} ({member.email})
                         </span>
                       </label>
                     ))}
                   </div>
                   {members.filter(member => member.MemberID !== userDetails?._id).length === 0 && (
-                    <p className={getThemeClasses(
-                      'text-gray-500 text-sm',
-                      'dark:text-gray-400'
-                    )}>
+                    <p className={'text-gray-500 text-sm dark:text-gray-400'}>
                       No other team members available to transfer admin rights to.
                     </p>
                   )}

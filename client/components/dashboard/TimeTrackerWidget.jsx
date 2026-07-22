@@ -160,16 +160,13 @@ const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: set
   }, [tasks]);
 
   return (
-    <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${theme === 'dark'
-      ? 'bg-dark-bg border-zinc-800/80'
-      : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'
-      }`}>
+    <div className="rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none">
       <div className="pb-4 mb-4 flex items-start justify-between">
         <div>
           <h2 className="text-lg font-bold tracking-tight">
             <span>Personal Time Tracker</span>
           </h2>
-          <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Track and punch time directly to your timesheet
           </p>
         </div>
@@ -192,7 +189,7 @@ const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: set
       <div className="flex-1 space-y-4">
         {/* Stopwatch display */}
         <div className="text-center py-2">
-          <span className={`text-4xl font-mono font-bold tracking-wider ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}`}>
+          <span className="text-4xl font-mono font-bold tracking-wider text-indigo-600 dark:text-indigo-400">
             {formatTime(time)}
           </span>
         </div>
@@ -232,10 +229,7 @@ const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: set
             placeholder="Log details..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className={`w-full text-xs px-3 py-2 rounded-xl border outline-none ${theme === 'dark'
-              ? 'bg-dark-bg border-dark-border text-white'
-              : 'bg-slate-50 border-slate-200 text-slate-900'
-              }`}
+            className="w-full text-xs px-3 py-2 rounded-xl border outline-none bg-slate-50 border-slate-200 text-slate-900 dark:bg-dark-bg dark:border-dark-border dark:text-white"
           />
         </div>
 
@@ -262,10 +256,7 @@ const TimeTrackerWidget = ({ userDetails, theme, tasks: propTasks, setTasks: set
           {time > 0 && (
             <button
               onClick={handleReset}
-              className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${theme === 'dark'
-                ? 'border-dark-border hover:bg-dark-hover text-slate-400'
-                : 'border-slate-200 hover:bg-slate-100 text-slate-600'
-                }`}
+              className="px-3 py-2 rounded-xl text-xs font-semibold border transition-all border-slate-200 hover:bg-slate-100 text-slate-600 dark:border-dark-border dark:hover:bg-dark-hover dark:text-slate-400"
               title="Reset Timer"
             >
               <FaStop size={10} />

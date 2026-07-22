@@ -8,13 +8,11 @@ import { timesheetService } from '../services/api';
 import { FaPlus, FaCheckCircle, FaArrowRight, FaPaperPlane, FaDownload, FaArrowLeft } from 'react-icons/fa'; // <-- Import FaArrowLeft
 import { MdDelete } from 'react-icons/md';
 import { useToast } from '../context/ToastContext';
-import { useThemeClasses } from '../components/shared/hooks/useThemeClasses';
 import CustomModal from '../components/shared/CustomModal';
 
 const TimeSheet = () => {
     const { userDetails, getTableHeaderClasses, getTableHeaderTextClasses, getTableRowClasses, getTableTextClasses, getTableSecondaryTextClasses, organization } = useGlobal();
-    const getThemeClasses = useThemeClasses();
-    const { showToast } = useToast();
+        const { showToast } = useToast();
     const [userTimeSheet, setUserTimeSheet] = useState([]);
     const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString());
     const [punchID, setPunchID] = useState();
@@ -37,10 +35,7 @@ const TimeSheet = () => {
     const [reportMonth, setReportMonth] = useState(new Date().toISOString().slice(0, 7));
     const [reportLoading, setReportLoading] = useState(false);
 
-    const tableContainerClasses = getThemeClasses(
-        'rounded-xl border border-gray-200',
-        'dark:border-gray-700'
-    );
+    const tableContainerClasses = 'rounded-xl border border-gray-200 dark:border-gray-700';
     const tableHeaderClasses = getTableHeaderClasses();
     const tableHeaderTextClasses = getTableHeaderTextClasses();
     const tableRowClasses = getTableRowClasses();
@@ -54,8 +49,7 @@ const TimeSheet = () => {
         () => timesheetService.getTimeSheetHistory(formattedDate),
         {
             revalidateOnFocus: false,
-            dedupingInterval: 2000,
-        }
+            dedupingInterval: 2000 }
     );
 
     const loading = !timesheetData && !fetchError && !!userDetails?._id;
@@ -462,10 +456,7 @@ const TimeSheet = () => {
         // The overall JSX structure remains the same as the previous version.
         // No changes needed here, only the generateExcelReport function was modified.
         <div>
-            <div className={getThemeClasses(
-                'w-full text-gray-900 lg:grid lg:grid-cols-5 lg:gap-4 flex flex-col-reverse mt-4',
-                'bg-dark-bg text-white'
-            )}>
+            <div className="w-full text-gray-900 dark:text-white lg:grid lg:grid-cols-5 lg:gap-4 flex flex-col-reverse mt-4 bg-white dark:bg-dark-bg">
                 {/* TimeSheet Table */}
                 <div className={`col-span-4`}>
                     {/* --- MODIFIED SECTION --- */}
@@ -473,10 +464,7 @@ const TimeSheet = () => {
                         <div className="flex-col text-right">
                             <button
                                 onClick={() => setIsReportModalOpen(true)}
-                                className={getThemeClasses(
-                                    'flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50',
-                                    'dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600'
-                                )}
+                                className={'flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600'}
                             >
                                 <FaDownload size={14} />
                                 Download Report
@@ -487,10 +475,7 @@ const TimeSheet = () => {
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => handleDateChange('prev')}
-                                className={getThemeClasses(
-                                    'p-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50',
-                                    'dark:border-gray-600 dark:text-gray-200 dark:hover:bg-dark-hover'
-                                )}
+                                className={'p-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-dark-hover'}
                                 title="Previous day"
                             >
                                 <FaArrowLeft size={14} />
@@ -505,18 +490,12 @@ const TimeSheet = () => {
                                     const adjustedDate = new Date(selectedDate.getTime() + selectedDate.getTimezoneOffset() * 60000);
                                     setCurrentDate(adjustedDate.toLocaleDateString()); // Use local date string
                                 }}
-                                className={getThemeClasses(
-                                    'px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
-                                    'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500'
-                                )}
+                                className={'px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500'}
                             />
 
                             <button
                                 onClick={() => handleDateChange('next')}
-                                className={getThemeClasses(
-                                    'p-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50',
-                                    'dark:border-gray-600 dark:text-gray-200 dark:hover:bg-dark-hover'
-                                )}
+                                className={'p-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-dark-hover'}
                                 title="Next day"
                             >
                                 <FaArrowRight size={14} />
@@ -545,10 +524,7 @@ const TimeSheet = () => {
                                                 type="text"
                                                 value={description}
                                                 onChange={e => setDescription(e.target.value)}
-                                                className={getThemeClasses(
-                                                    'w-[95%] flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                                                    'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                                                )}
+                                                className="w-[95%] flex px-0 py-2 border-0 border-b-2 border-gray-200 dark:border-gray-600 focus:border-gray-400 dark:focus:border-gray-500 focus:outline-none bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                                 maxLength={100}
                                                 required
                                                 placeholder="Enter work description"
@@ -559,10 +535,7 @@ const TimeSheet = () => {
                                                 type="time"
                                                 value={startTime}
                                                 onChange={e => setStartTime(e.target.value)}
-                                                className={getThemeClasses(
-                                                    'flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                                                    'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                                                )}
+                                                className="flex px-0 py-2 border-0 border-b-2 border-gray-200 dark:border-gray-600 focus:border-gray-400 dark:focus:border-gray-500 focus:outline-none bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                                 required
                                             />
                                         </td>
@@ -571,10 +544,7 @@ const TimeSheet = () => {
                                                 type="time"
                                                 value={endTime}
                                                 onChange={e => setEndTime(e.target.value)}
-                                                className={getThemeClasses(
-                                                    'flex px-0 py-2 border-0 border-b-2 border-gray-200 focus:border-gray-200 focus:outline-none bg-transparent text-gray-900 placeholder-gray-400',
-                                                    'flex px-0 py-2 border-0 border-b-2 border-gray-600 focus:border-gray-600 focus:outline-none bg-transparent text-white placeholder-gray-500'
-                                                )}
+                                                className="flex px-0 py-2 border-0 border-b-2 border-gray-200 dark:border-gray-600 focus:border-gray-400 dark:focus:border-gray-500 focus:outline-none bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                                 required
                                             />
                                         </td>
@@ -583,10 +553,7 @@ const TimeSheet = () => {
                                                 <button
                                                     onClick={handleAddTime}
                                                     disabled={!description || !startTime || !endTime} // Disable if fields are empty
-                                                    className={getThemeClasses(
-                                                        'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed',
-                                                        'dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70'
-                                                    )}
+                                                    className={'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 shadow-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70'}
                                                 >
                                                     <FaPaperPlane size={12} />
                                                 </button>
@@ -614,10 +581,7 @@ const TimeSheet = () => {
                                                     onClick={() => {
                                                         openDeleteConfirmation(time._id, time.PunchID)
                                                     }}
-                                                    className={getThemeClasses(
-                                                        'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200',
-                                                        'dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'
-                                                    )}
+                                                    className={'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 shadow-sm transition-all duration-200 dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50'}
                                                     title="Delete TimeSheet"
                                                 >
                                                     <MdDelete size={18} />
@@ -649,7 +613,7 @@ const TimeSheet = () => {
 
                 {/* Punch Clock UI */}
                 <div className={`max-w-md p-4 ${tableContainerClasses} col-span-1 mb-4`}> {/* Increased padding */}
-                    <h2 className={getThemeClasses("text-xl font-bold mb-4 text-black", "text-white")}>Clock In / Out</h2>
+                    <h2 className="text-xl font-bold mb-4 text-black dark:text-white">Clock In / Out</h2>
 
                     <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6">
                         <FaCheckCircle className="mr-2 text-green-500" />
@@ -658,19 +622,18 @@ const TimeSheet = () => {
                                 weekday: 'long',
                                 year: 'numeric',
                                 month: 'long',
-                                day: 'numeric',
-                            })}
+                                day: 'numeric' })}
                         </span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className={getThemeClasses("bg-gray-100 p-4 rounded-lg", "dark:bg-zinc-800")}>
+                        <div className={"bg-gray-100 p-4 rounded-lg dark:bg-zinc-800"}>
                             <p className="text-sm text-gray-500 dark:text-gray-400">Clock In</p>
                             <p className="text-lg font-semibold">
                                 {punchedInTime ? new Date(punchedInTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}
                             </p>
                         </div>
-                        <div className={getThemeClasses("bg-gray-100 p-4 rounded-lg", "dark:bg-zinc-800")}>
+                        <div className={"bg-gray-100 p-4 rounded-lg dark:bg-zinc-800"}>
                             <p className="text-sm text-gray-500 dark:text-gray-400">Clock Out</p>
                             <p className="text-lg font-semibold">
                                 {punchedOutTime ? new Date(punchedOutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}
@@ -731,11 +694,11 @@ const TimeSheet = () => {
                                 <FaArrowRight size={14} />
                             </button>
                         ) : punchedOutTime ? ( // Show Shift Completed if punched out
-                            <div className={`text-center px-4 py-3 text-sm font-medium rounded-lg ${getThemeClasses("bg-gray-100 text-gray-500", "dark:bg-zinc-800 dark:text-gray-400")}`}>
+                            <div className={`text-center px-4 py-3 text-sm font-medium rounded-lg ${"bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-gray-400"}`}>
                                 Shift Completed for this day
                             </div>
                         ) : !isToday ? ( // Message if viewing a past/future date
-                            <div className={`text-center px-4 py-3 text-sm font-medium rounded-lg ${getThemeClasses("bg-gray-100 text-gray-500", "dark:bg-zinc-800 dark:text-gray-400")}`}>
+                            <div className={`text-center px-4 py-3 text-sm font-medium rounded-lg ${"bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-gray-400"}`}>
                                 Cannot Clock In/Out on past/future dates
                             </div>
                         ) : null /* Should not happen, but prevents rendering nothing */
@@ -748,34 +711,24 @@ const TimeSheet = () => {
                     isOpen={isDeleteModalOpen}
                     onClose={() => setIsDeleteModalOpen(false)}
                     title="Confirm Deletion"
-                    getThemeClasses={getThemeClasses}
                     actions={
                         <>
                             <button
                                 onClick={() => setIsDeleteModalOpen(false)}
-                                className={getThemeClasses(
-                                    'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                                    'dark:text-gray-400 dark:hover:bg-dark-hover'
-                                )}
+                                className={'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleConfirmDelete}
-                                className={getThemeClasses(
-                                    'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
-                                    'dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'
-                                )}
+                                className={'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70'}
                             >
                                 Delete
                             </button>
                         </>
                     }
                 >
-                    <p className={getThemeClasses(
-                        'text-gray-600',
-                        'dark:text-gray-400'
-                    )}>
+                    <p className={'text-gray-600 dark:text-gray-400'}>
                         Are you sure you want to delete this time entry? This action cannot be undone.
                     </p>
                 </CustomModal>
@@ -786,25 +739,18 @@ const TimeSheet = () => {
                     isOpen={isReportModalOpen}
                     onClose={() => setIsReportModalOpen(false)}
                     title="Download Timesheet Report"
-                    getThemeClasses={getThemeClasses}
                     actions={
                         <>
                             <button
                                 onClick={() => setIsReportModalOpen(false)}
-                                className={getThemeClasses(
-                                    'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200',
-                                    'dark:text-gray-400 dark:hover:bg-dark-hover'
-                                )}
+                                className={'px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 dark:text-gray-400 dark:hover:bg-dark-hover'}
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleDownloadReport}
                                 disabled={reportLoading}
-                                className={getThemeClasses(
-                                    'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:opacity-50',
-                                    'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-900/70'
-                                )}
+                                className={'px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-900/70'}
                             >
                                 {reportLoading ? 'Generating...' : 'Download XLSX'}
                             </button>
@@ -835,10 +781,7 @@ const TimeSheet = () => {
                                         type="date"
                                         value={reportStartDate}
                                         onChange={(e) => setReportStartDate(e.target.value)}
-                                        className={getThemeClasses(
-                                            'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
-                                            'dark:bg-gray-700 dark:border-gray-600 dark:text-white'
-                                        )}
+                                        className={'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white'}
                                     />
                                 </div>
                                 <div>
@@ -847,10 +790,7 @@ const TimeSheet = () => {
                                         type="date"
                                         value={reportEndDate}
                                         onChange={(e) => setReportEndDate(e.target.value)}
-                                        className={getThemeClasses(
-                                            'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
-                                            'dark:bg-gray-700 dark:border-gray-600 dark:text-white'
-                                        )}
+                                        className={'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white'}
                                     />
                                 </div>
                             </div>
@@ -861,10 +801,7 @@ const TimeSheet = () => {
                                     type="month"
                                     value={reportMonth}
                                     onChange={(e) => setReportMonth(e.target.value)}
-                                    className={getThemeClasses(
-                                        'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
-                                        'dark:bg-gray-700 dark:border-gray-600 dark:text-white'
-                                    )}
+                                    className={'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white'}
                                 />
                             </div>
                         )}

@@ -47,18 +47,18 @@ const OnboardingProgress = ({ onComplete }) => {
   }
 
   return (
-    <div className={`mb-6 p-4 rounded-lg border ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-blue-50 border-blue-200'}`}>
+    <div className={`mb-6 p-4 rounded-lg border bg-blue-50 border-blue-200 dark:bg-gray-800 dark:border-gray-700`}>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+          <h3 className={`font-semibold text-gray-900 dark:text-white`}>
             Complete Your Setup
           </h3>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+          <p className={`text-sm text-gray-600 dark:text-gray-300`}>
             {completedSteps} of {totalSteps} steps completed
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className={`w-24 h-2 rounded-full ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
+          <div className={`w-24 h-2 rounded-full bg-gray-200 dark:bg-gray-700`}>
             <div 
               className="h-2 bg-blue-500 rounded-full transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}
@@ -74,10 +74,10 @@ const OnboardingProgress = ({ onComplete }) => {
             key={step.id}
             className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
               step.completed 
-                ? theme === 'dark' 
+                ? theme'dark' 
                   ? 'bg-green-900/30 border-green-600' 
                   : 'bg-green-50 border-green-200'
-                : theme === 'dark'
+                : theme'dark'
                   ? 'bg-gray-700 border-gray-600'
                   : 'bg-white border-gray-200'
             } border`}
@@ -85,7 +85,7 @@ const OnboardingProgress = ({ onComplete }) => {
             <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
               step.completed 
                 ? 'bg-green-500 text-white' 
-                : theme === 'dark' 
+                : theme'dark' 
                   ? 'bg-gray-600 text-gray-300' 
                   : 'bg-gray-200 text-gray-600'
             }`}>
@@ -95,8 +95,8 @@ const OnboardingProgress = ({ onComplete }) => {
               <div className="flex items-center gap-2">
                 <span className={`text-sm font-medium ${
                   step.completed 
-                    ? theme === 'dark' ? 'text-green-400' : 'text-green-700'
-                    : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                    ? theme'dark' ? 'text-green-400' : 'text-green-700'
+                    : theme'dark' ? 'text-gray-300' : 'text-gray-700'
                 }`}>
                   {step.title}
                 </span>
@@ -106,8 +106,8 @@ const OnboardingProgress = ({ onComplete }) => {
               </div>
               <div className={`text-xs ${
                 step.completed 
-                  ? theme === 'dark' ? 'text-green-400' : 'text-green-600'
-                  : theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                  ? theme'dark' ? 'text-green-400' : 'text-green-600'
+                  : theme'dark' ? 'text-gray-400' : 'text-gray-500'
               }`}>
                 {step.completed ? 'Completed' : step.required ? 'Required' : 'Optional'}
               </div>

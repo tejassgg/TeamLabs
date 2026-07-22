@@ -99,8 +99,7 @@ const Dashboard = () => {
     null,
     {
       revalidateOnFocus: true,
-      dedupingInterval: 5000,
-    }
+      dedupingInterval: 5000 }
   );
 
   const whatsUpLoading = !whatsUpData && !whatsUpError && !!userDetails?.organizationID;
@@ -183,8 +182,7 @@ const Dashboard = () => {
     null,
     {
       revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+      dedupingInterval: 5000 }
   );
 
   const statsLoading = !dashboardData && !dashboardFetchError && !stats && !!userDetails?.organizationID;
@@ -519,7 +517,7 @@ const Dashboard = () => {
             setTasks={setTasksDetails}
           />
         ) : (
-          <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA] border-gray-700 rounded-xl border p-6' : 'bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border p-6'}`}>
+          <div className={`bg-white text-gray-900 border-gray-200 rounded-xl shadow-sm border p-6 dark:bg-transparent dark:text-[#F3F6FA] dark:border-gray-700 dark:rounded-xl dark:border dark:p-6`}>
             <h3 className="text-lg font-semibold mb-4">Dashboard Analytics</h3>
             <p className="text-sm text-slate-600">Analytics charts are currently unavailable.</p>
           </div>
@@ -565,18 +563,14 @@ const Dashboard = () => {
         {/* Tab Navigation */}
         {!shouldShowWelcomeMessage && (
           <div className="mb-6">
-            <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} overflow-x-auto scrollbar-none`}>
+            <div className={`border-b border-gray-200 dark:border-gray-700 overflow-x-auto scrollbar-none`}>
               <nav className="-mb-px flex items-center justify-between min-w-max w-full">
                 <div className="flex space-x-8">
                   <button
                     onClick={() => setActiveTab('whats_up')}
                     className={`${activeTab === 'whats_up'
-                      ? theme === 'dark'
-                        ? 'border-blue-400 text-blue-400'
-                        : 'border-blue-600 text-blue-600'
-                      : theme === 'dark'
-                        ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600'
                       } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
                   >
                     <FaBell size={16} />
@@ -585,12 +579,8 @@ const Dashboard = () => {
                   <button
                     onClick={() => setActiveTab('metrics')}
                     className={`${activeTab === 'metrics'
-                      ? theme === 'dark'
-                        ? 'border-blue-400 text-blue-400'
-                        : 'border-blue-600 text-blue-600'
-                      : theme === 'dark'
-                        ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600'
                       } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
                   >
                     <FaChartBar size={16} />
@@ -599,12 +589,8 @@ const Dashboard = () => {
                   <button
                     onClick={() => setActiveTab('manage')}
                     className={`${activeTab === 'manage'
-                      ? theme === 'dark'
-                        ? 'border-blue-400 text-blue-400'
-                        : 'border-blue-600 text-blue-600'
-                      : theme === 'dark'
-                        ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600'
                       } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200`}
                   >
                     <FaProjectDiagram size={16} />
@@ -618,10 +604,7 @@ const Dashboard = () => {
                     <>
                       <button
                         onClick={resetLayout}
-                        className={`px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition-all duration-200 ${theme === 'dark'
-                          ? 'border-white/10 hover:bg-slate-800 text-slate-400 bg-slate-900/30'
-                          : 'border-slate-200 hover:bg-slate-100 text-slate-650 hover:text-slate-900 text-slate-600 bg-white shadow-sm'
-                          }`}
+                        className={`px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition-all duration-200 border-slate-200 hover:bg-slate-100 text-slate-650 hover:text-slate-900 text-slate-600 bg-white shadow-sm dark:border-white/10 dark:hover:bg-slate-800 dark:text-slate-400 dark:bg-slate-900/30`}
                       >
                         <FaUndo size={11} /> Reset Defaults
                       </button>
@@ -635,10 +618,7 @@ const Dashboard = () => {
                   ) : (
                     <button
                       onClick={() => setIsEditMode(true)}
-                      className={`px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all duration-200 border ${theme === 'dark'
-                        ? 'border-white/10 hover:bg-slate-800 hover:text-white text-slate-400 bg-slate-900/50'
-                        : 'border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-600 bg-white shadow-sm'
-                        }`}
+                      className={`px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all duration-200 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-600 bg-white shadow-sm dark:border-white/10 dark:hover:bg-slate-800 dark:hover:text-white dark:text-slate-400 dark:bg-slate-900/50`}
                     >
                       <FaWrench size={11} /> Customize
                     </button>
@@ -694,16 +674,16 @@ const Dashboard = () => {
                 return (
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                      <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      <div className={`text-xs text-gray-500 dark:text-gray-400`}>
                         {dayName}, {dateString}
                       </div>
-                      <h1 className={`text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight mt-1 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+                      <h1 className={`text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight mt-1 text-gray-800 dark:text-white`}>
                         {greeting}! {firstName}, you have{' '}
                         <span className="text-primary dark:text-blue-400 font-bold">{whatsUpData?.todosCount || 0} to-dos</span> and{' '}
                         <span className="text-primary dark:text-blue-400 font-bold">{whatsUpData?.topicsCount || 0} topics</span> to catch up on.
                       </h1>
                     </div>
-                    <div className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full self-start sm:self-center ${theme === 'dark' ? 'bg-dark-bg text-zinc-400 border border-zinc-800' : 'bg-gray-100 text-gray-500'}`}>
+                    <div className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full self-start sm:self-center bg-gray-100 text-gray-500 dark:bg-dark-bg dark:text-zinc-400 dark:border dark:border-zinc-800`}>
                       <span>Updated just now</span>
                       <button
                         onClick={() => {
@@ -725,17 +705,14 @@ const Dashboard = () => {
             <div className="w-full flex flex-col lg:flex-row gap-6">
 
               {/* Left Column: My Tasks */}
-              <div className={`w-full lg:w-[20%] p-6 rounded-3xl border ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-white border-gray-200 shadow-sm'} flex flex-col`}>
+              <div className={`w-full lg:w-[20%] p-6 rounded-3xl border bg-white border-gray-200 shadow-sm dark:bg-dark-bg dark:border-dark-border flex flex-col`}>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className={`text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  <h2 className={`text-xl font-bold tracking-tight text-gray-900 dark:text-white`}>
                     My Tasks
                   </h2>
                   <button
                     onClick={() => openAddTaskModal({ mode: 'fromSideBar', onSuccess: mutateWhatsUp })}
-                    className={`h-9 w-9 rounded-full flex items-center justify-center border transition-all ${theme === 'dark'
-                      ? 'border-zinc-700 hover:bg-zinc-800 text-white'
-                      : 'border-gray-200 hover:bg-gray-50 text-gray-700'
-                      }`}
+                    className={`h-9 w-9 rounded-full flex items-center justify-center border transition-all border-gray-200 hover:bg-gray-50 text-gray-700 dark:border-zinc-700 dark:hover:bg-zinc-800 dark:text-white`}
                   >
                     <FaPlus size={12} />
                   </button>
@@ -744,10 +721,7 @@ const Dashboard = () => {
                 {/* Day selector tags */}
                 <div className="flex gap-2 mb-6">
                   <button
-                    className={`px-5 py-2 text-xs font-semibold rounded-full border transition-all duration-200 ${theme === 'dark'
-                      ? 'bg-white text-zinc-900 border-white font-bold shadow-sm'
-                      : 'bg-zinc-950 text-white border-zinc-950 font-bold shadow-md'
-                      }`}
+                    className={`px-5 py-2 text-xs font-semibold rounded-full border transition-all duration-200 bg-zinc-950 text-white border-zinc-950 font-bold shadow-md dark:bg-white dark:text-zinc-900 dark:border-white dark:font-bold dark:shadow-sm`}
                   >
                     Ongoing
                   </button>
@@ -758,17 +732,13 @@ const Dashboard = () => {
                   <button
                     type="button"
                     onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                    className={`w-full flex items-center justify-between p-3 rounded-2xl border transition-all ${theme === 'dark'
-                      ? 'bg-dark-card border-dark-border hover:bg-dark-hover text-white'
-                      : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-800'
-                      }`}
+                    className={`w-full flex items-center justify-between p-3 rounded-2xl border transition-all bg-white border-gray-200 hover:bg-gray-50 text-gray-800 dark:bg-dark-card dark:border-dark-border dark:hover:bg-dark-hover dark:text-white`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className={`inline-flex items-center justify-center w-6 h-6 text-xs font-bold rounded-full ${theme === 'dark' ? 'bg-dark-border text-light' : 'bg-primary text-white'
-                        }`}>
+                      <span className={`inline-flex items-center justify-center w-6 h-6 text-xs font-bold rounded-full bg-primary text-white dark:bg-dark-border dark:text-light`}>
                         {filteredMyTasks.length}
                       </span>
-                      <span className={`text-xs sm:text-sm font-semibold ${theme === 'dark' ? 'text-light' : 'text-gray-700'}`}>
+                      <span className={`text-xs sm:text-sm font-semibold text-gray-700 dark:text-light`}>
                         {statusOptions.find(opt => opt.code === selectedTaskStatus)?.value}
                       </span>
                     </div>
@@ -782,10 +752,7 @@ const Dashboard = () => {
                   {isStatusDropdownOpen && (
                     <>
                       <div className="fixed inset-0 z-10" onClick={() => setIsStatusDropdownOpen(false)} />
-                      <div className={`absolute left-0 right-0 mt-1.5 rounded-2xl border shadow-xl z-20 overflow-hidden ${theme === 'dark'
-                        ? 'bg-dark-card border-dark-border text-white'
-                        : 'bg-white border-gray-200 text-gray-800'
-                        }`}>
+                      <div className={`absolute left-0 right-0 mt-1.5 rounded-2xl border shadow-xl z-20 overflow-hidden bg-white border-gray-200 text-gray-800 dark:bg-dark-card dark:border-dark-border dark:text-white`}>
                         {statusOptions.map((option) => {
                           const count = (whatsUpData?.todos || []).filter(t => {
                             if (option.code === 'all') return true;
@@ -804,17 +771,12 @@ const Dashboard = () => {
                                 setIsStatusDropdownOpen(false);
                               }}
                               className={`w-full flex items-center justify-between px-4 py-3 text-xs sm:text-sm text-left transition-colors ${selectedTaskStatus === option.code
-                                ? theme === 'dark'
-                                  ? 'bg-dark-hover text-primary font-semibold'
-                                  : 'bg-gray-100 text-primary font-semibold'
-                                : theme === 'dark'
-                                  ? 'hover:bg-dark-hover text-white'
-                                  : 'hover:bg-gray-50 text-gray-700'
+                                ? 'bg-gray-100 dark:bg-dark-hover text-primary font-semibold'
+                                : 'text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-dark-hover'
                                 }`}
                             >
                               <span>{option.value}</span>
-                              <span className={`inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold rounded-full ${theme === 'dark' ? 'bg-dark-border text-light' : 'bg-gray-100 text-gray-500'
-                                }`}>
+                              <span className={`inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold rounded-full bg-gray-100 text-gray-500 dark:bg-dark-border dark:text-light`}>
                                 {count}
                               </span>
                             </button>
@@ -890,13 +852,12 @@ const Dashboard = () => {
                             <div className="flex flex-col gap-1">
                               <h4
                                 onClick={() => router.push(`/task/${todo.TaskID}`)}
-                                className={`text-sm font-bold tracking-tight cursor-pointer hover:underline ${theme === 'dark' ? 'text-white' : 'text-zinc-900'
-                                  }`}
+                                className={`text-sm font-bold tracking-tight cursor-pointer hover:underline text-zinc-900 dark:text-white`}
                               >
                                 {todo.Name}
                               </h4>
                               {todo.Description && (
-                                <p className={`text-xs ${theme === 'dark' ? 'text-zinc-400' : 'text-zinc-550'} line-clamp-2`}>
+                                <p className={`text-xs text-zinc-550 dark:text-zinc-400 line-clamp-2`}>
                                   {todo.Description.replace(/<[^>]*>/g, '')}
                                 </p>
                               )}
@@ -954,14 +915,14 @@ const Dashboard = () => {
               <div className="w-full lg:w-[58%] space-y-6">
 
                 {/* Suggested to-dos Card */}
-                <div className={`p-6 rounded-3xl border ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-white border-gray-200 shadow-sm'}`}>
+                <div className={`p-6 rounded-3xl border bg-white border-gray-200 shadow-sm dark:bg-dark-bg dark:border-dark-border`}>
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className={`text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    <h2 className={`text-xl font-bold tracking-tight text-gray-900 dark:text-white`}>
                       Suggested to-dos
                     </h2>
 
                     {!whatsUpLoading && whatsUpData?.todos?.length > 0 && (
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-zinc-800 text-zinc-300' : 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-300`}>
                         {whatsUpData.todos.length} left
                       </span>
                     )}
@@ -982,12 +943,12 @@ const Dashboard = () => {
 
                   {/* Filter Tabs */}
                   {!whatsUpLoading && whatsUpData?.todos?.length > 0 && (
-                    <div className={`max-w-sm flex rounded-lg p-0.5 border text-xs font-medium mb-4 ${theme === 'dark' ? 'border-zinc-800 bg-zinc-900/30' : 'border-gray-200 bg-gray-50'}`}>
+                    <div className="max-w-sm flex rounded-lg p-0.5 border text-xs font-medium mb-4 border-gray-200 bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900/30">
                       <button
                         onClick={() => setTodoFilter('all')}
                         className={`flex-1 py-1 rounded text-center transition-all ${todoFilter === 'all'
                           ? 'bg-blue-600 text-white shadow-sm font-semibold'
-                          : theme === 'dark' ? 'text-zinc-400 hover:text-zinc-200' : 'text-gray-600 hover:text-gray-900'
+                          : 'text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                           }`}
                       >
                         All ({(whatsUpData?.todos || []).length})
@@ -996,7 +957,7 @@ const Dashboard = () => {
                         onClick={() => setTodoFilter('high')}
                         className={`flex-1 py-1 rounded text-center transition-all ${todoFilter === 'high'
                           ? 'bg-blue-600 text-white shadow-sm font-semibold'
-                          : theme === 'dark' ? 'text-zinc-400 hover:text-zinc-200' : 'text-gray-600 hover:text-gray-900'
+                          : 'text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                           }`}
                       >
                         High ({(whatsUpData?.todos || []).filter(t => t.Priority === 0 || t.Priority === 1).length})
@@ -1005,7 +966,7 @@ const Dashboard = () => {
                         onClick={() => setTodoFilter('due')}
                         className={`flex-1 py-1 rounded text-center transition-all ${todoFilter === 'due'
                           ? 'bg-blue-600 text-white shadow-sm font-semibold'
-                          : theme === 'dark' ? 'text-zinc-400 hover:text-zinc-200' : 'text-gray-600 hover:text-gray-900'
+                          : 'text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                           }`}
                       >
                         Due Soon ({(whatsUpData?.todos || []).filter(t => t.DueDate).length})
@@ -1071,9 +1032,7 @@ const Dashboard = () => {
                                 onClick={() => handleCheckboxClick(todo.TaskID)}
                                 className={`w-5 h-5 rounded-full border flex items-center justify-center cursor-pointer transition-all duration-200 group shrink-0 ${isAnimating
                                   ? 'bg-green-500 border-green-500'
-                                  : theme === 'dark'
-                                    ? 'border-zinc-650 bg-zinc-900/60 hover:border-green-500 hover:bg-green-950/20'
-                                    : 'border-gray-300 bg-white hover:border-green-500 hover:bg-green-50/30'
+                                  : 'border-gray-300 bg-white hover:border-green-500 hover:bg-green-50/30 dark:border-zinc-700 dark:bg-zinc-900/60 dark:hover:border-green-500 dark:hover:bg-green-950/20'
                                   }`}
                                 title="Mark as completed"
                               >
@@ -1090,8 +1049,7 @@ const Dashboard = () => {
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span
                                     onClick={() => router.push(`/task/${todo.TaskID}`)}
-                                    className={`text-sm font-bold truncate hover:underline cursor-pointer ${theme === 'dark' ? 'text-white' : 'text-zinc-900'
-                                      }`}
+                                    className={`text-sm font-bold truncate hover:underline cursor-pointer text-zinc-900 dark:text-white`}
                                   >
                                     {todo.Name}
                                   </span>
@@ -1134,10 +1092,7 @@ const Dashboard = () => {
                           <div className="pt-2 flex justify-center">
                             <button
                               onClick={() => setShowAllTodos(!showAllTodos)}
-                              className={`flex items-center gap-1 text-xs font-semibold px-4 py-2 rounded-xl transition-all ${theme === 'dark'
-                                ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
+                              className={`flex items-center gap-1 text-xs font-semibold px-4 py-2 rounded-xl transition-all bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700`}
                             >
                               {showAllTodos ? (
                                 <>
@@ -1159,8 +1114,8 @@ const Dashboard = () => {
                 </div>
 
                 {/* Timeline / What's Ahead */}
-                <div className={`p-6 rounded-3xl border ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-white border-gray-200 shadow-sm'}`}>
-                  <h3 className={`text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-500'}`}>
+                <div className={`p-6 rounded-3xl border bg-white border-gray-200 shadow-sm dark:bg-dark-bg dark:border-dark-border`}>
+                  <h3 className={`text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2 text-gray-500 dark:text-zinc-400`}>
                     <FaClock className="text-blue-500" />
                     <span>What's Ahead (Timeline)</span>
                   </h3>
@@ -1185,7 +1140,7 @@ const Dashboard = () => {
                             <span className="absolute -left-[32px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 ring-4 ring-white dark:ring-dark-bg" />
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                               <div>
-                                <h4 className={`text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                <h4 className={`text-sm font-bold text-gray-900 dark:text-white`}>
                                   {task.Name}
                                 </h4>
                                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -1212,18 +1167,15 @@ const Dashboard = () => {
               </div>
 
               {/* Right Column: Meetings & Support Tickets */}
-              <div className={`w-full lg:w-[22%] p-6 rounded-3xl border space-y-4 ${theme === 'dark' ? 'bg-dark-bg border-dark-border text-white' : 'bg-white border-gray-200 shadow-sm'}`}>
+              <div className={`w-full lg:w-[22%] p-6 rounded-3xl border space-y-4 bg-white border-gray-200 shadow-sm dark:bg-dark-bg dark:border-dark-border dark:text-white`}>
 
                 {/* My Meetings Card Content */}
                 <div>
                   <div className="flex items-center justify-between mb-5">
-                    <h2 className={`text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    <h2 className={`text-xl font-bold tracking-tight text-gray-900 dark:text-white`}>
                       My Meetings
                     </h2>
-                    <button className={`h-9 w-9 rounded-full flex items-center justify-center border transition-all ${theme === 'dark'
-                      ? 'border-zinc-700 hover:bg-zinc-800 text-white'
-                      : 'border-gray-200 hover:bg-gray-50 text-gray-700'
-                      }`}>
+                    <button className={`h-9 w-9 rounded-full flex items-center justify-center border transition-all border-gray-200 hover:bg-gray-50 text-gray-700 dark:border-zinc-700 dark:hover:bg-zinc-800 dark:text-white`}>
                       <FaCalendarAlt size={12} />
                     </button>
                   </div>
@@ -1257,7 +1209,7 @@ const Dashboard = () => {
                                   <span className="block text-xs font-bold text-indigo-600/70 dark:text-indigo-400/70 uppercase tracking-wider">
                                     {formatMeetingDate(meeting.startTime)}
                                   </span>
-                                  <span className={`block text-xs font-black mt-0.5 ${theme === 'dark' ? 'text-white' : 'text-indigo-900'}`}>
+                                  <span className={`block text-xs font-black mt-0.5 text-indigo-900 dark:text-white`}>
                                     {formatTime(meeting.startTime)}
                                   </span>
                                 </div>
@@ -1266,7 +1218,7 @@ const Dashboard = () => {
                                 <div className="flex flex-col min-w-0 pr-1">
                                   <h4
                                     onClick={() => router.push(`/timesheet`)}
-                                    className={`text-sm font-bold tracking-tight cursor-pointer hover:underline truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}
+                                    className={`text-sm font-bold tracking-tight cursor-pointer hover:underline truncate text-gray-900 dark:text-white`}
                                   >
                                     {meeting.title}
                                   </h4>
@@ -1313,7 +1265,7 @@ const Dashboard = () => {
                             {/* Description Snippet & Host Details */}
                             <div className="space-y-3.5">
                               {meeting.description && (
-                                <p className={`text-xs leading-relaxed line-clamp-2 pl-0.5 ${theme === 'dark' ? 'text-zinc-400' : 'text-zinc-550'}`}>
+                                <p className={`text-xs leading-relaxed line-clamp-2 pl-0.5 text-zinc-550 dark:text-zinc-400`}>
                                   {meeting.description}
                                 </p>
                               )}
@@ -1323,7 +1275,7 @@ const Dashboard = () => {
                                 {meeting.organizer && (
                                   <div className="flex items-center gap-1">
                                     <span className="text-xs font-bold text-zinc-400 dark:text-zinc-500 tracking-wider">Host:</span>
-                                    <span className={`text-xs font-bold ${theme === 'dark' ? 'text-zinc-300' : 'text-slate-700'}`}>
+                                    <span className={`text-xs font-bold text-slate-700 dark:text-zinc-300`}>
                                       {meeting.organizer.name || meeting.organizer.username}
                                     </span>
                                   </div>
@@ -1368,8 +1320,7 @@ const Dashboard = () => {
                   <div className="pt-4 flex justify-start">
                     <button
                       onClick={() => router.push('/timesheet')}
-                      className={`text-xs font-bold transition-colors flex items-center gap-1.5 hover:text-blue-500 ${theme === 'dark' ? 'text-zinc-300 hover:text-white' : 'text-slate-800'
-                        }`}
+                      className={`text-xs font-bold transition-colors flex items-center gap-1.5 hover:text-blue-500 text-slate-800 dark:text-zinc-300 dark:hover:text-white`}
                     >
                       <span>See All Meetings</span>
                       <span className="text-xs font-black">&gt;</span>
@@ -1380,13 +1331,10 @@ const Dashboard = () => {
                 {/* Open Tickets Card Content */}
                 <div>
                   <div className="flex items-center justify-between mb-5">
-                    <h2 className={`text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    <h2 className={`text-xl font-bold tracking-tight text-gray-900 dark:text-white`}>
                       Open Tickets
                     </h2>
-                    <button className={`h-9 w-9 rounded-full flex items-center justify-center border transition-all ${theme === 'dark'
-                      ? 'border-zinc-700 hover:bg-zinc-800 text-white'
-                      : 'border-gray-200 hover:bg-gray-50 text-gray-700'
-                      }`}>
+                    <button className={`h-9 w-9 rounded-full flex items-center justify-center border transition-all border-gray-200 hover:bg-gray-50 text-gray-700 dark:border-zinc-700 dark:hover:bg-zinc-800 dark:text-white`}>
                       <FaSlidersH size={12} />
                     </button>
                   </div>
@@ -1423,7 +1371,7 @@ const Dashboard = () => {
                         return (
                           <div
                             key={ticket.id}
-                            className={`p-4 rounded-2xl border flex items-start gap-4 transition-all duration-200 hover:shadow-md ${theme === 'dark' ? 'bg-dark-bg/60 border-dark-border hover:border-orange-900/40' : 'bg-orange-50/20 border-orange-100/60 hover:border-orange-200/80'}`}
+                            className={`p-4 rounded-2xl border flex items-start gap-4 transition-all duration-200 hover:shadow-md bg-orange-50/20 border-orange-100/60 hover:border-orange-200/80 dark:bg-dark-bg/60 dark:border-dark-border dark:hover:border-orange-900/40`}
                           >
                             {/* Avatar placeholder circle matching Jacob/Luke/Connor style */}
                             <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-orange-600 bg-orange-100/40 dark:text-orange-400 dark:bg-orange-950/40 border border-orange-200/60 dark:border-orange-900/30 shrink-0 shadow-sm">
@@ -1441,7 +1389,7 @@ const Dashboard = () => {
                                       router.push(`/tasks?search=${ticket.ticketNumber}`);
                                     }
                                   }}
-                                  className={`text-sm font-bold tracking-tight cursor-pointer hover:underline truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}
+                                  className={`text-sm font-bold tracking-tight cursor-pointer hover:underline truncate text-gray-900 dark:text-white`}
                                 >
                                   {ticket.name}
                                 </h4>
@@ -1451,7 +1399,7 @@ const Dashboard = () => {
                                   </span>
                                 )}
                               </div>
-                              <p className={`text-xs mt-1 leading-relaxed line-clamp-2 ${theme === 'dark' ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                              <p className={`text-xs mt-1 leading-relaxed line-clamp-2 text-zinc-600 dark:text-zinc-300`}>
                                 {ticket.description.length < 30 ? ticket.description : ticket.description.substring(0, 30) + '...'}
                               </p>
 
@@ -1470,10 +1418,7 @@ const Dashboard = () => {
                                       router.push(`/tasks?search=${ticket.ticketNumber}`);
                                     }
                                   }}
-                                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all border flex items-center gap-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] ${theme === 'dark'
-                                    ? 'border-orange-900/40 bg-orange-950/45 text-orange-300 hover:bg-orange-900/60 hover:text-white'
-                                    : 'border-orange-200 bg-orange-50/50 text-orange-700 hover:bg-orange-100 hover:text-orange-900'
-                                    }`}
+                                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all border flex items-center gap-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] border-orange-200 bg-orange-50/50 text-orange-700 hover:bg-orange-100 hover:text-orange-900 dark:border-orange-900/40 dark:bg-orange-950/45 dark:text-orange-300 dark:hover:bg-orange-900/60 dark:hover:text-white`}
                                 >
                                   <span>Check</span>
                                   <span className="text-xs font-black">&gt;</span>
@@ -1496,15 +1441,12 @@ const Dashboard = () => {
           <div className="space-y-6 px-4">
             {/* Widget Catalog Panel in Edit Mode */}
             {isEditMode && (
-              <div className={`p-5 rounded-2xl border transition-all duration-300 backdrop-blur-md ${theme === 'dark'
-                ? 'bg-dark-card border-dark-border text-[#F3F6FA]'
-                : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl text-gray-800'
-                }`}>
+              <div className={`p-5 rounded-2xl border transition-all duration-300 backdrop-blur-md bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl text-gray-800 dark:bg-dark-card dark:border-dark-border dark:text-[#F3F6FA]`}>
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
                   <FaCog className="animate-spin text-indigo-500 text-sm" style={{ animationDuration: '6s' }} />
                   <span>Dashboard Widget Catalog</span>
                 </h3>
-                <p className={`text-xs mb-4 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                <p className={`text-xs mb-4 text-slate-500 dark:text-slate-400`}>
                   Click on any hidden widget to add it back to your active dashboard workspace. You can drag and drop widgets to reorder them, or click the size icons to change grid spacing.
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -1514,10 +1456,7 @@ const Dashboard = () => {
                       <button
                         key={w.id}
                         onClick={() => toggleWidgetVisibility(w.id)}
-                        className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 ${theme === 'dark'
-                          ? 'bg-dark-bg border border-dark-border hover:border-zinc-500 hover:bg-dark-hover text-slate-300'
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm'
-                          }`}
+                        className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm dark:bg-dark-bg dark:border dark:border-dark-border dark:hover:border-zinc-500 dark:hover:bg-dark-hover dark:text-slate-300`}
                       >
                         <FaPlus size={8} /> Add {w.title}
                       </button>
@@ -1582,13 +1521,13 @@ const Dashboard = () => {
           <div className="space-y-6 px-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-visible">
               {/* Recent Projects */}
-              <div className={`${theme === 'dark' ? 'text-[#F3F6FA]' : 'bg-white text-gray-900'} overflow-visible lg:col-span-2`}>
-                <h2 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Recent Projects</h2>
-                <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className={`bg-white text-gray-900 dark:text-[#F3F6FA] overflow-visible lg:col-span-2`}>
+                <h2 className={`text-xl font-semibold mb-2 text-gray-900 dark:text-[#F3F6FA]`}>Recent Projects</h2>
+                <div className={`rounded-xl border border-gray-200 dark:border-gray-700`}>
                   <div className="max-h-80 overflow-y-auto overflow-x-visible rounded-xl">
                     <table className="w-full">
                       <thead className="sticky top-0 z-10">
-                        <tr className={`${theme === 'dark' ? 'border-gray-700 bg-dark-table-header' : 'bg-gray-50 border-gray-200'} border-b`}>
+                        <tr className={`bg-gray-50 border-gray-200 dark:border-gray-700 dark:bg-dark-table-header border-b`}>
                           <th className="py-3 px-4 text-left ">Project</th>
                           <th className="py-3 px-4 text-left ">Deadline</th>
                           <th className="py-3 px-4 text-left ">Status</th>
@@ -1598,17 +1537,17 @@ const Dashboard = () => {
                         {stats?.recentProjects?.map(project => {
                           const currentStatus = getProjectStatus(project.projectStatusId || 1);
                           return (
-                            <tr key={project.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-dark-hover' : 'border-gray-100 hover:bg-gray-50'} border-b cursor-pointer`} >
+                            <tr key={project.id} className={`transition-colors last:border-b-0 border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-dark-hover border-b cursor-pointer`} >
                               <td className="py-2 px-4">
                                 <div className="flex flex-col">
-                                  <span className={`font-medium cursor-pointer hover:text-blue-500 transition-all duration-200 hover:underline ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`} onClick={() => router.push(`/project/${project.id}`)}> {project.name} </span>
+                                  <span className={`font-medium cursor-pointer hover:text-blue-500 transition-all duration-200 hover:underline text-gray-900 dark:text-[#F3F6FA]`} onClick={() => router.push(`/project/${project.id}`)}> {project.name} </span>
                                   {project.description && (
-                                    <span className={`text-xs mt-1 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}>{project.description}</span>
+                                    <span className={`text-xs mt-1 text-gray-500 dark:text-[#B0B8C1]`}>{project.description}</span>
                                   )}
                                 </div>
                               </td>
                               <td className="py-2 px-4 whitespace-nowrap">
-                                <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}> {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'} </span>
+                                <span className={`text-sm text-gray-500 dark:text-[#B0B8C1]`}> {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'} </span>
                               </td>
                               <td className="py-2 px-4">
                                 <div onClick={(e) => e.stopPropagation()}>
@@ -1627,7 +1566,7 @@ const Dashboard = () => {
                         })}
                         {(!stats?.recentProjects || stats.recentProjects.length === 0) && (
                           <tr>
-                            <td colSpan={3} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}> No Recent Projects </td>
+                            <td colSpan={3} className={`text-center py-8 text-gray-400 bg-gray-50 dark:text-[#B0B8C1] dark:bg-transparent`}> No Recent Projects </td>
                           </tr>
                         )}
                       </tbody>
@@ -1637,13 +1576,13 @@ const Dashboard = () => {
               </div>
 
               {/* Organization Members Table */}
-              <div className={`${theme === 'dark' ? 'bg-transparent text-[#F3F6FA]' : 'bg-white text-gray-900'}`}>
-                <h2 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>Organization Members</h2>
-                <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className={`bg-white text-gray-900 dark:bg-transparent dark:text-[#F3F6FA]`}>
+                <h2 className={`text-xl font-semibold mb-2 text-gray-900 dark:text-[#F3F6FA]`}>Organization Members</h2>
+                <div className={`rounded-xl border border-gray-200 dark:border-gray-700`}>
                   <div className="max-h-80 overflow-y-auto rounded-xl">
                     <table className="w-full">
                       <thead className="sticky top-0 z-10">
-                        <tr className={`${theme === 'dark' ? 'bg-dark-table-header border-gray-700' : 'bg-gray-50 border-gray-200'} border-b`}>
+                        <tr className={`bg-gray-50 border-gray-200 dark:bg-dark-table-header dark:border-gray-700 border-b`}>
                           <th className="py-3 px-4 text-left">Member</th>
                           <th className="py-3 px-4 text-left">Status</th>
                           <th className="py-3 px-4 text-left ">Role</th>
@@ -1653,14 +1592,14 @@ const Dashboard = () => {
                       <tbody>
                         {stats?.members?.map(member => {
                           return (
-                            <tr key={member.id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-dark-hover' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
+                            <tr key={member.id} className={`transition-colors last:border-b-0 border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-dark-hover border-b`}>
                               <td className="py-3 px-4">
                                 <div className="flex items-center gap-3">
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-600'}`}> {member.name.split(' ').map(n => n[0]).join('')} </div>
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200`}> {member.name.split(' ').map(n => n[0]).join('')} </div>
                                   <div className="flex flex-col">
-                                    <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}> {member.name} </span>
+                                    <span className={`font-medium text-gray-900 dark:text-[#F3F6FA]`}> {member.name} </span>
                                     <div className="flex flex-col gap-0.5">
-                                      <span className={`text-xs ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-500'}`}> <strong>{member.username}</strong> | {member.email} </span>
+                                      <span className={`text-xs text-gray-500 dark:text-[#B0B8C1]`}> <strong>{member.username}</strong> | {member.email} </span>
                                     </div>
                                   </div>
                                 </div>
@@ -1669,7 +1608,7 @@ const Dashboard = () => {
                                 {getMemberStatusBadgeComponent(member.status)}
                               </td>
                               <td className="py-3 px-4 whitespace-nowrap">
-                                <span className={`text-sm ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}> {member.role} </span>
+                                <span className={`text-sm text-gray-900 dark:text-[#F3F6FA]`}> {member.role} </span>
                               </td>
                               {isAdmin && userDetails.organizationID && (
                                 <td className="py-3 px-4 text-center">
@@ -1679,7 +1618,7 @@ const Dashboard = () => {
                                         setRemovingUser(member);
                                         setShowRemoveDialog(true);
                                       }}
-                                      className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-red-300 bg-dark-card hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
+                                      className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium transition text-red-700 bg-red-100 hover:bg-red-200 dark:text-red-300 dark:bg-dark-card dark:hover:bg-red-900`}
                                       title="Remove Member"
                                     >
                                       <FaTimes size={14} />
@@ -1692,7 +1631,7 @@ const Dashboard = () => {
                         })}
                         {(!stats?.members || stats.members.length === 0) && (
                           <tr>
-                            <td colSpan={isAdmin && userDetails.organizationID ? 4 : 3} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}> No members found </td>
+                            <td colSpan={isAdmin && userDetails.organizationID ? 4 : 3} className={`text-center py-8 text-gray-400 bg-gray-50 dark:text-[#B0B8C1] dark:bg-transparent`}> No members found </td>
                           </tr>
                         )}
                       </tbody>
@@ -1704,14 +1643,13 @@ const Dashboard = () => {
 
             {/* Invites Section - Only for Admins */}
             {isAdmin && userDetails.organizationID && (
-              <div className={`max-w-7xl ${theme === 'dark' ? 'bg-transparent text-[#F3F6FA]' : 'bg-white text-gray-900'}`}>
+              <div className={`max-w-7xl bg-white text-gray-900 dark:bg-transparent dark:text-[#F3F6FA]`}>
                 <div className={`flex items-center justify-between mb-2`}>
-                  <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'} flex items-center gap-2`}>
+                  <h2 className={`text-xl font-semibold text-gray-900 dark:text-[#F3F6FA] flex items-center gap-2`}>
                     Pending Invites
                   </h2>
                   <button
-                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium duration-300 rounded-lg transition-colors shadow-sm ${theme === 'dark'
-                      ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white'}`}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium duration-300 rounded-lg transition-colors shadow-sm text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white`}
                     onClick={() => {
                       setInviteEmail('');
                       setInviteStatus('');
@@ -1727,11 +1665,11 @@ const Dashboard = () => {
                       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
                     </div>
                   ) : (
-                    <div className={`rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <div className={`rounded-xl border border-gray-200 dark:border-gray-700`}>
                       <div className="overflow-x-auto overflow-y-auto max-h-[400px] rounded-xl">
                         <table className="w-full ">
-                          <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-dark-table-header' : 'bg-gray-50'}`}>
-                            <tr className={`${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} border-b`}>
+                          <thead className={`sticky top-0 z-10 bg-gray-50 dark:bg-dark-table-header`}>
+                            <tr className={`border-gray-200 dark:border-gray-700 border-b`}>
                               <th className="py-3 px-4 text-left">Email</th>
                               <th className="py-3 px-4 text-left">Invited On</th>
                               <th className="py-3 px-4 text-left">Invited By</th>
@@ -1744,22 +1682,22 @@ const Dashboard = () => {
                             {stats?.invites?.map(invite => {
                               const statusBadge = getInviteStatusBadge(invite);
                               return (
-                                <tr key={invite._id} className={`transition-colors last:border-b-0 ${theme === 'dark' ? 'border-gray-700 hover:bg-dark-hover' : 'border-gray-100 hover:bg-gray-50'} border-b`}>
+                                <tr key={invite._id} className={`transition-colors last:border-b-0 border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-dark-hover border-b`}>
                                   <td className="py-3 px-4">
-                                    <span className={`font-medium ${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'}`}>{invite.email}</span>
+                                    <span className={`font-medium text-gray-900 dark:text-[#F3F6FA]`}>{invite.email}</span>
                                   </td>
                                   <td className="py-3 px-4">
-                                    <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
+                                    <span className={`text-sm text-gray-600 dark:text-[#B0B8C1]`}>
                                       {formatDateWithTime(invite.invitedAt)}
                                     </span>
                                   </td>
                                   <td className="py-3 px-4">
-                                    <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
+                                    <span className={`text-sm text-gray-600 dark:text-[#B0B8C1]`}>
                                       {invite.inviter ? `${invite.inviter.firstName} ${invite.inviter.lastName}` : 'Unknown'}
                                     </span>
                                   </td>
                                   <td className="py-3 px-4">
-                                    <span className={`text-sm ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>
+                                    <span className={`text-sm text-gray-600 dark:text-[#B0B8C1]`}>
                                       {getTimeUntilExpiry(invite.expiredAt)}
                                     </span>
                                   </td>
@@ -1774,7 +1712,7 @@ const Dashboard = () => {
                                       {invite.status === 'Pending' && (
                                         <button
                                           onClick={() => handleResendInvite(invite._id)}
-                                          className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-blue-300 bg-dark-card hover:bg-blue-900' : 'text-blue-700 bg-blue-100 hover:bg-blue-200'}`}
+                                          className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition text-blue-700 bg-blue-100 hover:bg-blue-200 dark:text-blue-300 dark:bg-dark-card dark:hover:bg-blue-900`}
                                           title="Resend Invite"
                                         >
                                           <FaRedo size={14} />
@@ -1783,7 +1721,7 @@ const Dashboard = () => {
                                       {invite.status !== 'Accepted' && (
                                         <button
                                           onClick={() => handleDeleteInvite(invite._id)}
-                                          className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition ${theme === 'dark' ? 'text-red-300 bg-dark-card hover:bg-red-900' : 'text-red-700 bg-red-100 hover:bg-red-200'}`}
+                                          className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition text-red-700 bg-red-100 hover:bg-red-200 dark:text-red-300 dark:bg-dark-card dark:hover:bg-red-900`}
                                           title="Delete Invite"
                                         >
                                           <FaTrash size={14} />
@@ -1796,7 +1734,7 @@ const Dashboard = () => {
                             })}
                             {stats?.invites?.length === 0 && (
                               <tr>
-                                <td colSpan={6} className={`text-center py-8 ${theme === 'dark' ? 'text-[#B0B8C1] bg-transparent' : 'text-gray-400 bg-gray-50'}`}>
+                                <td colSpan={6} className={`text-center py-8 text-gray-400 bg-gray-50 dark:text-[#B0B8C1] dark:bg-transparent`}>
                                   No invites found
                                 </td>
                               </tr>
@@ -1814,26 +1752,26 @@ const Dashboard = () => {
 
         {/* Remove Member Confirmation Dialog */}
         {showRemoveDialog && removingUser && (
-          <div className={`fixed inset-0 flex items-center justify-center z-50 ${theme === 'dark' ? 'bg-black/70' : 'bg-black/50'}`}>
-            <div className={`rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border ${theme === 'dark' ? 'bg-dark-card border-dark-border text-[#F3F6FA]' : 'bg-white border-gray-100'}`}>
+          <div className={`fixed inset-0 flex items-center justify-center z-50 bg-black/50 dark:bg-black/70`}>
+            <div className={`rounded-xl p-6 max-w-md w-full mx-4 shadow-lg border bg-white border-gray-100 dark:bg-dark-card dark:border-dark-border dark:text-[#F3F6FA]`}>
               <div className="flex items-center gap-3 mb-4">
                 <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-[#F3F6FA]' : ''}`}>Remove Member</h3>
+                <h3 className={`text-lg font-semibold dark:text-[#F3F6FA]`}>Remove Member</h3>
               </div>
-              <p className={`mb-6 ${theme === 'dark' ? 'text-[#B0B8C1]' : 'text-gray-600'}`}>Are you sure you want to remove {removingUser.name} from the organization? They will no longer have access to organization resources.</p>
+              <p className={`mb-6 text-gray-600 dark:text-[#B0B8C1]`}>Are you sure you want to remove {removingUser.name} from the organization? They will no longer have access to organization resources.</p>
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => {
                     setShowRemoveDialog(false);
                     setRemovingUser(null);
                   }}
-                  className={`px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark' ? 'text-[#B0B8C1] border-dark-border hover:bg-dark-card' : 'text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                  className={`px-4 py-2.5 rounded-xl border transition-all duration-200 text-gray-600 border-gray-200 hover:bg-gray-50 dark:text-[#B0B8C1] dark:border-dark-border dark:hover:bg-dark-card`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleRemoveUser(removingUser.id)}
-                  className={`px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r ${theme === 'dark' ? 'from-red-700 to-red-900 hover:from-red-800 hover:to-red-900' : 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'}`}
+                  className={`px-4 py-2.5 rounded-xl text-white font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 dark:from-red-700 dark:to-red-900 dark:hover:from-red-800 dark:hover:to-red-900`}
                   disabled={removingUser === removingUser?.id}
                 >
                   {removingUser === removingUser?.id ? 'Removing...' : 'Remove from Organization'}

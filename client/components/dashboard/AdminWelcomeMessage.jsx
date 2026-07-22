@@ -127,25 +127,25 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
         <div className="relative max-w-4xl mx-auto px-6">
           <div className="mb-8">
             <div className="relative inline-block">
-              <FaRocket className={`mx-auto ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'} animate-bounce`} size={56} />
-              <FaStar className={`absolute -top-2 -right-2 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-500'} animate-pulse`} size={16} />
+              <FaRocket className={`mx-auto text-blue-500 dark:text-blue-400 animate-bounce`} size={56} />
+              <FaStar className={`absolute -top-2 -right-2 text-yellow-500 dark:text-yellow-400 animate-pulse`} size={16} />
             </div>
           </div>
-          <h1 className={`text-5xl font-bold mb-6 bg-gradient-to-r ${theme === 'dark' ? 'from-blue-400 via-purple-400 to-blue-400' : 'from-blue-600 via-purple-600 to-blue-600'} bg-clip-text text-transparent`}>
+          <h1 className={`text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 dark:from-blue-400 dark:via-purple-400 dark:to-blue-400 bg-clip-text text-transparent`}>
             Welcome to TeamLabs!
           </h1>
-          <p className={`text-2xl lg:mb-6 mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'} font-medium`}>
+          <p className={`text-2xl lg:mb-6 mb-2 text-gray-700 dark:text-gray-200 font-medium`}>
             {userDetails?.role === 'Admin' ? "You're all set up as an Admin" : "You're all set up"}
           </p>
-          <p className={`text-lg lg:mb-8 mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto leading-relaxed`}>
+          <p className={`text-lg lg:mb-8 mb-2 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed`}>
             Let's get your workspace organized and start collaborating with your team. Choose an action below to get started, or explore our features to see what TeamLabs can do for you.
           </p>
 
           {/* Decorative Elements */}
           <div className="flex justify-center items-center gap-4 mb-6">
-            <div className={`w-2 h-2 rounded-full ${theme === 'dark' ? 'bg-blue-400' : 'bg-blue-500'} animate-pulse`}></div>
-            <div className={`w-1 h-1 rounded-full ${theme === 'dark' ? 'bg-purple-400' : 'bg-purple-500'} animate-pulse`} style={{ animationDelay: '0.5s' }}></div>
-            <div className={`w-2 h-2 rounded-full ${theme === 'dark' ? 'bg-green-400' : 'bg-green-500'} animate-pulse`} style={{ animationDelay: '1s' }}></div>
+            <div className={`w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400 animate-pulse`}></div>
+            <div className={`w-1 h-1 rounded-full bg-purple-500 dark:bg-purple-400 animate-pulse`} style={{ animationDelay: '0.5s' }}></div>
+            <div className={`w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 animate-pulse`} style={{ animationDelay: '1s' }}></div>
           </div>
         </div>
       </div>
@@ -155,10 +155,7 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
         {visibleCards.map((card, index) => (
           <div
             key={card.id}
-            className={`group relative p-8 rounded-2xl border-2 transition-all duration-300 hover:shadow-2xl hover:scale-102 hover:-translate-y-2 ${theme === 'dark'
-              ? `bg-gradient-to-br ${card.darkGradient} border-gray-700 hover:border-gray-600`
-              : `bg-gradient-to-br ${card.gradient} border-gray-200 hover:border-gray-300`
-              }`}
+            className={`group relative p-8 rounded-2xl border-2 transition-all duration-300 hover:shadow-2xl hover:scale-102 hover:-translate-y-2 bg-gradient-to-br ${card.gradient} border-gray-200 hover:border-gray-300 dark:bg-gradient-to-br dark:${card.darkGradient} dark:border-gray-700 dark:hover:border-gray-600`}
             style={{ animationDelay: `${index * 0.1}s` }}
           >
             {/* Card Background Pattern */}
@@ -169,20 +166,20 @@ const AdminWelcomeMessage = ({ onOpenSetupGuide, onOpenInvite }) => {
 
             <div className="relative">
               {/* Icon Container */}
-              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/70'} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 bg-white/70 dark:bg-gray-800/50 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                 {card.icon}
               </div>
 
-              <h3 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'} group-hover:text-opacity-90 transition-all duration-300`}>
+              <h3 className={`text-xl font-bold mb-4 text-gray-900 dark:text-white group-hover:text-opacity-90 transition-all duration-300`}>
                 {card.title}
               </h3>
 
-              <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} leading-relaxed`}>
+              <p className={`text-sm mb-6 text-gray-600 dark:text-gray-300 leading-relaxed`}>
                 {card.description}
               </p>
 
               {/* Features List */}
-              <ul className={`space-y-2 mb-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              <ul className={`space-y-2 mb-8 text-gray-500 dark:text-gray-400`}>
                 {card.features.map((feature, featureIndex) => (
                   <li key={featureIndex} className="text-sm flex items-center gap-3 group-hover:text-opacity-80 transition-all duration-300">
                     <FaCheckCircle className="text-green-500 flex-shrink-0" size={12} />

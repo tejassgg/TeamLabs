@@ -285,24 +285,24 @@ const DashboardCharts = ({ stats, theme, userDetails, tasks, setTasks }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Task Completion Summary */}
-        <div className={`rounded-2xl border p-6 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+        <div className="rounded-2xl border p-6 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none">
           <div>
             <div>
               <h2 className="text-xl font-bold tracking-tight">Task Completion & Velocity</h2>
-              <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Active organization workflows</p>
+              <p className="text-xs sm:text-sm mt-1 text-slate-500 dark:text-slate-400">Active organization workflows</p>
             </div>
 
             <div className="grid grid-cols-3 gap-4 my-6">
-              <div className={`text-center p-4 rounded-xl border ${theme === 'dark' ? 'bg-dark-bg/40 border-dark-border/40' : 'bg-slate-50 border-slate-200/50'}`}>
-                <div className={`text-2xl sm:text-3xl font-extrabold ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}`}>{stats.charts.totalTasks}</div>
+              <div className="text-center p-4 rounded-xl border bg-slate-50 border-slate-200/50 dark:bg-dark-bg/40 dark:border-dark-border/40">
+                <div className="text-2xl sm:text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">{stats.charts.totalTasks}</div>
                 <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-1">Total</div>
               </div>
-              <div className={`text-center p-4 rounded-xl border ${theme === 'dark' ? 'bg-dark-bg/40 border-dark-border/40' : 'bg-slate-50 border-slate-200/50'}`}>
-                <div className={`text-2xl sm:text-3xl font-extrabold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{stats.charts.completedTasks}</div>
+              <div className="text-center p-4 rounded-xl border bg-slate-50 border-slate-200/50 dark:bg-dark-bg/40 dark:border-dark-border/40">
+                <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">{stats.charts.completedTasks}</div>
                 <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-1">Done</div>
               </div>
-              <div className={`text-center p-4 rounded-xl border ${theme === 'dark' ? 'bg-dark-bg/40 border-dark-border/40' : 'bg-slate-50 border-slate-200/50'}`}>
-                <div className={`text-2xl sm:text-3xl font-extrabold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>{stats.charts.activeTasks}</div>
+              <div className="text-center p-4 rounded-xl border bg-slate-50 border-slate-200/50 dark:bg-dark-bg/40 dark:border-dark-border/40">
+                <div className="text-2xl sm:text-3xl font-extrabold text-amber-600 dark:text-amber-400">{stats.charts.activeTasks}</div>
                 <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-1">Active</div>
               </div>
             </div>
@@ -310,10 +310,10 @@ const DashboardCharts = ({ stats, theme, userDetails, tasks, setTasks }) => {
 
           <div>
             <div className="flex justify-between items-center text-xs font-bold text-slate-500 mb-2">
-              <span className={theme === 'dark' ? 'text-slate-400' : 'text-slate-505 text-slate-500'}>PROGRESS VELOCITY</span>
-              <span className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}>{completedPercent}% COMPLETED</span>
+              <span className="text-slate-500 dark:text-slate-400">PROGRESS VELOCITY</span>
+              <span className="text-emerald-600 dark:text-emerald-400">{completedPercent}% COMPLETED</span>
             </div>
-            <div className={`w-full rounded-full h-3 ${theme === 'dark' ? 'bg-slate-900' : 'bg-slate-100'} p-0.5 border ${theme === 'dark' ? 'border-white/5' : 'border-slate-200'}`}>
+            <div className="w-full rounded-full h-3 bg-slate-100 p-0.5 border border-slate-200 dark:bg-slate-900 dark:border-white/5">
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-500 shadow-md shadow-blue-500/10"
                 style={{ width: `${completedPercent}%` }}
@@ -333,47 +333,47 @@ const DashboardCharts = ({ stats, theme, userDetails, tasks, setTasks }) => {
       {/* 2. Statistics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Projects Card */}
-        <div className={`h-32 rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
+        <div className="h-32 rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300 dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none dark:hover:border-zinc-700">
           <div className="flex items-center justify-between">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-indigo-500/10' : 'bg-indigo-50'}`}>
-              <FaProjectDiagram className={theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'} size={15} />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-50 dark:bg-indigo-500/10">
+              <FaProjectDiagram className="text-indigo-600 dark:text-indigo-400" size={15} />
             </div>
             <span className="text-2xl font-bold">{stats?.totalProjects || 0}</span>
           </div>
-          <p className={`text-xs font-semibold uppercase tracking-wider mt-3 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Projects</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mt-3 text-slate-400 dark:text-slate-500">Projects</p>
         </div>
 
         {/* Teams Card */}
-        <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
+        <div className="rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300 dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none dark:hover:border-zinc-700">
           <div className="flex items-center justify-between">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
-              <FaUsers className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} size={15} />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 dark:bg-emerald-500/10">
+              <FaUsers className="text-emerald-600 dark:text-emerald-400" size={15} />
             </div>
             <span className="text-2xl font-bold">{stats?.totalTeams || 0}</span>
           </div>
-          <p className={`text-xs font-semibold uppercase tracking-wider mt-3 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Teams</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mt-3 text-slate-400 dark:text-slate-500">Teams</p>
         </div>
 
         {/* Deadlines Card */}
-        <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
+        <div className="rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300 dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none dark:hover:border-zinc-700">
           <div className="flex items-center justify-between">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50'}`}>
-              <FaClock className={theme === 'dark' ? 'text-amber-400' : 'text-amber-600'} size={15} />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50 dark:bg-amber-500/10">
+              <FaClock className="text-amber-600 dark:text-amber-400" size={15} />
             </div>
             <span className="text-2xl font-bold">{stats?.upcomingDeadlines || 0}</span>
           </div>
-          <p className={`text-xs font-semibold uppercase tracking-wider mt-3 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Deadlines</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mt-3 text-slate-400 dark:text-slate-500">Deadlines</p>
         </div>
 
         {/* People Card */}
-        <div className={`rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300'}`}>
+        <div className="rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-between bg-white/90 border-slate-200/80 shadow-slate-200/30 shadow-md hover:border-slate-300 dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none dark:hover:border-zinc-700">
           <div className="flex items-center justify-between">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-purple-500/10' : 'bg-purple-50'}`}>
-              <FaUserFriends className={theme === 'dark' ? 'text-purple-400' : 'text-purple-600'} size={15} />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-purple-50 dark:bg-purple-500/10">
+              <FaUserFriends className="text-purple-600 dark:text-purple-400" size={15} />
             </div>
             <span className="text-2xl font-bold">{stats?.totalUsers || 0}</span>
           </div>
-          <p className={`text-xs font-semibold uppercase tracking-wider mt-3 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>People</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mt-3 text-slate-400 dark:text-slate-500">People</p>
         </div>
       </div>
 
@@ -381,10 +381,10 @@ const DashboardCharts = ({ stats, theme, userDetails, tasks, setTasks }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Project Status */}
-        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+        <div className="rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none">
           <div className="pb-4 mb-4">
             <h2 className="text-lg font-bold tracking-tight">Project Status</h2>
-            <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Distribution across org</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Distribution across org</p>
           </div>
           <div className="p-2">
             <div className="h-80 relative flex items-center justify-center">
@@ -394,10 +394,10 @@ const DashboardCharts = ({ stats, theme, userDetails, tasks, setTasks }) => {
         </div>
 
         {/* Task Type Distribution */}
-        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+        <div className="rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none">
           <div className="pb-4 mb-4">
             <h2 className="text-lg font-bold tracking-tight">Task Type Distribution</h2>
-            <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Breakdown of different category and epic types</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Breakdown of different category and epic types</p>
           </div>
           <div className="p-2">
             <div className="h-80">
@@ -419,10 +419,10 @@ const DashboardCharts = ({ stats, theme, userDetails, tasks, setTasks }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Monthly Activity Timeline */}
-        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+        <div className="rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none">
           <div className="pb-4 mb-4">
             <h2 className="text-lg font-bold tracking-tight">Monthly Activity Timeline</h2>
-            <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Track and cross-compare project creations and task completion trends</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Track and cross-compare project creations and task completion trends</p>
           </div>
           <div className="p-2">
             <div className="h-80">
@@ -432,10 +432,10 @@ const DashboardCharts = ({ stats, theme, userDetails, tasks, setTasks }) => {
         </div>
 
         {/* Team Performance */}
-        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+        <div className="rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none">
           <div className="pb-4 mb-4">
             <h2 className="text-lg font-bold tracking-tight">Team Performance Overview</h2>
-            <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Breakdown of member counts and active sprint pipelines per team</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Breakdown of member counts and active sprint pipelines per team</p>
           </div>
           <div className="p-2">
             <div className="h-80">
@@ -445,10 +445,10 @@ const DashboardCharts = ({ stats, theme, userDetails, tasks, setTasks }) => {
         </div>
 
         {/* Activity Overview */}
-        <div className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${theme === 'dark' ? 'bg-dark-bg border-zinc-800/80' : 'bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl'}`}>
+        <div className="rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md bg-white/90 border-slate-200/80 shadow-slate-200/40 shadow-xl dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none">
           <div className="pb-4 mb-4">
             <h2 className="text-lg font-bold tracking-tight">Recent Activity Overview</h2>
-            <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>User activity breakdown over the last 30 operational days</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">User activity breakdown over the last 30 operational days</p>
           </div>
           <div className="p-2">
             <div className="h-80 relative flex items-center justify-center">

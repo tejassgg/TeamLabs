@@ -26,7 +26,6 @@ const ChatDetails = ({
   convAssets
 }) => {
   if (!showDetails) return null;
-  const panel = theme === 'dark' ? 'bg-[#221E1E] text-[#F3F6FA]' : 'bg-white text-gray-900';
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -34,7 +33,7 @@ const ChatDetails = ({
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isDetailsAnimating ? 'opacity-0' : 'opacity-100'}`}
         onClick={handleCloseDetails}
       />
-      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg ${theme === 'dark' ? 'bg-dark-bg text-white' : 'bg-white text-gray-900'} border-l ${theme === 'dark' ? 'border-dark-card' : 'border-gray-200'} p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isDetailsAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
+      <div className={`absolute right-0 top-16 bottom-0 w-full lg:max-w-lg bg-white text-gray-900 dark:bg-dark-bg dark:text-white border-l border-gray-200 dark:border-dark-card p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out ${isDetailsAnimating ? 'translate-x-full' : 'translate-x-0'}`}>
 
         {convDetails && (
           <>
@@ -43,7 +42,7 @@ const ChatDetails = ({
                 {convDetails.isGroup && convDetails.avatarUrl ? (
                   <img src={convDetails.avatarUrl} alt="" className="w-12 h-12 rounded-full" />
                 ) : (
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-semibold bg-blue-600 text-white dark:bg-blue-900 dark:text-blue-200`}>
                     {(() => {
                       if (!convDetails.isGroup) {
                         const other = convDetails.participants?.find(p => String(p._id) !== String(userDetails?._id));
@@ -69,13 +68,13 @@ const ChatDetails = ({
                             if (e.key === 'Enter') handleSaveGroupName();
                             if (e.key === 'Escape') handleCancelEditGroupName();
                           }}
-                          className={`flex-1 px-2 py-1 text-lg font-semibold rounded ${theme === 'dark' ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-900'} focus:outline-none`}
+                          className={`flex-1 px-2 py-1 text-lg font-semibold rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 focus:outline-none`}
                           autoFocus
                         />
                         <button
                           onClick={handleSaveGroupName}
                           disabled={isSavingGroupName}
-                          className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-dark-hover text-green-400' : 'hover:bg-gray-100 text-green-600'} disabled:opacity-50`}
+                          className={`p-1 rounded hover:bg-gray-100 text-green-600 dark:hover:bg-dark-hover dark:text-green-400 disabled:opacity-50`}
                           title="Save"
                         >
                           <FaSave size={14} />
@@ -87,7 +86,7 @@ const ChatDetails = ({
                         {convDetails.isGroup && (
                           <button
                             onClick={handleEditGroupName}
-                            className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-dark-hover text-gray-400' : 'hover:bg-gray-100 text-gray-600'}`}
+                            className={`p-1 rounded hover:bg-gray-100 text-gray-600 dark:hover:bg-dark-hover dark:text-gray-400`}
                             title="Edit group name"
                           >
                             <FaEdit size={14} />
@@ -99,9 +98,9 @@ const ChatDetails = ({
                   <div className="text-xs opacity-75">Created {convDetails.createdAt ? new Date(convDetails.createdAt).toLocaleString() : ''}</div>
                 </div>
               </div>
-              <button className={`${theme === 'dark' ? 'hover:bg-dark-hover' : 'hover:bg-gray-100'} rounded-lg px-3 py-1 touch-manipulation`} onClick={handleCloseDetails}><FaTimes /></button>
+              <button className={`hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg px-3 py-1 touch-manipulation`} onClick={handleCloseDetails}><FaTimes /></button>
             </div>
-            <div className={`border-b mb-4 ${theme === 'dark' ? 'border-dark-border' : 'border-gray-200'}`}>
+            <div className={`border-b mb-4 border-gray-200 dark:border-dark-border`}>
               <nav className="-mb-px flex items-center justify-between">
                 <div className="flex space-x-8">
                   {(convDetails.isGroup ? ['details', 'files', 'links'] : ['files', 'links']).map(tab => (
@@ -109,12 +108,8 @@ const ChatDetails = ({
                       key={tab}
                       onClick={() => setActiveDetailsTab(tab)}
                       className={`${activeDetailsTab === tab
-                        ? theme === 'dark'
-                          ? 'border-blue-400 text-blue-400'
-                          : 'border-blue-600 text-blue-600'
-                        : theme === 'dark'
-                          ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600'
                         } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm capitalize transition-all duration-200`}
                     >
                       {tab}
@@ -126,7 +121,7 @@ const ChatDetails = ({
             {activeDetailsTab === 'details' && (
               <div className="space-y-4">
                 <div className="mb-6">
-                  <div className={`text-sm font-medium mb-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Members</div>
+                  <div className={`text-sm font-medium mb-3 text-gray-500 dark:text-gray-400`}>Members</div>
                   <div className="flex flex-col space-y-2">
                     {convDetails.participants?.map(p => {
                       const initials = `${(p.firstName || '')[0] || ''}${(p.lastName || '')[0] || ''}`.toUpperCase() || 'U';
@@ -136,22 +131,22 @@ const ChatDetails = ({
                       const isAdminUser = String(p._id) === String(convDetails?.createdBy) || convDetails?.admins?.includes(p._id);
 
                       return (
-                        <div key={p._id} className={`flex items-center justify-between p-2 rounded-xl transition-colors ${theme === 'dark' ? 'hover:bg-[#2A2A2A]' : 'hover:bg-gray-50'}`}>
+                        <div key={p._id} className={`flex items-center justify-between p-2 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-[#2A2A2A]`}>
                           <div className="flex items-center gap-3">
-                            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{initials}</span>
+                            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-blue-600 text-white dark:bg-blue-900 dark:text-blue-200`}>{initials}</span>
                             <div className="flex flex-col">
                               <div className="flex items-center gap-2">
-                                <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>{fullName}</span>
+                                <span className={`text-sm font-medium text-gray-800 dark:text-gray-200`}>{fullName}</span>
                                 {isCurrentUser && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">You</span>}
                                 {isAdminUser && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">Admin</span>}
                               </div>
-                              <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{p.email}</span>
+                              <span className={`text-xs text-gray-500 dark:text-gray-400`}>{p.email}</span>
                             </div>
                           </div>
                           {isGroupAdmin && !isCurrentUser && (
                             <button
                               onClick={() => handleRemoveMember(p._id, fullName)}
-                              className={`w-6 h-6 rounded-full flex items-center justify-center text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-red-400 hover:bg-red-900/30' : 'text-gray-500 hover:text-red-600 hover:bg-red-50'}`}
+                              className={`w-6 h-6 rounded-full flex items-center justify-center text-sm transition-colors text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-red-900/30`}
                               title={`Remove ${fullName} from group`}
                             >
                               ×
@@ -233,10 +228,10 @@ export function AddMembersDropdown({ theme, panel, orgUsers, onAdd }) {
         {selected.length === 0 ? 'Select members to add' : `${selected.length} selected`}
       </button>
       {open && (
-        <div className={`absolute bottom-full left-0 right-0 mb-1 z-50 rounded-lg border shadow-lg ${theme === 'dark' ? 'bg-dark-card border-dark-border' : 'bg-white border-gray-200'} flex flex-col max-h-64`}>
+        <div className={`absolute bottom-full left-0 right-0 mb-1 z-50 rounded-lg border shadow-lg bg-white border-gray-200 dark:bg-dark-card dark:border-dark-border flex flex-col max-h-64`}>
           <div className="p-2 border-b border-gray-200 dark:border-dark-border">
             <div className="relative">
-              <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={12} />
+              <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400`} size={12} />
               <input
                 className={`w-full pl-8 pr-3 py-1.5 text-sm rounded-md border ${panel}`}
                 placeholder="Search..."
@@ -253,9 +248,9 @@ export function AddMembersDropdown({ theme, panel, orgUsers, onAdd }) {
                   key={u._id}
                   type="button"
                   onClick={() => setSelected(prev => sel ? prev.filter(id => id !== u._id) : [...prev, u._id])}
-                  className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 ${sel ? (theme === 'dark' ? 'bg-blue-900/40' : 'bg-blue-50') : (theme === 'dark' ? 'hover:bg-[#2A2A2A]' : 'hover:bg-gray-50')}`}
+                  className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 ${sel ? 'bg-blue-50 dark:bg-blue-900/40' : 'hover:bg-gray-50 dark:hover:bg-[#2A2A2A]'}`}
                 >
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-600 text-white'}`}>{u.initials}</span>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold bg-blue-600 text-white dark:bg-blue-900 dark:text-blue-200`}>{u.initials}</span>
                   <div className="flex-1 min-w-0">
                     <div className="truncate">{u.name}</div>
                   </div>

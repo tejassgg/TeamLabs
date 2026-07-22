@@ -18,9 +18,7 @@ const VideoCallModal = ({
   autoAnswer = false,
   initialAction = null
 }) => {
-  const { theme } = useTheme();
   const { ringDuration } = useVideoCall();
-  const isDark = theme === 'dark';
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
@@ -436,19 +434,19 @@ const VideoCallModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50">
-      <div className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-lg p-4 w-full max-w-7xl h-full max-h-[95vh] flex flex-col`}>
+      <div className="bg-white dark:bg-gray-900 rounded-lg p-4 w-full max-w-7xl h-full max-h-[95vh] flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <h2 className={`text-xl font-semibold flex items-center gap-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <h2 className="text-xl font-semibold flex items-center gap-3 text-gray-900 dark:text-white">
             <span>{headerTitle}</span>
             {connectionState.status === 'connected' && (
-              <span className={`text-sm font-normal rounded px-2 py-0.5 ${isDark ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>{formatDuration(elapsedSeconds)}</span>
+              <span className="text-sm font-normal rounded px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">{formatDuration(elapsedSeconds)}</span>
             )}
           </h2>
-          <button onClick={handleModalClose} className={`${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}>
+          <button onClick={handleModalClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
             <FaTimes size={20} />
           </button>
         </div>
-        <div ref={containerRef} className={`flex-1 relative rounded-lg overflow-hidden mb-4 ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`}>
+        <div ref={containerRef} className="flex-1 relative rounded-lg overflow-hidden mb-4 bg-gray-200 dark:bg-gray-800">
           <video
             ref={remoteVideoRef}
             autoPlay
@@ -494,7 +492,7 @@ const VideoCallModal = ({
 
           <div
             ref={localWrapperRef}
-            className={`absolute rounded-lg overflow-hidden cursor-move ${isLocalExpanded ? 'w-64 h-48' : 'w-32 h-24'} ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`}
+            className={`absolute rounded-lg overflow-hidden cursor-move ${isLocalExpanded ? 'w-64 h-48' : 'w-32 h-24'} bg-gray-200 dark:bg-gray-800`}
             style={{ left: `${localPos.left}px`, top: `${localPos.top}px` }}
             onMouseDown={onLocalMouseDown}
             onClick={onLocalClick}
@@ -519,8 +517,8 @@ const VideoCallModal = ({
           )}
 
           {!connectionState.remoteStream && connectionState.status === 'connected' && (
-            <div className={`absolute inset-0 flex items-center justify-center ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`}>
-              <div className={`text-center ${isDark ? 'text-white' : 'text-gray-700'}`}>
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-800">
+              <div className="text-center text-gray-700 dark:text-white">
                 <div className="text-6xl mb-4">📹</div>
                 <p className="text-lg font-semibold mb-2">Waiting for video...</p>
                 <p className="text-sm opacity-75">The other person's video should appear here</p>
@@ -586,7 +584,7 @@ const VideoCallModal = ({
           </div>
         </div>
 
-        <div className={`text-center text-xs mt-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+        <div className="text-center text-xs mt-4 text-gray-500 dark:text-gray-400">
           <p>Conversation ID: {callData?.conversationId}</p>
         </div>
       </div>

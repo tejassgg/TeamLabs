@@ -279,36 +279,26 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
   ];
 
   return (
-    <div className={inline ? 'w-full h-full' : `fixed inset-0 ${theme === 'dark' ? 'bg-black/70 backdrop-blur-sm' : 'bg-gray-900/50 backdrop-blur-sm'} flex items-center justify-center z-50 transition-all duration-300`}>
-      <div className={`${theme === 'dark'
-        ? (inline ? 'bg-transparent' : 'bg-[#1e1e24] border border-zinc-800 shadow-sm rounded-2xl')
-        : (inline ? 'bg-transparent' : 'bg-white border border-gray-200 shadow-2xl rounded-2xl')
-        } max-w-7xl w-full ${inline ? '' : 'mx-4 h-[90vh] overflow-hidden'} transition-all duration-300 flex flex-col`}>
+    <div className={inline ? 'w-full h-full' : `fixed inset-0 bg-gray-900/50 backdrop-blur-sm dark:bg-black/70 dark:backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300`}>
+      <div className={`${inline ? 'bg-transparent' : 'bg-white dark:bg-[#1e1e24] border border-gray-200 dark:border-zinc-800 shadow-2xl dark:shadow-sm rounded-2xl'} max-w-7xl w-full ${inline ? '' : 'mx-4 h-[90vh] overflow-hidden'} transition-all duration-300 flex flex-col`}>
         {/* Header */}
-        <div className={`p-6 ${theme === 'dark'
-          ? (inline ? 'bg-transparent border-b border-zinc-800' : 'bg-[#1e1e24] border-b border-zinc-800')
-          : (inline ? 'bg-transparent border-b border-gray-200' : 'bg-white border-b border-gray-200')
-          } transition-all duration-300`}>
+        <div className={`p-6 ${inline ? 'bg-transparent' : 'bg-white dark:bg-[#1e1e24]'} border-b border-gray-200 dark:border-zinc-800 transition-all duration-300`}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-start space-x-4">
-              <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-100 text-emerald-600'} transition-all duration-300`}>
+              <div className={`p-3 rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 transition-all duration-300`}>
                 <FaFileAlt className="text-xl" />
               </div>
               <div>
-                <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>
+                <h2 className={`text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-300`}>
                   Progress Reports
                 </h2>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} transition-colors duration-300`}>
+                <p className={`text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300`}>
                   {projectName}
                 </p>
                 <div className="flex items-center space-x-2 mt-1">
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${subscriptionInfo.isPremium
-                    ? theme === 'dark'
-                      ? 'bg-green-900/30 text-green-400 border border-green-800'
-                      : 'bg-green-100 text-green-800 border border-green-200'
-                    : theme === 'dark'
-                      ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-800'
-                      : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                    ? 'bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                    : 'bg-yellow-100 text-yellow-800 border border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800'
                     }`}>
                     {subscriptionInfo.isPremium
                       ? `Premium: ${existingReports.length}/${subscriptionInfo.maxReports} reports`
@@ -321,10 +311,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
             {!inline && (
               <div className="flex items-start -mt-14">
                 <button onClick={onClose}
-                  className={`p-2 rounded-lg transition-all duration-200 ${theme === 'dark'
-                    ? 'text-gray-400 hover:text-white hover:bg-dark-hover'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                    }`}
+                  className={`p-2 rounded-lg transition-all duration-200 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-dark-hover`}
                 >
                   <FaTimes className="text-xl" />
                 </button>
@@ -333,19 +320,12 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
           </div>
 
           {/* Tabs */}
-          <div className={`flex space-x-2 ${theme === 'dark'
-            ? 'bg-dark-bg p-1 border border-zinc-800'
-            : 'bg-gray-100 p-1'
-            } rounded-xl transition-all duration-300`}>
+          <div className={`flex space-x-2 bg-gray-100 p-1 dark:bg-dark-bg dark:p-1 dark:border dark:border-zinc-800 rounded-xl transition-all duration-300`}>
             <button
               onClick={() => setActiveTab('generate')}
               className={`flex-1 py-3 px-6 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === 'generate'
-                ? theme === 'dark'
-                  ? 'bg-zinc-800 text-white shadow-sm border border-zinc-750'
-                  : 'bg-white text-emerald-600 shadow-lg'
-                : theme === 'dark'
-                  ? 'text-zinc-400 hover:text-white hover:bg-zinc-850/50'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+                ? 'bg-white text-emerald-600 shadow-lg dark:bg-zinc-800 dark:text-white dark:shadow-sm dark:border dark:border-zinc-750'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-850/50'
                 }`}
             >
               Generate New Report
@@ -353,12 +333,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
             <button
               onClick={() => setActiveTab('view')}
               className={`flex-1 py-3 px-6 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === 'view'
-                ? theme === 'dark'
-                  ? 'bg-zinc-800 text-white shadow-sm border border-zinc-750'
-                  : 'bg-white text-emerald-600 shadow-lg'
-                : theme === 'dark'
-                  ? 'text-zinc-400 hover:text-white hover:bg-zinc-850/50'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+                ? 'bg-white text-emerald-600 shadow-lg dark:bg-zinc-800 dark:text-white dark:shadow-sm dark:border dark:border-zinc-750'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-850/50'
                 }`}
             >
               View Reports ({existingReports.length}/{subscriptionInfo.maxReports})
@@ -367,20 +343,14 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
         </div>
 
         {/* Content */}
-        <div className={`p-8 ${theme === 'dark'
-          ? (inline ? 'bg-transparent' : 'bg-[#1e1e24]')
-          : (inline ? 'bg-transparent' : 'bg-gray-50')
-          } transition-all duration-300 overflow-y-auto flex-1`}>
+        <div className={`p-8 ${inline ? 'bg-transparent' : 'bg-gray-50 dark:bg-[#1e1e24]'} transition-all duration-300 overflow-y-auto flex-1`}>
           {activeTab === 'generate' ? (
             // Generate Report Tab
             !generatedReport ? (
               <div className="space-y-6">
                 {/* Report Type Selection */}
                 <div>
-                  <label className={`block text-lg font-semibold mb-6 ${theme === 'dark'
-                    ? 'text-white'
-                    : 'text-gray-900'
-                    } transition-colors duration-300`}>
+                  <label className={`block text-lg font-semibold mb-6 text-gray-900 dark:text-white transition-colors duration-300`}>
                     Choose Report Type
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -388,39 +358,25 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                       <div
                         key={type.value}
                         className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${reportType === type.value
-                          ? theme === 'dark'
-                            ? 'bg-emerald-500/10 border-2 border-emerald-400 shadow-lg shadow-emerald-500/20'
-                            : 'bg-emerald-50 border-2 border-emerald-500 shadow-lg shadow-emerald-500/20'
-                          : theme === 'dark'
-                            ? 'bg-[#1e1e24] border border-zinc-800 hover:border-zinc-700 hover:bg-dark-bg'
-                            : 'bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          ? 'bg-emerald-50 border-2 border-emerald-500 dark:border-emerald-400 shadow-lg shadow-emerald-500/20 dark:bg-emerald-500/10'
+                          : 'bg-white dark:bg-[#1e1e24] border border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 hover:bg-gray-50 dark:hover:bg-dark-bg'
                           }`}
                         onClick={() => setReportType(type.value)}
                       >
                         <div className="flex items-center space-x-4">
                           <div className={`w-6 h-6 rounded-full border-2 transition-all duration-300 ${reportType === type.value
-                            ? theme === 'dark'
-                              ? 'border-emerald-400 bg-emerald-400'
-                              : 'border-emerald-500 bg-emerald-500'
-                            : theme === 'dark'
-                              ? 'border-zinc-800'
-                              : 'border-gray-300'
+                            ? 'border-emerald-500 bg-emerald-500 dark:border-emerald-400 dark:bg-emerald-400'
+                            : 'border-gray-300 dark:border-zinc-800'
                             }`}>
                             {reportType === type.value && (
                               <div className="w-2 h-2 bg-white rounded-full m-1"></div>
                             )}
                           </div>
                           <div className="flex-1">
-                            <h3 className={`font-semibold text-lg ${theme === 'dark'
-                              ? 'text-white'
-                              : 'text-gray-900'
-                              } transition-colors duration-300`}>
+                            <h3 className={`font-semibold text-lg text-gray-900 dark:text-white transition-colors duration-300`}>
                               {type.label}
                             </h3>
-                            <p className={`text-sm mt-1 ${theme === 'dark'
-                              ? 'text-gray-400'
-                              : 'text-gray-600'
-                              } transition-colors duration-300`}>
+                            <p className={`text-sm mt-1 text-gray-600 dark:text-gray-400 transition-colors duration-300`}>
                               {type.description}
                             </p>
                           </div>
@@ -432,49 +388,31 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
 
                 {/* Date Range */}
                 <div>
-                  <label className={`block text-lg font-semibold mb-6 ${theme === 'dark'
-                    ? 'text-white'
-                    : 'text-gray-900'
-                    } transition-colors duration-300`}>
+                  <label className={`block text-lg font-semibold mb-6 text-gray-900 dark:text-white transition-colors duration-300`}>
                     Report Period
                   </label>
-                  <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl ${theme === 'dark'
-                    ? 'bg-[#1e1e24] border border-zinc-800'
-                    : 'bg-white border border-gray-200'
-                    } transition-all duration-300`}>
+                  <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-white border border-gray-200 dark:bg-[#1e1e24] dark:border dark:border-zinc-800 transition-all duration-300`}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                       <div>
-                        <label className={`block text-sm font-medium mb-2 sm:mb-3 ${theme === 'dark'
-                          ? 'text-gray-300'
-                          : 'text-gray-700'
-                          } transition-colors duration-300`}>
+                        <label className={`block text-sm font-medium mb-2 sm:mb-3 text-gray-700 dark:text-gray-300 transition-colors duration-300`}>
                           Start Date
                         </label>
                         <input
                           type="date"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
-                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
-                            ? 'bg-dark-bg border-zinc-800 text-white placeholder-zinc-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
-                            : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
-                            }`}
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 dark:bg-dark-bg dark:border-zinc-800 dark:text-white dark:placeholder-zinc-500 dark:focus:border-emerald-500 dark:focus:ring-1 dark:focus:ring-emerald-500`}
                         />
                       </div>
                       <div>
-                        <label className={`block text-sm font-medium mb-2 sm:mb-3 ${theme === 'dark'
-                          ? 'text-gray-300'
-                          : 'text-gray-700'
-                          } transition-colors duration-300`}>
+                        <label className={`block text-sm font-medium mb-2 sm:mb-3 text-gray-700 dark:text-gray-300 transition-colors duration-300`}>
                           End Date
                         </label>
                         <input
                           type="date"
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
-                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base ${theme === 'dark'
-                            ? 'bg-dark-bg border-zinc-800 text-white placeholder-zinc-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
-                            : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
-                            }`}
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 dark:bg-dark-bg dark:border-zinc-800 dark:text-white dark:placeholder-zinc-500 dark:focus:border-emerald-500 dark:focus:ring-1 dark:focus:ring-emerald-500`}
                         />
                       </div>
                     </div>
@@ -485,36 +423,24 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                 <div>
                   <button
                     onClick={() => setShowAdvanced(!showAdvanced)}
-                    className={`flex items-center space-x-2 sm:space-x-3 text-sm font-medium transition-all duration-300 ${theme === 'dark'
-                      ? 'text-gray-400 hover:text-white'
-                      : 'text-gray-600 hover:text-gray-900'
-                      }`}
+                    className={`flex items-center space-x-2 sm:space-x-3 text-sm font-medium transition-all duration-300 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white`}
                   >
                     <FaCog className="text-sm" />
                     <span>Advanced Options</span>
                     {!subscriptionInfo.isPremium && (
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${theme === 'dark'
-                        ? 'bg-purple-900/30 text-purple-400 border border-purple-800'
-                        : 'bg-purple-100 text-purple-800 border border-purple-200'
-                        }`}>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border dark:border-purple-800`}>
                         Premium Only
                       </span>
                     )}
                   </button>
 
                   {showAdvanced && (
-                    <div className={`mt-4 p-4 sm:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 ${theme === 'dark'
-                      ? 'bg-[#1e1e24] border border-zinc-800'
-                      : 'bg-gray-100 border border-gray-200'
-                      }`}>
+                    <div className={`mt-4 p-4 sm:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 bg-gray-100 border border-gray-200 dark:bg-[#1e1e24] dark:border dark:border-zinc-800`}>
                       {subscriptionInfo.isPremium ? (
                         <div className="space-y-4 sm:space-y-6">
                           {/* Report Depth */}
                           <div>
-                            <label className={`block text-sm font-medium mb-2 sm:mb-3 ${theme === 'dark'
-                              ? 'text-gray-300'
-                              : 'text-gray-700'
-                              } transition-colors duration-300`}>
+                            <label className={`block text-sm font-medium mb-2 sm:mb-3 text-gray-700 dark:text-gray-300 transition-colors duration-300`}>
                               Report Depth
                             </label>
                             <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -525,14 +451,11 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                               ].map((depth) => (
                                 <button
                                   key={depth.value}
+                                  type="button"
                                   onClick={() => setAdvancedOptions(prev => ({ ...prev, reportDepth: depth.value }))}
                                   className={`p-2.5 sm:p-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 ${advancedOptions.reportDepth === depth.value
-                                    ? theme === 'dark'
-                                      ? 'bg-emerald-500/10 border-2 border-emerald-400 text-emerald-400'
-                                      : 'bg-emerald-50 border-2 border-emerald-500 text-emerald-600'
-                                    : theme === 'dark'
-                                      ? 'bg-gray-700 border border-zinc-800 text-gray-300 hover:bg-gray-600'
-                                      : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-emerald-50 border-2 border-emerald-500 text-emerald-600 dark:bg-emerald-500/10 dark:border-emerald-400 dark:text-emerald-400'
+                                    : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 dark:bg-gray-700 dark:border-zinc-800 dark:text-gray-300 dark:hover:bg-gray-600'
                                     }`}
                                 >
                                   <div className="font-semibold">{depth.label}</div>
@@ -544,10 +467,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
 
                           {/* Content Sections */}
                           <div>
-                            <label className={`block text-sm font-medium mb-3 ${theme === 'dark'
-                              ? 'text-gray-300'
-                              : 'text-gray-700'
-                              } transition-colors duration-300`}>
+                            <label className={`block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300 transition-colors duration-300`}>
                               Include Sections
                             </label>
                             <div className="space-y-3">
@@ -565,25 +485,15 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                                       [section.key]: e.target.checked
                                     }))}
                                     className={`w-4 h-4 rounded border-2 transition-all duration-300 ${advancedOptions[section.key]
-                                      ? theme === 'dark'
-                                        ? 'bg-emerald-500 border-emerald-400'
-                                        : 'bg-emerald-500 border-emerald-500'
-                                      : theme === 'dark'
-                                        ? 'border-zinc-800 bg-dark-bg'
-                                        : 'border-gray-300 bg-white'
+                                      ? 'bg-emerald-500 border-emerald-500 dark:border-emerald-400'
+                                      : 'border-gray-300 bg-white dark:border-zinc-800 dark:bg-dark-bg'
                                       }`}
                                   />
                                   <div>
-                                    <div className={`text-sm font-medium ${theme === 'dark'
-                                      ? 'text-gray-300'
-                                      : 'text-gray-700'
-                                      } transition-colors duration-300`}>
+                                    <div className={`text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300`}>
                                       {section.label}
                                     </div>
-                                    <div className={`text-xs ${theme === 'dark'
-                                      ? 'text-gray-500'
-                                      : 'text-gray-500'
-                                      }`}>
+                                    <div className={`text-xs text-gray-500 dark:text-gray-550 dark:text-gray-500`}>
                                       {section.description}
                                     </div>
                                   </div>
@@ -594,10 +504,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
 
                           {/* Report Format */}
                           <div>
-                            <label className={`block text-sm font-medium mb-2 sm:mb-3 ${theme === 'dark'
-                              ? 'text-gray-300'
-                              : 'text-gray-700'
-                              } transition-colors duration-300`}>
+                            <label className={`block text-sm font-medium mb-2 sm:mb-3 text-gray-700 dark:text-gray-300 transition-colors duration-300`}>
                               Report Format
                             </label>
                             <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -608,14 +515,11 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                               ].map((format) => (
                                 <button
                                   key={format.value}
+                                  type="button"
                                   onClick={() => setAdvancedOptions(prev => ({ ...prev, format: format.value }))}
                                   className={`p-2.5 sm:p-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 ${advancedOptions.format === format.value
-                                    ? theme === 'dark'
-                                      ? 'bg-emerald-500/10 border-2 border-emerald-400 text-emerald-400'
-                                      : 'bg-emerald-50 border-2 border-emerald-500 text-emerald-600'
-                                    : theme === 'dark'
-                                      ? 'bg-dark-bg border border-zinc-800 text-zinc-300 hover:bg-zinc-800'
-                                      : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-emerald-50 border-2 border-emerald-500 text-emerald-600 dark:bg-emerald-500/10 dark:border-emerald-400 dark:text-emerald-400'
+                                    : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 dark:bg-dark-bg dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800'
                                     }`}
                                 >
                                   <div className="font-semibold">{format.label}</div>
@@ -627,10 +531,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
 
                           {/* Custom Prompt */}
                           <div>
-                            <label className={`block text-sm font-medium mb-3 ${theme === 'dark'
-                              ? 'text-gray-300'
-                              : 'text-gray-700'
-                              } transition-colors duration-300`}>
+                            <label className={`block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300 transition-colors duration-300`}>
                               Custom Instructions (Optional)
                             </label>
                             <textarea
@@ -638,28 +539,19 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                               onChange={(e) => setAdvancedOptions(prev => ({ ...prev, customPrompt: e.target.value }))}
                               placeholder="Add specific instructions for the AI report generation..."
                               rows={3}
-                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none ${theme === 'dark'
-                                ? 'bg-dark-bg border-zinc-800 text-white placeholder-zinc-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
-                                : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
-                                }`}
+                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 dark:bg-dark-bg dark:border-zinc-800 dark:text-white dark:placeholder-zinc-500 dark:focus:border-emerald-500 dark:focus:ring-1 dark:focus:ring-emerald-500`}
                             />
                           </div>
 
                           {/* Language Selection */}
                           <div>
-                            <label className={`block text-sm font-medium mb-3 ${theme === 'dark'
-                              ? 'text-gray-300'
-                              : 'text-gray-700'
-                              } transition-colors duration-300`}>
+                            <label className={`block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300 transition-colors duration-300`}>
                               Report Language
                             </label>
                             <select
                               value={advancedOptions.language}
                               onChange={(e) => setAdvancedOptions(prev => ({ ...prev, language: e.target.value }))}
-                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${theme === 'dark'
-                                ? 'bg-dark-bg border-zinc-800 text-white'
-                                : 'bg-gray-50 border-gray-300 text-gray-900'
-                                }`}
+                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-gray-50 border-gray-300 text-gray-900 dark:bg-dark-bg dark:border-zinc-800 dark:text-white`}
                             >
                               <option value="en">English</option>
                               <option value="es">Spanish</option>
@@ -675,88 +567,40 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                       ) : (
                         // Non-premium user content
                         <div className="text-center py-8">
-                          <div className={`p-6 rounded-2xl mx-auto max-w-md ${theme === 'dark'
-                            ? 'bg-purple-900/20 border border-purple-800'
-                            : 'bg-purple-50 border border-purple-200'
-                            }`}>
-                            <div className={`p-4 rounded-xl mx-auto mb-4 w-fit ${theme === 'dark'
-                              ? 'bg-purple-500/20 text-purple-400'
-                              : 'bg-purple-100 text-purple-600'
-                              }`}>
+                          <div className={`p-6 rounded-2xl mx-auto max-w-md bg-purple-50 border border-purple-200 dark:bg-purple-900/20 dark:border dark:border-purple-800`}>
+                            <div className={`p-4 rounded-xl mx-auto mb-4 w-fit bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400`}>
                               <FaCog className="text-2xl" />
                             </div>
-                            <h4 className={`text-xl font-semibold mb-3 ${theme === 'dark'
-                              ? 'text-white'
-                              : 'text-gray-900'
-                              } transition-colors duration-300`}>
+                            <h4 className={`text-xl font-semibold mb-3 text-gray-900 dark:text-white transition-colors duration-300`}>
                               Advanced Options
                             </h4>
-                            <p className={`text-sm mb-6 ${theme === 'dark'
-                              ? 'text-gray-400'
-                              : 'text-gray-600'
-                              } transition-colors duration-300`}>
+                            <p className={`text-sm mb-6 text-gray-600 dark:text-gray-400 transition-colors duration-300`}>
                               Unlock powerful customization features with premium access:
                             </p>
                             <div className="space-y-3 text-left">
-                              <div className={`flex items-center space-x-3 ${theme === 'dark'
-                                ? 'text-gray-300'
-                                : 'text-gray-700'
-                                }`}>
-                                <div className={`w-2 h-2 rounded-full ${theme === 'dark'
-                                  ? 'bg-purple-400'
-                                  : 'bg-purple-500'
-                                  }`}></div>
+                              <div className={`flex items-center space-x-3 text-gray-700 dark:text-gray-300`}>
+                                <div className={`w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400`}></div>
                                 <span className="text-sm">Custom report depth (Brief/Standard/Detailed)</span>
                               </div>
-                              <div className={`flex items-center space-x-3 ${theme === 'dark'
-                                ? 'text-gray-300'
-                                : 'text-gray-700'
-                                }`}>
-                                <div className={`w-2 h-2 rounded-full ${theme === 'dark'
-                                  ? 'bg-purple-400'
-                                  : 'bg-purple-500'
-                                  }`}></div>
+                              <div className={`flex items-center space-x-3 text-gray-700 dark:text-gray-300`}>
+                                <div className={`w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400`}></div>
                                 <span className="text-sm">Choose report format (Professional/Casual/Technical)</span>
                               </div>
-                              <div className={`flex items-center space-x-3 ${theme === 'dark'
-                                ? 'text-gray-300'
-                                : 'text-gray-700'
-                                }`}>
-                                <div className={`w-2 h-2 rounded-full ${theme === 'dark'
-                                  ? 'bg-purple-400'
-                                  : 'bg-purple-500'
-                                  }`}></div>
+                              <div className={`flex items-center space-x-3 text-gray-700 dark:text-gray-300`}>
+                                <div className={`w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400`}></div>
                                 <span className="text-sm">Multi-language support (8 languages)</span>
                               </div>
-                              <div className={`flex items-center space-x-3 ${theme === 'dark'
-                                ? 'text-gray-300'
-                                : 'text-gray-700'
-                                }`}>
-                                <div className={`w-2 h-2 rounded-full ${theme === 'dark'
-                                  ? 'bg-purple-400'
-                                  : 'bg-purple-500'
-                                  }`}></div>
+                              <div className={`flex items-center space-x-3 text-gray-700 dark:text-gray-300`}>
+                                <div className={`w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400`}></div>
                                 <span className="text-sm">Custom AI instructions</span>
                               </div>
-                              <div className={`flex items-center space-x-3 ${theme === 'dark'
-                                ? 'text-gray-300'
-                                : 'text-gray-700'
-                                }`}>
-                                <div className={`w-2 h-2 rounded-full ${theme === 'dark'
-                                  ? 'bg-purple-400'
-                                  : 'bg-purple-500'
-                                  }`}></div>
+                              <div className={`flex items-center space-x-3 text-gray-700 dark:text-gray-300`}>
+                                <div className={`w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400`}></div>
                                 <span className="text-sm">Selective content sections</span>
                               </div>
                             </div>
-                            <div className={`mt-6 p-4 rounded-xl ${theme === 'dark'
-                              ? 'bg-gradient-to-r from-purple-900/30 to-emerald-900/30 border border-purple-800'
-                              : 'bg-gradient-to-r from-purple-50 to-emerald-50 border border-purple-200'
-                              }`}>
-                              <p className={`text-sm font-medium ${theme === 'dark'
-                                ? 'text-purple-300'
-                                : 'text-purple-700'
-                                }`}>
+                            <div className={`mt-6 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-emerald-50 border border-purple-200 dark:bg-gradient-to-r dark:from-purple-900/30 dark:to-emerald-900/30 dark:border dark:border-purple-800`}>
+                              <p className={`text-sm font-medium text-purple-700 dark:text-purple-300`}>
                                 Upgrade to Premium to unlock these advanced features
                               </p>
                             </div>
@@ -769,19 +613,10 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
 
                 {/* Error Display */}
                 {error && (
-                  <div className={`p-6 rounded-2xl border transition-all duration-300 ${theme === 'dark'
-                    ? 'bg-red-900/20 border-red-800'
-                    : 'bg-red-50 border-red-200'
-                    }`}>
+                  <div className={`p-6 rounded-2xl border transition-all duration-300 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800`}>
                     <div className="flex items-center space-x-3">
-                      <FaExclamationTriangle className={`text-xl ${theme === 'dark'
-                        ? 'text-red-400'
-                        : 'text-red-500'
-                        }`} />
-                      <p className={`text-sm font-medium ${theme === 'dark'
-                        ? 'text-red-400'
-                        : 'text-red-700'
-                        } transition-colors duration-300`}>{error}</p>
+                      <FaExclamationTriangle className={`text-xl text-red-500 dark:text-red-400`} />
+                      <p className={`text-sm font-medium text-red-700 dark:text-red-400 transition-colors duration-300`}>{error}</p>
                     </div>
                   </div>
                 )}
@@ -791,10 +626,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                   {!inline && (
                     <button
                       onClick={onClose}
-                      className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base ${theme === 'dark'
-                        ? 'text-gray-400 hover:text-white hover:bg-dark-hover'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                        }`}
+                      className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-dark-hover`}
                     >
                       Cancel
                     </button>
@@ -803,12 +635,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                     onClick={handleGenerateReport}
                     disabled={isGenerating || existingReports.length >= subscriptionInfo.maxReports}
                     className={`px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 text-sm sm:text-base ${isGenerating || existingReports.length >= subscriptionInfo.maxReports
-                      ? theme === 'dark'
-                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : theme === 'dark'
-                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25'
-                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25'
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25'
                       }`}
                   >
                     {isGenerating ? (
@@ -833,29 +661,17 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
 
                 {/* Report Limit Info */}
                 {existingReports.length >= subscriptionInfo.maxReports && (
-                  <div className={`p-4 rounded-xl border transition-all duration-300 ${theme === 'dark'
-                    ? 'bg-yellow-500/10 border-yellow-500/20'
-                    : 'bg-yellow-50 border-yellow-200'
-                    }`}>
+                  <div className={`p-4 rounded-xl border transition-all duration-300 bg-yellow-50 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20`}>
                     <div className="flex items-center space-x-3">
-                      <FaExclamationTriangle className={`text-lg ${theme === 'dark'
-                        ? 'text-yellow-400'
-                        : 'text-yellow-600'
-                        }`} />
+                      <FaExclamationTriangle className={`text-lg text-yellow-600 dark:text-yellow-400`} />
                       <div>
-                        <p className={`text-sm font-medium ${theme === 'dark'
-                          ? 'text-yellow-400'
-                          : 'text-yellow-700'
-                          }`}>
+                        <p className={`text-sm font-medium text-yellow-700 dark:text-yellow-400`}>
                           {subscriptionInfo.isPremium
                             ? `Maximum of ${subscriptionInfo.maxReports} reports reached for this project`
                             : `You have reached your trial limit of ${subscriptionInfo.maxReports} report`
                           }
                         </p>
-                        <p className={`text-xs mt-1 ${theme === 'dark'
-                          ? 'text-yellow-300'
-                          : 'text-yellow-600'
-                          }`}>
+                        <p className={`text-xs mt-1 text-yellow-600 dark:text-yellow-300`}>
                           {subscriptionInfo.isPremium
                             ? 'Delete an existing report to generate a new one'
                             : `Upgrade to premium for up to ${subscriptionInfo.maxReports * 10} reports per project`
@@ -872,23 +688,14 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                 {/* Report Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0">
                   <div className="flex items-center space-x-3 sm:space-x-4">
-                    <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${theme === 'dark'
-                      ? 'bg-green-500/20 text-green-400'
-                      : 'bg-green-100 text-green-600'
-                      } transition-all duration-300`}>
+                    <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400 transition-all duration-300`}>
                       <FaFileAlt className="text-lg sm:text-xl" />
                     </div>
                     <div>
-                      <h3 className={`text-lg sm:text-2xl font-bold ${theme === 'dark'
-                        ? 'text-white'
-                        : 'text-gray-900'
-                        } transition-colors duration-300`}>
+                      <h3 className={`text-lg sm:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-300`}>
                         {generatedReport.reportType.charAt(0).toUpperCase() + generatedReport.reportType.slice(1)} Report
                       </h3>
-                      <p className={`text-xs sm:text-sm ${theme === 'dark'
-                        ? 'text-gray-400'
-                        : 'text-gray-600'
-                        } transition-colors duration-300`}>
+                      <p className={`text-xs sm:text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300`}>
                         Generated on {new Date(generatedReport.generatedAt).toLocaleString()}
                       </p>
                     </div>
@@ -897,19 +704,13 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                     <button
                       onClick={handleDownloadReport}
                       title="Download PDF"
-                      className={`p-2 rounded-full font-semibold transition-all duration-300 flex items-center space-x-2 ${theme === 'dark'
-                        ? 'bg-green-100 hover:bg-green-300 text-white hover:shadow-green-500/25'
-                        : 'bg-green-100 hover:bg-green-300 text-white hover:shadow-green-500/25'
-                        }`}
+                      className={`p-2 rounded-full font-semibold transition-all duration-300 flex items-center space-x-2 bg-green-100 hover:bg-green-300 text-white hover:shadow-green-500/25 dark:bg-green-100 dark:hover:bg-green-300 dark:text-white dark:hover:shadow-green-500/25`}
                     >
                       <FaDownload className="text-green-500 text-sm sm:text-base" />
                     </button>
                     <button
                       onClick={() => setGeneratedReport(null)}
-                      className={`px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base ${theme === 'dark'
-                        ? 'bg-dark-bg hover:bg-zinc-800 text-white border border-zinc-800'
-                        : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                        }`}
+                      className={`px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-dark-bg dark:hover:bg-zinc-800 dark:text-white dark:border dark:border-zinc-800`}
                     >
                       Generate New
                     </button>
@@ -918,149 +719,101 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
 
                 {/* Metrics */}
                 <div>
-                  <h4 className={`text-xl font-bold mb-6 ${theme === 'dark'
-                    ? 'text-white'
-                    : 'text-gray-900'
-                    } transition-colors duration-300`}>
+                  <h4 className={`text-xl font-bold mb-6 text-gray-900 dark:text-white transition-colors duration-300`}>
                     Project Metrics
                   </h4>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                    <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col ${theme === 'dark'
-                      ? 'bg-emerald-500/10 border-emerald-500/20'
-                      : 'bg-emerald-50 border-emerald-200'
-                      }`}>
+                    <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20`}>
                       <div className="flex items-center justify-between mb-3 sm:mb-4">
-                        <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${theme === 'dark'
-                          ? 'bg-emerald-500/10 text-emerald-400'
-                          : 'bg-emerald-100 text-emerald-600'
-                          }`}>
+                        <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400`}>
                           <FaTasks className="text-lg sm:text-xl" />
                         </div>
-                        <div className={`text-right ${theme === 'dark'
-                          ? 'text-emerald-400'
-                          : 'text-emerald-600'
-                          } transition-colors duration-300`}>
+                        <div className={`text-right text-emerald-600 dark:text-emerald-400 transition-colors duration-300`}>
                           <div className="text-2xl sm:text-3xl font-bold">
                             {generatedReport.content.metrics.totalTasks}
                           </div>
                           <div className="text-xs sm:text-sm font-medium">Total Tasks</div>
                         </div>
                       </div>
-                      <div className={`flex items-center justify-between text-xs mt-auto ${theme === 'dark'
-                        ? 'text-gray-400'
-                        : 'text-gray-600'
-                        } transition-colors duration-300`}>
+                      <div className={`flex items-center justify-between text-xs mt-auto text-gray-600 dark:text-gray-400 transition-colors duration-300`}>
                         <span>All project tasks</span>
                         <div className="relative group">
-                          <FaInfoCircle className={`text-sm sm:text-base ${theme === 'dark' ? 'text-emerald-300' : 'text-emerald-500'} cursor-help`} />
-                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-zinc-800' : 'bg-gray-900 text-white border border-zinc-800'}`}>
+                          <FaInfoCircle className={`text-sm sm:text-base text-emerald-500 dark:text-emerald-300 cursor-help`} />
+                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 bg-gray-900 text-white border border-zinc-800 dark:bg-gray-800 dark:text-gray-200 dark:border dark:border-zinc-800`}>
                             Total number of tasks created for this project
-                            <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${theme === 'dark' ? 'border-t-gray-800' : 'border-t-gray-900'}`}></div>
+                            <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-800`}></div>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col ${theme === 'dark'
-                      ? 'bg-green-500/10 border-green-500/20'
-                      : 'bg-green-50 border-green-200'
-                      }`}>
+                    <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col bg-green-50 border-green-200 dark:bg-green-500/10 dark:border-green-500/20`}>
                       <div className="flex items-center justify-between mb-3 sm:mb-4">
-                        <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${theme === 'dark'
-                          ? 'bg-green-500/20 text-green-400'
-                          : 'bg-green-100 text-green-600'
-                          }`}>
+                        <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400`}>
                           <FaCheckCircle className="text-lg sm:text-xl" />
                         </div>
-                        <div className={`text-right ${theme === 'dark'
-                          ? 'text-green-400'
-                          : 'text-green-600'
-                          } transition-colors duration-300`}>
+                        <div className={`text-right text-green-600 dark:text-green-400 transition-colors duration-300`}>
                           <div className="text-2xl sm:text-3xl font-bold">
                             {generatedReport.content.metrics.completedTasks}
                           </div>
                           <div className="text-xs sm:text-sm font-medium">Completed</div>
                         </div>
                       </div>
-                      <div className={`flex items-center justify-between text-xs mt-auto ${theme === 'dark'
-                        ? 'text-gray-400'
-                        : 'text-gray-600'
-                        } transition-colors duration-300`}>
+                      <div className={`flex items-center justify-between text-xs mt-auto text-gray-600 dark:text-gray-400 transition-colors duration-300`}>
                         <span>Finished tasks</span>
                         <div className="relative group">
-                          <FaInfoCircle className={`text-sm sm:text-base ${theme === 'dark' ? 'text-green-300' : 'text-green-500'} cursor-help`} />
-                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-zinc-800' : 'bg-gray-900 text-white border border-zinc-800'}`}>
+                          <FaInfoCircle className={`text-sm sm:text-base text-green-500 dark:text-green-300 cursor-help`} />
+                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 bg-gray-900 text-white border border-zinc-800 dark:bg-gray-800 dark:text-gray-200 dark:border dark:border-zinc-800`}>
                             Number of tasks that have been completed
-                            <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${theme === 'dark' ? 'border-t-gray-800' : 'border-t-gray-900'}`}></div>
+                            <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-800`}></div>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col ${theme === 'dark'
-                      ? 'bg-yellow-500/10 border-yellow-500/20'
-                      : 'bg-yellow-50 border-yellow-200'
-                      }`}>
+                    <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col bg-yellow-50 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20`}>
                       <div className="flex items-center justify-between mb-3 sm:mb-4">
-                        <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${theme === 'dark'
-                          ? 'bg-yellow-500/20 text-yellow-400'
-                          : 'bg-yellow-100 text-yellow-600'
-                          }`}>
+                        <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400`}>
                           <FaChartBar className="text-lg sm:text-xl" />
                         </div>
-                        <div className={`text-right ${theme === 'dark'
-                          ? 'text-yellow-400'
-                          : 'text-yellow-600'
-                          } transition-colors duration-300`}>
+                        <div className={`text-right text-yellow-600 dark:text-yellow-400 transition-colors duration-300`}>
                           <div className="text-2xl sm:text-3xl font-bold">
                             {generatedReport.content.metrics.completionRate}%
                           </div>
                           <div className="text-xs sm:text-sm font-medium">Completion Rate</div>
                         </div>
                       </div>
-                      <div className={`flex items-center justify-between text-xs mt-auto ${theme === 'dark'
-                        ? 'text-gray-400'
-                        : 'text-gray-600'
-                        } transition-colors duration-300`}>
+                      <div className={`flex items-center justify-between text-xs mt-auto text-gray-600 dark:text-gray-400 transition-colors duration-300`}>
                         <span>Progress percentage</span>
                         <div className="relative group">
-                          <FaInfoCircle className={`text-sm sm:text-base ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-500'} cursor-help`} />
-                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-zinc-800' : 'bg-gray-900 text-white border border-zinc-800'}`}>
+                          <FaInfoCircle className={`text-sm sm:text-base text-yellow-500 dark:text-yellow-300 cursor-help`} />
+                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 bg-gray-900 text-white border border-zinc-800 dark:bg-gray-800 dark:text-gray-200 dark:border dark:border-zinc-800`}>
                             Percentage of tasks completed out of total tasks
-                            <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${theme === 'dark' ? 'border-t-gray-800' : 'border-t-gray-900'}`}></div>
+                            <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-800`}></div>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col ${theme === 'dark'
-                      ? 'bg-purple-500/10 border-purple-500/20'
-                      : 'bg-purple-50 border-purple-200'
-                      }`}>
+                    <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col bg-purple-50 border-purple-200 dark:bg-purple-500/10 dark:border-purple-500/20`}>
                       <div className="flex items-center justify-between mb-3 sm:mb-4">
-                        <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${theme === 'dark'
-                          ? 'bg-purple-500/20 text-purple-400'
-                          : 'bg-purple-100 text-purple-600'
-                          }`}>
+                        <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400`}>
                           <FaRocket className="text-lg sm:text-xl" />
                         </div>
-                        <div className={`text-right ${theme === 'dark'
-                          ? 'text-purple-400'
-                          : 'text-purple-600'
-                          } transition-colors duration-300`}>
+                        <div className={`text-right text-purple-600 dark:text-purple-400 transition-colors duration-300`}>
                           <div className="text-2xl sm:text-3xl font-bold">
                             {generatedReport.content.metrics.projectHealth}
                           </div>
                           <div className="text-xs sm:text-sm font-medium">Health Score</div>
                         </div>
                       </div>
-                      <div className={`flex items-center justify-between text-xs mt-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} transition-colors duration-300`}>
+                      <div className={`flex items-center justify-between text-xs mt-auto text-gray-600 dark:text-gray-400 transition-colors duration-300`}>
                         <span>Overall project health</span>
                         <div className="relative group">
-                          <FaInfoCircle className={`text-sm sm:text-base ${theme === 'dark' ? 'text-purple-300' : 'text-purple-500'} cursor-help`} />
-                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 ${theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-zinc-800' : 'bg-gray-900 text-white border border-zinc-800'}`}>
+                          <FaInfoCircle className={`text-sm sm:text-base text-purple-500 dark:text-purple-300 cursor-help`} />
+                          <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 bg-gray-900 text-white border border-zinc-800 dark:bg-gray-800 dark:text-gray-200 dark:border dark:border-zinc-800`}>
                             Overall project health based on completion rate, deadlines, and team utilization
-                            <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${theme === 'dark' ? 'border-t-gray-800' : 'border-t-gray-900'}`}></div>
+                            <div className={`absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-800`}></div>
                           </div>
                         </div>
                       </div>
@@ -1071,12 +824,12 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                 {/* Report Content */}
                 {/* Raw Content Display */}
                 <div>
-                  <h4 className={`text-lg sm:text-xl font-bold mb-4 sm:mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>
+                  <h4 className={`text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-gray-900 dark:text-white transition-colors duration-300`}>
                     Report Content
                   </h4>
-                  <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 ${theme === 'dark' ? 'bg-[#1e1e24] border-zinc-800' : 'bg-white border-gray-200'}`}>
-                    <div className={`prose prose-sm sm:prose-lg max-w-none ${theme === 'dark' ? 'prose-invert' : 'prose-gray'}`}>
-                      <div className={`text-sm sm:text-base leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} transition-colors duration-300`}>
+                  <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 bg-white border-gray-200 dark:bg-[#1e1e24] dark:border-zinc-800`}>
+                    <div className={`prose prose-sm sm:prose-lg max-w-none prose-gray dark:prose-invert`}>
+                      <div className={`text-sm sm:text-base leading-relaxed text-gray-700 dark:text-gray-300 transition-colors duration-300`}>
                         {generatedReport.content.rawContent.split('\n').map((line, index) => {
                           const trimmedLine = line.trim();
                           // // Skip empty lines
@@ -1087,7 +840,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                           // Main report title
                           if (trimmedLine.includes('PROGRESS REPORT')) {
                             return (
-                              <h1 key={index} className={`text-lg sm:text-2xl font-bold text-center mb-2 sm:mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              <h1 key={index} className={`text-lg sm:text-2xl font-bold text-center mb-2 sm:mb-4 text-gray-900 dark:text-white`}>
                                 {trimmedLine}
                               </h1>
                             );
@@ -1097,10 +850,10 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                           if (trimmedLine.startsWith('PROJECT:') || trimmedLine.startsWith('REPORTING PERIOD:') || trimmedLine.startsWith('REPORT DATE:') || trimmedLine.startsWith('DATE GENERATED:')) {
                             return (
                               <div className='flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2'>
-                                <div key={index} className={`text-xs sm:text-sm font-semibold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                <div key={index} className={`text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400`}>
                                   {trimmedLine.split(':')[0].trim()}:
                                 </div>
-                                <div key={index} className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                <div key={index} className={`text-xs sm:text-sm text-emerald-600 dark:text-emerald-400`}>
                                   {trimmedLine.startsWith('REPORTING PERIOD:') ? (
                                     <div className='flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2'>
                                       <span>{trimmedLine.split(':')[1].trim()}</span>
@@ -1122,7 +875,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                           // Numbered sections (1. EXECUTIVE SUMMARY, 2. PROJECT PROGRESS, etc.)
                           if (/^\d+\.\s+[A-Z\s]+$/.test(trimmedLine)) {
                             return (
-                              <h2 key={index} className={`text-lg sm:text-xl font-bold mt-3 sm:mt-4 mb-2 sm:mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              <h2 key={index} className={`text-lg sm:text-xl font-bold mt-3 sm:mt-4 mb-2 sm:mb-3 text-gray-900 dark:text-white`}>
                                 {trimmedLine}
                               </h2>
                             );
@@ -1132,7 +885,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                           if (trimmedLine.startsWith('- ')) {
                             return (
                               <div key={index} className="flex items-start space-x-2 mb-2 ml-2 sm:ml-4">
-                                <span className={`text-sm sm:text-lg font-bold flex-shrink-0 ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>•</span>
+                                <span className={`text-sm sm:text-lg font-bold flex-shrink-0 text-emerald-600 dark:text-emerald-400`}>•</span>
                                 <span className="flex-1 text-sm sm:text-base leading-relaxed">{trimmedLine.substring(2)}</span>
                               </div>
                             );
@@ -1151,25 +904,16 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                 </div>
 
                 {/* Actions */}
-                <div className={`flex justify-end gap-3 sm:gap-4 sm:space-x-4 transition-all duration-300 pb-4 sm:pb-6 ${theme === 'dark'
-                  ? 'border-zinc-800'
-                  : 'border-gray-200'
-                  }`}>
+                <div className={`flex justify-end gap-3 sm:gap-4 sm:space-x-4 transition-all duration-300 pb-4 sm:pb-6 border-gray-200 dark:border-zinc-800`}>
                   <button
                     onClick={onClose}
-                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base ${theme === 'dark'
-                      ? 'text-gray-400 hover:text-white hover:bg-dark-hover'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                      }`}
+                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-dark-hover`}
                   >
                     Close
                   </button>
                   <button
                     onClick={handleDownloadReport}
-                    className={`px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 text-sm sm:text-base ${theme === 'dark'
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25'
-                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25'
-                      }`}
+                    className={`px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 text-sm sm:text-base bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25 dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white dark:shadow-lg dark:hover:shadow-emerald-500/25`}
                   >
                     <FaDownload className="text-sm sm:text-base" />
                     <span>Download PDF</span>
@@ -1181,22 +925,15 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
             // View Reports Tab
             <div className="space-y-6">
               <div className="flex flex-row items-center justify-between gap-4">
-                <h3 className={`text-xl sm:text-2xl font-bold ${theme === 'dark'
-                  ? 'text-white'
-                  : 'text-gray-900'
-                  } transition-colors duration-300`}>
+                <h3 className={`text-xl sm:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-300`}>
                   Existing Reports ({existingReports.length}/{subscriptionInfo.maxReports})
                 </h3>
                 <button
                   onClick={fetchExistingReports}
                   disabled={loadingReports}
                   className={`p-2 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2 self-start sm:self-auto ${loadingReports
-                    ? theme === 'dark'
-                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                      : 'text-gray-500 cursor-not-allowed'
-                    : theme === 'dark'
-                      ? 'bg-dark-bg hover:bg-zinc-800 text-white border border-zinc-800'
-                      : 'hover:bg-gray-300 text-gray-700'
+                    ? 'text-gray-500 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400'
+                    : 'hover:bg-gray-300 text-gray-700 dark:bg-dark-bg dark:hover:bg-zinc-800 dark:text-white dark:border dark:border-zinc-800'
                     }`}
                 >
                   <svg className={`w-5 h-5 ${loadingReports ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1208,32 +945,23 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
               {loadingReports ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center">
-                    <FaSpinner className={`animate-spin text-2xl mx-auto mb-4 ${theme === 'dark'
-                      ? 'text-emerald-400'
-                      : 'text-emerald-600'
-                      }`} />
-                    <p className={`text-lg ${theme === 'dark'
-                      ? 'text-gray-400'
-                      : 'text-gray-600'
-                      } transition-colors duration-300`}>Loading reports...</p>
+                    <FaSpinner className={`animate-spin text-2xl mx-auto mb-4 text-emerald-600 dark:text-emerald-400`} />
+                    <p className={`text-lg text-gray-600 dark:text-gray-400 transition-colors duration-300`}>Loading reports...</p>
                   </div>
                 </div>
               ) : existingReports.length === 0 ? (
                 <div className="text-center py-16">
-                  <div className={`p-8 rounded-3xl mx-auto max-w-md ${theme === 'dark' ? 'bg-[#1e1e24] border border-zinc-800' : 'bg-white border border-gray-200'} transition-all duration-300`}>
-                    <FaFileAlt className={`text-6xl mx-auto mb-6 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
-                    <h4 className={`text-xl font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>
+                  <div className={`p-8 rounded-3xl mx-auto max-w-md bg-white border border-gray-200 dark:bg-[#1e1e24] dark:border dark:border-zinc-800 transition-all duration-300`}>
+                    <FaFileAlt className={`text-6xl mx-auto mb-6 text-gray-400 dark:text-gray-600`} />
+                    <h4 className={`text-xl font-semibold mb-3 text-gray-900 dark:text-white transition-colors duration-300`}>
                       No Reports Found
                     </h4>
-                    <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} transition-colors duration-300`}>
+                    <p className={`text-sm mb-6 text-gray-600 dark:text-gray-400 transition-colors duration-300`}>
                       No reports have been generated for this project yet.
                     </p>
                     <button
                       onClick={() => setActiveTab('generate')}
-                      className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${theme === 'dark'
-                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25'
-                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25'
-                        }`}
+                      className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25 dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white dark:shadow-lg dark:hover:shadow-emerald-500/25`}
                     >
                       Generate First Report
                     </button>
@@ -1244,40 +972,27 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                   {existingReports.map((report) => (
                     <div
                       key={report.reportId}
-                      className={`p-4 sm:p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.01] ${theme === 'dark'
-                        ? 'bg-[#1e1e24] border-zinc-800 hover:border-zinc-700 hover:bg-dark-bg'
-                        : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                        }`}
+                      className={`p-4 sm:p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.01] bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:bg-[#1e1e24] dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:bg-dark-bg`}
                     >
                       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 mb-4">
-                            <div className={`p-2 sm:p-3 lg:rounded-xl rounded-lg flex-shrink-0 ${theme === 'dark'
-                              ? 'bg-emerald-500/10 text-emerald-400'
-                              : 'bg-emerald-100 text-emerald-600'
-                              }`}>
+                            <div className={`p-2 sm:p-3 lg:rounded-xl rounded-lg flex-shrink-0 bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400`}>
                               <FaFileAlt className="text-sm sm:text-base" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h4 className={`font-semibold text-base sm:text-lg ${theme === 'dark'
-                                ? 'text-white'
-                                : 'text-gray-900'
-                                } transition-colors duration-300`}>
+                              <h4 className={`font-semibold text-base sm:text-lg text-gray-900 dark:text-white transition-colors duration-300`}>
                                 {report.reportType.charAt(0).toUpperCase() + report.reportType.slice(1)} Report
                               </h4>
                             </div>
                             <span className={` float-left inline-block px-3 py-1 text-xs font-medium rounded-full mt-1 ${report.status === 'completed'
-                              ? theme === 'dark'
-                                ? 'bg-green-900/30 text-green-400 border border-green-800'
-                                : 'bg-green-100 text-green-800 border border-green-200'
-                              : theme === 'dark'
-                                ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-800'
-                                : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                              ? 'bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border dark:border-green-800'
+                              : 'bg-yellow-100 text-yellow-800 border border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border dark:border-yellow-800'
                               }`}>
                               {report.status}
                             </span>
                           </div>
-                          <div className={`text-xs sm:text-sm space-y-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} transition-colors duration-300`}>
+                          <div className={`text-xs sm:text-sm space-y-2 text-gray-600 dark:text-gray-400 transition-colors duration-300`}>
                             <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 space-y-1 sm:space-y-0">
                               <span className="flex items-center space-x-2">
                                 <FaClock className="text-xs flex-shrink-0" />
@@ -1291,10 +1006,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                               )}
                             </div>
                             {report.metadata && (
-                              <div className={`text-xs ${theme === 'dark'
-                                ? 'text-gray-500'
-                                : 'text-gray-500'
-                                }`}>
+                              <div className={`text-xs text-gray-500 dark:text-gray-500`}>
                                 Generation time: {Math.round(report.metadata.generationTime / 1000)}s |
                                 Data points: {report.metadata.dataPoints} |
                                 Model: {report.metadata.llmModel}
@@ -1305,10 +1017,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                         <div className="flex items-center justify-end lg:justify-start space-x-2 sm:space-x-3">
                           <button
                             onClick={() => handleViewReport(report.reportId)}
-                            className={`p-2 sm:p-2 rounded-full font-semibold transition-all duration-300 flex items-center justify-center ${theme === 'dark'
-                              ? 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 hover:text-emerald-300'
-                              : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-600 hover:text-emerald-700'
-                              }`}
+                            className={`p-2 sm:p-2 rounded-full font-semibold transition-all duration-300 flex items-center justify-center bg-emerald-100 hover:bg-emerald-200 text-emerald-600 hover:text-emerald-700 dark:bg-emerald-600/20 dark:hover:bg-emerald-600/30 dark:text-emerald-400 dark:hover:text-emerald-300`}
                             title="View Report"
                           >
                             <FaFileAlt className="text-sm" />
@@ -1318,10 +1027,7 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                               setGeneratedReport(report);
                               setActiveTab('generate');
                             }}
-                            className={`p-2 sm:p-2 rounded-full font-semibold transition-all duration-300 flex items-center justify-center ${theme === 'dark'
-                              ? 'bg-green-600/20 hover:bg-green-600/30 text-green-400 hover:text-green-300'
-                              : 'bg-green-100 hover:bg-green-200 text-green-600 hover:text-green-700'
-                              }`}
+                            className={`p-2 sm:p-2 rounded-full font-semibold transition-all duration-300 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 hover:text-green-700 dark:bg-green-600/20 dark:hover:bg-green-600/30 dark:text-green-400 dark:hover:text-green-300`}
                             title="Download Report"
                           >
                             <FaDownload className="text-sm" />
@@ -1330,12 +1036,8 @@ const ReportGenerator = ({ projectId, projectName, onClose, inline = false }) =>
                             onClick={() => handleDeleteReport(report.reportId)}
                             disabled={deletingReportId === report.reportId}
                             className={`p-2 sm:p-2 rounded-full font-semibold transition-all duration-300 flex items-center justify-center ${deletingReportId === report.reportId
-                              ? theme === 'dark'
-                                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              : theme === 'dark'
-                                ? 'bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300'
-                                : 'bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700'
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400'
+                              : 'bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 dark:bg-red-600/20 dark:hover:bg-red-600/30 dark:text-red-400 dark:hover:text-red-300'
                               }`}
                             title="Delete Report"
                           >

@@ -5,14 +5,14 @@ import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import { releaseNotificationService } from '../../services/api';
 import AddReleaseModal from '../shared/AddReleaseModal';
-import { 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
-  FaEye, 
-  FaEyeSlash, 
-  FaRocket, 
-  FaTag, 
+import {
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaEye,
+  FaEyeSlash,
+  FaRocket,
+  FaTag,
   FaCalendar,
   FaUser,
   FaFlag,
@@ -24,9 +24,7 @@ import {
   FaCopy
 } from 'react-icons/fa';
 
-const ReleaseNotificationsTab = ({ getThemeClasses }) => {
-  const { userDetails } = useGlobal();
-  const { theme } = useTheme();
+const ReleaseNotificationsTab = () => {
   const { showToast } = useToast();
 
   // State management
@@ -141,20 +139,16 @@ const ReleaseNotificationsTab = ({ getThemeClasses }) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+          <h2 className={`text-2xl font-bold text-gray-900 dark:text-white`}>
             Release Notifications
           </h2>
-          <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p className={`mt-1 text-sm text-gray-600 dark:text-gray-400`}>
             Manage system release notifications and version updates
           </p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-            theme === 'dark'
-              ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
-              : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white dark:bg-gradient-to-r dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 dark:text-white`}
         >
           <FaPlus size={16} />
           New Release
@@ -164,66 +158,56 @@ const ReleaseNotificationsTab = ({ getThemeClasses }) => {
       {/* Statistics */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <div className={`p-4 rounded-lg border ${
-            theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          }`}>
+          <div className={`p-4 rounded-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700`}>
             <div className="flex items-center gap-3">
-              <FaRocket className={`text-2xl ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
+              <FaRocket className={`text-2xl text-blue-600 dark:text-blue-400`} />
               <div>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Total Releases</p>
-                <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                <p className={`text-sm text-gray-600 dark:text-gray-400`}>Total Releases</p>
+                <p className={`text-2xl font-bold text-gray-900 dark:text-white`}>
                   {stats.totalReleases}
                 </p>
               </div>
             </div>
           </div>
-          <div className={`p-4 rounded-lg border ${
-            theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          }`}>
+          <div className={`p-4 rounded-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700`}>
             <div className="flex items-center gap-3">
-              <FaEye className={`text-2xl ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+              <FaEye className={`text-2xl text-green-600 dark:text-green-400`} />
               <div>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Published</p>
-                <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                <p className={`text-sm text-gray-600 dark:text-gray-400`}>Published</p>
+                <p className={`text-2xl font-bold text-gray-900 dark:text-white`}>
                   {stats.publishedReleases}
                 </p>
               </div>
             </div>
           </div>
-          <div className={`p-4 rounded-lg border ${
-            theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          }`}>
+          <div className={`p-4 rounded-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700`}>
             <div className="flex items-center gap-3">
-              <FaEyeSlash className={`text-2xl ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`} />
+              <FaEyeSlash className={`text-2xl text-yellow-600 dark:text-yellow-400`} />
               <div>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Drafts</p>
-                <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                <p className={`text-sm text-gray-600 dark:text-gray-400`}>Drafts</p>
+                <p className={`text-2xl font-bold text-gray-900 dark:text-white`}>
                   {stats.draftReleases}
                 </p>
               </div>
             </div>
           </div>
-          <div className={`p-4 rounded-lg border ${
-            theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          }`}>
+          <div className={`p-4 rounded-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700`}>
             <div className="flex items-center gap-3">
-              <FaFlag className={`text-2xl ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+              <FaFlag className={`text-2xl text-red-600 dark:text-red-400`} />
               <div>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Critical</p>
-                <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                <p className={`text-sm text-gray-600 dark:text-gray-400`}>Critical</p>
+                <p className={`text-2xl font-bold text-gray-900 dark:text-white`}>
                   {stats.criticalReleases}
                 </p>
               </div>
             </div>
           </div>
-          <div className={`p-4 rounded-lg border ${
-            theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          }`}>
+          <div className={`p-4 rounded-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700`}>
             <div className="flex items-center gap-3">
-              <FaTag className={`text-2xl ${theme === 'dark' ? 'text-orange-400' : 'text-orange-600'}`} />
+              <FaTag className={`text-2xl text-orange-600 dark:text-orange-400`} />
               <div>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>High Priority</p>
-                <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                <p className={`text-sm text-gray-600 dark:text-gray-400`}>High Priority</p>
+                <p className={`text-2xl font-bold text-gray-900 dark:text-white`}>
                   {stats.highPriorityReleases}
                 </p>
               </div>
@@ -233,76 +217,60 @@ const ReleaseNotificationsTab = ({ getThemeClasses }) => {
       )}
 
       {/* Releases List */}
-      <div className={`rounded-lg border ${
-        theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-      }`}>
+      <div className={`rounded-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700`}>
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <FaSpinner className="animate-spin text-2xl text-blue-600" />
           </div>
         ) : releases.length === 0 ? (
           <div className="text-center py-12">
-            <FaRocket className={`mx-auto text-4xl mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
-            <h3 className={`text-lg font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+            <FaRocket className={`mx-auto text-4xl mb-4 text-gray-400 dark:text-gray-600`} />
+            <h3 className={`text-lg font-medium mb-2 text-gray-900 dark:text-gray-300`}>
               No release notifications yet
             </h3>
-            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p className={`text-sm text-gray-600 dark:text-gray-400`}>
               Create your first release notification to keep your team informed about updates.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+              <thead className={`border-b border-gray-200 dark:border-gray-700`}>
                 <tr>
-                  <th className={`text-left py-3 px-4 font-medium ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <th className={`text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300`}>
                     Version
                   </th>
-                  <th className={`text-left py-3 px-4 font-medium ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <th className={`text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300`}>
                     Title
                   </th>
-                  <th className={`text-left py-3 px-4 font-medium ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <th className={`text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300`}>
                     Priority
                   </th>
-                  <th className={`text-left py-3 px-4 font-medium ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <th className={`text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300`}>
                     Status
                   </th>
-                  <th className={`text-left py-3 px-4 font-medium ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <th className={`text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300`}>
                     Created
                   </th>
-                  <th className={`text-left py-3 px-4 font-medium ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <th className={`text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300`}>
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {releases.map((release) => (
-                  <tr key={release._id} className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                  <tr key={release._id} className={`border-b border-gray-200 dark:border-gray-700`}>
                     <td className="py-3 px-4">
-                      <span className={`font-mono text-sm ${
-                        theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
-                      }`}>
+                      <span className={`font-mono text-sm text-blue-600 dark:text-blue-400`}>
                         v{release.version}
                       </span>
                     </td>
                     <td className="py-3 px-4">
                       <div>
-                        <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        <p className={`font-medium text-gray-900 dark:text-white`}>
                           {release.title}
                         </p>
-                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <p className={`text-sm text-gray-600 dark:text-gray-400`}>
                           {release.description.substring(0, 60)}...
                         </p>
                       </div>
@@ -313,18 +281,17 @@ const ReleaseNotificationsTab = ({ getThemeClasses }) => {
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        release.isPublished 
-                          ? 'text-green-600 bg-green-100' 
-                          : 'text-yellow-600 bg-yellow-100'
-                      }`}>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${release.isPublished
+                        ? 'text-green-600 bg-green-100'
+                        : 'text-yellow-600 bg-yellow-100'
+                        }`}>
                         {release.isPublished ? 'Published' : 'Draft'}
                       </span>
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <FaCalendar className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                        <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <FaCalendar className={`text-xs text-gray-500 dark:text-gray-400`} />
+                        <span className={`text-sm text-gray-600 dark:text-gray-400`}>
                           {new Date(release.createdAt).toLocaleDateString()}
                         </span>
                       </div>
@@ -333,22 +300,14 @@ const ReleaseNotificationsTab = ({ getThemeClasses }) => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleTogglePublish(release._id, release.isPublished)}
-                          className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${
-                            theme === 'dark' 
-                              ? 'text-gray-400 hover:text-white' 
-                              : 'text-gray-600 hover:text-gray-900'
-                          }`}
+                          className={`p-1.5 rounded hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white`}
                           title={release.isPublished ? 'Unpublish' : 'Publish'}
                         >
                           {release.isPublished ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
                         </button>
                         <button
                           onClick={() => handleEdit(release)}
-                          className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${
-                            theme === 'dark' 
-                              ? 'text-gray-400 hover:text-white' 
-                              : 'text-gray-600 hover:text-gray-900'
-                          }`}
+                          className={`p-1.5 rounded hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white`}
                           title="Edit"
                         >
                           <FaEdit size={14} />
@@ -377,25 +336,17 @@ const ReleaseNotificationsTab = ({ getThemeClasses }) => {
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className={`px-3 py-1 rounded transition-colors disabled:opacity-50 ${
-                theme === 'dark' 
-                  ? 'text-gray-400 hover:text-white' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-3 py-1 rounded transition-colors disabled:opacity-50 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white`}
             >
               Previous
             </button>
-            <span className={`px-3 py-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span className={`px-3 py-1 text-gray-700 dark:text-gray-300`}>
               Page {currentPage} of {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className={`px-3 py-1 rounded transition-colors disabled:opacity-50 ${
-                theme === 'dark' 
-                  ? 'text-gray-400 hover:text-white' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-3 py-1 rounded transition-colors disabled:opacity-50 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white`}
             >
               Next
             </button>

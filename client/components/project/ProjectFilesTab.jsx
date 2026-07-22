@@ -116,10 +116,7 @@ const ProjectFilesTab = ({ projectId }) => {
 
 
   // Function to get theme classes
-  const getThemeClasses = (baseClasses, darkClasses) => {
-    return theme === 'dark' ? `${baseClasses} ${darkClasses}` : baseClasses;
-  };
-
+  
   // Handle delete button click
   const handleDeleteClick = (attachment) => {
     setAttachmentToDelete(attachment);
@@ -264,16 +261,13 @@ const ProjectFilesTab = ({ projectId }) => {
       {/* Search and Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex-1 relative">
-          <FaSearch className={getThemeClasses("absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400", "dark:text-gray-500")} size={16} />
+          <FaSearch className={"absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500"} size={16} />
           <input
             type="text"
             placeholder="Search files..."
             value={fileSearch}
             onChange={(e) => setFileSearch(e.target.value)}
-            className={getThemeClasses(
-              "w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-              "dark:bg-transparent dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"
-            )}
+            className={"w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-transparent dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400"}
           />
         </div>
         <div className="flex gap-2">
@@ -281,10 +275,7 @@ const ProjectFilesTab = ({ projectId }) => {
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className={getThemeClasses(
-              "flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors",
-              "dark:bg-blue-500 dark:hover:bg-blue-600"
-            )}
+            className={"flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors dark:bg-blue-500 dark:hover:bg-blue-600"}
           >
             {uploading ? (
               <FaSpinner className="animate-spin" />
@@ -307,10 +298,7 @@ const ProjectFilesTab = ({ projectId }) => {
           <select
             value={fileFilter}
             onChange={(e) => setFileFilter(e.target.value)}
-            className={getThemeClasses(
-              "px-3 py-2 rounded-lg border border-gray-300",
-              "dark:bg-transparent dark:text-gray-100 dark:border-gray-600"
-            )}
+            className={"px-3 py-2 rounded-lg border border-gray-300 dark:bg-transparent dark:text-gray-100 dark:border-gray-600"}
           >
             <option value="all">All Files</option>
             <option value="images">Images</option>
@@ -318,16 +306,16 @@ const ProjectFilesTab = ({ projectId }) => {
             <option value="pdf">PDFs</option>
             <option value="code">Code Files</option>
           </select>
-          <div className={getThemeClasses("flex border border-gray-300 rounded-lg overflow-hidden", "dark:border-gray-600")}>
+          <div className={"flex border border-gray-300 rounded-lg overflow-hidden dark:border-gray-600"}>
             <button
               onClick={() => setFileViewMode('table')}
-              className={`px-3 py-2 ${fileViewMode === 'table' ? getThemeClasses('bg-blue-500 text-white', 'dark:bg-blue-600') : getThemeClasses('bg-white text-gray-700', 'dark:bg-transparent dark:text-gray-300')}`}
+              className={`px-3 py-2 ${fileViewMode === 'table' ? 'bg-blue-500 text-white dark:bg-blue-600' : 'bg-white text-gray-700 dark:bg-transparent dark:text-gray-300'}`}
             >
               <FaTable size={14} />
             </button>
             <button
               onClick={() => setFileViewMode('grid')}
-              className={`px-3 py-2 ${fileViewMode === 'grid' ? getThemeClasses('bg-blue-500 text-white', 'dark:bg-blue-600') : getThemeClasses('bg-white text-gray-700', 'dark:bg-transparent dark:text-gray-300')}`}
+              className={`px-3 py-2 ${fileViewMode === 'grid' ? 'bg-blue-500 text-white dark:bg-blue-600' : 'bg-white text-gray-700 dark:bg-transparent dark:text-gray-300'}`}
             >
               <FaTh size={14} />
             </button>
@@ -339,10 +327,10 @@ const ProjectFilesTab = ({ projectId }) => {
       {attachmentsLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <span className={getThemeClasses("ml-3 text-gray-500", "dark:text-gray-400")}>Loading files...</span>
+          <span className={"ml-3 text-gray-500 dark:text-gray-400"}>Loading files...</span>
         </div>
       ) : projectAttachments.length === 0 ? (
-        <div className={getThemeClasses("text-center py-12 text-gray-500", "dark:text-gray-400")}>
+        <div className={"text-center py-12 text-gray-500 dark:text-gray-400"}>
           <FaFile size={48} className="mx-auto mb-4 opacity-50" />
           <p className="text-lg font-medium mb-2">No files found</p>
           <p className="text-sm">Upload files to this project or files uploaded to tasks will appear here.</p>
@@ -350,50 +338,47 @@ const ProjectFilesTab = ({ projectId }) => {
       ) : (
         <div>
           {fileViewMode === 'table' && (
-            <div className={getThemeClasses("bg-white rounded-xl shadow border border-gray-200", "dark:bg-transparent dark:border-gray-700")}>
+            <div className={"bg-white rounded-xl shadow border border-gray-200 dark:bg-transparent dark:border-gray-700"}>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className={getThemeClasses("border-b border-gray-200", "dark:border-gray-700")}>
-                      <th className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900", "dark:text-gray-100")}>File</th>
-                      <th className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900", "dark:text-gray-100")}>Task</th>
-                      <th className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900", "dark:text-gray-100")}>Uploaded By</th>
-                      <th className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900", "dark:text-gray-100")}>Uploaded On</th>
-                      <th className={getThemeClasses("text-left py-3 px-4 font-medium text-gray-900", "dark:text-gray-100")}>Actions</th>
+                    <tr className={"border-b border-gray-200 dark:border-gray-700"}>
+                      <th className={"text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100"}>File</th>
+                      <th className={"text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100"}>Task</th>
+                      <th className={"text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100"}>Uploaded By</th>
+                      <th className={"text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100"}>Uploaded On</th>
+                      <th className={"text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100"}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredAttachments.map(attachment => (
-                      <tr key={attachment.AttachmentID} className={getThemeClasses("border-b border-gray-200 hover:bg-gray-50", "dark:border-gray-700 dark:hover:bg-gray-800")}>
+                      <tr key={attachment.AttachmentID} className={"border-b border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"}>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
                             <span className="text-lg">{getFileTypeIcon(attachment.Filename)}</span>
                             <div className="flex flex-col">
-                              <span className={getThemeClasses("text-gray-900", "dark:text-gray-100")}>{attachment.Filename}</span>
-                              <span className={getThemeClasses("text-xs text-gray-500", "dark:text-gray-400")}>
+                              <span className={"text-gray-900 dark:text-gray-100"}>{attachment.Filename}</span>
+                              <span className={"text-xs text-gray-500 dark:text-gray-400"}>
                                 {attachment.FileSize ? formatFileSize(attachment.FileSize) : 'Unknown size'}
                               </span>
                             </div>
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>{attachment.taskDetails?.Name}</span>
+                          <span className={"text-gray-700 dark:text-gray-300"}>{attachment.taskDetails?.Name}</span>
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
-                            <div className={getThemeClasses(
-                              'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm',
-                              'dark:from-blue-600 dark:to-blue-700'
-                            )}>
+                            <div className={'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm dark:from-blue-600 dark:to-blue-700'}>
                               {getUserInitials(attachment.uploaderDetails)}
                             </div>
                             <div className="flex flex-col">
-                              <span className={getThemeClasses("text-gray-900", "dark:text-gray-100")}>{attachment.uploaderDetails?.fullName}</span>
+                              <span className={"text-gray-900 dark:text-gray-100"}>{attachment.uploaderDetails?.fullName}</span>
                             </div>
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <span className={getThemeClasses("text-gray-700", "dark:text-gray-300")}>{new Date(attachment.UploadedAt).toLocaleDateString()}</span>
+                          <span className={"text-gray-700 dark:text-gray-300"}>{new Date(attachment.UploadedAt).toLocaleDateString()}</span>
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
@@ -401,14 +386,14 @@ const ProjectFilesTab = ({ projectId }) => {
                               href={attachment.FileURL}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={getThemeClasses("p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full", "dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30")}
+                              className={"p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30"}
                               title="Download"
                             >
                               <FaDownload size={14} />
                             </a>
                             <button
                               onClick={() => handleDeleteClick(attachment)}
-                              className={getThemeClasses("p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full", "dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30")}
+                              className={"p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30"}
                               title="Delete attachment"
                             >
                               <FaTrash size={14} />
@@ -428,10 +413,7 @@ const ProjectFilesTab = ({ projectId }) => {
               {filteredAttachments.map((attachment, index) => (
                 <div
                   key={attachment.AttachmentID}
-                  className={getThemeClasses(
-                    "group relative bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 ease-out hover:scale-105",
-                    "dark:bg-transparent dark:border-gray-700 dark:hover:shadow-gray-900/50"
-                  )}
+                  className={"group relative bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 ease-out hover:scale-105 dark:bg-transparent dark:border-gray-700 dark:hover:shadow-gray-900/50"}
                   style={{
                     animationDelay: `${index * 100}ms`,
                     animation: 'fadeInUp 0.6s ease-out forwards'
@@ -443,48 +425,36 @@ const ProjectFilesTab = ({ projectId }) => {
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <div className="text-lg">{getFileTypeIcon(attachment.Filename)}</div>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <p className={getThemeClasses("font-medium text-gray-900 text-sm truncate", "dark:text-gray-100")} title={attachment.Filename}>
+                          <p className={"font-medium text-gray-900 text-sm truncate dark:text-gray-100"} title={attachment.Filename}>
                             {attachment.Filename.length > 20 ? attachment.Filename.substring(0, 20) + '...' : attachment.Filename}
                           </p>
-                          <p className={getThemeClasses("text-xs text-gray-500 truncate", "dark:text-gray-400")}>
+                          <p className={"text-xs text-gray-500 truncate dark:text-gray-400"}>
                             {attachment.FileSize ? formatFileSize(attachment.FileSize) : 'Unknown size'}
                           </p>
                         </div>
                       </div>
                       <div className="relative">
                         <button
-                          className={getThemeClasses(
-                            "p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-all duration-200",
-                            "dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-dark-hover"
-                          )}
+                          className={"p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-all duration-200 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-dark-hover"}
                           onClick={() => setOpenMenuId(openMenuId === attachment.AttachmentID ? null : attachment.AttachmentID)}
                           aria-label="Open actions menu"
                         >
                           <FaEllipsisV size={14} />
                         </button>
                         {openMenuId === attachment.AttachmentID && (
-                          <div className={getThemeClasses(
-                            "absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg py-1 flex flex-col z-20",
-                            "dark:bg-gray-800 dark:border-gray-700"
-                          )}>
+                          <div className={"absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg py-1 flex flex-col z-20 dark:bg-gray-800 dark:border-gray-700"}>
                             <a
                               href={attachment.FileURL}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={getThemeClasses(
-                                "px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 hover:text-blue-700 cursor-pointer flex items-center gap-2",
-                                "dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30"
-                              )}
+                              className={"px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 hover:text-blue-700 cursor-pointer flex items-center gap-2 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30"}
                               onClick={() => setOpenMenuId(null)}
                             >
                               <FaDownload size={14} /> Download
                             </a>
                             <button
                               onClick={() => { setOpenMenuId(null); handleDeleteClick(attachment); }}
-                              className={getThemeClasses(
-                                "px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 w-full text-left",
-                                "dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30"
-                              )}
+                              className={"px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 w-full text-left dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30"}
                             >
                               <FaTrash size={14} /> Delete
                             </button>
@@ -559,7 +529,6 @@ const ProjectFilesTab = ({ projectId }) => {
           setAttachmentToDelete(null);
         }}
         title="Delete Attachment"
-        getThemeClasses={getThemeClasses}
         actions={
           <>
             <button
@@ -567,10 +536,7 @@ const ProjectFilesTab = ({ projectId }) => {
                 setShowDeleteModal(false);
                 setAttachmentToDelete(null);
               }}
-              className={getThemeClasses(
-                "px-4 py-2 text-gray-600 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50",
-                "dark:text-gray-300 dark:hover:text-gray-200 dark:border-gray-600 dark:hover:bg-dark-hover"
-              )}
+              className={"px-4 py-2 text-gray-600 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 dark:text-gray-300 dark:hover:text-gray-200 dark:border-gray-600 dark:hover:bg-dark-hover"}
             >
               Cancel
             </button>
@@ -583,7 +549,7 @@ const ProjectFilesTab = ({ projectId }) => {
           </>
         }
       >
-        <p className={getThemeClasses("text-gray-600", "dark:text-gray-300")}>
+        <p className={"text-gray-600 dark:text-gray-300"}>
           Are you sure you want to delete "{attachmentToDelete?.Filename}"? This action cannot be undone.
         </p>
       </CustomModal>

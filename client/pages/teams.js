@@ -11,7 +11,7 @@ import { useToast } from '../context/ToastContext';
 import useSWR from 'swr';
 
 const TeamsPage = () => {
-  const { setTeams, userDetails, getThemeClasses } = useGlobal();
+  const { setTeams, userDetails } = useGlobal();
   const router = useRouter();
   const { theme } = useTheme();
   const { showToast } = useToast();
@@ -27,8 +27,7 @@ const TeamsPage = () => {
     () => teamService.getTeamsOverview(userDetails._id),
     {
       revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+      dedupingInterval: 5000 }
   );
 
   const loading = !SWRTeamsData && !SWRTeamsError;
@@ -95,37 +94,25 @@ const TeamsPage = () => {
   }
 
   return (
-    <div className={getThemeClasses(
-      'mx-auto bg-white text-gray-900',
-      'mx-auto bg-dark-bg text-white'
-    )}>
+    <div className="mx-auto bg-white dark:bg-dark-bg text-gray-900 dark:text-white">
       {/* Page Header */}
       <div className="mb-4">
         {/* Search Bar */}
         <div className="flex items-center justify-between mt-4">
           <div className="relative max-w-2xl">
-            <FaSearch className={getThemeClasses(
-              'absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400',
-              'absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500'
-            )} size={16} />
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
             <input
               type="text"
               placeholder="Search teams..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={getThemeClasses(
-                'w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900',
-                'w-full pl-10 pr-4 py-2 border border-gray-600 bg-dark-card text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-              )}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-card text-gray-900 dark:text-white"
             />
           </div>
           {canManageTeams && (
             <button
               onClick={() => setIsAddTeamOpen(true)}
-              className={getThemeClasses(
-                'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm',
-                'dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'
-              )}
+              className={'flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white duration-300 rounded-lg transition-colors shadow-sm dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white'}
             >
               <FaPlus size={16} />
               New
@@ -134,26 +121,13 @@ const TeamsPage = () => {
         </div>
       </div>
 
-      {/* Teams Grid */}
       {filteredTeams.length === 0 ? (
-        <div className={getThemeClasses(
-          'text-center py-12 bg-white',
-          'text-center py-12 bg-dark-bg'
-        )}>
-          <FaUsers className={getThemeClasses(
-            'mx-auto text-gray-400 mb-4',
-            'mx-auto text-gray-500 mb-4'
-          )} size={48} />
-          <h3 className={getThemeClasses(
-            'text-lg font-medium text-gray-900 mb-2',
-            'text-lg font-medium text-white mb-2'
-          )}>
+        <div className="text-center py-12 bg-white dark:bg-dark-bg">
+          <FaUsers className="mx-auto text-gray-400 dark:text-gray-500 mb-4" size={48} />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
             {searchTerm ? 'No teams found' : 'No teams yet'}
           </h3>
-          <p className={getThemeClasses(
-            'text-gray-600 mb-6',
-            'text-gray-400 mb-6'
-          )}>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             {searchTerm
               ? 'Try adjusting your search terms'
               : canManageTeams
@@ -164,10 +138,7 @@ const TeamsPage = () => {
           {canManageTeams && !searchTerm && (
             <button
               onClick={() => setIsAddTeamOpen(true)}
-              className={getThemeClasses(
-                'flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mx-auto',
-                'flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mx-auto'
-              )}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mx-auto"
             >
               <FaPlus size={16} />
               Create Team

@@ -3,7 +3,7 @@ import { useTheme } from '../../context/ThemeContext';
 const Card = ({ children, className = '' }) => {
   const { theme } = useTheme();
   return (
-    <div className={`${theme === 'dark' ? 'bg-transparent border border-gray-700' : 'bg-white border border-gray-200 shadow-sm'} rounded-xl p-6 ${className}`}>
+    <div className={`bg-white border border-gray-200 shadow-sm dark:bg-transparent dark:border dark:border-gray-700 rounded-xl p-6 ${className}`}>
       {children}
     </div>
   );
@@ -11,12 +11,12 @@ const Card = ({ children, className = '' }) => {
 
 const Bar = ({ w = 'w-full', h = 'h-4' }) => {
   const { theme } = useTheme();
-  return <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} ${h} ${w} rounded`} />;
+  return <div className={`bg-gray-200 dark:bg-gray-700 ${h} ${w} rounded`} />;
 };
 
 const Circle = ({ size = 'h-10 w-10' }) => {
   const { theme } = useTheme();
-  return <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} ${size} rounded-full`} />;
+  return <div className={`bg-gray-200 dark:bg-gray-700 ${size} rounded-full`} />;
 };
 
 const KPI = () => (
@@ -36,7 +36,7 @@ const DashboardSkeleton = () => {
   const pulse = 'animate-pulse';
 
   return (
-    <div className={`${theme === 'dark' ? 'text-[#F3F6FA]' : 'text-gray-900'} ${pulse} space-y-6`}>
+    <div className={`text-gray-900 dark:text-[#F3F6FA] ${pulse} space-y-6`}>
       {/* Top KPIs: Total Projects, Teams, Upcoming Deadlines, People */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPI />
@@ -71,8 +71,8 @@ const DashboardSkeleton = () => {
           </Card>
         </div>
         <div>
-          <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} h-2 rounded-full w-full`}>
-            <div className={`${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'} h-2 rounded-full w-1/2`} />
+          <div className={`bg-gray-200 dark:bg-gray-700 h-2 rounded-full w-full`}>
+            <div className={`bg-gray-300 dark:bg-gray-600 h-2 rounded-full w-1/2`} />
           </div>
           <div className="mt-2 flex justify-end">
             <Bar w="w-24" h="h-3" />
@@ -98,11 +98,11 @@ const DashboardSkeleton = () => {
           </div>
           <div className="h-64">
             <div className="flex items-end gap-3 h-full">
-              <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} w-8 h-24 rounded`} />
-              <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} w-8 h-40 rounded`} />
-              <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} w-8 h-16 rounded`} />
-              <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} w-8 h-28 rounded`} />
-              <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} w-8 h-20 rounded`} />
+              <div className={`bg-gray-200 dark:bg-gray-700 w-8 h-24 rounded`} />
+              <div className={`bg-gray-200 dark:bg-gray-700 w-8 h-40 rounded`} />
+              <div className={`bg-gray-200 dark:bg-gray-700 w-8 h-16 rounded`} />
+              <div className={`bg-gray-200 dark:bg-gray-700 w-8 h-28 rounded`} />
+              <div className={`bg-gray-200 dark:bg-gray-700 w-8 h-20 rounded`} />
             </div>
           </div>
         </Card>
@@ -117,7 +117,7 @@ const DashboardSkeleton = () => {
         <div className="h-72">
           <div className="grid grid-cols-12 gap-2 h-full items-end">
             {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} w-full rounded`} style={{ height: `${20 + (i % 6) * 8}px` }} />
+              <div key={i} className={`bg-gray-200 dark:bg-gray-700 w-full rounded`} style={{ height: `${20 + (i % 6) * 8}px` }} />
             ))}
           </div>
         </div>

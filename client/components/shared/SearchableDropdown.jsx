@@ -19,10 +19,7 @@ const SearchableDropdown = ({
   const inputRef = useRef(null);
   const { theme } = useTheme();
 
-  const getThemeClasses = (lightClasses, darkClasses) => {
-    return theme === 'dark' ? `${lightClasses} ${darkClasses}` : lightClasses;
-  };
-
+  
   // Get option value safely
   const getOptionValue = (option) => {
     if (typeof option === 'object' && option !== null) {
@@ -78,10 +75,7 @@ const SearchableDropdown = ({
       {/* Dropdown Input / Display Button */}
       <div
         onClick={() => !disabled && !isOpen && setIsOpen(true)}
-        className={`${getThemeClasses(
-          'w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 bg-gray-100 hover:bg-gray-200 text-gray-900 border border-transparent',
-          'dark:bg-[#2A2A2A] dark:hover:bg-[#323232] dark:text-gray-100'
-        )} ${disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
+        className={`${'w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 bg-gray-100 hover:bg-gray-200 text-gray-900 border border-transparent dark:bg-[#2A2A2A] dark:hover:bg-[#323232] dark:text-gray-100'} ${disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
       >
         <div className="flex-1 min-w-0">
           {isOpen ? (
@@ -108,7 +102,7 @@ const SearchableDropdown = ({
           className="flex-shrink-0 cursor-pointer"
         >
           <FaChevronDown
-            className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${getThemeClasses('text-gray-500', 'dark:text-gray-400')}`}
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${'text-gray-500 dark:text-gray-400'}`}
           />
         </div>
       </div>
@@ -116,13 +110,10 @@ const SearchableDropdown = ({
       {/* Dropdown Options */}
       {isOpen && (
         <div
-          className={getThemeClasses(
-            'absolute z-[9999] w-full mt-2 rounded-xl shadow-lg border border-gray-200 bg-white max-h-60 overflow-y-auto py-1',
-            'dark:bg-dark-card dark:border-gray-600'
-          )}
+          className={'absolute z-[9999] w-full mt-2 rounded-xl shadow-lg border border-gray-200 bg-white max-h-60 overflow-y-auto py-1 dark:bg-dark-card dark:border-gray-600'}
         >
           {filteredOptions.length === 0 ? (
-            <div className={getThemeClasses('px-4 py-3 text-center text-gray-500', 'dark:text-gray-400')}>
+            <div className={'px-4 py-3 text-center text-gray-500 dark:text-gray-400'}>
               No results found
             </div>
           ) : (
@@ -136,8 +127,8 @@ const SearchableDropdown = ({
                   onClick={() => handleSelect(option)}
                   className={`
                     w-full px-4 py-2.5 text-left text-sm font-medium transition-colors duration-150 block truncate
-                    ${getThemeClasses('hover:bg-gray-50 text-gray-900', 'dark:hover:bg-dark-hover dark:text-gray-100')}
-                    ${isSelected ? getThemeClasses('bg-blue-50 text-blue-700', 'dark:bg-blue-900/30 dark:text-blue-300') : ''}
+                    ${'hover:bg-gray-50 text-gray-900 dark:hover:bg-dark-hover dark:text-gray-100'}
+                    ${isSelected ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : ''}
                   `}
                 >
                   {renderOption ? renderOption(option) : getOptionLabel(option)}

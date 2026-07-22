@@ -134,31 +134,25 @@ const CompleteProfileForm = ({ onComplete, onCancel, mode = 'onboarding', profil
         {/* Row 2: First Name | Last Name */}
         <div className="flex flex-col sm:flex-row gap-4 mt-4">
           <div className="w-full sm:w-1/2">
-            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>First Name</label>
+            <label className={`block text-sm font-medium text-gray-900 dark:text-white mb-2`}>First Name</label>
             <input
               type="text"
               name="firstName"
               value={formData.firstName}
               onChange={e => { const v = e.target.value; setFormData({ ...formData, firstName: v }); setProfileDraft && setProfileDraft({ ...formData, firstName: v }); }}
-              className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
-                ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
-                : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
-                }`}
+              className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500 dark:border-gray-700 dark:bg-transparent dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:placeholder-gray-400`}
               required
               placeholder="First Name"
             />
           </div>
           <div className="w-full sm:w-1/2">
-            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Last Name</label>
+            <label className={`block text-sm font-medium text-gray-900 dark:text-white mb-2`}>Last Name</label>
             <input
               type="text"
               name="lastName"
               value={formData.lastName}
               onChange={e => { const v = e.target.value; setFormData({ ...formData, lastName: v }); setProfileDraft && setProfileDraft({ ...formData, lastName: v }); }}
-              className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 ${theme === 'dark'
-                ? 'border-gray-700 bg-transparent text-white focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400'
-                : 'border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'
-                }`}
+              className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 border-gray-200 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500 dark:border-gray-700 dark:bg-transparent dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:placeholder-gray-400`}
               required
               placeholder="Last Name"
             />

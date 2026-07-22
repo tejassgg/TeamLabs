@@ -59,18 +59,17 @@ const renderStatusBadge = (status, theme) => {
   const statusStyle = getJoinRequestStatusStyle(status);
   const StatusIcon = statusStyle.icon;
 
-  // Enhanced dark theme support
-  const darkThemeClasses = theme === 'dark' ? {
+  const darkThemeClasses = {
     'pending': 'dark:from-yellow-900/50 dark:to-yellow-800/50 dark:text-yellow-200 dark:border-yellow-700',
     'accepted': 'dark:from-green-900/50 dark:to-green-800/50 dark:text-green-200 dark:border-green-700',
     'rejected': 'dark:from-red-900/50 dark:to-red-800/50 dark:text-red-200 dark:border-red-700'
-  } : {};
+  };
 
   const darkThemeClass = darkThemeClasses[status] || '';
 
   return (
     <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r ${statusStyle.bgColor} ${statusStyle.textColor} border ${statusStyle.borderColor} ${darkThemeClass} transition-all duration-200`}>
-      <StatusIcon className={`${statusStyle.iconColor} ${theme === 'dark' ? 'dark:text-current' : ''}`} size={12} />
+      <StatusIcon className={`${statusStyle.iconColor} dark:text-current`} size={12} />
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   );
@@ -274,20 +273,20 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
 
   return (
     <div className="w-full max-w-5xl mx-auto my-6">
-      <div className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'} w-full h-[75vh] flex flex-col`}>
+      <div className="w-full h-[75vh] flex flex-col text-gray-900 dark:text-white">
         {/* Header */}
         <div className="py-6 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div>
                 <h1 className="text-2xl font-bold">First Time Setup</h1>
-                <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                <p className="text-sm mt-1 text-gray-600 dark:text-gray-300">
                   Step {currentStep + 1} of {setupSteps.length}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className={`w-32 h-2 rounded-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'}`}>
+              <div className="w-32 h-2 rounded-full bg-gray-200 dark:bg-gray-800">
                 <div
                   className="h-2 bg-blue-500 rounded-full transition-all duration-300"
                   style={{ width: `${getProgressPercentage()}%` }}
@@ -307,18 +306,14 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
                   ? 'bg-green-500 text-white'
                   : index === currentStep
                     ? 'bg-blue-500 text-white'
-                    : theme === 'dark'
-                      ? 'bg-gray-800 text-gray-400'
-                      : 'bg-gray-100 text-gray-500'
+                    : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
                   }`}>
                   {index + 1}
                 </div>
                 {index < setupSteps.length - 1 && (
                   <div className={`w-16 h-0.5 mx-2 ${index < currentStep
                     ? 'bg-green-500'
-                    : theme === 'dark'
-                      ? 'bg-gray-850'
-                      : 'bg-gray-200'
+                    : 'bg-gray-200 dark:bg-gray-800'
                     }`} />
                 )}
               </div>
@@ -352,7 +347,7 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
             <button
               onClick={handlePrevious}
               disabled={currentStep === 0 || loading}
-              className={`px-6 py-2 rounded-lg transition-colors duration-200 ${currentStep === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-750 text-gray-300 border border-gray-700' : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200'}`}
+              className={`px-6 py-2 rounded-lg transition-colors duration-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 ${currentStep === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               Previous
             </button>
@@ -361,7 +356,7 @@ const FirstTimeSetup = ({ isOpen, onComplete }) => {
                 <button
                   onClick={handleSkip}
                   disabled={loading}
-                  className={`px-6 py-2 rounded-lg transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-750 text-gray-300 border border-gray-700' : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200'}`}
+                  className="px-6 py-2 rounded-lg transition-colors duration-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
                 >
                   Skip
                 </button>
@@ -399,29 +394,29 @@ const WelcomeStep = ({ step, onNext, onPrevious, setFooterState }) => {
         {step.icon}
       </div>
       <h2 className="text-3xl font-bold lg:mb-4 mb-2">{step.title}</h2>
-      <p className={`text-lg lg:mb-8 mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+      <p className="text-lg lg:mb-8 mb-2 text-gray-600 dark:text-gray-300">
         {step.description}
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:gap-6 gap-2 lg:mb-8">
-        <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-gray-800/40 border-gray-700/60' : 'bg-gray-50/50 border-gray-200/60'}`}>
+        <div className="p-4 rounded-xl border bg-gray-50/50 dark:bg-gray-800/40 border-gray-200/60 dark:border-gray-700/60">
           <FaUser className="text-blue-500 mx-auto mb-2" size={24} />
           <h3 className="font-semibold mb-2">Complete Profile</h3>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             Add your personal information
           </p>
         </div>
-        <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-gray-800/40 border-gray-700/60' : 'bg-gray-50/50 border-gray-200/60'}`}>
+        <div className="p-4 rounded-xl border bg-gray-50/50 dark:bg-gray-800/40 border-gray-200/60 dark:border-gray-700/60">
           <FaBuilding className="text-purple-500 mx-auto mb-2" size={24} />
           <h3 className="font-semibold mb-2">Organization</h3>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             Set up your workspace
           </p>
         </div>
-        <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-gray-800/40 border-gray-700/60' : 'bg-gray-50/50 border-gray-200/60'}`}>
+        <div className="p-4 rounded-xl border bg-gray-50/50 dark:bg-gray-800/40 border-gray-200/60 dark:border-gray-700/60">
           <FaUsers className="text-orange-500 mx-auto mb-2" size={24} />
           <h3 className="font-semibold mb-2">Team & Projects</h3>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             Start collaborating
           </p>
         </div>
@@ -460,7 +455,7 @@ const ProfileStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selected
           {step.icon}
           <h2 className="text-2xl font-bold">{step.title}</h2>
         </div>
-        <p className={`ml-10 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
+        <p className="ml-10 text-gray-600 dark:text-gray-300">{step.description}</p>
       </div>
       <div className="p-2 rounded-lg bg-transparent">
         <div className="flex items-center justify-between">
@@ -568,7 +563,7 @@ const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, sel
           {step.icon}
           <h2 className="text-2xl font-bold">{step.title}</h2>
         </div>
-        <p className={`ml-10 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
+        <p className="ml-10 text-gray-600 dark:text-gray-300">{step.description}</p>
       </div>
 
       <div className="p-2 rounded-lg bg-transparent">
@@ -588,22 +583,22 @@ const OrganizationStep = ({ step, setupProgress, onNext, onPrevious, onSkip, sel
             <div className="flex items-center gap-3">
               <FaBuilding className="text-purple-500" size={16} />
               <span>Organization</span>
-              <span className={`ml-2 px-3 py-1 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-700'}`}>
+              <span className="ml-2 px-3 py-1 rounded-lg text-sm font-medium bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200">
                 {selectedOrganization.name || 'Your Organization'}
               </span>
             </div>
           </div>
         ) : (
-          <div className={`text-center p-8 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-gray-700 bg-gray-800/10' : 'border-gray-300 bg-gray-50/10'} max-w-2xl mx-auto`}>
-            <FaBuilding className={`mx-auto mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={48} />
+          <div className="text-center p-8 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/10 dark:bg-gray-800/10 max-w-2xl mx-auto">
+            <FaBuilding className="mx-auto mb-4 text-gray-505 text-gray-500 dark:text-gray-400" size={48} />
             <h4 className="font-semibold mb-2 text-lg">Create Your Organization</h4>
-            <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+            <p className="text-sm mb-6 text-gray-600 dark:text-gray-300">
               Set up your workspace by creating an organization
             </p>
             <form onSubmit={(e) => { e.preventDefault(); handleCreateOrg(); }} className="max-w-md mx-auto">
               <input
                 type="text"
-                className={`w-full px-4 py-2.5 rounded-lg border mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center ${theme === 'dark' ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}`}
+                className="w-full px-4 py-2.5 rounded-lg border mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
                 placeholder="Enter Organization Name"
                 value={newOrgName}
                 onChange={e => { setOrgError(''); setNewOrgName(e.target.value); }}
@@ -651,7 +646,6 @@ const TeamDropdown = ({ value, onChange, options, placeholder = 'Select Team', r
     if (setDropdownOpen) setDropdownOpen(isOpen);
   }, [isOpen, setDropdownOpen]);
 
-  const getThemeClasses = (light, dark) => theme === 'dark' ? `${light} ${dark}` : light;
   const selectedOption = options.find(team => team.TeamID?.toString() === value?.toString());
   const filteredOptions = options.filter(team => team.TeamName.toLowerCase().includes(search.toLowerCase()));
 
@@ -675,16 +669,13 @@ const TeamDropdown = ({ value, onChange, options, placeholder = 'Select Team', r
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={getThemeClasses(
-          'w-full px-4 py-2.5 rounded-xl bg-white text-left flex items-center justify-between border border-gray-200',
-          'dark:bg-dark-card dark:text-gray-100 dark:border-gray-600'
-        )}
+        className={'w-full px-4 py-2.5 rounded-xl bg-white text-left flex items-center justify-between border border-gray-200 dark:bg-dark-card dark:text-gray-100 dark:border-gray-600'}
       >
         <div className="flex items-center gap-2">
           {selectedOption ? (
             <span>{selectedOption.TeamName}</span>
           ) : (
-            <span className={getThemeClasses('text-gray-500', 'dark:text-gray-400')}>{placeholder}</span>
+            <span className={'text-gray-500 dark:text-gray-400'}>{placeholder}</span>
           )}
         </div>
         <svg className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -692,34 +683,25 @@ const TeamDropdown = ({ value, onChange, options, placeholder = 'Select Team', r
         </svg>
       </button>
       {isOpen && (
-        <div className={getThemeClasses(
-          'absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-auto',
-          'dark:bg-dark-card dark:border-gray-600'
-        )}>
+        <div className={'absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-auto dark:bg-dark-card dark:border-gray-600'}>
           <div className="p-2">
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search teams..."
-              className={getThemeClasses(
-                'w-full px-3 py-2 mb-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                'dark:bg-dark-card dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'
-              )}
+              className={'w-full px-3 py-2 mb-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400'}
             />
           </div>
           <button
             type="button"
             onClick={() => { setIsOpen(false); setSearch(''); onCreateTeam && onCreateTeam(); }}
-            className={getThemeClasses(
-              'w-full px-4 py-2 text-left text-blue-600 hover:bg-blue-50 rounded-t-xl font-medium',
-              'dark:text-blue-300 dark:hover:bg-[#232345]'
-            )}
+            className={'w-full px-4 py-2 text-left text-blue-600 hover:bg-blue-50 rounded-t-xl font-medium dark:text-blue-300 dark:hover:bg-[#232345]'}
           >
             + Create Your Team
           </button>
           {filteredOptions.length === 0 && (
-            <div className={getThemeClasses('px-4 py-2 text-gray-500', 'dark:text-gray-400')}>No teams found</div>
+            <div className={'px-4 py-2 text-gray-500 dark:text-gray-400'}>No teams found</div>
           )}
           {filteredOptions.map((team, idx) => {
             const alreadyRequested = requestedTeams.includes(team.TeamID);
@@ -731,27 +713,18 @@ const TeamDropdown = ({ value, onChange, options, placeholder = 'Select Team', r
                   if (onChange) onChange(team.TeamID?.toString());
                   setIsOpen(false);
                 }}
-                className={getThemeClasses(
-                  `flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 cursor-pointer transition-colors ${isSelected ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}`,
-                  `dark:border-gray-700 ${isSelected ? 'dark:bg-blue-900/20' : 'dark:bg-dark-card dark:hover:bg-[#2a2a2a]'}`
-                )}
+                className={`flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 cursor-pointer transition-colors ${isSelected ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'} dark:border-gray-700 ${isSelected ? 'dark:bg-blue-900/20' : 'dark:bg-dark-card dark:hover:bg-[#2a2a2a]'}`}
                 style={{ minWidth: 300 }}
               >
                 <div className="flex flex-col">
-                  <div className={getThemeClasses(
-                    `font-bold text-lg ${isSelected ? 'text-blue-700' : 'text-gray-900'}`,
-                    `dark:text-gray-100 ${isSelected ? 'dark:text-blue-400' : ''}`
-                  )}>
+                  <div className={`font-bold text-lg ${isSelected ? 'text-blue-700' : 'text-gray-900'} dark:text-gray-100 ${isSelected ? 'dark:text-blue-400' : ''}`}>
                     {team.TeamName}
                   </div>
-                  <div className={getThemeClasses('text-sm text-gray-500', 'dark:text-gray-400')}>{team.TeamDescription}</div>
+                  <div className={'text-sm text-gray-500 dark:text-gray-400'}>{team.TeamDescription}</div>
                 </div>
                 <button
                   type="button"
-                  className={getThemeClasses(
-                    `ml-4 px-4 py-2 rounded-lg text-sm font-semibold transition ${alreadyRequested ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'}`,
-                    `dark:text-white ${alreadyRequested ? 'dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed' : 'dark:bg-blue-600 dark:hover:bg-blue-500'}`
-                  )}
+                  className={`ml-4 px-4 py-2 rounded-lg text-sm font-semibold transition ${alreadyRequested ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'} dark:text-white ${alreadyRequested ? 'dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed' : 'dark:bg-blue-600 dark:hover:bg-blue-500'}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRequestToJoin(team);
@@ -914,7 +887,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
             {hasNoTeams ? 'Create Your First Team' : 'Join an Existing Team or Create Your Own'}
           </h2>
         </div>
-        <p className={`ml-10 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+        <p className="ml-10 text-gray-600 dark:text-gray-300">
           {hasNoTeams
             ? 'Create your first team to start collaborating and managing projects together.'
             : step.description}
@@ -934,12 +907,12 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
         )}
         <div className="">
           {loadingTeams ? (
-            <div className={`w-full px-4 py-2.5 rounded-xl border ${theme === 'dark' ? 'bg-dark-card border-gray-600 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-500'}`}>Loading teams...</div>
+            <div className="w-full px-4 py-2.5 rounded-xl border bg-gray-100 dark:bg-dark-card border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400">Loading teams...</div>
           ) : hasNoTeams ? (
-            <div className={`text-center p-6 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-gray-700 bg-gray-800/10' : 'border-gray-300 bg-gray-50/10'} max-w-2xl mx-auto`}>
-              <FaUsers className={`mx-auto mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={48} />
+            <div className="text-center p-6 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/10 dark:bg-gray-800/10 max-w-2xl mx-auto">
+              <FaUsers className="mx-auto mb-4 text-gray-500 dark:text-gray-400" size={48} />
               <h4 className="font-semibold mb-2 text-lg">Start Your First Team</h4>
-              <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+              <p className="text-sm mb-6 text-gray-600 dark:text-gray-300">
                 Create your first team to start collaborating and managing projects together
               </p>
               <button
@@ -958,7 +931,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                     <div className="font-medium mb-2">You are already a member of the following team(s):</div>
                     <ul className="space-y-2">
                       {userTeamMemberships.map(team => (
-                        <li key={team.TeamID} className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                        <li key={team.TeamID} className="p-4 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                           <div className="font-bold text-lg">{team.TeamName}</div>
                           <div className="text-gray-600 text-sm">{team.TeamDescription}</div>
                           <div className="text-xs text-gray-400 mt-1">ID: {team.TeamID}</div>
@@ -970,7 +943,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
               ) : (
                 <>
                   <div>
-                    <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Select Team</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Select Team</label>
                     <TeamDropdown
                       value={selectedTeamId}
                       onChange={handleTeamSelect}
@@ -989,19 +962,19 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                     <div className="flex items-center gap-3">
                       <FaUsers className="text-orange-500" size={16} />
                       <span>Selected Team</span>
-                      <span className={`ml-2 px-3 py-1 rounded-lg text-sm font-medium ${theme === 'dark' ? 'bg-orange-900 text-orange-200' : 'bg-orange-100 text-orange-700'}`}>{teamOptions.find(t => t.TeamID?.toString() === selectedTeamId)?.TeamName}</span>
+                      <span className="ml-2 px-3 py-1 rounded-lg text-sm font-medium bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-200">{teamOptions.find(t => t.TeamID?.toString() === selectedTeamId)?.TeamName}</span>
                     </div>
                   )}
 
                   {/* Pending Requests Table */}
                   {pendingRequests.length > 0 && (
                     <div className="mt-6">
-                      <h4 className={`font-medium mb-3 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
+                      <h4 className="font-medium mb-3 text-gray-800 dark:text-gray-200">
                         Pending Join Requests ({pendingRequests.length})
                       </h4>
-                      <div className={`rounded-lg border overflow-hidden ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
+                      <div className="rounded-lg border overflow-hidden border-gray-200 dark:border-gray-600">
                         {/* Desktop Table Header */}
-                        <div className={`hidden md:block ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} px-4 py-3 border-b ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
+                        <div className="hidden md:block bg-gray-50 dark:bg-gray-800 px-4 py-3 border-b border-gray-200 dark:border-gray-600">
                           <div className="grid grid-cols-12 gap-4 text-sm font-medium">
                             <div className="col-span-4">Team Name</div>
                             <div className="col-span-4">Description</div>
@@ -1009,7 +982,7 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                             <div className="col-span-2">Status</div>
                           </div>
                         </div>
-                        <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-white'} divide-y ${theme === 'dark' ? 'divide-gray-600' : 'divide-gray-200'}`}>
+                        <div className="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
                           {pendingRequests.map((request, index) => (
                             <div key={request._id || index} className="px-4 py-3">
                               {/* Desktop Layout */}
@@ -1018,17 +991,17 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                                   <div className="font-medium">
                                     {request.teamDetails?.TeamName || 'Unknown Team'}
                                   </div>
-                                  <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
                                     ID: {request.teamId}
                                   </div>
                                 </div>
                                 <div className="col-span-4">
-                                  <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                  <div className="text-sm text-gray-600 dark:text-gray-300">
                                     {request.teamDetails?.TeamDescription || 'No description available'}
                                   </div>
                                 </div>
                                 <div className="col-span-2">
-                                  <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                  <div className="text-sm text-gray-600 dark:text-gray-300">
                                     {new Date(request.requestedAt).toLocaleDateString()}
                                   </div>
                                 </div>
@@ -1044,16 +1017,16 @@ const TeamStep = ({ step, setupProgress, onNext, onPrevious, onSkip, selectedOrg
                                     <div className="font-medium">
                                       {request.teamDetails?.TeamName || 'Unknown Team'}
                                     </div>
-                                    <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">
                                       ID: {request.teamId}
                                     </div>
                                   </div>
                                   {renderStatusBadge(request.status, theme)}
                                 </div>
-                                <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                <div className="text-sm text-gray-600 dark:text-gray-300">
                                   {request.teamDetails?.TeamDescription || 'No description available'}
                                 </div>
-                                <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
                                   Requested: {new Date(request.requestedAt).toLocaleDateString()}
                                 </div>
                               </div>
@@ -1125,7 +1098,7 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip, setFoote
           {step.icon}
           <h2 className="text-2xl font-bold">{step.title}</h2>
         </div>
-        <p className={`ml-10 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
+        <p className="ml-10 text-gray-600 dark:text-gray-300">{step.description}</p>
       </div>
 
       <div className="p-2 rounded-lg bg-transparent">
@@ -1142,12 +1115,12 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip, setFoote
         <div className="space-y-6">
           {projectCreated && createdProject ? (
             // Show created project
-            <div className={`p-4 rounded-lg border-2 border-green-500 ${theme === 'dark' ? 'bg-green-900/20' : 'bg-green-50'}`}>
+            <div className="p-4 rounded-lg border-2 border-green-500 bg-green-50 dark:bg-green-900/20">
               <div className="flex items-center gap-3 mb-2">
                 <FaFolder className="text-green-500" size={20} />
                 <div>
                   <h4 className="font-bold text-lg">{createdProject.Name}</h4>
-                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
                     {createdProject.Description}
                   </p>
                 </div>
@@ -1159,10 +1132,10 @@ const ProjectStep = ({ step, setupProgress, onNext, onPrevious, onSkip, setFoote
             </div>
           ) : (
             // Show create project option
-            <div className={`text-center p-8 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-gray-600 bg-gray-800' : 'border-gray-300 bg-white'}`}>
-              <FaFolder className={`mx-auto mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={48} />
+            <div className="text-center p-8 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+              <FaFolder className="mx-auto mb-4 text-gray-500 dark:text-gray-400" size={48} />
               <h4 className="font-semibold mb-2">Start Your First Project</h4>
-              <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+              <p className="text-sm mb-6 text-gray-600 dark:text-gray-300">
                 Create your first project to organize tasks and collaborate with your team
               </p>
               <button
@@ -1210,21 +1183,21 @@ const CompleteStep = ({ step, onComplete, onPrevious, loading, setFooterState })
           <div className="mb-4">{step.icon}</div>
           <h2 className="text-3xl font-bold mb-2">{step.title}</h2>
         </div>
-        <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
+        <p className="text-lg text-gray-600 dark:text-gray-300">{step.description}</p>
       </div>
 
       <div className="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
+        <div className="p-4 rounded-lg bg-transparent dark:bg-gray-700">
           <FaHome className="text-blue-500 mb-2" size={24} />
           <h3 className="font-semibold mb-2">Dashboard</h3>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             View your workspace overview
           </p>
         </div>
-        <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-transparent'}`}>
+        <div className="p-4 rounded-lg bg-transparent dark:bg-gray-700">
           <FaLightbulb className="text-yellow-500 mb-2" size={24} />
           <h3 className="font-semibold mb-2">Tips & Tricks</h3>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             Learn how to use TeamLabs effectively
           </p>
         </div>
