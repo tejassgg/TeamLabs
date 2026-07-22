@@ -30,7 +30,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   const [loadingSubscription, setLoadingSubscription] = useState(false);
   const activeTeamId = router.pathname.startsWith('/team/') ? router.query.teamId : null;
   const activeProjectId = router.pathname.startsWith('/project/') ? router.query.projectId : null;
-  
+
   // Load collapsed state from localStorage after component mounts
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -139,7 +139,7 @@ const Sidebar = ({ isMobile, isOpen, setIsOpen, setSidebarCollapsed }) => {
   return (
     <>
       <aside className={`fixed top-0 left-0 h-[111.2vh] z-40 transition-all duration-500 ease-in-out
-          bg-white text-gray-900 dark:bg-dark-bg dark:text-white
+          bg-white text-gray-900 dark:bg-dark-bg dark:text-white border-r border-gray-200 dark:border-dark-card
           flex flex-col justify-between shadow-2xl
           ${isMobile ?
           `w-64 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}` :

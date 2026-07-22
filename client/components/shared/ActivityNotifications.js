@@ -251,7 +251,7 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
   const currentLoading = activeTab === 'inbox' ? notificationsLoading : activitiesLoading;
 
   return (
-    <div className={`absolute top-12 right-[-60px] sm:right-0 w-[100vw] sm:w-96 rounded-2xl shadow-xl py-1 border z-50 transition-all duration-200 bg-white/100 text-gray-900 border-slate-200/80 shadow-slate-200/40 backdrop-blur-md dark:bg-dark-bg/100 dark:text-white dark:border-dark-border dark:backdrop-blur-md focus:outline-none`}>
+    <div className="absolute top-12 right-[-60px] sm:right-0 w-[100vw] sm:w-96 rounded-2xl shadow-xl py-1 border z-50 transition-all duration-200 bg-white/100 text-gray-900 border-slate-200/80 shadow-slate-200/40 backdrop-blur-md dark:bg-dark-bg/100 dark:text-white dark:border-dark-border dark:shadow-none dark:backdrop-blur-md focus:outline-none">
 
       {/* Header and Tabs */}
       <div className={`px-4 py-2 border-b border-slate-100 dark:border-dark-border`}>
@@ -284,7 +284,7 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
           {activeTab === 'inbox' && notifications.some(n => !n.IsRead) && (
             <button
               onClick={handleMarkAllRead}
-              className={`text-xs font-semibold text-primary hover:text-primary/80 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200`}
+              className="text-xs font-semibold text-primary hover:text-primary/80 dark:text-blue-400 dark:hover:text-blue-300 bg-transparent transition-colors duration-200"
             >
               Mark all as read
             </button>
@@ -320,7 +320,7 @@ const ActivityNotifications = ({ isOpen, onClose, onUnreadCountChange }) => {
               <div
                 key={noti.NotificationID}
                 onClick={() => handleNotificationClick(noti)}
-                className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-hover/20 transition-all duration-150 relative ${!noti.IsRead ? 'bg-primary/5' : ''
+                className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-hover/20 transition-all duration-150 relative ${!noti.IsRead ? 'bg-primary/5 dark:bg-blue-500/10' : ''
                   }`}
               >
                 {!noti.IsRead && (
