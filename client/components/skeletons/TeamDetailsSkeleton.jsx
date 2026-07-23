@@ -4,7 +4,7 @@ const TeamDetailsSkeleton = () => {
   const skeletonClass = 'animate-pulse bg-gray-200 dark:bg-gray-700 rounded';
 
   return (
-    <div className="mx-auto">
+    <div className="mx-auto p-4">
       {/* Top Info Card */}
       <div className="rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 dark:bg-[#0f1729]/40 dark:border-gray-700 p-4 mb-4">
         <div className="flex items-start justify-between gap-4">

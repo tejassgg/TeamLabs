@@ -12,7 +12,7 @@ import CustomModal from '../components/shared/CustomModal';
 
 const TimeSheet = () => {
     const { userDetails, getTableHeaderClasses, getTableHeaderTextClasses, getTableRowClasses, getTableTextClasses, getTableSecondaryTextClasses, organization } = useGlobal();
-        const { showToast } = useToast();
+    const { showToast } = useToast();
     const [userTimeSheet, setUserTimeSheet] = useState([]);
     const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString());
     const [punchID, setPunchID] = useState();
@@ -49,7 +49,8 @@ const TimeSheet = () => {
         () => timesheetService.getTimeSheetHistory(formattedDate),
         {
             revalidateOnFocus: false,
-            dedupingInterval: 2000 }
+            dedupingInterval: 2000
+        }
     );
 
     const loading = !timesheetData && !fetchError && !!userDetails?._id;
@@ -452,14 +453,10 @@ const TimeSheet = () => {
     }, [punchedInTime, punchedOutTime]);
 
     return (
-        // --- JSX Structure ---
-        // The overall JSX structure remains the same as the previous version.
-        // No changes needed here, only the generateExcelReport function was modified.
-        <div>
-            <div className="w-full text-gray-900 dark:text-white lg:grid lg:grid-cols-5 lg:gap-4 flex flex-col-reverse mt-4 bg-white dark:bg-dark-bg">
+        <div className='p-4'>
+            <div className="w-full text-gray-900 dark:text-white lg:grid lg:grid-cols-5 lg:gap-4 flex flex-col-reverse bg-white dark:bg-dark-bg">
                 {/* TimeSheet Table */}
                 <div className={`col-span-4`}>
-                    {/* --- MODIFIED SECTION --- */}
                     <div className="flex items-center justify-end mb-4 gap-4">
                         <div className="flex-col text-right">
                             <button
@@ -622,7 +619,8 @@ const TimeSheet = () => {
                                 weekday: 'long',
                                 year: 'numeric',
                                 month: 'long',
-                                day: 'numeric' })}
+                                day: 'numeric'
+                            })}
                         </span>
                     </div>
 

@@ -27,7 +27,7 @@ const TaskDetailsPage = () => {
     const { theme } = useTheme();
     const { userDetails, formatTimeAgo, openAddTaskModal } = useGlobal();
     const { showToast } = useToast();
-    
+
     const [task, setTask] = useState(null);
     const [project, setProject] = useState(null);
     const [error, setError] = useState('');
@@ -165,7 +165,8 @@ const TaskDetailsPage = () => {
         () => taskDetailsService.getFullTaskDetails(taskId),
         {
             revalidateOnFocus: false,
-            dedupingInterval: 5000 }
+            dedupingInterval: 5000
+        }
     );
 
     const loading = !fullTaskDetails && !fetchError && !!taskId;
@@ -514,27 +515,6 @@ const TaskDetailsPage = () => {
         // eslint-disable-next-line
     }, [taskId, activityPage]);
 
-    const handleEditTaskName = () => {
-        setEditingTaskName(true);
-        setNewTaskName(task.Name);
-    };
-
-    const handleSaveTaskName = async () => {
-        if (!newTaskName.trim() || newTaskName === task.Name) {
-            setEditingTaskName(false);
-            return;
-        }
-        try {
-            await taskService.updateTask(task.TaskID, { Name: newTaskName });
-            setTask(prev => ({ ...prev, Name: newTaskName }));
-            showToast('Task name updated', 'success');
-        } catch (err) {
-            showToast('Failed to update task name', 'error');
-        } finally {
-            setEditingTaskName(false);
-        }
-    };
-
     const handleFindCommits = async () => {
         if (!project) return;
         setGitCommitsLoading(true);
@@ -681,7 +661,7 @@ const TaskDetailsPage = () => {
             <Head>
                 <title>{task.TicketNumber ? `${task.TicketNumber} - ${task.Name}` : task.Name}</title>
             </Head>
-            <div className="mx-auto">
+            <div className="mx-auto p-4">
                 {/* Mobile View */}
                 <div className="lg:hidden space-y-2 pb-28 px-1">
                     {/* Title */}
@@ -1119,10 +1099,10 @@ const TaskDetailsPage = () => {
                                         return (
                                             <div key={step.status} className="flex flex-col items-center relative z-20">
                                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all duration-300 ${isCompleted
-                                                        ? 'bg-green-500 text-white shadow-lg'
-                                                        : isCurrent
-                                                            ? `${stepStatusInfo.statusStyle.bgLight} ${stepStatusInfo.statusStyle.textLight} bg-gray-200 shadow-lg scale-110`
-                                                            : `${stepStatusInfo.statusStyle.bgLight} ${stepStatusInfo.statusStyle.textLight} bg-gray-200`
+                                                    ? 'bg-green-500 text-white shadow-lg'
+                                                    : isCurrent
+                                                        ? `${stepStatusInfo.statusStyle.bgLight} ${stepStatusInfo.statusStyle.textLight} bg-gray-200 shadow-lg scale-110`
+                                                        : `${stepStatusInfo.statusStyle.bgLight} ${stepStatusInfo.statusStyle.textLight} bg-gray-200`
                                                     } dark:${isCompleted
                                                         ? 'bg-green-500 text-white'
                                                         : isCurrent
@@ -1136,10 +1116,10 @@ const TaskDetailsPage = () => {
                                                     )}
                                                 </div>
                                                 <span className={`text-xs font-medium text-center max-w-16 whitespace-nowrap ${isCompleted
-                                                        ? 'text-green-600 '
-                                                        : isCurrent
-                                                            ? `${stepStatusInfo.statusStyle.textLight}`
-                                                            : `${stepStatusInfo.statusStyle.textLight}`
+                                                    ? 'text-green-600 '
+                                                    : isCurrent
+                                                        ? `${stepStatusInfo.statusStyle.textLight}`
+                                                        : `${stepStatusInfo.statusStyle.textLight}`
                                                     } dark:${isCompleted
                                                         ? 'text-green-400'
                                                         : isCurrent
@@ -1817,8 +1797,8 @@ const TaskDetailsPage = () => {
                                 onClick={handleSubmitGitLink}
                                 disabled={!gitCommitSha || gitSubmitting}
                                 className={`px-4 py-2.5 rounded-xl text-white font-semibold transition-all duration-200 text-sm ${!gitCommitSha
-                                        ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 cursor-not-allowed border border-gray-200 dark:border-zinc-800'
-                                        : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md'
+                                    ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 cursor-not-allowed border border-gray-200 dark:border-zinc-800'
+                                    : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md'
                                     } px-4 py-2.5 rounded-xl text-white font-semibold transition-all duration-200 text-sm ${!gitCommitSha
                                         ? 'bg-zinc-850 text-zinc-500 cursor-not-allowed border border-zinc-800'
                                         : 'bg-blue-600 hover:bg-blue-700'
@@ -1943,8 +1923,8 @@ const TaskDetailsPage = () => {
                                                         setGitCommitMessage(`PR #${c.number}: ${c.title}`);
                                                     }}
                                                     className={`w-full text-left p-3 rounded-xl transition-all duration-200 flex items-start gap-3 border relative overflow-hidden ${isSelected
-                                                            ? 'bg-blue-50/60 border-blue-200 text-blue-900 shadow-sm scale-[0.99]'
-                                                            : 'bg-transparent border-transparent hover:bg-gray-50/70 text-gray-700'
+                                                        ? 'bg-blue-50/60 border-blue-200 text-blue-900 shadow-sm scale-[0.99]'
+                                                        : 'bg-transparent border-transparent hover:bg-gray-50/70 text-gray-700'
                                                         } w-full text-left p-3 rounded-xl transition-all duration-200 flex items-start gap-3 border relative overflow-hidden ${isSelected
                                                             ? 'bg-blue-950/20 border-blue-800 text-blue-300 shadow-sm scale-[0.99]'
                                                             : 'bg-transparent border-transparent hover:bg-zinc-800/40 text-zinc-300'
@@ -1957,8 +1937,8 @@ const TaskDetailsPage = () => {
 
                                                     {/* PR Icon Avatar circle */}
                                                     <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-sm font-bold ${isSelected
-                                                            ? 'bg-blue-100 text-blue-700'
-                                                            : 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400'
+                                                        ? 'bg-blue-100 text-blue-700'
+                                                        : 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400'
                                                         } w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-sm font-bold ${isSelected
                                                             ? 'bg-blue-900/40 text-blue-300'
                                                             : 'bg-zinc-850 text-zinc-405'
@@ -1970,8 +1950,8 @@ const TaskDetailsPage = () => {
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex justify-between items-center gap-2 mb-0.5">
                                                             <span className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded ${isSelected
-                                                                    ? 'bg-blue-100 text-blue-850'
-                                                                    : 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300'
+                                                                ? 'bg-blue-100 text-blue-850'
+                                                                : 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300'
                                                                 } font-mono text-xs font-bold px-1.5 py-0.5 rounded ${isSelected
                                                                     ? 'bg-blue-900/60 text-blue-305'
                                                                     : 'bg-zinc-800 text-zinc-300'
@@ -2005,8 +1985,8 @@ const TaskDetailsPage = () => {
                                                         setGitCommitMessage(`Branch: ${c.name}`);
                                                     }}
                                                     className={`w-full text-left p-3 rounded-xl transition-all duration-200 flex items-start gap-3 border relative overflow-hidden ${isSelected
-                                                            ? 'bg-blue-50/60 border-blue-200 text-blue-900 shadow-sm scale-[0.99]'
-                                                            : 'bg-transparent border-transparent hover:bg-gray-50/70 text-gray-700'
+                                                        ? 'bg-blue-50/60 border-blue-200 text-blue-900 shadow-sm scale-[0.99]'
+                                                        : 'bg-transparent border-transparent hover:bg-gray-50/70 text-gray-700'
                                                         } w-full text-left p-3 rounded-xl transition-all duration-200 flex items-start gap-3 border relative overflow-hidden ${isSelected
                                                             ? 'bg-blue-950/20 border-blue-800 text-blue-300 shadow-sm scale-[0.99]'
                                                             : 'bg-transparent border-transparent hover:bg-zinc-800/40 text-zinc-300'
@@ -2019,8 +1999,8 @@ const TaskDetailsPage = () => {
 
                                                     {/* Branch Icon Avatar circle */}
                                                     <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-sm font-bold ${isSelected
-                                                            ? 'bg-blue-100 text-blue-700'
-                                                            : 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400'
+                                                        ? 'bg-blue-100 text-blue-700'
+                                                        : 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400'
                                                         } w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-sm font-bold ${isSelected
                                                             ? 'bg-blue-900/40 text-blue-300'
                                                             : 'bg-zinc-850 text-zinc-405'
@@ -2032,8 +2012,8 @@ const TaskDetailsPage = () => {
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex justify-between items-center gap-2 mb-0.5">
                                                             <span className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded ${isSelected
-                                                                    ? 'bg-blue-100 text-blue-850'
-                                                                    : 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300'
+                                                                ? 'bg-blue-100 text-blue-850'
+                                                                : 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300'
                                                                 } font-mono text-xs font-bold px-1.5 py-0.5 rounded ${isSelected
                                                                     ? 'bg-blue-900/60 text-blue-305'
                                                                     : 'bg-zinc-800 text-zinc-300'
@@ -2074,8 +2054,8 @@ const TaskDetailsPage = () => {
                                                     setGitCommitMessage(c.message || '');
                                                 }}
                                                 className={`w-full text-left p-3 rounded-xl transition-all duration-200 flex items-start gap-3 border relative overflow-hidden ${isSelected
-                                                        ? 'bg-blue-50/60 border-blue-200 text-blue-900 shadow-sm scale-[0.99]'
-                                                        : 'bg-transparent border-transparent hover:bg-gray-50/70 text-gray-700'
+                                                    ? 'bg-blue-50/60 border-blue-200 text-blue-900 shadow-sm scale-[0.99]'
+                                                    : 'bg-transparent border-transparent hover:bg-gray-50/70 text-gray-700'
                                                     } w-full text-left p-3 rounded-xl transition-all duration-200 flex items-start gap-3 border relative overflow-hidden ${isSelected
                                                         ? 'bg-blue-950/20 border-blue-800 text-blue-300 shadow-sm scale-[0.99]'
                                                         : 'bg-transparent border-transparent hover:bg-zinc-800/40 text-zinc-300'
@@ -2083,8 +2063,8 @@ const TaskDetailsPage = () => {
                                             >
                                                 {/* Author Avatar circle */}
                                                 <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold ${isSelected
-                                                        ? 'bg-blue-100 text-blue-700'
-                                                        : 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400'
+                                                    ? 'bg-blue-100 text-blue-700'
+                                                    : 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400'
                                                     } w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold ${isSelected
                                                         ? 'bg-blue-900/40 text-blue-300'
                                                         : 'bg-zinc-850 text-zinc-405'
@@ -2096,8 +2076,8 @@ const TaskDetailsPage = () => {
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex justify-between items-center gap-2 mb-0.5">
                                                         <span className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded ${isSelected
-                                                                ? 'bg-blue-100 text-blue-850'
-                                                                : 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300'
+                                                            ? 'bg-blue-100 text-blue-850'
+                                                            : 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300'
                                                             } font-mono text-xs font-bold px-1.5 py-0.5 rounded ${isSelected
                                                                 ? 'bg-blue-900/60 text-blue-305'
                                                                 : 'bg-zinc-800 text-zinc-300'

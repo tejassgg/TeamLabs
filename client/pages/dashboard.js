@@ -133,7 +133,7 @@ const Dashboard = () => {
   // SWR-based whats-up query
   const { data: whatsUpData, error: whatsUpError, mutate: mutateWhatsUp } = useSWR(
     userDetails?.organizationID ? `/dashboard/${userDetails.organizationID}/whats-up` : null,
-    null,
+    (url) => api.get(url).then(res => res.data),
     {
       revalidateOnFocus: true,
       dedupingInterval: 5000
@@ -217,7 +217,7 @@ const Dashboard = () => {
   // SWR-based dashboard stats query
   const { data: dashboardData, error: dashboardFetchError } = useSWR(
     userDetails?.organizationID ? `/dashboard/${userDetails.organizationID}` : null,
-    null,
+    (url) => api.get(url).then(res => res.data),
     {
       revalidateOnFocus: false,
       dedupingInterval: 5000
@@ -716,7 +716,9 @@ const Dashboard = () => {
                     <div className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full self-start sm:self-center bg-gray-100 text-gray-500 dark:bg-dark-bg dark:text-zinc-400 dark:border dark:border-zinc-800`}>
                       <span>Updated just now</span>
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           mutateWhatsUp();
                           showToast('Refreshed!', 'success');
                         }}
@@ -858,7 +860,7 @@ const Dashboard = () => {
                         return (
                           <div
                             key={todo.TaskID}
-                            className={`p-4 rounded-2xl border ${scheme.bg} ${scheme.border} flex flex-col gap-3 relative transition-all duration-200 hover:shadow-md`}
+                            className={`p-4 rounded-2xl border ${scheme.bg} ${scheme.border} flex flex-col gap-1.5 relative transition-all duration-200 hover:shadow-md`}
                           >
                             <div className="flex items-start justify-between w-full">
                               <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${scheme.accent} mt-0.5`}>

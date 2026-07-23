@@ -55,7 +55,7 @@ const TasksSkeleton = () => {
   );
 
   return (
-    <div className="w-full">
+    <div className="w-full p-4">
       {/* Stats Hero Card Skeleton */}
       <div className="w-full mb-6">
         <div className={`border rounded-2xl p-6 max-w-5xl ${"bg-white border-gray-200 shadow-sm dark:bg-dark-bg dark:border-zinc-800/80 dark:shadow-none"}`}>

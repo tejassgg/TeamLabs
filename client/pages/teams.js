@@ -27,7 +27,8 @@ const TeamsPage = () => {
     () => teamService.getTeamsOverview(userDetails._id),
     {
       revalidateOnFocus: false,
-      dedupingInterval: 5000 }
+      dedupingInterval: 5000
+    }
   );
 
   const loading = !SWRTeamsData && !SWRTeamsError;
@@ -94,11 +95,11 @@ const TeamsPage = () => {
   }
 
   return (
-    <div className="mx-auto bg-white dark:bg-dark-bg text-gray-900 dark:text-white">
+    <div className="mx-auto bg-white dark:bg-dark-bg text-gray-900 dark:text-white p-4">
       {/* Page Header */}
       <div className="mb-4">
         {/* Search Bar */}
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center justify-between">
           <div className="relative max-w-2xl">
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
             <input

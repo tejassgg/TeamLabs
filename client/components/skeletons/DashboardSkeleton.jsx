@@ -36,14 +36,39 @@ const DashboardSkeleton = () => {
   const pulse = 'animate-pulse';
 
   return (
-    <div className={`text-gray-900 dark:text-[#F3F6FA] ${pulse} space-y-6`}>
-      {/* Top KPIs: Total Projects, Teams, Upcoming Deadlines, People */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPI />
-        <KPI />
-        <KPI />
-        <KPI />
+    <div className={`text-gray-900 dark:text-[#F3F6FA] ${pulse}`}>
+      {/* Tab Navigation Skeleton */}
+      <div className="border-b border-gray-200 dark:border-zinc-800 mb-6">
+        <div className="-mb-px flex items-center justify-between">
+          <div className="flex-1 overflow-x-auto scrollbar-none">
+            <nav className="flex space-x-2 min-w-max ml-2 mt-2 pb-3 -mb-px">
+              {/* Active "What's Up" tab */}
+              <div className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white dark:bg-zinc-900 border-zinc-700/80 shadow-xs text-blue-600 relative animate-pulse">
+                <div className="w-4 h-4 bg-blue-500/30 rounded-full animate-pulse"></div>
+                <div className="h-4 w-20 bg-blue-500/20 rounded-md animate-pulse"></div>
+                <div className="absolute -bottom-[13px] left-0 right-0 h-[3px] bg-blue-600 dark:bg-blue-400 rounded-t-full"></div>
+              </div>
+              {/* Inactive tabs */}
+              {['Metrics & Widgets', 'Manage Board'].map((tab, index) => (
+                <div key={index} className="flex items-center gap-2 px-4 py-2 border border-transparent text-gray-405">
+                  <div className={`w-4 h-4 rounded-full bg-gray-200 dark:bg-gray-700`}></div>
+                  <div className={`h-4 w-24 bg-gray-150 dark:bg-gray-700/50 rounded`}></div>
+                </div>
+              ))}
+            </nav>
+          </div>
+        </div>
       </div>
+
+      {/* Grid Content Wrapper */}
+      <div className="px-4 space-y-6">
+        {/* Top KPIs: Total Projects, Teams, Upcoming Deadlines, People */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <KPI />
+          <KPI />
+          <KPI />
+          <KPI />
+        </div>
 
       {/* Task Completion Summary: three metrics + progress bar */}
       <Card>
@@ -122,6 +147,7 @@ const DashboardSkeleton = () => {
           </div>
         </div>
       </Card>
+      </div>
     </div>
   );
 };

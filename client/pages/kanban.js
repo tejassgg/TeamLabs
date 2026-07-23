@@ -310,10 +310,10 @@ const KanbanBoard = ({ projectId: forcedProjectId = null, selectedUserStoryProp 
       <Head>
         <title>Kanban Board | TeamLabs</title>
       </Head>
-      <div className="mx-auto">
+      <div className="mx-auto p-4">
 
         {!forcedProjectId && (
-          <div className="flex items-center justify-between gap-4 flex-col-reverse sm:flex-row mt-2 mb-4">
+          <div className="flex items-center justify-between gap-4 flex-col-reverse sm:flex-row mb-4">
             {/* Project Info Banner */}
             <div className={'hidden sm:flex bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 flex items-center gap-3 border border-blue-100 dark:from-blue-900/30 dark:to-indigo-900/30 dark:border-blue-800/50'}>
               <FaInfoCircle className={'text-blue-500 dark:text-blue-400'} size={20} />

@@ -1,8 +1,8 @@
 import React from 'react';
 
 const KanbanSkeleton = ({ embedded = false }) => {
-  
-  
+
+
   // Render a mock skeleton task card
   const SkeletonTaskCard = ({ hasSubtasks = false, progress = '30%' }) => (
     <div
@@ -70,7 +70,7 @@ const KanbanSkeleton = ({ embedded = false }) => {
   );
 
   return (
-    <div className="w-full">
+    <div className="w-full p-4">
       {/* Currently Viewing Banner Skeleton */}
       {!embedded && (
         <div className="flex items-center justify-between gap-4 flex-col sm:flex-row mb-6">

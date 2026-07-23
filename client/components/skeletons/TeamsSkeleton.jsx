@@ -67,7 +67,7 @@ const TeamsSkeleton = () => {
   ;
 
   return (
-    <div className={'mx-auto bg-white text-gray-900 dark:mx-auto dark:bg-dark-bg dark:text-white'}>
+    <div className={'mx-auto bg-white text-gray-900 dark:mx-auto dark:bg-dark-bg dark:text-white p-4'}>
       {/* Page Header Skeleton */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">

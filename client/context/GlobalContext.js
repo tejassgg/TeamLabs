@@ -862,6 +862,8 @@ export const GlobalProvider = ({ children }) => {
     tasksDetails,
     organization,
     projectStatuses,
+    searchData,
+    searchLoading,
     loading,
     error,
     onboardingData,

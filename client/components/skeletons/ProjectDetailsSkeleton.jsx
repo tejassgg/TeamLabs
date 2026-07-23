@@ -8,149 +8,157 @@ const ProjectDetailsSkeleton = () => {
   return (
     <div className="mx-auto select-none">
       {/* Tab Navigation Skeleton */}
-      <div className="mb-6">
-        <div className="border-b border-gray-200 dark:border-zinc-800">
-          <div className="-mb-px flex items-center justify-between">
-            <nav className="flex space-x-8">
+      <div className="border-b border-gray-200 dark:border-zinc-800">
+        <div className="-mb-px flex items-center justify-between">
+          <div className="flex-1 overflow-x-auto">
+            <nav className="flex space-x-2 min-w-max ml-2 mt-2 pb-3 -mb-px">
               {/* Active "Manage Project" tab */}
-              <div className="flex items-center gap-2 py-4 px-1 border-b-2 border-blue-600">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white dark:border-zinc-700/80 shadow-xs text-blue-600 relative">
                 <div className="w-4 h-4 bg-blue-500/30 rounded-full animate-pulse"></div>
                 <div className="h-4 w-28 bg-blue-500/20 rounded-md animate-pulse"></div>
+                <div className="absolute -bottom-[13px] left-0 right-0 h-[3px] bg-blue-600 dark:bg-blue-400 rounded-t-full"></div>
               </div>
               {/* Inactive tabs */}
-              {['Board', 'Timeline', 'List', 'Files', 'Knowledge Base', 'Releases'].map((tab, index) => (
-                <div key={index} className={`${tab === 'Board' ? 'hidden sm:flex' : 'flex'} items-center gap-2 py-4 px-1`}>
+              {['Kanban', 'Timeline', 'List View', 'Files', 'Knowledge Base', 'Reports', 'Releases'].map((tab, index) => (
+                <div key={index} className={`${tab === 'Kanban' ? 'hidden sm:flex' : 'flex'} items-center gap-2 px-4 py-2 border border-transparent text-gray-400`}>
                   <div className={`w-4 h-4 rounded-full ${skeletonClass}`}></div>
                   <div className={`h-4 w-16 ${skeletonSubClass}`}></div>
                 </div>
               ))}
             </nav>
-            <div className="flex items-center gap-3">
-              <div className={`h-8 w-8 rounded-full ${skeletonClass}`}></div>
-              <div className={`h-8 w-8 rounded-full ${skeletonClass}`}></div>
-            </div>
+          </div>
+          <div className="flex items-center gap-3 mr-4">
+            <div className={`h-8 w-8 rounded-full ${skeletonClass}`}></div>
+            <div className={`h-8 w-8 rounded-full ${skeletonClass}`}></div>
           </div>
         </div>
       </div>
 
-      {/* Unified Top Layout Hero Banner (Details + KPI Progress + Goals) */}
-      <div className={`mb-6 border rounded-2xl p-6 ${cardClass} relative overflow-hidden`}>
-        {/* Shimmer Effect */}
-        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none"></div>
+      {/* Tab Content Skeleton */}
+      <div className="p-4">
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
-          {/* Left Section: Details */}
-          <div className="lg:col-span-3 flex flex-col justify-between gap-4 min-w-0 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-zinc-800/85 pb-6 lg:pb-0 lg:pr-6">
-            <div className="space-y-4">
-              {/* Top Row: Statuses */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {/* Status pill mock */}
-                  <div className="h-6 w-24 rounded-full bg-blue-50 border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800/40 animate-pulse flex items-center px-2.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-2"></div>
-                    <div className="h-2.5 w-12 bg-blue-200 dark:bg-blue-800 rounded"></div>
-                  </div>
-                  {/* Priority badge mock */}
-                  <div className="h-6 w-16 rounded-full bg-red-50 border border-red-100 dark:bg-red-900/20 dark:border-red-800/40 animate-pulse flex items-center px-2.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 mr-2"></div>
-                    <div className="h-2.5 w-8 bg-red-200 dark:bg-red-800 rounded"></div>
-                  </div>
-                </div>
-                {/* Deadline status mock */}
-                <div className="h-6 w-28 rounded-full bg-green-50 border border-green-100 dark:bg-green-900/20 dark:border-green-800/40 animate-pulse flex items-center px-2.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2"></div>
-                  <div className="h-2.5 w-16 bg-green-200 dark:bg-green-800 rounded"></div>
-                </div>
-              </div>
+      {/* Three distinct Bento cards in a row */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+        {/* Card 1: Project Details (lg:col-span-3) */}
+        <div className={`lg:col-span-3 border rounded-2xl p-6 ${cardClass} relative overflow-hidden flex flex-col justify-between gap-4 shadow-xs`}>
+          {/* Shimmer Effect */}
+          <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none"></div>
 
-              {/* Middle Row: Name & Description */}
-              <div className="space-y-3">
-                <div className={`h-7 w-2/3 ${skeletonClass}`}></div>
-                <div className="space-y-2 pt-1">
-                  <div className={`h-3.5 w-full ${skeletonSubClass}`}></div>
-                  <div className={`h-3.5 w-11/12 ${skeletonSubClass}`}></div>
-                  <div className={`h-3.5 w-4/5 ${skeletonSubClass}`}></div>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Row: Members & Actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-gray-100 dark:border-zinc-800/60">
-              {/* Avatars stacked */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center -space-x-2">
-                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] ${skeletonClass}`}></div>
-                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] ${skeletonClass}`}></div>
-                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] ${skeletonClass}`}></div>
-                  <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] ${skeletonClass}`}></div>
-                  <div className="w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] flex items-center justify-center text-xs font-bold bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400">+5</div>
-                </div>
-                <div className={`h-3 w-20 ${skeletonSubClass}`}></div>
-              </div>
-              {/* Action buttons (Edit & Share) */}
+          <div className="space-y-4">
+            {/* Top Row: Category Tags and Days Left */}
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className={`w-9 h-9 rounded-xl border border-gray-200 dark:border-zinc-800 ${skeletonClass}`}></div>
-                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/30 animate-pulse"></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Middle Section: Circular Progress */}
-          <div className="lg:col-span-1 flex flex-col justify-between gap-4 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-zinc-800/85 pb-6 lg:pb-0 lg:pr-6">
-            <div className="flex flex-col items-center justify-center gap-2 py-2">
-              {/* Circular progress path placeholder */}
-              <div className="relative w-32 h-32 flex items-center justify-center flex-shrink-0">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle cx="64" cy="64" r="54" className="text-gray-100 dark:text-zinc-800" strokeWidth="10" stroke="currentColor" fill="transparent" />
-                  <circle cx="64" cy="64" r="54" className="text-emerald-500/20 animate-pulse" strokeWidth="10" strokeDasharray="339.3" strokeDashoffset="80" strokeLinecap="round" stroke="currentColor" fill="transparent" />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center text-center">
-                  <div className={`text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white ${skeletonClass} h-6 w-12 mb-1.5`}></div>
-                  <div className={`text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mt-1 ${skeletonSubClass} h-3.5 w-16`}></div>
+                {/* Deployment Tag */}
+                <div className="h-6 w-24 rounded-full bg-pink-50 border border-pink-100 dark:bg-pink-950/20 dark:border-pink-900/40 animate-pulse flex items-center px-2.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-pink-500 mr-2"></div>
+                  <div className="h-2.5 w-14 bg-pink-200 dark:bg-pink-800 rounded"></div>
+                </div>
+                {/* Priority Badge */}
+                <div className="h-6 w-16 rounded-full bg-red-50 border border-red-100 dark:bg-red-900/20 dark:border-red-800/40 animate-pulse flex items-center px-2.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 mr-2"></div>
+                  <div className="h-2.5 w-8 bg-red-200 dark:bg-red-800 rounded"></div>
                 </div>
               </div>
-
-              <div className="flex flex-col items-center gap-1.5 text-center">
-                <div className={`h-5 w-16 rounded-full ${skeletonClass}`}></div>
-                <div className={`h-3.5 w-32 ${skeletonSubClass}`}></div>
+              {/* Days Left badge */}
+              <div className="h-6 w-28 rounded-full bg-green-50 border border-green-100 dark:bg-green-900/20 dark:border-green-800/40 animate-pulse flex items-center px-2.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2"></div>
+                <div className="h-2.5 w-16 bg-green-200 dark:bg-green-800 rounded"></div>
               </div>
             </div>
-            {/* Stats counts grid */}
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-zinc-800/80">
-              <div className="p-2 rounded-xl bg-gray-50 dark:bg-zinc-800/30">
-                <div className={`h-3 w-12 mb-2 ${skeletonSubClass}`}></div>
-                <div className={`h-5 w-6 ${skeletonClass}`}></div>
-              </div>
-              <div className="p-2 rounded-xl bg-gray-50 dark:bg-zinc-800/30">
-                <div className={`h-3 w-16 mb-2 ${skeletonSubClass}`}></div>
-                <div className={`h-5 w-6 ${skeletonClass}`}></div>
+
+            {/* Middle Row: Project Name & Description */}
+            <div className="space-y-3">
+              <div className={`h-7 w-2/3 ${skeletonClass}`}></div>
+              <div className="space-y-2 pt-1">
+                <div className={`h-3.5 w-full ${skeletonSubClass}`}></div>
+                <div className={`h-3.5 w-11/12 ${skeletonSubClass}`}></div>
+                <div className={`h-3.5 w-4/5 ${skeletonSubClass}`}></div>
               </div>
             </div>
           </div>
 
-          {/* Right Section: Goals Tracker */}
-          <div className="lg:col-span-1 flex flex-col justify-between gap-4">
-            <div>
-              {/* Inline Goals Title Badge */}
-              <div className="flex items-center gap-1.5 mb-4 border-b border-gray-100 dark:border-zinc-800/80 pb-3">
-                <div className={`w-3.5 h-3.5 rounded-full ${skeletonClass}`}></div>
-                <div className={`h-3 w-20 ${skeletonSubClass}`}></div>
+          {/* Bottom Row: Members & Actions */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-gray-100 dark:border-zinc-800/60">
+            {/* Avatars stacked */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center -space-x-2">
+                <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] ${skeletonClass}`}></div>
+                <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] ${skeletonClass}`}></div>
+                <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] ${skeletonClass}`}></div>
+                <div className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] ${skeletonClass}`}></div>
+                <div className="w-8 h-8 rounded-full border-2 border-white dark:border-[#121212] flex items-center justify-center text-xs font-bold bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400">+5</div>
               </div>
-              {/* Goals List */}
-              <div className="space-y-3.5 pr-1">
-                {[1, 2, 3, 4].map((g) => (
-                  <div key={g} className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full border flex-shrink-0 border-gray-300 bg-white dark:border-zinc-700 dark:bg-zinc-800/40 ${skeletonClass}`}></div>
-                    <div className={`h-3.5 flex-1 ${skeletonSubClass}`} style={{ width: g === 1 ? '75%' : g === 2 ? '60%' : g === 3 ? '80%' : '50%' }}></div>
-                  </div>
-                ))}
+              <div className={`h-3 w-20 ${skeletonSubClass}`}></div>
+            </div>
+            {/* Action buttons (Edit & Share) */}
+            <div className="flex items-center gap-2">
+              <div className={`w-9 h-9 rounded-xl border border-gray-200 dark:border-zinc-800 ${skeletonClass}`}></div>
+              <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/30 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 2: Progress (lg:col-span-1) */}
+        <div className={`lg:col-span-1 border rounded-2xl p-6 ${cardClass} relative overflow-hidden flex flex-col justify-between gap-4 shadow-xs`}>
+          {/* Shimmer Effect */}
+          <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none"></div>
+
+          <div className="flex flex-col items-center justify-center gap-2 py-2">
+            {/* Circular progress path placeholder */}
+            <div className="relative w-32 h-32 flex items-center justify-center flex-shrink-0">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle cx="64" cy="64" r="54" className="text-gray-100 dark:text-zinc-800" strokeWidth="10" stroke="currentColor" fill="transparent" />
+                <circle cx="64" cy="64" r="54" className="text-emerald-500/20 animate-pulse" strokeWidth="10" strokeDasharray="339.3" strokeDashoffset="80" strokeLinecap="round" stroke="currentColor" fill="transparent" />
+              </svg>
+              <div className="absolute flex flex-col items-center justify-center text-center">
+                <div className={`text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white ${skeletonClass} h-6 w-12 mb-1.5`}></div>
+                <div className={`text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mt-1 ${skeletonSubClass} h-3.5 w-16`}></div>
               </div>
             </div>
-            {/* Add goal placeholder */}
-            <div className="pt-2 border-t border-gray-100 dark:border-zinc-800/60 flex gap-2">
-              <div className={`h-8 flex-1 ${skeletonSubClass}`}></div>
-              <div className={`h-8 w-12 ${skeletonClass}`}></div>
+
+            <div className="flex flex-col items-center gap-1.5 text-center">
+              <div className={`h-5 w-16 rounded-full ${skeletonClass}`}></div>
+              <div className={`h-3.5 w-32 ${skeletonSubClass}`}></div>
             </div>
+          </div>
+          {/* Stats counts grid */}
+          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-zinc-800/80">
+            <div className="p-2 rounded-xl bg-gray-50 dark:bg-zinc-800/30">
+              <div className={`h-3 w-12 mb-2 ${skeletonSubClass}`}></div>
+              <div className={`h-5 w-6 ${skeletonClass}`}></div>
+            </div>
+            <div className="p-2 rounded-xl bg-gray-50 dark:bg-zinc-800/30">
+              <div className={`h-3 w-16 mb-2 ${skeletonSubClass}`}></div>
+              <div className={`h-5 w-6 ${skeletonClass}`}></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Project Goals (lg:col-span-1) */}
+        <div className={`lg:col-span-1 border rounded-2xl p-6 ${cardClass} relative overflow-hidden flex flex-col justify-between gap-4 shadow-xs`}>
+          {/* Shimmer Effect */}
+          <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none"></div>
+
+          <div>
+            {/* Inline Goals Title Badge */}
+            <div className="flex items-center gap-1.5 mb-4 border-b border-gray-100 dark:border-zinc-800/80 pb-3">
+              <div className={`w-3.5 h-3.5 rounded-full ${skeletonClass}`}></div>
+              <div className={`h-3 w-20 ${skeletonSubClass}`}></div>
+            </div>
+            {/* Goals List */}
+            <div className="space-y-3.5 pr-1">
+              {[1, 2, 3, 4].map((g) => (
+                <div key={g} className="flex items-center gap-3">
+                  <div className={`w-4 h-4 rounded-full border flex-shrink-0 border-gray-300 bg-white dark:border-zinc-700 dark:bg-zinc-800/40 ${skeletonClass}`}></div>
+                  <div className={`h-3.5 flex-1 ${skeletonSubClass}`} style={{ width: g === 1 ? '75%' : g === 2 ? '60%' : g === 3 ? '80%' : '50%' }}></div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Add goal placeholder */}
+          <div className="pt-2 border-t border-gray-100 dark:border-zinc-800/60 flex gap-2">
+            <div className={`h-8 flex-1 ${skeletonSubClass}`}></div>
+            <div className={`h-8 w-12 ${skeletonClass}`}></div>
           </div>
         </div>
       </div>
@@ -269,7 +277,7 @@ const ProjectDetailsSkeleton = () => {
                   <th className="py-3 px-4 text-left">
                     <div className={`h-3 w-16 ${skeletonClass}`}></div>
                   </th>
-                  <th className="py-3 px-4 text-center">
+                  <th className="py-3 px-4 text-left">
                     <div className={`h-3 w-24 ${skeletonClass}`}></div>
                   </th>
                   <th className="py-3 px-4 text-left">
@@ -308,19 +316,13 @@ const ProjectDetailsSkeleton = () => {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className={`w-7 h-7 rounded-full ${skeletonClass}`}></div>
-                        <div className="flex flex-col gap-1">
-                          <div className={`h-3 w-20 ${skeletonClass}`}></div>
-                          <div className={`h-2 w-12 ${skeletonSubClass}`}></div>
-                        </div>
+                      <div className="flex flex-col gap-1">
+                        <div className={`h-3 w-24 ${skeletonClass}`}></div>
+                        <div className={`h-2 w-16 ${skeletonSubClass}`}></div>
                       </div>
                     </td>
-                    <td className="py-4 px-4 text-center">
-                      <div className="flex flex-col gap-1 mx-auto w-fit">
-                        <div className={`h-3 w-16 ${skeletonClass}`}></div>
-                        <div className={`h-2.5 w-10 ${skeletonSubClass} mx-auto`}></div>
-                      </div>
+                    <td className="py-4 px-4">
+                      <div className={`h-3.5 w-20 ${skeletonSubClass}`}></div>
                     </td>
                     <td className="py-4 px-4">
                       <div className="h-5 w-16 rounded-full bg-gray-100 dark:bg-zinc-800 animate-pulse"></div>
@@ -342,7 +344,8 @@ const ProjectDetailsSkeleton = () => {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default ProjectDetailsSkeleton;

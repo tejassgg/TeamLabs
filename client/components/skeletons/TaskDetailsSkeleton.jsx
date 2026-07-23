@@ -5,7 +5,7 @@ const TaskDetailsSkeleton = () => {
   const lightSkeletonClass = 'animate-pulse bg-gray-100 dark:bg-gray-800 rounded';
 
   return (
-    <div className="mx-auto">
+    <div className="mx-auto p-4">
       {/* Desktop & Tablet Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
 
